@@ -1,12 +1,9 @@
 package eu.darken.butler.main.ui
 
 import android.os.Bundle
-import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import dagger.hilt.android.AndroidEntryPoint
-import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.recorder.core.RecorderModule
@@ -35,10 +32,8 @@ class MainActivity : Activity2() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val splashScreen = installSplashScreen()
         enableEdgeToEdge()
         theming.notifySplashScreenDone(this)
-        splashScreen.setKeepOnScreenCondition { showSplashScreen && savedInstanceState == null }
 
 //        ui = MainActivityBinding.inflate(layoutInflater)
 //        setContentView(ui.root)

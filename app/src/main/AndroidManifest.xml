@@ -52,7 +52,7 @@
         <activity
             android:name="eu.darken.butler.main.ui.MainActivity"
             android:exported="true"
-            android:theme="@style/AppThemeSplash">
+            android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
