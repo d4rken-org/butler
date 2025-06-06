@@ -41,7 +41,7 @@ sealed class AKnownPkg(override val id: Pkg.Id) : Pkg {
     data object AndroidSystem : AKnownPkg("android")
 
     data object GooglePlay : AKnownPkg("com.android.vending"), AppStore {
-        override val iconRes: Int = R.drawable.ic_baseline_gplay_24
+        override val iconRes: Int = R.drawable.ic_gplay_24
         override val urlGenerator: ((Pkg.Id) -> String) = {
             "https://play.google.com/store/apps/details?id=${it.name}"
         }
