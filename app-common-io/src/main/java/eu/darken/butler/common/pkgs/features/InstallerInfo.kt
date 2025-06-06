@@ -42,7 +42,7 @@ data class InstallerInfo(
     }
 
     fun getIcon(context: Context): Drawable {
-        if (installer == null) return ContextCompat.getDrawable(context, R.drawable.ic_baseline_user_24)!!
+        if (installer == null) return ContextCompat.getDrawable(context, R.drawable.ic_user_24)!!
 
         installer!!.icon?.get(context)?.let { return it }
 

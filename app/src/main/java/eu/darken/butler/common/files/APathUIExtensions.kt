@@ -10,7 +10,7 @@ val FileType.iconRes: Int
         FileType.DIRECTORY -> R.drawable.ic_folder
         FileType.SYMBOLIC_LINK -> R.drawable.ic_file_link
         FileType.FILE -> R.drawable.ic_file
-        FileType.UNKNOWN -> R.drawable.file_question
+        FileType.UNKNOWN -> R.drawable.ic_file_question_24
     }
 
 @get:StringRes

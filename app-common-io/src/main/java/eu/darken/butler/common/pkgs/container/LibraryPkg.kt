@@ -65,7 +65,7 @@ data class LibraryPkg(
 
     override val icon: CaDrawable = caDrawable { context ->
         context.packageManager.getIcon2(id)
-            ?: AppCompatResources.getDrawable(context, R.drawable.ic_baseline_local_library_24)!!
+            ?: AppCompatResources.getDrawable(context, R.drawable.ic_local_library_24)!!
     }.cache()
 
 
