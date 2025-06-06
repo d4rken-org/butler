@@ -41,7 +41,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <application
-        android:name="eu.darken.sdmse.App"
+        android:name="eu.darken.butler.App"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -50,7 +50,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="eu.darken.sdmse.main.ui.MainActivity"
+            android:name="eu.darken.butler.main.ui.MainActivity"
             android:exported="true"
             android:theme="@style/AppThemeSplash">
             <intent-filter>
@@ -59,43 +59,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <receiver
-            android:name=".corpsefinder.core.watcher.UninstallWatcherReceiver"
-            android:enabled="false"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED" />
-
-                <data android:scheme="package" />
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name=".corpsefinder.core.watcher.ExternalWatcherTaskReceiver"
-            android:exported="false" />
-
-        <receiver
-            android:name="eu.darken.sdmse.scheduler.core.SchedulerRestoreReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
-
-        <service
-            android:name=".automation.core.AutomationService"
-            android:exported="false"
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
-            <intent-filter>
-                <action android:name="android.accessibilityservice.AccessibilityService" />
-            </intent-filter>
-            <meta-data
-                android:name="android.accessibilityservice"
-                android:resource="@xml/accessibility_service" />
-        </service>
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -127,15 +90,15 @@
 
         <!-- Debug stuff-->
         <activity
-            android:name="eu.darken.sdmse.common.debug.recorder.ui.RecorderActivity"
+            android:name="eu.darken.butler.common.debug.recorder.ui.RecorderActivity"
             android:theme="@style/AppThemeFloating" />
 
         <service
-            android:name="eu.darken.sdmse.common.debug.recorder.core.RecorderService"
+            android:name="eu.darken.butler.common.debug.recorder.core.RecorderService"
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="This service is part of a bug reporting mechanism. It is explicitly launched by the user to create debug logs and troubleshoot issues within SD Maid itself. It shows an on-going foreground notification that allows the user to control the debug log functionality while the debug log is being created and the user is reproducing the issue." />
+                android:value="This service is part of a bug reporting mechanism. It is explicitly launched by the user to create debug logs and troubleshoot issues within Butler itself. It shows an on-going foreground notification that allows the user to control the debug log functionality while the debug log is being created and the user is reproducing the issue." />
         </service>
     </application>
 

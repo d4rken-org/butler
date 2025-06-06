@@ -3,7 +3,7 @@ package eu.darken.flowshell.core.cmd
 
 import eu.darken.flowshell.core.FlowShellDebug
 import eu.darken.flowshell.core.process.FlowProcess
-import eu.darken.sdmse.common.flow.replayingShare
+import eu.darken.butler.common.flow.replayingShare
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.longs.shouldBeLessThan

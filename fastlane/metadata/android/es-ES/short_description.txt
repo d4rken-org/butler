@@ -1,1 +1,0 @@
-Un asistente de confianza para Android, para mantenerlo limpio y ordenado.

@@ -1,4 +1,4 @@
-package eu.darken.sdmse.common.upgrade.core.billing.client
+package eu.darken.butler.common.upgrade.core.billing.client
 
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingResult

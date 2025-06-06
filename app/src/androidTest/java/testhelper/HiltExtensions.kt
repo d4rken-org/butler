@@ -7,7 +7,7 @@ import android.os.Bundle
 import androidx.fragment.app.Fragment
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
-import eu.darken.sdmse.HiltTestActivity
+import eu.darken.butler.HiltTestActivity
 
 /**
  * https://developer.android.com/training/dependency-injection/hilt-testing#launchfragment

@@ -1,8 +1,8 @@
 package testhelpers.flow
 
-import eu.darken.sdmse.common.debug.logging.Logging.Priority.WARN
-import eu.darken.sdmse.common.debug.logging.asLog
-import eu.darken.sdmse.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.asLog
+import eu.darken.butler.common.debug.logging.log
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*

@@ -1,4 +1,4 @@
-package eu.darken.sdmse.common.upgrade.core.billing.client
+package eu.darken.butler.common.upgrade.core.billing.client
 
 import android.app.Activity
 import com.android.billingclient.api.AcknowledgePurchaseParams
@@ -11,13 +11,13 @@ import com.android.billingclient.api.Purchase.PurchaseState
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import com.android.billingclient.api.queryPurchasesAsync
-import eu.darken.sdmse.common.debug.logging.Logging.Priority.WARN
-import eu.darken.sdmse.common.debug.logging.log
-import eu.darken.sdmse.common.debug.logging.logTag
-import eu.darken.sdmse.common.flow.setupCommonEventHandlers
-import eu.darken.sdmse.common.upgrade.core.billing.BillingManager.Companion.tryMapUserFriendly
-import eu.darken.sdmse.common.upgrade.core.billing.Sku
-import eu.darken.sdmse.common.upgrade.core.billing.SkuDetails
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.flow.setupCommonEventHandlers
+import eu.darken.butler.common.upgrade.core.billing.BillingManager.Companion.tryMapUserFriendly
+import eu.darken.butler.common.upgrade.core.billing.Sku
+import eu.darken.butler.common.upgrade.core.billing.SkuDetails
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope

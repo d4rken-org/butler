@@ -1,10 +1,10 @@
-package eu.darken.sdmse.common.upgrade
+package eu.darken.butler.common.upgrade
 
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import eu.darken.sdmse.common.upgrade.core.UpgradeRepoGplay
+import eu.darken.butler.common.upgrade.core.UpgradeRepoGplay
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)

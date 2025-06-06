@@ -1,4 +1,4 @@
-package eu.darken.sdmse.common.updater
+package eu.darken.butler.common.updater
 
 import dagger.Binds
 import dagger.Module

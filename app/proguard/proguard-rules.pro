@@ -1,4 +1,4 @@
--keep class eu.darken.sdmse.BuildConfig { *; }
+-keep class eu.darken.butler.BuildConfig { *; }
 -dontobfuscate
 
 -dontwarn org.bouncycastle.jsse.BCSSLParameters

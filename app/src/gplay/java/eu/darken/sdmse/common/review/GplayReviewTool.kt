@@ -1,4 +1,4 @@
-package eu.darken.sdmse.common.review
+package eu.darken.butler.common.review
 
 import android.app.Activity
 import android.content.Context
@@ -7,18 +7,18 @@ import com.google.android.play.core.ktx.requestReview
 import com.google.android.play.core.review.ReviewInfo
 import com.google.android.play.core.review.ReviewManagerFactory
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.sdmse.common.coroutine.AppScope
-import eu.darken.sdmse.common.datastore.value
-import eu.darken.sdmse.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.sdmse.common.debug.logging.Logging.Priority.INFO
-import eu.darken.sdmse.common.debug.logging.Logging.Priority.WARN
-import eu.darken.sdmse.common.debug.logging.asLog
-import eu.darken.sdmse.common.debug.logging.log
-import eu.darken.sdmse.common.debug.logging.logTag
-import eu.darken.sdmse.common.flow.replayingShare
-import eu.darken.sdmse.common.flow.throttleLatest
-import eu.darken.sdmse.common.upgrade.UpgradeRepo
-import eu.darken.sdmse.main.core.release.ReleaseSettings
+import eu.darken.butler.common.coroutine.AppScope
+import eu.darken.butler.common.datastore.value
+import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.asLog
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.flow.replayingShare
+import eu.darken.butler.common.flow.throttleLatest
+import eu.darken.butler.common.upgrade.UpgradeRepo
+import eu.darken.butler.main.core.release.ReleaseSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

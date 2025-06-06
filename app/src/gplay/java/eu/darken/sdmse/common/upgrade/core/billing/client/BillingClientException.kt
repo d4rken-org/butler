@@ -1,7 +1,7 @@
-package eu.darken.sdmse.common.upgrade.core.billing.client
+package eu.darken.butler.common.upgrade.core.billing.client
 
 import com.android.billingclient.api.BillingResult
-import eu.darken.sdmse.common.upgrade.core.billing.BillingException
+import eu.darken.butler.common.upgrade.core.billing.BillingException
 
 class BillingClientException(val result: BillingResult) : BillingException(result.debugMessage) {
 

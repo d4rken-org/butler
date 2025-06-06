@@ -1,22 +1,22 @@
-package eu.darken.sdmse.common.upgrade.core
+package eu.darken.butler.common.upgrade.core
 
 import android.app.Activity
-import eu.darken.sdmse.common.coroutine.AppScope
-import eu.darken.sdmse.common.coroutine.DispatcherProvider
-import eu.darken.sdmse.common.datastore.value
-import eu.darken.sdmse.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.sdmse.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.sdmse.common.debug.logging.asLog
-import eu.darken.sdmse.common.debug.logging.log
-import eu.darken.sdmse.common.debug.logging.logTag
-import eu.darken.sdmse.common.error.asErrorDialogBuilder
-import eu.darken.sdmse.common.flow.setupCommonEventHandlers
-import eu.darken.sdmse.common.upgrade.UpgradeRepo
-import eu.darken.sdmse.common.upgrade.core.billing.BillingData
-import eu.darken.sdmse.common.upgrade.core.billing.BillingManager
-import eu.darken.sdmse.common.upgrade.core.billing.PurchasedSku
-import eu.darken.sdmse.common.upgrade.core.billing.Sku
-import eu.darken.sdmse.common.upgrade.core.billing.SkuDetails
+import eu.darken.butler.common.coroutine.AppScope
+import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.datastore.value
+import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.asLog
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.asErrorDialogBuilder
+import eu.darken.butler.common.flow.setupCommonEventHandlers
+import eu.darken.butler.common.upgrade.UpgradeRepo
+import eu.darken.butler.common.upgrade.core.billing.BillingData
+import eu.darken.butler.common.upgrade.core.billing.BillingManager
+import eu.darken.butler.common.upgrade.core.billing.PurchasedSku
+import eu.darken.butler.common.upgrade.core.billing.Sku
+import eu.darken.butler.common.upgrade.core.billing.SkuDetails
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -136,7 +136,7 @@ class UpgradeRepoGplay @Inject constructor(
 
 
     companion object {
-        private const val SITE = "https://play.google.com/store/apps/details?id=eu.darken.sdmse"
+        private const val SITE = "https://play.google.com/store/apps/details?id=eu.darken.butler"
         val TAG: String = logTag("Upgrade", "Gplay", "Repo")
     }
 }

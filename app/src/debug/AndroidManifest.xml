@@ -3,7 +3,7 @@
 
     <application>
         <activity
-            android:name="eu.darken.sdmse.HiltTestActivity"
+            android:name="eu.darken.butler.HiltTestActivity"
             android:exported="false" />
     </application>
 

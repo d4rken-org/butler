@@ -1,7 +1,7 @@
 package testhelpers.coroutine
 
-import eu.darken.sdmse.common.debug.logging.asLog
-import eu.darken.sdmse.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.asLog
+import eu.darken.butler.common.debug.logging.log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.TestScope

@@ -1,4 +1,4 @@
-package eu.darken.sdmse.common.review
+package eu.darken.butler.common.review
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -6,10 +6,10 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.squareup.moshi.Moshi
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.sdmse.common.datastore.PreferenceScreenData
-import eu.darken.sdmse.common.datastore.PreferenceStoreMapper
-import eu.darken.sdmse.common.datastore.createValue
-import eu.darken.sdmse.common.debug.logging.logTag
+import eu.darken.butler.common.datastore.PreferenceScreenData
+import eu.darken.butler.common.datastore.PreferenceStoreMapper
+import eu.darken.butler.common.datastore.createValue
+import eu.darken.butler.common.debug.logging.logTag
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton

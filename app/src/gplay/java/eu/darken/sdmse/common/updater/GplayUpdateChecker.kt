@@ -1,8 +1,8 @@
-package eu.darken.sdmse.common.updater
+package eu.darken.butler.common.updater
 
 import dagger.Reusable
-import eu.darken.sdmse.common.debug.logging.log
-import eu.darken.sdmse.common.debug.logging.logTag
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import javax.inject.Inject
 
 @Reusable

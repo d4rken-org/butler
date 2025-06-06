@@ -31,7 +31,7 @@ android {
         versionCode = projectConfig.version.code.toInt()
         versionName = projectConfig.version.name
 
-        testInstrumentationRunner = "eu.darken.sdmse.HiltTestRunner"
+        testInstrumentationRunner = "eu.darken.butler.HiltTestRunner"
 
         buildConfigField("String", "PACKAGENAME", "\"${projectConfig.packageName}\"")
         buildConfigField("String", "GITSHA", "\"${commitHashProvider.get()}\"")

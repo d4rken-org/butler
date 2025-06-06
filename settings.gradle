@@ -1,4 +1,4 @@
-rootProject.name = "SD Maid SE"
+rootProject.name = "Butler"
 include ':app'
 include ':app-common-root'
 include ':app-common'

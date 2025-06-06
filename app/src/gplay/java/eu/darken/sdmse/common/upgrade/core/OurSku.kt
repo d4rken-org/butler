@@ -1,12 +1,12 @@
-package eu.darken.sdmse.common.upgrade.core
+package eu.darken.butler.common.upgrade.core
 
-import eu.darken.sdmse.common.upgrade.core.billing.Sku
+import eu.darken.butler.common.upgrade.core.billing.Sku
 
 @Suppress("ClassName")
 interface OurSku {
     interface Iap : OurSku {
         object PRO_UPGRADE : Sku.Iap, Iap {
-            override val id: String = "eu.darken.sdmse.iap.upgrade.pro"
+            override val id: String = "eu.darken.butler.iap.upgrade.pro"
         }
     }
 

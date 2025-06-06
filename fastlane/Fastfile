@@ -26,7 +26,7 @@ platform :android do
   	supply(
         track: 'beta',
         rollout: '0.10',
-        package_name: 'eu.darken.sdmse',
+        package_name: 'eu.darken.butler',
         skip_upload_changelogs: 'false',
         skip_upload_apk: 'true',
         skip_upload_images: 'true',
@@ -41,7 +41,7 @@ platform :android do
     supply(
         track: 'beta',
         rollout: '0.10',
-        package_name: 'eu.darken.sdmse',
+        package_name: 'eu.darken.butler',
         skip_upload_changelogs: 'false',
         skip_upload_apk: 'true',
         skip_upload_images: 'true',

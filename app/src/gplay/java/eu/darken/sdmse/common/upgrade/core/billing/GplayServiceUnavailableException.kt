@@ -1,16 +1,16 @@
-package eu.darken.sdmse.common.upgrade.core.billing
+package eu.darken.butler.common.upgrade.core.billing
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import android.widget.Toast
-import eu.darken.sdmse.R
-import eu.darken.sdmse.common.ca.toCaString
-import eu.darken.sdmse.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.sdmse.common.debug.logging.log
-import eu.darken.sdmse.common.error.HasLocalizedError
-import eu.darken.sdmse.common.error.LocalizedError
+import eu.darken.butler.R
+import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.error.HasLocalizedError
+import eu.darken.butler.common.error.LocalizedError
 
 class GplayServiceUnavailableException(cause: Throwable) :
     BillingException("Google Play services are unavailable.", cause), HasLocalizedError {

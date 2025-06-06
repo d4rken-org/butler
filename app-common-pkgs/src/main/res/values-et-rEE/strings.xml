@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="pkgrepo_invalid_inventory_error_title">Vigane rakenduse inventuur</string>
-    <string name="pkgrepo_invalid_inventory_error_description">Süsteem saatis SD Maidile paigaldatud rakenduste puuduliku nimekirja.</string>
-</resources>

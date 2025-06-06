@@ -4,10 +4,10 @@ import eu.darken.flowshell.core.FlowShell
 import eu.darken.flowshell.core.FlowShellDebug
 import eu.darken.flowshell.core.FlowShellDebug.isDebug
 import eu.darken.flowshell.core.process.FlowProcess
-import eu.darken.sdmse.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.sdmse.common.debug.logging.Logging.Priority.WARN
-import eu.darken.sdmse.common.debug.logging.asLog
-import eu.darken.sdmse.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.asLog
+import eu.darken.butler.common.debug.logging.log
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

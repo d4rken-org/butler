@@ -1,3 +1,3 @@
--keepclassmembers class eu.darken.sdmse.common.adb.service.internal.AdbConnection** {
+-keepclassmembers class eu.darken.butler.common.adb.service.internal.AdbConnection** {
   *;
 }

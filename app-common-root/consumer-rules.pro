@@ -1,3 +1,3 @@
--keepclassmembers class eu.darken.sdmse.common.root.service.RootServiceConnection {
+-keepclassmembers class eu.darken.butler.common.root.service.RootServiceConnection {
     public static final java.lang.String DESCRIPTOR;
 }

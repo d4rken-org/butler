@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">SD Maid SE</string>
+    <string name="app_name">Butler</string>
 
     <string name="slogan_message_0">At your service.</string>
     <string name="slogan_message_1">Clean and tidy.</string>
@@ -12,12 +12,6 @@
     <string name="slogan_message_8">Never Gonna Give You Up.</string>
 
     <string name="general_thank_you_label">Thank you</string>
-
-    <string name="general_error_type_mismatch_msg">Type mismatch: Wanted %1$s, but got %2$s.</string>
-    <string name="general_error_cant_access_msg">Can\'t access %s.</string>
-    <string name="general_error_root_unavailable">Root access is unavailable.</string>
-    <string name="general_error_empty_result_msg">The result was empty.</string>
-    <string name="general_error_no_compatible_app_found_msg">No compatible app found to handle this request.</string>
     <string name="general_todo_msg">This feature is still being worked on and currently not available.</string>
     <string name="general_share_action">Share</string>
     <string name="general_done_action">Done</string>
@@ -68,21 +62,16 @@
     <string name="general_progress_loading_egg_11">This is fine</string>
     <string name="general_progress_loading_egg_12">Please hold</string>
     <string name="general_progress_loading_egg_13">At least you\'re not on hold</string>
-    <string name="general_help_action">Help</string>
-    <string name="general_continue">Continue</string>
+
     <string name="general_progress_queued">In queue</string>
     <string name="general_progress_deleting">Deleting</string>
     <string name="general_progress_deleting_x">Deleting %s</string>
+
+    <string name="general_help_action">Help</string>
+    <string name="general_continue">Continue</string>
+
     <string name="general_sort_options_label">Sort options</string>
     <string name="general_sort_reverse_action">Reverse sort mode</string>
-    <string name="general_tag_filter_label">Filter by tags</string>
-
-    <string name="general_result_success_message">Operation successful</string>
-    <string name="general_result_failure_message">Operation failed</string>
-    <plurals name="general_result_x_space_freed">
-        <item quantity="one">Freed %s space.</item>
-        <item quantity="other">Freed %s space.</item>
-    </plurals>
 
     <string name="general_options_label">Options</string>
     <string name="general_details_label">Details</string>
@@ -103,19 +92,8 @@
         <item quantity="other">Deleted %d items.</item>
     </plurals>
 
-    <string name="general_remove_action">Remove</string>
-    <string name="general_remove_selected_action">Remove selected</string>
-    <plurals name="general_remove_success_x_items">
-        <item quantity="one">One item was removed</item>
-        <item quantity="other">%d items were removed</item>
-    </plurals>
-
     <string name="general_root_required_label">Requires root</string>
     <string name="general_root_required_message">Requires a rooted device</string>
-
-    <string name="general_search_action">Search</string>
-    <string name="general_scan_device_action">Scan device</string>
-    <string name="general_open_system_settings_action">Open system settings</string>
 
     <plurals name="result_x_items">
         <item quantity="one">%s item</item>
@@ -129,10 +107,7 @@
         <item quantity="one">%d failed</item>
         <item quantity="other">%d failed</item>
     </plurals>
-    <plurals name="x_space_can_be_freed">
-        <item quantity="one">%s can be freed</item>
-        <item quantity="other">%s can be freed</item>
-    </plurals>
+
     <string name="general_info_label">Info</string>
     <string name="general_count_label">Count</string>
     <string name="general_app_label">App</string>
@@ -175,9 +150,14 @@
         <item quantity="one">%s file</item>
         <item quantity="other">%s files</item>
     </plurals>
+
     <string name="general_advice_title">Advice</string>
     <string name="general_error_invalid_input_label">Invalid input</string>
     <string name="general_information_for_the_developer">Information for the developer</string>
+    <string name="general_error_type_mismatch_msg">Type mismatch: Wanted %1$s, but got %2$s.</string>
+    <string name="general_error_cant_access_msg">Can\'t access %s.</string>
+    <string name="general_error_root_unavailable">Root access is unavailable.</string>
+    <string name="general_error_no_compatible_app_found_msg">No compatible app found to handle this request.</string>
     <string name="general_error_report_bug_action">Report bug</string>
     <string name="general_error_ipc_deadobject_title">Service Connection Lost</string>
     <string name="general_error_ipc_deadobject_description">The connection to a critical service (e.g. Magisk, Shizuku, or other system-level services) was unexpectedly lost. Please reboot your device. If the issue persists, check for updates or reach out to me so I can fix it.</string>

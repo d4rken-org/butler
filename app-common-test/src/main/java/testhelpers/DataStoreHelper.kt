@@ -1,6 +1,6 @@
 package testhelpers
 
-import eu.darken.sdmse.common.datastore.DataStoreValue
+import eu.darken.butler.common.datastore.DataStoreValue
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf

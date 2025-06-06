@@ -1,5 +1,5 @@
 Hey 👋
-SD Maid 2/SE is in active development. I'm working on new features every day.
+Butler is in active development. I'm working on new features every day.
 If you have some good ideas, please let me know 😊!
 
 Updates contain bugfixes, performance improvements and maybe new features.

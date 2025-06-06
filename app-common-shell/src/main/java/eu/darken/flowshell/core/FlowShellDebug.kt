@@ -1,8 +1,8 @@
 package eu.darken.flowshell.core
 
-import eu.darken.sdmse.common.debug.Bugs
+import eu.darken.butler.common.debug.Bugs
 
 object FlowShellDebug {
     var isDebug: Boolean = Bugs.isTrace
-    internal var tag = "SDMSE:FS"
+    internal var tag = "BUTLER:FS"
 }

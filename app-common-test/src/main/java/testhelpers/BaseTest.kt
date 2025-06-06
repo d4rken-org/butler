@@ -1,8 +1,8 @@
 package testhelpers
 
-import eu.darken.sdmse.common.debug.logging.Logging
-import eu.darken.sdmse.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.sdmse.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.Logging
+import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.log
 import io.mockk.unmockkAll
 import org.junit.jupiter.api.AfterAll
 
@@ -10,7 +10,7 @@ import org.junit.jupiter.api.AfterAll
 open class BaseTest {
     init {
         Logging.clearAll()
-        Logging.install(eu.darken.sdmse.common.JUnitLogger())
+        Logging.install(eu.darken.butler.common.JUnitLogger())
         testClassName = this.javaClass.simpleName
     }
 

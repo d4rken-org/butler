@@ -1,11 +1,11 @@
-package eu.darken.sdmse.common.upgrade.core
+package eu.darken.butler.common.upgrade.core
 
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.sdmse.common.datastore.createValue
+import eu.darken.butler.common.datastore.createValue
 import javax.inject.Inject
 import javax.inject.Singleton
 

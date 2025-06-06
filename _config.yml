@@ -5,8 +5,8 @@ relative_links:
   enabled: true
   collections: true
 
-title: "SD Maid 2/SE"
-description: "Android's most thorough cleaning tool."
+title: "Butler"
+description: "The file explorer for Android."
 author: "by Matthias Urhahn"
 
 include:

@@ -1,15 +1,15 @@
-package eu.darken.sdmse.common.debug.autoreport
+package eu.darken.butler.common.debug.autoreport
 
 import android.app.Application
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.sdmse.common.SDMId
-import eu.darken.sdmse.common.datastore.valueBlocking
-import eu.darken.sdmse.common.debug.AutomaticBugReporter
-import eu.darken.sdmse.common.debug.DebugSettings
-import eu.darken.sdmse.common.debug.logging.log
-import eu.darken.sdmse.common.debug.logging.logTag
-import eu.darken.sdmse.main.core.GeneralSettings
+import eu.darken.butler.common.SDMId
+import eu.darken.butler.common.datastore.valueBlocking
+import eu.darken.butler.common.debug.AutomaticBugReporter
+import eu.darken.butler.common.debug.DebugSettings
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.main.core.GeneralSettings
 import javax.inject.Inject
 import javax.inject.Singleton
 

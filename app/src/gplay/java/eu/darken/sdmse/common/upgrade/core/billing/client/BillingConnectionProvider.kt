@@ -1,4 +1,4 @@
-package eu.darken.sdmse.common.upgrade.core.billing.client
+package eu.darken.butler.common.upgrade.core.billing.client
 
 import android.content.Context
 import com.android.billingclient.api.BillingClient
@@ -7,13 +7,13 @@ import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.Purchase
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.sdmse.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.sdmse.common.debug.logging.Logging.Priority.WARN
-import eu.darken.sdmse.common.debug.logging.asLog
-import eu.darken.sdmse.common.debug.logging.log
-import eu.darken.sdmse.common.debug.logging.logTag
-import eu.darken.sdmse.common.flow.setupCommonEventHandlers
-import eu.darken.sdmse.common.upgrade.core.billing.BillingException
+import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.asLog
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.flow.setupCommonEventHandlers
+import eu.darken.butler.common.upgrade.core.billing.BillingException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking

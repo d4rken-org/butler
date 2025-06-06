@@ -1,4 +1,4 @@
-package eu.darken.sdmse.common.review
+package eu.darken.butler.common.review
 
 import dagger.Binds
 import dagger.Module
