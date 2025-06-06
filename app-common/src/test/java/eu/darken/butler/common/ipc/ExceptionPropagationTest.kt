@@ -43,8 +43,8 @@ class ExceptionPropagationTest : BaseTest(), IpcHostModule, IpcClientModule {
             stackTraceToString().lines().take(5).joinToString("\n").trimIndent() shouldBe """
                 eu.darken.butler.common.ipc.ExceptionPropagationTest${'$'}TopLevelException: Does not exist or can't be read <-> /storage/1F67-A3A5/.android_secure
                 	at coil.decode.DecodeUtils.performLookup(Unknown Source)
-                	at eu.darken.butler.common.files.local.ipc.FileOpsHost.lookupFilesStream(Unknown Source)
-                	at eu.darken.butler.common.files.local.ipc.FileOpsConnection${'$'}Stub.onTransact(Unknown Source)
+                	at eu.darken.sdmse.common.files.local.ipc.FileOpsHost.lookupFilesStream(Unknown Source)
+                	at eu.darken.sdmse.common.files.local.ipc.FileOpsConnection${'$'}Stub.onTransact(Unknown Source)
                 	at eu.darken.butler.common.ipc.ExceptionPropagationTest.propagate exception with stacktrace(ExceptionPropagationTest.kt:34)
             """.trimIndent()
         }
