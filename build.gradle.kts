@@ -1,6 +1,7 @@
 plugins {
     id("projectConfig")
     id("com.google.devtools.ksp") version "2.1.21-2.0.1" apply false
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.0-RC2"
 }
 
 buildscript {
@@ -16,11 +17,7 @@ buildscript {
 }
 
 allprojects {
-    repositories {
-        google()
-        mavenCentral()
-        maven { setUrl("https://jitpack.io") }
-    }
+
 }
 
 tasks.register("clean").configure {

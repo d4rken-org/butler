@@ -18,7 +18,6 @@ android {
     setupModuleBuildTypes()
 
     buildFeatures {
-        viewBinding = true
         aidl = true
     }
 

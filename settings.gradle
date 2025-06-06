@@ -1,3 +1,24 @@
+pluginManagement {
+    repositories {
+        google()
+        gradlePluginPortal()
+        mavenCentral()
+        maven {
+            url = uri("https://androidx.dev/snapshots/builds/13610170/artifacts/repository")
+        }
+    }
+}
+
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            url = uri("https://androidx.dev/snapshots/builds/13610170/artifacts/repository")
+        }
+    }
+}
+
 rootProject.name = "Butler"
 include ':app'
 include ':app-common-root'

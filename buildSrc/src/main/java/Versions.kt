@@ -8,12 +8,6 @@ object Versions {
         const val core = "2.56.2"
     }
 
-    object AndroidX {
-        object Navigation {
-            const val core = "2.8.9"
-        }
-    }
-
     object Desugar {
         const val core = "2.1.5"
     }

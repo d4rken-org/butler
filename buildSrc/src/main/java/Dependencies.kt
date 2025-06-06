@@ -154,6 +154,15 @@ fun DependencyHandlerScope.addAndroidUI() {
     implementation("com.google.android.material:material:1.13.0-alpha12")
 }
 
+fun DependencyHandlerScope.addNavigation3() {
+    implementation("androidx.navigation3:navigation3-runtime:1.0.0-alpha01")
+    implementation("androidx.navigation3:navigation3-ui:1.0.0-alpha01")
+
+    implementation("androidx.compose.material3.adaptive:adaptive-navigation3:1.0.0-SNAPSHOT")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-navigation3:1.0.0-alpha01")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.8.1")
+}
+
 fun DependencyHandlerScope.addTesting() {
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.junit.vintage:junit-vintage-engine:5.8.2")
