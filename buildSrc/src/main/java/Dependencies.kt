@@ -195,4 +195,7 @@ fun DependencyHandlerScope.addTesting() {
     androidTestImplementation("androidx.test.espresso:espresso-contrib:3.4.0")
     androidTestImplementation("androidx.test.espresso:espresso-intents:3.4.0")
     androidTestImplementation("androidx.test.espresso.idling:idling-concurrent:3.4.0")
+
+    testImplementation("org.robolectric:robolectric:4.14.1")
+    testImplementation("androidx.test.ext:junit:1.2.1")
 }

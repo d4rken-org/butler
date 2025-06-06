@@ -24,6 +24,7 @@ android {
         unitTests {
             isIncludeAndroidResources = true
         }
+        //noinspection WrongGradleMethod
         tasks.withType<Test> {
             useJUnitPlatform()
             setupTestLogging()
@@ -41,6 +42,4 @@ dependencies {
 
     addTesting()
     testImplementation(project(":app-common-test"))
-    testImplementation("org.robolectric:robolectric:4.9.1")
-    testImplementation("androidx.test.ext:junit:1.1.4")
 }
