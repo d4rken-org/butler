@@ -1,15 +1,15 @@
 package eu.darken.butler.common
 
 import android.os.Build
-import eu.darken.flowshell.core.cmd.FlowCmd
-import eu.darken.flowshell.core.cmd.FlowCmdShell
-import eu.darken.flowshell.core.cmd.execute
-import eu.darken.flowshell.core.process.FlowProcess
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.root.canUseRootNow
+import eu.darken.flowshell.core.cmd.FlowCmd
+import eu.darken.flowshell.core.cmd.FlowCmdShell
+import eu.darken.flowshell.core.cmd.execute
+import eu.darken.flowshell.core.process.FlowProcess
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject

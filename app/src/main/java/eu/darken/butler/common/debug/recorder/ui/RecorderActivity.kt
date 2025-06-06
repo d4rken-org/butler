@@ -2,18 +2,8 @@ package eu.darken.butler.common.debug.recorder.ui
 
 import android.content.Context
 import android.content.Intent
-import android.os.Bundle
-import android.text.SpannableString
-import android.text.Spanned
-import android.text.format.Formatter
-import android.text.style.URLSpan
-import android.widget.TextView
-import androidx.activity.viewModels
-import androidx.core.view.isGone
-import androidx.core.view.isInvisible
 import dagger.hilt.android.AndroidEntryPoint
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.error.asErrorDialogBuilder
 import eu.darken.butler.common.uix.Activity2
 
 @AndroidEntryPoint

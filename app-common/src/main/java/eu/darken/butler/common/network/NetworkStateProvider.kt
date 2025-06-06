@@ -11,8 +11,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.net.ConnectivityManagerCompat
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.coroutine.AppScope
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag

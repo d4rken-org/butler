@@ -1,6 +1,6 @@
 package eu.darken.butler.common.files
 
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import kotlinx.coroutines.flow.Flow
 import okio.FileHandle

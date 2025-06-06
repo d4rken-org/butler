@@ -5,13 +5,12 @@ import android.content.Context
 import android.os.storage.StorageManager
 import dagger.Reusable
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.hasApiLevel
 import java.io.File
 import java.lang.reflect.Method
-import java.util.*
 import javax.inject.Inject
 
 @Reusable

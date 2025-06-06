@@ -3,7 +3,7 @@ package eu.darken.butler.common.files.local.ipc
 import android.os.Parcel
 import android.os.Parcelable
 import eu.darken.butler.common.debug.Bugs
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.inputStream
 import okio.Buffer

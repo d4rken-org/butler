@@ -2,7 +2,7 @@ package eu.darken.butler.common.files.local
 
 import android.system.Os
 import android.system.StructStat
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.Ownership

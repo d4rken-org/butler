@@ -5,7 +5,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import eu.darken.butler.common.serialization.*
 import javax.inject.Qualifier
 import javax.inject.Singleton
 

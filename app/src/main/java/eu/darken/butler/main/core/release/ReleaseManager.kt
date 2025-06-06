@@ -2,13 +2,12 @@ package eu.darken.butler.main.core.release
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.butler.main.core.CurriculumVitae
 import eu.darken.butler.common.datastore.value
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.getPackageInfo
-import eu.darken.butler.main.core.release.ReleaseSettings
+import eu.darken.butler.main.core.CurriculumVitae
 import io.github.z4kn4fein.semver.Version
 import io.github.z4kn4fein.semver.VersionFormatException
 import kotlinx.coroutines.flow.firstOrNull

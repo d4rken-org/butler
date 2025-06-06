@@ -4,14 +4,12 @@ import android.content.ComponentName
 import android.content.pm.IPackageDataObserver
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import android.content.pm.PackageManager.PackageInfoFlags
+import android.content.pm.PackageManager.*
 import android.content.pm.SharedLibraryInfo
 import android.graphics.drawable.Drawable
 import android.os.RemoteException
 import eu.darken.butler.common.debug.Bugs
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.hasApiLevel

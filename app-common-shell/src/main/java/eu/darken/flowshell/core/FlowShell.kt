@@ -1,12 +1,11 @@
 package eu.darken.flowshell.core
 
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
+import eu.darken.butler.common.debug.logging.log
 import eu.darken.flowshell.core.FlowShellDebug.isDebug
 import eu.darken.flowshell.core.process.FlowProcess
 import eu.darken.flowshell.core.process.killViaPid
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
-import eu.darken.butler.common.debug.logging.asLog
-import eu.darken.butler.common.debug.logging.log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow

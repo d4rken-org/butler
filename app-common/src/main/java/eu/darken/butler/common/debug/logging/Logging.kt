@@ -1,8 +1,7 @@
 package eu.darken.butler.common.debug.logging
 
 import eu.darken.butler.common.debug.Bugs
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import java.io.PrintWriter
 import java.io.StringWriter
 

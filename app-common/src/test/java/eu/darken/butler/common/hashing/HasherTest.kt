@@ -1,7 +1,7 @@
 package eu.darken.butler.common.hashing
 
 import eu.darken.butler.common.files.core.local.deleteAll
-import eu.darken.butler.common.hashing.Hasher.Type
+import eu.darken.butler.common.hashing.Hasher.*
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import okio.source

@@ -14,8 +14,7 @@ import android.system.StructStat
 import android.text.TextUtils
 import eu.darken.butler.common.asSequence
 import eu.darken.butler.common.debug.Bugs
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.Ownership
@@ -25,7 +24,6 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.time.Instant
-import java.util.*
 
 
 data class SAFDocFile(

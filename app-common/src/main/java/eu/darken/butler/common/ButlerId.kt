@@ -5,7 +5,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import java.io.File
-import java.util.*
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 

@@ -6,14 +6,13 @@ import android.os.Build
 import android.os.Process
 import android.util.Base64
 import androidx.annotation.RequiresApi
-import eu.darken.flowshell.core.cmd.FlowCmd
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.parcel.forceParcel
 import eu.darken.butler.common.parcel.marshall
+import eu.darken.flowshell.core.cmd.FlowCmd
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException

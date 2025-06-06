@@ -3,7 +3,7 @@ package eu.darken.butler.common.root.service
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.DebugSettings
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag

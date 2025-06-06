@@ -4,8 +4,7 @@ package eu.darken.butler.common.ipc
 import android.os.RemoteException
 import eu.darken.butler.common.collections.toHex
 import eu.darken.butler.common.debug.Bugs
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import okio.FileHandle

@@ -1,11 +1,9 @@
 package eu.darken.flowshell.core.process
 
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.log
 import eu.darken.flowshell.core.FlowShellDebug
 import eu.darken.flowshell.core.FlowShellDebug.isDebug
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
-import eu.darken.butler.common.debug.logging.log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow

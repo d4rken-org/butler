@@ -12,8 +12,7 @@ import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.adb.canUseAdbNow
 import eu.darken.butler.common.debug.Bugs
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.hasApiLevel

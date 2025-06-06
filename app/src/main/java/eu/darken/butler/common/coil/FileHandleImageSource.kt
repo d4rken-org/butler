@@ -3,7 +3,7 @@ package eu.darken.butler.common.coil
 import android.media.MediaDataSource
 import coil.annotation.ExperimentalCoilApi
 import coil.decode.ImageSource
-import coil.fetch.MediaDataSourceFetcher.MediaSourceMetadata
+import coil.fetch.MediaDataSourceFetcher.*
 import okio.FileHandle
 import okio.buffer
 import java.io.File

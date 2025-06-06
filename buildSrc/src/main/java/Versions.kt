@@ -15,6 +15,6 @@ object Versions {
     }
 
     object Desugar {
-        const val core = "2.0.4"
+        const val core = "2.1.5"
     }
 }

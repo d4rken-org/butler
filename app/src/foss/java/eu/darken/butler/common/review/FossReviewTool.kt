@@ -1,7 +1,7 @@
 package eu.darken.butler.common.review
 
 import android.app.Activity
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import kotlinx.coroutines.flow.Flow

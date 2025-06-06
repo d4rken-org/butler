@@ -1,10 +1,10 @@
 package eu.darken.butler.common.shell
 
 
+import eu.darken.butler.common.debug.Bugs
 import eu.darken.flowshell.core.FlowShellDebug
 import eu.darken.flowshell.core.cmd.FlowCmd
 import eu.darken.flowshell.core.cmd.execute
-import eu.darken.butler.common.debug.Bugs
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CancellationException

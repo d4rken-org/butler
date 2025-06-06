@@ -4,8 +4,6 @@ import android.content.Context
 import androidx.annotation.Keep
 import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.flowshell.core.cmd.FlowCmd
-import eu.darken.flowshell.core.cmd.execute
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.local.ipc.FileOpsConnection
@@ -14,6 +12,8 @@ import eu.darken.butler.common.pkgs.pkgops.ipc.PkgOpsConnection
 import eu.darken.butler.common.pkgs.pkgops.ipc.PkgOpsHost
 import eu.darken.butler.common.shell.ipc.ShellOpsConnection
 import eu.darken.butler.common.shell.ipc.ShellOpsHost
+import eu.darken.flowshell.core.cmd.FlowCmd
+import eu.darken.flowshell.core.cmd.execute
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton

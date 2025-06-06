@@ -2,7 +2,7 @@ package eu.darken.butler.common.serialization
 
 import com.squareup.moshi.JsonAdapter
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import kotlinx.coroutines.NonCancellable

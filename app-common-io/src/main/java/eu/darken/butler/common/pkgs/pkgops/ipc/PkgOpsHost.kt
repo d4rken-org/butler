@@ -5,14 +5,9 @@ import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.flowshell.core.cmd.FlowCmd
-import eu.darken.flowshell.core.cmd.execute
-import eu.darken.flowshell.core.process.FlowProcess
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.Bugs.isDryRun
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -28,8 +23,11 @@ import eu.darken.butler.common.pkgs.pkgops.ProcessScanner
 import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.common.shell.SharedShell
 import eu.darken.butler.common.user.UserHandle2
+import eu.darken.flowshell.core.cmd.FlowCmd
+import eu.darken.flowshell.core.cmd.execute
+import eu.darken.flowshell.core.process.FlowProcess
 import kotlinx.coroutines.runBlocking
-import java.lang.Thread.sleep
+import java.lang.Thread.*
 import javax.inject.Inject
 
 

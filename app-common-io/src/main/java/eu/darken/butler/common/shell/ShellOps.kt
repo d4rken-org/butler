@@ -1,7 +1,5 @@
 package eu.darken.butler.common.shell
 
-import eu.darken.flowshell.core.cmd.FlowCmd
-import eu.darken.flowshell.core.cmd.execute
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.adb.AdbUnavailableException
 import eu.darken.butler.common.adb.canUseAdbNow
@@ -9,8 +7,7 @@ import eu.darken.butler.common.adb.service.runModuleAction
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.Bugs
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -24,6 +21,8 @@ import eu.darken.butler.common.sharedresource.keepResourcesAlive
 import eu.darken.butler.common.shell.ipc.ShellOpsClient
 import eu.darken.butler.common.shell.ipc.ShellOpsCmd
 import eu.darken.butler.common.shell.ipc.ShellOpsResult
+import eu.darken.flowshell.core.cmd.FlowCmd
+import eu.darken.flowshell.core.cmd.execute
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext

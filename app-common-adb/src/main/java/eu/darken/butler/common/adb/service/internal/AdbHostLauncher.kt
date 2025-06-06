@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import rikka.shizuku.Shizuku
-import rikka.shizuku.Shizuku.UserServiceArgs
+import rikka.shizuku.Shizuku.*
 import javax.inject.Inject
 import kotlin.reflect.KClass
 

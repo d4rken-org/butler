@@ -2,11 +2,9 @@ package eu.darken.butler.common.error
 
 import android.app.Activity
 import android.util.TypedValue
-import androidx.navigation.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textview.MaterialTextView
 import eu.darken.butler.common.R
-import eu.darken.butler.common.files.WriteException
 
 fun Throwable.asErrorDialogBuilder(
     context: Activity

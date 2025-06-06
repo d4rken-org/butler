@@ -10,7 +10,7 @@ import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.FileLogger
 import eu.darken.butler.common.debug.logging.LogCatLogger
 import eu.darken.butler.common.debug.logging.Logging
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.sharedresource.HasSharedResource

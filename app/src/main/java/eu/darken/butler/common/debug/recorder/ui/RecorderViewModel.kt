@@ -2,23 +2,13 @@ package eu.darken.butler.common.debug.recorder.ui
 
 
 import android.content.Context
-import android.content.Intent
-import androidx.core.content.FileProvider
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.butler.R
-import eu.darken.butler.common.BuildConfigWrap
-import eu.darken.butler.common.ButlerLinks
-import eu.darken.butler.common.SingleLiveEvent
 import eu.darken.butler.common.WebpageTool
-import eu.darken.butler.common.compression.Zipper
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.uix.ViewModel3
-import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel

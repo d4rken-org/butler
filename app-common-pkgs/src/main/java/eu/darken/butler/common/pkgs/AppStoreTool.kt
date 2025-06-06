@@ -5,7 +5,7 @@ import android.content.Intent
 import dagger.Reusable
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.WebpageTool
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.pkgs.features.AppStore

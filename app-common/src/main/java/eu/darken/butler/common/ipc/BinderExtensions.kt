@@ -1,7 +1,7 @@
 package eu.darken.butler.common.ipc
 
 import android.os.IBinder
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import kotlin.reflect.KClass
 

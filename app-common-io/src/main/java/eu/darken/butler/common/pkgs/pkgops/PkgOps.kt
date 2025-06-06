@@ -5,12 +5,7 @@ import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
-import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER
-import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-import android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES
-import android.content.pm.PackageManager.NameNotFoundException
-import android.content.pm.PackageManager.PackageInfoFlags
-import android.content.pm.PackageManager.SYNCHRONOUS
+import android.content.pm.PackageManager.*
 import android.content.pm.SharedLibraryInfo
 import android.graphics.drawable.Drawable
 import android.os.Process
@@ -24,10 +19,7 @@ import eu.darken.butler.common.adb.service.runModuleAction
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.Bugs
-import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -36,7 +28,7 @@ import eu.darken.butler.common.files.asFile
 import eu.darken.butler.common.funnel.IPCFunnel
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.permissions.Permission
-import eu.darken.butler.common.permissions.Permission.PACKAGE_USAGE_STATS
+import eu.darken.butler.common.permissions.Permission.*
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.container.PkgArchive
 import eu.darken.butler.common.pkgs.features.InstallId

@@ -1,6 +1,12 @@
 package eu.darken.butler.common.collections
 
-import okio.*
+import okio.Buffer
+import okio.ByteString
+import okio.Sink
+import okio.Source
+import okio.buffer
+import okio.gzip
+import okio.use
 
 
 fun ByteString.fromGzip(): ByteString = Buffer().use { buf ->

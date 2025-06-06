@@ -5,7 +5,7 @@ import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
-import java.util.*
+import java.util.UUID
 
 val rngString
     get() = UUID.randomUUID().toString()

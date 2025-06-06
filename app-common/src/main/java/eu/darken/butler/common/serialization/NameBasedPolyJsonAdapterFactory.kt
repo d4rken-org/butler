@@ -2,9 +2,13 @@
 
 package eu.darken.butler.common.serialization
 
-import com.squareup.moshi.*
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.JsonDataException
+import com.squareup.moshi.JsonReader
+import com.squareup.moshi.JsonWriter
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
 import java.lang.reflect.Type
-import java.util.*
 import javax.annotation.CheckReturnValue
 
 class NameBasedPolyJsonAdapterFactory<T> internal constructor(

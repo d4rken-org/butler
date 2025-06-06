@@ -2,7 +2,7 @@ package eu.darken.butler.common.serialization
 
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.ToJson
-import java.util.*
+import java.util.UUID
 
 class UUIDAdapter {
     @ToJson

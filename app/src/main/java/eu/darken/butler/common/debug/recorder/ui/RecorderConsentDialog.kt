@@ -1,11 +1,5 @@
 package eu.darken.butler.common.debug.recorder.ui
 
-import android.content.Context
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import eu.darken.butler.R
-import eu.darken.butler.common.ButlerLinks
-import eu.darken.butler.common.WebpageTool
-
 //class RecorderConsentDialog(
 //    private val context: Context,
 //    private val webpageTool: WebpageTool

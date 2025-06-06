@@ -3,6 +3,7 @@ package eu.darken.butler.common.views
 import android.content.Context
 import android.util.AttributeSet
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import eu.darken.butler.common.AndroidModule_ContextFactory.context
 import eu.darken.butler.common.getColorForAttr
 
 class ThemedSwipeRefreshLayout @JvmOverloads constructor(

@@ -9,12 +9,11 @@ import android.os.Binder
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.IBinder
-import android.os.IBinder.DeathRecipient
+import android.os.IBinder.*
 import android.os.RemoteException
 import androidx.annotation.Keep
 import androidx.core.content.ContextCompat
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import java.lang.ref.WeakReference

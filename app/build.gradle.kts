@@ -7,7 +7,6 @@ plugins {
     id("kotlin-kapt")
 }
 apply(plugin = "dagger.hilt.android.plugin")
-apply(plugin = "androidx.navigation.safeargs.kotlin")
 
 val commitHashProvider = providers.of(CommitHashValueSource::class) {}
 
@@ -191,11 +190,11 @@ dependencies {
     addIO()
     addRetrofit()
 
-    "gplayImplementation"("com.android.billingclient:billing:6.2.1")
-    "gplayImplementation"("com.android.billingclient:billing-ktx:6.2.1")
+    "gplayImplementation"("com.android.billingclient:billing:7.1.1")
+    "gplayImplementation"("com.android.billingclient:billing-ktx:7.1.1")
 
-    "gplayImplementation"("com.google.android.play:review:2.0.1")
-    "gplayImplementation"("com.google.android.play:review-ktx:2.0.1")
+    "gplayImplementation"("com.google.android.play:review:2.0.2")
+    "gplayImplementation"("com.google.android.play:review-ktx:2.0.2")
 
     addAndroidCore()
     addAndroidUI()
@@ -210,19 +209,6 @@ dependencies {
     addCoil()
     addLottie()
 
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
-    implementation("com.github.reddit:IndicatorFastScroll:f9576c7") // 1.4.0
-    implementation("me.zhanghai.android.fastscroll:library:1.2.0")
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
-    implementation("androidx.recyclerview:recyclerview-selection:1.1.0")
-
-    implementation("androidx.navigation:navigation-fragment-ktx:${Versions.AndroidX.Navigation.core}")
-    implementation("androidx.navigation:navigation-ui-ktx:${Versions.AndroidX.Navigation.core}")
-    androidTestImplementation("androidx.navigation:navigation-testing:${Versions.AndroidX.Navigation.core}")
-
-
-
-
-    testImplementation("org.robolectric:robolectric:4.9.1")
-    testImplementation("androidx.test.ext:junit:1.1.4")
+    testImplementation("org.robolectric:robolectric:4.14.1")
+    testImplementation("androidx.test.ext:junit:1.2.1")
 }

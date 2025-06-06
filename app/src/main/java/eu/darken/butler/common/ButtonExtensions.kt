@@ -1,8 +1,8 @@
 package eu.darken.butler.common
 
 import android.widget.CompoundButton
-import android.widget.CompoundButton.OnCheckedChangeListener
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import android.widget.CompoundButton.*
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.reflection.getField

@@ -1,8 +1,7 @@
 package eu.darken.butler.common.files.core.local
 
 import android.system.Os
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import java.io.File
 import java.io.FileNotFoundException

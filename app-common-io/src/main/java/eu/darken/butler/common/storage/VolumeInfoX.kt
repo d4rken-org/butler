@@ -3,7 +3,7 @@ package eu.darken.butler.common.storage
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.os.Build
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
