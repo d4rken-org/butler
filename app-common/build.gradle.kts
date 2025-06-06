@@ -25,6 +25,7 @@ android {
         unitTests {
             isIncludeAndroidResources = true
         }
+        //noinspection WrongGradleMethod
         tasks.withType<Test> {
             useJUnitPlatform()
             setupTestLogging()
