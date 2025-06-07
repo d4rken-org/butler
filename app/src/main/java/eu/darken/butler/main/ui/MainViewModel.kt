@@ -22,7 +22,7 @@ class MainViewModel @Inject constructor(
     @Suppress("unused") private val handle: SavedStateHandle,
     private val upgradeRepo: UpgradeRepo,
     private val generalSettings: GeneralSettings,
-) : ViewModel3(dispatcherProvider = dispatcherProvider) {
+) : ViewModel3(dispatcherProvider, logTag("Main", "ViewModel")) {
 
     val themeState = generalSettings.themeState.asStateFlow()
 
@@ -41,7 +41,7 @@ class MainViewModel @Inject constructor(
         .asStateFlow()
 
     fun checkUpgrades() = launch {
-        log(TAG) { "checkUpgrades()" }
+        log(tag) { "checkUpgrades()" }
         upgradeRepo.refresh()
     }
 
@@ -53,9 +53,5 @@ class MainViewModel @Inject constructor(
             HOME,
             ;
         }
-    }
-
-    companion object {
-        private val TAG = logTag("MainActivity", "ViewModel")
     }
 }

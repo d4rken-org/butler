@@ -70,12 +70,19 @@
     <string name="storage_area_public_app_data_label">Public app data</string>
 
     <string name="onboarding_welcome_title">Welcome to Butler</string>
-    <string name="onboarding_welcome_message">Butler is a file explorer app focusing on performance and privacy.\nLet\'s get started with a quick setup.</string>
+    <string name="onboarding_welcome_message">Butler is a file explorer app focusing on performance and privacy.</string>
+    <string name="onboarding_welcome_action">Let\'s go</string>
+    <string name="onboarding_beta_title">Beta version</string>
+    <string name="onboarding_beta_message">This is a beta (testing) build. Proceed with a sense of humor and a backup plan. Please report issues you encounter.</string>
+    <string name="onboarding_beta_action">I fear nothing</string>
     <string name="onboarding_privacy_title">Privacy &amp; Data</string>
-    <string name="onboarding_privacy_message">Your privacy is important to us. Butler processes data locally on your device and respects your privacy preferences.</string>
-    <string name="onboarding_privacy_policy_link">Read Privacy Policy</string>
-    <string name="onboarding_accept">Accept &amp; Continue</string>
-    <string name="onboarding_next">Next</string>
-    <string name="onboarding_back">Back</string>
+    <string name="onboarding_privacy_message">Butler has no advertisements and does not sell user data. Your privacy is important to me.</string>
+    <string name="onboarding_privacy_read_action">Read Privacy Policy</string>
+    <string name="onboarding_privacy_action">Accept</string>
 
+    <string name="updater_check_enabled_setting_title">Check for updates</string>
+    <string name="updater_check_enabled_setting_description">Allow Butler to check online if a new version is available.</string>
+
+    <string name="motd_check_enabled_setting_title">Check for messages of the day</string>
+    <string name="motd_check_enabled_setting_description">Allow Butler to fetch important messages from the developer.</string>
 </resources>

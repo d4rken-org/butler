@@ -1,32 +1,22 @@
 package eu.darken.butler.main.ui.onboarding
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.uix.waitForState
 import eu.darken.butler.main.ui.onboarding.OnboardingViewModel.State.*
+import eu.darken.butler.main.ui.onboarding.pages.BetaPage
 import eu.darken.butler.main.ui.onboarding.pages.PrivacyPage
 import eu.darken.butler.main.ui.onboarding.pages.WelcomePage
 import kotlinx.coroutines.launch
@@ -34,37 +24,46 @@ import kotlinx.coroutines.launch
 @Preview2
 @Composable
 private fun OnboardingScreenPreview() {
-    OnboardingScreen(
-        state = OnboardingViewModel.State(Page.WELCOME),
-        onComplete = {},
-    )
+    PreviewWrapper {
+        OnboardingScreen()
+    }
 }
 
 @Composable
-fun OnboardingScreenHost(
-    vm: OnboardingViewModel = hiltViewModel()
-) {
+fun OnboardingScreenHost(vm: OnboardingViewModel = hiltViewModel()) {
     val state by waitForState(vm.state)
 
-    state?.let {
+    state?.let { state ->
         OnboardingScreen(
-            state = it,
-            onComplete = vm::completeOnboarding,
+            state = state,
+            onUpdateCheckChange = { vm.setUpdateCheckEnabled(it) },
+            onMotdCheckChange = { vm.setMotdCheckEnabled(it) },
+            onReadPrivacyPolicy = { vm.readPrivacyPolicy() },
+            onFinishOnboarding = vm::completeOnboarding,
         )
     }
 }
 
 @Composable
 private fun OnboardingScreen(
-    state: OnboardingViewModel.State,
-    onComplete: () -> Unit,
+    state: OnboardingViewModel.State = OnboardingViewModel.State(),
+    onUpdateCheckChange: (Boolean) -> Unit = {},
+    onMotdCheckChange: (Boolean) -> Unit = {},
+    onReadPrivacyPolicy: () -> Unit = {},
+    onFinishOnboarding: () -> Unit = {},
 ) {
 
     val pagerState = rememberPagerState(
-        initialPage = state.currentPage.ordinal,
+        initialPage = state.startPage.ordinal,
         pageCount = { Page.entries.size }
     )
     val scope = rememberCoroutineScope()
+
+    BackHandler(enabled = pagerState.currentPage > 0) {
+        scope.launch {
+            pagerState.animateScrollToPage(pagerState.currentPage - 1)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -73,69 +72,28 @@ private fun OnboardingScreen(
     ) {
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            userScrollEnabled = false
         ) { page ->
             when (Page.entries[page]) {
-                Page.WELCOME -> WelcomePage()
-                Page.PRIVACY -> PrivacyPage(
-                    onAccept = { onComplete() }
+                Page.WELCOME -> WelcomePage(
+                    onContinue = {
+                        scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+                    }
                 )
-            }
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (pagerState.currentPage > 0) {
-                TextButton(
-                    onClick = {
-                        scope.launch {
-                            pagerState.animateScrollToPage(pagerState.currentPage - 1)
-                        }
+                Page.BETA -> BetaPage(
+                    onContinue = {
+                        scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
                     }
-                ) {
-                    Text("Back")
-                }
-            } else {
-                Spacer(modifier = Modifier.width(1.dp))
-            }
-
-            Row(
-                horizontalArrangement = Arrangement.Center
-            ) {
-                repeat(pagerState.pageCount) { index ->
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .padding(horizontal = 2.dp)
-                            .background(
-                                if (index == pagerState.currentPage) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                                },
-                                shape = CircleShape
-                            )
-                    )
-                }
-            }
-
-            if (pagerState.currentPage < pagerState.pageCount - 1) {
-                TextButton(
-                    onClick = {
-                        scope.launch {
-                            pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                        }
-                    }
-                ) {
-                    Text("Next")
-                }
-            } else {
-                Spacer(modifier = Modifier.width(1.dp))
+                )
+                Page.PRIVACY -> PrivacyPage(
+                    isUpdateCheckEnabled = state.isUpdateCheckEnabled,
+                    onUpdateCheckChange = onUpdateCheckChange,
+                    isMotdCheckEnabled = state.isMotdCheckEnabled,
+                    onMotdCheckChange = onMotdCheckChange,
+                    onReadPrivacyPolicy = onReadPrivacyPolicy,
+                    onAccept = { onFinishOnboarding() }
+                )
             }
         }
     }

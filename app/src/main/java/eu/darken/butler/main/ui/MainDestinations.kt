@@ -3,20 +3,19 @@ package eu.darken.butler.main.ui
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
+@Suppress("JavaIoSerializableObjectMustHaveReadResolve")
 sealed interface MainNav : NavKey, java.io.Serializable {
 
     @Serializable
-    data class Home(
-        val data: String = "1"
-    ) : MainNav
+    data object Home : MainNav
 
     @Serializable
-    data class Onboarding(
-        val data: String = "2",
-    ) : MainNav
+    data object Onboarding : MainNav
 
     @Serializable
-    data class Settings(
-        val data: String = "3",
-    ) : MainNav
+    data object Settings : MainNav {
+        @Serializable
+        data object General : MainNav
+    }
+
 }
