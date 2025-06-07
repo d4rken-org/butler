@@ -5,6 +5,7 @@ plugins {
     id("projectConfig")
     id("com.google.devtools.ksp")
     id("kotlin-kapt")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 apply(plugin = "dagger.hilt.android.plugin")
@@ -122,6 +123,7 @@ android {
 
     buildFeatures {
         buildConfig = true
+        compose = true
     }
 
     compileOptions {
@@ -200,8 +202,9 @@ dependencies {
 
     addAndroidCore()
     addAndroidUI()
-    addNavigation3()
     addWorkerManager()
+
+    addNavigation3()
 
     addRoomDb()
 

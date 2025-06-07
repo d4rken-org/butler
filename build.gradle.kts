@@ -1,7 +1,8 @@
 plugins {
     id("projectConfig")
     id("com.google.devtools.ksp") version "2.1.21-2.0.1" apply false
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.0-RC2"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.1.21" apply false
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.0-RC2" apply false
 }
 
 buildscript {

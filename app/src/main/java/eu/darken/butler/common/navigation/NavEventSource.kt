@@ -1,8 +1,11 @@
 package eu.darken.butler.common.navigation
 
 
-import eu.darken.butler.common.SingleLiveEvent
+import eu.darken.butler.common.flow.SingleEventFlow
 
-interface NavEventSource {
-    val navEvents: SingleLiveEvent<Any>
+interface NavEvent {
+
+    interface Source {
+        val navEvents: SingleEventFlow<NavEvent>
+    }
 }

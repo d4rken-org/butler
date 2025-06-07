@@ -1,63 +1,98 @@
 package eu.darken.butler.main.ui
 
 import android.os.Bundle
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import androidx.navigation3.runtime.entry
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.ui.NavDisplay
 import dagger.hilt.android.AndroidEntryPoint
+import eu.darken.butler.common.compose.SampleContent
 import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.log
-import eu.darken.butler.common.debug.recorder.core.RecorderModule
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.asErrorDialogBuilder
-import eu.darken.butler.common.theming.Theming
+import eu.darken.butler.common.theming.MyAppTheme
+import eu.darken.butler.common.theming.ThemeState
 import eu.darken.butler.common.uix.Activity2
 import eu.darken.butler.main.core.CurriculumVitae
+import eu.darken.butler.main.ui.onboarding.OnboardingScreenHost
+import eu.darken.butler.main.ui.onboarding.OnboardingViewModel
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : Activity2() {
 
     private val vm: MainViewModel by viewModels()
-//    private lateinit var ui: MainActivityBinding
-//
-//    @Suppress("unused")
-//    private val navController by lazy { supportFragmentManager.findNavController(R.id.nav_host) }
+    private val onboardingVm: OnboardingViewModel by viewModels()
 
     @Inject lateinit var curriculumVitae: CurriculumVitae
-    @Inject lateinit var theming: Theming
-
-    var showSplashScreen = true
-
-    @Inject lateinit var recorderModule: RecorderModule
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
         enableEdgeToEdge()
-        theming.notifySplashScreenDone(this)
-
-//        ui = MainActivityBinding.inflate(layoutInflater)
-//        setContentView(ui.root)
+        super.onCreate(savedInstanceState)
 
         curriculumVitae.updateAppOpened()
 
-        vm.readyState.observe2 { showSplashScreen = false }
-
-//        vm.keepScreenOn.observe2 { keepOn ->
-//            if (keepOn) {
-//                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-//            } else {
-//                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-//            }
-//        }
-
-//        navController.addOnDestinationChangedListener { _, destination, bundle ->
-//            Bugs.leaveBreadCrumb("Navigated to $destination with args $bundle")
-//        }
-
-        vm.errorEvents.observe2 {
+        vm.errorEvents.observe {
             log(tag, Logging.Priority.VERBOSE) { "Error event: $it" }
             it.asErrorDialogBuilder(this).show()
         }
+
+        setContent {
+            val themeState by produceState<ThemeState?>(initialValue = null) {
+                vm.themeState.collect { value = it }
+            }
+            val vmState by produceState<MainViewModel.State?>(initialValue = null) {
+                vm.state.collect { value = it }
+            }
+            themeState?.let { themeState ->
+                log(TAG) { "Theme state: $themeState" }
+                MyAppTheme(state = themeState) {
+                    vmState?.let { mainState ->
+                        Navigation(mainState)
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun Navigation(state: MainViewModel.State) {
+        val start = when (state.startScreen) {
+            MainViewModel.State.StartScreen.ONBOARDING -> MainNav.Onboarding()
+            MainViewModel.State.StartScreen.HOME -> MainNav.Home()
+        }
+
+        val backStack = rememberNavBackStack(start)
+
+        NavDisplay(
+            backStack = backStack,
+            onBack = { backStack.removeLastOrNull() },
+            entryProvider = entryProvider {
+                entry<MainNav.Home> {
+                    SampleContent("Home screen (only accessible after onboarding)")
+                }
+                entry<MainNav.Onboarding> {
+                    OnboardingScreenHost()
+                }
+                entry<MainNav.Settings> {
+//                    SettingsScreen(
+//                        onNavigateUp = { backStack.removeLastOrNull() },
+//                        onNavigateToGeneral = { backStack.add(MainNav.GeneralSettings()) },
+//                        onNavigateToSupport = { backStack.add(MainNav.Support()) },
+//                        onChangelogClick = {
+//                            // TODO: Handle changelog click
+//                        }
+//                    )
+                }
+            }
+        )
     }
 
     override fun onResume() {
@@ -65,12 +100,7 @@ class MainActivity : Activity2() {
         vm.checkUpgrades()
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putBoolean(B_KEY_SPLASH, showSplashScreen)
-        super.onSaveInstanceState(outState)
-    }
-
     companion object {
-        private const val B_KEY_SPLASH = "showSplashScreen"
+        private val TAG = logTag("Main", "Activity")
     }
 }

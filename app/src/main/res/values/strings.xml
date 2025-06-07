@@ -69,4 +69,13 @@
     <string name="storage_area_public_label">Public storage</string>
     <string name="storage_area_public_app_data_label">Public app data</string>
 
+    <string name="onboarding_welcome_title">Welcome to Butler</string>
+    <string name="onboarding_welcome_message">Butler is a file explorer app focusing on performance and privacy.\nLet\'s get started with a quick setup.</string>
+    <string name="onboarding_privacy_title">Privacy &amp; Data</string>
+    <string name="onboarding_privacy_message">Your privacy is important to us. Butler processes data locally on your device and respects your privacy preferences.</string>
+    <string name="onboarding_privacy_policy_link">Read Privacy Policy</string>
+    <string name="onboarding_accept">Accept &amp; Continue</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_back">Back</string>
+
 </resources>
