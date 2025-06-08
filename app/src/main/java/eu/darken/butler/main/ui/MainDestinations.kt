@@ -4,18 +4,18 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
 @Suppress("JavaIoSerializableObjectMustHaveReadResolve")
-sealed interface MainNav : NavKey, java.io.Serializable {
+sealed interface Destination : NavKey, java.io.Serializable {
 
     @Serializable
-    data object Home : MainNav
+    data object Home : Destination
 
     @Serializable
-    data object Onboarding : MainNav
+    data object Onboarding : Destination
 
     @Serializable
-    data object Settings : MainNav {
+    data object Settings : Destination {
         @Serializable
-        data object General : MainNav
+        data object General : Destination
     }
 
 }

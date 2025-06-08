@@ -4,16 +4,16 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.flow.SingleEventFlow
-import eu.darken.butler.common.navigation.NavEvent
+import eu.darken.butler.common.navigation.NavigationAction
 import kotlinx.coroutines.CoroutineExceptionHandler
 
 
 abstract class ViewModel3(
     dispatcherProvider: DispatcherProvider,
     override val tag: String = defaultTag(),
-) : ViewModel2(dispatcherProvider), NavEvent.Source {
+) : ViewModel2(dispatcherProvider), NavigationAction.Source {
 
-    override val navEvents = SingleEventFlow<NavEvent>()
+    override val navEvents = SingleEventFlow<NavigationAction>()
     val errorEvents = SingleEventFlow<Throwable>()
 
     override var launchErrorHandler: CoroutineExceptionHandler? = CoroutineExceptionHandler { _, ex ->

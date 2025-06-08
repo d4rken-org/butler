@@ -66,8 +66,8 @@ class MainActivity : Activity2() {
     @Composable
     private fun Navigation(state: MainViewModel.State) {
         val start = when (state.startScreen) {
-            MainViewModel.State.StartScreen.ONBOARDING -> MainNav.Onboarding
-            MainViewModel.State.StartScreen.HOME -> MainNav.Home
+            MainViewModel.State.StartScreen.ONBOARDING -> Destination.Onboarding
+            MainViewModel.State.StartScreen.HOME -> Destination.Home
         }
 
         val backStack = rememberNavBackStack(start)
@@ -81,13 +81,13 @@ class MainActivity : Activity2() {
             backStack = backStack,
             onBack = { backStack.removeLastOrNull() },
             entryProvider = entryProvider {
-                entry<MainNav.Home> {
+                entry<Destination.Home> {
                     SampleContent("Home screen (only accessible after onboarding)")
                 }
-                entry<MainNav.Onboarding> {
+                entry<Destination.Onboarding> {
                     OnboardingScreenHost()
                 }
-                entry<MainNav.Settings> {
+                entry<Destination.Settings> {
                     SettingsScreen(
                         onNavigateUp = { backStack.removeLastOrNull() },
                         onNavigateToGeneral = {  },
@@ -96,6 +96,9 @@ class MainActivity : Activity2() {
                             // TODO: Handle changelog click
                         }
                     )
+                }
+                entry<Destination.Settings.General> {
+                    SampleContent("Settings.General")
                 }
             }
         )
