@@ -1,5 +1,4 @@
 <resources>
-
     <string name="setup_usagestats_title">Usage stats</string>
     <string name="setup_shizuku_card_title">Shizuku</string>
     <string name="setup_root_card_title">Root</string>
@@ -22,6 +21,7 @@
     <string name="settings_privacy_policy_label">Privacy policy</string>
     <string name="settings_privacy_policy_desc">Handling data responsibly.</string>
     <string name="settings_licenses_label">Licenses</string>
+    <string name="settings_licenses_desc">Open source licenses and third-party attributions</string>
     <string name="settings_category_other_label">Other</string>
 
     <string name="settings_category_filter_generic">Generic filter</string>
@@ -29,6 +29,7 @@
     <string name="settings_sponsor_development_title">Sponsor development</string>
     <string name="settings_sponsor_development_summary">Become a patron and make continued development possible.</string>
 
+    <string name="settings_label">Settings</string>
     <string name="general_settings_label">General</string>
     <string name="general_settings_desc">General tweaks that affect the whole app.</string>
     <string name="settings_category_ui_label">User interface</string>
@@ -64,6 +65,19 @@
 
     <string name="changelog_label">Changelog</string>
     <string name="settings_acknowledgements_label">Acknowledgements</string>
+    <string name="settings_acknowledgements_description">Credits, licenses, and special thanks</string>
+    
+    <string name="settings_acks_translation_header">Translation</string>
+    <string name="settings_acks_translators_title">Translators</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">Translate Butler</string>
+    <string name="settings_acks_translate_desc">Help translate Butler into your language</string>
+
+    <string name="settings_acks_thanks_header">Thanks</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">For supporting translation of open-source projects</string>
+
+    <string name="settings_acks_licenses_header">Licenses</string>
 
     <string name="storage_area_sdcard_label">SD card</string>
     <string name="storage_area_public_label">Public storage</string>

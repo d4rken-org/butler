@@ -16,8 +16,12 @@ sealed interface AppNav : NavigationDestination {
     data object Settings : AppNav {
         @Serializable
         data object General : AppNav
+
         @Serializable
         data object Support : AppNav
+
+        @Serializable
+        data object Acknowledgements : AppNav
     }
 
 }

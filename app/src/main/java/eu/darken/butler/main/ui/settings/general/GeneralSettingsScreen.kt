@@ -9,10 +9,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Preview
 import androidx.compose.material.icons.filled.Translate
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -23,13 +21,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.uix.waitForState
+import eu.darken.butler.main.ui.settings.common.SettingsCategoryHeader
+import eu.darken.butler.main.ui.settings.common.SettingsDivider
 import eu.darken.butler.main.ui.settings.common.SettingsPreferenceItem
 import eu.darken.butler.main.ui.settings.common.SettingsSwitchItem
 
@@ -71,7 +69,7 @@ fun GeneralSettingsScreen(
                     IconButton(onClick = onNavigateUp) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(eu.darken.butler.common.R.string.general_back_action)
                         )
                     }
                 }
@@ -85,12 +83,8 @@ fun GeneralSettingsScreen(
             verticalArrangement = Arrangement.Top
         ) {
             item {
-                Text(
-                    text = stringResource(R.string.settings_category_ui_label),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                SettingsCategoryHeader(
+                    text = stringResource(R.string.settings_category_ui_label)
                 )
             }
 
@@ -102,10 +96,7 @@ fun GeneralSettingsScreen(
                     value = stringResource(R.string.ui_theme_mode_system_label),
                     onClick = { }
                 )
-                HorizontalDivider(
-                    modifier = Modifier.padding(start = 72.dp),
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
-                )
+                SettingsDivider()
             }
 
             item {
@@ -116,10 +107,7 @@ fun GeneralSettingsScreen(
                     value = stringResource(R.string.ui_theme_style_default_label),
                     onClick = { }
                 )
-                HorizontalDivider(
-                    modifier = Modifier.padding(start = 72.dp),
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
-                )
+                SettingsDivider()
             }
 
             item {
@@ -130,10 +118,7 @@ fun GeneralSettingsScreen(
                     value = "English",
                     onClick = { }
                 )
-                HorizontalDivider(
-                    modifier = Modifier.padding(start = 72.dp),
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
-                )
+                SettingsDivider()
             }
 
             item {

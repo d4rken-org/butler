@@ -57,7 +57,7 @@ fun SupportScreen(
                     IconButton(onClick = onNavigateUp) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(eu.darken.butler.common.R.string.general_back_action)
                         )
                     }
                 }

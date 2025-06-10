@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
@@ -27,7 +28,8 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.uix.waitForState
 import eu.darken.butler.main.ui.AppNav
-import eu.darken.butler.main.ui.settings.common.SettingsPreferenceItem
+import eu.darken.butler.main.ui.settings.common.SettingsBaseItem
+import eu.darken.butler.main.ui.settings.common.SettingsCategoryHeader
 
 
 @Preview2
@@ -39,6 +41,8 @@ private fun SettingsScreenPreview() {
             onNavigateUp = {},
             onNavigateToGeneral = {},
             onNavigateToSupport = {},
+            onNavigateToAcknowledgements = {},
+            onOpenChangelog = {},
         )
     }
 }
@@ -53,6 +57,8 @@ fun OnboardingScreenHost(vm: SettingsViewModel = hiltViewModel()) {
             onNavigateUp = { vm.goTo(null) },
             onNavigateToGeneral = { vm.goTo(AppNav.Settings.General) },
             onNavigateToSupport = { vm.goTo(AppNav.Settings.Support) },
+            onNavigateToAcknowledgements = { vm.goTo(AppNav.Settings.Acknowledgements) },
+            onOpenChangelog = { vm.openChangelog() },
         )
     }
 }
@@ -63,16 +69,18 @@ fun SettingsScreen(
     onNavigateUp: () -> Unit,
     onNavigateToGeneral: () -> Unit,
     onNavigateToSupport: () -> Unit,
+    onNavigateToAcknowledgements: () -> Unit,
+    onOpenChangelog: () -> Unit,
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Settings") },
+                title = { Text(stringResource(R.string.settings_label)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(eu.darken.butler.common.R.string.general_back_action)
                         )
                     }
                 }
@@ -86,7 +94,7 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.Top
         ) {
             item {
-                SettingsPreferenceItem(
+                SettingsBaseItem(
                     icon = Icons.Default.Settings,
                     title = stringResource(R.string.general_settings_label),
                     subtitle = stringResource(R.string.general_settings_desc),
@@ -100,7 +108,11 @@ fun SettingsScreen(
             }
 
             item {
-                SettingsPreferenceItem(
+                SettingsCategoryHeader(stringResource(R.string.settings_category_other_label))
+            }
+
+            item {
+                SettingsBaseItem(
                     icon = Icons.Default.Info,
                     title = stringResource(R.string.settings_support_label),
                     subtitle = stringResource(R.string.settings_support_description),
@@ -114,11 +126,25 @@ fun SettingsScreen(
             }
 
             item {
-                SettingsPreferenceItem(
+                SettingsBaseItem(
+                    icon = Icons.Default.Favorite,
+                    title = stringResource(R.string.settings_acknowledgements_label),
+                    subtitle = stringResource(R.string.settings_acknowledgements_description),
+                    onClick = onNavigateToAcknowledgements,
+                    modifier = Modifier
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(start = 72.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
+                )
+            }
+
+            item {
+                SettingsBaseItem(
                     icon = Icons.Default.Star,
                     title = stringResource(R.string.changelog_label),
                     subtitle = state.versionText,
-                    onClick = {},
+                    onClick = onOpenChangelog,
                     modifier = Modifier
                 )
             }
