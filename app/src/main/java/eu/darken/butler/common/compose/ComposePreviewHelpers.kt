@@ -23,7 +23,10 @@ import eu.darken.butler.common.theming.ThemeState
 import eu.darken.butler.common.theming.ThemeStyle
 
 @Composable
-fun SampleContent(demoText: String = "Sample text") {
+fun SampleContent(
+    text: String = "Sample text",
+    action: () -> Unit = {}
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -43,9 +46,9 @@ fun SampleContent(demoText: String = "Sample text") {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(text = demoText, color = MaterialTheme.colorScheme.onPrimaryContainer)
+            Text(text = text, color = MaterialTheme.colorScheme.onPrimaryContainer)
             Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = {}) { Text("Click Me") }
+            Button(onClick = action) { Text("Click Me") }
         }
     }
 }
@@ -54,7 +57,7 @@ fun SampleContent(demoText: String = "Sample text") {
 @Composable
 fun SampleContentPreview() {
     PreviewWrapper {
-        SampleContent(demoText = "Sample Text")
+        SampleContent(text = "Sample Text")
     }
 }
 

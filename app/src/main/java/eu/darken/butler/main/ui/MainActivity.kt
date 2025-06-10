@@ -18,12 +18,13 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.asErrorDialogBuilder
+import eu.darken.butler.common.navigation.NavTarget
+import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.theming.MyAppTheme
 import eu.darken.butler.common.theming.ThemeState
 import eu.darken.butler.common.uix.Activity2
 import eu.darken.butler.main.core.CurriculumVitae
 import eu.darken.butler.main.ui.onboarding.OnboardingScreenHost
-import eu.darken.butler.main.ui.settings.SettingsScreen
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -32,6 +33,7 @@ class MainActivity : Activity2() {
     private val vm: MainViewModel by viewModels()
 
     @Inject lateinit var curriculumVitae: CurriculumVitae
+    @Inject lateinit var navCtrl: NavigationController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -66,39 +68,31 @@ class MainActivity : Activity2() {
     @Composable
     private fun Navigation(state: MainViewModel.State) {
         val start = when (state.startScreen) {
-            MainViewModel.State.StartScreen.ONBOARDING -> Destination.Onboarding
-            MainViewModel.State.StartScreen.HOME -> Destination.Home
+            MainViewModel.State.StartScreen.ONBOARDING -> MainDestinations.Onboarding
+            MainViewModel.State.StartScreen.HOME -> MainDestinations.Home
         }
 
-        val backStack = rememberNavBackStack(start)
+        val backStack = rememberNavBackStack<NavTarget>(start)
 
-        LaunchedEffect(state.startScreen) {
-            backStack.clear()
-            backStack.add(start)
+        LaunchedEffect(Unit) {
+            navCtrl.setup(backStack)
         }
 
         NavDisplay(
             backStack = backStack,
-            onBack = { backStack.removeLastOrNull() },
+            onBack = { navCtrl.up() },
             entryProvider = entryProvider {
-                entry<Destination.Home> {
-                    SampleContent("Home screen (only accessible after onboarding)")
-                }
-                entry<Destination.Onboarding> {
+                entry<MainDestinations.Onboarding> {
                     OnboardingScreenHost()
                 }
-                entry<Destination.Settings> {
-                    SettingsScreen(
-                        onNavigateUp = { backStack.removeLastOrNull() },
-                        onNavigateToGeneral = {  },
-                        onNavigateToSupport = {  },
-                        onChangelogClick = {
-                            // TODO: Handle changelog click
-                        }
-                    )
-                }
-                entry<Destination.Settings.General> {
-                    SampleContent("Settings.General")
+                entry<MainDestinations.Home> {
+                    SampleContent("Home screen (only accessible after onboarding)") {
+                        navCtrl.goTo(
+                            MainDestinations.Onboarding,
+                            popUpTo = MainDestinations.Onboarding,
+                            inclusive = true
+                        )
+                    }
                 }
             }
         )

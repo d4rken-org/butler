@@ -1,21 +1,21 @@
 package eu.darken.butler.main.ui
 
-import androidx.navigation3.runtime.NavKey
+import eu.darken.butler.common.navigation.NavTarget
 import kotlinx.serialization.Serializable
 
 @Suppress("JavaIoSerializableObjectMustHaveReadResolve")
-sealed interface Destination : NavKey, java.io.Serializable {
+sealed interface MainDestinations : NavTarget {
 
     @Serializable
-    data object Home : Destination
+    data object Home : MainDestinations
 
     @Serializable
-    data object Onboarding : Destination
+    data object Onboarding : MainDestinations
 
     @Serializable
-    data object Settings : Destination {
+    data object Settings : MainDestinations {
         @Serializable
-        data object General : Destination
+        data object General : MainDestinations
     }
 
 }
