@@ -12,26 +12,26 @@ import dagger.multibindings.IntoSet
 import eu.darken.butler.common.compose.SampleContent
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.NavigationEntry
-import eu.darken.butler.main.ui.MainDestinations
+import eu.darken.butler.main.ui.AppNav
 import javax.inject.Inject
 
 class HomeNavigation @Inject constructor(
     private val navCtrl: NavigationController
 ) : NavigationEntry {
     override fun EntryProviderBuilder<NavKey>.setup() {
-        entry<MainDestinations.Home> {
+        entry<AppNav.Home> {
             Column {
 
                 SampleContent("Go to Onboarding") {
                     navCtrl.goTo(
-                        MainDestinations.Onboarding,
-                        popUpTo = MainDestinations.Onboarding,
+                        AppNav.Onboarding,
+                        popUpTo = AppNav.Onboarding,
                         inclusive = true
                     )
                 }
                 SampleContent("Go to Settings") {
                     navCtrl.goTo(
-                        MainDestinations.Settings
+                        AppNav.Settings
                     )
                 }
             }

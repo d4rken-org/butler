@@ -19,14 +19,6 @@ abstract class ViewModel3(
         errorEvents.emitBlocking(ex)
     }
 
-//    fun NavEvent.navigate() {
-//        navEvents.emitBlocking(this@navigate)
-//    }
-//
-//    fun popNavStack() {
-//        navEvents.emitBlocking(null)
-//    }
-
     companion object {
         private fun defaultTag(): String = this::class.simpleName ?: "VM3"
     }

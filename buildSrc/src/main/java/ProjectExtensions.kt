@@ -37,13 +37,13 @@ val Project.projectConfig: ProjectConfig
     get() = extensions.findByType(ProjectConfig::class.java)!!
 
 fun com.android.build.api.dsl.CommonExtension<
-        com.android.build.api.dsl.LibraryBuildFeatures,
-        com.android.build.api.dsl.LibraryBuildType,
-        com.android.build.api.dsl.LibraryDefaultConfig,
-        com.android.build.api.dsl.LibraryProductFlavor,
-        *,
-        *
-        >.setupModuleBuildTypes() {
+    com.android.build.api.dsl.LibraryBuildFeatures,
+    com.android.build.api.dsl.LibraryBuildType,
+    com.android.build.api.dsl.LibraryDefaultConfig,
+    com.android.build.api.dsl.LibraryProductFlavor,
+    *,
+    *
+    >.setupModuleBuildTypes() {
     buildTypes {
         debug {
             consumerProguardFiles("consumer-rules.pro")
@@ -72,7 +72,8 @@ fun BaseExtension.setupKotlinOptions() {
             "-opt-in=kotlin.RequiresOptIn",
             "-Xjvm-default=all",
             "-XXLanguage:+DataObjects",
-            "-Xcontext-receivers"
+            "-Xcontext-receivers",
+            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
         )
     }
 }

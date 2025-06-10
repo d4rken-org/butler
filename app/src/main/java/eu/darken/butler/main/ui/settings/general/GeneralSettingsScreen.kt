@@ -1,26 +1,19 @@
-package eu.darken.butler.main.ui.settings.pages
+package eu.darken.butler.main.ui.settings.general
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Preview
 import androidx.compose.material.icons.filled.Translate
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -28,17 +21,46 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.uix.waitForState
+import eu.darken.butler.main.ui.settings.common.SettingsPreferenceItem
+import eu.darken.butler.main.ui.settings.common.SettingsSwitchItem
 
-@OptIn(ExperimentalMaterial3Api::class)
+@Preview2
 @Composable
-fun GeneralSettingsPage() {
+private fun GeneralSettingsScreenPreview() {
+    PreviewWrapper {
+        GeneralSettingsScreen(
+            state = GeneralSettingsViewModel.State(),
+            onNavigateUp = {},
+        )
+    }
+}
+
+@Composable
+fun GeneralSettingsScreenHost(vm: GeneralSettingsViewModel = hiltViewModel()) {
+    val state by waitForState(vm.state)
+
+    state?.let { state ->
+        GeneralSettingsScreen(
+            state = state,
+            onNavigateUp = { vm.goTo(null) },
+        )
+    }
+}
+
+@Composable
+fun GeneralSettingsScreen(
+    state: GeneralSettingsViewModel.State,
+    onNavigateUp: () -> Unit,
+) {
     var filePreviewsEnabled by remember { mutableStateOf(true) }
 
     Scaffold(
@@ -46,7 +68,7 @@ fun GeneralSettingsPage() {
             TopAppBar(
                 title = { Text(stringResource(R.string.general_settings_label)) },
                 navigationIcon = {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = onNavigateUp) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
@@ -104,7 +126,8 @@ fun GeneralSettingsPage() {
                 SettingsPreferenceItem(
                     icon = Icons.Default.Translate,
                     title = stringResource(R.string.ui_language_override_label),
-                    subtitle = stringResource(R.string.ui_language_override_desc, "English"),
+                    subtitle = stringResource(R.string.ui_language_override_desc),
+                    value = "English",
                     onClick = { }
                 )
                 HorizontalDivider(
@@ -126,109 +149,3 @@ fun GeneralSettingsPage() {
     }
 }
 
-@Composable
-private fun SettingsPreferenceItem(
-    icon: ImageVector,
-    title: String,
-    subtitle: String?,
-    value: String? = null,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier
-                .size(24.dp)
-                .padding(end = 32.dp),
-            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-        )
-
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Normal,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            if (subtitle != null) {
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(top = 2.dp)
-                )
-            }
-        }
-
-        if (value != null) {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                modifier = Modifier.padding(start = 16.dp)
-            )
-        }
-    }
-}
-
-@Composable
-private fun SettingsSwitchItem(
-    icon: ImageVector,
-    title: String,
-    subtitle: String?,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) }
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier
-                .size(24.dp)
-                .padding(end = 32.dp),
-            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-        )
-
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Normal,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            if (subtitle != null) {
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(top = 2.dp)
-                )
-            }
-        }
-
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            modifier = Modifier.padding(start = 16.dp)
-        )
-    }
-}

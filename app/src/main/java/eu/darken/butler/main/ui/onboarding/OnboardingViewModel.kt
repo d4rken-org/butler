@@ -13,7 +13,7 @@ import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.uix.ViewModel3
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.motd.MotdSettings
-import eu.darken.butler.main.ui.MainDestinations
+import eu.darken.butler.main.ui.AppNav
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 
@@ -42,8 +42,8 @@ class OnboardingViewModel @Inject constructor(
         log(tag) { "completeOnboarding()" }
         generalSettings.isOnboardingCompleted.value(true)
         navigationController.goTo(
-            MainDestinations.Home,
-            popUpTo = MainDestinations.Home,
+            AppNav.Home,
+            popUpTo = AppNav.Home,
             inclusive = true
         )
     }

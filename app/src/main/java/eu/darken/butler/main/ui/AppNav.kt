@@ -4,18 +4,20 @@ import eu.darken.butler.common.navigation.NavigationDestination
 import kotlinx.serialization.Serializable
 
 @Suppress("JavaIoSerializableObjectMustHaveReadResolve")
-sealed interface MainDestinations : NavigationDestination {
+sealed interface AppNav : NavigationDestination {
 
     @Serializable
-    data object Home : MainDestinations
+    data object Home : AppNav
 
     @Serializable
-    data object Onboarding : MainDestinations
+    data object Onboarding : AppNav
 
     @Serializable
-    data object Settings : MainDestinations {
+    data object Settings : AppNav {
         @Serializable
-        data object General : MainDestinations
+        data object General : AppNav
+        @Serializable
+        data object Support : AppNav
     }
 
 }

@@ -9,12 +9,12 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import eu.darken.butler.common.navigation.NavigationEntry
-import eu.darken.butler.main.ui.MainDestinations
+import eu.darken.butler.main.ui.AppNav
 import javax.inject.Inject
 
 class OnboardingNavigation @Inject constructor() : NavigationEntry {
     override fun EntryProviderBuilder<NavKey>.setup() {
-        entry<MainDestinations.Onboarding> {
+        entry<AppNav.Onboarding> {
             OnboardingScreenHost()
         }
     }

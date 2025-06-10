@@ -1,22 +1,17 @@
-package eu.darken.butler.main.ui.settings
+package eu.darken.butler.main.ui.settings.support
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.uix.ViewModel4
-import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
 @HiltViewModel
-class SettingsViewModel @Inject constructor(
+class SupportScreenViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     navCtrl: NavigationController,
-) : ViewModel4(dispatcherProvider, logTag("Settings", "ViewModel"), navCtrl) {
+) : ViewModel4(dispatcherProvider, logTag("Settings", "Support", "ViewModel"), navCtrl) {
 
-    val state = flowOf(State()).asStateFlow()
 
-    data class State(
-        val versionText: String = "v0.0.0-rc0",
-    )
 }
