@@ -1,4 +1,4 @@
-package eu.darken.butler.main.ui.settings
+package eu.darken.butler.main.ui.settings.pages
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,17 +38,15 @@ import eu.darken.butler.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GeneralSettingsScreen(
-    onNavigateUp: () -> Unit
-) {
+fun GeneralSettingsPage() {
     var filePreviewsEnabled by remember { mutableStateOf(true) }
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.general_settings_label)) },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateUp) {
+                    IconButton(onClick = {}) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
@@ -73,7 +71,7 @@ fun GeneralSettingsScreen(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
                 )
             }
-            
+
             item {
                 SettingsPreferenceItem(
                     icon = Icons.Default.Palette,
@@ -87,7 +85,7 @@ fun GeneralSettingsScreen(
                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
                 )
             }
-            
+
             item {
                 SettingsPreferenceItem(
                     icon = Icons.Default.Palette,
@@ -101,7 +99,7 @@ fun GeneralSettingsScreen(
                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
                 )
             }
-            
+
             item {
                 SettingsPreferenceItem(
                     icon = Icons.Default.Translate,
@@ -114,7 +112,7 @@ fun GeneralSettingsScreen(
                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
                 )
             }
-            
+
             item {
                 SettingsSwitchItem(
                     icon = Icons.Default.Preview,
@@ -152,7 +150,7 @@ private fun SettingsPreferenceItem(
                 .padding(end = 32.dp),
             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
-        
+
         Column(
             modifier = Modifier.weight(1f)
         ) {
@@ -171,7 +169,7 @@ private fun SettingsPreferenceItem(
                 )
             }
         }
-        
+
         if (value != null) {
             Text(
                 text = value,
@@ -207,7 +205,7 @@ private fun SettingsSwitchItem(
                 .padding(end = 32.dp),
             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
-        
+
         Column(
             modifier = Modifier.weight(1f)
         ) {
@@ -226,7 +224,7 @@ private fun SettingsSwitchItem(
                 )
             }
         }
-        
+
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
@@ -24,21 +23,49 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.uix.waitForState
+
+
+@Preview2
+@Composable
+private fun SettingsScreenPreview() {
+    PreviewWrapper {
+        SettingsScreen()
+    }
+}
+
+@Composable
+fun OnboardingScreenHost(vm: SettingsViewModel = hiltViewModel()) {
+    val state by waitForState(vm.state)
+
+    state?.let { state ->
+        SettingsScreen(
+            state = state,
+            onNavigateUp = { vm.navigateUp() },
+            onNavigateToGeneral = {},
+            onNavigateToSupport = {},
+        )
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onNavigateUp: () -> Unit,
-    onNavigateToGeneral: () -> Unit,
-    onNavigateToSupport: () -> Unit,
-    onChangelogClick: () -> Unit,
+    state: SettingsViewModel.State = SettingsViewModel.State(),
+    onNavigateUp: () -> Unit = {},
+    onNavigateToGeneral: () -> Unit = {},
+    onNavigateToSupport: () -> Unit = {},
 ) {
     Scaffold(
         topBar = {
@@ -74,7 +101,7 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
                 )
             }
-            
+
             item {
                 SettingsItem(
                     icon = Icons.Default.Info,
@@ -88,13 +115,13 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
                 )
             }
-            
+
             item {
                 SettingsItem(
                     icon = Icons.Default.Star,
                     title = stringResource(R.string.changelog_label),
-                    subtitle = "View recent changes and updates",
-                    onClick = onChangelogClick,
+                    subtitle = state.versionText,
+                    onClick = {},
                     modifier = Modifier
                 )
             }
@@ -125,7 +152,7 @@ private fun SettingsItem(
                 .padding(end = 32.dp),
             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
-        
+
         Column(
             modifier = Modifier.weight(1f)
         ) {

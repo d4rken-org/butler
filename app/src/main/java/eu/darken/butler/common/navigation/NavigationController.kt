@@ -24,7 +24,11 @@ class NavigationController @Inject constructor() {
         return removed != null
     }
 
-    fun goTo(destination: NavTarget, popUpTo: NavTarget? = null, inclusive: Boolean = false) {
+    fun goTo(
+        destination: NavigationDestination,
+        popUpTo: NavigationDestination? = null,
+        inclusive: Boolean = false
+    ) {
         log(TAG) { "goTo($destination, popUpTo=$popUpTo, inclusive=$inclusive)" }
         
         if (popUpTo != null) {
@@ -42,7 +46,7 @@ class NavigationController @Inject constructor() {
         backStack.add(destination)
     }
 
-    fun replace(destination: NavTarget) {
+    fun replace(destination: NavigationDestination) {
         backStack.removeLastOrNull()
         backStack.add(destination)
     }

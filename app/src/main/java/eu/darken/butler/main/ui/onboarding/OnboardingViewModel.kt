@@ -27,7 +27,6 @@ class OnboardingViewModel @Inject constructor(
     private val navigationController: NavigationController,
 ) : ViewModel3(dispatcherProvider, logTag("Onboarding", "ViewModel")) {
 
-
     val state = combine(
         generalSettings.isOnboardingCompleted.flow,
         generalSettings.isUpdateCheckEnabled.flow,

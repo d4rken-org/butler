@@ -1,10 +1,10 @@
 package eu.darken.butler.main.ui
 
-import eu.darken.butler.common.navigation.NavTarget
+import eu.darken.butler.common.navigation.NavigationDestination
 import kotlinx.serialization.Serializable
 
 @Suppress("JavaIoSerializableObjectMustHaveReadResolve")
-sealed interface MainDestinations : NavTarget {
+sealed interface MainDestinations : NavigationDestination {
 
     @Serializable
     data object Home : MainDestinations

@@ -8,23 +8,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
-import androidx.navigation3.runtime.entry
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import dagger.hilt.android.AndroidEntryPoint
-import eu.darken.butler.common.compose.SampleContent
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.asErrorDialogBuilder
-import eu.darken.butler.common.navigation.NavTarget
 import eu.darken.butler.common.navigation.NavigationController
+import eu.darken.butler.common.navigation.NavigationDestination
+import eu.darken.butler.common.navigation.NavigationEntry
 import eu.darken.butler.common.theming.MyAppTheme
 import eu.darken.butler.common.theming.ThemeState
 import eu.darken.butler.common.uix.Activity2
 import eu.darken.butler.main.core.CurriculumVitae
-import eu.darken.butler.main.ui.onboarding.OnboardingScreenHost
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -34,6 +32,7 @@ class MainActivity : Activity2() {
 
     @Inject lateinit var curriculumVitae: CurriculumVitae
     @Inject lateinit var navCtrl: NavigationController
+    @Inject lateinit var navigationEntries: Set<@JvmSuppressWildcards NavigationEntry>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -72,7 +71,7 @@ class MainActivity : Activity2() {
             MainViewModel.State.StartScreen.HOME -> MainDestinations.Home
         }
 
-        val backStack = rememberNavBackStack<NavTarget>(start)
+        val backStack = rememberNavBackStack<NavigationDestination>(start)
 
         LaunchedEffect(Unit) {
             navCtrl.setup(backStack)
@@ -82,16 +81,10 @@ class MainActivity : Activity2() {
             backStack = backStack,
             onBack = { navCtrl.up() },
             entryProvider = entryProvider {
-                entry<MainDestinations.Onboarding> {
-                    OnboardingScreenHost()
-                }
-                entry<MainDestinations.Home> {
-                    SampleContent("Home screen (only accessible after onboarding)") {
-                        navCtrl.goTo(
-                            MainDestinations.Onboarding,
-                            popUpTo = MainDestinations.Onboarding,
-                            inclusive = true
-                        )
+                navigationEntries.forEach { entry ->
+                    entry.apply {
+                        log(TAG) { "Set up navigation entry: $this" }
+                        setup()
                     }
                 }
             }
