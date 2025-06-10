@@ -53,20 +53,19 @@
 
     <string name="settings_support_label">Support</string>
     <string name="settings_support_description">Read documentation, report issues, chat with others or record debug logs.</string>
-    <string name="documentation_label">Documentation</string>
-    <string name="issue_tracker_description">A public issue tracker for bug reports and feature requests.</string>
-    <string name="issue_tracker_label">Issue tracker</string>
-    <string name="support_installid_label">Install ID</string>
-    <string name="support_installid_desc">Automatic error reports are anonymous. Share your install ID if the developer needs to find your error reports.</string>
-    <string name="support_debuglog_label">Debug log</string>
-    <string name="support_debuglog_desc">Record everything the app is doing into a text file that you can share.</string>
-    <string name="discord_label">Discord</string>
-    <string name="discord_description">A place to hang out in and ask questions.</string>
+    <string name="settings_support_wiki_label">Documentation</string>
+    <string name="settings_support_wiki_description">Learn how to use Butler effectively</string>
+    <string name="settings_support_issue_tracker_description">A public issue tracker for bug reports and feature requests.</string>
+    <string name="settings_support_issue_tracker_label">Issue tracker</string>
+    <string name="settings_support_debuglog_label">Debug log</string>
+    <string name="settings_support_debuglog_desc">Record everything the app is doing into a text file that you can share.</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">A place to hang out in and ask questions.</string>
 
     <string name="changelog_label">Changelog</string>
     <string name="settings_acknowledgements_label">Acknowledgements</string>
     <string name="settings_acknowledgements_description">Credits, licenses, and special thanks</string>
-    
+
     <string name="settings_acks_translation_header">Translation</string>
     <string name="settings_acks_translators_title">Translators</string>
     <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>

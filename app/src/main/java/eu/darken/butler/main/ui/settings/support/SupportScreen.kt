@@ -6,26 +6,25 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Fingerprint
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
+import eu.darken.butler.common.ButlerLinks
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.icons.Discord
+import eu.darken.butler.main.ui.settings.common.SettingsCategoryHeader
+import eu.darken.butler.main.ui.settings.common.SettingsDivider
 import eu.darken.butler.main.ui.settings.common.SettingsPreferenceItem
 
 @Preview2
@@ -34,6 +33,8 @@ private fun SupportScreenPreview() {
     PreviewWrapper {
         SupportScreen(
             onNavigateUp = {},
+            onDebugLog = {},
+            onOpenUrl = {},
         )
     }
 }
@@ -42,12 +43,16 @@ private fun SupportScreenPreview() {
 fun SupportScreenHost(vm: SupportScreenViewModel = hiltViewModel()) {
     SupportScreen(
         onNavigateUp = { vm.goTo(null) },
+        onDebugLog = { vm.debugLog() },
+        onOpenUrl = { url -> vm.openUrl(url) },
     )
 }
 
 @Composable
 fun SupportScreen(
     onNavigateUp: () -> Unit,
+    onDebugLog: () -> Unit,
+    onOpenUrl: (String) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -73,61 +78,43 @@ fun SupportScreen(
             item {
                 SettingsPreferenceItem(
                     icon = Icons.Default.Book,
-                    title = stringResource(R.string.documentation_label),
-                    subtitle = "Learn how to use Butler effectively",
-                    onClick = { }
+                    title = stringResource(R.string.settings_support_wiki_label),
+                    subtitle = stringResource(R.string.settings_support_wiki_description),
+                    onClick = { onOpenUrl(ButlerLinks.WIKI) }
                 )
-                HorizontalDivider(
-                    modifier = Modifier.padding(start = 72.dp),
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
-                )
+                SettingsDivider()
             }
 
             item {
                 SettingsPreferenceItem(
                     icon = Icons.Default.BugReport,
-                    title = stringResource(R.string.issue_tracker_label),
-                    subtitle = stringResource(R.string.issue_tracker_description),
-                    onClick = { }
+                    title = stringResource(R.string.settings_support_issue_tracker_label),
+                    subtitle = stringResource(R.string.settings_support_issue_tracker_description),
+                    onClick = { onOpenUrl(ButlerLinks.ISSUES) }
                 )
-                HorizontalDivider(
-                    modifier = Modifier.padding(start = 72.dp),
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
-                )
+                SettingsDivider()
             }
 
             item {
                 SettingsPreferenceItem(
-                    icon = Icons.AutoMirrored.Filled.Chat,
-                    title = stringResource(R.string.discord_label),
-                    subtitle = stringResource(R.string.discord_description),
-                    onClick = { }
+                    icon = Icons.Filled.Discord,
+                    title = stringResource(R.string.settings_support_discord_label),
+                    subtitle = stringResource(R.string.settings_support_discord_description),
+                    onClick = { onOpenUrl("https://discord.gg/ktMbDBAp4K") }
                 )
-                HorizontalDivider(
-                    modifier = Modifier.padding(start = 72.dp),
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
-                )
+                SettingsDivider()
             }
 
             item {
-                SettingsPreferenceItem(
-                    icon = Icons.Default.Fingerprint,
-                    title = stringResource(R.string.support_installid_label),
-                    subtitle = stringResource(R.string.support_installid_desc),
-                    onClick = { }
-                )
-                HorizontalDivider(
-                    modifier = Modifier.padding(start = 72.dp),
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
-                )
+                SettingsCategoryHeader(stringResource(R.string.settings_category_other_label))
             }
 
             item {
                 SettingsPreferenceItem(
                     icon = Icons.Default.Description,
-                    title = stringResource(R.string.support_debuglog_label),
-                    subtitle = stringResource(R.string.support_debuglog_desc),
-                    onClick = { }
+                    title = stringResource(R.string.settings_support_debuglog_label),
+                    subtitle = stringResource(R.string.settings_support_debuglog_desc),
+                    onClick = onDebugLog
                 )
             }
         }
