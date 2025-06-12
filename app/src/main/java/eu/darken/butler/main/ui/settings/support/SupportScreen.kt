@@ -23,6 +23,7 @@ import eu.darken.butler.common.ButlerLinks
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.icons.Discord
+import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.main.ui.settings.common.SettingsCategoryHeader
 import eu.darken.butler.main.ui.settings.common.SettingsDivider
 import eu.darken.butler.main.ui.settings.common.SettingsPreferenceItem
@@ -32,89 +33,96 @@ import eu.darken.butler.main.ui.settings.common.SettingsPreferenceItem
 private fun SupportScreenPreview() {
     PreviewWrapper {
         SupportScreen(
-            onNavigateUp = {},
-            onDebugLog = {},
-            onOpenUrl = {},
+                onNavigateUp = {},
+                onDebugLog = {},
+                onOpenUrl = {},
         )
     }
 }
 
 @Composable
 fun SupportScreenHost(vm: SupportScreenViewModel = hiltViewModel()) {
+    ErrorEventHandler(vm)
+
     SupportScreen(
-        onNavigateUp = { vm.goTo(null) },
-        onDebugLog = { vm.debugLog() },
-        onOpenUrl = { url -> vm.openUrl(url) },
+            onNavigateUp = { vm.goTo(null) },
+            onDebugLog = { vm.debugLog() },
+            onOpenUrl = { url -> vm.openUrl(url) },
     )
 }
 
 @Composable
 fun SupportScreen(
-    onNavigateUp: () -> Unit,
-    onDebugLog: () -> Unit,
-    onOpenUrl: (String) -> Unit,
+        onNavigateUp: () -> Unit,
+        onDebugLog: () -> Unit,
+        onOpenUrl: (String) -> Unit,
 ) {
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.settings_support_label)) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateUp) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(eu.darken.butler.common.R.string.general_back_action)
-                        )
-                    }
-                }
-            )
-        }
+            topBar = {
+                TopAppBar(
+                        title = { Text(stringResource(R.string.settings_support_label)) },
+                        navigationIcon = {
+                            IconButton(onClick = onNavigateUp) {
+                                Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                        contentDescription =
+                                                stringResource(
+                                                        eu.darken
+                                                                .butler
+                                                                .common
+                                                                .R
+                                                                .string
+                                                                .general_back_action
+                                                )
+                                )
+                            }
+                        }
+                )
+            }
     ) { paddingValues ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            verticalArrangement = Arrangement.Top
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                verticalArrangement = Arrangement.Top
         ) {
             item {
                 SettingsPreferenceItem(
-                    icon = Icons.Default.Book,
-                    title = stringResource(R.string.settings_support_wiki_label),
-                    subtitle = stringResource(R.string.settings_support_wiki_description),
-                    onClick = { onOpenUrl(ButlerLinks.WIKI) }
+                        icon = Icons.Default.Book,
+                        title = stringResource(R.string.settings_support_wiki_label),
+                        subtitle = stringResource(R.string.settings_support_wiki_description),
+                        onClick = { onOpenUrl(ButlerLinks.WIKI) }
                 )
                 SettingsDivider()
             }
 
             item {
                 SettingsPreferenceItem(
-                    icon = Icons.Default.BugReport,
-                    title = stringResource(R.string.settings_support_issue_tracker_label),
-                    subtitle = stringResource(R.string.settings_support_issue_tracker_description),
-                    onClick = { onOpenUrl(ButlerLinks.ISSUES) }
+                        icon = Icons.Default.BugReport,
+                        title = stringResource(R.string.settings_support_issue_tracker_label),
+                        subtitle =
+                                stringResource(R.string.settings_support_issue_tracker_description),
+                        onClick = { onOpenUrl(ButlerLinks.ISSUES) }
                 )
                 SettingsDivider()
             }
 
             item {
                 SettingsPreferenceItem(
-                    icon = Icons.Filled.Discord,
-                    title = stringResource(R.string.settings_support_discord_label),
-                    subtitle = stringResource(R.string.settings_support_discord_description),
-                    onClick = { onOpenUrl("https://discord.gg/ktMbDBAp4K") }
+                        icon = Icons.Filled.Discord,
+                        title = stringResource(R.string.settings_support_discord_label),
+                        subtitle = stringResource(R.string.settings_support_discord_description),
+                        onClick = { onOpenUrl("https://discord.gg/ktMbDBAp4K") }
                 )
                 SettingsDivider()
             }
 
-            item {
-                SettingsCategoryHeader(stringResource(R.string.settings_category_other_label))
-            }
+            item { SettingsCategoryHeader(stringResource(R.string.settings_category_other_label)) }
 
             item {
                 SettingsPreferenceItem(
-                    icon = Icons.Default.Description,
-                    title = stringResource(R.string.settings_support_debuglog_label),
-                    subtitle = stringResource(R.string.settings_support_debuglog_desc),
-                    onClick = onDebugLog
+                        icon = Icons.Default.Description,
+                        title = stringResource(R.string.settings_support_debuglog_label),
+                        subtitle = stringResource(R.string.settings_support_debuglog_desc),
+                        onClick = onDebugLog
                 )
             }
         }

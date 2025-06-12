@@ -10,14 +10,18 @@ abstract class ViewModel4(
     dispatcherProvider: DispatcherProvider,
     override val tag: String = defaultTag(),
     private val navCtrl: NavigationController,
-) : ViewModel3(dispatcherProvider,tag) {
+) : ViewModel3(dispatcherProvider, tag) {
 
-    fun goTo(destination: NavigationDestination?) {
+    fun goTo(
+        destination: NavigationDestination?,
+        popUpTo: NavigationDestination? = null,
+        inclusive: Boolean = false
+    ) {
         log(tag) { "goTo($destination)" }
         if (destination == null) {
             navCtrl.up()
         } else {
-            navCtrl.goTo(destination)
+            navCtrl.goTo(destination, popUpTo, inclusive)
         }
     }
 

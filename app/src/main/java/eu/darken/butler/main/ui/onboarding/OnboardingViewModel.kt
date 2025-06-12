@@ -11,6 +11,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel3
+import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.motd.MotdSettings
 import eu.darken.butler.main.ui.AppNav
@@ -24,8 +25,8 @@ class OnboardingViewModel @Inject constructor(
     private val generalSettings: GeneralSettings,
     private val motdSettings: MotdSettings,
     private val webpageTool: WebpageTool,
-    private val navigationController: NavigationController,
-) : ViewModel3(dispatcherProvider, logTag("Onboarding", "ViewModel")) {
+    navigationController: NavigationController,
+) : ViewModel4(dispatcherProvider, logTag("Onboarding", "ViewModel"), navigationController) {
 
     val state = combine(
         generalSettings.isOnboardingCompleted.flow,
@@ -41,7 +42,7 @@ class OnboardingViewModel @Inject constructor(
     fun completeOnboarding() = launch {
         log(tag) { "completeOnboarding()" }
         generalSettings.isOnboardingCompleted.value(true)
-        navigationController.goTo(
+        goTo(
             AppNav.Home,
             popUpTo = AppNav.Home,
             inclusive = true

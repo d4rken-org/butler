@@ -8,7 +8,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.WebpageTool
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel3
+import eu.darken.butler.common.ui.ViewModel4
 import javax.inject.Inject
 
 @HiltViewModel
@@ -17,7 +19,8 @@ class RecorderViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     @ApplicationContext private val context: Context,
     private val webpageTool: WebpageTool,
-) : ViewModel3(dispatcherProvider) {
+    navigationController: NavigationController,
+) : ViewModel4(dispatcherProvider, logTag("Debug", "Recorder", "ViewModel"), navigationController) {
 
 //    private val recordedPath = File(handle.get<String>(RecorderActivity.RECORD_PATH)!!)
 //
@@ -96,7 +99,4 @@ class RecorderViewModel @Inject constructor(
 //            get() = compressedSize == null
 //    }
 
-    companion object {
-        private val TAG = logTag("Debug", "Recorder", "ViewModel")
-    }
 }
