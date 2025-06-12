@@ -16,9 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -36,8 +33,9 @@ import eu.darken.butler.main.ui.settings.common.SettingsSwitchItem
 fun GeneralSettingsScreen(
     state: GeneralSettingsViewModel.State,
     onNavigateUp: () -> Unit,
+    onLanguageSwitcher: (() -> Unit)?,
+    onFilePreviewsChange: (Boolean) -> Unit,
 ) {
-    var filePreviewsEnabled by remember { mutableStateOf(true) }
 
     Scaffold(
         topBar = {
@@ -94,15 +92,16 @@ fun GeneralSettingsScreen(
                 SettingsDivider()
             }
 
-            item {
-                SettingsPreferenceItem(
-                    icon = Icons.Default.Translate,
-                    title = stringResource(R.string.ui_language_override_label),
-                    subtitle = stringResource(R.string.ui_language_override_desc),
-                    value = "English",
-                    onClick = {}
-                )
-                SettingsDivider()
+            onLanguageSwitcher?.let { action ->
+                item {
+                    SettingsPreferenceItem(
+                        icon = Icons.Default.Translate,
+                        title = stringResource(R.string.ui_language_override_label),
+                        subtitle = stringResource(R.string.ui_language_override_desc),
+                        onClick = { action.invoke() }
+                    )
+                    SettingsDivider()
+                }
             }
 
             item {
@@ -110,8 +109,8 @@ fun GeneralSettingsScreen(
                     icon = Icons.Default.Preview,
                     title = stringResource(R.string.ui_previews_title),
                     subtitle = stringResource(R.string.ui_previews_summary),
-                    checked = filePreviewsEnabled,
-                    onCheckedChange = { filePreviewsEnabled = it }
+                    checked = state.filePreviews,
+                    onCheckedChange = onFilePreviewsChange
                 )
             }
         }
@@ -123,8 +122,10 @@ fun GeneralSettingsScreen(
 private fun GeneralSettingsScreenPreview() {
     PreviewWrapper {
         GeneralSettingsScreen(
-            state = GeneralSettingsViewModel.State(),
+            state = GeneralSettingsViewModel.State(filePreviews = true),
             onNavigateUp = {},
+            onLanguageSwitcher = {},
+            onFilePreviewsChange = {},
         )
     }
 }
@@ -139,6 +140,8 @@ fun GeneralSettingsScreenHost(vm: GeneralSettingsViewModel = hiltViewModel()) {
         GeneralSettingsScreen(
             state = state,
             onNavigateUp = { vm.goTo(null) },
+            onLanguageSwitcher = { vm.showLanguagePicker() },
+            onFilePreviewsChange = { vm.updateFilePreviews(it) },
         )
     }
 }
