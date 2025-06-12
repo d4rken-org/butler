@@ -24,7 +24,7 @@ import eu.darken.butler.common.preferences.EnumPreference
 @Composable
 fun <T> EnumSelectorDialog(
         title: String,
-        options: Array<T>,
+        options: List<T>,
         selectedOption: T,
         onOptionSelected: (T) -> Unit,
         onDismiss: () -> Unit,
@@ -59,7 +59,7 @@ fun <T> EnumSelectorDialog(
             },
             confirmButton = {
                 TextButton(onClick = onDismiss) {
-                    Text(stringResource(eu.darken.butler.common.R.string.general_cancel_action))
+                    Text(stringResource(R.string.general_cancel_action))
                 }
             }
     )

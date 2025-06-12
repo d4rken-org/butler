@@ -165,7 +165,7 @@ fun GeneralSettingsScreen(
     if (showThemeModeDialog) {
         EnumSelectorDialog(
             title = stringResource(R.string.ui_theme_mode_setting_label),
-            options = ThemeMode.values(),
+            options = ThemeMode.entries,
             selectedOption = state.themeState.mode,
             onOptionSelected = { mode ->
                 onThemeModeSelected(mode)
@@ -178,7 +178,7 @@ fun GeneralSettingsScreen(
     if (showThemeStyleDialog) {
         EnumSelectorDialog(
             title = stringResource(R.string.ui_theme_style_setting_label),
-            options = ThemeStyle.values(),
+            options = ThemeStyle.entries,
             selectedOption = state.themeState.style,
             onOptionSelected = { style ->
                 onThemeStyleSelected(style)
