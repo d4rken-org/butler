@@ -2,25 +2,22 @@ package eu.darken.butler.common.debug.recorder.ui
 
 
 import android.content.Context
-import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.WebpageTool
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
-import eu.darken.butler.common.ui.ViewModel3
 import eu.darken.butler.common.ui.ViewModel4
 import javax.inject.Inject
 
 @HiltViewModel
 class RecorderViewModel @Inject constructor(
-    handle: SavedStateHandle,
-    dispatcherProvider: DispatcherProvider,
+    navCtrl: NavigationController,
+    dispatchers: DispatcherProvider,
     @ApplicationContext private val context: Context,
     private val webpageTool: WebpageTool,
-    navigationController: NavigationController,
-) : ViewModel4(dispatcherProvider, logTag("Debug", "Recorder", "ViewModel"), navigationController) {
+) : ViewModel4(dispatchers, logTag("Debug", "Recorder", "ViewModel"), navCtrl) {
 
 //    private val recordedPath = File(handle.get<String>(RecorderActivity.RECORD_PATH)!!)
 //

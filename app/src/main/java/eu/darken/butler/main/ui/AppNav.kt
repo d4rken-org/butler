@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 sealed interface AppNav : NavigationDestination {
 
     @Serializable
-    data object Home : AppNav
+    data object Workspace : AppNav
 
     @Serializable
     data object Onboarding : AppNav
