@@ -299,43 +299,44 @@ private val darkScheme = darkColorScheme(
     surfaceContainerHighest = surfaceContainerHighestDark,
 )
 
-private val mediumContrastLightColorScheme = lightColorScheme(
-    primary = primaryLightMediumContrast,
-    onPrimary = onPrimaryLightMediumContrast,
-    primaryContainer = primaryContainerLightMediumContrast,
-    onPrimaryContainer = onPrimaryContainerLightMediumContrast,
-    secondary = secondaryLightMediumContrast,
-    onSecondary = onSecondaryLightMediumContrast,
-    secondaryContainer = secondaryContainerLightMediumContrast,
-    onSecondaryContainer = onSecondaryContainerLightMediumContrast,
-    tertiary = tertiaryLightMediumContrast,
-    onTertiary = onTertiaryLightMediumContrast,
-    tertiaryContainer = tertiaryContainerLightMediumContrast,
-    onTertiaryContainer = onTertiaryContainerLightMediumContrast,
-    error = errorLightMediumContrast,
-    onError = onErrorLightMediumContrast,
-    errorContainer = errorContainerLightMediumContrast,
-    onErrorContainer = onErrorContainerLightMediumContrast,
-    background = backgroundLightMediumContrast,
-    onBackground = onBackgroundLightMediumContrast,
-    surface = surfaceLightMediumContrast,
-    onSurface = onSurfaceLightMediumContrast,
-    surfaceVariant = surfaceVariantLightMediumContrast,
-    onSurfaceVariant = onSurfaceVariantLightMediumContrast,
-    outline = outlineLightMediumContrast,
-    outlineVariant = outlineVariantLightMediumContrast,
-    scrim = scrimLightMediumContrast,
-    inverseSurface = inverseSurfaceLightMediumContrast,
-    inverseOnSurface = inverseOnSurfaceLightMediumContrast,
-    inversePrimary = inversePrimaryLightMediumContrast,
-    surfaceDim = surfaceDimLightMediumContrast,
-    surfaceBright = surfaceBrightLightMediumContrast,
-    surfaceContainerLowest = surfaceContainerLowestLightMediumContrast,
-    surfaceContainerLow = surfaceContainerLowLightMediumContrast,
-    surfaceContainer = surfaceContainerLightMediumContrast,
-    surfaceContainerHigh = surfaceContainerHighLightMediumContrast,
-    surfaceContainerHighest = surfaceContainerHighestLightMediumContrast,
-)
+private val mediumContrastLightColorScheme =
+    lightColorScheme(
+        primary = primaryLightMediumContrast,
+        onPrimary = onPrimaryLightMediumContrast,
+        primaryContainer = primaryContainerLightMediumContrast,
+        onPrimaryContainer = onPrimaryContainerLightMediumContrast,
+        secondary = secondaryLightMediumContrast,
+        onSecondary = onSecondaryLightMediumContrast,
+        secondaryContainer = secondaryContainerLightMediumContrast,
+        onSecondaryContainer = onSecondaryContainerLightMediumContrast,
+        tertiary = tertiaryLightMediumContrast,
+        onTertiary = onTertiaryLightMediumContrast,
+        tertiaryContainer = tertiaryContainerLightMediumContrast,
+        onTertiaryContainer = onTertiaryContainerLightMediumContrast,
+        error = errorLightMediumContrast,
+        onError = onErrorLightMediumContrast,
+        errorContainer = errorContainerLightMediumContrast,
+        onErrorContainer = onErrorContainerLightMediumContrast,
+        background = backgroundLightMediumContrast,
+        onBackground = onBackgroundLightMediumContrast,
+        surface = surfaceLightMediumContrast,
+        onSurface = onSurfaceLightMediumContrast,
+        surfaceVariant = surfaceVariantLightMediumContrast,
+        onSurfaceVariant = onSurfaceVariantLightMediumContrast,
+        outline = outlineLightMediumContrast,
+        outlineVariant = outlineVariantLightMediumContrast,
+        scrim = scrimLightMediumContrast,
+        inverseSurface = inverseSurfaceLightMediumContrast,
+        inverseOnSurface = inverseOnSurfaceLightMediumContrast,
+        inversePrimary = inversePrimaryLightMediumContrast,
+        surfaceDim = surfaceDimLightMediumContrast,
+        surfaceBright = surfaceBrightLightMediumContrast,
+        surfaceContainerLowest = surfaceContainerLowestLightMediumContrast,
+        surfaceContainerLow = surfaceContainerLowLightMediumContrast,
+        surfaceContainer = surfaceContainerLightMediumContrast,
+        surfaceContainerHigh = surfaceContainerHighLightMediumContrast,
+        surfaceContainerHighest = surfaceContainerHighestLightMediumContrast,
+    )
 
 private val highContrastLightColorScheme = lightColorScheme(
     primary = primaryLightHighContrast,
@@ -453,50 +454,70 @@ private val highContrastDarkColorScheme = darkColorScheme(
 
 @Composable
 fun MyAppTheme(state: ThemeState = ThemeState(), content: @Composable () -> Unit) {
-    val dynamicColors =
-        when (state.style) {
-            ThemeStyle.DEFAULT -> false
-            ThemeStyle.MATERIAL_YOU -> hasApiLevel(31)
-        }
-    val darkTheme =
-        when (state.mode) {
-            ThemeMode.SYSTEM -> isSystemInDarkTheme()
-            ThemeMode.DARK -> true
-            ThemeMode.LIGHT -> false
-        }
+    val dynamicColors = when (state.style) {
+        ThemeStyle.DEFAULT -> false
+        ThemeStyle.MATERIAL_YOU -> hasApiLevel(31)
+        ThemeStyle.MEDIUM_CONTRAST -> false
+        ThemeStyle.HIGH_CONTRAST -> false
+    }
+    val darkTheme = when (state.mode) {
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+        ThemeMode.DARK -> true
+        ThemeMode.LIGHT -> false
+    }
 
     @SuppressLint("NewApi")
-    val colors =
-        when {
-            dynamicColors && darkTheme -> dynamicDarkColorScheme(LocalContext.current)
-            dynamicColors && !darkTheme -> dynamicLightColorScheme(LocalContext.current)
-            darkTheme -> darkScheme
-            else -> lightScheme
-        }
+    val colors = when {
+        dynamicColors && darkTheme -> dynamicDarkColorScheme(LocalContext.current)
+        dynamicColors && !darkTheme -> dynamicLightColorScheme(LocalContext.current)
+
+        state.style == ThemeStyle.MEDIUM_CONTRAST && darkTheme -> mediumContrastDarkColorScheme
+        state.style == ThemeStyle.MEDIUM_CONTRAST && !darkTheme -> mediumContrastLightColorScheme
+        state.style == ThemeStyle.HIGH_CONTRAST && darkTheme -> highContrastDarkColorScheme
+        state.style == ThemeStyle.HIGH_CONTRAST && !darkTheme -> highContrastLightColorScheme
+
+        darkTheme -> darkScheme
+        else -> lightScheme
+    }
     MaterialTheme(colorScheme = colors, content = content, typography = ButlerTypography)
 }
 
 @Preview(showBackground = true, name = "Light Mode")
 @Composable
-fun LightThemePreview() = MyAppTheme(ThemeState(ThemeMode.LIGHT, ThemeStyle.DEFAULT)) {
-    SampleContent()
-}
+fun LightThemePreview() =
+    MyAppTheme(ThemeState(ThemeMode.LIGHT, ThemeStyle.DEFAULT)) { SampleContent() }
 
 @Preview(showBackground = true, name = "Dark Mode")
 @Composable
-fun DarkThemePreview() = MyAppTheme(ThemeState(ThemeMode.DARK, ThemeStyle.DEFAULT)) {
-    SampleContent()
-}
+fun DarkThemePreview() =
+    MyAppTheme(ThemeState(ThemeMode.DARK, ThemeStyle.DEFAULT)) { SampleContent() }
 
 @Preview(showBackground = true, name = "Material You Light Mode")
 @Composable
-fun MaterialYouLightThemePreview() = MyAppTheme(ThemeState(ThemeMode.LIGHT, ThemeStyle.MATERIAL_YOU)) {
-    SampleContent()
-}
+fun MaterialYouLightThemePreview() =
+    MyAppTheme(ThemeState(ThemeMode.LIGHT, ThemeStyle.MATERIAL_YOU)) { SampleContent() }
 
 @Preview(showBackground = true, name = "Material You Dark Mode")
 @Composable
 fun MaterialYouDarkThemePreview() =
-    MyAppTheme(ThemeState(ThemeMode.DARK, ThemeStyle.MATERIAL_YOU)) {
-        SampleContent()
-    }
+    MyAppTheme(ThemeState(ThemeMode.DARK, ThemeStyle.MATERIAL_YOU)) { SampleContent() }
+
+@Preview(showBackground = true, name = "Medium Contrast Light Mode")
+@Composable
+fun MediumContrastLightThemePreview() =
+    MyAppTheme(ThemeState(ThemeMode.LIGHT, ThemeStyle.MEDIUM_CONTRAST)) { SampleContent() }
+
+@Preview(showBackground = true, name = "Medium Contrast Dark Mode")
+@Composable
+fun MediumContrastDarkThemePreview() =
+    MyAppTheme(ThemeState(ThemeMode.DARK, ThemeStyle.MEDIUM_CONTRAST)) { SampleContent() }
+
+@Preview(showBackground = true, name = "High Contrast Light Mode")
+@Composable
+fun HighContrastLightThemePreview() =
+    MyAppTheme(ThemeState(ThemeMode.LIGHT, ThemeStyle.HIGH_CONTRAST)) { SampleContent() }
+
+@Preview(showBackground = true, name = "High Contrast Dark Mode")
+@Composable
+fun HighContrastDarkThemePreview() =
+    MyAppTheme(ThemeState(ThemeMode.DARK, ThemeStyle.HIGH_CONTRAST)) { SampleContent() }

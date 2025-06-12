@@ -13,17 +13,19 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.setupCommonEventHandlers
 import eu.darken.butler.main.core.GeneralSettings
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.withContext
 import java.util.Collections
 import java.util.WeakHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.withContext
 
 @Singleton
-class Theming @Inject constructor(
+class Theming
+@Inject
+constructor(
     private val application: Application,
     @AppScope private val appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
@@ -35,28 +37,36 @@ class Theming @Inject constructor(
     fun setup() {
         log(TAG) { "setup()" }
 
-        val callback = object : Application.ActivityLifecycleCallbacks {
-            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-                log(TAG, VERBOSE) { "Adding new activity: $activity" }
+        val callback =
+            object : Application.ActivityLifecycleCallbacks {
+                override fun onActivityCreated(
+                    activity: Activity,
+                    savedInstanceState: Bundle?
+                ) {
+                    log(TAG, VERBOSE) { "Adding new activity: $activity" }
 
-                generalSettings.themeMode.valueBlocking.applyMode()
-                generalSettings.themeStyle.valueBlocking.applyStyle(setOf(activity))
+                    generalSettings.themeMode.valueBlocking.applyMode()
+                    generalSettings.themeStyle.valueBlocking.applyStyle(setOf(activity))
 
-                // Track so we can recreate it the settings change again
-                activities.add(activity)
+                    // Track so we can recreate it the settings change again
+                    activities.add(activity)
+                }
+
+                override fun onActivityStarted(activity: Activity) {}
+                override fun onActivityResumed(activity: Activity) {}
+                override fun onActivityPaused(activity: Activity) {}
+                override fun onActivityStopped(activity: Activity) {}
+                override fun onActivitySaveInstanceState(
+                    activity: Activity,
+                    outState: Bundle
+                ) {
+                }
+
+                override fun onActivityDestroyed(activity: Activity) {
+                    log(TAG, VERBOSE) { "Removing activity: $activity" }
+                    activities.remove(activity)
+                }
             }
-
-            override fun onActivityStarted(activity: Activity) {}
-            override fun onActivityResumed(activity: Activity) {}
-            override fun onActivityPaused(activity: Activity) {}
-            override fun onActivityStopped(activity: Activity) {}
-            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
-
-            override fun onActivityDestroyed(activity: Activity) {
-                log(TAG, VERBOSE) { "Removing activity: $activity" }
-                activities.remove(activity)
-            }
-        }
         application.registerActivityLifecycleCallbacks(callback)
 
         // Monitor setting changes and affect already created activities
@@ -69,9 +79,7 @@ class Theming @Inject constructor(
             log(TAG) { "oldThemeMode=$oldThemeMode, newThemeMode=$newThemeMode" }
             log(TAG) { "oldThemeStyle=$oldThemeStyle, newhemeStyle=$newThemeStyle" }
 
-            withContext(dispatcherProvider.Main) {
-                newThemeMode.applyMode()
-            }
+            withContext(dispatcherProvider.Main) { newThemeMode.applyMode() }
 
             if (oldThemeStyle != null && oldThemeStyle != newThemeStyle) {
                 withContext(dispatcherProvider.Main) {
@@ -100,28 +108,50 @@ class Theming @Inject constructor(
         }
     }
 
-    private fun ThemeMode.applyMode() = when (this) {
-        ThemeMode.SYSTEM -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-        ThemeMode.DARK -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-        ThemeMode.LIGHT -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-    }
+    private fun ThemeMode.applyMode() =
+        when (this) {
+            ThemeMode.SYSTEM -> AppCompatDelegate.setDefaultNightMode(
+                AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            )
 
-    private fun ThemeStyle.applyStyle(activities: Set<Activity> = emptySet()) = when (this) {
-        ThemeStyle.DEFAULT -> {
-            activities.forEach { activity ->
-                log(TAG) { "Applying DEFAULT to $activity" }
-                // NOOP This should only be called on fresh activities, and for DEFAULT we just do nothing
-            }
+            ThemeMode.DARK -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+
+            ThemeMode.LIGHT -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         }
 
-        ThemeStyle.MATERIAL_YOU -> {
-            // We don't use DynamicColors.applyToActivitiesIfAvailable() because we can't remove it again
-            this@Theming.activities.forEach { activity ->
-                log(TAG) { "Applying MATERIAL_YOU to $activity" }
-                DynamicColors.applyToActivityIfAvailable(activity)
+    private fun ThemeStyle.applyStyle(activities: Set<Activity> = emptySet()) =
+        when (this) {
+            ThemeStyle.DEFAULT -> {
+                activities.forEach { activity ->
+                    log(TAG) { "Applying DEFAULT to $activity" }
+                    // NOOP This should only be called on fresh activities, and for DEFAULT we
+                    // just do nothing
+                }
+            }
+
+            ThemeStyle.MATERIAL_YOU -> {
+                // We don't use DynamicColors.applyToActivitiesIfAvailable() because we can't
+                // remove it again
+                this@Theming.activities.forEach { activity ->
+                    log(TAG) { "Applying MATERIAL_YOU to $activity" }
+                    DynamicColors.applyToActivityIfAvailable(activity)
+                }
+            }
+
+            ThemeStyle.MEDIUM_CONTRAST -> {
+                activities.forEach { activity ->
+                    log(TAG) { "Applying MEDIUM_CONTRAST to $activity" }
+                    // NOOP This should only be called on fresh activities, and for contrast themes we just do nothing
+                }
+            }
+
+            ThemeStyle.HIGH_CONTRAST -> {
+                activities.forEach { activity ->
+                    log(TAG) { "Applying HIGH_CONTRAST to $activity" }
+                    // NOOP This should only be called on fresh activities, and for contrast themes we just do nothing
+                }
             }
         }
-    }
 
     fun notifySplashScreenDone(activity: Activity) {
         log(TAG, INFO) { "notifySplashScreenDone($activity)" }
