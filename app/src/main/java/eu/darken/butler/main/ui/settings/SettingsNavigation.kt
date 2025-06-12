@@ -31,6 +31,7 @@ class SettingsNavigation @Inject constructor() : NavigationEntry {
         }
     }
 
+    @Suppress("unused")
     @Module @InstallIn(SingletonComponent::class)
     abstract class Mod {
         @Binds @IntoSet abstract fun bind(entry: SettingsNavigation): NavigationEntry

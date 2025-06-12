@@ -8,19 +8,19 @@ import com.google.android.material.color.DynamicColors
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.valueBlocking
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.setupCommonEventHandlers
 import eu.darken.butler.main.core.GeneralSettings
-import java.util.Collections
-import java.util.WeakHashMap
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.withContext
+import java.util.Collections
+import java.util.WeakHashMap
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 class Theming
@@ -110,9 +110,7 @@ constructor(
 
     private fun ThemeMode.applyMode() =
         when (this) {
-            ThemeMode.SYSTEM -> AppCompatDelegate.setDefaultNightMode(
-                AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-            )
+            ThemeMode.SYSTEM -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 
             ThemeMode.DARK -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
 
@@ -152,11 +150,6 @@ constructor(
                 }
             }
         }
-
-    fun notifySplashScreenDone(activity: Activity) {
-        log(TAG, INFO) { "notifySplashScreenDone($activity)" }
-        generalSettings.themeStyle.valueBlocking.applyStyle(setOf(activity))
-    }
 
     companion object {
         private val TAG = logTag("Theming")
