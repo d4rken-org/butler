@@ -10,7 +10,7 @@ import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
-import eu.darken.butler.common.uix.ViewModel3
+import eu.darken.butler.common.ui.ViewModel3
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.motd.MotdSettings
 import eu.darken.butler.main.ui.AppNav

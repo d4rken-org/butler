@@ -8,7 +8,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.WebpageTool
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.uix.ViewModel3
+import eu.darken.butler.common.ui.ViewModel3
 import javax.inject.Inject
 
 @HiltViewModel

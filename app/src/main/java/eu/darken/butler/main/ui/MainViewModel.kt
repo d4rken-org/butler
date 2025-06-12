@@ -7,7 +7,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.theming.themeState
-import eu.darken.butler.common.uix.ViewModel3
+import eu.darken.butler.common.ui.ViewModel3
 import eu.darken.butler.common.upgrade.UpgradeRepo
 import eu.darken.butler.main.core.GeneralSettings
 import kotlinx.coroutines.flow.combine

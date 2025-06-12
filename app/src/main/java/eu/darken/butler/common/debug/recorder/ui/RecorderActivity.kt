@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import dagger.hilt.android.AndroidEntryPoint
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.uix.Activity2
+import eu.darken.butler.common.ui.Activity2
 
 @AndroidEntryPoint
 class RecorderActivity : Activity2() {

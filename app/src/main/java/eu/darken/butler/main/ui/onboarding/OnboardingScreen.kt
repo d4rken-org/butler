@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.uix.waitForState
+import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.main.ui.onboarding.OnboardingViewModel.State.*
 import eu.darken.butler.main.ui.onboarding.pages.BetaPage
 import eu.darken.butler.main.ui.onboarding.pages.PrivacyPage

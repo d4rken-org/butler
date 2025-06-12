@@ -1,4 +1,4 @@
-package eu.darken.butler.common.uix
+package eu.darken.butler.common.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State

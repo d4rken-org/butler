@@ -1,4 +1,4 @@
-package eu.darken.butler.common.uix
+package eu.darken.butler.common.ui
 
 import androidx.lifecycle.viewModelScope
 import eu.darken.butler.common.coroutine.DefaultDispatcherProvider

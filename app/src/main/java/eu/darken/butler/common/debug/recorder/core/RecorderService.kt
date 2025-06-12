@@ -15,7 +15,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.notifications.PendingIntentCompat
-import eu.darken.butler.common.uix.Service2
+import eu.darken.butler.common.ui.Service2
 import eu.darken.butler.main.ui.MainActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob

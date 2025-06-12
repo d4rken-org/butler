@@ -1,4 +1,4 @@
-package eu.darken.butler.common.uix
+package eu.darken.butler.common.ui
 
 import android.content.Intent
 import android.os.Bundle

@@ -6,7 +6,7 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
-import eu.darken.butler.common.uix.ViewModel4
+import eu.darken.butler.common.ui.ViewModel4
 import javax.inject.Inject
 
 @HiltViewModel

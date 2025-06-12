@@ -21,7 +21,7 @@ import eu.darken.butler.common.navigation.NavigationDestination
 import eu.darken.butler.common.navigation.NavigationEntry
 import eu.darken.butler.common.theming.MyAppTheme
 import eu.darken.butler.common.theming.ThemeState
-import eu.darken.butler.common.uix.Activity2
+import eu.darken.butler.common.ui.Activity2
 import eu.darken.butler.main.core.CurriculumVitae
 import javax.inject.Inject
 

@@ -1,4 +1,15 @@
 <resources>
+    <string name="onboarding_welcome_title">Welcome to Butler</string>
+    <string name="onboarding_welcome_message">Butler is an open-source file explorer focusing on performance and privacy.</string>
+    <string name="onboarding_welcome_action">Let\'s go</string>
+    <string name="onboarding_beta_title">Beta version</string>
+    <string name="onboarding_beta_message">This is a beta (testing) build. Proceed with a sense of humor and a backup plan. Please report issues you encounter.</string>
+    <string name="onboarding_beta_action">I fear nothing</string>
+    <string name="onboarding_privacy_title">Privacy &amp; Data</string>
+    <string name="onboarding_privacy_message">Butler has no advertisements and does not sell user data. Your privacy is important to me.</string>
+    <string name="onboarding_privacy_read_action">Read Privacy Policy</string>
+    <string name="onboarding_privacy_action">Accept</string>
+
     <string name="setup_usagestats_title">Usage stats</string>
     <string name="setup_shizuku_card_title">Shizuku</string>
     <string name="setup_root_card_title">Root</string>
@@ -15,41 +26,30 @@
     <string name="debug_debuglog_record_action">Record debug log</string>
     <string name="debug_debuglog_stop_action">Stop recording</string>
     <string name="debug_debuglog_sensitive_information_message">The generated file contains sensitive information (e.g. file names and installed apps). Only share it with trusted parties.</string>
-    <string name="settings_debuglog_title">Debug log</string>
-    <string name="settings_debuglog_explanation">This feature records everything the app is doing into a shareable file. The generated file contains sensitive information (e.g. file names and installed apps). Only share it with trusted parties (e.g. a developer troubleshooting an issue).</string>
-
-    <string name="settings_privacy_policy_label">Privacy policy</string>
-    <string name="settings_privacy_policy_desc">Handling data responsibly.</string>
-    <string name="settings_licenses_label">Licenses</string>
-    <string name="settings_licenses_desc">Open source licenses and third-party attributions</string>
-    <string name="settings_category_other_label">Other</string>
-
-    <string name="settings_category_filter_generic">Generic filter</string>
-    <string name="settings_category_filter_specific">Specific filter</string>
-    <string name="settings_sponsor_development_title">Sponsor development</string>
-    <string name="settings_sponsor_development_summary">Become a patron and make continued development possible.</string>
 
     <string name="settings_label">Settings</string>
+    <string name="settings_category_other_label">Other</string>
     <string name="general_settings_label">General</string>
     <string name="general_settings_desc">General tweaks that affect the whole app.</string>
     <string name="settings_category_ui_label">User interface</string>
-
     <string name="ui_theme_mode_setting_label">Theme mode</string>
     <string name="ui_theme_mode_setting_explanation">The mode used when theming the app (e.g. night or day).</string>
     <string name="ui_theme_mode_dark_label">Dark</string>
     <string name="ui_theme_mode_light_label">Light</string>
     <string name="ui_theme_mode_system_label">System</string>
-
     <string name="ui_theme_style_setting_label">Theme style</string>
     <string name="ui_theme_style_setting_explanation">The color style used when theming the app.</string>
     <string name="ui_theme_style_default_label">Default</string>
     <string name="ui_theme_style_materialyou_label">Material You</string>
-
     <string name="ui_previews_title">File previews</string>
     <string name="ui_previews_summary">Display file previews in all tools (e.g. image and video thumbnails).</string>
-
     <string name="ui_language_override_label">App language</string>
     <string name="ui_language_override_desc">Select a different language for Butler, independent of your system\'s default language.</string>
+
+    <string name="updater_check_enabled_setting_title">Check for updates</string>
+    <string name="updater_check_enabled_setting_description">Allow Butler to check online if a new version is available.</string>
+    <string name="motd_check_enabled_setting_title">Check for messages of the day</string>
+    <string name="motd_check_enabled_setting_description">Allow Butler to fetch important messages from the developer.</string>
 
     <string name="settings_support_label">Support</string>
     <string name="settings_support_description">Read documentation, report issues, chat with others or record debug logs.</string>
@@ -61,11 +61,11 @@
     <string name="settings_support_debuglog_desc">Record everything the app is doing into a text file that you can share.</string>
     <string name="settings_support_discord_label">Discord</string>
     <string name="settings_support_discord_description">A place to hang out in and ask questions.</string>
+    <string name="settings_debuglog_title">Debug log</string>
+    <string name="settings_debuglog_explanation">This feature records everything the app is doing into a shareable file. The generated file contains sensitive information (e.g. file names and installed apps). Only share it with trusted parties (e.g. a developer troubleshooting an issue).</string>
 
-    <string name="changelog_label">Changelog</string>
     <string name="settings_acknowledgements_label">Acknowledgements</string>
     <string name="settings_acknowledgements_description">Credits, licenses, and special thanks</string>
-
     <string name="settings_acks_translation_header">Translation</string>
     <string name="settings_acks_translators_title">Translators</string>
     <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
@@ -75,27 +75,17 @@
     <string name="settings_acks_thanks_header">Thanks</string>
     <string name="settings_acks_crowdin_title">crowdin.com</string>
     <string name="settings_acks_crowdin_desc">For supporting translation of open-source projects</string>
+    <string name="settings_licenses_label">Licenses</string>
 
-    <string name="settings_acks_licenses_header">Licenses</string>
+    <string name="settings_sponsor_development_title">Sponsor development</string>
+    <string name="settings_sponsor_development_summary">Become a patron and make continued development possible.</string>
+
+    <string name="settings_privacy_policy_label">Privacy policy</string>
+    <string name="settings_privacy_policy_desc">Handling data responsibly.</string>
+
+    <string name="changelog_label">Changelog</string>
 
     <string name="storage_area_sdcard_label">SD card</string>
     <string name="storage_area_public_label">Public storage</string>
     <string name="storage_area_public_app_data_label">Public app data</string>
-
-    <string name="onboarding_welcome_title">Welcome to Butler</string>
-    <string name="onboarding_welcome_message">Butler is a file explorer app focusing on performance and privacy.</string>
-    <string name="onboarding_welcome_action">Let\'s go</string>
-    <string name="onboarding_beta_title">Beta version</string>
-    <string name="onboarding_beta_message">This is a beta (testing) build. Proceed with a sense of humor and a backup plan. Please report issues you encounter.</string>
-    <string name="onboarding_beta_action">I fear nothing</string>
-    <string name="onboarding_privacy_title">Privacy &amp; Data</string>
-    <string name="onboarding_privacy_message">Butler has no advertisements and does not sell user data. Your privacy is important to me.</string>
-    <string name="onboarding_privacy_read_action">Read Privacy Policy</string>
-    <string name="onboarding_privacy_action">Accept</string>
-
-    <string name="updater_check_enabled_setting_title">Check for updates</string>
-    <string name="updater_check_enabled_setting_description">Allow Butler to check online if a new version is available.</string>
-
-    <string name="motd_check_enabled_setting_title">Check for messages of the day</string>
-    <string name="motd_check_enabled_setting_description">Allow Butler to fetch important messages from the developer.</string>
 </resources>

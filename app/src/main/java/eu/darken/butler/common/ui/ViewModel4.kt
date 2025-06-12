@@ -1,4 +1,4 @@
-package eu.darken.butler.common.uix
+package eu.darken.butler.common.ui
 
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log

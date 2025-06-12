@@ -25,7 +25,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.uix.waitForState
+import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.main.ui.settings.common.SettingsCategoryHeader
 import eu.darken.butler.main.ui.settings.common.SettingsDivider
 import eu.darken.butler.main.ui.settings.common.SettingsPreferenceItem
