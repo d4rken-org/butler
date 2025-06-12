@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Preview
 import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.filled.Update
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,6 +48,8 @@ fun GeneralSettingsScreen(
     onFilePreviewsChange: (Boolean) -> Unit,
     onThemeModeSelected: (ThemeMode) -> Unit,
     onThemeStyleSelected: (ThemeStyle) -> Unit,
+    onUpdateCheckEnabledChange: (Boolean) -> Unit,
+    onMotdEnabledChange: (Boolean) -> Unit,
 ) {
     val context = LocalContext.current
     var showThemeModeDialog by remember { mutableStateOf(false) }
@@ -127,6 +131,34 @@ fun GeneralSettingsScreen(
                     onCheckedChange = onFilePreviewsChange
                 )
             }
+
+            item {
+                SettingsCategoryHeader(
+                    text = stringResource(R.string.settings_category_other_label)
+                )
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.Default.Update,
+                    title = stringResource(R.string.updater_check_enabled_setting_title),
+                    subtitle =
+                        stringResource(R.string.updater_check_enabled_setting_description),
+                    checked = state.updateCheckEnabled,
+                    onCheckedChange = onUpdateCheckEnabledChange
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.Default.Notifications,
+                    title = stringResource(R.string.motd_check_enabled_setting_title),
+                    subtitle = stringResource(R.string.motd_check_enabled_setting_description),
+                    checked = state.motdEnabled,
+                    onCheckedChange = onMotdEnabledChange
+                )
+            }
         }
     }
 
@@ -168,6 +200,8 @@ private fun GeneralSettingsScreenPreview() {
             onFilePreviewsChange = {},
             onThemeModeSelected = {},
             onThemeStyleSelected = {},
+            onUpdateCheckEnabledChange = {},
+            onMotdEnabledChange = {},
         )
     }
 }
@@ -186,6 +220,8 @@ fun GeneralSettingsScreenHost(vm: GeneralSettingsViewModel = hiltViewModel()) {
             onFilePreviewsChange = { vm.updateFilePreviews(it) },
             onThemeModeSelected = { vm.updateThemeMode(it) },
             onThemeStyleSelected = { vm.updateThemeStyle(it) },
+            onUpdateCheckEnabledChange = { vm.updateUpdateCheckEnabled(it) },
+            onMotdEnabledChange = { vm.updateMotdEnabled(it) },
         )
     }
 }
