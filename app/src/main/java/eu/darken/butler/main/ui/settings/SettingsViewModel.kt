@@ -10,6 +10,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import kotlinx.coroutines.flow.flowOf
+import retrofit2.http.Url
 import javax.inject.Inject
 
 @HiltViewModel
@@ -21,9 +22,9 @@ class SettingsViewModel @Inject constructor(
 
     val state = flowOf(State()).asStateFlow()
 
-    fun openChangelog() = launch {
-        log(tag) { "openChangelog()" }
-        webpageTool.open(ButlerLinks.CHANGELOG)
+    fun openUrl(url: String) {
+        log(tag) { "openUrl($url)" }
+        webpageTool.open(url)
     }
 
     data class State(

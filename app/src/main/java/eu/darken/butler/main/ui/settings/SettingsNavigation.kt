@@ -18,7 +18,7 @@ import javax.inject.Inject
 class SettingsNavigation @Inject constructor() : NavigationEntry {
     override fun EntryProviderBuilder<NavKey>.setup() {
         entry<AppNav.Settings> {
-            OnboardingScreenHost()
+            SettingsIndexScreenHost()
         }
         entry<AppNav.Settings.General> {
             GeneralSettingsScreenHost()
