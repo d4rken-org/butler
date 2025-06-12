@@ -12,21 +12,6 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
-@Preview2
-@Composable
-private fun SettingsPreferenceItemPreview() {
-    PreviewWrapper {
-        SettingsPreferenceItem(
-            icon = Icons.Default.Settings,
-            title = "Settings",
-            subtitle = "General settings",
-            onClick = {},
-            modifier = Modifier,
-            value = "Value"
-        )
-    }
-}
-
 @Composable
 fun SettingsPreferenceItem(
     icon: ImageVector,
@@ -53,4 +38,19 @@ fun SettingsPreferenceItem(
             }
         } else null
     )
+}
+
+@Preview2
+@Composable
+private fun SettingsPreferenceItemPreview() {
+    PreviewWrapper {
+        SettingsPreferenceItem(
+            icon = Icons.Default.Settings,
+            title = "Settings",
+            subtitle = "General settings",
+            onClick = {},
+            modifier = Modifier,
+            value = "Value"
+        )
+    }
 }

@@ -11,21 +11,6 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
-@Preview2
-@Composable
-private fun SettingsSwitchItemPreview() {
-    PreviewWrapper {
-        SettingsSwitchItem(
-            icon = Icons.Default.Settings,
-            title = "Settings",
-            subtitle = "General settings",
-            checked = true,
-            onCheckedChange = {},
-            modifier = Modifier,
-        )
-    }
-}
-
 @Composable
 fun SettingsSwitchItem(
     icon: ImageVector,
@@ -49,4 +34,19 @@ fun SettingsSwitchItem(
             )
         }
     )
+}
+
+@Preview2
+@Composable
+private fun SettingsSwitchItemPreview() {
+    PreviewWrapper {
+        SettingsSwitchItem(
+            icon = Icons.Default.Settings,
+            title = "Settings",
+            subtitle = "General settings",
+            checked = true,
+            onCheckedChange = {},
+            modifier = Modifier,
+        )
+    }
 }

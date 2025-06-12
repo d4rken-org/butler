@@ -20,33 +20,6 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
-@Preview2
-@Composable
-private fun SettingsBaseItemPreview() {
-    PreviewWrapper {
-        Column {
-            SettingsBaseItem(
-                title = "Simple Item",
-                subtitle = "This is a simple item without icon",
-                onClick = {}
-            )
-            SettingsBaseItem(
-                title = "Base Item",
-                subtitle = "This is a base settings item",
-                onClick = {},
-                icon = Icons.Default.Settings,
-                trailingContent = {
-                    Text(
-                        text = "Trailing",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                }
-            )
-        }
-    }
-}
-
 @Composable
 fun SettingsBaseItem(
     title: String,
@@ -94,5 +67,32 @@ fun SettingsBaseItem(
         }
 
         trailingContent?.invoke()
+    }
+}
+
+@Preview2
+@Composable
+private fun SettingsBaseItemPreview() {
+    PreviewWrapper {
+        Column {
+            SettingsBaseItem(
+                title = "Simple Item",
+                subtitle = "This is a simple item without icon",
+                onClick = {}
+            )
+            SettingsBaseItem(
+                title = "Base Item",
+                subtitle = "This is a base settings item",
+                onClick = {},
+                icon = Icons.Default.Settings,
+                trailingContent = {
+                    Text(
+                        text = "Trailing",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+            )
+        }
     }
 }

@@ -25,14 +25,6 @@ import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
-@Preview2
-@Composable
-private fun WelcomePagePreview() {
-    PreviewWrapper {
-        WelcomePage()
-    }
-}
-
 @Composable
 internal fun WelcomePage(
     onContinue: () -> Unit = {},
@@ -85,5 +77,13 @@ internal fun WelcomePage(
         ) {
             Text(text = stringResource(R.string.onboarding_welcome_action))
         }
+    }
+}
+
+@Preview2
+@Composable
+private fun WelcomePagePreview() {
+    PreviewWrapper {
+        WelcomePage()
     }
 }

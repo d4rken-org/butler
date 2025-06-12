@@ -32,13 +32,99 @@ import eu.darken.butler.main.ui.settings.common.SettingsDivider
 import eu.darken.butler.main.ui.settings.common.SettingsPreferenceItem
 import eu.darken.butler.main.ui.settings.common.SettingsSwitchItem
 
+@Composable
+fun GeneralSettingsScreen(
+    state: GeneralSettingsViewModel.State,
+    onNavigateUp: () -> Unit,
+) {
+    var filePreviewsEnabled by remember { mutableStateOf(true) }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.general_settings_label)) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateUp) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription =
+                                stringResource(
+                                    eu.darken
+                                        .butler
+                                        .common
+                                        .R
+                                        .string
+                                        .general_back_action
+                                )
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            verticalArrangement = Arrangement.Top
+        ) {
+            item {
+                SettingsCategoryHeader(text = stringResource(R.string.settings_category_ui_label))
+            }
+
+            item {
+                SettingsPreferenceItem(
+                    icon = Icons.Default.Palette,
+                    title = stringResource(R.string.ui_theme_mode_setting_label),
+                    subtitle = stringResource(R.string.ui_theme_mode_setting_explanation),
+                    value = stringResource(R.string.ui_theme_mode_system_label),
+                    onClick = {}
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsPreferenceItem(
+                    icon = Icons.Default.Palette,
+                    title = stringResource(R.string.ui_theme_style_setting_label),
+                    subtitle = stringResource(R.string.ui_theme_style_setting_explanation),
+                    value = stringResource(R.string.ui_theme_style_default_label),
+                    onClick = {}
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsPreferenceItem(
+                    icon = Icons.Default.Translate,
+                    title = stringResource(R.string.ui_language_override_label),
+                    subtitle = stringResource(R.string.ui_language_override_desc),
+                    value = "English",
+                    onClick = {}
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.Default.Preview,
+                    title = stringResource(R.string.ui_previews_title),
+                    subtitle = stringResource(R.string.ui_previews_summary),
+                    checked = filePreviewsEnabled,
+                    onCheckedChange = { filePreviewsEnabled = it }
+                )
+            }
+        }
+    }
+}
+
 @Preview2
 @Composable
 private fun GeneralSettingsScreenPreview() {
     PreviewWrapper {
         GeneralSettingsScreen(
-                state = GeneralSettingsViewModel.State(),
-                onNavigateUp = {},
+            state = GeneralSettingsViewModel.State(),
+            onNavigateUp = {},
         )
     }
 }
@@ -51,92 +137,8 @@ fun GeneralSettingsScreenHost(vm: GeneralSettingsViewModel = hiltViewModel()) {
 
     state?.let { state ->
         GeneralSettingsScreen(
-                state = state,
-                onNavigateUp = { vm.goTo(null) },
+            state = state,
+            onNavigateUp = { vm.goTo(null) },
         )
-    }
-}
-
-@Composable
-fun GeneralSettingsScreen(
-        state: GeneralSettingsViewModel.State,
-        onNavigateUp: () -> Unit,
-) {
-    var filePreviewsEnabled by remember { mutableStateOf(true) }
-
-    Scaffold(
-            topBar = {
-                TopAppBar(
-                        title = { Text(stringResource(R.string.general_settings_label)) },
-                        navigationIcon = {
-                            IconButton(onClick = onNavigateUp) {
-                                Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription =
-                                                stringResource(
-                                                        eu.darken
-                                                                .butler
-                                                                .common
-                                                                .R
-                                                                .string
-                                                                .general_back_action
-                                                )
-                                )
-                            }
-                        }
-                )
-            }
-    ) { paddingValues ->
-        LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(paddingValues),
-                verticalArrangement = Arrangement.Top
-        ) {
-            item {
-                SettingsCategoryHeader(text = stringResource(R.string.settings_category_ui_label))
-            }
-
-            item {
-                SettingsPreferenceItem(
-                        icon = Icons.Default.Palette,
-                        title = stringResource(R.string.ui_theme_mode_setting_label),
-                        subtitle = stringResource(R.string.ui_theme_mode_setting_explanation),
-                        value = stringResource(R.string.ui_theme_mode_system_label),
-                        onClick = {}
-                )
-                SettingsDivider()
-            }
-
-            item {
-                SettingsPreferenceItem(
-                        icon = Icons.Default.Palette,
-                        title = stringResource(R.string.ui_theme_style_setting_label),
-                        subtitle = stringResource(R.string.ui_theme_style_setting_explanation),
-                        value = stringResource(R.string.ui_theme_style_default_label),
-                        onClick = {}
-                )
-                SettingsDivider()
-            }
-
-            item {
-                SettingsPreferenceItem(
-                        icon = Icons.Default.Translate,
-                        title = stringResource(R.string.ui_language_override_label),
-                        subtitle = stringResource(R.string.ui_language_override_desc),
-                        value = "English",
-                        onClick = {}
-                )
-                SettingsDivider()
-            }
-
-            item {
-                SettingsSwitchItem(
-                        icon = Icons.Default.Preview,
-                        title = stringResource(R.string.ui_previews_title),
-                        subtitle = stringResource(R.string.ui_previews_summary),
-                        checked = filePreviewsEnabled,
-                        onCheckedChange = { filePreviewsEnabled = it }
-                )
-            }
-        }
     }
 }

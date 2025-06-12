@@ -27,14 +27,6 @@ import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
-@Preview2
-@Composable
-private fun BetaPagePreview() {
-    PreviewWrapper {
-        BetaPage()
-    }
-}
-
 @Composable
 internal fun BetaPage(
     onContinue: () -> Unit = {},
@@ -88,5 +80,13 @@ internal fun BetaPage(
         ) {
             Text(text = stringResource(R.string.onboarding_beta_action))
         }
+    }
+}
+
+@Preview2
+@Composable
+private fun BetaPagePreview() {
+    PreviewWrapper {
+        BetaPage()
     }
 }

@@ -22,10 +22,79 @@ import eu.darken.butler.main.ui.onboarding.pages.PrivacyPage
 import eu.darken.butler.main.ui.onboarding.pages.WelcomePage
 import kotlinx.coroutines.launch
 
+@Composable
+private fun OnboardingScreen(
+    state: OnboardingViewModel.State,
+    onUpdateCheckChange: (Boolean) -> Unit,
+    onMotdCheckChange: (Boolean) -> Unit,
+    onReadPrivacyPolicy: () -> Unit,
+    onFinishOnboarding: () -> Unit,
+) {
+
+    val pagerState =
+        rememberPagerState(
+            initialPage = state.startPage.ordinal,
+            pageCount = { Page.entries.size }
+        )
+    val scope = rememberCoroutineScope()
+
+    BackHandler(enabled = pagerState.currentPage > 0) {
+        scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) }
+    }
+
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(16.dp)) {
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.weight(1f),
+            userScrollEnabled = false
+        ) { page ->
+            when (Page.entries[page]) {
+                Page.WELCOME ->
+                    WelcomePage(
+                        onContinue = {
+                            scope.launch {
+                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                            }
+                        }
+                    )
+
+                Page.BETA ->
+                    BetaPage(
+                        onContinue = {
+                            scope.launch {
+                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                            }
+                        }
+                    )
+
+                Page.PRIVACY ->
+                    PrivacyPage(
+                        isUpdateCheckEnabled = state.isUpdateCheckEnabled,
+                        onUpdateCheckChange = onUpdateCheckChange,
+                        isMotdCheckEnabled = state.isMotdCheckEnabled,
+                        onMotdCheckChange = onMotdCheckChange,
+                        onReadPrivacyPolicy = onReadPrivacyPolicy,
+                        onAccept = { onFinishOnboarding() }
+                    )
+            }
+        }
+    }
+}
+
 @Preview2
 @Composable
 private fun OnboardingScreenPreview() {
-    PreviewWrapper { OnboardingScreen() }
+    PreviewWrapper {
+        OnboardingScreen(
+            state = OnboardingViewModel.State(),
+            onUpdateCheckChange = {},
+            onMotdCheckChange = {},
+            onReadPrivacyPolicy = {},
+            onFinishOnboarding = {},
+        )
+    }
 }
 
 @Composable
@@ -36,68 +105,11 @@ fun OnboardingScreenHost(vm: OnboardingViewModel = hiltViewModel()) {
 
     state?.let { state ->
         OnboardingScreen(
-                state = state,
-                onUpdateCheckChange = { vm.setUpdateCheckEnabled(it) },
-                onMotdCheckChange = { vm.setMotdCheckEnabled(it) },
-                onReadPrivacyPolicy = { vm.readPrivacyPolicy() },
-                onFinishOnboarding = vm::completeOnboarding,
+            state = state,
+            onUpdateCheckChange = { vm.setUpdateCheckEnabled(it) },
+            onMotdCheckChange = { vm.setMotdCheckEnabled(it) },
+            onReadPrivacyPolicy = { vm.readPrivacyPolicy() },
+            onFinishOnboarding = vm::completeOnboarding,
         )
-    }
-}
-
-@Composable
-private fun OnboardingScreen(
-        state: OnboardingViewModel.State = OnboardingViewModel.State(),
-        onUpdateCheckChange: (Boolean) -> Unit = {},
-        onMotdCheckChange: (Boolean) -> Unit = {},
-        onReadPrivacyPolicy: () -> Unit = {},
-        onFinishOnboarding: () -> Unit = {},
-) {
-
-    val pagerState =
-            rememberPagerState(
-                    initialPage = state.startPage.ordinal,
-                    pageCount = { Page.entries.size }
-            )
-    val scope = rememberCoroutineScope()
-
-    BackHandler(enabled = pagerState.currentPage > 0) {
-        scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) }
-    }
-
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.weight(1f),
-                userScrollEnabled = false
-        ) { page ->
-            when (Page.entries[page]) {
-                Page.WELCOME ->
-                        WelcomePage(
-                                onContinue = {
-                                    scope.launch {
-                                        pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                                    }
-                                }
-                        )
-                Page.BETA ->
-                        BetaPage(
-                                onContinue = {
-                                    scope.launch {
-                                        pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                                    }
-                                }
-                        )
-                Page.PRIVACY ->
-                        PrivacyPage(
-                                isUpdateCheckEnabled = state.isUpdateCheckEnabled,
-                                onUpdateCheckChange = onUpdateCheckChange,
-                                isMotdCheckEnabled = state.isMotdCheckEnabled,
-                                onMotdCheckChange = onMotdCheckChange,
-                                onReadPrivacyPolicy = onReadPrivacyPolicy,
-                                onAccept = { onFinishOnboarding() }
-                        )
-            }
-        }
     }
 }

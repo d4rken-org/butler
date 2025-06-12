@@ -28,29 +28,6 @@ import eu.darken.butler.main.ui.settings.common.SettingsCategoryHeader
 import eu.darken.butler.main.ui.settings.common.SettingsDivider
 import eu.darken.butler.main.ui.settings.common.SettingsPreferenceItem
 
-@Preview2
-@Composable
-private fun SupportScreenPreview() {
-    PreviewWrapper {
-        SupportScreen(
-                onNavigateUp = {},
-                onDebugLog = {},
-                onOpenUrl = {},
-        )
-    }
-}
-
-@Composable
-fun SupportScreenHost(vm: SupportScreenViewModel = hiltViewModel()) {
-    ErrorEventHandler(vm)
-
-    SupportScreen(
-            onNavigateUp = { vm.goTo(null) },
-            onDebugLog = { vm.debugLog() },
-            onOpenUrl = { url -> vm.openUrl(url) },
-    )
-}
-
 @Composable
 fun SupportScreen(
         onNavigateUp: () -> Unit,
@@ -127,4 +104,27 @@ fun SupportScreen(
             }
         }
     }
+}
+
+@Preview2
+@Composable
+private fun SupportScreenPreview() {
+    PreviewWrapper {
+        SupportScreen(
+            onNavigateUp = {},
+            onDebugLog = {},
+            onOpenUrl = {},
+        )
+    }
+}
+
+@Composable
+fun SupportScreenHost(vm: SupportScreenViewModel = hiltViewModel()) {
+    ErrorEventHandler(vm)
+
+    SupportScreen(
+        onNavigateUp = { vm.goTo(null) },
+        onDebugLog = { vm.debugLog() },
+        onOpenUrl = { url -> vm.openUrl(url) },
+    )
 }

@@ -32,21 +32,6 @@ import eu.darken.butler.main.ui.AppNav
 import eu.darken.butler.main.ui.settings.common.SettingsBaseItem
 import eu.darken.butler.main.ui.settings.common.SettingsCategoryHeader
 
-@Preview2
-@Composable
-private fun SettingsScreenPreview() {
-    PreviewWrapper {
-        SettingsScreen(
-                state = SettingsViewModel.State(),
-                onNavigateUp = {},
-                onNavigateToGeneral = {},
-                onNavigateToSupport = {},
-                onNavigateToAcknowledgements = {},
-                onOpenChangelog = {},
-        )
-    }
-}
-
 @Composable
 fun OnboardingScreenHost(vm: SettingsViewModel = hiltViewModel()) {
     ErrorEventHandler(vm)
@@ -155,5 +140,20 @@ fun SettingsScreen(
                 )
             }
         }
+    }
+}
+
+@Preview2
+@Composable
+private fun SettingsScreenPreview() {
+    PreviewWrapper {
+        SettingsScreen(
+            state = SettingsViewModel.State(),
+            onNavigateUp = {},
+            onNavigateToGeneral = {},
+            onNavigateToSupport = {},
+            onNavigateToAcknowledgements = {},
+            onOpenChangelog = {},
+        )
     }
 }

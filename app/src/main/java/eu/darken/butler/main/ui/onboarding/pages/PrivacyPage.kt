@@ -26,20 +26,6 @@ import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
-@Preview2
-@Composable
-private fun PrivacyPagePreview() {
-    PreviewWrapper {
-        PrivacyPage(
-            isUpdateCheckEnabled = true,
-            onUpdateCheckChange = {},
-            isMotdCheckEnabled = true,
-            onMotdCheckChange = {},
-            onAccept = {},
-        )
-    }
-}
-
 @Composable
 internal fun PrivacyPage(
     isUpdateCheckEnabled: Boolean,
@@ -156,5 +142,19 @@ internal fun PrivacyPage(
         ) {
             Text(stringResource(R.string.onboarding_privacy_action))
         }
+    }
+}
+
+@Preview2
+@Composable
+private fun PrivacyPagePreview() {
+    PreviewWrapper {
+        PrivacyPage(
+            isUpdateCheckEnabled = true,
+            onUpdateCheckChange = {},
+            isMotdCheckEnabled = true,
+            onMotdCheckChange = {},
+            onAccept = {},
+        )
     }
 }

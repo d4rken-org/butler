@@ -1,15 +1,21 @@
 package eu.darken.butler.common.error
 
-import android.app.Activity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import eu.darken.butler.common.error.ErrorDialog
 
 @Composable
 fun ErrorEventHandler(source: ErrorEventSource) {
-    val context = LocalContext.current as Activity
     val errorEvents = source.errorEvents
-    LaunchedEffect(errorEvents) {
-        errorEvents.collect { error -> error.asErrorDialogBuilder(context).show() }
+    var currentError by remember { mutableStateOf<Throwable?>(null) }
+
+    LaunchedEffect(errorEvents) { errorEvents.collect { error -> currentError = error } }
+
+    currentError?.let { error ->
+        ErrorDialog(throwable = error, onDismiss = { currentError = null })
     }
 }
