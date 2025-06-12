@@ -15,7 +15,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.error.asErrorDialogBuilder
+import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.NavigationDestination
 import eu.darken.butler.common.navigation.NavigationEntry
@@ -40,11 +40,6 @@ class MainActivity : Activity2() {
 
         curriculumVitae.updateAppOpened()
 
-        vm.errorEvents.observe {
-            log(tag, VERBOSE) { "Error event: $it" }
-            it.asErrorDialogBuilder(this).show()
-        }
-
         setContent {
             val themeState by produceState<ThemeState?>(initialValue = null) {
                 vm.themeState.collect { value = it }
@@ -55,6 +50,7 @@ class MainActivity : Activity2() {
             themeState?.let { themeState ->
                 log(TAG) { "Theme state: $themeState" }
                 MyAppTheme(state = themeState) {
+                    ErrorEventHandler(vm)
                     vmState?.let { mainState ->
                         log(TAG) { "Main state: $mainState" }
                         Navigation(mainState)

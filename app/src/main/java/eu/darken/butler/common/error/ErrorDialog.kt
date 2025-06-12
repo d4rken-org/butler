@@ -1,62 +1,96 @@
 package eu.darken.butler.common.error
 
 import android.app.Activity
-import android.util.TypedValue
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.textview.MaterialTextView
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.R
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
 
-fun Throwable.asErrorDialogBuilder(
-    context: Activity
-): MaterialAlertDialogBuilder {
-    return MaterialAlertDialogBuilder(context).apply {
-        val error = this@asErrorDialogBuilder
-        val localizedError = error.localized(context)
+@Composable
+fun ErrorDialog(throwable: Throwable, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val activity = context as? Activity
+    val localizedError = throwable.localized(context)
 
-        setTitle(localizedError.label.get(context))
-
-        val messageView = MaterialTextView(context).apply {
-            text = localizedError.description.get(context)
-            setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Caption)
-            setTextIsSelectable(true)
-
-            val paddingHorizontal = TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP, 24f, resources.displayMetrics
-            ).toInt()
-            val paddingVertical = TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP, 8f, resources.displayMetrics
-            ).toInt()
-            setPadding(
-                paddingHorizontal,
-                paddingVertical,
-                paddingHorizontal,
-                0,
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = localizedError.label.get(context),
+                style = MaterialTheme.typography.headlineSmall
             )
-        }
-        setView(messageView)
-
-        if (localizedError.fixAction != null) {
-            setPositiveButton(
-                localizedError.fixActionLabel?.get(context) ?: context.getString(android.R.string.ok)
-            ) { _, _ ->
-                localizedError.fixAction!!.invoke(context)
-            }
-            setNegativeButton(R.string.general_cancel_action) { _, _ ->
-            }
-        } else {
-            setPositiveButton(android.R.string.ok) { _, _ ->
-            }
-        }
-
-        when {
-            localizedError.infoAction != null -> {
-                setNeutralButton(
-                    localizedError.infoActionLabel?.get(context)
-                        ?: context.getString(R.string.general_show_details_action)
-                ) { _, _ ->
-                    localizedError.infoAction!!.invoke(context)
+        },
+        text = {
+            Column {
+                SelectionContainer {
+                    Text(
+                        text = localizedError.description.get(context),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
                 }
             }
+        },
+        confirmButton = {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                localizedError.infoAction?.let { action ->
+                    TextButton(onClick = { activity?.let { action.invoke(it) } }) {
+                        Text(
+                            localizedError.infoActionLabel?.get(context)
+                                ?: stringResource(R.string.general_show_details_action)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+
+                localizedError.fixAction?.let { action ->
+                    TextButton(onClick = onDismiss) {
+                        Text(stringResource(R.string.general_cancel_action))
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TextButton(
+                        onClick = {
+                            activity?.let { action.invoke(it) }
+                            onDismiss()
+                        }
+                    ) {
+                        Text(
+                            localizedError.fixActionLabel?.get(context)
+                                ?: stringResource(android.R.string.ok)
+                        )
+                    }
+                }
+                    ?: TextButton(onClick = onDismiss) {
+                        Text(stringResource(android.R.string.ok))
+                    }
+            }
         }
+    )
+}
+
+@Preview2
+@Composable
+fun ErrorDialogPreview() {
+    PreviewWrapper {
+        ErrorDialog(
+            throwable = RuntimeException("Sample error message for preview"),
+            onDismiss = {}
+        )
     }
 }
