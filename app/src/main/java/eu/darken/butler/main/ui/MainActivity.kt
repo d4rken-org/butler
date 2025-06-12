@@ -1,6 +1,7 @@
 package eu.darken.butler.main.ui
 
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -12,6 +13,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import dagger.hilt.android.AndroidEntryPoint
+import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -37,6 +39,10 @@ class MainActivity : Activity2() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
+        if (BuildConfigWrap.DEBUG) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
 
         curriculumVitae.updateAppOpened()
 
@@ -69,9 +75,7 @@ class MainActivity : Activity2() {
 
         val backStack = rememberNavBackStack<NavigationDestination>(start)
 
-        LaunchedEffect(Unit) {
-            navCtrl.setup(backStack)
-        }
+        LaunchedEffect(Unit) { navCtrl.setup(backStack) }
 
         NavDisplay(
             backStack = backStack,
