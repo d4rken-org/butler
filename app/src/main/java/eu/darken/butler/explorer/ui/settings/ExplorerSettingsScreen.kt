@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -34,7 +35,7 @@ fun ExplorerSettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Explorer Settings") },
+                title = { Text(stringResource(R.string.explorer_settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
                         Icon(
@@ -55,7 +56,7 @@ fun ExplorerSettingsScreen(
             verticalArrangement = Arrangement.Top
         ) {
             item {
-                SettingsCategoryHeader(text = "File Display")
+                SettingsCategoryHeader(text = stringResource(R.string.explorer_settings_file_display))
             }
         }
     }

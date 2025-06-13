@@ -89,7 +89,7 @@ fun NewWorkspacePage(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = stringResource(R.string.search_title),
+                            text = stringResource(R.string.searcher_title),
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.weight(1f)
                         )

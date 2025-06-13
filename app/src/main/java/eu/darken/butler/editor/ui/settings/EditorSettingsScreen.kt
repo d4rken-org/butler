@@ -15,13 +15,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -41,7 +39,7 @@ fun EditorSettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Editor Settings") },
+                title = { Text(stringResource(R.string.editor_settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
                         Icon(
@@ -64,8 +62,8 @@ fun EditorSettingsScreen(
             item {
                 SettingsSwitchItem(
                     icon = Icons.Default.TextFormat,
-                    title = "Show Line Numbers",
-                    subtitle = "Display line numbers in the editor",
+                    title = stringResource(R.string.editor_settings_show_line_numbers_title),
+                    subtitle = stringResource(R.string.editor_settings_show_line_numbers_subtitle),
                     checked = state.showLineNumbers,
                     onCheckedChange = onShowLineNumbersChange
                 )

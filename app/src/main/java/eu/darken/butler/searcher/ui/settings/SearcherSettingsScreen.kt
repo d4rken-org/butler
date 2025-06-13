@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -44,7 +45,7 @@ fun SearcherSettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Searcher Settings") },
+                title = { Text(stringResource(R.string.searcher_settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
                         Icon(
@@ -65,14 +66,14 @@ fun SearcherSettingsScreen(
             verticalArrangement = Arrangement.Top
         ) {
             item {
-                SettingsCategoryHeader(text = "Search Options")
+                SettingsCategoryHeader(text = stringResource(R.string.searcher_settings_search_options))
             }
 
             item {
                 SettingsSwitchItem(
                     icon = Icons.Default.Search,
-                    title = "Case Sensitive",
-                    subtitle = "Match exact case when searching",
+                    title = stringResource(R.string.searcher_settings_case_sensitive_title),
+                    subtitle = stringResource(R.string.searcher_settings_case_sensitive_subtitle),
                     checked = state.caseSensitive,
                     onCheckedChange = onCaseSensitiveChange
                 )
@@ -82,8 +83,8 @@ fun SearcherSettingsScreen(
             item {
                 SettingsSwitchItem(
                     icon = Icons.Default.Search,
-                    title = "Whole Word",
-                    subtitle = "Match whole words only",
+                    title = stringResource(R.string.searcher_settings_whole_word_title),
+                    subtitle = stringResource(R.string.searcher_settings_whole_word_subtitle),
                     checked = state.wholeWord,
                     onCheckedChange = onWholeWordChange
                 )
@@ -93,8 +94,8 @@ fun SearcherSettingsScreen(
             item {
                 SettingsSwitchItem(
                     icon = Icons.Default.Search,
-                    title = "Use Regular Expressions",
-                    subtitle = "Enable regex pattern matching",
+                    title = stringResource(R.string.searcher_settings_regex_title),
+                    subtitle = stringResource(R.string.searcher_settings_regex_subtitle),
                     checked = state.useRegex,
                     onCheckedChange = onUseRegexChange
                 )
@@ -102,14 +103,14 @@ fun SearcherSettingsScreen(
             }
 
             item {
-                SettingsCategoryHeader(text = "History")
+                SettingsCategoryHeader(text = stringResource(R.string.searcher_settings_history))
             }
 
             item {
                 SettingsSwitchItem(
                     icon = Icons.Default.History,
-                    title = "Save Search History",
-                    subtitle = "Remember recent searches",
+                    title = stringResource(R.string.searcher_settings_save_history_title),
+                    subtitle = stringResource(R.string.searcher_settings_save_history_subtitle),
                     checked = state.saveHistory,
                     onCheckedChange = onSaveHistoryChange
                 )
@@ -119,8 +120,8 @@ fun SearcherSettingsScreen(
             item {
                 SettingsPreferenceItem(
                     icon = Icons.Default.History,
-                    title = "Maximum History Items",
-                    subtitle = "Number of recent searches to remember",
+                    title = stringResource(R.string.searcher_settings_max_history_title),
+                    subtitle = stringResource(R.string.searcher_settings_max_history_subtitle),
                     value = state.maxHistoryItems.toString(),
                     onClick = {
                         // In a real implementation, this would show a dialog to select the number
@@ -135,8 +136,8 @@ fun SearcherSettingsScreen(
             item {
                 SettingsPreferenceItem(
                     icon = Icons.Default.ClearAll,
-                    title = "Clear Search History",
-                    subtitle = "Remove all saved searches",
+                    title = stringResource(R.string.searcher_settings_clear_history_title),
+                    subtitle = stringResource(R.string.searcher_settings_clear_history_subtitle),
                     onClick = onClearSearchHistory
                 )
             }
