@@ -1,6 +1,7 @@
 package eu.darken.butler.workspace.ui
 
 import dagger.hilt.android.lifecycle.HiltViewModel
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
@@ -30,15 +31,7 @@ constructor(
 
     fun addTab() {
         val currentTabs = _tabs.value.toMutableList()
-        val newTab = Workspace.WorkspaceTab(title = "New Tab ${currentTabs.size + 1}")
-        currentTabs.add(newTab)
-        _tabs.value = currentTabs
-        _selectedTabId.value = newTab.id
-    }
-
-    fun addTabWithTitle(title: String) {
-        val currentTabs = _tabs.value.toMutableList()
-        val newTab = Workspace.WorkspaceTab(title = title)
+        val newTab = Workspace.WorkspaceTab(title = "New Tab ${currentTabs.size + 1}".toCaString())
         currentTabs.add(newTab)
         _tabs.value = currentTabs
         _selectedTabId.value = newTab.id
@@ -67,7 +60,14 @@ constructor(
         val tabIndex = currentTabs.indexOfFirst { it.id == tabId }
         if (tabIndex != -1) {
             val oldTab = currentTabs[tabIndex]
-            currentTabs[tabIndex] = Workspace.WorkspaceTab(id = oldTab.id, title = newTitle)
+            val newType = when (newTitle) {
+                "Home" -> Workspace.Type.EXPLORER
+                "Documents" -> Workspace.Type.EXPLORER
+                "Downloads" -> Workspace.Type.EXPLORER
+                else -> Workspace.Type.NEW
+            }
+            currentTabs[tabIndex] =
+                Workspace.WorkspaceTab(id = oldTab.id, title = newTitle.toCaString(), type = newType)
             _tabs.value = currentTabs
         }
     }

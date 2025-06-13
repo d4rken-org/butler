@@ -1,6 +1,7 @@
 package eu.darken.butler.workspace.ui
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,19 +32,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
-import eu.darken.butler.common.Slogans
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.main.ui.AppNav
@@ -141,11 +140,13 @@ private fun TabBar(
                 )
             }
         }
-        IconButton(onClick = onAddTab) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = stringResource(R.string.workspace_tab_add)
-            )
+        if (tabs.isNotEmpty()) {
+            IconButton(onClick = onAddTab) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.workspace_tab_add)
+                )
+            }
         }
     }
 }
@@ -175,7 +176,7 @@ private fun TabItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = tab.title,
+                text = tab.title.asComposable(),
                 style = MaterialTheme.typography.bodyMedium,
                 color =
                     if (isSelected) {
@@ -212,161 +213,77 @@ private fun TabContent(
     val selectedTab = tabs.find { it.id == selectedTabId }
 
     Box(modifier = modifier) {
-        when (selectedTab?.title) {
-            "Home" -> HomeTabContent()
-            "Documents" -> DocumentsTabContent()
-            "Downloads" -> DownloadsTabContent()
-            else -> {
-                if (selectedTab?.title?.startsWith("New Tab") == true) {
-                    NewTabMenu(tabId = selectedTab.id, onTransformTab = onTransformTab)
-                } else {
-                    EmptyTabContent()
+        when (selectedTab?.type) {
+            Workspace.Type.EXPLORER -> {
+                when (selectedTab.title.asComposable()) {
+                    "Home" -> HomeTabContent()
+                    "Documents" -> DocumentsTabContent()
+                    "Downloads" -> DownloadsTabContent()
+                    else -> HomeTabContent() // Default to home content for explorer type
                 }
+            }
+
+            Workspace.Type.SEARCH -> {
+                // Future implementation for search type
+                HomeTabContent() // Placeholder until search is implemented
+            }
+
+            Workspace.Type.NEW, null -> {
+                NewWorkspacePage(tabId = selectedTab?.id ?: Workspace.Id(), onTransformTab = onTransformTab)
             }
         }
     }
 }
 
 @Composable
-private fun NewTabMenu(tabId: Workspace.Id, onTransformTab: (Workspace.Id, String) -> Unit) {
-    val randomSlogan = remember { Slogans.random }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Image(
-            painter = painterResource(R.drawable.mascot),
-            contentDescription = null,
-            modifier = Modifier.size(96.dp)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = randomSlogan.get(LocalContext.current),
-            style = MaterialTheme.typography.headlineSmall,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            item {
-                Card(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable { onTransformTab(tabId, "Home") },
-                    colors =
-                        CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        )
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Home",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Icon(imageVector = Icons.Default.Add, contentDescription = null)
-                    }
-                }
-            }
-
-            item {
-                Card(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                onTransformTab(tabId, "Documents")
-                            }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Documents",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Icon(imageVector = Icons.Default.Add, contentDescription = null)
-                    }
-                }
-            }
-
-            item {
-                Card(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                onTransformTab(tabId, "Downloads")
-                            }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Downloads",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Icon(imageVector = Icons.Default.Add, contentDescription = null)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun EmptyTabContent() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("No content available")
-    }
-}
-
-@Composable
-private fun EmptyWorkspaceContent(
+internal fun EmptyWorkspaceContent(
     modifier: Modifier = Modifier,
     onNavToSettings: () -> Unit,
     onAddTab: () -> Unit
 ) {
-    val randomSlogan = remember { Slogans.random }
-
     Column(
         modifier = modifier.padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Center
     ) {
-        Image(
-            painter = painterResource(R.drawable.mascot),
-            contentDescription = null,
-            modifier = Modifier.size(128.dp)
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        Text(
-            text = randomSlogan.get(LocalContext.current),
-            style = MaterialTheme.typography.headlineSmall,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(72.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        shape = RoundedCornerShape(16.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.mascot),
+                    contentDescription = null,
+                    modifier = Modifier.size(56.dp)
+                )
+            }
+
+            Column {
+                Text(
+                    text = stringResource(eu.darken.butler.common.R.string.app_name),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = stringResource(eu.darken.butler.common.R.string.app_name_subtitle),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(32.dp))
 
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.Start
         ) {
             item {
                 Card(
@@ -422,9 +339,7 @@ private fun EmptyWorkspaceContent(
 private fun WorkspaceScreenPreview() {
     PreviewWrapper {
         val tabs = listOf(
-            Workspace.WorkspaceTab(title = "Home"),
-            Workspace.WorkspaceTab(title = "Documents"),
-            Workspace.WorkspaceTab(title = "Downloads")
+            Workspace.WorkspaceTab(title = "New Tab".toCaString(), type = Workspace.Type.NEW),
         )
         WorkspaceScreen(
             state = WorkspaceViewModel.State(tabs = tabs, selectedTabId = tabs.first().id),

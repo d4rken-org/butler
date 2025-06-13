@@ -1,12 +1,13 @@
 package eu.darken.butler.workspace.core
 
+import eu.darken.butler.common.ca.CaString
 import java.util.UUID
 
 interface Workspace {
     enum class Type {
+        NEW,
         EXPLORER,
         SEARCH,
-        EDITOR,
         ;
     }
 
@@ -16,11 +17,13 @@ interface Workspace {
 
     interface Tab {
         val id: Id
-        val title: String
+        val title: CaString
+        val type: Type
     }
 
     data class WorkspaceTab(
         override val id: Id = Id(),
-        override val title: String
+        override val title: CaString,
+        override val type: Type = Type.NEW
     ) : Tab
 }
