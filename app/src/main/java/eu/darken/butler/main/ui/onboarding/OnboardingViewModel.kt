@@ -39,7 +39,7 @@ class OnboardingViewModel @Inject constructor(
     fun completeOnboarding() = launch {
         log(tag) { "completeOnboarding()" }
         generalSettings.isOnboardingCompleted.value(true)
-        goTo(
+        navTo(
             AppNav.Main.Workspace,
             popUpTo = AppNav.Main.Workspace,
             inclusive = true

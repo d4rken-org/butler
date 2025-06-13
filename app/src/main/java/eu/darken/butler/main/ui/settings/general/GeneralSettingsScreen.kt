@@ -215,7 +215,7 @@ fun GeneralSettingsScreenHost(vm: GeneralSettingsViewModel = hiltViewModel()) {
     state?.let { vmState ->
         GeneralSettingsScreen(
             state = vmState,
-            onNavigateUp = { vm.goTo(null) },
+            onNavigateUp = { vm.navUp() },
             onLanguageSwitcher = { vm.showLanguagePicker() },
             onFilePreviewsChange = { vm.updateFilePreviews(it) },
             onThemeModeSelected = { vm.updateThemeMode(it) },

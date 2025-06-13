@@ -197,7 +197,7 @@ fun AcknowledgementsScreenHost(vm: AcknowledgementsScreenViewModel = hiltViewMod
     state?.let { state ->
         AcknowledgementsScreen(
             state = state,
-            onNavigateUp = { vm.goTo(null) },
+            onNavigateUp = { vm.navUp() },
             onOpenUrl = { url -> vm.openUrl(url) },
         )
     }

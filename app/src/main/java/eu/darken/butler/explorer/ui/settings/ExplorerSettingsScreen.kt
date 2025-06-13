@@ -88,7 +88,7 @@ fun ExplorerSettingsScreenHost(vm: ExplorerSettingsViewModel = hiltViewModel()) 
     state?.let { vmState ->
         ExplorerSettingsScreen(
             state = vmState,
-            onNavigateUp = { vm.goTo(null) },
+            onNavigateUp = { vm.navUp() },
         )
     }
 }

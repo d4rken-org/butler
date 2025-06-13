@@ -44,8 +44,8 @@ fun SettingsIndexScreenHost(vm: SettingsViewModel = hiltViewModel()) {
     state?.let { state ->
         SettingsIndexScreen(
             state = state,
-            onNavigateUp = { vm.goTo(null) },
-            onNavigateTo = { vm.goTo(it) },
+            onNavigateUp = { vm.navUp() },
+            onNavigateTo = { vm.navTo(it) },
             onOpenUrl = { vm.openUrl(it) },
         )
     }

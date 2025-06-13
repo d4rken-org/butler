@@ -177,7 +177,7 @@ fun SearcherSettingsScreenHost(vm: SearcherSettingsViewModel = hiltViewModel()) 
     state?.let { vmState ->
         SearcherSettingsScreen(
             state = vmState,
-            onNavigateUp = { vm.goTo(null) },
+            onNavigateUp = { vm.navUp() },
             onCaseSensitiveChange = { vm.updateCaseSensitive(it) },
             onWholeWordChange = { vm.updateWholeWord(it) },
             onUseRegexChange = { vm.updateUseRegex(it) },

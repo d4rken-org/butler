@@ -53,7 +53,7 @@ fun WorkspaceScreenHost(vm: WorkspaceViewModel = hiltViewModel()) {
     state?.let { state ->
         WorkspaceScreen(
             state = state,
-            onNavToSettings = { vm.goTo(AppNav.Main.Settings) },
+            onNavToSettings = { vm.navTo(AppNav.Main.Settings) },
             onTabAction = { vm.modifyTab(it) },
             onUpgradeButler = { vm.upgradeButler() }
         )
@@ -94,6 +94,7 @@ fun WorkspaceScreen(
                     .padding(paddingValues),
                 onNavToSettings = onNavToSettings,
                 onTabAction = onTabAction,
+                showUpgradePrompt = state.showUpgradePrompt,
                 onUpgradeButler = onUpgradeButler,
             )
         }
@@ -231,7 +232,11 @@ private fun WorkspaceScreenPreview() {
             WorkspaceTab(),
         )
         WorkspaceScreen(
-            state = WorkspaceViewModel.State(tabs = tabs, selected = tabs.last().id),
+            state = WorkspaceViewModel.State(
+                tabs = tabs,
+                selected = tabs.last().id,
+                showUpgradePrompt = true,
+            ),
             onNavToSettings = {},
             onTabAction = {},
             onUpgradeButler = {}
@@ -244,7 +249,11 @@ private fun WorkspaceScreenPreview() {
 private fun EmptyWorkspaceScreenPreview() {
     PreviewWrapper {
         WorkspaceScreen(
-            state = WorkspaceViewModel.State(tabs = emptyList(), selected = null),
+            state = WorkspaceViewModel.State(
+                tabs = emptyList(),
+                selected = null,
+                showUpgradePrompt = true,
+            ),
             onNavToSettings = {},
             onTabAction = {},
             onUpgradeButler = {}

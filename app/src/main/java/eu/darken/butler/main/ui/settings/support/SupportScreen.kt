@@ -58,7 +58,9 @@ fun SupportScreen(
             }
     ) { paddingValues ->
         LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
                 verticalArrangement = Arrangement.Top
         ) {
             item {
@@ -123,7 +125,7 @@ fun SupportScreenHost(vm: SupportScreenViewModel = hiltViewModel()) {
     ErrorEventHandler(vm)
 
     SupportScreen(
-        onNavigateUp = { vm.goTo(null) },
+        onNavigateUp = { vm.navUp() },
         onDebugLog = { vm.debugLog() },
         onOpenUrl = { url -> vm.openUrl(url) },
     )

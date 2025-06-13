@@ -7,6 +7,8 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.common.upgrade.core.UpgradeRepoFoss
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 @HiltViewModel
@@ -19,5 +21,7 @@ class UpgradeViewModel @Inject constructor(
     fun openSponsor() = launch {
         log(tag) { "openSponsor()" }
         upgradeRepo.launchGithubSponsorsUpgrade()
+        upgradeRepo.upgradeInfo.filter { it.isPro }.first()
+        navUp()
     }
 }

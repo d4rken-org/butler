@@ -38,6 +38,7 @@ internal fun EmptyWorkspaceContent(
     modifier: Modifier = Modifier.Companion,
     onNavToSettings: () -> Unit,
     onTabAction: (TabAction.Create) -> Unit,
+    showUpgradePrompt: Boolean,
     onUpgradeButler: () -> Unit,
 ) {
     Column(
@@ -138,30 +139,32 @@ internal fun EmptyWorkspaceContent(
                     }
                 }
             }
-            item {
-                Card(
-                    modifier = Modifier.Companion
-                        .fillMaxWidth()
-                        .clickable { onUpgradeButler() }) {
-                    Row(
-                        modifier = Modifier.Companion.padding(20.dp),
-                        verticalAlignment = Alignment.Companion.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.Companion.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.upgrade_prompt_title),
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Text(
-                                text = stringResource(R.string.upgrade_prompt_body),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+            if (showUpgradePrompt) {
+                item {
+                    Card(
+                        modifier = Modifier.Companion
+                            .fillMaxWidth()
+                            .clickable { onUpgradeButler() }) {
+                        Row(
+                            modifier = Modifier.Companion.padding(20.dp),
+                            verticalAlignment = Alignment.Companion.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.Companion.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.upgrade_prompt_title),
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Text(
+                                    text = stringResource(R.string.upgrade_prompt_body),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Icon(
+                                imageVector = Icons.TwoTone.Stars,
+                                contentDescription = stringResource(R.string.upgrade_prompt_upgrade_action)
                             )
                         }
-                        Icon(
-                            imageVector = Icons.TwoTone.Stars,
-                            contentDescription = stringResource(R.string.upgrade_prompt_upgrade_action)
-                        )
                     }
                 }
             }
@@ -173,6 +176,11 @@ internal fun EmptyWorkspaceContent(
 @Composable
 private fun EmptyWorkspaceContentPreview() {
     PreviewWrapper {
-        EmptyWorkspaceContent(onNavToSettings = {}, onTabAction = {}, onUpgradeButler = {})
+        EmptyWorkspaceContent(
+            onNavToSettings = {},
+            onTabAction = {},
+            showUpgradePrompt = true,
+            onUpgradeButler = {},
+        )
     }
 }

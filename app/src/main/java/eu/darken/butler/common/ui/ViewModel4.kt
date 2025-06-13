@@ -12,8 +12,8 @@ abstract class ViewModel4(
     private val navCtrl: NavigationController,
 ) : ViewModel3(dispatcherProvider, tag) {
 
-    fun goTo(
-        destination: NavigationDestination?,
+    fun navTo(
+        destination: NavigationDestination,
         popUpTo: NavigationDestination? = null,
         inclusive: Boolean = false
     ) {
@@ -23,6 +23,10 @@ abstract class ViewModel4(
         } else {
             navCtrl.goTo(destination, popUpTo, inclusive)
         }
+    }
+
+    fun navUp() {
+        navCtrl.up()
     }
 
     companion object {

@@ -140,7 +140,7 @@ fun UpgradeScreen(
 fun UpgradeScreenHost(vm: UpgradeViewModel = hiltViewModel()) {
     ErrorEventHandler(vm)
     UpgradeScreen(
-        onNavigateBack = { vm.goTo(null) },
+        onNavigateBack = { vm.navUp() },
         onSponsorClick = { vm.openSponsor() }
     )
 }

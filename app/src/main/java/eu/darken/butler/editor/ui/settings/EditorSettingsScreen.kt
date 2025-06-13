@@ -96,7 +96,7 @@ fun EditorSettingsScreenHost(vm: EditorSettingsViewModel = hiltViewModel()) {
     state?.let { vmState ->
         EditorSettingsScreen(
             state = vmState,
-            onNavigateUp = { vm.goTo(null) },
+            onNavigateUp = { vm.navUp() },
             onShowLineNumbersChange = { vm.updateShowLineNumbers(it) },
         )
     }

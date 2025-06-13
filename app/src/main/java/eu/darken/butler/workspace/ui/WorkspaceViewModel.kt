@@ -6,6 +6,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
+import eu.darken.butler.common.upgrade.UpgradeRepo
 import eu.darken.butler.main.ui.AppNav
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceTab
@@ -21,6 +22,7 @@ class WorkspaceViewModel
 constructor(
     dispatchers: DispatcherProvider,
     private val navCtrl: NavigationController,
+    private val upgradeRepo: UpgradeRepo,
 ) : ViewModel4(dispatchers, logTag("Workspace", "ViewModel"), navCtrl) {
 
     private val tabLock = Mutex()
@@ -29,11 +31,13 @@ constructor(
 
     val state = combine(
         _tabs,
-        _selectedTabId
-    ) { tabs, selectedTabId ->
+        _selectedTabId,
+        upgradeRepo.upgradeInfo,
+    ) { tabs, selectedTabId, upgradeInfo ->
         State(
             tabs = tabs,
-            selected = selectedTabId
+            selected = selectedTabId,
+            showUpgradePrompt = !upgradeInfo.isPro
         )
     }.asStateFlow()
 
@@ -93,8 +97,9 @@ constructor(
     }
 
     data class State(
-        val tabs: List<WorkspaceTab> = emptyList(),
-        val selected: Workspace.Id? = null
+        val tabs: List<WorkspaceTab>,
+        val selected: Workspace.Id?,
+        val showUpgradePrompt: Boolean,
     ) {
         val current: WorkspaceTab?
             get() = tabs.firstOrNull { it.id == selected }
