@@ -6,6 +6,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
+import eu.darken.butler.main.ui.AppNav
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceTab
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +20,7 @@ class WorkspaceViewModel
 @Inject
 constructor(
     dispatchers: DispatcherProvider,
-    navCtrl: NavigationController,
+    private val navCtrl: NavigationController,
 ) : ViewModel4(dispatchers, logTag("Workspace", "ViewModel"), navCtrl) {
 
     private val tabLock = Mutex()
@@ -84,6 +85,11 @@ constructor(
                 }
             }
         }
+    }
+
+    fun upgradeButler() = launch {
+        log(tag) { "upgradeButler()" }
+        navCtrl.goTo(AppNav.Main.Upgrade)
     }
 
     data class State(

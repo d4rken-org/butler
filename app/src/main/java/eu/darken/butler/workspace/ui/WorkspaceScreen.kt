@@ -13,8 +13,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddBox
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.twotone.AddCircle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,6 +55,7 @@ fun WorkspaceScreenHost(vm: WorkspaceViewModel = hiltViewModel()) {
             state = state,
             onNavToSettings = { vm.goTo(AppNav.Main.Settings) },
             onTabAction = { vm.modifyTab(it) },
+            onUpgradeButler = { vm.upgradeButler() }
         )
     }
 }
@@ -65,6 +66,7 @@ fun WorkspaceScreen(
     state: WorkspaceViewModel.State,
     onNavToSettings: () -> Unit,
     onTabAction: (TabAction) -> Unit,
+    onUpgradeButler: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -91,7 +93,8 @@ fun WorkspaceScreen(
                     .fillMaxSize()
                     .padding(paddingValues),
                 onNavToSettings = onNavToSettings,
-                onTabAction = onTabAction
+                onTabAction = onTabAction,
+                onUpgradeButler = onUpgradeButler,
             )
         }
     }
@@ -127,8 +130,8 @@ private fun TabBar(
         if (tabs.isNotEmpty()) {
             IconButton(onClick = { onTabAction(TabAction.Create()) }) {
                 Icon(
-                    imageVector = Icons.Default.AddBox,
-                    contentDescription = stringResource(R.string.workspace_tab_add)
+                    imageVector = Icons.TwoTone.AddCircle,
+                    contentDescription = stringResource(R.string.workspace_tab_add_action)
                 )
             }
         }
@@ -173,7 +176,7 @@ private fun TabItem(
             IconButton(onClick = onClose, modifier = Modifier.size(16.dp)) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = stringResource(R.string.workspace_tab_close),
+                    contentDescription = stringResource(R.string.workspace_tab_close_action),
                     tint =
                         if (isSelected) {
                             MaterialTheme.colorScheme.onPrimaryContainer
@@ -231,6 +234,7 @@ private fun WorkspaceScreenPreview() {
             state = WorkspaceViewModel.State(tabs = tabs, selected = tabs.last().id),
             onNavToSettings = {},
             onTabAction = {},
+            onUpgradeButler = {}
         )
     }
 }
@@ -243,6 +247,7 @@ private fun EmptyWorkspaceScreenPreview() {
             state = WorkspaceViewModel.State(tabs = emptyList(), selected = null),
             onNavToSettings = {},
             onTabAction = {},
+            onUpgradeButler = {}
         )
     }
 }

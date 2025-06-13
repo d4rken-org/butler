@@ -15,6 +15,9 @@ object AppNav {
 
         @Serializable
         data object Settings : Main
+
+        @Serializable
+        data object Upgrade : Main
     }
 
     sealed interface Settings : NavigationDestination {

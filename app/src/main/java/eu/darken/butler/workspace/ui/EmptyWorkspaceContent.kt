@@ -15,8 +15,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.twotone.AddCircle
+import androidx.compose.material.icons.twotone.Settings
+import androidx.compose.material.icons.twotone.Stars
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -36,7 +37,8 @@ import eu.darken.butler.common.compose.PreviewWrapper
 internal fun EmptyWorkspaceContent(
     modifier: Modifier = Modifier.Companion,
     onNavToSettings: () -> Unit,
-    onTabAction: (TabAction.Create) -> Unit
+    onTabAction: (TabAction.Create) -> Unit,
+    onUpgradeButler: () -> Unit,
 ) {
     Column(
         modifier = modifier.padding(24.dp),
@@ -87,21 +89,24 @@ internal fun EmptyWorkspaceContent(
                     modifier = Modifier.Companion
                         .fillMaxWidth()
                         .clickable { onTabAction(TabAction.Create()) },
-                    colors =
-                        CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        )
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                 ) {
                     Row(
                         modifier = Modifier.Companion.padding(20.dp),
                         verticalAlignment = Alignment.Companion.CenterVertically
                     ) {
-                        Text(
-                            text = stringResource(R.string.workspace_tab_add),
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.Companion.weight(1f)
-                        )
-                        Icon(imageVector = Icons.Default.Add, contentDescription = null)
+                        Column(modifier = Modifier.Companion.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.workspace_tab_add_action),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Text(
+                                text = stringResource(R.string.workspace_tab_add_hint),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(imageVector = Icons.TwoTone.AddCircle, contentDescription = null)
                     }
                 }
             }
@@ -115,14 +120,47 @@ internal fun EmptyWorkspaceContent(
                         modifier = Modifier.Companion.padding(20.dp),
                         verticalAlignment = Alignment.Companion.CenterVertically
                     ) {
-                        Text(
-                            text = stringResource(R.string.settings_label),
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.Companion.weight(1f)
-                        )
+                        Column(modifier = Modifier.Companion.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.workspace_settings_action),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Text(
+                                text = stringResource(R.string.workspace_settings_hint),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                         Icon(
-                            imageVector = Icons.Default.Settings,
+                            imageVector = Icons.TwoTone.Settings,
                             contentDescription = stringResource(R.string.settings_label)
+                        )
+                    }
+                }
+            }
+            item {
+                Card(
+                    modifier = Modifier.Companion
+                        .fillMaxWidth()
+                        .clickable { onUpgradeButler() }) {
+                    Row(
+                        modifier = Modifier.Companion.padding(20.dp),
+                        verticalAlignment = Alignment.Companion.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.Companion.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.upgrade_prompt_title),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Text(
+                                text = stringResource(R.string.upgrade_prompt_body),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.TwoTone.Stars,
+                            contentDescription = stringResource(R.string.upgrade_prompt_upgrade_action)
                         )
                     }
                 }
@@ -135,9 +173,6 @@ internal fun EmptyWorkspaceContent(
 @Composable
 private fun EmptyWorkspaceContentPreview() {
     PreviewWrapper {
-        EmptyWorkspaceContent(
-            onNavToSettings = {},
-            onTabAction = {}
-        )
+        EmptyWorkspaceContent(onNavToSettings = {}, onTabAction = {}, onUpgradeButler = {})
     }
 }

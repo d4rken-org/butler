@@ -92,8 +92,13 @@
     <string name="storage_area_public_label">Public storage</string>
     <string name="storage_area_public_app_data_label">Public app data</string>
 
-    <string name="workspace_tab_close">Close tab</string>
-    <string name="workspace_tab_add">New tab</string>
+    <!-- Workspace -->
+    <string name="workspace_tab_close_action">Close tab</string>
+    <string name="workspace_tab_add_action">Create a new tab</string>
+    <string name="workspace_tab_add_hint">Work in parallel, create a tab and turn it into a tool of your choice.</string>
+
+    <string name="workspace_settings_action">Open settings</string>
+    <string name="workspace_settings_hint">Customize Butler to your liking. Adjust how the tools behave.</string>
 
     <!-- Explorer -->
     <string name="explorer_title">Explorer</string>
