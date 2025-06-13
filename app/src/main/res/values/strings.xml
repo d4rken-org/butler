@@ -90,4 +90,8 @@
     <string name="storage_area_sdcard_label">SD card</string>
     <string name="storage_area_public_label">Public storage</string>
     <string name="storage_area_public_app_data_label">Public app data</string>
+
+    <string name="workspace_tab_close">Close tab</string>
+    <string name="workspace_tab_add">Add new tab</string>
+    <string name="workspace_tab_default_title">New Tab</string>
 </resources>

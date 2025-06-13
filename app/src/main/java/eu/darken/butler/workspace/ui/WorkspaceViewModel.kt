@@ -6,26 +6,62 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.Workspace
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
 @HiltViewModel
-class WorkspaceViewModel @Inject constructor(
+class WorkspaceViewModel
+@Inject
+constructor(
     dispatchers: DispatcherProvider,
     navCtrl: NavigationController,
 ) : ViewModel4(dispatchers, logTag("Workspace", "ViewModel"), navCtrl) {
 
-    val state = combine(
-        flowOf(Unit),
-        flowOf(Unit)
-    ) {
-        State(
-            tabs = emptyList()
+    private val _tabs =
+        MutableStateFlow(
+            listOf(
+                Workspace.WorkspaceTab(title = "Home"),
+                Workspace.WorkspaceTab(title = "Documents"),
+                Workspace.WorkspaceTab(title = "Downloads")
+            )
         )
-    }.asStateFlow()
+
+    private val _selectedTabId = MutableStateFlow(_tabs.value.first().id)
+
+    val state = combine(_tabs, _selectedTabId) { tabs, selectedTabId ->
+        State(tabs = tabs, selectedTabId = selectedTabId)
+    }
+        .asStateFlow()
+
+    fun addTab() {
+        val currentTabs = _tabs.value.toMutableList()
+        val newTab = Workspace.WorkspaceTab(title = "New Tab ${currentTabs.size + 1}")
+        currentTabs.add(newTab)
+        _tabs.value = currentTabs
+        _selectedTabId.value = newTab.id
+    }
+
+    fun closeTab(tabId: Workspace.Id) {
+        val currentTabs = _tabs.value.toMutableList()
+        currentTabs.removeAll { it.id == tabId }
+
+        _tabs.value = currentTabs
+        if (currentTabs.isNotEmpty()) {
+            if (_selectedTabId.value == tabId) {
+                _selectedTabId.value = currentTabs.first().id
+            }
+        } else {
+            _selectedTabId.value = Workspace.Id()
+        }
+    }
+
+    fun selectTab(tabId: Workspace.Id) {
+        _selectedTabId.value = tabId
+    }
 
     data class State(
-        val tabs: List<Workspace.Tab> = emptyList()
+        val tabs: List<Workspace.Tab> = emptyList(),
+        val selectedTabId: Workspace.Id? = null
     )
 }
