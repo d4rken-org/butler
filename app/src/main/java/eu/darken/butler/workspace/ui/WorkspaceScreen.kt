@@ -40,7 +40,7 @@ import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.editor.ui.EditorPage
 import eu.darken.butler.explorer.ui.ExplorerPage
 import eu.darken.butler.main.ui.AppNav
-import eu.darken.butler.search.ui.SearchPage
+import eu.darken.butler.searcher.ui.SearchPage
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceTab
 
@@ -53,7 +53,7 @@ fun WorkspaceScreenHost(vm: WorkspaceViewModel = hiltViewModel()) {
     state?.let { state ->
         WorkspaceScreen(
             state = state,
-            onNavToSettings = { vm.goTo(AppNav.Settings) },
+            onNavToSettings = { vm.goTo(AppNav.Main.Settings) },
             onTabAction = { vm.modifyTab(it) },
         )
     }

@@ -7,9 +7,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ListAlt
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PrivacyTip
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,9 +45,7 @@ fun SettingsIndexScreenHost(vm: SettingsViewModel = hiltViewModel()) {
         SettingsIndexScreen(
             state = state,
             onNavigateUp = { vm.goTo(null) },
-            onNavigateToGeneral = { vm.goTo(AppNav.Settings.General) },
-            onNavigateToSupport = { vm.goTo(AppNav.Settings.Support) },
-            onNavigateToAcknowledgements = { vm.goTo(AppNav.Settings.Acknowledgements) },
+            onNavigateTo = { vm.goTo(it) },
             onOpenUrl = { vm.openUrl(it) },
         )
     }
@@ -54,9 +55,7 @@ fun SettingsIndexScreenHost(vm: SettingsViewModel = hiltViewModel()) {
 fun SettingsIndexScreen(
     state: SettingsViewModel.State,
     onNavigateUp: () -> Unit,
-    onNavigateToGeneral: () -> Unit,
-    onNavigateToSupport: () -> Unit,
-    onNavigateToAcknowledgements: () -> Unit,
+    onNavigateTo: (AppNav.Settings) -> Unit,
     onOpenUrl: (String) -> Unit,
 ) {
     Scaffold(
@@ -85,7 +84,39 @@ fun SettingsIndexScreen(
                     icon = Icons.Default.Settings,
                     title = stringResource(R.string.general_settings_label),
                     subtitle = stringResource(R.string.general_settings_desc),
-                    onClick = onNavigateToGeneral,
+                    onClick = { onNavigateTo(AppNav.Settings.General) },
+                )
+                SettingsDivider()
+            }
+
+            item { SettingsCategoryHeader(stringResource(R.string.settings_category_tools_label)) }
+
+            item {
+                SettingsBaseItem(
+                    icon = Icons.Default.Folder,
+                    title = "Explorer Settings",
+                    subtitle = "Configure file explorer behavior",
+                    onClick = { onNavigateTo(AppNav.Settings.Explorer) },
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
+                    icon = Icons.Default.Search,
+                    title = "Searcher Settings",
+                    subtitle = "Configure search behavior",
+                    onClick = { onNavigateTo(AppNav.Settings.Search) },
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
+                    icon = Icons.Default.Edit,
+                    title = "Editor Settings",
+                    subtitle = "Configure text editor behavior",
+                    onClick = { onNavigateTo(AppNav.Settings.Editor) },
                 )
                 SettingsDivider()
             }
@@ -97,7 +128,7 @@ fun SettingsIndexScreen(
                     icon = Icons.Default.Info,
                     title = stringResource(R.string.settings_support_label),
                     subtitle = stringResource(R.string.settings_support_description),
-                    onClick = onNavigateToSupport,
+                    onClick = { onNavigateTo(AppNav.Settings.Support) },
                 )
                 SettingsDivider()
             }
@@ -117,7 +148,7 @@ fun SettingsIndexScreen(
                     icon = Icons.Default.Favorite,
                     title = stringResource(R.string.settings_acknowledgements_label),
                     subtitle = stringResource(R.string.settings_acknowledgements_description),
-                    onClick = onNavigateToAcknowledgements,
+                    onClick = { onNavigateTo(AppNav.Settings.Acknowledgements) },
                 )
                 SettingsDivider()
             }
@@ -141,9 +172,7 @@ private fun SettingsScreenPreview() {
         SettingsIndexScreen(
             state = SettingsViewModel.State(),
             onNavigateUp = {},
-            onNavigateToGeneral = {},
-            onNavigateToSupport = {},
-            onNavigateToAcknowledgements = {},
+            onNavigateTo = {},
             onOpenUrl = {},
         )
     }

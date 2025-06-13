@@ -1,0 +1,39 @@
+package eu.darken.butler.main.ui
+
+import eu.darken.butler.common.navigation.NavigationDestination
+import kotlinx.serialization.Serializable
+
+object AppNav {
+    @Suppress("JavaIoSerializableObjectMustHaveReadResolve")
+    sealed interface Main : NavigationDestination {
+
+        @Serializable
+        data object Workspace : Main
+
+        @Serializable
+        data object Onboarding : Main
+
+        @Serializable
+        data object Settings : Main
+    }
+
+    sealed interface Settings : NavigationDestination {
+        @Serializable
+        data object General : Settings
+
+        @Serializable
+        data object Explorer : Settings
+
+        @Serializable
+        data object Search : Settings
+
+        @Serializable
+        data object Editor : Settings
+
+        @Serializable
+        data object Support : Settings
+
+        @Serializable
+        data object Acknowledgements : Settings
+    }
+}

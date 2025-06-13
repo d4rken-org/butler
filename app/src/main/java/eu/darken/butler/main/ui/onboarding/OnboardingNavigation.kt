@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 class OnboardingNavigation @Inject constructor() : NavigationEntry {
     override fun EntryProviderBuilder<NavKey>.setup() {
-        entry<AppNav.Onboarding> {
+        entry<AppNav.Main.Onboarding> {
             OnboardingScreenHost()
         }
     }

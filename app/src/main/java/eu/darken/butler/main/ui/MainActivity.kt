@@ -68,8 +68,8 @@ class MainActivity : Activity2() {
     @Composable
     private fun Navigation(state: MainViewModel.State) {
         val start = when (state.startScreen) {
-            MainViewModel.State.StartScreen.ONBOARDING -> AppNav.Onboarding
-            MainViewModel.State.StartScreen.HOME -> AppNav.Workspace
+            MainViewModel.State.StartScreen.ONBOARDING -> AppNav.Main.Onboarding
+            MainViewModel.State.StartScreen.HOME -> AppNav.Main.Workspace
         }
 
         val backStack = rememberNavBackStack<NavigationDestination>(start)

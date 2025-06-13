@@ -40,8 +40,8 @@ class OnboardingViewModel @Inject constructor(
         log(tag) { "completeOnboarding()" }
         generalSettings.isOnboardingCompleted.value(true)
         goTo(
-            AppNav.Workspace,
-            popUpTo = AppNav.Workspace,
+            AppNav.Main.Workspace,
+            popUpTo = AppNav.Main.Workspace,
             inclusive = true
         )
     }

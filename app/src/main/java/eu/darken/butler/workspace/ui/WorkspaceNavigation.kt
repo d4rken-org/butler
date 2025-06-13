@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 class WorkspaceNavigation @Inject constructor() : NavigationEntry {
     override fun EntryProviderBuilder<NavKey>.setup() {
-        entry<AppNav.Workspace> {
+        entry<AppNav.Main.Workspace> {
             WorkspaceScreenHost()
         }
     }
