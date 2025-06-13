@@ -18,25 +18,27 @@ constructor(
     navCtrl: NavigationController,
 ) : ViewModel4(dispatchers, logTag("Workspace", "ViewModel"), navCtrl) {
 
-    private val _tabs =
-        MutableStateFlow(
-            listOf(
-                Workspace.WorkspaceTab(title = "Home"),
-                Workspace.WorkspaceTab(title = "Documents"),
-                Workspace.WorkspaceTab(title = "Downloads")
-            )
-        )
+    private val _tabs = MutableStateFlow(emptyList<Workspace.Tab>())
 
-    private val _selectedTabId = MutableStateFlow(_tabs.value.first().id)
+    private val _selectedTabId = MutableStateFlow<Workspace.Id?>(null)
 
-    val state = combine(_tabs, _selectedTabId) { tabs, selectedTabId ->
-        State(tabs = tabs, selectedTabId = selectedTabId)
-    }
-        .asStateFlow()
+    val state =
+        combine(_tabs, _selectedTabId) { tabs, selectedTabId ->
+            State(tabs = tabs, selectedTabId = selectedTabId)
+        }
+            .asStateFlow()
 
     fun addTab() {
         val currentTabs = _tabs.value.toMutableList()
         val newTab = Workspace.WorkspaceTab(title = "New Tab ${currentTabs.size + 1}")
+        currentTabs.add(newTab)
+        _tabs.value = currentTabs
+        _selectedTabId.value = newTab.id
+    }
+
+    fun addTabWithTitle(title: String) {
+        val currentTabs = _tabs.value.toMutableList()
+        val newTab = Workspace.WorkspaceTab(title = title)
         currentTabs.add(newTab)
         _tabs.value = currentTabs
         _selectedTabId.value = newTab.id
@@ -58,6 +60,16 @@ constructor(
 
     fun selectTab(tabId: Workspace.Id) {
         _selectedTabId.value = tabId
+    }
+
+    fun transformTab(tabId: Workspace.Id, newTitle: String) {
+        val currentTabs = _tabs.value.toMutableList()
+        val tabIndex = currentTabs.indexOfFirst { it.id == tabId }
+        if (tabIndex != -1) {
+            val oldTab = currentTabs[tabIndex]
+            currentTabs[tabIndex] = Workspace.WorkspaceTab(id = oldTab.id, title = newTitle)
+            _tabs.value = currentTabs
+        }
     }
 
     data class State(
