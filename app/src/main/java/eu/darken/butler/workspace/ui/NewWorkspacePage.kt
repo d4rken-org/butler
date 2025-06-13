@@ -13,9 +13,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.BuildConfigWrap
@@ -33,7 +36,11 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
 
 @Composable
-fun NewWorkspacePage(tabId: Workspace.Id, onTransformTab: (Workspace.Id, String) -> Unit) {
+fun NewWorkspacePage(
+    id: Workspace.Id,
+    onTabAction: (TabAction) -> Unit,
+    onNavToSettings: () -> Unit,
+) {
     val randomSlogan = remember { Slogans.random }
 
     Column(
@@ -49,10 +56,9 @@ fun NewWorkspacePage(tabId: Workspace.Id, onTransformTab: (Workspace.Id, String)
         ) {
             item {
                 Card(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable { onTransformTab(tabId, "Home") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onTabAction(TabAction.Create(type = Workspace.Type.EXPLORER, replace = id)) },
                     colors =
                         CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.primaryContainer
@@ -63,7 +69,7 @@ fun NewWorkspacePage(tabId: Workspace.Id, onTransformTab: (Workspace.Id, String)
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Home",
+                            text = stringResource(R.string.explorer_title),
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.weight(1f)
                         )
@@ -74,19 +80,16 @@ fun NewWorkspacePage(tabId: Workspace.Id, onTransformTab: (Workspace.Id, String)
 
             item {
                 Card(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                onTransformTab(tabId, "Documents")
-                            }
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onTabAction(TabAction.Create(type = Workspace.Type.SEARCH, replace = id)) },
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Documents",
+                            text = stringResource(R.string.search_title),
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.weight(1f)
                         )
@@ -97,19 +100,16 @@ fun NewWorkspacePage(tabId: Workspace.Id, onTransformTab: (Workspace.Id, String)
 
             item {
                 Card(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                onTransformTab(tabId, "Downloads")
-                            }
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onTabAction(TabAction.Create(type = Workspace.Type.EDITOR, replace = id)) },
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Downloads",
+                            text = stringResource(R.string.editor_title),
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.weight(1f)
                         )
@@ -131,7 +131,7 @@ fun NewWorkspacePage(tabId: Workspace.Id, onTransformTab: (Workspace.Id, String)
                 modifier = Modifier.size(48.dp)
             )
 
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = randomSlogan.get(LocalContext.current),
                     style = MaterialTheme.typography.bodyLarge,
@@ -143,6 +143,10 @@ fun NewWorkspacePage(tabId: Workspace.Id, onTransformTab: (Workspace.Id, String)
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                 )
             }
+
+            IconButton(onClick = onNavToSettings) {
+                Icon(imageVector = Icons.Default.Settings, contentDescription = null)
+            }
         }
     }
 }
@@ -152,8 +156,9 @@ fun NewWorkspacePage(tabId: Workspace.Id, onTransformTab: (Workspace.Id, String)
 private fun NewWorkspacePagePreview() {
     PreviewWrapper {
         NewWorkspacePage(
-            tabId = Workspace.Id(),
-            onTransformTab = { _, _ -> }
+            id = Workspace.Id(),
+            onTabAction = { },
+            onNavToSettings = {},
         )
     }
 }

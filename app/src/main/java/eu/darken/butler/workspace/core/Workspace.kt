@@ -1,6 +1,6 @@
 package eu.darken.butler.workspace.core
 
-import eu.darken.butler.common.ca.CaString
+import android.os.Parcelable
 import java.util.UUID
 
 interface Workspace {
@@ -8,6 +8,7 @@ interface Workspace {
         NEW,
         EXPLORER,
         SEARCH,
+        EDITOR,
         ;
     }
 
@@ -15,15 +16,8 @@ interface Workspace {
         val id: UUID = UUID.randomUUID(),
     )
 
-    interface Tab {
-        val id: Id
-        val title: CaString
+    interface Arguments : Parcelable {
         val type: Type
-    }
 
-    data class WorkspaceTab(
-        override val id: Id = Id(),
-        override val title: CaString,
-        override val type: Type = Type.NEW
-    ) : Tab
+    }
 }
