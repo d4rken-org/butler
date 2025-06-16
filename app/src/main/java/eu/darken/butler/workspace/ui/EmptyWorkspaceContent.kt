@@ -99,12 +99,13 @@ internal fun EmptyWorkspaceContent(
                         Column(modifier = Modifier.Companion.weight(1f)) {
                             Text(
                                 text = stringResource(R.string.workspace_tab_add_action),
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                             Text(
                                 text = stringResource(R.string.workspace_tab_add_hint),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                         Icon(imageVector = Icons.TwoTone.AddCircle, contentDescription = null)

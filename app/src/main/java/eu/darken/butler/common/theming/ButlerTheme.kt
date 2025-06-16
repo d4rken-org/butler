@@ -1,6 +1,7 @@
 package eu.darken.butler.common.theming
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -8,8 +9,11 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.view.WindowCompat
 import eu.darken.butler.common.compose.SampleContent
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.theming.ButlerColors.backgroundDark
@@ -299,44 +303,43 @@ private val darkScheme = darkColorScheme(
     surfaceContainerHighest = surfaceContainerHighestDark,
 )
 
-private val mediumContrastLightColorScheme =
-    lightColorScheme(
-        primary = primaryLightMediumContrast,
-        onPrimary = onPrimaryLightMediumContrast,
-        primaryContainer = primaryContainerLightMediumContrast,
-        onPrimaryContainer = onPrimaryContainerLightMediumContrast,
-        secondary = secondaryLightMediumContrast,
-        onSecondary = onSecondaryLightMediumContrast,
-        secondaryContainer = secondaryContainerLightMediumContrast,
-        onSecondaryContainer = onSecondaryContainerLightMediumContrast,
-        tertiary = tertiaryLightMediumContrast,
-        onTertiary = onTertiaryLightMediumContrast,
-        tertiaryContainer = tertiaryContainerLightMediumContrast,
-        onTertiaryContainer = onTertiaryContainerLightMediumContrast,
-        error = errorLightMediumContrast,
-        onError = onErrorLightMediumContrast,
-        errorContainer = errorContainerLightMediumContrast,
-        onErrorContainer = onErrorContainerLightMediumContrast,
-        background = backgroundLightMediumContrast,
-        onBackground = onBackgroundLightMediumContrast,
-        surface = surfaceLightMediumContrast,
-        onSurface = onSurfaceLightMediumContrast,
-        surfaceVariant = surfaceVariantLightMediumContrast,
-        onSurfaceVariant = onSurfaceVariantLightMediumContrast,
-        outline = outlineLightMediumContrast,
-        outlineVariant = outlineVariantLightMediumContrast,
-        scrim = scrimLightMediumContrast,
-        inverseSurface = inverseSurfaceLightMediumContrast,
-        inverseOnSurface = inverseOnSurfaceLightMediumContrast,
-        inversePrimary = inversePrimaryLightMediumContrast,
-        surfaceDim = surfaceDimLightMediumContrast,
-        surfaceBright = surfaceBrightLightMediumContrast,
-        surfaceContainerLowest = surfaceContainerLowestLightMediumContrast,
-        surfaceContainerLow = surfaceContainerLowLightMediumContrast,
-        surfaceContainer = surfaceContainerLightMediumContrast,
-        surfaceContainerHigh = surfaceContainerHighLightMediumContrast,
-        surfaceContainerHighest = surfaceContainerHighestLightMediumContrast,
-    )
+private val mediumContrastLightColorScheme = lightColorScheme(
+    primary = primaryLightMediumContrast,
+    onPrimary = onPrimaryLightMediumContrast,
+    primaryContainer = primaryContainerLightMediumContrast,
+    onPrimaryContainer = onPrimaryContainerLightMediumContrast,
+    secondary = secondaryLightMediumContrast,
+    onSecondary = onSecondaryLightMediumContrast,
+    secondaryContainer = secondaryContainerLightMediumContrast,
+    onSecondaryContainer = onSecondaryContainerLightMediumContrast,
+    tertiary = tertiaryLightMediumContrast,
+    onTertiary = onTertiaryLightMediumContrast,
+    tertiaryContainer = tertiaryContainerLightMediumContrast,
+    onTertiaryContainer = onTertiaryContainerLightMediumContrast,
+    error = errorLightMediumContrast,
+    onError = onErrorLightMediumContrast,
+    errorContainer = errorContainerLightMediumContrast,
+    onErrorContainer = onErrorContainerLightMediumContrast,
+    background = backgroundLightMediumContrast,
+    onBackground = onBackgroundLightMediumContrast,
+    surface = surfaceLightMediumContrast,
+    onSurface = onSurfaceLightMediumContrast,
+    surfaceVariant = surfaceVariantLightMediumContrast,
+    onSurfaceVariant = onSurfaceVariantLightMediumContrast,
+    outline = outlineLightMediumContrast,
+    outlineVariant = outlineVariantLightMediumContrast,
+    scrim = scrimLightMediumContrast,
+    inverseSurface = inverseSurfaceLightMediumContrast,
+    inverseOnSurface = inverseOnSurfaceLightMediumContrast,
+    inversePrimary = inversePrimaryLightMediumContrast,
+    surfaceDim = surfaceDimLightMediumContrast,
+    surfaceBright = surfaceBrightLightMediumContrast,
+    surfaceContainerLowest = surfaceContainerLowestLightMediumContrast,
+    surfaceContainerLow = surfaceContainerLowLightMediumContrast,
+    surfaceContainer = surfaceContainerLightMediumContrast,
+    surfaceContainerHigh = surfaceContainerHighLightMediumContrast,
+    surfaceContainerHighest = surfaceContainerHighestLightMediumContrast,
+)
 
 private val highContrastLightColorScheme = lightColorScheme(
     primary = primaryLightHighContrast,
@@ -454,28 +457,34 @@ private val highContrastDarkColorScheme = darkColorScheme(
 
 @Composable
 fun MyAppTheme(state: ThemeState = ThemeState(), content: @Composable () -> Unit) {
-    val dynamicColors = when (state.style) {
-        ThemeStyle.DEFAULT -> false
-        ThemeStyle.MATERIAL_YOU -> hasApiLevel(31)
-        ThemeStyle.MEDIUM_CONTRAST -> false
-        ThemeStyle.HIGH_CONTRAST -> false
+    val dynamicColors =
+        when (state.style) {
+            ThemeStyle.DEFAULT -> false
+            ThemeStyle.MATERIAL_YOU -> hasApiLevel(31)
+            ThemeStyle.MEDIUM_CONTRAST -> false
+            ThemeStyle.HIGH_CONTRAST -> false
+        }
+    val darkTheme =
+        when (state.mode) {
+            ThemeMode.SYSTEM -> isSystemInDarkTheme()
+            ThemeMode.DARK -> true
+            ThemeMode.LIGHT -> false
+        }
+    val view = LocalView.current
+    SideEffect {
+        val window = (view.context as? Activity)?.window ?: return@SideEffect
+        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+        insetsController.isAppearanceLightStatusBars = !darkTheme
+        insetsController.isAppearanceLightNavigationBars = !darkTheme
     }
-    val darkTheme = when (state.mode) {
-        ThemeMode.SYSTEM -> isSystemInDarkTheme()
-        ThemeMode.DARK -> true
-        ThemeMode.LIGHT -> false
-    }
-
     @SuppressLint("NewApi")
     val colors = when {
         dynamicColors && darkTheme -> dynamicDarkColorScheme(LocalContext.current)
         dynamicColors && !darkTheme -> dynamicLightColorScheme(LocalContext.current)
-
         state.style == ThemeStyle.MEDIUM_CONTRAST && darkTheme -> mediumContrastDarkColorScheme
         state.style == ThemeStyle.MEDIUM_CONTRAST && !darkTheme -> mediumContrastLightColorScheme
         state.style == ThemeStyle.HIGH_CONTRAST && darkTheme -> highContrastDarkColorScheme
         state.style == ThemeStyle.HIGH_CONTRAST && !darkTheme -> highContrastLightColorScheme
-
         darkTheme -> darkScheme
         else -> lightScheme
     }
