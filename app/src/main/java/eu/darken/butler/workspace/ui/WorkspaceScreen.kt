@@ -43,7 +43,7 @@ import eu.darken.butler.main.ui.AppNav
 import eu.darken.butler.searcher.ui.SearcherPage
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.empty.EmptyWorkspaceContent
-import eu.darken.butler.workspace.ui.templates.WorkspaceTemplatesPage
+import eu.darken.butler.workspace.ui.template.TemplatesWorkspacePageHost
 
 @Composable
 fun WorkspaceScreenHost(vm: WorkspaceViewModel = hiltViewModel()) {
@@ -85,7 +85,6 @@ fun WorkspaceScreen(
                     .fillMaxSize()
                     .padding(paddingValues),
                 selected = current,
-                onNavToSettings = onNavToSettings,
                 onTabAction = onTabAction,
             )
         } else {
@@ -198,26 +197,16 @@ private fun TabContent(
     modifier: Modifier = Modifier,
     selected: WorkspaceTab,
     onTabAction: (TabAction) -> Unit,
-    onNavToSettings: () -> Unit,
 ) {
     Box(modifier = modifier) {
-        when (selected) {
-            is WorkspaceTab.Templates -> {
-                WorkspaceTemplatesPage(
-                    tab = selected,
-                    onTabAction = onTabAction,
-                    onNavToSettings = onNavToSettings
-                )
-            }
-            is WorkspaceTab.Explorer -> {
-                ExplorerPage()
-            }
-            is WorkspaceTab.Editor -> {
-                SearcherPage()
-            }
-            is WorkspaceTab.Searcher -> {
-                EditorPage()
-            }
+        when (selected.type) {
+            Workspace.Type.TEMPLATES -> TemplatesWorkspacePageHost(
+                id = selected.id,
+                onTabAction = onTabAction,
+            )
+            Workspace.Type.EXPLORER -> ExplorerPage(id = selected.id)
+            Workspace.Type.SEARCHER -> SearcherPage(id = selected.id)
+            Workspace.Type.EDITOR -> EditorPage(id = selected.id)
         }
     }
 }
@@ -227,7 +216,7 @@ private fun TabContent(
 private fun WorkspaceScreenPreview() {
     PreviewWrapper {
         val tabs = listOf(
-            WorkspaceTab.Templates(),
+            WorkspaceTab.TEMPLATES,
         )
         WorkspaceScreen(
             state = WorkspaceViewModel.State(

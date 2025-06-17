@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.core.Workspace
 
 // Data model for file explorer items
 sealed class ExplorerItem(
@@ -88,7 +89,10 @@ private fun buildNavigationHistory(
 }
 
 @Composable
-fun ExplorerPage(initialPath: String = "/") {
+fun ExplorerPage(
+    id: Workspace.Id,
+    initialPath: String = "/"
+) {
     // Mock data for the file explorer
     val rootFolder = remember {
         ExplorerItem.Folder(
@@ -309,16 +313,7 @@ fun ExplorerItemRow(
 @Composable
 private fun ExplorerPagePreview() {
     PreviewWrapper {
-        ExplorerPage()
-    }
-}
-
-@Preview2
-@Composable
-private fun ExplorerPageWithCustomPathPreview() {
-    PreviewWrapper {
-        // Preview with a custom path to the Documents folder
-        ExplorerPage(initialPath = "/Documents")
+        ExplorerPage(id = Workspace.Id())
     }
 }
 

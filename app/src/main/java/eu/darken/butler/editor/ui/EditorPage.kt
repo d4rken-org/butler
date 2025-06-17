@@ -30,9 +30,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.core.Workspace
 
 @Composable
-fun EditorPage() {
+fun EditorPage(
+    id: Workspace.Id,
+) {
     var editorContent by remember {
         mutableStateOf(
             """
@@ -123,6 +126,6 @@ fun EditorPage() {
 @Composable
 private fun EditorPagePreview() {
     PreviewWrapper {
-        EditorPage()
+        EditorPage(id = Workspace.Id())
     }
 }

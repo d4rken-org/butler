@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui.templates
+package eu.darken.butler.workspace.ui.template
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,17 +32,48 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.Slogans
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.ui.waitForState
+import eu.darken.butler.editor.ui.EditorWorkspaceTemplate
+import eu.darken.butler.explorer.ui.ExplorerWorkspaceTemplate
+import eu.darken.butler.main.ui.AppNav
+import eu.darken.butler.searcher.ui.SearcherWorkspaceTemplate
+import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.TabAction
-import eu.darken.butler.workspace.ui.WorkspaceTab
 
-@Composable fun WorkspaceTemplatesPage(
-    tab: WorkspaceTab.Templates,
+@Composable
+fun TemplatesWorkspacePageHost(
+    id: Workspace.Id,
+    onTabAction: (TabAction) -> Unit,
+    vm: TemplatesWorkspaceViewModel = hiltViewModel(
+        key = id.longTag,
+        creationCallback = { factory: TemplatesWorkspaceViewModel.Factory -> factory.create(id = id) }
+    ),
+) {
+    ErrorEventHandler(vm)
+
+    val state by waitForState(vm.state)
+    log(vm.tag) { "State: $state" }
+    state?.let { state ->
+        TemplatesWorkspacePage(
+            state = state,
+            onTabAction = onTabAction,
+            onNavToSettings = { vm.navTo(AppNav.Main.Settings) },
+        )
+    }
+}
+
+@Composable
+fun TemplatesWorkspacePage(
+    state: TemplatesWorkspaceViewModel.State,
     onTabAction: (TabAction) -> Unit,
     onNavToSettings: () -> Unit,
 ) {
@@ -72,8 +104,8 @@ import eu.darken.butler.workspace.ui.WorkspaceTab
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalAlignment = Alignment.Start
             ) {
-                items(tab.templates.size) { index ->
-                    val template = tab.templates[index]
+                items(state.templates.size) { index ->
+                    val template = state.templates[index]
                     val isFirstItem = index == 0
 
                     TemplateCard(
@@ -84,7 +116,7 @@ import eu.darken.butler.workspace.ui.WorkspaceTab
                                 TabAction.Create(
                                     type = template.type,
                                     arguments = template.arguments,
-                                    replace = tab.id
+                                    replace = state.id
                                 )
                             )
                         })
@@ -139,7 +171,11 @@ import eu.darken.butler.workspace.ui.WorkspaceTab
 }
 
 @Composable
-private fun TemplateCard(template: WorkspaceTemplate, isFirstItem: Boolean, onClick: () -> Unit) {
+private fun TemplateCard(
+    template: WorkspaceTemplate,
+    isFirstItem: Boolean,
+    onClick: () -> Unit
+) {
     val cardContent = @Composable {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -229,10 +265,17 @@ private fun TemplateCard(template: WorkspaceTemplate, isFirstItem: Boolean, onCl
 
 @Preview2
 @Composable
-private fun WorkspaceTemplatePagePreview() {
+private fun TemplatesWorkspacePagePreview() {
     PreviewWrapper {
-        WorkspaceTemplatesPage(
-            tab = WorkspaceTab.Templates(),
+        TemplatesWorkspacePage(
+            state = TemplatesWorkspaceViewModel.State(
+                id = Workspace.Id(),
+                templates = listOf(
+                    ExplorerWorkspaceTemplate(),
+                    SearcherWorkspaceTemplate(),
+                    EditorWorkspaceTemplate(),
+                ),
+            ),
             onTabAction = {},
             onNavToSettings = {},
         )

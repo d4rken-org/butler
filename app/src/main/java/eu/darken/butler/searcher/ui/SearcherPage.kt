@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.core.Workspace
 
 sealed class SearchResult(
     open val name: String,
@@ -57,7 +58,9 @@ sealed class SearchResult(
 }
 
 @Composable
-fun SearcherPage() {
+fun SearcherPage(
+    id: Workspace.Id,
+) {
     var searchQuery by remember { mutableStateOf("") }
 
     val mockResults = remember {
@@ -104,7 +107,7 @@ fun SearcherPage() {
             } else {
                 mockResults.filter { result ->
                     result.name.contains(searchQuery, ignoreCase = true) ||
-                            result.path.contains(searchQuery, ignoreCase = true)
+                        result.path.contains(searchQuery, ignoreCase = true)
                 }
             }
         }
@@ -187,9 +190,11 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit, modifier: Modifier
 
 @Composable
 fun SearchResultRow(result: SearchResult, onClick: () -> Unit) {
-    Card(modifier = Modifier
-        .fillMaxWidth()
-        .clickable(onClick = onClick)) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -242,7 +247,7 @@ fun SearchResultRow(result: SearchResult, onClick: () -> Unit) {
 @Preview2
 @Composable
 private fun SearchPagePreview() {
-    PreviewWrapper { SearcherPage() }
+    PreviewWrapper { SearcherPage(id = Workspace.Id()) }
 }
 
 @Preview2

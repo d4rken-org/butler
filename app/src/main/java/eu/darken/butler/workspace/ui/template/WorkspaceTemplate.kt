@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui.templates
+package eu.darken.butler.workspace.ui.template
 
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString

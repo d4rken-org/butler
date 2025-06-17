@@ -7,7 +7,7 @@ import eu.darken.butler.R
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.templates.WorkspaceTemplate
+import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
 
 
 data class EditorWorkspaceTemplate(
