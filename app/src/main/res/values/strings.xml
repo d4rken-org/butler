@@ -100,6 +100,7 @@
     <string name="workspace_settings_action">Open settings</string>
     <string name="workspace_settings_hint">Customize Butler to your liking. Adjust how the tools behave.</string>
 
+    <string name="workspace_templates_title">New workspace</string>
     <string name="workspace_templates_choose_title">Choose Template</string>
     <string name="workspace_templates_choose_subtitle">Select a workspace type to get started</string>
 

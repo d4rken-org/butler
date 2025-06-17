@@ -133,6 +133,7 @@ private fun TabBar(
             IconButton(onClick = { onTabAction(TabAction.Create()) }) {
                 Icon(
                     imageVector = Icons.TwoTone.AddCircle,
+                    tint = MaterialTheme.colorScheme.primary,
                     contentDescription = stringResource(R.string.workspace_tab_add_action)
                 )
             }
