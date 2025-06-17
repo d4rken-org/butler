@@ -5,9 +5,9 @@ import java.util.UUID
 
 interface Workspace {
     enum class Type {
-        NEW,
+        TEMPLATES,
         EXPLORER,
-        SEARCH,
+        SEARCHER,
         EDITOR,
         ;
     }
@@ -18,6 +18,5 @@ interface Workspace {
 
     interface Arguments : Parcelable {
         val type: Type
-
     }
 }

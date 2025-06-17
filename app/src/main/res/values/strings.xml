@@ -100,13 +100,18 @@
     <string name="workspace_settings_action">Open settings</string>
     <string name="workspace_settings_hint">Customize Butler to your liking. Adjust how the tools behave.</string>
 
+    <string name="workspace_templates_choose_title">Choose Template</string>
+    <string name="workspace_templates_choose_subtitle">Select a workspace type to get started</string>
+
     <!-- Explorer -->
     <string name="explorer_title">Explorer</string>
+    <string name="explorer_subtitle">Browse files and directories</string>
     <string name="explorer_settings_title">Explorer Settings</string>
     <string name="explorer_settings_file_display">File Display</string>
 
     <!-- Searcher -->
     <string name="searcher_title">Search</string>
+    <string name="searcher_subtitle">Search for files and content</string>
     <string name="searcher_settings_title">Searcher Settings</string>
     <string name="searcher_settings_search_options">Search Options</string>
     <string name="searcher_settings_case_sensitive_title">Case Sensitive</string>
@@ -125,6 +130,7 @@
 
     <!-- Editor -->
     <string name="editor_title">Editor</string>
+    <string name="editor_subtitle">Edit text files</string>
     <string name="editor_settings_title">Editor Settings</string>
     <string name="editor_settings_show_line_numbers_title">Show Line Numbers</string>
     <string name="editor_settings_show_line_numbers_subtitle">Display line numbers in the editor</string>

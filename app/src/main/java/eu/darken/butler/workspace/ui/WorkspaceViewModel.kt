@@ -9,7 +9,6 @@ import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.common.upgrade.UpgradeRepo
 import eu.darken.butler.main.ui.AppNav
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.WorkspaceTab
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.sync.Mutex
@@ -55,9 +54,7 @@ constructor(
                 }
 
                 is TabAction.Create -> {
-                    val newTab = WorkspaceTab(
-                        type = action.type
-                    )
+                    val templates = WorkspaceTab.Templates()
                     if (action.replace != null) {
                         val tabIndex = currentTabs.indexOfFirst { it.id == action.replace }
                         if (tabIndex == -1) throw IllegalStateException("Tab not found")
@@ -65,13 +62,13 @@ constructor(
                         // TODO clean up old tab?
                         currentTabs[tabIndex]
 
-                        currentTabs[tabIndex] = newTab
+                        currentTabs[tabIndex] = templates
                     } else {
-                        currentTabs.add(newTab)
+                        currentTabs.add(templates)
                     }
 
                     _tabs.value = currentTabs
-                    _selectedTabId.value = newTab.id
+                    _selectedTabId.value = templates.id
                 }
 
                 is TabAction.Close -> {

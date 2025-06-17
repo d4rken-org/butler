@@ -8,7 +8,7 @@ sealed interface TabAction {
     ) : TabAction
 
     data class Create(
-        val type: Workspace.Type = Workspace.Type.NEW,
+        val type: Workspace.Type = Workspace.Type.TEMPLATES,
         val arguments: Workspace.Arguments? = null,
         val replace: Workspace.Id? = null,
     ) : TabAction

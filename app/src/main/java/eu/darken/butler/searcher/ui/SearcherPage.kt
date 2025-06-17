@@ -57,7 +57,7 @@ sealed class SearchResult(
 }
 
 @Composable
-fun SearchPage() {
+fun SearcherPage() {
     var searchQuery by remember { mutableStateOf("") }
 
     val mockResults = remember {
@@ -242,7 +242,7 @@ fun SearchResultRow(result: SearchResult, onClick: () -> Unit) {
 @Preview2
 @Composable
 private fun SearchPagePreview() {
-    PreviewWrapper { SearchPage() }
+    PreviewWrapper { SearcherPage() }
 }
 
 @Preview2
