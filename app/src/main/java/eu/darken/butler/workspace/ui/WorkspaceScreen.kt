@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -43,6 +44,7 @@ import eu.darken.butler.main.ui.AppNav
 import eu.darken.butler.searcher.ui.SearchPage
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceTab
+import eu.darken.butler.workspace.ui.WorkspaceTemplate
 
 @Composable
 fun WorkspaceScreenHost(vm: WorkspaceViewModel = hiltViewModel()) {
@@ -201,8 +203,30 @@ private fun TabContent(
     Box(modifier = modifier) {
         when (selected.type) {
             Workspace.Type.NEW -> {
-                NewWorkspacePage(
+                val templates = listOf(
+                    WorkspaceTemplate(
+                        title = R.string.explorer_title.toCaString(),
+                        description = "Browse files and directories".toCaString(),
+                        type = Workspace.Type.EXPLORER,
+                        arguments = null
+                    ),
+                    WorkspaceTemplate(
+                        title = R.string.searcher_title.toCaString(),
+                        description = "Search for files and content".toCaString(),
+                        type = Workspace.Type.SEARCH,
+                        arguments = null
+                    ),
+                    WorkspaceTemplate(
+                        title = R.string.editor_title.toCaString(),
+                        description = "Edit text files".toCaString(),
+                        type = Workspace.Type.EDITOR,
+                        arguments = null
+                    )
+                )
+
+                WorkspaceTemplatePage(
                     id = selected.id,
+                    templates = templates,
                     onTabAction = onTabAction,
                     onNavToSettings = onNavToSettings
                 )

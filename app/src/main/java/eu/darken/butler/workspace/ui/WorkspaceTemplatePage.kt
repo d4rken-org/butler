@@ -26,18 +26,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.Slogans
+import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.workspace.core.Workspace
 
 @Composable
-fun NewWorkspacePage(
+fun WorkspaceTemplatePage(
     id: Workspace.Id,
+    templates: List<WorkspaceTemplate>,
     onTabAction: (TabAction) -> Unit,
     onNavToSettings: () -> Unit,
 ) {
@@ -54,65 +57,47 @@ fun NewWorkspacePage(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onTabAction(TabAction.Create(type = Workspace.Type.EXPLORER, replace = id)) },
-                    colors =
-                        CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        )
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.explorer_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Icon(imageVector = Icons.Default.Add, contentDescription = null)
-                    }
-                }
-            }
+            items(templates.size) { index ->
+                val template = templates[index]
+                val isFirstItem = index == 0
 
-            item {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onTabAction(TabAction.Create(type = Workspace.Type.SEARCH, replace = id)) },
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.searcher_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Icon(imageVector = Icons.Default.Add, contentDescription = null)
+                        .clickable {
+                            onTabAction(
+                                TabAction.Create(
+                                    type = template.type,
+                                    arguments = template.arguments,
+                                    replace = id
+                                )
+                            )
+                        },
+                    colors = if (isFirstItem) {
+                        CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                    } else {
+                        CardDefaults.cardColors()
                     }
-                }
-            }
-
-            item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onTabAction(TabAction.Create(type = Workspace.Type.EDITOR, replace = id)) },
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = stringResource(R.string.editor_title),
-                            style = MaterialTheme.typography.titleMedium,
+                        Column(
                             modifier = Modifier.weight(1f)
-                        )
+                        ) {
+                            Text(
+                                text = template.title.asComposable(),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            if (template.description != CaString.EMPTY) {
+                                Text(
+                                    text = template.description.asComposable(),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
                         Icon(imageVector = Icons.Default.Add, contentDescription = null)
                     }
                 }
@@ -153,10 +138,32 @@ fun NewWorkspacePage(
 
 @Preview2
 @Composable
-private fun NewWorkspacePagePreview() {
+private fun WorkspaceTemplatePagePreview() {
     PreviewWrapper {
-        NewWorkspacePage(
+        val sampleTemplates = listOf(
+            WorkspaceTemplate(
+                title = R.string.explorer_title.toCaString(),
+                description = "Browse files and directories".toCaString(),
+                type = Workspace.Type.EXPLORER,
+                arguments = null
+            ),
+            WorkspaceTemplate(
+                title = R.string.searcher_title.toCaString(),
+                description = "Search for files and content".toCaString(),
+                type = Workspace.Type.SEARCH,
+                arguments = null
+            ),
+            WorkspaceTemplate(
+                title = R.string.editor_title.toCaString(),
+                description = "Edit text files".toCaString(),
+                type = Workspace.Type.EDITOR,
+                arguments = null
+            )
+        )
+
+        WorkspaceTemplatePage(
             id = Workspace.Id(),
+            templates = sampleTemplates,
             onTabAction = { },
             onNavToSettings = {},
         )
