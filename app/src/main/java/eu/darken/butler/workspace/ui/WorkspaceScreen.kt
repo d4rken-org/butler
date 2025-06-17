@@ -31,16 +31,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
-import eu.darken.butler.editor.ui.EditorPage
-import eu.darken.butler.explorer.ui.ExplorerPage
+import eu.darken.butler.editor.ui.EditorWorkspacePageHost
+import eu.darken.butler.explorer.ui.ExplorerWorkspacePageHost
 import eu.darken.butler.main.ui.AppNav
-import eu.darken.butler.searcher.ui.SearcherPage
+import eu.darken.butler.searcher.ui.SearcherWorkspacePageHost
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.empty.EmptyWorkspaceContent
 import eu.darken.butler.workspace.ui.template.TemplatesWorkspacePageHost
@@ -108,11 +109,10 @@ private fun TabBar(
     onTabAction: (TabAction) -> Unit,
 ) {
     Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 8.dp, vertical = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(horizontal = 8.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         LazyRow(
@@ -149,15 +149,14 @@ private fun TabItem(
 ) {
     Card(
         shape = RoundedCornerShape(8.dp),
-        colors =
-            CardDefaults.cardColors(
-                containerColor =
-                    if (isSelected) {
-                        MaterialTheme.colorScheme.primaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.surface
-                    }
-            ),
+        colors = CardDefaults.cardColors(
+            containerColor =
+                if (isSelected) {
+                    MaterialTheme.colorScheme.primaryContainer
+                } else {
+                    MaterialTheme.colorScheme.surface
+                }
+        ),
         modifier = Modifier.clickable { onSelect() }
     ) {
         Row(
@@ -179,12 +178,11 @@ private fun TabItem(
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = stringResource(R.string.workspace_tab_close_action),
-                    tint =
-                        if (isSelected) {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        },
+                    tint = if (isSelected) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
                     modifier = Modifier.size(12.dp)
                 )
             }
@@ -204,30 +202,10 @@ private fun TabContent(
                 id = selected.id,
                 onTabAction = onTabAction,
             )
-            Workspace.Type.EXPLORER -> ExplorerPage(id = selected.id)
-            Workspace.Type.SEARCHER -> SearcherPage(id = selected.id)
-            Workspace.Type.EDITOR -> EditorPage(id = selected.id)
+            Workspace.Type.EXPLORER -> ExplorerWorkspacePageHost(id = selected.id)
+            Workspace.Type.SEARCHER -> SearcherWorkspacePageHost(id = selected.id)
+            Workspace.Type.EDITOR -> EditorWorkspacePageHost(id = selected.id)
         }
-    }
-}
-
-@Preview2
-@Composable
-private fun WorkspaceScreenPreview() {
-    PreviewWrapper {
-        val tabs = listOf(
-            WorkspaceTab.TEMPLATES,
-        )
-        WorkspaceScreen(
-            state = WorkspaceViewModel.State(
-                tabs = tabs,
-                selected = tabs.last().id,
-                showUpgradePrompt = true,
-            ),
-            onNavToSettings = {},
-            onTabAction = {},
-            onUpgradeButler = {}
-        )
     }
 }
 
@@ -247,3 +225,28 @@ private fun EmptyWorkspaceScreenPreview() {
         )
     }
 }
+
+@Preview2
+@Composable
+private fun WorkspaceScreenPreview() {
+    PreviewWrapper {
+        val tabs = listOf(
+            WorkspaceTab(
+                type = Workspace.Type.TEMPLATES,
+                id = Workspace.Id(),
+                title = R.string.workspace_templates_title.toCaString(),
+            ),
+        )
+        WorkspaceScreen(
+            state = WorkspaceViewModel.State(
+                tabs = tabs,
+                selected = tabs.last().id,
+                showUpgradePrompt = true,
+            ),
+            onNavToSettings = {},
+            onTabAction = {},
+            onUpgradeButler = {}
+        )
+    }
+}
+

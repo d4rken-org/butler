@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -36,8 +35,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.workspace.core.Workspace
 
 sealed class SearchResult(
@@ -58,8 +61,27 @@ sealed class SearchResult(
 }
 
 @Composable
-fun SearcherPage(
+fun SearcherWorkspacePageHost(
     id: Workspace.Id,
+    vm: SearcherWorkspaceViewModel = hiltViewModel(
+        key = id.longTag,
+        creationCallback = { factory: SearcherWorkspaceViewModel.Factory -> factory.create(id = id) }
+    ),
+) {
+    ErrorEventHandler(vm)
+
+    val state by waitForState(vm.state)
+    log(vm.tag) { "Compose state: $state" }
+    state?.let { state ->
+        SearcherWorkspacePage(
+            state = state,
+        )
+    }
+}
+
+@Composable
+fun SearcherWorkspacePage(
+    state: SearcherWorkspaceViewModel.State,
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
@@ -247,45 +269,11 @@ fun SearchResultRow(result: SearchResult, onClick: () -> Unit) {
 @Preview2
 @Composable
 private fun SearchPagePreview() {
-    PreviewWrapper { SearcherPage(id = Workspace.Id()) }
-}
-
-@Preview2
-@Composable
-private fun SearchBarPreview() {
     PreviewWrapper {
-        Column(modifier = Modifier.padding(16.dp)) {
-            SearchBar(query = "", onQueryChange = {})
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            SearchBar(query = "project", onQueryChange = {})
-        }
-    }
-}
-
-@Preview2
-@Composable
-private fun SearchResultRowPreview() {
-    PreviewWrapper {
-        Column(modifier = Modifier.padding(16.dp)) {
-            SearchResultRow(
-                result = SearchResult.Folder(name = "Projects", path = "/Documents/Projects"),
-                onClick = {}
+        SearcherWorkspacePage(
+            state = SearcherWorkspaceViewModel.State(
+                id = Workspace.Id()
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            SearchResultRow(
-                result =
-                    SearchResult.File(
-                        name = "Project Plan.docx",
-                        path = "/Documents/Project Plan.docx",
-                        size = "458 KB",
-                        lastModified = "2023-10-20"
-                    ),
-                onClick = {}
-            )
-        }
+        )
     }
 }

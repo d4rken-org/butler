@@ -14,7 +14,7 @@ class RecorderViewModel @Inject constructor(
     dispatchers: DispatcherProvider,
 //    @ApplicationContext private val context: Context,
 //    private val webpageTool: WebpageTool,
-) : ViewModel4(dispatchers, logTag("Debug", "Recorder", "ViewModel"), navCtrl) {
+) : ViewModel4(dispatchers, logTag("Debug", "Recorder","Screen"), navCtrl) {
 
 //    private val recordedPath = File(handle.get<String>(RecorderActivity.RECORD_PATH)!!)
 //

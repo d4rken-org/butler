@@ -61,7 +61,7 @@ fun TemplatesWorkspacePageHost(
     ErrorEventHandler(vm)
 
     val state by waitForState(vm.state)
-    log(vm.tag) { "State: $state" }
+    log(vm.tag) { "Compose state: $state" }
     state?.let { state ->
         TemplatesWorkspacePage(
             state = state,
@@ -236,7 +236,7 @@ private fun TemplateCard(
                 imageVector = Icons.Default.Add,
                 contentDescription = null,
                 tint = if (isFirstItem) {
-                    MaterialTheme.colorScheme.primary
+                    MaterialTheme.colorScheme.onPrimaryContainer
                 } else {
                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 },

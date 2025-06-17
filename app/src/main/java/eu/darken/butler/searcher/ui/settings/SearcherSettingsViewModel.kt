@@ -18,7 +18,7 @@ constructor(
     dispatcherProvider: DispatcherProvider,
     navCtrl: NavigationController,
     private val searcherSettings: SearcherSettings,
-) : ViewModel4(dispatcherProvider, logTag("Searcher", "Settings", "ViewModel"), navCtrl) {
+) : ViewModel4(dispatcherProvider, logTag("Searcher", "Settings"), navCtrl) {
 
     // Combine all settings into the final state
     val state = combine(

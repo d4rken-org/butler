@@ -1,10 +1,11 @@
 package eu.darken.butler.workspace.ui
 
 import dagger.hilt.android.lifecycle.HiltViewModel
-import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.common.upgrade.UpgradeRepo
@@ -13,6 +14,9 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
@@ -23,15 +27,28 @@ class WorkspaceViewModel @Inject constructor(
     private val navCtrl: NavigationController,
     private val upgradeRepo: UpgradeRepo,
     private val workspaceRepo: WorkspaceRepo,
-) : ViewModel4(dispatchers, logTag("Workspace", "ViewModel"), navCtrl) {
+) : ViewModel4(dispatchers, logTag("Workspace", "Screen"), navCtrl) {
 
     private val tabLock = Mutex()
-    private val _tabs = MutableStateFlow(emptyList<WorkspaceTab>())
-    private val _selectedTabId = MutableStateFlow<Workspace.Id?>(null)
+    private val currentTabs = workspaceRepo.infos
+        .map { infos ->
+            infos.map {
+                WorkspaceTab(
+                    id = it.id,
+                    type = it.type,
+                    title = it.title,
+                )
+            }
+        }
+        .onEach { tabs ->
+            tabs.forEachIndexed { index, tab -> log(tag, VERBOSE) { "TAB#$index: $tab" } }
+        }
+        .replayingShare(vmScope)
+    private val selectedTabId = MutableStateFlow<Workspace.Id?>(null)
 
     val state = combine(
-        _tabs,
-        _selectedTabId,
+        currentTabs,
+        selectedTabId,
         upgradeRepo.upgradeInfo,
     ) { tabs, selectedTabId, upgradeInfo ->
         State(
@@ -47,51 +64,32 @@ class WorkspaceViewModel @Inject constructor(
         log(tag) { "modifyTab($action)" }
 
         tabLock.withLock {
-            val currentTabs = _tabs.value.toMutableList()
-
             when (action) {
                 is TabAction.Select -> {
-                    _selectedTabId.value = action.id
+                    log(tag) { "Selected tab $action" }
+                    selectedTabId.value = action.id
                 }
 
                 is TabAction.Create -> {
                     log(tag) { "Creating new workspace with $action" }
-                    val newId = workspaceRepo.create(action.type, action.arguments)
-                    val newTab = WorkspaceTab(
+                    val newId = workspaceRepo.create(
                         type = action.type,
-                        id = newId,
-                        title = "${action.type}#${newId.id.toString().take(4)}".toCaString(),
+                        arguments = action.arguments,
+                        idToReplace = action.replace
                     )
-                    log(tag) { "Tab for new workspace: $newTab" }
-
-                    if (action.replace != null) {
-                        val tabIndex = currentTabs.indexOfFirst { it.id == action.replace }
-                        if (tabIndex == -1) throw IllegalStateException("Tab not found")
-                        log(tag) { "Replacing tab at index $tabIndex" }
-
-                        // TODO clean up old tab?
-                        currentTabs[tabIndex]
-
-                        currentTabs[tabIndex] = newTab
-                    } else {
-                        currentTabs.add(newTab)
-                    }
-
-                    _tabs.value = currentTabs
-                    _selectedTabId.value = newTab.id
+                    selectedTabId.value = newId
                 }
 
                 is TabAction.Close -> {
-                    val currentTabs = _tabs.value.toMutableList()
-                    currentTabs.removeAll { it.id == action.id }
-
-                    _tabs.value = currentTabs
-                    if (currentTabs.isNotEmpty()) {
-                        if (_selectedTabId.value == action.id) {
-                            _selectedTabId.value = currentTabs.first().id
+                    log(tag) { "Closing workspace with id ${action.id}" }
+                    workspaceRepo.delete(action.id)
+                    val tabs = currentTabs.first().toMutableList()
+                    if (tabs.isNotEmpty()) {
+                        if (selectedTabId.value == action.id) {
+                            selectedTabId.value = tabs.first().id
                         }
                     } else {
-                        _selectedTabId.value = null
+                        selectedTabId.value = null
                     }
                 }
             }

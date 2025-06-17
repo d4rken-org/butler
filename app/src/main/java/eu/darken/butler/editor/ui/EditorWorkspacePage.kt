@@ -28,13 +28,37 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.workspace.core.Workspace
 
+
 @Composable
-fun EditorPage(
+fun EditorWorkspacePageHost(
     id: Workspace.Id,
+    vm: EditorWorkspaceViewModel = hiltViewModel(
+        key = id.longTag,
+        creationCallback = { factory: EditorWorkspaceViewModel.Factory -> factory.create(id = id) }
+    ),
+) {
+    ErrorEventHandler(vm)
+
+    val state by waitForState(vm.state)
+    log(vm.tag) { "Compose state: $state" }
+    state?.let { state ->
+        EditorWorkspacePage(
+            state = state,
+        )
+    }
+}
+
+@Composable
+fun EditorWorkspacePage(
+    state: EditorWorkspaceViewModel.State,
 ) {
     var editorContent by remember {
         mutableStateOf(
@@ -126,6 +150,10 @@ fun EditorPage(
 @Composable
 private fun EditorPagePreview() {
     PreviewWrapper {
-        EditorPage(id = Workspace.Id())
+        EditorWorkspacePage(
+            state = EditorWorkspaceViewModel.State(
+                id = Workspace.Id(),
+            )
+        )
     }
 }

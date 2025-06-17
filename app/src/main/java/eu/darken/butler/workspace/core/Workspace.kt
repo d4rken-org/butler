@@ -1,11 +1,14 @@
 package eu.darken.butler.workspace.core
 
 import android.os.Parcelable
+import eu.darken.butler.common.ca.CaString
+import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
 interface Workspace {
     val id: Id
     val type: Type
+    val info: Flow<Info>
 
     enum class Type {
         TEMPLATES,
@@ -24,7 +27,14 @@ interface Workspace {
             get() = id.toString()
     }
 
-    interface Arguments : Parcelable {
+   interface Arguments : Parcelable {
         val type: Type
     }
+
+    data class Info(
+        val id: Id,
+        val type: Type,
+        val title: CaString,
+        val subtitle: CaString? = null,
+    )
 }

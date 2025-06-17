@@ -18,7 +18,7 @@ constructor(
     dispatcherProvider: DispatcherProvider,
     navCtrl: NavigationController,
     private val explorerSettings: ExplorerSettings,
-) : ViewModel4(dispatcherProvider, logTag("Explorer", "Settings", "ViewModel"), navCtrl) {
+) : ViewModel4(dispatcherProvider, logTag("Explorer", "Settings","Screen"), navCtrl) {
 
     val state = combine(
         explorerSettings.sortSettings.flow,
