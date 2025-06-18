@@ -30,14 +30,14 @@ fun RecorderConsentDialog(
         onDismissRequest = onDismissRequest,
         title = {
             Text(
-                text = stringResource(R.string.settings_debuglog_consent_title),
+                text = stringResource(R.string.debug_log_consent_title),
                 style = MaterialTheme.typography.headlineSmall
             )
         },
         text = {
             Column {
                 Text(
-                    text = stringResource(R.string.settings_debuglog_consent_explanation),
+                    text = stringResource(R.string.debug_log_consent_explanation),
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -59,7 +59,7 @@ fun RecorderConsentDialog(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 TextButton(onClick = onConfirm) {
-                    Text(stringResource(R.string.debug_debuglog_record_short_action))
+                    Text(stringResource(R.string.debug_log_record_action))
                 }
             }
         }

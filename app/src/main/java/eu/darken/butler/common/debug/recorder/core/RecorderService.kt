@@ -71,13 +71,13 @@ class RecorderService : Service2() {
             setContentIntent(openPi)
             priority = NotificationCompat.PRIORITY_MAX
             setSmallIcon(R.drawable.ic_bug_report)
-            setContentText(getString(R.string.debug_debuglog_recording_progress))
+            setContentText(getString(R.string.debug_log_recording_progress))
             setContentTitle(getString(eu.darken.butler.common.R.string.app_name))
             setOngoing(true)
             addAction(
                 NotificationCompat.Action.Builder(
                     0,
-                    getString(R.string.debug_debuglog_stop_action),
+                    getString(R.string.debug_log_stop_action),
                     stopPi
                 ).build()
             )
@@ -93,7 +93,7 @@ class RecorderService : Service2() {
             .onEach {
                 if (it.isRecording) {
                     builder.apply {
-                        setContentTitle(getString(R.string.debug_debuglog_recording_progress))
+                        setContentTitle(getString(R.string.debug_log_recording_progress))
                         setContentText("${it.currentLogDir?.path}/")
                     }
                     notificationManager.notify(NOTIFICATION_ID, builder.build())

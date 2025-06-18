@@ -2,57 +2,58 @@ package eu.darken.butler.common.debug.recorder.ui
 
 import android.content.Context
 import android.content.Intent
+import android.os.Bundle
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import dagger.hilt.android.AndroidEntryPoint
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.theming.MyAppTheme
+import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.common.ui.Activity2
+import eu.darken.butler.main.core.GeneralSettings
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class RecorderActivity : Activity2() {
+    private val vm: RecorderViewModel by viewModels()
 
-//    private lateinit var ui: DebugRecorderActivityBinding
-//    private val vm: RecorderViewModel by viewModels()
-//
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//
-//        if (intent.getStringExtra(RECORD_PATH) == null) {
-//            finish()
-//            return
-//        }
-//
-//        vm.errorEvents.observe2 { it.asErrorDialogBuilder(this).show() }
-//
-//        ui = DebugRecorderActivityBinding.inflate(layoutInflater)
-//        setContentView(ui.root)
-//
-//        val adapter = LogFileAdapter()
-//        ui.list.setupDefaults(adapter, verticalDividers = false)
-//
-//        vm.state.observe2 { state ->
-//            ui.loadingIndicator.isGone = !state.loading
-//            ui.shareAction.isInvisible = state.loading
-//            ui.recordingPath.text = "${state.logDir.path}/"
-//            ui.listCaption.apply {
-//                isGone = state.loading
-//                val sizeText = state.compressedSize?.let { Formatter.formatShortFileSize(this@RecorderActivity, it) }
-//                text = "Log files ready (ZIP: $sizeText)"
-//            }
-//            adapter.update(state.logEntries)
-//        }
-//
-//        ui.shareAction.setOnClickListener { vm.share() }
-//        vm.shareEvent.observe2 { startActivity(it) }
-//
-//        ui.privacyPolicyAction.apply {
-//            setOnClickListener { vm.goPrivacyPolicy() }
-//            val sp = SpannableString(text).apply {
-//                setSpan(URLSpan(""), 0, length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-//            }
-//            setText(sp, TextView.BufferType.SPANNABLE)
-//        }
-//
-//        ui.cancelAction.setOnClickListener { finish() }
-//    }
+    @Inject lateinit var generalSettings: GeneralSettings
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
+
+        if (intent.getStringExtra(RECORD_PATH) == null) {
+            finish()
+            return
+        }
+
+        setContent {
+            val themeState by generalSettings.themeState.collectAsState(null)
+            themeState?.let { theme ->
+                MyAppTheme(state = theme) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.background,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        ErrorEventHandler(vm)
+                        RecorderScreenHost(
+                            viewModel = vm,
+                            onCancelClick = { finish() }
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     companion object {
         internal val TAG = logTag("Debug", "Log", "RecorderActivity")
