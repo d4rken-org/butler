@@ -45,6 +45,7 @@ object BuildConfigWrap {
     val GIT_SHA: String = getBuildConfigValue("GITSHA") as String
 
     val VERSION_DESCRIPTION: String = "v$VERSION_NAME ($VERSION_CODE) ~ $GIT_SHA/$FLAVOR/$BUILD_TYPE"
+    val VERSION_DESCRIPTION_SHORT: String = "v$VERSION_NAME ~ $FLAVOR"
 
     private fun getBuildConfigValue(fieldName: String): Any? = try {
         val c = Class.forName("eu.darken.butler.BuildConfig")

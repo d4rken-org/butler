@@ -153,7 +153,7 @@ fun TemplatesWorkspacePage(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                     )
                     Text(
-                        text = BuildConfigWrap.VERSION_DESCRIPTION,
+                        text = BuildConfigWrap.VERSION_DESCRIPTION_SHORT,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         modifier = Modifier.padding(top = 2.dp)
