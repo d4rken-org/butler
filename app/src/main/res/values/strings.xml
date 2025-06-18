@@ -62,6 +62,8 @@
     <string name="settings_support_issue_tracker_label">Issue tracker</string>
     <string name="settings_support_debuglog_label">Debug log</string>
     <string name="settings_support_debuglog_desc">Record everything the app is doing into a text file that you can share.</string>
+    <string name="settings_support_debuglog_recording_desc">Currently recording debug information. Tap to stop recording.</string>
+    <string name="settings_support_debuglog_path">Log path: %1$s</string>
     <string name="settings_support_discord_label">Discord</string>
     <string name="settings_support_discord_description">A place to hang out in and ask questions.</string>
     <string name="settings_debuglog_title">Debug log</string>
