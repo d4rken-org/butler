@@ -24,6 +24,7 @@
     <string name="debug_debuglog_file_label">Recorded log file</string>
     <string name="debug_debuglog_recording_progress">Recording debug log</string>
     <string name="debug_debuglog_record_action">Record debug log</string>
+        <string name="debug_debuglog_record_short_action">Record</string>
     <string name="debug_debuglog_stop_action">Stop recording</string>
     <string name="debug_debuglog_sensitive_information_message">The generated file contains sensitive information (e.g. file names and installed apps). Only share it with trusted parties.</string>
 
@@ -66,8 +67,8 @@
     <string name="settings_support_debuglog_path">Log path: %1$s</string>
     <string name="settings_support_discord_label">Discord</string>
     <string name="settings_support_discord_description">A place to hang out in and ask questions.</string>
-    <string name="settings_debuglog_title">Debug log</string>
-    <string name="settings_debuglog_explanation">This feature records everything the app is doing into a shareable file. The generated file contains sensitive information (e.g. file names and installed apps). Only share it with trusted parties (e.g. a developer troubleshooting an issue).</string>
+    <string name="settings_debuglog_consent_title">Debug log</string>
+    <string name="settings_debuglog_consent_explanation">This feature records everything the app is doing into a shareable file. The generated file contains sensitive information (e.g. file names and installed apps). Only share it with trusted parties (e.g. a developer troubleshooting an issue).</string>
 
     <string name="settings_acknowledgements_label">Acknowledgements</string>
     <string name="settings_acknowledgements_description">Credits, licenses, and special thanks</string>

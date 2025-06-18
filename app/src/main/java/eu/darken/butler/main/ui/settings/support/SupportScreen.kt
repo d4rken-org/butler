@@ -17,6 +17,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -25,6 +28,7 @@ import eu.darken.butler.common.ButlerLinks
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.icons.Discord
+import eu.darken.butler.common.debug.recorder.ui.RecorderConsentDialog
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.core.local.File
 import eu.darken.butler.common.ui.waitForState
@@ -55,6 +59,21 @@ fun SupportScreen(
     onDebugLog: () -> Unit,
     onOpenUrl: (String) -> Unit,
 ) {
+    var showConsentDialog by remember { mutableStateOf(false) }
+
+    if (showConsentDialog) {
+        RecorderConsentDialog(
+            onDismissRequest = { showConsentDialog = false },
+            onConfirm = {
+                showConsentDialog = false
+                onDebugLog()
+            },
+            onOpenPrivacyPolicy = {
+                onOpenUrl(ButlerLinks.PRIVACY_POLICY)
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -127,7 +146,15 @@ fun SupportScreen(
                     } else {
                         stringResource(R.string.settings_support_debuglog_desc)
                     },
-                    onClick = onDebugLog
+                    onClick = { 
+                        if (state.isRecording) {
+                            // If already recording, stop immediately
+                            onDebugLog()
+                        } else {
+                            // If not recording, show consent dialog first
+                            showConsentDialog = true
+                        }
+                    }
                 )
             }
         }
@@ -142,6 +169,22 @@ private fun SupportScreenPreview() {
             state = SupportScreenViewModel.State(
                 isRecording = true,
                 logPath = File("/tmp/debug.log")
+            ),
+            onNavigateUp = {},
+            onDebugLog = {},
+            onOpenUrl = {},
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun SupportScreenNotRecordingPreview() {
+    PreviewWrapper {
+        SupportScreen(
+            state = SupportScreenViewModel.State(
+                isRecording = false,
+                logPath = null
             ),
             onNavigateUp = {},
             onDebugLog = {},
