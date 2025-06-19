@@ -5,8 +5,6 @@ import androidx.annotation.Keep
 import java.lang.reflect.Field
 
 
-// Can't be const because that prevents them from being mocked in tests
-@Suppress("MayBeConstant")
 @Keep
 object BuildConfigWrap {
     val APPLICATION_ID = getBuildConfigValue("PACKAGENAME") as String

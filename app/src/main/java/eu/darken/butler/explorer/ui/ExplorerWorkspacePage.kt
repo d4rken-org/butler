@@ -14,10 +14,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
+import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -176,7 +177,11 @@ fun ExplorerWorkspacePage(
                     color = MaterialTheme.colorScheme.primary
                 )
             }
-            Divider(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp),
+                thickness = DividerDefaults.Thickness,
+                color = DividerDefaults.color
+            )
         }
 
         // File list
@@ -302,7 +307,7 @@ fun ExplorerItemRow(
 
                 is ExplorerItem.File -> {
                     Icon(
-                        imageVector = Icons.Default.InsertDriveFile,
+                        imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
                         contentDescription = "File",
                         tint = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.size(24.dp)

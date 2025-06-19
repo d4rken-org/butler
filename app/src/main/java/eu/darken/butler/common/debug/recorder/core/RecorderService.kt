@@ -98,7 +98,7 @@ class RecorderService : Service2() {
                     }
                     notificationManager.notify(NOTIFICATION_ID, builder.build())
                 } else {
-                    stopForeground(true)
+                    stopForeground(STOP_FOREGROUND_REMOVE)
                     stopSelf()
                 }
             }

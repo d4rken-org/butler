@@ -26,7 +26,7 @@ import javax.inject.Inject
 class WorkspaceViewModel @Inject constructor(
     dispatchers: DispatcherProvider,
     private val navCtrl: NavigationController,
-    private val upgradeRepo: UpgradeRepo,
+    upgradeRepo: UpgradeRepo,
     private val workspaceRepo: WorkspaceRepo,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Screen","VM"), navCtrl) {
 

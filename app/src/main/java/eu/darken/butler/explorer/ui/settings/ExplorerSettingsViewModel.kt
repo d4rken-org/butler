@@ -17,7 +17,7 @@ class ExplorerSettingsViewModel
 constructor(
     dispatcherProvider: DispatcherProvider,
     navCtrl: NavigationController,
-    private val explorerSettings: ExplorerSettings,
+    explorerSettings: ExplorerSettings,
 ) : ViewModel4(dispatcherProvider, logTag("Explorer", "Settings","Screen","VM"), navCtrl) {
 
     val state = combine(

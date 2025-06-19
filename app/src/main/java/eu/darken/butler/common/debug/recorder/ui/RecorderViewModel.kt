@@ -27,9 +27,9 @@ import javax.inject.Inject
 class RecorderViewModel @Inject constructor(
     navCtrl: NavigationController,
     dispatchers: DispatcherProvider,
+    savedStateHandle: SavedStateHandle,
     @ApplicationContext private val context: Context,
     private val webpageTool: WebpageTool,
-    private val savedStateHandle: SavedStateHandle
 ) : ViewModel4(dispatchers, logTag("Debug", "Recorder","Screen","VM"), navCtrl) {
 
     private val recordedPath: File
@@ -123,8 +123,6 @@ class RecorderViewModel @Inject constructor(
         val path: File,
         val size: Long? = null,
     ) {
-        val stableId: Long = path.hashCode().toLong()
-
         fun getFormattedSize(context: Context): String? {
             return size?.let { Formatter.formatShortFileSize(context, it) }
         }

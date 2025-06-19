@@ -2,7 +2,7 @@ package eu.darken.butler.main.ui
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
@@ -21,7 +21,7 @@ class MainViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     navCtrl: NavigationController,
     private val upgradeRepo: UpgradeRepo,
-    private val generalSettings: GeneralSettings,
+    generalSettings: GeneralSettings,
 ) : ViewModel4(dispatcherProvider, logTag("Main","Screen","VM"), navCtrl) {
 
     val themeState = generalSettings.themeState.asStateFlow()
