@@ -3,7 +3,9 @@ package eu.darken.butler.workspace.core
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.R
+import eu.darken.butler.common.ca.caString
+import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -24,7 +26,11 @@ class TemplatesWorkspace @AssistedInject constructor(
         Workspace.Info(
             id = id,
             type = type,
-            title = "Templates ${id.shortTag}".toCaString(),
+            title = caString {
+                val base = StringBuilder(it.getString(R.string.workspace_templates_tab_title))
+                if (Bugs.isDebug) base.append(" " + id.shortTag)
+                base.toString()
+            }
         )
     )
 

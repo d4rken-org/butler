@@ -13,7 +13,7 @@ interface UpgradeRepo {
     interface Info {
         val type: Type
 
-        val isPro: Boolean
+        val isUpgraded: Boolean
 
         val upgradedAt: Instant?
     }

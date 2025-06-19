@@ -22,16 +22,16 @@ class UpgradeRepoFossTest : BaseTest() {
 
     @Test fun `test upgrade info pro status mapping`() {
         UpgradeRepoFoss.Info(
-            isPro = false,
+            isUpgraded = false,
             upgradedAt = null,
         ).apply {
             type shouldBe UpgradeRepo.Type.FOSS
-            isPro shouldBe false
+            isUpgraded shouldBe false
         }
 
         UpgradeRepoFoss.Info(
-            isPro = true,
+            isUpgraded = true,
             upgradedAt = Instant.EPOCH,
-        ).isPro shouldBe true
+        ).isUpgraded shouldBe true
     }
 }

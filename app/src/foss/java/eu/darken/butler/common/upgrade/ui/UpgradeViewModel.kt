@@ -21,7 +21,7 @@ class UpgradeViewModel @Inject constructor(
     fun openSponsor() = launch {
         log(tag) { "openSponsor()" }
         upgradeRepo.launchGithubSponsorsUpgrade()
-        upgradeRepo.upgradeInfo.filter { it.isPro }.first()
+        upgradeRepo.upgradeInfo.filter { it.isUpgraded }.first()
         navUp()
     }
 }

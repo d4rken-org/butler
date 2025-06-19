@@ -314,7 +314,7 @@ private fun WorkspaceScreenPreview() {
             WorkspaceTab(
                 type = Workspace.Type.TEMPLATES,
                 id = Workspace.Id(),
-                title = R.string.workspace_templates_title.toCaString(),
+                title = R.string.workspace_templates_tab_title.toCaString(),
             ),
             WorkspaceTab(
                 type = Workspace.Type.EXPLORER,

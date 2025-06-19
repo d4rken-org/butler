@@ -36,7 +36,7 @@ class UpgradeRepoFoss @Inject constructor(
             Info()
         } else {
             Info(
-                isPro = true,
+                isUpgraded = true,
                 upgradedAt = data.upgradedAt,
                 fossUpgradeType = data.upgradeType,
             )
@@ -59,7 +59,7 @@ class UpgradeRepoFoss @Inject constructor(
     }
 
     data class Info(
-        override val isPro: Boolean = false,
+        override val isUpgraded: Boolean = false,
         override val upgradedAt: Instant? = null,
         val fossUpgradeType: FossUpgrade.Type? = null,
     ) : UpgradeRepo.Info {

@@ -36,6 +36,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.Slogans
+import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -147,16 +148,29 @@ fun TemplatesWorkspacePage(
                 )
 
                 Column(modifier = Modifier.weight(1f)) {
+                    if (state.isUpgraded) {
+                        ColoredTitleText(
+                            fullTitle = stringResource(R.string.app_name_upgraded),
+                            postfix = stringResource(R.string.app_name_upgrade_postfix),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(eu.darken.butler.common.R.string.app_name),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
                     Text(
                         text = randomSlogan.get(LocalContext.current),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = BuildConfigWrap.VERSION_DESCRIPTION_SHORT,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.padding(top = 2.dp),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        modifier = Modifier.padding(top = 2.dp)
                     )
                 }
 
@@ -275,6 +289,7 @@ private fun TemplatesWorkspacePagePreview() {
                     SearcherWorkspaceTemplate(),
                     EditorWorkspaceTemplate(),
                 ),
+                isUpgraded = true,
             ),
             onTabAction = {},
             onNavToSettings = {},

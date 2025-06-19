@@ -55,7 +55,7 @@ class WorkspaceViewModel @Inject constructor(
         State(
             tabs = tabs,
             selected = selectedTabId,
-            isUpgraded = upgradeInfo.isPro
+            isUpgraded = upgradeInfo.isUpgraded
         )
     }.asStateFlow()
 
