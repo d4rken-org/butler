@@ -55,7 +55,7 @@ class WorkspaceViewModel @Inject constructor(
         State(
             tabs = tabs,
             selected = selectedTabId,
-            showUpgradePrompt = !upgradeInfo.isPro
+            isUpgraded = upgradeInfo.isPro
         )
     }.asStateFlow()
 
@@ -124,7 +124,7 @@ class WorkspaceViewModel @Inject constructor(
     data class State(
         val tabs: List<WorkspaceTab>,
         val selected: Workspace.Id?,
-        val showUpgradePrompt: Boolean,
+        val isUpgraded: Boolean,
     ) {
         val current: WorkspaceTab?
             get() = tabs.firstOrNull { it.id == selected }

@@ -157,7 +157,7 @@ fun WorkspaceScreen(
                     .padding(paddingValues),
                 onNavToSettings = onNavToSettings,
                 onTabAction = onTabAction,
-                showUpgradePrompt = state.showUpgradePrompt,
+                isUpgraded = state.isUpgraded,
                 onUpgradeButler = onUpgradeButler,
             )
         }
@@ -297,7 +297,7 @@ private fun EmptyWorkspaceScreenPreview() {
             state = WorkspaceViewModel.State(
                 tabs = emptyList(),
                 selected = null,
-                showUpgradePrompt = true,
+                isUpgraded = false,
             ),
             onNavToSettings = {},
             onTabAction = {},
@@ -326,7 +326,7 @@ private fun WorkspaceScreenPreview() {
             state = WorkspaceViewModel.State(
                 tabs = tabs,
                 selected = tabs.last().id,
-                showUpgradePrompt = true,
+                isUpgraded = false,
             ),
             onNavToSettings = {},
             onTabAction = {},

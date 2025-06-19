@@ -30,16 +30,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
+import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.ui.TabAction
 
 @Composable
 internal fun EmptyWorkspaceContent(
-    modifier: Modifier = Modifier.Companion,
+    modifier: Modifier = Modifier,
+    isUpgraded: Boolean,
     onNavToSettings: () -> Unit,
     onTabAction: (TabAction.Create) -> Unit,
-    showUpgradePrompt: Boolean,
     onUpgradeButler: () -> Unit,
 ) {
     Column(
@@ -68,11 +69,18 @@ internal fun EmptyWorkspaceContent(
             }
 
             Column {
-                Text(
-                    text = stringResource(eu.darken.butler.common.R.string.app_name),
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                if (isUpgraded) {
+                    ColoredTitleText(
+                        fullTitle = stringResource(R.string.app_name_upgraded),
+                        postfix = stringResource(R.string.app_name_upgrade_postfix),
+                    )
+                } else {
+                    Text(
+                        text = stringResource(eu.darken.butler.common.R.string.app_name),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
                 Text(
                     text = stringResource(eu.darken.butler.common.R.string.app_name_subtitle),
                     style = MaterialTheme.typography.titleMedium,
@@ -141,7 +149,7 @@ internal fun EmptyWorkspaceContent(
                     }
                 }
             }
-            if (showUpgradePrompt) {
+            if (!isUpgraded) {
                 item {
                     Card(
                         modifier = Modifier.Companion
@@ -179,9 +187,9 @@ internal fun EmptyWorkspaceContent(
 private fun EmptyWorkspaceContentPreview() {
     PreviewWrapper {
         EmptyWorkspaceContent(
+            isUpgraded = false,
             onNavToSettings = {},
             onTabAction = {},
-            showUpgradePrompt = true,
             onUpgradeButler = {},
         )
     }
