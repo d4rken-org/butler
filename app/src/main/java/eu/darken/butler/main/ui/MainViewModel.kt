@@ -22,7 +22,7 @@ class MainViewModel @Inject constructor(
     navCtrl: NavigationController,
     private val upgradeRepo: UpgradeRepo,
     private val generalSettings: GeneralSettings,
-) : ViewModel4(dispatcherProvider, logTag("Main","Screen"), navCtrl) {
+) : ViewModel4(dispatcherProvider, logTag("Main","Screen","VM"), navCtrl) {
 
     val themeState = generalSettings.themeState.asStateFlow()
 

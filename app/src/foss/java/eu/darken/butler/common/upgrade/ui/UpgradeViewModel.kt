@@ -16,7 +16,7 @@ class UpgradeViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     navCtrl: NavigationController,
     private val upgradeRepo: UpgradeRepoFoss,
-) : ViewModel4(dispatcherProvider, logTag("Upgrade","Screen"), navCtrl) {
+) : ViewModel4(dispatcherProvider, logTag("Upgrade","Screen","VM"), navCtrl) {
 
     fun openSponsor() = launch {
         log(tag) { "openSponsor()" }

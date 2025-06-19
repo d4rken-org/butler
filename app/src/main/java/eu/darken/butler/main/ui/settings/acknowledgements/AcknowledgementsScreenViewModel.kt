@@ -16,7 +16,7 @@ class AcknowledgementsScreenViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     navCtrl: NavigationController,
     private val webpageTool: WebpageTool,
-) : ViewModel4(dispatcherProvider, logTag("Settings", "Acknowledgements","Screen"), navCtrl) {
+) : ViewModel4(dispatcherProvider, logTag("Settings", "Acknowledgements","Screen","VM"), navCtrl) {
 
     val state = combine(
         flowOf(Unit)

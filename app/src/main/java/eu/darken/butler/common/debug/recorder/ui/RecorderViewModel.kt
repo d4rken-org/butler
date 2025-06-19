@@ -30,7 +30,7 @@ class RecorderViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val webpageTool: WebpageTool,
     private val savedStateHandle: SavedStateHandle
-) : ViewModel4(dispatchers, logTag("Debug", "Recorder","Screen"), navCtrl) {
+) : ViewModel4(dispatchers, logTag("Debug", "Recorder","Screen","VM"), navCtrl) {
 
     private val recordedPath: File
 
