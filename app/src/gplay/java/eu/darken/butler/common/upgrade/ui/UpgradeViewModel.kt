@@ -12,6 +12,7 @@ import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.common.upgrade.core.OurSku
 import eu.darken.butler.common.upgrade.core.UpgradeRepoGplay
+import eu.darken.butler.common.upgrade.core.billing.GplayServiceUnavailableException
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
@@ -63,9 +64,11 @@ class UpgradeViewModel @Inject constructor(
         },
         upgradeRepo.upgradeInfo,
     ) { iap, sub, current ->
-//        if (iap == null && sub == null) {
-//            throw GplayServiceUnavailableException(RuntimeException("IAP and SUB data request timed out."))
-//        }
+        if (iap == null && sub == null) {
+            errorEvents.emit(
+                GplayServiceUnavailableException(RuntimeException("IAP and SUB data request timed out."))
+            )
+        }
 
         val iapOffer = iap?.firstOrNull()?.details?.oneTimePurchaseOfferDetails
         val iapState = State.Iap(
