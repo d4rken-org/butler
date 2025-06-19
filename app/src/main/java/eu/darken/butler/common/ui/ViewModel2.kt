@@ -25,18 +25,20 @@ abstract class ViewModel2(
     override val tag: String = defaultTag(),
 ) : ViewModel1(tag = tag) {
 
-    val vmScope = viewModelScope + dispatcherProvider.Default
-
     abstract var launchErrorHandler: CoroutineExceptionHandler?
 
-    private fun getVMContext(): CoroutineContext {
+    private val vmContext by lazy {
         val dispatcher = dispatcherProvider.Default
-        return launchErrorHandler?.let { dispatcher + it } ?: dispatcher
+        launchErrorHandler?.let { dispatcher + it } ?: dispatcher
+    }
+
+    val vmScope: CoroutineScope by lazy {
+        viewModelScope + vmContext
     }
 
     fun launch(
         scope: CoroutineScope = viewModelScope,
-        context: CoroutineContext = getVMContext(),
+        context: CoroutineContext = vmContext,
         block: suspend CoroutineScope.() -> Unit
     ) {
         try {

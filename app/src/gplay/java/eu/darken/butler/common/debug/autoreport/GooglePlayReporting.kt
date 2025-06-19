@@ -1,4 +1,4 @@
-package eu.darken.sdmse.common.debug.autoreport
+package eu.darken.butler.common.debug.autoreport
 
 import android.app.Application
 import android.content.Context

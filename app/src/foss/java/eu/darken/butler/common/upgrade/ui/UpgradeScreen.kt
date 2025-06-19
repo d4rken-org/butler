@@ -34,8 +34,15 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 
+@Composable
+fun UpgradeScreenHost(vm: UpgradeViewModel = hiltViewModel()) {
+    ErrorEventHandler(vm)
+    UpgradeScreen(
+        onNavigateBack = { vm.navUp() },
+        onSponsorClick = { vm.openSponsor() }
+    )
+}
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UpgradeScreen(
     onNavigateBack: () -> Unit,
@@ -142,15 +149,6 @@ fun UpgradeScreen(
             }
         }
     }
-}
-
-@Composable
-fun UpgradeScreenHost(vm: UpgradeViewModel = hiltViewModel()) {
-    ErrorEventHandler(vm)
-    UpgradeScreen(
-        onNavigateBack = { vm.navUp() },
-        onSponsorClick = { vm.openSponsor() }
-    )
 }
 
 @Preview2

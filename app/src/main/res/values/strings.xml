@@ -108,7 +108,7 @@
 
     <string name="workspace_templates_tab_title">New</string>
     <string name="workspace_templates_choose_title">New workspace</string>
-    <string name="workspace_templates_choose_subtitle">Select a workspace type to get started</string>
+    <string name="workspace_templates_choose_subtitle">Select a workspace type. How can I help?</string>
 
     <!-- Explorer -->
     <string name="explorer_title">Explorer</string>

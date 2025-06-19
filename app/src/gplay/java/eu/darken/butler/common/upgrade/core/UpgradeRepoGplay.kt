@@ -4,12 +4,10 @@ import android.app.Activity
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.error.asErrorDialogBuilder
 import eu.darken.butler.common.flow.setupCommonEventHandlers
 import eu.darken.butler.common.upgrade.UpgradeRepo
 import eu.darken.butler.common.upgrade.core.billing.BillingData
@@ -26,7 +24,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -90,9 +87,7 @@ class UpgradeRepoGplay @Inject constructor(
                 billingManager.startIapFlow(activity, sku, offer)
             } catch (e: Exception) {
                 log(TAG) { "startIapFlow failed:${e.asLog()}" }
-                withContext(dispatcherProvider.Main) {
-                    e.asErrorDialogBuilder(activity).show()
-                }
+                throw e
             }
         }
     }
@@ -127,7 +122,7 @@ class UpgradeRepoGplay @Inject constructor(
             ?.flatten()
             ?: emptySet()
 
-        override val isPro: Boolean = upgrades.isNotEmpty() || gracePeriod
+        override val isUpgraded: Boolean = upgrades.isNotEmpty() || gracePeriod
 
         override val upgradedAt: Instant? = upgrades
             .maxByOrNull { it.purchase.purchaseTime }
