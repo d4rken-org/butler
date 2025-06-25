@@ -16,6 +16,7 @@ General rules that apply to the entire project.
 * Don’t rename existing classes or files unless asked.
 * Extract user-facing text to `strings.xml`.
 * Organize new files by **feature**, not by layer (i.e., package by feature).
+* If a screen is using a data class for its state, then prefer adding new properties to that state instead of introducing new parameters individually.
 
 ## Project specific rules
 
