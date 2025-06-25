@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Workspaces
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -85,6 +86,16 @@ fun SettingsIndexScreen(
                     title = stringResource(R.string.general_settings_label),
                     subtitle = stringResource(R.string.general_settings_desc),
                     onClick = { onNavigateTo(AppNav.Settings.General) },
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
+                    icon = Icons.Default.Workspaces,
+                    title = stringResource(R.string.workspace_settings_title),
+                    subtitle = "Configure workspace behavior",
+                    onClick = { onNavigateTo(AppNav.Settings.Workspace) },
                 )
                 SettingsDivider()
             }

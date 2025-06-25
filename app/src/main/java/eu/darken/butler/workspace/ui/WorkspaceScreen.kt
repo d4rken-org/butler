@@ -10,6 +10,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.AddCircle
+import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -17,9 +18,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -27,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.ca.toCaString
+
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -155,7 +160,8 @@ fun WorkspaceScreen(
                         .padding(16.dp)
                         .statusBarsPadding(),
                     onTabAction = onTabAction,
-                    onLongClick = onNavToWorkspaceManager
+                    onNavToWorkspaceManager = onNavToWorkspaceManager,
+                    isButtonActionsFlipped = state.isButtonActionsFlipped
                 )
             }
         }
@@ -166,8 +172,23 @@ fun WorkspaceScreen(
 private fun WorkspaceButton(
     modifier: Modifier = Modifier,
     onTabAction: (TabAction) -> Unit,
-    onLongClick: () -> Unit,
+    onNavToWorkspaceManager: () -> Unit,
+    isButtonActionsFlipped: Boolean,
 ) {
+    val (normalAction, longAction) = if (isButtonActionsFlipped) {
+        // Flipped mode: normal click adds workspace, long click opens manager
+        { onTabAction(TabAction.Create()) } to { onNavToWorkspaceManager() }
+    } else {
+        // Normal mode: normal click opens manager, long click adds workspace
+        { onNavToWorkspaceManager() } to { onTabAction(TabAction.Create()) }
+    }
+    
+    val icon = if (isButtonActionsFlipped) {
+        Icons.TwoTone.AddCircle
+    } else {
+        Icons.TwoTone.Workspaces
+    }
+    
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
@@ -175,12 +196,12 @@ private fun WorkspaceButton(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         modifier = modifier.combinedClickable(
-            onClick = { onTabAction(TabAction.Create()) },
-            onLongClick = onLongClick
+            onClick = normalAction,
+            onLongClick = longAction
         )
     ) {
         Icon(
-            imageVector = Icons.TwoTone.AddCircle,
+            imageVector = icon,
             contentDescription = stringResource(R.string.workspace_tab_add_action),
             tint = MaterialTheme.colorScheme.onTertiaryContainer,
             modifier = Modifier.padding(12.dp)

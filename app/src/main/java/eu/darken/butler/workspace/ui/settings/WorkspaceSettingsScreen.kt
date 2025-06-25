@@ -1,0 +1,103 @@
+package eu.darken.butler.workspace.ui.settings
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
+import eu.darken.butler.R
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.ui.waitForState
+import eu.darken.butler.main.ui.settings.common.SettingsCategoryHeader
+import eu.darken.butler.main.ui.settings.common.SettingsSwitchItem
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun WorkspaceSettingsScreen(
+    state: WorkspaceSettingsViewModel.State,
+    onNavigateUp: () -> Unit,
+    onToggleButtonActions: () -> Unit,
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.workspace_settings_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateUp) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(
+                                eu.darken.butler.common.R.string.general_back_action
+                            )
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            verticalArrangement = Arrangement.Top
+        ) {
+            item {
+                SettingsCategoryHeader(text = stringResource(R.string.workspace_settings_button_behavior))
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.Default.SwapHoriz,
+                    title = stringResource(R.string.workspace_settings_flip_button_actions_title),
+                    subtitle = stringResource(R.string.workspace_settings_flip_button_actions_desc),
+                    checked = state.isButtonActionsFlipped,
+                    onCheckedChange = { onToggleButtonActions() }
+                )
+            }
+        }
+    }
+}
+
+@Preview2
+@Composable
+private fun WorkspaceSettingsScreenPreview() {
+    PreviewWrapper {
+        WorkspaceSettingsScreen(
+            state = WorkspaceSettingsViewModel.State(
+                isButtonActionsFlipped = false
+            ),
+            onNavigateUp = {},
+            onToggleButtonActions = {},
+        )
+    }
+}
+
+@Composable
+fun WorkspaceSettingsScreenHost(vm: WorkspaceSettingsViewModel = hiltViewModel()) {
+    ErrorEventHandler(vm)
+
+    val state by waitForState(vm.state)
+
+    state?.let { vmState ->
+        WorkspaceSettingsScreen(
+            state = vmState,
+            onNavigateUp = { vm.navUp() },
+            onToggleButtonActions = { vm.toggleButtonActions() },
+        )
+    }
+}

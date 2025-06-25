@@ -16,6 +16,7 @@ import eu.darken.butler.main.ui.settings.acknowledgements.AcknowledgementsScreen
 import eu.darken.butler.main.ui.settings.general.GeneralSettingsScreenHost
 import eu.darken.butler.main.ui.settings.support.SupportScreenHost
 import eu.darken.butler.searcher.ui.settings.SearcherSettingsScreenHost
+import eu.darken.butler.workspace.ui.settings.WorkspaceSettingsScreenHost
 import javax.inject.Inject
 
 class SettingsNavigation @Inject constructor() : NavigationEntry {
@@ -40,6 +41,9 @@ class SettingsNavigation @Inject constructor() : NavigationEntry {
         }
         entry<AppNav.Settings.Acknowledgements> {
             AcknowledgementsScreenHost()
+        }
+        entry<AppNav.Settings.Workspace> {
+            WorkspaceSettingsScreenHost()
         }
     }
 

@@ -60,6 +60,14 @@
     <string name="motd_check_enabled_setting_title">Check for messages of the day</string>
     <string name="motd_check_enabled_setting_description">Allow Butler to fetch important messages from the developer.</string>
 
+    <string name="confirm_exit_setting_title">Confirm exit</string>
+    <string name="confirm_exit_setting_description">Show a confirmation dialog when exiting the app</string>
+    <string name="confirm_exit_dialog_title">Exit Butler?</string>
+    <string name="confirm_exit_dialog_message">Are you sure you want to exit the app?</string>
+    <string name="confirm_exit_dialog_exit">Exit</string>
+    <string name="confirm_exit_dialog_cancel">Cancel</string>
+    <string name="confirm_exit_dialog_dont_ask_again">Don\'t ask again</string>
+
     <string name="settings_support_label">Support</string>
     <string name="settings_support_description">Read documentation, report issues, chat with others or record debug logs.</string>
     <string name="settings_support_wiki_label">Documentation</string>
@@ -110,6 +118,11 @@
     <string name="workspace_templates_tab_title">New</string>
     <string name="workspace_templates_choose_title">New workspace</string>
     <string name="workspace_templates_choose_subtitle">Select a workspace type. How can I help?</string>
+
+    <string name="workspace_settings_title">Workspace Settings</string>
+    <string name="workspace_settings_button_behavior">Button Behavior</string>
+    <string name="workspace_settings_flip_button_actions_title">Flip Button Actions</string>
+    <string name="workspace_settings_flip_button_actions_desc">Normal click creates new workspace, long click opens manager</string>
 
     <!-- Explorer -->
     <string name="explorer_title">Explorer</string>

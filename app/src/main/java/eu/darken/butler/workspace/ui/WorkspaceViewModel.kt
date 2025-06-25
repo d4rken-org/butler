@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.ui
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -12,6 +13,7 @@ import eu.darken.butler.common.upgrade.UpgradeRepo
 import eu.darken.butler.main.ui.AppNav
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceRepo
+import eu.darken.butler.workspace.core.WorkspaceSettings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -29,6 +31,7 @@ class WorkspaceViewModel @Inject constructor(
     private val navCtrl: NavigationController,
     upgradeRepo: UpgradeRepo,
     private val workspaceRepo: WorkspaceRepo,
+    private val workspaceSettings: WorkspaceSettings,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Screen","VM"), navCtrl) {
 
     private val tabLock = Mutex()
@@ -52,11 +55,13 @@ class WorkspaceViewModel @Inject constructor(
         currentTabs,
         selectedTabId,
         upgradeRepo.upgradeInfo,
-    ) { tabs, selectedTabId, upgradeInfo ->
+        workspaceSettings.isButtonActionsFlipped.flow,
+    ) { tabs, selectedTabId, upgradeInfo, isButtonActionsFlipped ->
         State(
             tabs = tabs,
             selected = selectedTabId,
-            isUpgraded = upgradeInfo.isUpgraded
+            isUpgraded = upgradeInfo.isUpgraded,
+            isButtonActionsFlipped = isButtonActionsFlipped
         )
     }.asStateFlow()
 
@@ -146,10 +151,17 @@ class WorkspaceViewModel @Inject constructor(
         navCtrl.goTo(AppNav.Main.WorkspaceManager)
     }
 
+    fun toggleButtonActions() = launch {
+        log(tag) { "toggleButtonActions()" }
+        val current = workspaceSettings.isButtonActionsFlipped.value()
+        workspaceSettings.isButtonActionsFlipped.value(!current)
+    }
+
     data class State(
         val tabs: List<WorkspaceTab>,
         val selected: Workspace.Id?,
         val isUpgraded: Boolean,
+        val isButtonActionsFlipped: Boolean = false,
     ) {
         val current: WorkspaceTab?
             get() = tabs.firstOrNull { it.id == selected }
