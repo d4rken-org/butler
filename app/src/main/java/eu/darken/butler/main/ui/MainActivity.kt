@@ -40,6 +40,7 @@ import eu.darken.butler.common.theming.MyAppTheme
 import eu.darken.butler.common.theming.ThemeState
 import eu.darken.butler.common.ui.Activity2
 import eu.darken.butler.main.core.CurriculumVitae
+import eu.darken.butler.main.core.GeneralSettings
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -50,7 +51,7 @@ class MainActivity : Activity2() {
     @Inject lateinit var curriculumVitae: CurriculumVitae
     @Inject lateinit var navCtrl: NavigationController
     @Inject lateinit var navigationEntries: Set<@JvmSuppressWildcards NavigationEntry>
-    @Inject lateinit var generalSettings: eu.darken.butler.main.core.GeneralSettings
+    @Inject lateinit var generalSettings: GeneralSettings
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()

@@ -1,6 +1,7 @@
 package eu.darken.butler.workspace.ui.manager
 
 import dagger.hilt.android.lifecycle.HiltViewModel
+import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -74,7 +75,7 @@ class WorkspaceManagerViewModel @Inject constructor(
     data class WorkspaceItem(
         val id: Workspace.Id,
         val type: Workspace.Type,
-        val title: eu.darken.butler.common.ca.CaString,
+        val title: CaString,
         val subtitle: String,
     )
 }

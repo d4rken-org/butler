@@ -15,4 +15,5 @@ build/
 .cxx
 .DS_Store
 .kotlin/sessions
+.kotlin/errors
 worktree-*

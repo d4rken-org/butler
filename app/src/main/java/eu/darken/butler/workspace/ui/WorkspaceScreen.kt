@@ -21,15 +21,14 @@ import androidx.compose.runtime.LaunchedEffect
 
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
+import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 
 import eu.darken.butler.common.compose.Preview2
@@ -182,13 +181,13 @@ private fun WorkspaceButton(
         // Normal mode: normal click opens manager, long click adds workspace
         { onNavToWorkspaceManager() } to { onTabAction(TabAction.Create()) }
     }
-    
+
     val icon = if (isButtonActionsFlipped) {
         Icons.TwoTone.AddCircle
     } else {
         Icons.TwoTone.Workspaces
     }
-    
+
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
@@ -259,7 +258,7 @@ private fun WorkspaceScreenPreview() {
             WorkspaceTab(
                 type = Workspace.Type.EXPLORER,
                 id = Workspace.Id(),
-                title = R.string.explorer_title.toCaString(),
+                title = caString { "Explorer" },
             ),
         )
         WorkspaceScreen(

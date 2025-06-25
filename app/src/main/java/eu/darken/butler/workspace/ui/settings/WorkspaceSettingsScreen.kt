@@ -23,8 +23,8 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
-import eu.darken.butler.main.ui.settings.common.SettingsCategoryHeader
-import eu.darken.butler.main.ui.settings.common.SettingsSwitchItem
+import eu.darken.butler.common.settings.SettingsCategoryHeader
+import eu.darken.butler.common.settings.SettingsSwitchItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

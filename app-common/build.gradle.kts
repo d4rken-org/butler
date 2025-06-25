@@ -6,6 +6,8 @@ plugins {
     id("com.google.devtools.ksp")
     id("kotlin-kapt")
     id("projectConfig")
+    id("org.jetbrains.kotlin.plugin.compose")
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 apply(plugin = "dagger.hilt.android.plugin")
@@ -31,6 +33,11 @@ android {
             setupTestLogging()
         }
     }
+
+    buildFeatures {
+        buildConfig = true
+        compose = true
+    }
 }
 
 dependencies {
@@ -45,6 +52,7 @@ dependencies {
     addIO()
     addTesting()
 
+    addNavigation3()
     addCoil()
     addLottie()
 }
