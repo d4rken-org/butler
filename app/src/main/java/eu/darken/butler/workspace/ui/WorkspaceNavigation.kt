@@ -10,12 +10,16 @@ import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import eu.darken.butler.common.navigation.NavigationEntry
 import eu.darken.butler.main.ui.AppNav
+import eu.darken.butler.workspace.ui.manager.WorkspaceManagerScreenHost
 import javax.inject.Inject
 
 class WorkspaceNavigation @Inject constructor() : NavigationEntry {
     override fun EntryProviderBuilder<NavKey>.setup() {
         entry<AppNav.Main.Workspace> {
             WorkspaceScreenHost()
+        }
+        entry<AppNav.Main.WorkspaceManager> {
+            WorkspaceManagerScreenHost()
         }
     }
 

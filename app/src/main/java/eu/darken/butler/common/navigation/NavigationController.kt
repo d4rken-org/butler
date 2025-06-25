@@ -19,8 +19,13 @@ class NavigationController @Inject constructor() {
     }
 
     fun up(): Boolean {
+        // Don't remove the last element to prevent empty backstack
+        if (backStack.size <= 1) {
+            log(TAG) { "up() prevented removing the last element in backstack" }
+            return false
+        }
         val removed = backStack.removeLastOrNull()
-        log(TAG) { "up() to ${backStack.last()} (removed $removed)" }
+        log(TAG) { "up() to ${backStack.lastOrNull()} (removed $removed)" }
         return removed != null
     }
 
@@ -30,7 +35,7 @@ class NavigationController @Inject constructor() {
         inclusive: Boolean = false
     ) {
         log(TAG) { "goTo($destination, popUpTo=$popUpTo, inclusive=$inclusive)" }
-        
+
         if (popUpTo != null) {
             while (backStack.isNotEmpty() && backStack.last() != popUpTo) {
                 val removed = backStack.removeLastOrNull()
@@ -42,7 +47,7 @@ class NavigationController @Inject constructor() {
                 log(TAG) { "Popping $removed (inclusive)" }
             }
         }
-        
+
         backStack.add(destination)
     }
 

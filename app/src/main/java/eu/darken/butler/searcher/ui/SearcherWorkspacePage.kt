@@ -42,6 +42,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.WorkspaceButtonSpacer
 
 sealed class SearchResult(
     open val name: String,
@@ -135,11 +136,22 @@ fun SearcherWorkspacePage(
         }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        SearchBar(
-            query = searchQuery,
-            onQueryChange = { searchQuery = it },
-            modifier = Modifier.padding(16.dp)
-        )
+        // Search bar with spacer for floating button
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
+        ) {
+            SearchBar(
+                query = searchQuery,
+                onQueryChange = { searchQuery = it },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(16.dp)
+            )
+            
+            WorkspaceButtonSpacer()
+        }
 
         when {
             searchQuery.isBlank() -> {

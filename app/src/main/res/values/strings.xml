@@ -99,6 +99,7 @@
     <string name="storage_area_public_app_data_label">Public app data</string>
 
     <!-- Workspace -->
+    <string name="workspace_manager_title">Manage Workspaces</string>
     <string name="workspace_tab_close_action">Close tab</string>
     <string name="workspace_tab_add_action">Create a new tab</string>
     <string name="workspace_tab_add_hint">Work in parallel: Create a tab and turn it into a tool of your choice.</string>

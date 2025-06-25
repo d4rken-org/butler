@@ -15,6 +15,7 @@ import eu.darken.butler.workspace.core.WorkspaceRepo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
@@ -31,9 +32,9 @@ class WorkspaceViewModel @Inject constructor(
 ) : ViewModel4(dispatchers, logTag("Workspace", "Screen","VM"), navCtrl) {
 
     private val tabLock = Mutex()
-    private val currentTabs = workspaceRepo.infos
-        .map { infos ->
-            infos.map {
+    private val currentTabs = workspaceRepo.state
+        .map { state ->
+            state.workspaceInfos.map {
                 WorkspaceTab(
                     id = it.id,
                     type = it.type,
@@ -58,6 +59,21 @@ class WorkspaceViewModel @Inject constructor(
             isUpgraded = upgradeInfo.isUpgraded
         )
     }.asStateFlow()
+
+    init {
+        // Observe workspace selection from WorkspaceManagerViewModel
+        workspaceRepo.state
+            .map { it.selectedWorkspaceId }
+            .onEach { workspaceId ->
+                if (workspaceId != null) {
+                    log(tag) { "External workspace selection: $workspaceId" }
+                    selectedTabId.value = workspaceId
+                    // Clear the selection to avoid re-triggering
+                    workspaceRepo.clearSelectedWorkspace()
+                }
+            }
+            .launchIn(vmScope)
+    }
 
     fun modifyTab(
         action: TabAction,
@@ -92,7 +108,7 @@ class WorkspaceViewModel @Inject constructor(
                     val tabsBeforeDelete = currentTabs.first()
                     val closingIndex = tabsBeforeDelete.indexOfFirst { it.id == action.id }
                     val wasSelected = selectedTabId.value == action.id
-                    
+
                     workspaceRepo.delete(action.id)
                     val tabsAfterDelete = tabsBeforeDelete - tabsBeforeDelete[closingIndex]
 
@@ -112,6 +128,10 @@ class WorkspaceViewModel @Inject constructor(
                         selectedTabId.value = null
                     }
                 }
+                is TabAction.Reorder -> {
+                    log(tag) { "Reordering workspaces: ${action.workspaceIds}" }
+                    workspaceRepo.reorder(action.workspaceIds)
+                }
             }
         }
     }
@@ -119,6 +139,11 @@ class WorkspaceViewModel @Inject constructor(
     fun upgradeButler() = launch {
         log(tag) { "upgradeButler()" }
         navCtrl.goTo(AppNav.Main.Upgrade)
+    }
+
+    fun navToWorkspaceManager() {
+        log(tag) { "navToWorkspaceManager()" }
+        navCtrl.goTo(AppNav.Main.WorkspaceManager)
     }
 
     data class State(

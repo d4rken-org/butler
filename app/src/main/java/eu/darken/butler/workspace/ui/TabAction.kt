@@ -16,4 +16,8 @@ sealed interface TabAction {
     data class Close(
         val id: Workspace.Id,
     ) : TabAction
+
+    data class Reorder(
+        val workspaceIds: List<Workspace.Id>,
+    ) : TabAction
 }

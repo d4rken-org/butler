@@ -18,14 +18,11 @@ abstract class ViewModel4(
         inclusive: Boolean = false
     ) {
         log(tag) { "goTo($destination)" }
-        if (destination == null) {
-            navCtrl.up()
-        } else {
-            navCtrl.goTo(destination, popUpTo, inclusive)
-        }
+        navCtrl.goTo(destination, popUpTo, inclusive)
     }
 
     fun navUp() {
+        log(tag) { "navUp()" }
         navCtrl.up()
     }
 

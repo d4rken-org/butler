@@ -11,6 +11,9 @@ object AppNav {
         data object Workspace : Main
 
         @Serializable
+        data object WorkspaceManager : Main
+
+        @Serializable
         data object Onboarding : Main
 
         @Serializable

@@ -37,6 +37,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.WorkspaceButtonSpacer
 
 @Composable
 fun ExplorerWorkspacePageHost(
@@ -145,17 +146,25 @@ fun ExplorerWorkspacePage(
     var navigationHistory by remember(initialHistory) { mutableStateOf(initialHistory) }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Path display
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+        // Path display with spacer for floating button
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
         ) {
-            Text(
-                text = "Current path: $currentPath",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(16.dp)
-            )
+            Card(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "Current path: $currentPath",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+            
+            WorkspaceButtonSpacer()
         }
 
         // Back navigation

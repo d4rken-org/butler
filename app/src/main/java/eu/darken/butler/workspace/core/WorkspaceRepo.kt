@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.core
 
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.editor.core.EditorWorkspace
@@ -25,13 +26,30 @@ class WorkspaceRepo @Inject constructor(
 ) {
     private val lock = Mutex()
     private val _workspaces = MutableStateFlow<List<Workspace>>(emptyList())
-    val infos: Flow<List<Workspace.Info>> = _workspaces.flatMapLatest { workspaces ->
+    private val _selectedWorkspaceId = MutableStateFlow<Workspace.Id?>(null)
+    private val selectedWorkspaceId: Flow<Workspace.Id?> = _selectedWorkspaceId
+    private val infos: Flow<List<Workspace.Info>> = _workspaces.flatMapLatest { workspaces ->
         if (workspaces.isEmpty()) {
             flowOf(emptyList())
         } else {
             val infoFlows = workspaces.map { it.info }
             combine(infoFlows) { infos -> infos.toList() }
         }
+    }
+
+    data class State(
+        val workspaceInfos: List<Workspace.Info> = emptyList(),
+        val selectedWorkspaceId: Workspace.Id? = null
+    )
+
+    val state: Flow<State> = combine(
+        infos,
+        selectedWorkspaceId
+    ) { workspaceInfos, selectedId ->
+        State(
+            workspaceInfos = workspaceInfos,
+            selectedWorkspaceId = selectedId
+        )
     }
 
     suspend fun create(
@@ -84,6 +102,31 @@ class WorkspaceRepo @Inject constructor(
     suspend fun delete(id: Workspace.Id) = lock.withLock {
         log(TAG) { "delete($id)" }
         _workspaces.value = _workspaces.value.filter { it.id != id }
+    }
+
+    suspend fun reorder(workspaceIds: List<Workspace.Id>) = lock.withLock {
+        log(TAG) { "reorder($workspaceIds)" }
+        val current = _workspaces.value
+        val reordered = workspaceIds.mapNotNull { id ->
+            current.find { it.id == id }
+        }
+
+        if (reordered.size != current.size) {
+            log(TAG, ERROR) { "Reorder failed: size mismatch. Expected ${current.size}, got ${reordered.size}" }
+            return@withLock
+        }
+
+        _workspaces.value = reordered
+    }
+
+    suspend fun selectWorkspace(id: Workspace.Id) = lock.withLock {
+        log(TAG) { "selectWorkspace($id)" }
+        _selectedWorkspaceId.value = id
+    }
+
+    suspend fun clearSelectedWorkspace() = lock.withLock {
+        log(TAG) { "clearSelectedWorkspace()" }
+        _selectedWorkspaceId.value = null
     }
 
     companion object {

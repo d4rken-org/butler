@@ -1,36 +1,25 @@
 package eu.darken.butler.workspace.ui
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.twotone.AddCircle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -40,7 +29,6 @@ import eu.darken.butler.R
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -53,7 +41,6 @@ import eu.darken.butler.searcher.ui.SearcherWorkspacePageHost
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.empty.EmptyWorkspaceContent
 import eu.darken.butler.workspace.ui.template.TemplatesWorkspacePageHost
-import kotlinx.coroutines.launch
 
 private val TAG = logTag("Workspace", "Screen")
 
@@ -69,7 +56,8 @@ fun WorkspaceScreenHost(vm: WorkspaceViewModel = hiltViewModel()) {
             state = state,
             onNavToSettings = { vm.navTo(AppNav.Main.Settings) },
             onTabAction = { vm.modifyTab(it) },
-            onUpgradeButler = { vm.upgradeButler() }
+            onUpgradeButler = { vm.upgradeButler() },
+            onNavToWorkspaceManager = { vm.navToWorkspaceManager() }
         )
     }
 }
@@ -80,6 +68,7 @@ fun WorkspaceScreen(
     onNavToSettings: () -> Unit,
     onTabAction: (TabAction) -> Unit,
     onUpgradeButler: () -> Unit,
+    onNavToWorkspaceManager: () -> Unit,
 ) {
     val pagerState = rememberPagerState(pageCount = { state.tabs.size })
 
@@ -129,144 +118,73 @@ fun WorkspaceScreen(
     }
 
     Scaffold(
-        topBar = {
-            TabBar(
-                tabs = state.tabs,
-                selectedTabId = state.selected,
-                onTabAction = onTabAction,
-            )
-        }
+        modifier = Modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        if (state.tabs.isNotEmpty()) {
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            ) { page ->
-                TabContent(
-                    modifier = Modifier.fillMaxSize(),
-                    selected = state.tabs[page],
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (state.tabs.isNotEmpty()) {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                ) { page ->
+                    TabContent(
+                        modifier = Modifier.fillMaxSize(),
+                        selected = state.tabs[page],
+                        onTabAction = onTabAction,
+                    )
+                }
+            } else {
+                EmptyWorkspaceContent(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    onNavToSettings = onNavToSettings,
                     onTabAction = onTabAction,
+                    isUpgraded = state.isUpgraded,
+                    onUpgradeButler = onUpgradeButler,
                 )
             }
-        } else {
-            EmptyWorkspaceContent(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                onNavToSettings = onNavToSettings,
-                onTabAction = onTabAction,
-                isUpgraded = state.isUpgraded,
-                onUpgradeButler = onUpgradeButler,
-            )
+
+            // Workspace add button
+            if (state.tabs.isNotEmpty()) {
+                WorkspaceButton(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                        .statusBarsPadding(),
+                    onTabAction = onTabAction,
+                    onLongClick = onNavToWorkspaceManager
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun TabBar(
-    tabs: List<WorkspaceTab>,
-    selectedTabId: Workspace.Id?,
+private fun WorkspaceButton(
+    modifier: Modifier = Modifier,
     onTabAction: (TabAction) -> Unit,
-) {
-    val listState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
-
-    // Auto-scroll to selected tab
-    LaunchedEffect(selectedTabId, tabs.size) {
-        if (selectedTabId == null) return@LaunchedEffect
-        val selectedIndex = tabs.indexOfFirst { it.id == selectedTabId }
-        if (selectedIndex < 0) return@LaunchedEffect
-
-        coroutineScope.launch {
-            // Scroll to make the selected tab prominently visible, use a small offset to avoid edge positioning
-            listState.animateScrollToItem(
-                index = selectedIndex,
-                scrollOffset = -50, // Small negative offset to show some padding
-            )
-            log(TAG) { "Auto-scrolled tab bar to selected tab at index $selectedIndex" }
-        }
-    }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        LazyRow(
-            modifier = Modifier.weight(1f),
-            state = listState,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            items(tabs) { tab ->
-                TabItem(
-                    tab = tab,
-                    isSelected = tab.id == selectedTabId,
-                    onSelect = { onTabAction(TabAction.Select(tab.id)) },
-                    onClose = { onTabAction(TabAction.Close(tab.id)) },
-                )
-            }
-        }
-        if (tabs.isNotEmpty()) {
-            IconButton(onClick = { onTabAction(TabAction.Create()) }) {
-                Icon(
-                    imageVector = Icons.TwoTone.AddCircle,
-                    tint = MaterialTheme.colorScheme.primary,
-                    contentDescription = stringResource(R.string.workspace_tab_add_action)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun TabItem(
-    tab: WorkspaceTab,
-    isSelected: Boolean,
-    onSelect: () -> Unit,
-    onClose: () -> Unit
+    onLongClick: () -> Unit,
 ) {
     Card(
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) {
-                MaterialTheme.colorScheme.primaryContainer
-            } else {
-                MaterialTheme.colorScheme.surface
-            }
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.95f)
         ),
-        modifier = Modifier.clickable { onSelect() }
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        modifier = modifier.combinedClickable(
+            onClick = { onTabAction(TabAction.Create()) },
+            onLongClick = onLongClick
+        )
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = tab.title.asComposable(),
-                style = MaterialTheme.typography.bodyMedium,
-                color = if (isSelected) {
-                    MaterialTheme.colorScheme.onPrimaryContainer
-                } else {
-                    MaterialTheme.colorScheme.onSurface
-                },
-                modifier = Modifier.padding(end = 6.dp)
-            )
-            IconButton(onClick = onClose, modifier = Modifier.size(16.dp)) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = stringResource(R.string.workspace_tab_close_action),
-                    tint = if (isSelected) {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    },
-                    modifier = Modifier.size(12.dp)
-                )
-            }
-        }
+        Icon(
+            imageVector = Icons.TwoTone.AddCircle,
+            contentDescription = stringResource(R.string.workspace_tab_add_action),
+            tint = MaterialTheme.colorScheme.onTertiaryContainer,
+            modifier = Modifier.padding(12.dp)
+        )
     }
 }
 
@@ -301,7 +219,8 @@ private fun EmptyWorkspaceScreenPreview() {
             ),
             onNavToSettings = {},
             onTabAction = {},
-            onUpgradeButler = {}
+            onUpgradeButler = {},
+            onNavToWorkspaceManager = {}
         )
     }
 }
@@ -330,7 +249,8 @@ private fun WorkspaceScreenPreview() {
             ),
             onNavToSettings = {},
             onTabAction = {},
-            onUpgradeButler = {}
+            onUpgradeButler = {},
+            onNavToWorkspaceManager = {}
         )
     }
 }
