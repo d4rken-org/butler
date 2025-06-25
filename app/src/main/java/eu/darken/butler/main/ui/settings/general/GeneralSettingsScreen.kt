@@ -50,6 +50,7 @@ fun GeneralSettingsScreen(
     onThemeStyleSelected: (ThemeStyle) -> Unit,
     onUpdateCheckEnabledChange: (Boolean) -> Unit,
     onMotdEnabledChange: (Boolean) -> Unit,
+    onConfirmExitEnabledChange: (Boolean) -> Unit,
 ) {
     val context = LocalContext.current
     var showThemeModeDialog by remember { mutableStateOf(false) }
@@ -120,6 +121,17 @@ fun GeneralSettingsScreen(
                     )
                     SettingsDivider()
                 }
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.Default.Notifications,
+                    title = stringResource(R.string.confirm_exit_setting_title),
+                    subtitle = stringResource(R.string.confirm_exit_setting_description),
+                    checked = state.confirmExitEnabled,
+                    onCheckedChange = onConfirmExitEnabledChange
+                )
+                SettingsDivider()
             }
 
             item {
@@ -202,6 +214,7 @@ private fun GeneralSettingsScreenPreview() {
             onThemeStyleSelected = {},
             onUpdateCheckEnabledChange = {},
             onMotdEnabledChange = {},
+            onConfirmExitEnabledChange = {},
         )
     }
 }
@@ -222,6 +235,7 @@ fun GeneralSettingsScreenHost(vm: GeneralSettingsViewModel = hiltViewModel()) {
             onThemeStyleSelected = { vm.updateThemeStyle(it) },
             onUpdateCheckEnabledChange = { vm.updateUpdateCheckEnabled(it) },
             onMotdEnabledChange = { vm.updateMotdEnabled(it) },
+            onConfirmExitEnabledChange = { vm.updateConfirmExitEnabled(it) },
         )
     }
 }

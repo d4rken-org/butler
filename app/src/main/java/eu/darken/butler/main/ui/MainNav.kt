@@ -41,5 +41,8 @@ object AppNav {
 
         @Serializable
         data object Acknowledgements : Settings
+
+        @Serializable
+        data object Workspace : Settings
     }
 }

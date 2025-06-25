@@ -6,6 +6,7 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.locale.LocaleManager
 import eu.darken.butler.common.navigation.NavigationController
@@ -16,9 +17,8 @@ import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.motd.MotdSettings
-import javax.inject.Inject
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
+import javax.inject.Inject
 
 @HiltViewModel
 class GeneralSettingsViewModel
@@ -37,14 +37,15 @@ constructor(
         generalSettings.usePreviews.flow,
         generalSettings.isUpdateCheckEnabled.flow,
         motdSettings.isMotdEnabled.flow,
-    ) { themeState, languageSwitcher, usePreviews, updateCheckEnabled, motdEnabled
-        ->
+        generalSettings.isConfirmExitEnabled.flow,
+    ) { themeState, languageSwitcher, usePreviews, updateCheckEnabled, motdEnabled, confirmExitEnabled ->
         State(
             themeState = themeState,
             filePreviews = usePreviews,
             showLanguageSwitcher = languageSwitcher,
             updateCheckEnabled = updateCheckEnabled,
             motdEnabled = motdEnabled,
+            confirmExitEnabled = confirmExitEnabled,
         )
     }
         .asStateFlow()
@@ -84,11 +85,17 @@ constructor(
         motdSettings.isMotdEnabled.value(enabled)
     }
 
+    fun updateConfirmExitEnabled(enabled: Boolean) = launch {
+        log(tag) { "updateConfirmExitEnabled($enabled)" }
+        generalSettings.isConfirmExitEnabled.value(enabled)
+    }
+
     data class State(
         val themeState: ThemeState = ThemeState(),
         val filePreviews: Boolean = false,
         val showLanguageSwitcher: Boolean = false,
         val updateCheckEnabled: Boolean = false,
         val motdEnabled: Boolean = false,
+        val confirmExitEnabled: Boolean = true,
     )
 }

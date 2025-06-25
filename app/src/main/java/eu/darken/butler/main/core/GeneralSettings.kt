@@ -41,6 +41,8 @@ class GeneralSettings @Inject constructor(
 
     val isUpdateCheckEnabled = dataStore.createValue("updater.check.enabled", updateChecker.isEnabledByDefault())
 
+    val isConfirmExitEnabled = dataStore.createValue("core.confirm.exit.enabled", true)
+
     override val mapper = PreferenceStoreMapper(
         debugSettings.isDebugMode,
         themeMode,
@@ -48,6 +50,7 @@ class GeneralSettings @Inject constructor(
         usePreviews,
         motdSettings.isMotdEnabled,
         isUpdateCheckEnabled,
+        isConfirmExitEnabled,
     )
 
     companion object {
