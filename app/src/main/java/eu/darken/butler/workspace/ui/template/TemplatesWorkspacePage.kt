@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -344,12 +343,12 @@ private fun CompactTabPillsRow(
 
     val hiddenCount = (tabs.size - visibleTabs.size).coerceAtLeast(0)
 
-    LazyRow(
+    Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        items(visibleTabs) { tab ->
+        visibleTabs.forEach { tab ->
             CompactTabPill(
                 tab = tab,
                 isSelected = tab.id == selectedTabId,
@@ -361,12 +360,10 @@ private fun CompactTabPillsRow(
         }
 
         if (hiddenCount > 0) {
-            item {
-                MoreTabsPill(
-                    count = hiddenCount,
-                    onClick = onNavToWorkspaceManager
-                )
-            }
+            MoreTabsPill(
+                count = hiddenCount,
+                onClick = onNavToWorkspaceManager
+            )
         }
     }
 }
