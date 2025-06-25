@@ -3,7 +3,7 @@ package eu.darken.butler.searcher.ui
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.graphics.vector.ImageVector
-import eu.darken.butler.R
+import eu.darken.butler.searcher.R
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.workspace.core.Workspace

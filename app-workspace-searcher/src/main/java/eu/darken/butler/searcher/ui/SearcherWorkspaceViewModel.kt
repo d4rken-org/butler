@@ -1,4 +1,4 @@
-package eu.darken.butler.editor.ui
+package eu.darken.butler.searcher.ui
 
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -9,17 +9,15 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.WorkspaceRepo
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 
-@HiltViewModel(assistedFactory = EditorWorkspaceViewModel.Factory::class)
-class EditorWorkspaceViewModel @AssistedInject constructor(
+@HiltViewModel(assistedFactory = SearcherWorkspaceViewModel.Factory::class)
+class SearcherWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
     dispatchers: DispatcherProvider,
     navCtrl: NavigationController,
-    private val workspaceRepo: WorkspaceRepo,
-) : ViewModel4(dispatchers, logTag("Workspace", "Editor", id.shortTag, "Page"), navCtrl) {
+) : ViewModel4(dispatchers, logTag("Workspace", "Searcher", id.shortTag, "Page"), navCtrl) {
 
     val state = combine(
         flowOf(Unit),
@@ -36,6 +34,6 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(id: Workspace.Id): EditorWorkspaceViewModel
+        fun create(id: Workspace.Id): SearcherWorkspaceViewModel
     }
 }

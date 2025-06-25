@@ -189,6 +189,8 @@ dependencies {
     implementation(project(":app-common-shell"))
     implementation(project(":app-workspace"))
     implementation(project(":app-workspace-explorer"))
+    implementation(project(":app-workspace-searcher"))
+    implementation(project(":app-workspace-editor"))
 
     addDI()
     addCoroutines()

@@ -3,7 +3,7 @@ package eu.darken.butler.editor.ui
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.ui.graphics.vector.ImageVector
-import eu.darken.butler.R
+import eu.darken.butler.editor.R
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.workspace.core.Workspace
