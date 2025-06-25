@@ -41,6 +41,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.Slogans
+import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
@@ -414,7 +415,7 @@ private fun TemplatesWorkspacePagePreview() {
                     WorkspaceTab(
                         type = Workspace.Type.EXPLORER,
                         id = Workspace.Id(),
-                        title = R.string.explorer_title.toCaString(),
+                        title = caString { "Explorer" },
                     ),
                 ),
                 selectedTabId = workspaceId,

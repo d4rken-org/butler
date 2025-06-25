@@ -32,9 +32,9 @@ import eu.darken.butler.common.debug.recorder.ui.RecorderConsentDialog
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.core.local.File
 import eu.darken.butler.common.ui.waitForState
-import eu.darken.butler.main.ui.settings.common.SettingsCategoryHeader
-import eu.darken.butler.main.ui.settings.common.SettingsDivider
-import eu.darken.butler.main.ui.settings.common.SettingsPreferenceItem
+import eu.darken.butler.common.settings.SettingsCategoryHeader
+import eu.darken.butler.common.settings.SettingsDivider
+import eu.darken.butler.common.settings.SettingsPreferenceItem
 
 @Composable
 fun SupportScreenHost(vm: SupportScreenViewModel = hiltViewModel()) {

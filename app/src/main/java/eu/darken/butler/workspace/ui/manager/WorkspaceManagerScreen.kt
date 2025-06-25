@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
@@ -48,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
@@ -235,7 +237,7 @@ fun WorkspaceManagerScreen(
                     color = Color.Transparent,
                     radius = revealRadius.value,
                     center = Offset(buttonX, buttonY),
-                    blendMode = androidx.compose.ui.graphics.BlendMode.Clear
+                    blendMode = BlendMode.Clear
                 )
             }
         }
@@ -303,7 +305,7 @@ private fun WorkspaceListItem(
     onSelect: () -> Unit,
     isDragging: Boolean = false,
     onDragStart: () -> Unit = {},
-    onDrag: (androidx.compose.ui.geometry.Offset) -> Unit = {},
+    onDrag: (Offset) -> Unit = {},
     onDragEnd: () -> Unit = {},
 ) {
     Card(
@@ -360,7 +362,7 @@ private fun WorkspaceListItem(
                         .size(36.dp)
                         .background(
                             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                            shape = androidx.compose.foundation.shape.CircleShape
+                            shape = CircleShape
                         )
                 )
 

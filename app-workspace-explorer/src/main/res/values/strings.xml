@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">Explorer</string>
+    <string name="explorer_subtitle">Browse files and directories</string>
+    <string name="explorer_settings_title">Explorer Settings</string>
+    <string name="explorer_settings_file_display">File Display</string>
+</resources>

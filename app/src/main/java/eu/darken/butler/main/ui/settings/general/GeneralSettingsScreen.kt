@@ -33,11 +33,11 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.theming.ThemeMode
 import eu.darken.butler.common.theming.ThemeStyle
 import eu.darken.butler.common.ui.waitForState
-import eu.darken.butler.main.ui.settings.common.EnumSelectorDialog
-import eu.darken.butler.main.ui.settings.common.SettingsCategoryHeader
-import eu.darken.butler.main.ui.settings.common.SettingsDivider
-import eu.darken.butler.main.ui.settings.common.SettingsPreferenceItem
-import eu.darken.butler.main.ui.settings.common.SettingsSwitchItem
+import eu.darken.butler.common.settings.EnumSelectorDialog
+import eu.darken.butler.common.settings.SettingsCategoryHeader
+import eu.darken.butler.common.settings.SettingsDivider
+import eu.darken.butler.common.settings.SettingsPreferenceItem
+import eu.darken.butler.common.settings.SettingsSwitchItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
