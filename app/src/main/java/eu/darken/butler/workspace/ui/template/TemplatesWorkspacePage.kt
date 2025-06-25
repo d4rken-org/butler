@@ -19,8 +19,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -55,8 +55,8 @@ import eu.darken.butler.explorer.ui.ExplorerWorkspaceTemplate
 import eu.darken.butler.main.ui.AppNav
 import eu.darken.butler.searcher.ui.SearcherWorkspaceTemplate
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.WorkspaceButtonSpacer
 import eu.darken.butler.workspace.ui.TabAction
+import eu.darken.butler.workspace.ui.WorkspaceButtonSpacer
 import eu.darken.butler.workspace.ui.WorkspaceTab
 
 @Composable
@@ -77,6 +77,7 @@ fun TemplatesWorkspacePageHost(
             state = state,
             onTabAction = onTabAction,
             onNavToSettings = { vm.navTo(AppNav.Main.Settings) },
+            onNavToWorkspaceManager = { vm.navTo(AppNav.Main.WorkspaceManager) },
         )
     }
 }
@@ -86,133 +87,143 @@ fun TemplatesWorkspacePage(
     state: TemplatesWorkspaceViewModel.State,
     onTabAction: (TabAction) -> Unit,
     onNavToSettings: () -> Unit,
+    onNavToWorkspaceManager: () -> Unit,
 ) {
     val randomSlogan = remember { Slogans.random }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.SpaceBetween
-    ) {
-        Column {
-            // Workspace tabs section - always visible
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Compact tab pills row
+        if (state.workspaceTabs.isNotEmpty()) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 16.dp), // Match workspace button padding
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
                     Text(
-                        text = "Open Workspaces",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        text = "Open workspaces",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 4.dp),
                     )
-                    
-                    WorkspaceTabsSection(
+
+                    CompactTabPillsRow(
                         tabs = state.workspaceTabs,
                         selectedTabId = state.selectedTabId,
                         onTabAction = onTabAction,
-                        modifier = Modifier.padding(bottom = 24.dp)
+                        onNavToWorkspaceManager = onNavToWorkspaceManager
                     )
                 }
-                
+
                 WorkspaceButtonSpacer()
-            }
-            
-            Text(
-                text = stringResource(R.string.workspace_templates_choose_title),
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            Text(
-                text = stringResource(R.string.workspace_templates_choose_subtitle),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                modifier = Modifier.padding(bottom = 24.dp)
-            )
-
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalAlignment = Alignment.Start
-            ) {
-                items(state.templates.size) { index ->
-                    val template = state.templates[index]
-                    val isFirstItem = index == 0
-
-                    TemplateCard(
-                        template = template,
-                        isFirstItem = isFirstItem,
-                        onClick = {
-                            onTabAction(
-                                TabAction.Create(
-                                    type = template.type,
-                                    arguments = template.arguments,
-                                    replace = state.id
-                                )
-                            )
-                        })
-                }
             }
         }
 
-        Spacer(modifier = Modifier.weight(1f))
-
-        Card(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp), colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-            )
+                .fillMaxSize()
+                .padding(horizontal = 24.dp, vertical = 16.dp),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(
-                modifier = Modifier
-                    .clickable { onNavToSettings() }
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.mascot),
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp)
+            Column {
+                Text(
+                    text = stringResource(R.string.workspace_templates_choose_title),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Text(
+                    text = stringResource(R.string.workspace_templates_choose_subtitle),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    modifier = Modifier.padding(bottom = 24.dp)
                 )
 
-                Column(modifier = Modifier.weight(1f)) {
-                    if (state.isUpgraded) {
-                        ColoredTitleText(
-                            fullTitle = stringResource(R.string.app_name_upgraded),
-                            postfix = stringResource(R.string.app_name_upgrade_postfix),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                    } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    items(state.templates.size) { index ->
+                        val template = state.templates[index]
+                        val isFirstItem = index == 0
+
+                        TemplateCard(
+                            template = template,
+                            isFirstItem = isFirstItem,
+                            onClick = {
+                                onTabAction(
+                                    TabAction.Create(
+                                        type = template.type,
+                                        arguments = template.arguments,
+                                        replace = state.id
+                                    )
+                                )
+                            })
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp), colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .clickable { onNavToSettings() }
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.mascot),
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp)
+                    )
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        if (state.isUpgraded) {
+                            ColoredTitleText(
+                                fullTitle = stringResource(R.string.app_name_upgraded),
+                                postfix = stringResource(R.string.app_name_upgrade_postfix),
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                        } else {
+                            Text(
+                                text = stringResource(eu.darken.butler.common.R.string.app_name),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
                         Text(
-                            text = stringResource(eu.darken.butler.common.R.string.app_name),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary,
+                            text = randomSlogan.get(LocalContext.current),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = BuildConfigWrap.VERSION_DESCRIPTION_SHORT,
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(top = 2.dp),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         )
                     }
-                    Text(
-                        text = randomSlogan.get(LocalContext.current),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = BuildConfigWrap.VERSION_DESCRIPTION_SHORT,
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.padding(top = 2.dp),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
-
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
             }
         }
     }
@@ -312,18 +323,34 @@ private fun TemplateCard(
 }
 
 @Composable
-private fun WorkspaceTabsSection(
+private fun CompactTabPillsRow(
     tabs: List<WorkspaceTab>,
     selectedTabId: Workspace.Id,
     onTabAction: (TabAction) -> Unit,
+    onNavToWorkspaceManager: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Smart filtering: show selected tab + up to 2 most recent others
+    val visibleTabs = remember(tabs, selectedTabId) {
+        val maxVisible = 3
+        val selected = tabs.find { it.id == selectedTabId }
+        val others = tabs.filter { it.id != selectedTabId }.take(maxVisible - 1)
+
+        buildList {
+            selected?.let { add(it) }
+            addAll(others)
+        }.take(maxVisible)
+    }
+
+    val hiddenCount = (tabs.size - visibleTabs.size).coerceAtLeast(0)
+
     LazyRow(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        items(tabs) { tab ->
-            WorkspaceTabItem(
+        items(visibleTabs) { tab ->
+            CompactTabPill(
                 tab = tab,
                 isSelected = tab.id == selectedTabId,
                 onSelect = { onTabAction(TabAction.Select(tab.id)) },
@@ -332,66 +359,95 @@ private fun WorkspaceTabsSection(
                 } else null
             )
         }
+
+        if (hiddenCount > 0) {
+            item {
+                MoreTabsPill(
+                    count = hiddenCount,
+                    onClick = onNavToWorkspaceManager
+                )
+            }
+        }
     }
 }
 
 @Composable
-private fun WorkspaceTabItem(
+private fun CompactTabPill(
     tab: WorkspaceTab,
     isSelected: Boolean,
     onSelect: () -> Unit,
     onClose: (() -> Unit)? = null
 ) {
     Card(
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) {
                 MaterialTheme.colorScheme.primaryContainer
             } else {
-                MaterialTheme.colorScheme.surface
+                MaterialTheme.colorScheme.surfaceVariant
             }
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isSelected) 2.dp else 1.dp
         ),
         modifier = Modifier.clickable { onSelect() }
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Text(
                 text = tab.title.asComposable(),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = if (isSelected) {
                     MaterialTheme.colorScheme.onPrimaryContainer
                 } else {
-                    MaterialTheme.colorScheme.onSurface
+                    MaterialTheme.colorScheme.onSurfaceVariant
                 },
-                modifier = if (onClose != null) {
-                    Modifier.padding(end = 8.dp)
-                } else {
-                    Modifier
-                }
+                maxLines = 1
             )
-            
+
             if (onClose != null) {
                 IconButton(
                     onClick = onClose,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(16.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Close,
+                        imageVector = Icons.TwoTone.Close,
                         contentDescription = "Close workspace",
                         tint = if (isSelected) {
                             MaterialTheme.colorScheme.onPrimaryContainer
                         } else {
-                            MaterialTheme.colorScheme.onSurface
+                            MaterialTheme.colorScheme.onSurfaceVariant
                         },
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(12.dp)
                     )
                 }
             }
         }
     }
 }
+
+@Composable
+private fun MoreTabsPill(count: Int, onClick: () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        modifier = Modifier.clickable { onClick() }
+    ) {
+        Text(
+            text = "+$count",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+        )
+    }
+}
+
 
 @Preview2
 @Composable
@@ -423,6 +479,7 @@ private fun TemplatesWorkspacePagePreview() {
             ),
             onTabAction = {},
             onNavToSettings = {},
+            onNavToWorkspaceManager = {},
         )
     }
 }

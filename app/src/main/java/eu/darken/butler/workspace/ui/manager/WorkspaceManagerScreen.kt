@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.DragIndicator
 import androidx.compose.material.icons.twotone.Edit
@@ -32,7 +33,10 @@ import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -88,6 +92,7 @@ fun WorkspaceManagerScreenHost(
             onCloseWorkspace = vm::closeWorkspace,
             onReorderWorkspaces = vm::reorderWorkspaces,
             onSelectWorkspace = vm::selectWorkspace,
+            onCreateWorkspace = vm::createWorkspace,
             onNavigateBack = vm::navigateBack,
         )
     }
@@ -100,6 +105,7 @@ fun WorkspaceManagerScreen(
     onCloseWorkspace: (Workspace.Id) -> Unit,
     onReorderWorkspaces: (List<Workspace.Id>) -> Unit,
     onSelectWorkspace: (Workspace.Id) -> Unit,
+    onCreateWorkspace: (Workspace.Type) -> Unit,
     onNavigateBack: () -> Unit,
 ) {
     val density = LocalDensity.current
@@ -192,33 +198,152 @@ fun WorkspaceManagerScreen(
                     }
                 }
 
-                // Workspace list
-                LazyColumn(
+                // Status card
+                Card(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
-                    itemsIndexed(
-                        items = workspaceItems,
-                        key = { _, workspace -> workspace.id.toString() }
-                    ) { index, workspace ->
-                        DraggableWorkspaceListItem(
-                            workspace = workspace,
-                            canClose = workspaceItems.size > 1,
-                            onClose = { onCloseWorkspace(workspace.id) },
-                            onSelect = { onSelectWorkspace(workspace.id) },
-                            onDragEnd = { fromIndex, toIndex ->
-                                if (fromIndex != toIndex) {
-                                    val newList = workspaceItems.toMutableList()
-                                    val movedItem = newList.removeAt(fromIndex)
-                                    newList.add(toIndex, movedItem)
-                                    workspaceItems = newList
-                                    onReorderWorkspaces(newList.map { it.id })
-                                }
-                            },
-                            index = index
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = stringResource(R.string.workspace_manager_status_count, state.workspaceCount),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
+                        
+                        // Add Workspace Button with dropdown
+                        var showDropdown by remember { mutableStateOf(false) }
+                        Box {
+                            FilledTonalButton(
+                                onClick = { showDropdown = true }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.TwoTone.Add,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Text(
+                                    text = "Add",
+                                    modifier = Modifier.padding(start = 4.dp)
+                                )
+                            }
+                            
+                            DropdownMenu(
+                                expanded = showDropdown,
+                                onDismissRequest = { showDropdown = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Explorer") },
+                                    onClick = {
+                                        onCreateWorkspace(Workspace.Type.EXPLORER)
+                                        showDropdown = false
+                                    },
+                                    leadingIcon = {
+                                        Icon(Icons.TwoTone.Folder, contentDescription = null)
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Search") },
+                                    onClick = {
+                                        onCreateWorkspace(Workspace.Type.SEARCHER)
+                                        showDropdown = false
+                                    },
+                                    leadingIcon = {
+                                        Icon(Icons.TwoTone.Search, contentDescription = null)
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Editor") },
+                                    onClick = {
+                                        onCreateWorkspace(Workspace.Type.EDITOR)
+                                        showDropdown = false
+                                    },
+                                    leadingIcon = {
+                                        Icon(Icons.TwoTone.Edit, contentDescription = null)
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Templates") },
+                                    onClick = {
+                                        onCreateWorkspace(Workspace.Type.TEMPLATES)
+                                        showDropdown = false
+                                    },
+                                    leadingIcon = {
+                                        Icon(Icons.TwoTone.Workspaces, contentDescription = null)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Workspace list or empty state
+                if (workspaceItems.isEmpty()) {
+                    // Empty state
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Workspaces,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.size(64.dp)
+                        )
+                        Text(
+                            text = stringResource(R.string.workspace_manager_empty_title),
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(top = 16.dp)
+                        )
+                        Text(
+                            text = stringResource(R.string.workspace_manager_empty_subtitle),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        itemsIndexed(
+                            items = workspaceItems,
+                            key = { _, workspace -> workspace.id.toString() }
+                        ) { index, workspace ->
+                            DraggableWorkspaceListItem(
+                                workspace = workspace,
+                                onClose = { onCloseWorkspace(workspace.id) },
+                                onSelect = { onSelectWorkspace(workspace.id) },
+                                onDragEnd = { fromIndex, toIndex ->
+                                    if (fromIndex != toIndex) {
+                                        val newList = workspaceItems.toMutableList()
+                                        val movedItem = newList.removeAt(fromIndex)
+                                        newList.add(toIndex, movedItem)
+                                        workspaceItems = newList
+                                        onReorderWorkspaces(newList.map { it.id })
+                                    }
+                                },
+                                index = index
+                            )
+                        }
                     }
                 }
             }
@@ -249,7 +374,6 @@ fun WorkspaceManagerScreen(
 @Composable
 private fun DraggableWorkspaceListItem(
     workspace: WorkspaceManagerViewModel.WorkspaceItem,
-    canClose: Boolean,
     onClose: () -> Unit,
     onSelect: () -> Unit,
     onDragEnd: (fromIndex: Int, toIndex: Int) -> Unit,
@@ -269,7 +393,6 @@ private fun DraggableWorkspaceListItem(
     ) {
         WorkspaceListItem(
             workspace = workspace,
-            canClose = canClose,
             onClose = onClose,
             onSelect = onSelect,
             isDragging = isDragging,
@@ -300,7 +423,6 @@ private fun DraggableWorkspaceListItem(
 @Composable
 private fun WorkspaceListItem(
     workspace: WorkspaceManagerViewModel.WorkspaceItem,
-    canClose: Boolean,
     onClose: () -> Unit,
     onSelect: () -> Unit,
     isDragging: Boolean = false,
@@ -395,18 +517,16 @@ private fun WorkspaceListItem(
             }
 
             // Close button
-            if (canClose) {
-                IconButton(
-                    onClick = onClose,
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.Close,
-                        contentDescription = "Close workspace",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
+            IconButton(
+                onClick = onClose,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.TwoTone.Close,
+                    contentDescription = "Close workspace",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp)
+                )
             }
         }
     }
@@ -451,6 +571,7 @@ private fun WorkspaceManagerScreenPreview() {
             onCloseWorkspace = {},
             onReorderWorkspaces = {},
             onSelectWorkspace = {},
+            onCreateWorkspace = {},
             onNavigateBack = {}
         )
     }
