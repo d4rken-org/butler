@@ -29,6 +29,8 @@ class SearcherSettings @Inject constructor(
     val useRegex = dataStore.createValue("searcher.use_regex", false)
     val maxHistoryItems = dataStore.createValue("searcher.max_history_items", 10)
     val saveHistory = dataStore.createValue("searcher.save_history", true)
+    val maxSearchResults = dataStore.createValue("searcher.max_search_results", 1000)
+    val searchHistory = dataStore.createValue("searcher.search_history", emptyList<SearchRepository.SearchHistoryItem>())
 
     override val mapper = PreferenceStoreMapper(
         debugSettings.isDebugMode,
@@ -37,6 +39,7 @@ class SearcherSettings @Inject constructor(
         useRegex,
         maxHistoryItems,
         saveHistory,
+        maxSearchResults,
     )
 
     companion object {
