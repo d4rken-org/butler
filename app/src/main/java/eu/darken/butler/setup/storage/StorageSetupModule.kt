@@ -15,7 +15,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.device.DeviceDetective
 import eu.darken.butler.common.device.RomType
-import eu.darken.butler.common.files.local.LocalPath
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.permissions.Permission

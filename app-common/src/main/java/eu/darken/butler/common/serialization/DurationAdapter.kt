@@ -1,13 +1,21 @@
 package eu.darken.butler.common.serialization
 
-import com.squareup.moshi.FromJson
-import com.squareup.moshi.ToJson
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import java.time.Duration
 
-class DurationAdapter {
-    @ToJson
-    fun toJson(value: Duration): String = value.toString()
+object DurationSerializer : KSerializer<Duration> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Duration", PrimitiveKind.STRING)
 
-    @FromJson
-    fun fromJson(raw: String): Duration = Duration.parse(raw)
+    override fun serialize(encoder: Encoder, value: Duration) {
+        encoder.encodeString(value.toString())
+    }
+
+    override fun deserialize(decoder: Decoder): Duration {
+        return Duration.parse(decoder.decodeString())
+    }
 }

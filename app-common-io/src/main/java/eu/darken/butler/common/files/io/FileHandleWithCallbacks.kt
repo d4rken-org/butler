@@ -1,4 +1,4 @@
-package eu.darken.butler.common.files
+package eu.darken.butler.common.files.io
 
 import okio.FileHandle
 

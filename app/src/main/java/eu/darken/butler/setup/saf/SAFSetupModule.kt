@@ -22,10 +22,10 @@ import eu.darken.butler.common.device.DeviceDetective
 import eu.darken.butler.common.device.RomType
 import eu.darken.butler.common.dropLastColon
 import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.common.files.exists
-import eu.darken.butler.common.files.local.LocalPath
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.extensions.exists
 import eu.darken.butler.common.files.local.toLocalPath
-import eu.darken.butler.common.files.saf.SAFPath
 import eu.darken.butler.common.files.saf.findPermission
 import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.hasApiLevel

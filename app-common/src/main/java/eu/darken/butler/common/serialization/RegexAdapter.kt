@@ -1,23 +1,30 @@
 package eu.darken.butler.common.serialization
 
-import com.squareup.moshi.FromJson
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
-import com.squareup.moshi.ToJson
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
-class RegexAdapter {
+object RegexSerializer : KSerializer<Regex> {
+    override val descriptor: SerialDescriptor = Wrapper.serializer().descriptor
 
-    @ToJson
-    fun toJson(value: Regex): Wrapper = Wrapper(
-        pattern = value.pattern,
-        options = value.options.map { it.toWrapperOption() }.toSet(),
-    )
+    override fun serialize(encoder: Encoder, value: Regex) {
+        val wrapper = Wrapper(
+            pattern = value.pattern,
+            options = value.options.map { it.toWrapperOption() }.toSet(),
+        )
+        encoder.encodeSerializableValue(Wrapper.serializer(), wrapper)
+    }
 
-    @FromJson
-    fun fromJson(raw: Wrapper): Regex = Regex(
-        pattern = raw.pattern,
-        options = raw.options.map { it.toRegexOption() }.toSet()
-    )
+    override fun deserialize(decoder: Decoder): Regex {
+        val wrapper = decoder.decodeSerializableValue(Wrapper.serializer())
+        return Regex(
+            pattern = wrapper.pattern,
+            options = wrapper.options.map { it.toRegexOption() }.toSet()
+        )
+    }
 
     private fun Wrapper.Option.toRegexOption() = when (this) {
         Wrapper.Option.IGNORE_CASE -> RegexOption.IGNORE_CASE
@@ -39,21 +46,20 @@ class RegexAdapter {
         RegexOption.CANON_EQ -> Wrapper.Option.CANON_EQ
     }
 
-    @JsonClass(generateAdapter = true)
+    @Serializable
     data class Wrapper(
-        @Json(name = "pattern") val pattern: String,
-        @Json(name = "options") val options: Set<Option>
+        @SerialName("pattern") val pattern: String,
+        @SerialName("options") val options: Set<Option>
     ) {
-        @JsonClass(generateAdapter = false)
+        @Serializable
         enum class Option {
-            @Json(name = "IGNORE_CASE") IGNORE_CASE,
-            @Json(name = "MULTILINE") MULTILINE,
-            @Json(name = "LITERAL") LITERAL,
-            @Json(name = "UNIX_LINES") UNIX_LINES,
-            @Json(name = "COMMENTS") COMMENTS,
-            @Json(name = "DOT_MATCHES_ALL") DOT_MATCHES_ALL,
-            @Json(name = "CANON_EQ") CANON_EQ,
-            ;
+            @SerialName("IGNORE_CASE") IGNORE_CASE,
+            @SerialName("MULTILINE") MULTILINE,
+            @SerialName("LITERAL") LITERAL,
+            @SerialName("UNIX_LINES") UNIX_LINES,
+            @SerialName("COMMENTS") COMMENTS,
+            @SerialName("DOT_MATCHES_ALL") DOT_MATCHES_ALL,
+            @SerialName("CANON_EQ") CANON_EQ,
         }
     }
 }

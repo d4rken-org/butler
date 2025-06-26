@@ -17,10 +17,10 @@ import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.common.files.asFile
-import eu.darken.butler.common.files.extension
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.extensions.asFile
+import eu.darken.butler.common.files.extensions.extension
 import eu.darken.butler.common.files.iconRes
-import eu.darken.butler.common.files.local.LocalPath
 import eu.darken.butler.main.core.GeneralSettings
 import javax.inject.Inject
 

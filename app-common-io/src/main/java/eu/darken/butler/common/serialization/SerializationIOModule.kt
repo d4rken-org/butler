@@ -1,11 +1,10 @@
 package eu.darken.butler.common.serialization
 
-import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import eu.darken.butler.common.files.APath
+import kotlinx.serialization.json.Json
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
@@ -16,11 +15,11 @@ class SerializationIOModule {
     @Provides
     @Singleton
     @SerializationIO
-    fun moshi(
-        @SerializationCommon moshiCommon: Moshi = SerializationCommonModule().moshi()
-    ): Moshi = moshiCommon.newBuilder().apply {
-        add(APath.MOSHI_FACTORY)
-    }.build()
+    fun json(
+        @SerializationCommon jsonCommon: Json = SerializationCommonModule().json()
+    ): Json = Json(jsonCommon) {
+        serializersModule = jsonCommon.serializersModule
+    }
 }
 
 @Qualifier

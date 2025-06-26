@@ -1,10 +1,10 @@
 package eu.darken.butler.common.serialization
 
-import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.serialization.json.Json
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -13,9 +13,7 @@ class SerializationAppModule {
 
     @Provides
     @Singleton
-    fun moshi(
-        @SerializationIO moshiIO: Moshi = SerializationIOModule().moshi()
-    ): Moshi = moshiIO.newBuilder().apply {
-
-    }.build()
+    fun json(
+        @SerializationIO jsonIO: Json = SerializationIOModule().json()
+    ): Json = jsonIO
 }

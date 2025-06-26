@@ -7,7 +7,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.local.LocalPath
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.toLocalPath
 import eu.darken.butler.common.user.UserHandle2
 import eu.darken.butler.common.user.UserManager2

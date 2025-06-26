@@ -1,22 +1,21 @@
-package eu.darken.butler.common.files.saf
+package eu.darken.butler.common.files
 
 import android.net.Uri
-import com.squareup.moshi.JsonDataException
-import com.squareup.moshi.Types
-import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.RawPath
+import eu.darken.butler.common.files.saf.SAFDocFile
+import eu.darken.butler.common.files.saf.SAFPathLookup
 import eu.darken.butler.common.serialization.SerializationIOModule
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.mockk
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.ListSerializer
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import testhelpers.BaseTest
 import testhelpers.json.toComparableJson
-import java.lang.reflect.Type
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
@@ -24,42 +23,37 @@ class SAFPathTest : BaseTest() {
 
     val testUri = "content://com.android.externalstorage.documents/tree/primary%3Asafstor"
 
-    private val moshi = SerializationIOModule().moshi()
+    private val json = SerializationIOModule().json()
 
     @Test
     fun `test direct serialization`() {
         val original = SAFPath.build(testUri, "seg1", "seg2", "seg3")
 
-        val adapter = moshi.adapter(SAFPath::class.java)
-
-        val json = adapter.toJson(original)
-        json.toComparableJson() shouldBe """
+        val jsonString = json.encodeToString(original)
+        jsonString.toComparableJson() shouldBe """
             {
                 "treeRoot": "$testUri",
-                "segments": ["seg1","seg2","seg3"],
-                "pathType":"SAF"
+                "segments": ["seg1","seg2","seg3"]
             }
         """.toComparableJson()
 
-        adapter.fromJson(json) shouldBe original
+        json.decodeFromString<SAFPath>(jsonString) shouldBe original
     }
 
     @Test
     fun `test polymorph serialization`() {
         val original = SAFPath.build(testUri, "seg3", "seg2", "seg1")
 
-        val adapter = moshi.adapter(APath::class.java)
-
-        val json = adapter.toJson(original)
-        json.toComparableJson() shouldBe """
+        val jsonString = json.encodeToString(original as APath)
+        jsonString.toComparableJson() shouldBe """
             {
                 "treeRoot": "$testUri",
                 "segments": ["seg3","seg2","seg1"],
-                "pathType":"SAF"
+                "type":"SAF"
             }
         """.toComparableJson()
 
-        adapter.fromJson(json) shouldBe original
+        json.decodeFromString<APath>(jsonString) shouldBe original
     }
 
     @Test
@@ -69,42 +63,29 @@ class SAFPathTest : BaseTest() {
             SAFPath.build(testUri, "seg4", "seg5", "seg6"),
         )
 
-        val type: Type = Types.newParameterizedType(List::class.java, APath::class.java)
-        val adapter = moshi.adapter<List<APath>>(type)
-        val json = adapter.toJson(original)
+        val jsonString = json.encodeToString(ListSerializer(APath.serializer()), original)
 
-        json.toComparableJson() shouldBe """
+        jsonString.toComparableJson() shouldBe """
                 [
                     {
                         "treeRoot": "$testUri",
                         "segments": ["seg3","seg2","seg1"],
-                        "pathType":"SAF"
+                        "type":"SAF"
                     }, {
                         "treeRoot": "$testUri",
                         "segments": ["seg4","seg5","seg6"],
-                        "pathType":"SAF"
+                        "type":"SAF"
                     }
                 ]
         """.toComparableJson()
 
-        adapter.fromJson(json) shouldBe original
-    }
-
-    @Test
-    fun `test fixed type`() {
-        val file = SAFPath.build(testUri, "seg1", "seg2")
-        file.pathType shouldBe APath.PathType.SAF
-        shouldThrow<java.lang.IllegalArgumentException> {
-            file.pathType = APath.PathType.LOCAL
-            Any()
-        }
-        file.pathType shouldBe APath.PathType.SAF
+        json.decodeFromString(ListSerializer(APath.serializer()), jsonString) shouldBe original
     }
 
     @Test
     fun `test must be tree uri`() {
         shouldThrow<IllegalArgumentException> {
-            SAFPath.build(Uri.parse("abc"))
+            SAFPath.Companion.build(Uri.parse("abc"))
         }
     }
 
@@ -112,9 +93,9 @@ class SAFPathTest : BaseTest() {
     fun `force typing`() {
         val original = RawPath.build("test", "file")
 
-        shouldThrow<JsonDataException> {
-            val json = moshi.adapter(RawPath::class.java).toJson(original)
-            moshi.adapter(SAFPath::class.java).fromJson(json)
+        shouldThrow<SerializationException> {
+            val jsonString = json.encodeToString(RawPath.serializer(), original)
+            json.decodeFromString(SAFPath.serializer(), jsonString)
         }
     }
 
@@ -180,22 +161,22 @@ class SAFPathTest : BaseTest() {
 
     @Test
     fun `user readable path mapping`() {
-        SAFPath.build(
+        SAFPath.Companion.build(
             Uri.parse("content://com.android.externalstorage.documents/tree/primary%3Asafstor"),
             "seg1",
             "seg2",
         ).userReadablePath.get(mockk()) shouldBe "/storage/emulated/0/seg1/seg2"
-        SAFPath.build(
+        SAFPath.Companion.build(
             Uri.parse("content://com.android.externalstorage.documents/tree/primary"),
             "seg1",
             "seg2",
         ).userReadablePath.get(mockk()) shouldBe "/storage/emulated/0/seg1/seg2"
-        SAFPath.build(
+        SAFPath.Companion.build(
             Uri.parse("content://com.android.externalstorage.documents/tree/3135-3132%3Asafstor"),
             "seg1",
             "seg2",
         ).userReadablePath.get(mockk()) shouldBe "/storage/3135-3132/seg1/seg2"
-        SAFPath.build(
+        SAFPath.Companion.build(
             Uri.parse("content://com.android.externalstorage.documents/tree/3135-3132"),
             "seg1",
             "seg2",

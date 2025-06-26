@@ -2,6 +2,7 @@ package eu.darken.butler.common.files.local
 
 import android.system.Os
 import eu.darken.butler.common.files.FileType
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.Ownership
 import eu.darken.butler.common.files.Permissions
 import eu.darken.butler.common.files.core.local.isSymbolicLink

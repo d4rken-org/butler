@@ -1,23 +1,18 @@
 package eu.darken.butler.common.files
 
 import androidx.annotation.Keep
-import com.squareup.moshi.JsonClass
-import eu.darken.butler.common.TypeMissMatchException
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.io.File
 
 @Parcelize
 @Keep
-@JsonClass(generateAdapter = true)
+@Serializable
+@SerialName("RAW")
 data class RawPath(
     override val path: String
 ) : APath {
-
-    override var pathType: APath.PathType
-        get() = APath.PathType.RAW
-        set(value) {
-            TypeMissMatchException.check(value, pathType)
-        }
 
     override val name: String
         get() = path.substringAfterLast(File.separatorChar)

@@ -1,5 +1,15 @@
 package eu.darken.butler.common.files
 
+import eu.darken.butler.common.files.extensions.containsSegments
+import eu.darken.butler.common.files.extensions.endsWith
+import eu.darken.butler.common.files.extensions.isAncestorOf
+import eu.darken.butler.common.files.extensions.isChildOf
+import eu.darken.butler.common.files.extensions.isDescendentOf
+import eu.darken.butler.common.files.extensions.isParentOf
+import eu.darken.butler.common.files.extensions.matches
+import eu.darken.butler.common.files.extensions.segmentContains
+import eu.darken.butler.common.files.extensions.segs
+import eu.darken.butler.common.files.extensions.startsWith
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest

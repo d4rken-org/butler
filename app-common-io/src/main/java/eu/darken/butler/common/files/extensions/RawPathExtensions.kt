@@ -1,5 +1,6 @@
-package eu.darken.butler.common.files
+package eu.darken.butler.common.files.extensions
 
+import eu.darken.butler.common.files.RawPath
 import java.io.File
 
 

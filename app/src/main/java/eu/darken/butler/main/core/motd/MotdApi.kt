@@ -1,7 +1,8 @@
 package eu.darken.butler.main.core.motd
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -10,11 +11,11 @@ import java.util.UUID
 
 interface MotdApi {
 
-    @JsonClass(generateAdapter = true)
+    @Serializable
     data class DirectoryContent(
-        @Json(name = "name") val name: String,
-        @Json(name = "type") val type: String,
-        @Json(name = "download_url") val downloadUrl: String?,
+        @SerialName("name") val name: String,
+        @SerialName("type") val type: String,
+        @SerialName("download_url") val downloadUrl: String?,
     )
 
     @GET("repos/d4rken-org/sdmaid-se/contents/{path}")
@@ -23,13 +24,13 @@ interface MotdApi {
         @Query("ref") branch: String,
     ): List<DirectoryContent>
 
-    @JsonClass(generateAdapter = true)
+    @Serializable
     data class Motd(
-        @Json(name = "id") val id: UUID,
-        @Json(name = "message") val message: String,
-        @Json(name = "primaryLink") val primaryLink: String?,
-        @Json(name = "versionMinimum") val minimumVersion: Long?,
-        @Json(name = "versionMaximum") val maximumVersion: Long?,
+        @SerialName("id") @Contextual val id: UUID,
+        @SerialName("message") val message: String,
+        @SerialName("primaryLink") val primaryLink: String?,
+        @SerialName("versionMinimum") val minimumVersion: Long?,
+        @SerialName("versionMaximum") val maximumVersion: Long?,
     )
 
     @GET
