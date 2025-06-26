@@ -64,8 +64,7 @@ fun Project.setupKotlinOptions() {
                 "-opt-in=kotlin.time.ExperimentalTime",
                 "-opt-in=kotlin.RequiresOptIn",
                 "-Xjvm-default=all",
-                "-XXLanguage:+DataObjects",
-                "-Xcontext-receivers",
+                "-Xcontext-parameters",
                 "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
             )
         }
