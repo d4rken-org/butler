@@ -1,11 +1,10 @@
 package eu.darken.butler.common.coil
 
 import android.content.Context
-import android.util.Log
-import coil.ImageLoader
-import coil.ImageLoaderFactory
-import coil.decode.VideoFrameDecoder
-import coil.util.Logger
+import coil3.ImageLoader
+import coil3.SingletonImageLoader
+import coil3.util.Logger
+import coil3.video.VideoFrameDecoder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,9 +36,9 @@ class CoilModule {
     ): ImageLoader = ImageLoader.Builder(context).apply {
         if (BuildConfigWrap.DEBUG) {
             val logger = object : Logger {
-                override var level: Int = Log.VERBOSE
-                override fun log(tag: String, priority: Int, message: String?, throwable: Throwable?) {
-                    log("Coil:$tag", Logging.Priority.fromAndroid(priority)) { "$message ${throwable?.asLog()}" }
+                override var minLevel: Logger.Level = Logger.Level.Verbose
+                override fun log(tag: String, level: Logger.Level, message: String?, throwable: Throwable?) {
+                    log("Coil:$tag", Logging.Priority.fromAndroid(level.ordinal)) { "$message ${throwable?.asLog()}" }
                 }
             }
             logger(logger)
@@ -50,7 +49,7 @@ class CoilModule {
             add(bitmapFetcher)
             add(VideoFrameDecoder.Factory())
         }
-        dispatcher(
+        coroutineContext(
             dispatcherProvider.Default.limitedParallelism(
                 (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(2)
             )
@@ -59,7 +58,9 @@ class CoilModule {
 
     @Singleton
     @Provides
-    fun imageLoaderFactory(imageLoaderSource: Provider<ImageLoader>): ImageLoaderFactory = ImageLoaderFactory {
+    fun imageLoaderFactory(
+        imageLoaderSource: Provider<ImageLoader>
+    ): SingletonImageLoader.Factory = SingletonImageLoader.Factory {
         log(TAG) { "Preparing imageloader factory" }
         imageLoaderSource.get()
     }

@@ -85,9 +85,10 @@ fun DependencyHandlerScope.addCoroutines() {
 }
 
 fun DependencyHandlerScope.addCoil() {
-    val version = "2.7.0"
-    implementation("io.coil-kt:coil:$version")
-    implementation("io.coil-kt:coil-video:$version")
+    val version = "3.2.0"
+    implementation("io.coil-kt.coil3:coil:$version")
+    implementation("io.coil-kt.coil3:coil-video:$version")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:$version")
 }
 
 fun DependencyHandlerScope.addLottie() {
