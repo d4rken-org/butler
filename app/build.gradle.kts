@@ -132,8 +132,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    setupKotlinOptions()
-
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
@@ -165,6 +163,8 @@ android {
         }
     }
 }
+
+setupKotlinOptions()
 
 afterEvaluate {
     tasks {
@@ -214,7 +214,7 @@ dependencies {
 
     addTesting()
 
-    implementation("io.github.z4kn4fein:semver:1.4.2")
+    implementation("io.github.z4kn4fein:semver:3.0.0")
 
     addCoil()
 }

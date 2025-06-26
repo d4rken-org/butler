@@ -1,6 +1,6 @@
+
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.LibraryExtension
-import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.tasks.testing.Test
@@ -9,16 +9,14 @@ import org.gradle.api.tasks.testing.TestListener
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.io.FileInputStream
 import java.util.Properties
 
-/**
- * Configures the [kotlinOptions][org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions] extension.
- */
-private fun LibraryExtension.kotlinOptions(configure: Action<KotlinJvmOptions>): Unit =
-    (this as org.gradle.api.plugins.ExtensionAware).extensions.configure("kotlinOptions", configure)
+val Project.projectConfig: ProjectConfig
+    get() = extensions.findByType(ProjectConfig::class.java)!!
 
 fun LibraryExtension.setupLibraryDefaults(projectConfig: ProjectConfig) {
     if (projectConfig.compileSdkPreview != null) {
@@ -32,9 +30,6 @@ fun LibraryExtension.setupLibraryDefaults(projectConfig: ProjectConfig) {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 }
-
-val Project.projectConfig: ProjectConfig
-    get() = extensions.findByType(ProjectConfig::class.java)!!
 
 fun com.android.build.api.dsl.CommonExtension<
     com.android.build.api.dsl.LibraryBuildFeatures,
@@ -57,24 +52,23 @@ fun com.android.build.api.dsl.CommonExtension<
     }
 }
 
-private fun BaseExtension.kotlinOptions(configure: Action<KotlinJvmOptions>): Unit =
-    (this as org.gradle.api.plugins.ExtensionAware).extensions.configure("kotlinOptions", configure)
-
-fun BaseExtension.setupKotlinOptions() {
-    kotlinOptions {
-        jvmTarget = "17"
-        freeCompilerArgs = freeCompilerArgs + listOf(
-            "-opt-in=kotlin.RequiresOptIn",
-            "-opt-in=kotlin.ExperimentalStdlibApi",
-            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-            "-opt-in=kotlinx.coroutines.FlowPreview",
-            "-opt-in=kotlin.time.ExperimentalTime",
-            "-opt-in=kotlin.RequiresOptIn",
-            "-Xjvm-default=all",
-            "-XXLanguage:+DataObjects",
-            "-Xcontext-receivers",
-            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
-        )
+fun Project.setupKotlinOptions() {
+    tasks.withType(KotlinCompile::class.java) {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+            freeCompilerArgs.addAll(
+                "-opt-in=kotlin.RequiresOptIn",
+                "-opt-in=kotlin.ExperimentalStdlibApi",
+                "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+                "-opt-in=kotlinx.coroutines.FlowPreview",
+                "-opt-in=kotlin.time.ExperimentalTime",
+                "-opt-in=kotlin.RequiresOptIn",
+                "-Xjvm-default=all",
+                "-XXLanguage:+DataObjects",
+                "-Xcontext-receivers",
+                "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
+            )
+        }
     }
 }
 
