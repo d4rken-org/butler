@@ -100,6 +100,7 @@ Butler uses a workspace concept similar to browser tabs with 4 main workspace ty
 - Write tests for web APIs and serialized data
 - No UI tests required
 - Use FOSS debug flavor for local testing
+- Place compose previews below the item being previewed
 
 ### Project Structure
 

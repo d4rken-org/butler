@@ -33,6 +33,8 @@
     <string name="debug_log_screen_discard_action">Discard</string>
     <string name="debug_log_file_label">Recorded log file</string>
 
+    <string name="butler_mascot_description">Butler mascot</string>
+    
     <string name="settings_label">Settings</string>
     <string name="settings_category_tools_label">Tools</string>
     <string name="settings_category_other_label">Other</string>

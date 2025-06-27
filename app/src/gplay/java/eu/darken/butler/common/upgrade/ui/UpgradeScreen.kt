@@ -5,7 +5,6 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -42,12 +41,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
+import eu.darken.butler.common.compose.ButlerIcon
 import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -132,12 +131,9 @@ fun UpgradeScreen(
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Image(
-                                painter = painterResource(R.drawable.mascot),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .graphicsLayer(alpha = toolbarAlpha)
+                            ButlerIcon(
+                                modifier = Modifier.graphicsLayer(alpha = toolbarAlpha),
+                                size = 32.dp
                             )
                             Spacer(modifier = Modifier.size(8.dp))
                             ColoredTitleText(
@@ -169,13 +165,11 @@ fun UpgradeScreen(
                 .padding(top = 8.dp, bottom = 32.dp)
                 .animateContentSize(animationSpec = tween(300))
         ) {
-            Image(
-                painter = painterResource(R.drawable.mascot),
-                contentDescription = null,
+            ButlerIcon(
                 modifier = Modifier
-                    .size(72.dp)
                     .align(Alignment.CenterHorizontally)
-                    .graphicsLayer(alpha = contentAlpha)
+                    .graphicsLayer(alpha = contentAlpha),
+                size = 72.dp
             )
 
             ColoredTitleText(
