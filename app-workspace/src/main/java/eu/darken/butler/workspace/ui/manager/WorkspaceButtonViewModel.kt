@@ -23,6 +23,8 @@ class WorkspaceButtonViewModel @Inject constructor(
         State(
             workspaceCount = it.count,
             isButtonFlipped = it.isButtonActionsFlipped,
+            operationsCount = 3, // TODO: Mock value, replace with actual implementation
+            attentionCount = 2, // TODO: Mock value, replace with actual implementation
         )
     }.asStateFlow()
 
@@ -39,5 +41,7 @@ class WorkspaceButtonViewModel @Inject constructor(
     data class State(
         val workspaceCount: Int = 0,
         val isButtonFlipped: Boolean = false,
+        val operationsCount: Int = 0,
+        val attentionCount: Int = 0,
     )
 }
