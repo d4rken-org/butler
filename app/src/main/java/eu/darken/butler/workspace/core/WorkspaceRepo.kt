@@ -9,9 +9,9 @@ import eu.darken.butler.searcher.core.SearcherWorkspace
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
@@ -23,7 +23,7 @@ class WorkspaceRepo @Inject constructor(
     private val explorerWorkspaceFactory: ExplorerWorkspace.Factory,
     private val searcherWorkspaceFactory: SearcherWorkspace.Factory,
     private val editorWorkspaceFactory: EditorWorkspace.Factory,
-) {
+) : WorkspaceProvider {
     private val lock = Mutex()
     private val _workspaces = MutableStateFlow<List<Workspace>>(emptyList())
     private val _selectedWorkspaceId = MutableStateFlow<Workspace.Id?>(null)
@@ -95,8 +95,8 @@ class WorkspaceRepo @Inject constructor(
         newWorkspace.id
     }
 
-    suspend fun get(id: Workspace.Id): Workspace? = lock.withLock {
-        _workspaces.first().single { it.id == id }
+    override suspend fun get(id: Workspace.Id): Flow<Workspace?> = lock.withLock {
+        _workspaces.map { wss -> wss.singleOrNull { it.id == id } }
     }
 
     suspend fun delete(id: Workspace.Id) = lock.withLock {
