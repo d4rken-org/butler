@@ -11,11 +11,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material3.Card
@@ -27,12 +33,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.BuildConfigWrap
@@ -100,7 +114,7 @@ fun TemplatesWorkspacePage(
             ) {
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     Text(
                         text = "Open workspaces",
@@ -178,12 +192,12 @@ fun TemplatesWorkspacePage(
                 Row(
                     modifier = Modifier
                         .clickable { onNavToSettings() }
-                        .padding(16.dp),
+                        .padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     ButlerIcon(
-                        size = 48.dp
+                        size = 40.dp
                     )
 
                     Column(modifier = Modifier.weight(1f)) {
@@ -325,42 +339,111 @@ private fun CompactTabPillsRow(
     onNavToWorkspaceManager: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Smart filtering: show selected tab + up to 2 most recent others
-    val visibleTabs = remember(tabs, selectedTabId) {
-        val maxVisible = 3
-        val selected = tabs.find { it.id == selectedTabId }
-        val others = tabs.filter { it.id != selectedTabId }.take(maxVisible - 1)
+    val density = LocalDensity.current
+    rememberTextMeasurer()
+    LocalContext.current
+    var availableWidth by remember { mutableStateOf(0) }
 
-        buildList {
-            selected?.let { add(it) }
-            addAll(others)
-        }.take(maxVisible)
+    // Simplified tab layout with basic overflow detection
+    val tabLayout = remember(tabs, availableWidth, density) {
+        if (tabs.isEmpty()) {
+            TabLayout(emptyList(), emptyList(), 0)
+        } else {
+            // Use reasonable default width in dp converted to pixels
+            val defaultWidthDp = 128.dp
+            val defaultWidth = with(density) { defaultWidthDp.toPx() }
+            val spaceBetween = with(density) { 6.dp.toPx() }
+            val morePillWidth = with(density) { 40.dp.toPx() }
+
+            // Basic overflow calculation
+            if (availableWidth > 0) {
+                val maxTabsWithoutOverflow = ((availableWidth + spaceBetween) / (defaultWidth + spaceBetween)).toInt()
+                val maxTabsWithOverflow =
+                    ((availableWidth - morePillWidth + spaceBetween) / (defaultWidth + spaceBetween)).toInt()
+
+                when {
+                    tabs.size <= maxTabsWithoutOverflow -> {
+                        // Show all tabs
+                        TabLayout(tabs, tabs.map { defaultWidth }, 0)
+                    }
+                    maxTabsWithOverflow >= 1 -> {
+                        // Show some tabs with overflow
+                        val visibleTabs = tabs.take(maxTabsWithOverflow)
+                        TabLayout(visibleTabs, visibleTabs.map { defaultWidth }, tabs.size - visibleTabs.size)
+                    }
+                    else -> {
+                        // Show at least one tab
+                        TabLayout(tabs.take(1), listOf(defaultWidth), tabs.size - 1)
+                    }
+                }
+            } else {
+                // No width measurement yet - show all tabs
+                TabLayout(tabs, tabs.map { defaultWidth }, 0)
+            }
+        }
     }
 
-    val hiddenCount = (tabs.size - visibleTabs.size).coerceAtLeast(0)
-
     Row(
-        modifier = modifier,
+        modifier = modifier
+            .fillMaxWidth()
+            .onSizeChanged { size ->
+                availableWidth = size.width
+            },
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        visibleTabs.forEach { tab ->
+        tabLayout.visibleTabs.forEachIndexed { index, tab ->
             CompactTabPill(
                 tab = tab,
                 isSelected = tab.id == selectedTabId,
                 onSelect = { onTabAction(TabAction.Select(tab.id)) },
-                onClose = if (tabs.size > 1) {
-                    { onTabAction(TabAction.Close(tab.id)) }
+                onClose = { onTabAction(TabAction.Close(tab.id)) },
+                fixedWidth = if (index < tabLayout.tabWidths.size) {
+                    with(density) { tabLayout.tabWidths[index].toDp() }
                 } else null
             )
         }
 
-        if (hiddenCount > 0) {
+        if (tabLayout.hiddenCount > 0) {
             MoreTabsPill(
-                count = hiddenCount,
+                count = tabLayout.hiddenCount,
                 onClick = onNavToWorkspaceManager
             )
         }
+    }
+}
+
+private data class TabLayout(
+    val visibleTabs: List<WorkspaceTab>,
+    val tabWidths: List<Float>, // Width in pixels
+    val hiddenCount: Int
+)
+
+private fun calculateIdealTabWidth(
+    tab: WorkspaceTab,
+    textMeasurer: androidx.compose.ui.text.TextMeasurer,
+    density: androidx.compose.ui.unit.Density,
+    iconAndCloseWidth: Float,
+    context: android.content.Context
+): Float {
+    val textStyle = androidx.compose.ui.text.TextStyle(
+        fontSize = 14.sp
+    )
+
+    val textWidth = textMeasurer.measure(
+        text = tab.title.get(context),
+        style = textStyle
+    ).size.width.toFloat()
+
+    return textWidth + iconAndCloseWidth
+}
+
+private fun getWorkspaceTypeIcon(type: Workspace.Type): ImageVector {
+    return when (type) {
+        Workspace.Type.EXPLORER -> Icons.Default.Folder
+        Workspace.Type.SEARCHER -> Icons.Default.Search
+        Workspace.Type.EDITOR -> Icons.Default.Edit
+        Workspace.Type.TEMPLATES -> Icons.Default.Apps
     }
 }
 
@@ -369,7 +452,8 @@ private fun CompactTabPill(
     tab: WorkspaceTab,
     isSelected: Boolean,
     onSelect: () -> Unit,
-    onClose: (() -> Unit)? = null
+    onClose: (() -> Unit)? = null,
+    fixedWidth: androidx.compose.ui.unit.Dp? = null
 ) {
     Card(
         shape = RoundedCornerShape(16.dp),
@@ -383,13 +467,34 @@ private fun CompactTabPill(
         elevation = CardDefaults.cardElevation(
             defaultElevation = if (isSelected) 2.dp else 1.dp
         ),
-        modifier = Modifier.clickable { onSelect() }
+        modifier = Modifier
+            .let { modifier ->
+                if (fixedWidth != null) {
+                    modifier.width(fixedWidth)
+                } else {
+                    modifier.widthIn(max = 128.dp)
+                }
+            }
+            .clickable { onSelect() }
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
+            // Workspace type icon
+            Icon(
+                imageVector = getWorkspaceTypeIcon(tab.type),
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = if (isSelected) {
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                }
+            )
+
+            // Tab title with ellipsizing
             Text(
                 text = tab.title.asComposable(),
                 style = MaterialTheme.typography.bodySmall,
@@ -398,25 +503,26 @@ private fun CompactTabPill(
                 } else {
                     MaterialTheme.colorScheme.onSurfaceVariant
                 },
-                maxLines = 1
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
             )
 
-            if (onClose != null) {
-                IconButton(
-                    onClick = onClose,
-                    modifier = Modifier.size(16.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.Close,
-                        contentDescription = "Close workspace",
-                        tint = if (isSelected) {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                        modifier = Modifier.size(12.dp)
-                    )
-                }
+            // Close button (always show)
+            IconButton(
+                onClick = { onClose?.invoke() },
+                modifier = Modifier.size(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.TwoTone.Close,
+                    contentDescription = "Close workspace",
+                    tint = if (isSelected) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    modifier = Modifier.size(12.dp)
+                )
             }
         }
     }
