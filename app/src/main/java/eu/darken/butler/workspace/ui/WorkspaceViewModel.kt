@@ -156,6 +156,10 @@ class WorkspaceViewModel @Inject constructor(
         val current = workspaceSettings.isButtonActionsFlipped.value()
         workspaceSettings.isButtonActionsFlipped.value(!current)
     }
+    
+    suspend fun getWorkspace(id: Workspace.Id): Workspace? {
+        return workspaceRepo.get(id)
+    }
 
     data class State(
         val tabs: List<WorkspaceTab>,

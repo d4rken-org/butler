@@ -222,7 +222,17 @@ private fun TabContent(
             )
             Workspace.Type.EXPLORER -> ExplorerWorkspacePageHost(id = selected.id)
             Workspace.Type.SEARCHER -> SearcherWorkspacePageHost(id = selected.id)
-            Workspace.Type.EDITOR -> EditorWorkspacePageHost(id = selected.id)
+            Workspace.Type.EDITOR -> {
+                val vm: WorkspaceViewModel = hiltViewModel()
+                val workspace = remember(selected.id) { 
+                    kotlinx.coroutines.runBlocking { 
+                        vm.getWorkspace(selected.id) as? eu.darken.butler.editor.core.EditorWorkspace 
+                    }
+                }
+                workspace?.let {
+                    EditorWorkspacePageHost(id = selected.id, workspace = it)
+                }
+            }
         }
     }
 }
