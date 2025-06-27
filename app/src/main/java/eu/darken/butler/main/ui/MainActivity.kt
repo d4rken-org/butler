@@ -33,6 +33,7 @@ import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.NavigationDestination
 import eu.darken.butler.common.navigation.NavigationEntry
@@ -41,6 +42,7 @@ import eu.darken.butler.common.theming.ThemeState
 import eu.darken.butler.common.ui.Activity2
 import eu.darken.butler.main.core.CurriculumVitae
 import eu.darken.butler.main.core.GeneralSettings
+import eu.darken.butler.workspace.ui.workspaces
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -144,8 +146,8 @@ class MainActivity : Activity2() {
     @Composable
     private fun Navigation(state: MainViewModel.State) {
         val start = when (state.startScreen) {
-            MainViewModel.State.StartScreen.ONBOARDING -> AppNav.Main.Onboarding
-            MainViewModel.State.StartScreen.HOME -> AppNav.Main.Workspace
+            MainViewModel.State.StartScreen.ONBOARDING -> Nav.Main.onboarding()
+            MainViewModel.State.StartScreen.HOME -> Nav.Main.workspaces()
         }
 
         val backStack = rememberNavBackStack<NavigationDestination>(start)

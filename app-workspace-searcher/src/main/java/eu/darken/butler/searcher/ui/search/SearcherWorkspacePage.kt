@@ -1,5 +1,8 @@
 package eu.darken.butler.searcher.ui.search
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,13 +25,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -40,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,9 +55,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.searcher.ui.search.rows.FileRowData
-import eu.darken.butler.searcher.ui.search.rows.SmartFileRow
-import eu.darken.butler.searcher.ui.search.rows.FileType as UIFileType
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.APath
@@ -65,9 +63,14 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.searcher.core.SearchRepository
 import eu.darken.butler.searcher.core.SearchResult
+import eu.darken.butler.searcher.ui.search.rows.FileRowData
+import eu.darken.butler.searcher.ui.search.rows.SmartFileRow
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.WorkspaceButtonSpacer
+import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.ui.manager.WorkspaceButton
+import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import kotlinx.coroutines.delay
+import eu.darken.butler.searcher.ui.search.rows.FileType as UIFileType
 
 
 @Composable
@@ -77,11 +80,15 @@ fun SearcherWorkspacePageHost(
         key = id.longTag,
         creationCallback = { factory: SearcherWorkspaceViewModel.Factory -> factory.create(id = id) }
     ),
+    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
     ErrorEventHandler(vm)
 
+    val workspaceButtonState by workspaceButtonVm.state.collectAsState(null)
+
     val state by waitForState(vm.state)
     log(vm.tag) { "Compose state: $state" }
+
     state?.let { state ->
         SearcherWorkspacePage(
             state = state,
@@ -94,7 +101,10 @@ fun SearcherWorkspacePageHost(
             onHistoryItemClick = { item ->
                 vm.updateSearchQuery(item.query)
                 vm.performSearch()
-            }
+            },
+            workspaceButtonState = workspaceButtonState,
+            onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
+            onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
         )
     }
 }
@@ -109,9 +119,12 @@ fun SearcherWorkspacePage(
     onResultClick: (SearchResult) -> Unit = {},
     onClearHistory: () -> Unit = {},
     onHistoryItemClick: (SearchRepository.SearchHistoryItem) -> Unit = {},
+    workspaceButtonState: WorkspaceButtonViewModel.State?,
+    onWorkspaceAction: (WorkspaceAction) -> Unit,
+    onNavToWorkspaceManager: () -> Unit,
 ) {
     var searchDebounce by remember { mutableStateOf(false) }
-    
+
     // Debounce search input
     LaunchedEffect(state.searchQuery) {
         if (state.searchQuery.isNotBlank()) {
@@ -180,7 +193,7 @@ fun SearcherWorkspacePage(
                     }
                 }
             }
-            
+
             state.searchQuery.isBlank() -> {
                 Box(
                     modifier = Modifier
@@ -197,7 +210,7 @@ fun SearcherWorkspacePage(
                     )
                 }
             }
-            
+
             state.searchState.error != null -> {
                 Box(
                     modifier = Modifier
@@ -307,15 +320,16 @@ fun SearcherWorkspacePage(
                             isSearching = state.isSearching,
                             onCancel = if (state.isSearching) onCancelSearch else null
                         )
-                        
+
                         SearchPathBar(
                             path = state.searchPath,
                             onPathChange = onUpdateSearchPath,
                             isSearching = state.isSearching
                         )
                     }
-                    
-                    WorkspaceButtonSpacer()
+
+                    // Spacer for workspace button
+                    Spacer(modifier = Modifier.size(48.dp))
                 }
             }
         }
@@ -330,7 +344,7 @@ fun SearcherWorkspacePage(
                 LinearProgressIndicator(
                     modifier = Modifier.fillMaxWidth()
                 )
-                
+
                 state.searchState.progress?.let { progress ->
                     Text(
                         text = "Searching: ${progress.currentPath.name} (${progress.itemsScanned} scanned, ${progress.resultsFound} found)",
@@ -343,6 +357,16 @@ fun SearcherWorkspacePage(
                 }
             }
         }
+
+        WorkspaceButton(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(16.dp)
+                .statusBarsPadding(),
+            state = workspaceButtonState,
+            onAction = onWorkspaceAction,
+            onNavToWorkspaceManager = onNavToWorkspaceManager,
+        )
     }
 }
 
@@ -375,7 +399,7 @@ fun SearchInputCard(
                 isSearching = isSearching,
                 onCancel = onCancel
             )
-            
+
             SearchPathBar(
                 path = path,
                 onPathChange = onPathChange,
@@ -431,7 +455,7 @@ fun SearchPathBar(
 ) {
     var pathText by remember(path) { mutableStateOf(path.path) }
     var showPathPicker by remember { mutableStateOf(false) }
-    
+
     OutlinedTextField(
         value = pathText,
         onValueChange = { newPath ->
@@ -458,7 +482,7 @@ fun SearchPathBar(
         enabled = !isSearching,
         modifier = modifier.fillMaxWidth()
     )
-    
+
     if (showPathPicker) {
         PathPickerDialog(
             onPathSelected = { selectedPath ->
@@ -490,7 +514,7 @@ fun PathPickerDialog(
         "/data" to "Data",
         "/cache" to "Cache"
     )
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Select Search Path") },
@@ -500,7 +524,7 @@ fun PathPickerDialog(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { 
+                            .clickable {
                                 onPathSelected(LocalPath.build(path))
                             }
                             .padding(12.dp),
@@ -546,7 +570,7 @@ fun SearchResultRow(result: SearchResult, onClick: () -> Unit) {
         modifiedAt = result.modifiedAt,
         metadata = extractFileMetadata(result)
     )
-    
+
     SmartFileRow(
         data = fileRowData,
         onClick = onClick
@@ -585,7 +609,10 @@ private fun SearchPagePreview() {
             state = SearcherWorkspaceViewModel.State(
                 id = Workspace.Id(),
                 searchPath = LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler")
-            )
+            ),
+            workspaceButtonState = null,
+            onWorkspaceAction = {},
+            onNavToWorkspaceManager = {}
         )
     }
 }

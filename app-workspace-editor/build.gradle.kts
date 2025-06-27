@@ -49,12 +49,12 @@ dependencies {
 
     addAndroidCore()
     addAndroidUI()
+    addNavigation3()
     addDI()
     addCoroutines()
     addSerialization()
     addIO()
     addTesting()
 
-    addNavigation3()
     addCoil()
 }

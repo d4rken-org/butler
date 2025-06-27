@@ -1,9 +1,21 @@
 package eu.darken.butler.editor.ui
 
-import androidx.compose.foundation.layout.*
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.FolderOpen
@@ -11,51 +23,67 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Save
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import kotlinx.coroutines.launch
-import eu.darken.butler.common.debug.logging.log
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
-import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.SAFPath
-import android.net.Uri
-import eu.darken.butler.editor.core.*
+import eu.darken.butler.common.ui.waitForState
+import eu.darken.butler.editor.core.MemoryStats
+import eu.darken.butler.editor.core.SearchResult
+import eu.darken.butler.editor.core.TextPosition
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.WorkspaceButtonSpacer
+import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.ui.manager.WorkspaceButton
+import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 
 
 @Composable
 fun EditorWorkspacePageHost(
     id: Workspace.Id,
-    workspace: EditorWorkspace,
     vm: EditorWorkspaceViewModel = hiltViewModel(
         key = id.longTag,
-        creationCallback = { factory: EditorWorkspaceViewModel.Factory -> factory.create(id = id, workspace = workspace) }
+        creationCallback = { factory: EditorWorkspaceViewModel.Factory ->
+            factory.create(id)
+        }
     ),
+    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
     ErrorEventHandler(vm)
+
+    val workspaceButtonState by workspaceButtonVm.state.collectAsState(null)
 
     val state by waitForState(vm.state)
     log(vm.tag) { "Compose state: $state" }
 
     state?.let { state ->
         EditorWorkspacePage(
+            workspaceButtonState = workspaceButtonState,
+            onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
+            onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
             state = state,
             onOpenFile = vm::openFile,
             onSaveFile = vm::saveFile,
@@ -76,7 +104,7 @@ fun EditorWorkspacePageHost(
             onGoToLine = vm::goToLine,
             onUndo = vm::undo,
             onRedo = vm::redo,
-            onClearError = vm::clearError
+            onClearError = vm::clearError,
         )
     }
 }
@@ -84,6 +112,9 @@ fun EditorWorkspacePageHost(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditorWorkspacePage(
+    workspaceButtonState: WorkspaceButtonViewModel.State?,
+    onWorkspaceAction: (WorkspaceAction) -> Unit,
+    onNavToWorkspaceManager: () -> Unit,
     state: EditorWorkspaceViewModel.State,
     onOpenFile: (APath) -> Unit,
     onSaveFile: () -> Unit,
@@ -96,9 +127,9 @@ fun EditorWorkspacePage(
     onGoToLine: (Int) -> Unit,
     onUndo: () -> Unit,
     onRedo: () -> Unit,
-    onClearError: () -> Unit
+    onClearError: () -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
+    rememberCoroutineScope()
     var showGoToLineDialog by remember { mutableStateOf(false) }
     var showSearchDialog by remember { mutableStateOf(false) }
     var showMemoryStats by remember { mutableStateOf(false) }
@@ -144,46 +175,46 @@ fun EditorWorkspacePage(
                 onToggleMemoryStats = { showMemoryStats = !showMemoryStats }
             )
 
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            // Error display
-            state.error?.let { error ->
-                ErrorBanner(
-                    error = error,
-                    onDismiss = onClearError
-                )
-            }
-
-
-            // Main editor content - now using fixed LazyTextEditor
-            LazyTextEditor(
-                content = state.currentContent,
-                cursorPosition = state.cursorPosition,
-                selection = state.selectionRange,
-                visibleRange = state.visibleRange,
-                showLineNumbers = true,
-                fontSize = 14,
-                tabSize = 4,
-                onTextChange = onTextChange,
-                onCursorPositionChange = onCursorPositionChange,
-                onSelectionChange = onSelectionChange,
-                onVisibleRangeChange = onVisibleRangeChange,
+            Column(
                 modifier = Modifier.weight(1f)
-            )
+            ) {
+                // Error display
+                state.error?.let { error ->
+                    ErrorBanner(
+                        error = error,
+                        onDismiss = onClearError
+                    )
+                }
 
-            // Search results
-            if (state.hasSearchResults) {
-                SearchResultsBar(
-                    searchResults = state.searchResults,
-                    currentIndex = 0,
-                    onNavigateToResult = { result ->
-                        onCursorPositionChange(result.position)
-                    },
-                    onClose = { onSearch("") }
+
+                // Main editor content - now using fixed LazyTextEditor
+                LazyTextEditor(
+                    content = state.currentContent,
+                    cursorPosition = state.cursorPosition,
+                    selection = state.selectionRange,
+                    visibleRange = state.visibleRange,
+                    showLineNumbers = true,
+                    fontSize = 14,
+                    tabSize = 4,
+                    onTextChange = onTextChange,
+                    onCursorPositionChange = onCursorPositionChange,
+                    onSelectionChange = onSelectionChange,
+                    onVisibleRangeChange = onVisibleRangeChange,
+                    modifier = Modifier.weight(1f)
                 )
+
+                // Search results
+                if (state.hasSearchResults) {
+                    SearchResultsBar(
+                        searchResults = state.searchResults,
+                        currentIndex = 0,
+                        onNavigateToResult = { result ->
+                            onCursorPositionChange(result.position)
+                        },
+                        onClose = { onSearch("") }
+                    )
+                }
             }
-        }
 
             // Bottom status bar
             if (showMemoryStats) {
@@ -194,6 +225,16 @@ fun EditorWorkspacePage(
                 )
             }
         }
+
+        WorkspaceButton(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(16.dp)
+                .statusBarsPadding(),
+            state = workspaceButtonState,
+            onAction = onWorkspaceAction,
+            onNavToWorkspaceManager = onNavToWorkspaceManager,
+        )
     }
 
     // Dialogs
@@ -329,8 +370,6 @@ private fun EditorHeader(
                 }
 
                 Spacer(modifier = Modifier.weight(1f))
-
-                WorkspaceButtonSpacer()
             }
         }
     }
@@ -557,6 +596,9 @@ private fun SearchDialog(
 private fun EditorPagePreview() {
     PreviewWrapper {
         EditorWorkspacePage(
+            workspaceButtonState = null,
+            onWorkspaceAction = {},
+            onNavToWorkspaceManager = {},
             state = EditorWorkspaceViewModel.State(
                 id = Workspace.Id(),
                 totalLines = 1000,

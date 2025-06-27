@@ -13,4 +13,8 @@ abstract class WorkspaceModule {
     @Binds
     @Singleton
     abstract fun bindWorkspaceProvider(workspaceRepo: WorkspaceRepo): WorkspaceProvider
+
+    @Binds
+    @Singleton
+    abstract fun bindWorkspaceRemote(workspaceRepo: WorkspaceRepo): WorkspaceRemote
 }

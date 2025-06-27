@@ -9,6 +9,7 @@ import eu.darken.butler.searcher.core.SearcherWorkspace
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -23,7 +24,9 @@ class WorkspaceRepo @Inject constructor(
     private val explorerWorkspaceFactory: ExplorerWorkspace.Factory,
     private val searcherWorkspaceFactory: SearcherWorkspace.Factory,
     private val editorWorkspaceFactory: EditorWorkspace.Factory,
-) : WorkspaceProvider {
+    private val workspaceSettings: WorkspaceSettings,
+) : WorkspaceProvider, WorkspaceRemote {
+
     private val lock = Mutex()
     private val _workspaces = MutableStateFlow<List<Workspace>>(emptyList())
     private val _selectedWorkspaceId = MutableStateFlow<Workspace.Id?>(null)
@@ -52,11 +55,11 @@ class WorkspaceRepo @Inject constructor(
         )
     }
 
-    suspend fun create(
+    private suspend fun create(
         type: Workspace.Type,
         arguments: Workspace.Arguments? = null,
         idToReplace: Workspace.Id? = null,
-    ): Workspace.Id = lock.withLock {
+    ): Workspace.Id {
         log(TAG) { "create($type, $arguments, $idToReplace)" }
         val wip = _workspaces.value.toMutableList()
 
@@ -92,19 +95,19 @@ class WorkspaceRepo @Inject constructor(
 
         _workspaces.value = wip
 
-        newWorkspace.id
+        return newWorkspace.id
     }
 
-    override suspend fun get(id: Workspace.Id): Flow<Workspace?> = lock.withLock {
-        _workspaces.map { wss -> wss.singleOrNull { it.id == id } }
+    override suspend fun get(id: Workspace.Id): Flow<Workspace?> {
+        return _workspaces.map { wss -> wss.singleOrNull { it.id == id } }
     }
 
-    suspend fun delete(id: Workspace.Id) = lock.withLock {
+    private suspend fun delete(id: Workspace.Id) {
         log(TAG) { "delete($id)" }
         _workspaces.value = _workspaces.value.filter { it.id != id }
     }
 
-    suspend fun reorder(workspaceIds: List<Workspace.Id>) = lock.withLock {
+    private suspend fun reorder(workspaceIds: List<Workspace.Id>) {
         log(TAG) { "reorder($workspaceIds)" }
         val current = _workspaces.value
         val reordered = workspaceIds.mapNotNull { id ->
@@ -113,20 +116,86 @@ class WorkspaceRepo @Inject constructor(
 
         if (reordered.size != current.size) {
             log(TAG, ERROR) { "Reorder failed: size mismatch. Expected ${current.size}, got ${reordered.size}" }
-            return@withLock
+            return
         }
 
         _workspaces.value = reordered
     }
 
-    suspend fun selectWorkspace(id: Workspace.Id) = lock.withLock {
+    private suspend fun selectWorkspace(id: Workspace.Id) {
         log(TAG) { "selectWorkspace($id)" }
         _selectedWorkspaceId.value = id
     }
 
-    suspend fun clearSelectedWorkspace() = lock.withLock {
+    private suspend fun clearSelectedWorkspace() {
         log(TAG) { "clearSelectedWorkspace()" }
         _selectedWorkspaceId.value = null
+    }
+
+    override val status: Flow<WorkspaceRemote.Status> = combine(
+        _workspaces,
+        workspaceSettings.isButtonActionsFlipped.flow,
+    ) { wss, isButtonFlipped ->
+        WorkspaceRemote.Status(
+            count = wss.size,
+            isButtonActionsFlipped = isButtonFlipped,
+        )
+    }
+
+    override suspend fun execute(action: WorkspaceAction) = lock.withLock {
+        log(TAG) { "execute($action)" }
+        when (action) {
+            is WorkspaceAction.Select -> {
+                log(TAG) { "Selected tab $action, previous: ${_selectedWorkspaceId.value}" }
+                if (_selectedWorkspaceId.value != action.id) {
+                    _selectedWorkspaceId.value = action.id
+                    log(TAG) { "Tab selection changed to: ${action.id}" }
+                } else {
+                    log(TAG) { "Tab selection unchanged, already selected: ${action.id}" }
+                }
+            }
+
+            is WorkspaceAction.Create -> {
+                log(TAG) { "Creating new workspace with $action" }
+                val newId = create(
+                    type = action.type,
+                    arguments = action.arguments,
+                    idToReplace = action.replace
+                )
+                log(TAG) { "New workspace created with id $newId, selecting and scrolling to it" }
+                _selectedWorkspaceId.value = newId
+            }
+
+            is WorkspaceAction.Close -> {
+                log(TAG) { "Closing workspace with id ${action.id}" }
+                val tabsBeforeDelete = _workspaces.first()
+                val closingIndex = tabsBeforeDelete.indexOfFirst { it.id == action.id }
+                val wasSelected = _selectedWorkspaceId.value == action.id
+
+                delete(action.id)
+                val tabsAfterDelete = tabsBeforeDelete - tabsBeforeDelete[closingIndex]
+
+                // If closed tab wasn't selected, keep current selection unchanged
+                if (tabsAfterDelete.isNotEmpty() && wasSelected) {
+                    // Select next most intuitive tab when closing the selected tab
+                    val newSelectedId = when {
+                        // If there's a tab to the right, select it
+                        closingIndex < tabsAfterDelete.size -> tabsAfterDelete[closingIndex].id
+                        // Otherwise select the tab to the left (last tab)
+                        else -> tabsAfterDelete.last().id
+                    }
+                    log(TAG) { "Closed selected tab, selecting new tab: $newSelectedId" }
+                    _selectedWorkspaceId.value = newSelectedId
+                } else if (tabsAfterDelete.isEmpty()) {
+                    log(TAG) { "Closed last tab, setting selection to null" }
+                    _selectedWorkspaceId.value = null
+                }
+            }
+            is WorkspaceAction.Reorder -> {
+                log(TAG) { "Reordering workspaces: ${action.workspaceIds}" }
+                reorder(action.workspaceIds)
+            }
+        }
     }
 
     companion object {

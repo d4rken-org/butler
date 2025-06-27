@@ -31,11 +31,17 @@ import eu.darken.butler.common.ButlerLinks
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.navigation.Nav
+import eu.darken.butler.common.navigation.NavigationDestination
 import eu.darken.butler.common.settings.SettingsBaseItem
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
 import eu.darken.butler.common.ui.waitForState
-import eu.darken.butler.main.ui.AppNav
+import eu.darken.butler.editor.ui.editor
+import eu.darken.butler.explorer.ui.explorer
+import eu.darken.butler.main.ui.destSetup
+import eu.darken.butler.searcher.ui.searcher
+import eu.darken.butler.workspace.ui.settings.workspaces
 
 @Composable
 fun SettingsIndexScreenHost(vm: SettingsViewModel = hiltViewModel()) {
@@ -48,7 +54,7 @@ fun SettingsIndexScreenHost(vm: SettingsViewModel = hiltViewModel()) {
             state = state,
             onNavigateUp = { vm.navUp() },
             onNavigateTo = { vm.navTo(it) },
-            onNavigateToSetup = { vm.navTo(AppNav.Main.Setup) },
+            onNavigateToSetup = { vm.navTo(Nav.Main.destSetup()) },
             onOpenUrl = { vm.openUrl(it) },
         )
     }
@@ -58,7 +64,7 @@ fun SettingsIndexScreenHost(vm: SettingsViewModel = hiltViewModel()) {
 fun SettingsIndexScreen(
     state: SettingsViewModel.State,
     onNavigateUp: () -> Unit,
-    onNavigateTo: (AppNav.Settings) -> Unit,
+    onNavigateTo: (NavigationDestination) -> Unit,
     onNavigateToSetup: () -> Unit,
     onOpenUrl: (String) -> Unit,
 ) {
@@ -88,7 +94,7 @@ fun SettingsIndexScreen(
                     icon = Icons.Default.Settings,
                     title = stringResource(R.string.general_settings_label),
                     subtitle = stringResource(R.string.general_settings_desc),
-                    onClick = { onNavigateTo(AppNav.Settings.General) },
+                    onClick = { onNavigateTo(Nav.Settings.general()) },
                 )
                 SettingsDivider()
             }
@@ -98,7 +104,7 @@ fun SettingsIndexScreen(
                     icon = Icons.Default.Workspaces,
                     title = stringResource(R.string.workspace_settings_title),
                     subtitle = "Configure workspace behavior",
-                    onClick = { onNavigateTo(AppNav.Settings.Workspace) },
+                    onClick = { onNavigateTo(Nav.Settings.workspaces()) },
                 )
                 SettingsDivider()
             }
@@ -120,7 +126,7 @@ fun SettingsIndexScreen(
                     icon = Icons.Default.Folder,
                     title = "Explorer Settings",
                     subtitle = "Configure file explorer behavior",
-                    onClick = { onNavigateTo(AppNav.Settings.Explorer) },
+                    onClick = { onNavigateTo(Nav.Settings.explorer()) },
                 )
                 SettingsDivider()
             }
@@ -130,7 +136,7 @@ fun SettingsIndexScreen(
                     icon = Icons.Default.Search,
                     title = "Searcher Settings",
                     subtitle = "Configure search behavior",
-                    onClick = { onNavigateTo(AppNav.Settings.Search) },
+                    onClick = { onNavigateTo(Nav.Settings.searcher()) },
                 )
                 SettingsDivider()
             }
@@ -140,7 +146,7 @@ fun SettingsIndexScreen(
                     icon = Icons.Default.Edit,
                     title = "Editor Settings",
                     subtitle = "Configure text editor behavior",
-                    onClick = { onNavigateTo(AppNav.Settings.Editor) },
+                    onClick = { onNavigateTo(Nav.Settings.editor()) },
                 )
                 SettingsDivider()
             }
@@ -152,7 +158,7 @@ fun SettingsIndexScreen(
                     icon = Icons.Default.Info,
                     title = stringResource(R.string.settings_support_label),
                     subtitle = stringResource(R.string.settings_support_description),
-                    onClick = { onNavigateTo(AppNav.Settings.Support) },
+                    onClick = { onNavigateTo(Nav.Settings.support()) },
                 )
                 SettingsDivider()
             }
@@ -172,7 +178,7 @@ fun SettingsIndexScreen(
                     icon = Icons.Default.Favorite,
                     title = stringResource(R.string.settings_acknowledgements_label),
                     subtitle = stringResource(R.string.settings_acknowledgements_description),
-                    onClick = { onNavigateTo(AppNav.Settings.Acknowledgements) },
+                    onClick = { onNavigateTo(Nav.Settings.acks()) },
                 )
                 SettingsDivider()
             }

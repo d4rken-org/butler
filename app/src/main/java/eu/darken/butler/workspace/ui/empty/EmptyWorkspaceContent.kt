@@ -32,14 +32,14 @@ import eu.darken.butler.common.compose.ButlerIcon
 import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.workspace.ui.TabAction
+import eu.darken.butler.workspace.core.WorkspaceAction
 
 @Composable
 internal fun EmptyWorkspaceContent(
     modifier: Modifier = Modifier,
     isUpgraded: Boolean,
     onNavToSettings: () -> Unit,
-    onTabAction: (TabAction.Create) -> Unit,
+    onTabAction: (WorkspaceAction.Create) -> Unit,
     onUpgradeButler: () -> Unit,
 ) {
     Column(
@@ -95,7 +95,7 @@ internal fun EmptyWorkspaceContent(
                 Card(
                     modifier = Modifier.Companion
                         .fillMaxWidth()
-                        .clickable { onTabAction(TabAction.Create()) },
+                        .clickable { onTabAction(WorkspaceAction.Create()) },
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                 ) {
                     Row(

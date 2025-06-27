@@ -1,23 +1,17 @@
 package eu.darken.butler.workspace.ui.manager
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.EaseOutCubic
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
@@ -45,18 +39,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
@@ -72,7 +62,6 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.workspace.core.Workspace
-import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @Composable
@@ -84,8 +73,6 @@ fun WorkspaceManagerScreenHost(
     val state by waitForState(vm.state)
     log(vm.tag) { "Compose state: $state" }
 
-    var isClosing by remember { mutableStateOf(false) }
-
     state?.let { currentState ->
         WorkspaceManagerScreen(
             state = currentState,
@@ -93,15 +80,7 @@ fun WorkspaceManagerScreenHost(
             onReorderWorkspaces = vm::reorderWorkspaces,
             onSelectWorkspace = vm::selectWorkspace,
             onCreateWorkspace = vm::createWorkspace,
-            onNavigateBack = {
-                isClosing = true
-            },
-            isClosing = isClosing,
-            onAnimationComplete = {
-                if (isClosing) {
-                    vm.navigateBack()
-                }
-            }
+            onNavigateBack = vm::navigateBack
         )
     }
 }
@@ -115,355 +94,214 @@ fun WorkspaceManagerScreen(
     onSelectWorkspace: (Workspace.Id) -> Unit,
     onCreateWorkspace: (Workspace.Type) -> Unit,
     onNavigateBack: () -> Unit,
-    isClosing: Boolean = false,
-    onAnimationComplete: () -> Unit = {},
 ) {
-    val density = LocalDensity.current
-    val isInPreview = LocalInspectionMode.current
-
     var workspaceItems by remember { mutableStateOf(state.workspaces) }
     LaunchedEffect(state.workspaces) {
         workspaceItems = state.workspaces
     }
 
-    BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        val screenWidth = constraints.maxWidth.toFloat()
-        val screenHeight = constraints.maxHeight.toFloat()
-        val statusBarHeight = WindowInsets.statusBars.getTop(density).toFloat()
-
-        // Position and size of the workspace button
-        val buttonSize = with(density) { 48.dp.toPx() }
-        val buttonX = screenWidth - with(density) { 16.dp.toPx() } - buttonSize
-        val buttonY = statusBarHeight + with(density) { 16.dp.toPx() }
-
-        // Morphing animation values - always start in closed state
-        val morphProgress = remember { Animatable(0f) }
-        val cornerRadiusProgress = remember { Animatable(1f) }
-        val contentAlpha = remember { Animatable(0f) }
-        val scope = rememberCoroutineScope()
-        
-        // Trigger opening animation when screen first appears
-        LaunchedEffect(Unit) {
-            if (!isInPreview) {
-                // Opening animation
-                scope.launch {
-                    morphProgress.animateTo(
-                        targetValue = 1f,
-                        animationSpec = tween(durationMillis = 300, easing = EaseOutCubic)
-                    )
-                }
-                scope.launch {
-                    cornerRadiusProgress.animateTo(
-                        targetValue = 0f,
-                        animationSpec = tween(durationMillis = 300, easing = EaseOutCubic)
-                    )
-                }
-                scope.launch {
-                    contentAlpha.animateTo(
-                        targetValue = 1f,
-                        animationSpec = tween(durationMillis = 200, delayMillis = 50)
-                    )
-                }
-            } else {
-                // Snap to open state in preview
-                morphProgress.snapTo(1f)
-                cornerRadiusProgress.snapTo(0f)
-                contentAlpha.snapTo(1f)
-            }
-        }
-
-        LaunchedEffect(isClosing) {
-            if (isClosing) {
-                // Stop any existing animations immediately
-                morphProgress.stop()
-                cornerRadiusProgress.stop()
-                contentAlpha.stop()
-                // Trigger completion callback immediately - no delay
-                onAnimationComplete()
-                
-                // Reverse animation for closing - much faster
-                scope.launch {
-                    contentAlpha.animateTo(
-                        targetValue = 0f,
-                        animationSpec = tween(durationMillis = 30)
-                    )
-                }
-                scope.launch {
-                    cornerRadiusProgress.animateTo(
-                        targetValue = 1f,
-                        animationSpec = tween(durationMillis = 150, easing = EaseOutCubic)
-                    )
-                }
-                scope.launch {
-                    morphProgress.animateTo(
-                        targetValue = 0f,
-                        animationSpec = tween(durationMillis = 150, easing = EaseOutCubic)
-                    )
-                }
-            }
-        }
-
-        // Calculate morphing values in dp
-        val buttonSizeDp = 48.dp // Adjusted to match actual button size
-        val buttonXDp = with(density) { buttonX.toDp() }
-        val buttonYDp = with(density) { buttonY.toDp() }
-        val screenWidthDp = with(density) { screenWidth.toDp() }
-        val screenHeightDp = with(density) { screenHeight.toDp() }
-        
-        // Interpolate sizes and positions
-        val currentWidth = buttonSizeDp + (screenWidthDp - buttonSizeDp) * morphProgress.value
-        val currentHeight = buttonSizeDp + (screenHeightDp - buttonSizeDp) * morphProgress.value
-        val currentX = buttonXDp * (1f - morphProgress.value)
-        val currentY = buttonYDp * (1f - morphProgress.value)
-        val currentCornerRadius = 8.dp * cornerRadiusProgress.value
-
-        // Morphing container
-        Box(
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
+        Column(
             modifier = Modifier
-                .offset(x = currentX, y = currentY)
-                .size(width = currentWidth, height = currentHeight)
-                .clip(RoundedCornerShape(currentCornerRadius))
-                .background(MaterialTheme.colorScheme.tertiaryContainer)
+                .fillMaxSize()
+                .padding(paddingValues)
         ) {
-            // Initial button content that fades out during opening, fades in during closing
-            if (morphProgress.value < 0.3f || (isClosing && morphProgress.value < 0.7f)) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .alpha(
-                            if (isClosing) {
-                                (1f - morphProgress.value) * 2f
-                            } else {
-                                1f - (morphProgress.value * 3.33f)
-                            }
-                        )
+            // Header with title, icon, and close button
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Icon(
                         imageVector = Icons.TwoTone.Workspaces,
                         contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.workspace_manager_title),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+
+                // Close button
+                Card(
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.95f)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+                    modifier = Modifier.clickable { onNavigateBack() }
+                ) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Close,
+                        contentDescription = "Dismiss",
                         tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                        modifier = Modifier
-                            .size(24.dp)
-                            .align(Alignment.Center)
+                        modifier = Modifier.padding(12.dp)
                     )
                 }
             }
-            
-            // Main content
-            Box(
+
+            // Status card - Add Workspace flat icon + text with dropdown
+            var showDropdown by remember { mutableStateOf(false) }
+
+            Card(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .alpha(contentAlpha.value.coerceIn(0f, 1f))
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .clickable { showDropdown = true },
+                shape = RoundedCornerShape(8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    containerColor = MaterialTheme.colorScheme.background
-                ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            ) {
-                // Header with title, icon, and close button
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 16.dp),
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.TwoTone.Workspaces,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(32.dp)
-                        )
-                        Text(
-                            text = stringResource(R.string.workspace_manager_title),
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                    
-                    // Close button
-                    Card(
-                        shape = RoundedCornerShape(8.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.95f)
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-                        modifier = Modifier.clickable { onNavigateBack() }
-                    ) {
-                        Icon(
-                            imageVector = Icons.TwoTone.Close,
-                            contentDescription = "Dismiss",
-                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                            modifier = Modifier.padding(12.dp)
-                        )
-                    }
-                }
-
-                // Status card
-                // Add Workspace flat icon + text with dropdown
-                var showDropdown by remember { mutableStateOf(false) }
-                
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .clickable { showDropdown = true },
-                    shape = RoundedCornerShape(8.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = stringResource(R.string.workspace_manager_status_count, state.workspaceCount),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                        Box {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.TwoTone.Add,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp),
-                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                                Text(
-                                    text = "Add",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            }
-                            
-                            DropdownMenu(
-                                expanded = showDropdown,
-                                onDismissRequest = { showDropdown = false }
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text("Explorer") },
-                                    onClick = {
-                                        onCreateWorkspace(Workspace.Type.EXPLORER)
-                                        showDropdown = false
-                                    },
-                                    leadingIcon = {
-                                        Icon(Icons.TwoTone.Folder, contentDescription = null)
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Search") },
-                                    onClick = {
-                                        onCreateWorkspace(Workspace.Type.SEARCHER)
-                                        showDropdown = false
-                                    },
-                                    leadingIcon = {
-                                        Icon(Icons.TwoTone.Search, contentDescription = null)
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Editor") },
-                                    onClick = {
-                                        onCreateWorkspace(Workspace.Type.EDITOR)
-                                        showDropdown = false
-                                    },
-                                    leadingIcon = {
-                                        Icon(Icons.TwoTone.Edit, contentDescription = null)
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Templates") },
-                                    onClick = {
-                                        onCreateWorkspace(Workspace.Type.TEMPLATES)
-                                        showDropdown = false
-                                    },
-                                    leadingIcon = {
-                                        Icon(Icons.TwoTone.Workspaces, contentDescription = null)
-                                    }
-                                )
-                            }
+                    Text(
+                        text = stringResource(R.string.workspace_manager_status_count, state.workspaceCount),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Box {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.TwoTone.Add,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Text(
+                                text = "Add",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
                         }
-                    }
-                }
 
-                // Workspace list or empty state
-                if (workspaceItems.isEmpty()) {
-                    // Empty state
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(32.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.TwoTone.Workspaces,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.outline,
-                            modifier = Modifier.size(64.dp)
-                        )
-                        Text(
-                            text = stringResource(R.string.workspace_manager_empty_title),
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.padding(top = 16.dp)
-                        )
-                        Text(
-                            text = stringResource(R.string.workspace_manager_empty_subtitle),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        itemsIndexed(
-                            items = workspaceItems,
-                            key = { _, workspace -> workspace.id.toString() }
-                        ) { index, workspace ->
-                            DraggableWorkspaceListItem(
-                                workspace = workspace,
-                                onClose = { onCloseWorkspace(workspace.id) },
-                                onSelect = { onSelectWorkspace(workspace.id) },
-                                onDragEnd = { fromIndex, toIndex ->
-                                    if (fromIndex != toIndex) {
-                                        val newList = workspaceItems.toMutableList()
-                                        val movedItem = newList.removeAt(fromIndex)
-                                        newList.add(toIndex, movedItem)
-                                        workspaceItems = newList
-                                        onReorderWorkspaces(newList.map { it.id })
-                                    }
+                        DropdownMenu(
+                            expanded = showDropdown,
+                            onDismissRequest = { showDropdown = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Explorer") },
+                                onClick = {
+                                    onCreateWorkspace(Workspace.Type.EXPLORER)
+                                    showDropdown = false
                                 },
-                                index = index
+                                leadingIcon = {
+                                    Icon(Icons.TwoTone.Folder, contentDescription = null)
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Search") },
+                                onClick = {
+                                    onCreateWorkspace(Workspace.Type.SEARCHER)
+                                    showDropdown = false
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.TwoTone.Search, contentDescription = null)
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Editor") },
+                                onClick = {
+                                    onCreateWorkspace(Workspace.Type.EDITOR)
+                                    showDropdown = false
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.TwoTone.Edit, contentDescription = null)
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Templates") },
+                                onClick = {
+                                    onCreateWorkspace(Workspace.Type.TEMPLATES)
+                                    showDropdown = false
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.TwoTone.Workspaces, contentDescription = null)
+                                }
                             )
                         }
                     }
                 }
-                }
             }
+
+            // Workspace list or empty state
+            if (workspaceItems.isEmpty()) {
+                // Empty state
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Workspaces,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.outline,
+                        modifier = Modifier.size(64.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.workspace_manager_empty_title),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.workspace_manager_empty_subtitle),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    itemsIndexed(
+                        items = workspaceItems,
+                        key = { _, workspace -> workspace.id.toString() }
+                    ) { index, workspace ->
+                        DraggableWorkspaceListItem(
+                            workspace = workspace,
+                            onClose = { onCloseWorkspace(workspace.id) },
+                            onSelect = { onSelectWorkspace(workspace.id) },
+                            onDragEnd = { fromIndex, toIndex ->
+                                if (fromIndex != toIndex) {
+                                    val newList = workspaceItems.toMutableList()
+                                    val movedItem = newList.removeAt(fromIndex)
+                                    newList.add(toIndex, movedItem)
+                                    workspaceItems = newList
+                                    onReorderWorkspaces(newList.map { it.id })
+                                }
+                            },
+                            index = index
+                        )
+                    }
+                }
             }
         }
     }
@@ -670,9 +508,7 @@ private fun WorkspaceManagerScreenPreview() {
             onReorderWorkspaces = {},
             onSelectWorkspace = {},
             onCreateWorkspace = {},
-            onNavigateBack = {},
-            isClosing = false,
-            onAnimationComplete = {}
+            onNavigateBack = {}
         )
     }
 }

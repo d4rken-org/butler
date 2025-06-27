@@ -1,23 +1,21 @@
-package eu.darken.butler.workspace.ui
+package eu.darken.butler.workspace.core
 
-import eu.darken.butler.workspace.core.Workspace
-
-sealed interface TabAction {
+sealed interface WorkspaceAction {
     data class Select(
         val id: Workspace.Id,
-    ) : TabAction
+    ) : WorkspaceAction
 
     data class Create(
         val type: Workspace.Type = Workspace.Type.TEMPLATES,
         val arguments: Workspace.Arguments? = null,
         val replace: Workspace.Id? = null,
-    ) : TabAction
+    ) : WorkspaceAction
 
     data class Close(
         val id: Workspace.Id,
-    ) : TabAction
+    ) : WorkspaceAction
 
     data class Reorder(
         val workspaceIds: List<Workspace.Id>,
-    ) : TabAction
+    ) : WorkspaceAction
 }

@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -24,10 +25,12 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.ui.waitForState
-import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.WorkspaceButtonSpacer
-import eu.darken.butler.explorer.ui.explorer.rows.FileItemRow
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.explorer.ui.explorer.rows.FileItemRow
+import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.ui.manager.WorkspaceButton
+import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import kotlinx.coroutines.flow.flowOf
 
 @Composable
@@ -37,15 +40,22 @@ fun ExplorerWorkspacePageHost(
         key = id.longTag,
         creationCallback = { factory: ExplorerWorkspaceViewModel.Factory -> factory.create(id = id) }
     ),
+    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
     ErrorEventHandler(vm)
 
+    val workspaceButtonState by workspaceButtonVm.state.collectAsState(null)
+
     val state by waitForState(vm.state)
     log(vm.tag) { "Compose state: $state" }
+
     state?.let { state ->
         ExplorerWorkspacePage(
             state = state,
-            vm = vm
+            vm = vm,
+            workspaceButtonState = workspaceButtonState,
+            onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
+            onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
         )
     }
 }
@@ -53,83 +63,95 @@ fun ExplorerWorkspacePageHost(
 @Composable
 fun ExplorerWorkspacePage(
     state: ExplorerWorkspaceViewModel.State,
-    vm: ExplorerWorkspaceViewModel? = null
+    vm: ExplorerWorkspaceViewModel? = null,
+    workspaceButtonState: WorkspaceButtonViewModel.State?,
+    onWorkspaceAction: (WorkspaceAction) -> Unit,
+    onNavToWorkspaceManager: () -> Unit,
 ) {
     val fileItems by state.fileItemsFlow.collectAsState(initial = emptyList())
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Path display with spacer for floating button
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top
-        ) {
-            PathCrumbBar(
-                currentPath = state.currentPath.path,
-                onPathChanged = { newPath ->
-                    vm?.navigateToPath(RawPath.build(newPath))
-                },
-                onNavigateToPath = { targetPath ->
-                    vm?.navigateToPath(RawPath.build(targetPath))
-                },
-                onNavigateToHome = {
-                    vm?.navigateToPath(RawPath.build("/"))
-                },
-                onValidationError = { error ->
-                    log("ExplorerWorkspacePage") { "Path validation error: $error" }
-                },
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Path display with spacer for floating button
+            Row(
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(16.dp)
-            )
-            
-            WorkspaceButtonSpacer()
-        }
-
-        // File list
-        if (state.isLoading) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
             ) {
-                CircularProgressIndicator()
-                Text(
-                    text = "Loading...",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 16.dp)
+                PathCrumbBar(
+                    currentPath = state.currentPath.path,
+                    onPathChanged = { newPath ->
+                        vm?.navigateToPath(RawPath.build(newPath))
+                    },
+                    onNavigateToPath = { targetPath ->
+                        vm?.navigateToPath(RawPath.build(targetPath))
+                    },
+                    onNavigateToHome = {
+                        vm?.navigateToPath(RawPath.build("/"))
+                    },
+                    onValidationError = { error ->
+                        log("ExplorerWorkspacePage") { "Path validation error: $error" }
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(top = 2.dp)
+                )
+
+                WorkspaceButton(
+                    modifier = Modifier.padding(start = 8.dp),
+                    state = workspaceButtonState,
+                    onAction = onWorkspaceAction,
+                    onNavToWorkspaceManager = onNavToWorkspaceManager,
                 )
             }
-        } else {
-            if (fileItems.isEmpty()) {
-                EmptyFolderState(
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(16.dp)
-                ) {
-                    // Sort directories first, then files
-                    val sortedItems = fileItems.sortedWith(
-                        compareBy<FileItem> { !it.isDirectory }.thenBy { it.displayName }
-                    )
 
-                    items(sortedItems) { fileItem ->
-                        FileItemRow(
-                            item = fileItem,
-                            isSelected = state.selectedItems.contains(fileItem.lookup.path),
-                            onToggleSelection = {
-                                vm?.toggleItemSelection(fileItem.lookup.path)
-                            },
-                            onClick = {
-                                if (fileItem.isDirectory) {
-                                    vm?.navigateToPath(fileItem.lookup.lookedUp)
-                                }
-                            },
-                            showSelection = state.selectedItems.isNotEmpty()
+            // File list
+            if (state.isLoading) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator()
+                    Text(
+                        text = "Loading...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                }
+            } else {
+                if (fileItems.isEmpty()) {
+                    EmptyFolderState(
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(16.dp)
+                    ) {
+                        // Sort directories first, then files
+                        val sortedItems = fileItems.sortedWith(
+                            compareBy<FileItem> { !it.isDirectory }.thenBy { it.displayName }
                         )
+
+                        items(sortedItems) { fileItem ->
+                            FileItemRow(
+                                item = fileItem,
+                                isSelected = state.selectedItems.contains(fileItem.lookup.path),
+                                onToggleSelection = {
+                                    vm?.toggleItemSelection(fileItem.lookup.path)
+                                },
+                                onClick = {
+                                    if (fileItem.isDirectory) {
+                                        vm?.navigateToPath(fileItem.lookup.lookedUp)
+                                    }
+                                },
+                                showSelection = state.selectedItems.isNotEmpty()
+                            )
+                        }
                     }
                 }
             }
@@ -147,15 +169,18 @@ fun ExplorerWorkspacePagePreview() {
         isLoading = false,
         selectedItems = emptySet()
     )
-    
+
     ExplorerWorkspacePage(
         state = mockState,
-        vm = null
+        vm = null,
+        workspaceButtonState = null,
+        onWorkspaceAction = {},
+        onNavToWorkspaceManager = {},
     )
 }
 
 @Preview(showBackground = true)
-@Composable 
+@Composable
 fun ExplorerWorkspacePageLoadingPreview() {
     val mockState = ExplorerWorkspaceViewModel.State(
         id = Workspace.Id(),
@@ -164,10 +189,13 @@ fun ExplorerWorkspacePageLoadingPreview() {
         isLoading = true,
         selectedItems = emptySet()
     )
-    
+
     ExplorerWorkspacePage(
         state = mockState,
-        vm = null
+        vm = null,
+        workspaceButtonState = null,
+        onWorkspaceAction = {},
+        onNavToWorkspaceManager = {},
     )
 }
 
@@ -181,10 +209,13 @@ fun ExplorerWorkspacePageEmptyPreview() {
         isLoading = false,
         selectedItems = emptySet()
     )
-    
+
     ExplorerWorkspacePage(
         state = mockState,
-        vm = null
+        vm = null,
+        workspaceButtonState = null,
+        onWorkspaceAction = {},
+        onNavToWorkspaceManager = {},
     )
 }
 
@@ -199,10 +230,13 @@ fun ExplorerWorkspacePageWithSelectionPreview() {
         isLoading = false,
         selectedItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path)
     )
-    
+
     ExplorerWorkspacePage(
         state = mockState,
-        vm = null
+        vm = null,
+        workspaceButtonState = null,
+        onWorkspaceAction = {},
+        onNavToWorkspaceManager = {},
     )
 }
 

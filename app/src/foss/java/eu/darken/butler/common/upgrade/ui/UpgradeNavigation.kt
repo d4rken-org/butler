@@ -9,12 +9,12 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import eu.darken.butler.common.navigation.NavigationEntry
-import eu.darken.butler.main.ui.AppNav
+import eu.darken.butler.main.ui.DestinationUpgrade
 import javax.inject.Inject
 
 class UpgradeNavigation @Inject constructor() : NavigationEntry {
     override fun EntryProviderBuilder<NavKey>.setup() {
-        entry<AppNav.Main.Upgrade> {
+        entry<DestinationUpgrade> {
             UpgradeScreenHost()
         }
     }

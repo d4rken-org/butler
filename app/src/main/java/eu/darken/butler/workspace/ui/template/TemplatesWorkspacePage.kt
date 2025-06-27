@@ -32,6 +32,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,35 +61,41 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.editor.ui.EditorWorkspaceTemplate
 import eu.darken.butler.explorer.ui.ExplorerWorkspaceTemplate
-import eu.darken.butler.main.ui.AppNav
+import eu.darken.butler.main.ui.settings
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceTemplate
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.TabAction
-import eu.darken.butler.workspace.ui.WorkspaceButtonSpacer
+import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.WorkspaceTab
+import eu.darken.butler.workspace.ui.manager.WorkspaceButton
+import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 
 @Composable
 fun TemplatesWorkspacePageHost(
     id: Workspace.Id,
-    onTabAction: (TabAction) -> Unit,
     vm: TemplatesWorkspaceViewModel = hiltViewModel(
         key = id.longTag,
         creationCallback = { factory: TemplatesWorkspaceViewModel.Factory -> factory.create(id = id) }
     ),
+    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
     ErrorEventHandler(vm)
 
+    val workspaceButtonState by workspaceButtonVm.state.collectAsState(null)
+
     val state by waitForState(vm.state)
     log(vm.tag) { "Compose state: $state" }
+
     state?.let { state ->
         TemplatesWorkspacePage(
             state = state,
-            onTabAction = onTabAction,
-            onNavToSettings = { vm.navTo(AppNav.Main.Settings) },
-            onNavToWorkspaceManager = { vm.navTo(AppNav.Main.WorkspaceManager) },
+            onNavToSettings = { vm.navTo(Nav.Main.settings()) },
+            workspaceButtonState = workspaceButtonState,
+            onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
+            onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
         )
     }
 }
@@ -96,142 +103,149 @@ fun TemplatesWorkspacePageHost(
 @Composable
 fun TemplatesWorkspacePage(
     state: TemplatesWorkspaceViewModel.State,
-    onTabAction: (TabAction) -> Unit,
     onNavToSettings: () -> Unit,
+    workspaceButtonState: WorkspaceButtonViewModel.State?,
+    onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
 ) {
     val randomSlogan = remember { Slogans.random }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Compact tab pills row
-        if (state.workspaceTabs.isNotEmpty()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp), // Match workspace button padding
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
-                    Text(
-                        text = "Open workspaces",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 4.dp),
-                    )
-
-                    CompactTabPillsRow(
-                        tabs = state.workspaceTabs,
-                        selectedTabId = state.selectedTabId,
-                        onTabAction = onTabAction,
-                        onNavToWorkspaceManager = onNavToWorkspaceManager
-                    )
-                }
-
-                WorkspaceButtonSpacer()
-            }
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column {
-                Text(
-                    text = stringResource(R.string.workspace_templates_choose_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                Text(
-                    text = stringResource(R.string.workspace_templates_choose_subtitle),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(bottom = 24.dp)
-                )
-
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    items(state.templates.size) { index ->
-                        val template = state.templates[index]
-                        val isFirstItem = index == 0
-
-                        TemplateCard(
-                            template = template,
-                            isFirstItem = isFirstItem,
-                            onClick = {
-                                onTabAction(
-                                    TabAction.Create(
-                                        type = template.type,
-                                        arguments = template.arguments,
-                                        replace = state.id
-                                    )
-                                )
-                            })
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp), colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                )
-            ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Compact tab pills row
+            if (state.workspaceTabs.isNotEmpty()) {
                 Row(
                     modifier = Modifier
-                        .clickable { onNavToSettings() }
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 16.dp), // Match workspace button padding
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    ButlerIcon(
-                        size = 40.dp
-                    )
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        if (state.isUpgraded) {
-                            ColoredTitleText(
-                                fullTitle = stringResource(R.string.app_name_upgraded),
-                                postfix = stringResource(R.string.app_name_upgrade_postfix),
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                        } else {
-                            Text(
-                                text = stringResource(eu.darken.butler.common.R.string.app_name),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                        }
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
                         Text(
-                            text = randomSlogan.get(LocalContext.current),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
+                            text = "Open workspaces",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 4.dp),
                         )
-                        Text(
-                            text = BuildConfigWrap.VERSION_DESCRIPTION_SHORT,
-                            style = MaterialTheme.typography.labelSmall,
-                            modifier = Modifier.padding(top = 2.dp),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+
+                        CompactTabPillsRow(
+                            tabs = state.workspaceTabs,
+                            selectedTabId = state.selectedTabId,
+                            onWorkspaceAction = onWorkspaceAction,
+                            onNavToWorkspaceManager = onNavToWorkspaceManager
                         )
                     }
 
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    WorkspaceButton(
+                        state = workspaceButtonState,
+                        onAction = onWorkspaceAction,
+                        onNavToWorkspaceManager = onNavToWorkspaceManager,
                     )
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = stringResource(R.string.workspace_templates_choose_title),
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.workspace_templates_choose_subtitle),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        modifier = Modifier.padding(bottom = 24.dp)
+                    )
+
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        items(state.templates.size) { index ->
+                            val template = state.templates[index]
+                            val isFirstItem = index == 0
+
+                            TemplateCard(
+                                template = template,
+                                isFirstItem = isFirstItem,
+                                onClick = {
+                                    onWorkspaceAction(
+                                        WorkspaceAction.Create(
+                                            type = template.type,
+                                            arguments = template.arguments,
+                                            replace = state.id
+                                        )
+                                    )
+                                })
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp), colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .clickable { onNavToSettings() }
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        ButlerIcon(
+                            size = 40.dp
+                        )
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            if (state.isUpgraded) {
+                                ColoredTitleText(
+                                    fullTitle = stringResource(R.string.app_name_upgraded),
+                                    postfix = stringResource(R.string.app_name_upgrade_postfix),
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+                            } else {
+                                Text(
+                                    text = stringResource(eu.darken.butler.common.R.string.app_name),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                            Text(
+                                text = randomSlogan.get(LocalContext.current),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = BuildConfigWrap.VERSION_DESCRIPTION_SHORT,
+                                style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier.padding(top = 2.dp),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            )
+                        }
+
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                    }
                 }
             }
         }
@@ -335,7 +349,7 @@ private fun TemplateCard(
 private fun CompactTabPillsRow(
     tabs: List<WorkspaceTab>,
     selectedTabId: Workspace.Id,
-    onTabAction: (TabAction) -> Unit,
+    onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -396,8 +410,8 @@ private fun CompactTabPillsRow(
             CompactTabPill(
                 tab = tab,
                 isSelected = tab.id == selectedTabId,
-                onSelect = { onTabAction(TabAction.Select(tab.id)) },
-                onClose = { onTabAction(TabAction.Close(tab.id)) },
+                onSelect = { onWorkspaceAction(WorkspaceAction.Select(tab.id)) },
+                onClose = { onWorkspaceAction(WorkspaceAction.Close(tab.id)) },
                 fixedWidth = if (index < tabLayout.tabWidths.size) {
                     with(density) { tabLayout.tabWidths[index].toDp() }
                 } else null
@@ -576,8 +590,9 @@ private fun TemplatesWorkspacePagePreview() {
                 selectedTabId = workspaceId,
                 isUpgraded = true,
             ),
-            onTabAction = {},
             onNavToSettings = {},
+            workspaceButtonState = null,
+            onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
         )
     }

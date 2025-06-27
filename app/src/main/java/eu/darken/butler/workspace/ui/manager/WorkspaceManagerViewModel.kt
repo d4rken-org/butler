@@ -8,8 +8,8 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRepo
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -46,22 +46,22 @@ class WorkspaceManagerViewModel @Inject constructor(
     }
 
     fun closeWorkspace(id: Workspace.Id) = launch {
-        workspaceRepo.delete(id)
+        workspaceRepo.execute(WorkspaceAction.Close(id))
     }
 
     fun reorderWorkspaces(workspaceIds: List<Workspace.Id>) = launch {
-        workspaceRepo.reorder(workspaceIds)
+        workspaceRepo.execute(WorkspaceAction.Reorder(workspaceIds))
     }
 
     fun selectWorkspace(id: Workspace.Id) = launch {
         log(tag) { "selectWorkspace($id)" }
-        workspaceRepo.selectWorkspace(id)
+        workspaceRepo.execute(WorkspaceAction.Select(id))
         navigateBack()
     }
 
     fun createWorkspace(type: Workspace.Type) = launch {
         log(tag) { "createWorkspace($type)" }
-        workspaceRepo.create(type)
+        workspaceRepo.execute(WorkspaceAction.Create(type))
     }
 
     fun navigateBack() {

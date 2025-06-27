@@ -5,22 +5,37 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.editor.core.*
+import eu.darken.butler.editor.core.EditorDataSource
+import eu.darken.butler.editor.core.EditorModule
+import eu.darken.butler.editor.core.EditorWorkspace
+import eu.darken.butler.editor.core.FileDataSource
+import eu.darken.butler.editor.core.FileInfo
+import eu.darken.butler.editor.core.InMemoryDataSource
+import eu.darken.butler.editor.core.MemoryManager
+import eu.darken.butler.editor.core.MemoryStats
+import eu.darken.butler.editor.core.SearchResult
+import eu.darken.butler.editor.core.TextPosition
+import eu.darken.butler.editor.core.VirtualTextBuffer
 import eu.darken.butler.workspace.core.Workspace
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
+import eu.darken.butler.workspace.core.WorkspaceProvider
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.runBlocking
 
 @HiltViewModel(assistedFactory = EditorWorkspaceViewModel.Factory::class)
 class EditorWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
-    @Assisted private val workspace: EditorWorkspace,
     private val fileDataSourceFactory: EditorModule.FileDataSourceFactory,
     private val inMemoryDataSourceFactory: EditorModule.InMemoryDataSourceFactory,
     private val chunkRepositoryFactory: EditorModule.ChunkRepositoryFactory,
@@ -30,16 +45,19 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val gatewaySwitch: eu.darken.butler.common.files.GatewaySwitch,
     dispatchers: DispatcherProvider,
     navCtrl: NavigationController,
+    private val workspaceProvider: WorkspaceProvider,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Editor", id.shortTag, "Page"), navCtrl) {
 
-    private val dataSource: EditorDataSource = workspace.filePath?.let { filePath ->
-        fileDataSourceFactory.create(filePath, gatewaySwitch)
-    } ?: inMemoryDataSourceFactory.create("")
-    
+    private val workspace = runBlocking { workspaceProvider.get(id).first() as EditorWorkspace }
+    private val dataSource: EditorDataSource =
+        workspace.filePath?.let { filePath ->
+            fileDataSourceFactory.create(filePath, gatewaySwitch)
+        } ?: inMemoryDataSourceFactory.create("")
+
     private val chunkRepository = chunkRepositoryFactory.create(dataSource)
     private val chunkManager = chunkManagerFactory.create(chunkRepository)
     private val textBuffer: VirtualTextBuffer = chunkedTextBufferFactory.create(chunkManager, chunkRepository)
-    
+
     private val _currentContent = MutableStateFlow("")
     private val _cursorPosition = MutableStateFlow(TextPosition.ZERO)
     private val _selectionRange = MutableStateFlow<Pair<TextPosition, TextPosition>?>(null)
@@ -81,53 +99,53 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             memoryStats = values[12] as MemoryStats
         )
     }.asStateFlow()
-    
+
     init {
         launch {
             try {
                 _isLoading.value = true
                 _error.value = null
-                
+
                 when (dataSource) {
                     is FileDataSource -> {
                         val filePath = workspace.filePath!!
                         log(tag) { "Initializing file data source: $filePath" }
-                        
+
                         // Initialize the file data source
                         val initResult = dataSource.initialize()
                         if (initResult.isFailure) {
                             _error.value = initResult.exceptionOrNull()
                             return@launch
                         }
-                        
+
                         // Open file in text buffer
                         val openResult = textBuffer.openFile(filePath)
                         if (openResult.isFailure) {
                             _error.value = openResult.exceptionOrNull()
                             return@launch
                         }
-                        
+
                         log(tag) { "Successfully initialized with file: $filePath" }
                     }
                     is InMemoryDataSource -> {
                         log(tag) { "Initializing in-memory data source" }
-                        
+
                         // Initialize the text buffer for in-memory content
                         val initResult = textBuffer.initialize()
                         if (initResult.isFailure) {
                             _error.value = initResult.exceptionOrNull()
                             return@launch
                         }
-                        
+
                         log(tag) { "Successfully initialized in-memory editor" }
                     }
                 }
-                
+
                 // Initialize with empty content
                 _currentContent.value = ""
                 _totalLines.value = 1
                 _visibleRange.value = 0..0
-                
+
             } catch (e: Exception) {
                 log(tag, ERROR) { "Failed to initialize editor - ${e.asLog()}" }
                 _error.value = e
@@ -142,20 +160,20 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             try {
                 _isLoading.value = true
                 _error.value = null
-                
+
                 log(tag) { "Opening file: $filePath" }
-                
+
                 val result = textBuffer.openFile(filePath)
                 if (result.isFailure) {
                     _error.value = result.exceptionOrNull()
                     return@launch
                 }
-                
+
                 // Load initial content for visible range
                 loadVisibleContent()
-                
+
                 log(tag) { "Successfully opened file: $filePath" }
-                
+
             } catch (e: Exception) {
                 log(tag, ERROR) { "Failed to open file: $filePath - ${e.asLog()}" }
                 _error.value = e
@@ -203,12 +221,12 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         if (totalLines <= 0) {
             return // No content to display
         }
-        
+
         // Constrain the range to available lines
         val constrainedStart = startLine.coerceIn(0, totalLines - 1)
         val constrainedEnd = endLine.coerceIn(constrainedStart, totalLines - 1)
         val newRange = constrainedStart..constrainedEnd
-        
+
         if (_visibleRange.value != newRange) {
             _visibleRange.value = newRange
             // No need to load content since we're managing it directly now
@@ -319,12 +337,12 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                     column = 0
                 )
                 _cursorPosition.value = position
-                
+
                 // Update visible range to include this line
                 val visibleStart = (lineNumber - 25).coerceAtLeast(0)
                 val visibleEnd = (lineNumber + 25).coerceAtMost(totalLines - 1)
                 updateVisibleRange(visibleStart, visibleEnd)
-                
+
             } catch (e: Exception) {
                 log(tag, ERROR) { "Failed to go to line: $lineNumber - ${e.asLog()}" }
                 _error.value = e
@@ -387,7 +405,6 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         _visibleRange.value = 0..50
         _totalLines.value = 1
     }
-    
 
 
     data class State(
@@ -415,6 +432,6 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(id: Workspace.Id, workspace: EditorWorkspace): EditorWorkspaceViewModel
+        fun create(id: Workspace.Id): EditorWorkspaceViewModel
     }
 }

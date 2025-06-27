@@ -49,6 +49,7 @@ dependencies {
 
     addAndroidCore()
     addAndroidUI()
+    addNavigation3()
     addDI()
     addCoroutines()
     addSerialization()

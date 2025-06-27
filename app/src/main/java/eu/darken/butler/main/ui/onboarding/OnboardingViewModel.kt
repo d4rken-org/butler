@@ -8,11 +8,12 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.motd.MotdSettings
-import eu.darken.butler.main.ui.AppNav
+import eu.darken.butler.workspace.ui.workspaces
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 
@@ -40,8 +41,8 @@ class OnboardingViewModel @Inject constructor(
         log(tag) { "completeOnboarding()" }
         generalSettings.isOnboardingCompleted.value(true)
         navTo(
-            AppNav.Main.Workspace,
-            popUpTo = AppNav.Main.Workspace,
+            Nav.Main.workspaces(),
+            popUpTo = Nav.Main.workspaces(),
             inclusive = true
         )
     }
