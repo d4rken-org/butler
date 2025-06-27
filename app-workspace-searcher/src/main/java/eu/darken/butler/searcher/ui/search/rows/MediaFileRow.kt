@@ -22,7 +22,7 @@ fun MediaFileRow(
     FileRowBase(data = data, onClick = onClick) { fileData ->
         MediaFileIcon(fileData)
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(12.dp))
 
         FileInfo(
             data = fileData,
@@ -40,7 +40,7 @@ fun MediaFileIcon(data: FileRowData) {
         imageVector = iconVector,
         contentDescription = data.fileType.name,
         tint = tint,
-        modifier = Modifier.size(32.dp)
+        modifier = Modifier.size(24.dp)
     )
 }
 

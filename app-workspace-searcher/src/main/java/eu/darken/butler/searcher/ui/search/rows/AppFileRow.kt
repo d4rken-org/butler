@@ -22,7 +22,7 @@ fun AppFileRow(
     FileRowBase(data = data, onClick = onClick) { fileData ->
         AppFileIcon(fileData)
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(12.dp))
 
         FileInfo(
             data = fileData,
@@ -40,7 +40,7 @@ fun AppFileIcon(data: FileRowData) {
         imageVector = iconVector,
         contentDescription = data.fileType.name,
         tint = tint,
-        modifier = Modifier.size(28.dp)
+        modifier = Modifier.size(22.dp)
     )
 }
 

@@ -2,6 +2,7 @@ package eu.darken.butler.searcher.ui.search
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -22,8 +25,12 @@ import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -33,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -114,69 +122,35 @@ fun SearcherWorkspacePage(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Search inputs with spacer for floating button
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top
-        ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                SearchBar(
-                    query = state.searchQuery,
-                    onQueryChange = onUpdateQuery,
-                    onSearch = onPerformSearch,
-                    isSearching = state.isSearching,
-                    onCancel = if (state.isSearching) onCancelSearch else null
-                )
-                
-                SearchPathBar(
-                    path = state.searchPath,
-                    onPathChange = onUpdateSearchPath,
-                    isSearching = state.isSearching
-                )
-            }
-            
-            WorkspaceButtonSpacer()
+    val listState = rememberLazyListState()
+    val showToolbar by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset < 50
         }
-        
-        // Search progress
-        if (state.isSearching || searchDebounce) {
-            LinearProgressIndicator(
-                modifier = Modifier.fillMaxWidth()
-            )
-            
-            state.searchState.progress?.let { progress ->
-                Text(
-                    text = "Searching: ${progress.currentPath.name} (${progress.itemsScanned} scanned, ${progress.resultsFound} found)",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
+    }
 
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Main content
         when {
             state.searchQuery.isBlank() && state.searchHistory.isNotEmpty() -> {
-                // Show search history
-                Text(
-                    text = "Recent searches",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(16.dp)
-                )
-                
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp)
+                    contentPadding = PaddingValues(
+                        top = 180.dp, // Space for toolbar + header + workspace button
+                        start = 16.dp,
+                        end = 16.dp,
+                        bottom = 8.dp
+                    )
                 ) {
+                    item {
+                        Text(
+                            text = "Recent searches",
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
                     items(state.searchHistory) { historyItem ->
                         Card(
                             modifier = Modifier
@@ -208,64 +182,86 @@ fun SearcherWorkspacePage(
             }
             
             state.searchQuery.isBlank() -> {
-                Text(
-                    text = "Search files and folders",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(32.dp)
-                )
+                        .fillMaxSize()
+                        .padding(top = 180.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Search files and folders",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(32.dp)
+                    )
+                }
             }
             
             state.searchState.error != null -> {
-                Column(
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .fillMaxSize()
+                        .padding(top = 180.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "Search error",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                    Text(
-                        text = state.searchState.error.message ?: "Unknown error",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
+                    Column(
+                        modifier = Modifier.padding(32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Search error",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Text(
+                            text = state.searchState.error.message ?: "Unknown error",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
                 }
             }
 
             !state.isSearching && state.searchState.results.isEmpty() -> {
-                Text(
-                    text = "No results found",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(32.dp)
-                )
+                        .fillMaxSize()
+                        .padding(top = 180.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No results found",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(32.dp)
+                    )
+                }
             }
 
             else -> {
-                Text(
-                    text = "${state.searchState.results.size} results",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    contentPadding = PaddingValues(
+                        top = 180.dp, // Space for toolbar + header + workspace button
+                        start = 16.dp,
+                        end = 16.dp,
+                        bottom = 8.dp
+                    )
                 ) {
+                    item {
+                        Text(
+                            text = "${state.searchState.results.size} results",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
                     items(state.searchState.results) { result ->
                         SearchResultRow(
                             result = result,
@@ -274,6 +270,117 @@ fun SearcherWorkspacePage(
                     }
                 }
             }
+        }
+
+        // Collapsing toolbar
+        AnimatedVisibility(
+            visible = showToolbar,
+            enter = slideInVertically(initialOffsetY = { -it }),
+            exit = slideOutVertically(targetOffsetY = { -it }),
+            modifier = Modifier.align(Alignment.TopCenter)
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        SearchBar(
+                            query = state.searchQuery,
+                            onQueryChange = onUpdateQuery,
+                            onSearch = onPerformSearch,
+                            isSearching = state.isSearching,
+                            onCancel = if (state.isSearching) onCancelSearch else null
+                        )
+                        
+                        SearchPathBar(
+                            path = state.searchPath,
+                            onPathChange = onUpdateSearchPath,
+                            isSearching = state.isSearching
+                        )
+                    }
+                    
+                    WorkspaceButtonSpacer()
+                }
+            }
+        }
+
+        // Progress indicator
+        if (state.isSearching || searchDebounce) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = if (showToolbar) 180.dp else 0.dp)
+            ) {
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                state.searchState.progress?.let { progress ->
+                    Text(
+                        text = "Searching: ${progress.currentPath.name} (${progress.itemsScanned} scanned, ${progress.resultsFound} found)",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SearchInputCard(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onSearch: () -> Unit,
+    path: APath,
+    onPathChange: (APath) -> Unit,
+    isSearching: Boolean,
+    onCancel: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            SearchBar(
+                query = query,
+                onQueryChange = onQueryChange,
+                onSearch = onSearch,
+                isSearching = isSearching,
+                onCancel = onCancel
+            )
+            
+            SearchPathBar(
+                path = path,
+                onPathChange = onPathChange,
+                isSearching = isSearching
+            )
         }
     }
 }
@@ -479,6 +586,22 @@ private fun SearchPagePreview() {
                 id = Workspace.Id(),
                 searchPath = LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler")
             )
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun SearchInputCardPreview() {
+    PreviewWrapper {
+        SearchInputCard(
+            query = "test search",
+            onQueryChange = {},
+            onSearch = {},
+            path = LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler"),
+            onPathChange = {},
+            isSearching = false,
+            modifier = Modifier.padding(16.dp)
         )
     }
 }
