@@ -150,15 +150,11 @@ fun EditorWorkspacePage(
         }
     }
 
-    Box(
+    Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Main content area
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            // Header that draws under status bar
-            EditorHeader(
+        // Header that draws under status bar
+        EditorHeader(
                 fileName = state.fileName,
                 isModified = state.isModified,
                 hasFile = state.hasFile || state.currentContent.isNotEmpty(),
@@ -172,69 +168,61 @@ fun EditorWorkspacePage(
                 canRedo = false,
                 onSearch = { showSearchDialog = true },
                 onGoToLine = { showGoToLineDialog = true },
-                onToggleMemoryStats = { showMemoryStats = !showMemoryStats }
+                onToggleMemoryStats = { showMemoryStats = !showMemoryStats },
+                workspaceButtonState = workspaceButtonState,
+                onWorkspaceAction = onWorkspaceAction,
+                onNavToWorkspaceManager = onNavToWorkspaceManager
             )
 
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                // Error display
-                state.error?.let { error ->
-                    ErrorBanner(
-                        error = error,
-                        onDismiss = onClearError
-                    )
-                }
-
-
-                // Main editor content - now using fixed LazyTextEditor
-                LazyTextEditor(
-                    content = state.currentContent,
-                    cursorPosition = state.cursorPosition,
-                    selection = state.selectionRange,
-                    visibleRange = state.visibleRange,
-                    showLineNumbers = true,
-                    fontSize = 14,
-                    tabSize = 4,
-                    onTextChange = onTextChange,
-                    onCursorPositionChange = onCursorPositionChange,
-                    onSelectionChange = onSelectionChange,
-                    onVisibleRangeChange = onVisibleRangeChange,
-                    modifier = Modifier.weight(1f)
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            // Error display
+            state.error?.let { error ->
+                ErrorBanner(
+                    error = error,
+                    onDismiss = onClearError
                 )
-
-                // Search results
-                if (state.hasSearchResults) {
-                    SearchResultsBar(
-                        searchResults = state.searchResults,
-                        currentIndex = 0,
-                        onNavigateToResult = { result ->
-                            onCursorPositionChange(result.position)
-                        },
-                        onClose = { onSearch("") }
-                    )
-                }
             }
 
-            // Bottom status bar
-            if (showMemoryStats) {
-                EditorStatusBar(
-                    totalLines = state.totalLines,
-                    cursorPosition = state.cursorPosition,
-                    memoryStats = state.memoryStats
+
+            // Main editor content - now using fixed LazyTextEditor
+            LazyTextEditor(
+                content = state.currentContent,
+                cursorPosition = state.cursorPosition,
+                selection = state.selectionRange,
+                visibleRange = state.visibleRange,
+                showLineNumbers = true,
+                fontSize = 14,
+                tabSize = 4,
+                onTextChange = onTextChange,
+                onCursorPositionChange = onCursorPositionChange,
+                onSelectionChange = onSelectionChange,
+                onVisibleRangeChange = onVisibleRangeChange,
+                modifier = Modifier.weight(1f)
+            )
+
+            // Search results
+            if (state.hasSearchResults) {
+                SearchResultsBar(
+                    searchResults = state.searchResults,
+                    currentIndex = 0,
+                    onNavigateToResult = { result ->
+                        onCursorPositionChange(result.position)
+                    },
+                    onClose = { onSearch("") }
                 )
             }
         }
 
-        WorkspaceButton(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(16.dp)
-                .statusBarsPadding(),
-            state = workspaceButtonState,
-            onAction = onWorkspaceAction,
-            onNavToWorkspaceManager = onNavToWorkspaceManager,
-        )
+        // Bottom status bar
+        if (showMemoryStats) {
+            EditorStatusBar(
+                totalLines = state.totalLines,
+                cursorPosition = state.cursorPosition,
+                memoryStats = state.memoryStats
+            )
+        }
     }
 
     // Dialogs
@@ -275,7 +263,10 @@ private fun EditorHeader(
     canRedo: Boolean,
     onSearch: () -> Unit,
     onGoToLine: () -> Unit,
-    onToggleMemoryStats: () -> Unit
+    onToggleMemoryStats: () -> Unit,
+    workspaceButtonState: WorkspaceButtonViewModel.State?,
+    onWorkspaceAction: (WorkspaceAction) -> Unit,
+    onNavToWorkspaceManager: () -> Unit
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -285,8 +276,7 @@ private fun EditorHeader(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             // Title section on top
             Row(
@@ -307,9 +297,17 @@ private fun EditorHeader(
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
+                
+                Spacer(modifier = Modifier.width(8.dp))
+                
+                WorkspaceButton(
+                    state = workspaceButtonState,
+                    onAction = onWorkspaceAction,
+                    onNavToWorkspaceManager = onNavToWorkspaceManager,
+                )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             // Actions section below
             Row(
