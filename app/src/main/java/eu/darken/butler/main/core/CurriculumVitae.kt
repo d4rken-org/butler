@@ -26,8 +26,8 @@ import javax.inject.Singleton
 
 @Singleton
 class CurriculumVitae @Inject constructor(
-    @ApplicationContext private val context: Context,
-    @AppScope private val appScope: CoroutineScope,
+    @param:ApplicationContext private val context: Context,
+    @param:AppScope private val appScope: CoroutineScope,
     json: Json,
 ) {
 

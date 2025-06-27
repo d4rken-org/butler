@@ -16,7 +16,7 @@ import javax.inject.Singleton
 
 @Singleton
 class ReviewSettings @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     json: Json,
 ) : PreferenceScreenData {
 

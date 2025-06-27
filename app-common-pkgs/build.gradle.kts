@@ -2,9 +2,9 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("kotlin-android")
-    id("kotlin-kapt")
     id("kotlin-parcelize")
     id("projectConfig")
+    id("kotlin-kapt")
 }
 
 apply(plugin = "dagger.hilt.android.plugin")

@@ -32,8 +32,8 @@ import javax.inject.Singleton
 
 @Singleton
 class LocaleManager @Inject constructor(
-    @ApplicationContext private val context: Context,
-    @AppScope private val appScope: CoroutineScope,
+    @param:ApplicationContext private val context: Context,
+    @param:AppScope private val appScope: CoroutineScope,
 ) {
 
     private suspend fun getCurrentLocales() = context.resources.configuration.locales
@@ -58,7 +58,7 @@ class LocaleManager @Inject constructor(
 
         }
 
-        ContextCompat.registerReceiver(
+        registerReceiver(
             context,
             receiver,
             IntentFilter(Intent.ACTION_LOCALE_CHANGED),

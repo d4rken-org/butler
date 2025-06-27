@@ -23,7 +23,7 @@ import javax.inject.Singleton
 
 @Singleton
 class BillingManager @Inject constructor(
-    @AppScope private val scope: CoroutineScope,
+    @param:AppScope private val scope: CoroutineScope,
     connectionProvider: BillingConnectionProvider,
 ) {
 
