@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.ui
+package eu.darken.butler.searcher.ui.search
 
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -35,7 +35,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     
     private val searchQuery = MutableStateFlow("")
     private val currentFilter = MutableStateFlow(SearchFilter.EMPTY)
-    private val searchPath = MutableStateFlow<APath>(LocalPath.build(File.separator))
+    private val searchPath = MutableStateFlow<APath>(LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler"))
     
     private var activeSearchJob: Job? = null
 

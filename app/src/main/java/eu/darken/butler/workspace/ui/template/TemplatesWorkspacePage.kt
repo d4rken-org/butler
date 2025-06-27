@@ -52,7 +52,7 @@ import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.editor.ui.EditorWorkspaceTemplate
 import eu.darken.butler.explorer.ui.ExplorerWorkspaceTemplate
 import eu.darken.butler.main.ui.AppNav
-import eu.darken.butler.searcher.ui.SearcherWorkspaceTemplate
+import eu.darken.butler.searcher.ui.search.SearcherWorkspaceTemplate
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.TabAction
 import eu.darken.butler.workspace.ui.WorkspaceButtonSpacer

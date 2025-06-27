@@ -1,8 +1,7 @@
-package eu.darken.butler.searcher.ui
+package eu.darken.butler.searcher.ui.search
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -17,21 +16,21 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -47,10 +46,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.compose.formatFileSize
-import eu.darken.butler.common.compose.toRelativeTime
+import eu.darken.butler.searcher.ui.search.rows.FileRowData
+import eu.darken.butler.searcher.ui.search.rows.SmartFileRow
+import eu.darken.butler.searcher.ui.search.rows.FileType as UIFileType
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.ui.waitForState
@@ -77,6 +78,7 @@ fun SearcherWorkspacePageHost(
         SearcherWorkspacePage(
             state = state,
             onUpdateQuery = vm::updateSearchQuery,
+            onUpdateSearchPath = vm::updateSearchPath,
             onPerformSearch = vm::performSearch,
             onCancelSearch = vm::cancelSearch,
             onResultClick = vm::onSearchResultClick,
@@ -93,6 +95,7 @@ fun SearcherWorkspacePageHost(
 fun SearcherWorkspacePage(
     state: SearcherWorkspaceViewModel.State,
     onUpdateQuery: (String) -> Unit = {},
+    onUpdateSearchPath: (APath) -> Unit = {},
     onPerformSearch: () -> Unit = {},
     onCancelSearch: () -> Unit = {},
     onResultClick: (SearchResult) -> Unit = {},
@@ -112,22 +115,32 @@ fun SearcherWorkspacePage(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Search bar with spacer for floating button
+        // Search inputs with spacer for floating button
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Top
         ) {
-            SearchBar(
-                query = state.searchQuery,
-                onQueryChange = onUpdateQuery,
-                onSearch = onPerformSearch,
-                isSearching = state.isSearching,
-                onCancel = if (state.isSearching) onCancelSearch else null,
+            Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(16.dp)
-            )
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                SearchBar(
+                    query = state.searchQuery,
+                    onQueryChange = onUpdateQuery,
+                    onSearch = onPerformSearch,
+                    isSearching = state.isSearching,
+                    onCancel = if (state.isSearching) onCancelSearch else null
+                )
+                
+                SearchPathBar(
+                    path = state.searchPath,
+                    onPathChange = onUpdateSearchPath,
+                    isSearching = state.isSearching
+                )
+            }
             
             WorkspaceButtonSpacer()
         }
@@ -303,73 +316,158 @@ fun SearchBar(
 }
 
 @Composable
-fun SearchResultRow(result: SearchResult, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val icon = when (result.fileType) {
-                FileType.DIRECTORY -> Icons.Default.Folder
-                FileType.FILE -> Icons.AutoMirrored.Filled.InsertDriveFile
-                FileType.SYMBOLIC_LINK -> Icons.Default.FolderOpen
-                else -> Icons.AutoMirrored.Filled.InsertDriveFile
+fun SearchPathBar(
+    path: APath,
+    onPathChange: (APath) -> Unit,
+    isSearching: Boolean,
+    modifier: Modifier = Modifier
+) {
+    var pathText by remember(path) { mutableStateOf(path.path) }
+    var showPathPicker by remember { mutableStateOf(false) }
+    
+    OutlinedTextField(
+        value = pathText,
+        onValueChange = { newPath ->
+            pathText = newPath
+            try {
+                onPathChange(LocalPath.build(newPath))
+            } catch (e: Exception) {
+                // Invalid path, don't update
             }
-            
-            val tint = when (result.fileType) {
-                FileType.DIRECTORY -> MaterialTheme.colorScheme.primary
-                else -> MaterialTheme.colorScheme.secondary
+        },
+        placeholder = { Text(text = "Search path (e.g., /sdcard)") },
+        leadingIcon = {
+            Icon(imageVector = Icons.Default.Folder, contentDescription = "Search Path")
+        },
+        trailingIcon = {
+            IconButton(
+                onClick = { showPathPicker = true }
+            ) {
+                Icon(imageVector = Icons.Default.FolderOpen, contentDescription = "Browse")
             }
-            
-            Icon(
-                imageVector = icon,
-                contentDescription = result.fileType.name,
-                tint = tint,
-                modifier = Modifier.size(24.dp)
-            )
+        },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        singleLine = true,
+        enabled = !isSearching,
+        modifier = modifier.fillMaxWidth()
+    )
+    
+    if (showPathPicker) {
+        PathPickerDialog(
+            onPathSelected = { selectedPath ->
+                pathText = selectedPath.path
+                onPathChange(selectedPath)
+                showPathPicker = false
+            },
+            onDismiss = { showPathPicker = false }
+        )
+    }
+}
 
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = result.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Text(
-                    text = result.path.path,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                val details = buildString {
-                    result.size?.let { append(formatFileSize(it)) }
-                    result.modifiedAt?.let {
-                        if (isNotEmpty()) append(" • ")
-                        append(it.toRelativeTime())
+@Composable
+fun PathPickerDialog(
+    onPathSelected: (APath) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val commonPaths = listOf(
+        "/storage/emulated/0/Android/data/eu.darken.butler" to "Butler App Data (Default)",
+        "/" to "Root",
+        "/sdcard" to "Internal Storage",
+        "/storage/emulated/0" to "Internal Storage (Alt)",
+        "/storage/emulated/0/Download" to "Downloads",
+        "/storage/emulated/0/Pictures" to "Pictures",
+        "/storage/emulated/0/Documents" to "Documents",
+        "/storage/emulated/0/Music" to "Music",
+        "/storage/emulated/0/Movies" to "Movies",
+        "/system" to "System",
+        "/data" to "Data",
+        "/cache" to "Cache"
+    )
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Select Search Path") },
+        text = {
+            LazyColumn {
+                items(commonPaths) { (path, name) ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { 
+                                onPathSelected(LocalPath.build(path))
+                            }
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Folder,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = name,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = path,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
-                
-                if (details.isNotEmpty()) {
-                    Text(
-                        text = details,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
             }
         }
+    )
+}
+
+@Composable
+fun SearchResultRow(result: SearchResult, onClick: () -> Unit) {
+    val fileRowData = FileRowData(
+        name = result.name,
+        path = result.path.path,
+        fileType = mapFileType(result.fileType),
+        size = result.size,
+        modifiedAt = result.modifiedAt,
+        metadata = extractFileMetadata(result)
+    )
+    
+    SmartFileRow(
+        data = fileRowData,
+        onClick = onClick
+    )
+}
+
+/**
+ * Map from domain FileType to UI FileType
+ */
+private fun mapFileType(fileType: FileType): UIFileType {
+    return when (fileType) {
+        FileType.FILE -> UIFileType.FILE
+        FileType.DIRECTORY -> UIFileType.DIRECTORY
+        FileType.SYMBOLIC_LINK -> UIFileType.SYMBOLIC_LINK
+        else -> UIFileType.UNKNOWN
     }
+}
+
+/**
+ * Extract metadata from search result for enhanced display
+ */
+private fun extractFileMetadata(result: SearchResult): Map<String, String> {
+    // TODO: In the future, this could extract metadata like:
+    // - Image dimensions for image files
+    // - Duration for video/audio files  
+    // - Package name/version for APK files
+    // - etc.
+    return emptyMap()
 }
 
 @Preview2
@@ -379,7 +477,7 @@ private fun SearchPagePreview() {
         SearcherWorkspacePage(
             state = SearcherWorkspaceViewModel.State(
                 id = Workspace.Id(),
-                searchPath = LocalPath.build("/")
+                searchPath = LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler")
             )
         )
     }

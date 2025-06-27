@@ -11,7 +11,7 @@ import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.common.upgrade.UpgradeRepo
 import eu.darken.butler.editor.ui.EditorWorkspaceTemplate
 import eu.darken.butler.explorer.ui.ExplorerWorkspaceTemplate
-import eu.darken.butler.searcher.ui.SearcherWorkspaceTemplate
+import eu.darken.butler.searcher.ui.search.SearcherWorkspaceTemplate
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.ui.WorkspaceTab

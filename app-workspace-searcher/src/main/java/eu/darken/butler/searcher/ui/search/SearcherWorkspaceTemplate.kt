@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.ui
+package eu.darken.butler.searcher.ui.search
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
