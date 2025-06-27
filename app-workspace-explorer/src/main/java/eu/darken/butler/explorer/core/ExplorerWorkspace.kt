@@ -15,6 +15,7 @@ import kotlinx.parcelize.Parcelize
 class ExplorerWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
     @Assisted private val arguments: Arguments?,
+    private val engine: ExplorerEngine,
 ) : Workspace {
 
     private val tag = logTag("Workspace", "Explorer", id.shortTag)
