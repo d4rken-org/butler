@@ -40,18 +40,15 @@ class WorkspaceRepo @Inject constructor(
         }
     }
 
-    data class State(
-        val workspaceInfos: List<Workspace.Info> = emptyList(),
-        val selectedWorkspaceId: Workspace.Id? = null
-    )
-
-    val state: Flow<State> = combine(
+    override val state: Flow<WorkspaceRemote.State> = combine(
         infos,
-        selectedWorkspaceId
-    ) { workspaceInfos, selectedId ->
-        State(
+        selectedWorkspaceId,
+        workspaceSettings.isButtonActionsFlipped.flow
+    ) { workspaceInfos, selectedId, isButtonFlipped ->
+        WorkspaceRemote.State(
             workspaceInfos = workspaceInfos,
-            selectedWorkspaceId = selectedId
+            selectedWorkspaceId = selectedId,
+            isButtonActionsFlipped = isButtonFlipped,
         )
     }
 
@@ -130,16 +127,6 @@ class WorkspaceRepo @Inject constructor(
     private suspend fun clearSelectedWorkspace() {
         log(TAG) { "clearSelectedWorkspace()" }
         _selectedWorkspaceId.value = null
-    }
-
-    override val status: Flow<WorkspaceRemote.Status> = combine(
-        _workspaces,
-        workspaceSettings.isButtonActionsFlipped.flow,
-    ) { wss, isButtonFlipped ->
-        WorkspaceRemote.Status(
-            count = wss.size,
-            isButtonActionsFlipped = isButtonFlipped,
-        )
     }
 
     override suspend fun execute(action: WorkspaceAction) = lock.withLock {

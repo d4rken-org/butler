@@ -4,12 +4,16 @@ import kotlinx.coroutines.flow.Flow
 
 interface WorkspaceRemote {
 
-    val status: Flow<Status>
+    val state: Flow<State>
 
-    data class Status(
-        val count: Int,
-        val isButtonActionsFlipped: Boolean,
-    )
+    data class State(
+        val workspaceInfos: List<Workspace.Info> = emptyList(),
+        val selectedWorkspaceId: Workspace.Id? = null,
+        val isButtonActionsFlipped: Boolean = false,
+    ) {
+        val count: Int
+            get() = workspaceInfos.size
+    }
 
     suspend fun execute(action: WorkspaceAction)
 }

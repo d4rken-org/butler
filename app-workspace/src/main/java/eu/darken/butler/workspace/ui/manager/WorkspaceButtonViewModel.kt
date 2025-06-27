@@ -19,7 +19,7 @@ class WorkspaceButtonViewModel @Inject constructor(
     private val workspaceRemote: WorkspaceRemote,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Button", "VM"), navCtrl) {
 
-    val state = workspaceRemote.status.map {
+    val state = workspaceRemote.state.map {
         State(
             workspaceCount = it.count,
             isButtonFlipped = it.isButtonActionsFlipped,
