@@ -6,25 +6,33 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
-data object DestinationOnboarding : NavigationDestination
+data object DestinationOnboarding : NavigationDestination {
+    private fun readResolve(): Any = DestinationOnboarding
+}
 
 @Suppress("UnusedReceiverParameter")
 fun Nav.Main.onboarding(): NavigationDestination = DestinationOnboarding
 
 @Serializable
-data object DestinationSettingsIndex : NavigationDestination
+data object DestinationSettingsIndex : NavigationDestination {
+    private fun readResolve(): Any = DestinationSettingsIndex
+}
 
 @Suppress("UnusedReceiverParameter")
 fun Nav.Main.settings(): NavigationDestination = DestinationSettingsIndex
 
 @Serializable
-data object DestinationUpgrade : NavigationDestination
+data object DestinationUpgrade : NavigationDestination {
+    private fun readResolve(): Any = DestinationUpgrade
+}
 
 @Suppress("UnusedReceiverParameter")
 fun Nav.Main.upgrade(): NavigationDestination = DestinationUpgrade
 
 @Serializable
-data object DestinationSetup : NavigationDestination
+data object DestinationSetup : NavigationDestination {
+    private fun readResolve(): Any = DestinationSetup
+}
 
 @Suppress("UnusedReceiverParameter")
 fun Nav.Main.destSetup(): NavigationDestination = DestinationSetup

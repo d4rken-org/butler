@@ -6,13 +6,17 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
-data object DestinationEditor : NavigationDestination
+data object DestinationEditor : NavigationDestination {
+    private fun readResolve(): Any = DestinationEditor
+}
 
 @Suppress("UnusedReceiverParameter")
 fun Nav.Workspaces.editor(): NavigationDestination = DestinationEditor
 
 @Serializable
-data object DestinationEditorSettings : NavigationDestination
+data object DestinationEditorSettings : NavigationDestination {
+    private fun readResolve(): Any = DestinationEditorSettings
+}
 
 @Suppress("UnusedReceiverParameter")
 fun Nav.Settings.editor(): NavigationDestination = DestinationEditorSettings
