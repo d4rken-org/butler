@@ -17,3 +17,4 @@ build/
 .kotlin/sessions
 .kotlin/errors
 worktree-*
+/hs_err_*.log

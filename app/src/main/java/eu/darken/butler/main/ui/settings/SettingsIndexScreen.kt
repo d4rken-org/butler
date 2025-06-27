@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Workspaces
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,11 +31,11 @@ import eu.darken.butler.common.ButlerLinks
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
-import eu.darken.butler.common.ui.waitForState
-import eu.darken.butler.main.ui.AppNav
 import eu.darken.butler.common.settings.SettingsBaseItem
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
+import eu.darken.butler.common.ui.waitForState
+import eu.darken.butler.main.ui.AppNav
 
 @Composable
 fun SettingsIndexScreenHost(vm: SettingsViewModel = hiltViewModel()) {
@@ -47,6 +48,7 @@ fun SettingsIndexScreenHost(vm: SettingsViewModel = hiltViewModel()) {
             state = state,
             onNavigateUp = { vm.navUp() },
             onNavigateTo = { vm.navTo(it) },
+            onNavigateToSetup = { vm.navTo(AppNav.Main.Setup) },
             onOpenUrl = { vm.openUrl(it) },
         )
     }
@@ -57,6 +59,7 @@ fun SettingsIndexScreen(
     state: SettingsViewModel.State,
     onNavigateUp: () -> Unit,
     onNavigateTo: (AppNav.Settings) -> Unit,
+    onNavigateToSetup: () -> Unit,
     onOpenUrl: (String) -> Unit,
 ) {
     Scaffold(
@@ -96,6 +99,16 @@ fun SettingsIndexScreen(
                     title = stringResource(R.string.workspace_settings_title),
                     subtitle = "Configure workspace behavior",
                     onClick = { onNavigateTo(AppNav.Settings.Workspace) },
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
+                    icon = Icons.Default.Tune,
+                    title = stringResource(R.string.setup_title),
+                    subtitle = stringResource(R.string.setup_settings_description),
+                    onClick = { onNavigateToSetup() },
                 )
                 SettingsDivider()
             }
@@ -184,6 +197,7 @@ private fun SettingsScreenPreview() {
             state = SettingsViewModel.State(),
             onNavigateUp = {},
             onNavigateTo = {},
+            onNavigateToSetup = {},
             onOpenUrl = {},
         )
     }
