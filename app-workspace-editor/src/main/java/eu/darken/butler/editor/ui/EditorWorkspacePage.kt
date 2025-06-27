@@ -29,7 +29,7 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
-import eu.darken.butler.common.files.saf.SAFPath
+import eu.darken.butler.common.files.SAFPath
 import android.net.Uri
 import eu.darken.butler.editor.core.*
 import eu.darken.butler.workspace.core.Workspace
@@ -106,7 +106,7 @@ fun EditorWorkspacePage(
         uri?.let { selectedUri: Uri ->
             // For now, create a SAFPath from the URI - this is a simplified approach
             try {
-                val path = SAFPath(selectedUri.toString(), emptyList())
+                val path = SAFPath(treeRoot = selectedUri.toString(), segments = emptyList())
                 onOpenFile(path)
             } catch (e: Exception) {
                 // Handle invalid URI format
