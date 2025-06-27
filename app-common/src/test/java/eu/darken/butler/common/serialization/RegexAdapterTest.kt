@@ -1,25 +1,69 @@
 package eu.darken.butler.common.serialization
 
-import com.squareup.moshi.JsonClass
-import com.squareup.moshi.Moshi
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.encoding.decodeStructure
+import kotlinx.serialization.encoding.encodeStructure
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.contextual
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.json.toComparableJson
 
 class RegexAdapterTest : BaseTest() {
 
-    val moshi = Moshi.Builder().apply {
-        add(RegexAdapter())
-    }.build()
+    val json = Json {
+        serializersModule = SerializersModule {
+            contextual(RegexSerializer)
+        }
+    }
 
-    @JsonClass(generateAdapter = true)
+    @Serializable(with = TestContainer.Serializer::class)
     data class TestContainer(
         val regexValue: Regex?,
         val regexList: List<Regex>
-    )
+    ) {
+        @OptIn(ExperimentalSerializationApi::class)
+        object Serializer : KSerializer<TestContainer> {
+            override val descriptor = buildClassSerialDescriptor("TestContainer") {
+                element("regexValue", RegexSerializer.descriptor, isOptional = true)
+                element("regexList", ListSerializer(RegexSerializer).descriptor)
+            }
 
-    val adapter = moshi.adapter(TestContainer::class.java)
+            override fun serialize(encoder: Encoder, value: TestContainer) {
+                encoder.encodeStructure(descriptor) {
+                    encodeNullableSerializableElement(descriptor, 0, RegexSerializer, value.regexValue)
+                    encodeSerializableElement(descriptor, 1, ListSerializer(RegexSerializer), value.regexList)
+                }
+            }
+
+            override fun deserialize(decoder: Decoder): TestContainer {
+                return decoder.decodeStructure(descriptor) {
+                    var regexValue: Regex? = null
+                    var regexList: List<Regex> = emptyList()
+
+                    while (true) {
+                        when (val index = decodeElementIndex(descriptor)) {
+                            0 -> regexValue = decodeNullableSerializableElement(descriptor, 0, RegexSerializer)
+                            1 -> regexList = decodeSerializableElement(descriptor, 1, ListSerializer(RegexSerializer))
+                            CompositeDecoder.DECODE_DONE -> break
+                            else -> error("Unexpected index: $index")
+                        }
+                    }
+
+                    TestContainer(regexValue, regexList)
+                }
+            }
+        }
+    }
 
     @Test
     fun `serialize test container`() {
@@ -31,7 +75,7 @@ class RegexAdapterTest : BaseTest() {
             )
         )
 
-        val rawJson = adapter.toJson(before)
+        val rawJson = json.encodeToString(TestContainer.serializer(), before)
 
         rawJson.toComparableJson() shouldBe """
             {
@@ -59,7 +103,7 @@ class RegexAdapterTest : BaseTest() {
             }
         """.toComparableJson()
 
-        val after = adapter.fromJson(rawJson)!!
+        val after = json.decodeFromString(TestContainer.serializer(), rawJson)
         after.regexValue!!.apply {
             pattern shouldBe before.regexValue!!.pattern
             options shouldBe before.regexValue.options

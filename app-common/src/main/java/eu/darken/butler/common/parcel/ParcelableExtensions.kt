@@ -2,6 +2,7 @@ package eu.darken.butler.common.parcel
 
 import android.os.Parcel
 import android.os.Parcelable
+import eu.darken.butler.common.hasApiLevel
 
 inline fun <reified T> T.marshall(): ByteArray where T : Parcelable = Parcel.obtain().use {
     writeParcelable(this@marshall, 0)
@@ -11,7 +12,13 @@ inline fun <reified T> T.marshall(): ByteArray where T : Parcelable = Parcel.obt
 inline fun <reified T> ByteArray.unmarshall(): T where T : Any, T : Parcelable = Parcel.obtain().use {
     unmarshall(this@unmarshall, 0, size)
     setDataPosition(0)
-    readParcelable(T::class.java.classLoader)!!
+    if (hasApiLevel(33)) {
+        @Suppress("NewApi")
+        readParcelable(T::class.java.classLoader, T::class.java)!!
+    } else {
+        @Suppress("DEPRECATION")
+        readParcelable(T::class.java.classLoader)!!
+    }
 }
 
 inline fun <reified T> T.forceParcel(): T where T : Parcelable {

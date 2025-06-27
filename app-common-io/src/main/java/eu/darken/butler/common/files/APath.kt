@@ -4,15 +4,14 @@ import android.os.Parcelable
 import androidx.annotation.Keep
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.files.local.LocalPath
-import eu.darken.butler.common.files.saf.SAFPath
-import eu.darken.butler.common.serialization.ValueBasedPolyJsonAdapterFactory
+import eu.darken.butler.common.files.extensions.Segments
+import kotlinx.serialization.Serializable
 
 @Keep
-interface APath : Parcelable {
+@Serializable
+sealed interface APath : Parcelable {
     val path: String
     val name: String
-    val pathType: PathType
 
     val userReadablePath: CaString
         get() = path.toCaString()
@@ -22,19 +21,4 @@ interface APath : Parcelable {
     val segments: Segments
 
     fun child(vararg segments: String): APath
-
-    @Keep
-    enum class PathType {
-        RAW, LOCAL, SAF
-    }
-
-    companion object {
-        val MOSHI_FACTORY: ValueBasedPolyJsonAdapterFactory<APath> =
-            ValueBasedPolyJsonAdapterFactory.of(APath::class.java, "pathType")
-                .withSubtype(RawPath::class.java, PathType.RAW.name)
-                .withSubtype(LocalPath::class.java, PathType.LOCAL.name)
-                .withSubtype(SAFPath::class.java, PathType.SAF.name)
-                .skipLabelSerialization()
-    }
-
 }

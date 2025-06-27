@@ -1,25 +1,26 @@
-package eu.darken.butler.common.files.saf
+package eu.darken.butler.common.files
 
 import android.net.Uri
 import androidx.annotation.Keep
-import com.squareup.moshi.JsonClass
-import eu.darken.butler.common.TypeMissMatchException
+import androidx.core.net.toUri
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
-import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.joinSegments
+import eu.darken.butler.common.files.extensions.joinSegments
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.io.File
 
 @Keep @Parcelize
-@JsonClass(generateAdapter = true)
+@Serializable
+@SerialName("SAF")
 data class SAFPath(
     internal val treeRoot: String,
     override val segments: List<String>,
 ) : APath {
 
     val treeRootUri: Uri
-        get() = Uri.parse(treeRoot)
+        get() = treeRoot.toUri()
 
     init {
         val paths = treeRootUri.pathSegments
@@ -46,12 +47,6 @@ data class SAFPath(
             }
         }
 
-    override var pathType: APath.PathType
-        get() = APath.PathType.SAF
-        set(value) {
-            TypeMissMatchException.check(value, pathType)
-        }
-
     override val path: String
         get() = "${File.separator}${(treeRootUri.pathSegments + segments).joinToString(File.separator)}"
 
@@ -68,7 +63,7 @@ data class SAFPath(
                     }
                 }
             }
-            return Uri.parse(uriString.toString())
+            return uriString.toString().toUri()
         }
 
     override val name: String

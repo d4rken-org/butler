@@ -1,38 +1,37 @@
-package eu.darken.butler.common.files.local
+package eu.darken.butler.common.files
 
 import androidx.annotation.Keep
-import com.squareup.moshi.JsonClass
-import eu.darken.butler.common.TypeMissMatchException
-import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.Segments
+import eu.darken.butler.common.files.extensions.Segments
 import eu.darken.butler.common.serialization.FileParcelizer
+import eu.darken.butler.common.serialization.FileSerializer
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.TypeParceler
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import java.io.File
 
-
 @Keep
-@JsonClass(generateAdapter = true)
+@Serializable
+@SerialName("LOCAL")
 @Parcelize
 @TypeParceler<File, FileParcelizer>()
 data class LocalPath(
-    val file: File
+    val file: @Serializable(with = FileSerializer::class) File
 ) : APath {
 
-    override var pathType: APath.PathType
-        get() = APath.PathType.LOCAL
-        set(value) {
-            TypeMissMatchException.check(value, pathType)
-        }
-
-    @IgnoredOnParcel override val path: String
+    @IgnoredOnParcel
+    override val path: String
         get() = file.path
 
-    @IgnoredOnParcel override val name: String
+    @IgnoredOnParcel
+    override val name: String
         get() = file.name
 
-    @IgnoredOnParcel @Transient internal var segmentsCache: Segments? = null
+    @IgnoredOnParcel
+    @Transient
+    private var segmentsCache: Segments? = null
 
     @IgnoredOnParcel
     override val segments: Segments

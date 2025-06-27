@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -48,7 +49,7 @@ fun EditorWorkspacePageHost(
 
     val state by waitForState(vm.state)
     log(vm.tag) { "Compose state: $state" }
-    
+
     state?.let { state ->
         EditorWorkspacePage(
             state = state,
@@ -97,7 +98,7 @@ fun EditorWorkspacePage(
     var showGoToLineDialog by remember { mutableStateOf(false) }
     var showSearchDialog by remember { mutableStateOf(false) }
     var showMemoryStats by remember { mutableStateOf(false) }
-    
+
     // File picker launcher
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -134,7 +135,7 @@ fun EditorWorkspacePage(
             onGoToLine = { showGoToLineDialog = true },
             onToggleMemoryStats = { showMemoryStats = !showMemoryStats }
         )
-        
+
         Column(
             modifier = Modifier.weight(1f)
         ) {
@@ -145,7 +146,7 @@ fun EditorWorkspacePage(
                     onDismiss = onClearError
                 )
             }
-            
+
             // Main editor content - always show editor, supporting in-memory editing
             LazyTextEditor(
                 content = state.currentContent,
@@ -161,7 +162,7 @@ fun EditorWorkspacePage(
                 onVisibleRangeChange = onVisibleRangeChange,
                 modifier = Modifier.weight(1f)
             )
-            
+
             // Search results
             if (state.hasSearchResults) {
                 SearchResultsBar(
@@ -174,7 +175,7 @@ fun EditorWorkspacePage(
                 )
             }
         }
-        
+
         // Bottom status bar
         if (showMemoryStats) {
             EditorStatusBar(
@@ -184,7 +185,7 @@ fun EditorWorkspacePage(
             )
         }
     }
-    
+
     // Dialogs
     if (showGoToLineDialog) {
         GoToLineDialog(
@@ -196,7 +197,7 @@ fun EditorWorkspacePage(
             onDismiss = { showGoToLineDialog = false }
         )
     }
-    
+
     if (showSearchDialog) {
         SearchDialog(
             onSearch = { query ->
@@ -256,7 +257,7 @@ private fun EditorHeader(
                     )
                 }
             }
-            
+
             // Actions section
             Row(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -269,11 +270,11 @@ private fun EditorHeader(
                             .padding(horizontal = 8.dp)
                     )
                 }
-                
+
                 IconButton(onClick = onOpenFile) {
                     Icon(Icons.Default.FolderOpen, contentDescription = "Open")
                 }
-                
+
                 // Show save/edit actions when there's content or a file
                 if (hasFile) {
                     IconButton(
@@ -282,38 +283,38 @@ private fun EditorHeader(
                     ) {
                         Icon(Icons.Default.Save, contentDescription = "Save")
                     }
-                    
+
                     IconButton(onClick = onCloseFile) {
                         Icon(Icons.Default.Close, contentDescription = "Close")
                     }
-                    
+
                     IconButton(
                         onClick = onUndo,
                         enabled = canUndo
                     ) {
                         Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Undo")
                     }
-                    
+
                     IconButton(
                         onClick = onRedo,
                         enabled = canRedo
                     ) {
                         Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Redo")
                     }
-                    
+
                     IconButton(onClick = onSearch) {
                         Icon(Icons.Default.Search, contentDescription = "Search")
                     }
-                    
+
                     IconButton(onClick = onGoToLine) {
                         Icon(Icons.Default.Search, contentDescription = "Go to Line")
                     }
                 }
-                
+
                 IconButton(onClick = onToggleMemoryStats) {
                     Icon(Icons.Default.Info, contentDescription = "Toggle Stats")
                 }
-                
+
                 WorkspaceButtonSpacer()
             }
         }
@@ -340,12 +341,12 @@ private fun EditorStatusBar(
                 text = "Line ${cursorPosition.line + 1}:${cursorPosition.column + 1}",
                 style = MaterialTheme.typography.bodySmall
             )
-            
+
             Text(
                 text = "Total: $totalLines lines",
                 style = MaterialTheme.typography.bodySmall
             )
-            
+
             Text(
                 text = "Memory: ${memoryStats.currentUsage / (1024 * 1024)}/${memoryStats.maxMemory / (1024 * 1024)} MB (${memoryStats.totalChunks} chunks)",
                 style = MaterialTheme.typography.bodySmall
@@ -375,15 +376,15 @@ private fun ErrorBanner(
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onErrorContainer
             )
-            
+
             Spacer(Modifier.width(16.dp))
-            
+
             Text(
                 text = error.message ?: "Unknown error",
                 color = MaterialTheme.colorScheme.onErrorContainer,
                 modifier = Modifier.weight(1f)
             )
-            
+
             IconButton(onClick = onDismiss) {
                 Icon(
                     Icons.Default.Close,
@@ -417,7 +418,7 @@ private fun SearchResultsBar(
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 modifier = Modifier.weight(1f)
             )
-            
+
             IconButton(
                 onClick = {
                     if (currentIndex > 0) {
@@ -432,7 +433,7 @@ private fun SearchResultsBar(
                     tint = MaterialTheme.colorScheme.onSecondaryContainer
                 )
             }
-            
+
             IconButton(
                 onClick = {
                     if (currentIndex < searchResults.size - 1) {
@@ -447,7 +448,7 @@ private fun SearchResultsBar(
                     tint = MaterialTheme.colorScheme.onSecondaryContainer
                 )
             }
-            
+
             IconButton(onClick = onClose) {
                 Icon(
                     Icons.Default.Close,
@@ -467,7 +468,7 @@ private fun GoToLineDialog(
     onDismiss: () -> Unit
 ) {
     var lineNumber by remember { mutableStateOf("") }
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Go to Line") },
@@ -508,7 +509,7 @@ private fun SearchDialog(
     onDismiss: () -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Search") },

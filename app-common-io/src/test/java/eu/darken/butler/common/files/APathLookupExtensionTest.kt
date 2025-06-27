@@ -1,9 +1,10 @@
 package eu.darken.butler.common.files
 
-import eu.darken.butler.common.files.local.LocalPath
+import eu.darken.butler.common.files.extensions.filterDistinctRoots
+import eu.darken.butler.common.files.extensions.isDirectory
+import eu.darken.butler.common.files.extensions.isFile
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.saf.SAFDocFile
-import eu.darken.butler.common.files.saf.SAFPath
 import eu.darken.butler.common.files.saf.SAFPathLookup
 import io.kotest.matchers.shouldBe
 import io.mockk.every

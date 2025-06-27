@@ -1,11 +1,15 @@
 package eu.darken.butler.common.files.saf
 
 import android.net.Uri
-import eu.darken.butler.common.files.*
-import eu.darken.butler.common.files.isAncestorOf
-import eu.darken.butler.common.files.removePrefix
-import eu.darken.butler.common.files.saf.*
-import eu.darken.butler.common.files.startsWith
+import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.extensions.isAncestorOf
+import eu.darken.butler.common.files.extensions.isChildOf
+import eu.darken.butler.common.files.extensions.isDescendantOf
+import eu.darken.butler.common.files.extensions.isParentOf
+import eu.darken.butler.common.files.extensions.matches
+import eu.darken.butler.common.files.extensions.removePrefix
+import eu.darken.butler.common.files.extensions.segs
+import eu.darken.butler.common.files.extensions.startsWith
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk

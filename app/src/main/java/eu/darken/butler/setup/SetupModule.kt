@@ -22,7 +22,7 @@ interface SetupModule {
         }
     }
 
-    enum class Type(@StringRes val labelRes: Int) {
+    enum class Type(@param:StringRes val labelRes: Int) {
         USAGE_STATS(R.string.setup_usagestats_title),
         SHIZUKU(R.string.setup_shizuku_card_title),
         ROOT(R.string.setup_root_card_title),

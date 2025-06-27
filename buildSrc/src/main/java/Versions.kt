@@ -1,6 +1,6 @@
 object Versions {
     object Kotlin {
-        const val core = "2.1.21"
+        const val core = "2.2.0"
         const val coroutines = "1.8.0"
     }
 

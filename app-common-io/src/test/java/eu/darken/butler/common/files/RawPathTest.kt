@@ -1,71 +1,63 @@
 package eu.darken.butler.common.files
 
-import com.squareup.moshi.JsonDataException
-import eu.darken.butler.common.files.local.LocalPath
 import eu.darken.butler.common.serialization.SerializationIOModule
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.SerializationException
 import org.junit.jupiter.api.Test
 import testhelpers.json.toComparableJson
 import java.io.File
 
 class RawPathTest {
-    private val baseMoshi = SerializationIOModule().moshi()
+    private val json = SerializationIOModule().json()
 
     @Test
     fun `test polymorph serialization`() {
         val original = RawPath.build("test", "file")
 
-        val adapter = baseMoshi.adapter(APath::class.java)
-
-        val json = adapter.toJson(original)
-        json.toComparableJson() shouldBe """
+        val jsonString = json.encodeToString(original as APath)
+        jsonString.toComparableJson() shouldBe """
             {
                 "path": "test/file",
-                "pathType": "RAW"
+                "type": "RAW"
             }
         """.toComparableJson()
 
-        adapter.fromJson(json) shouldBe original
+        json.decodeFromString<APath>(jsonString) shouldBe original
     }
 
     @Test
     fun `test direct serialization`() {
         val original = RawPath.build("test", "file")
 
-        val adapter = baseMoshi.adapter(RawPath::class.java)
-
-        val json = adapter.toJson(original)
-        json.toComparableJson() shouldBe """
+        val jsonString = json.encodeToString(RawPath.serializer(), original)
+        jsonString.toComparableJson() shouldBe """
             {
-                "path": "test/file",
-                "pathType": "RAW"
+                "path": "test/file"
             }
         """.toComparableJson()
 
-        adapter.fromJson(json) shouldBe original
+        json.decodeFromString(RawPath.serializer(), jsonString) shouldBe original
     }
 
-    @Test
-    fun `test fixed type`() {
-        val file = RawPath.build("test", "file")
-        file.pathType shouldBe APath.PathType.RAW
-        shouldThrow<IllegalArgumentException> {
-            file.pathType = APath.PathType.LOCAL
-            Any()
-        }
-        file.pathType shouldBe APath.PathType.RAW
-    }
+//    @Test
+//    fun `test fixed type`() {
+//        val file = RawPath.build("test", "file")
+//        file.pathType shouldBe APath.PathType.RAW
+//        shouldThrow<IllegalArgumentException> {
+//            file.pathType = APath.PathType.LOCAL
+//            Any()
+//        }
+//        file.pathType shouldBe APath.PathType.RAW
+//    }
 
     @Test
     fun `force typing`() {
         val original = LocalPath.build(file = File("./testfile"))
 
-        val moshi = baseMoshi
-
-        shouldThrow<JsonDataException> {
-            val json = moshi.adapter(LocalPath::class.java).toJson(original)
-            moshi.adapter(RawPath::class.java).fromJson(json)
+        shouldThrow<SerializationException> {
+            val jsonString = json.encodeToString(LocalPath.serializer(), original)
+            json.decodeFromString(RawPath.serializer(), jsonString)
         }
     }
 }

@@ -2,9 +2,9 @@ package eu.darken.butler.common.files.local.ipc
 
 import android.os.Parcel
 import android.os.Parcelable
-import eu.darken.butler.common.files.local.LocalPath
-import eu.darken.butler.common.files.local.LocalPathLookup
-import eu.darken.butler.common.files.remoteInputStream
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.io.remoteInputStream
+import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.ipc.RemoteInputStream
 import eu.darken.butler.common.ipc.source
 
@@ -12,7 +12,13 @@ data class LocalPathsIPCWrapper(
     val payload: List<LocalPath>,
 ) : Parcelable, IPCWrapper {
     constructor(parcel: Parcel) : this(
-        parcel.readParcelableArray(LocalPathLookup::class.java.classLoader)!!.toList() as List<LocalPath>
+        if (hasApiLevel(33)) {
+            @Suppress("NewApi")
+            (parcel.readParcelableArray(LocalPath::class.java.classLoader, LocalPath::class.java)!!.toList())
+        } else {
+            @Suppress("DEPRECATION", "UNCHECKED_CAST")
+            parcel.readParcelableArray(LocalPath::class.java.classLoader)!!.toList() as List<LocalPath>
+        }
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {

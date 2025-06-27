@@ -1,9 +1,15 @@
 package eu.darken.butler.common.files.local
 
-import eu.darken.butler.common.files.*
-import eu.darken.butler.common.files.isAncestorOf
-import eu.darken.butler.common.files.local.*
-import eu.darken.butler.common.files.startsWith
+import eu.darken.butler.common.files.FileType
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.extensions.isAncestorOf
+import eu.darken.butler.common.files.extensions.isChildOf
+import eu.darken.butler.common.files.extensions.isDescendantOf
+import eu.darken.butler.common.files.extensions.isParentOf
+import eu.darken.butler.common.files.extensions.matches
+import eu.darken.butler.common.files.extensions.removePrefix
+import eu.darken.butler.common.files.extensions.segs
+import eu.darken.butler.common.files.extensions.startsWith
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test

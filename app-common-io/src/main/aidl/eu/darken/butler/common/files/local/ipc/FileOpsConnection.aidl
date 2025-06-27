@@ -3,7 +3,7 @@ package eu.darken.butler.common.files.local.ipc;
 import eu.darken.butler.common.ipc.RemoteFileHandle;
 import eu.darken.butler.common.ipc.RemoteInputStream;
 import eu.darken.butler.common.ipc.RemoteOutputStream;
-import eu.darken.butler.common.files.local.LocalPath;
+import eu.darken.butler.common.files.LocalPath;
 import eu.darken.butler.common.files.local.LocalPathLookup;
 import eu.darken.butler.common.files.local.LocalPathLookupExtended;
 import eu.darken.butler.common.files.Ownership;

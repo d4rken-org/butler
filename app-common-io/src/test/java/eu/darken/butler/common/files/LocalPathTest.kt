@@ -1,28 +1,25 @@
-package eu.darken.butler.common.files.local
+package eu.darken.butler.common.files
 
-import com.squareup.moshi.JsonDataException
-import com.squareup.moshi.Types
-import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.FileType
-import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.files.core.local.tryMkFile
+import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.serialization.SerializationIOModule
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.ListSerializer
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.json.toComparableJson
 import java.io.File
-import java.lang.reflect.Type
 import java.time.Instant
 
 class LocalPathTest : BaseTest() {
     private val testFile = File("./testfile")
     private val testFile2 = File("./testfile2")
 
-    private val moshi = SerializationIOModule().moshi()
+    private val json = SerializationIOModule().json()
 
     @AfterEach
     fun cleanup() {
@@ -34,20 +31,17 @@ class LocalPathTest : BaseTest() {
         testFile.tryMkFile()
         val original = LocalPath.build(file = testFile)
 
-        val adapter = moshi.adapter(LocalPath::class.java)
-
         // segmentsCache needs to be ignored during serialization
         println(original.segments.toString())
 
-        val json = adapter.toJson(original)
-        json.toComparableJson() shouldBe """
+        val jsonString = json.encodeToString(original)
+        jsonString.toComparableJson() shouldBe """
             {
-                "file": "${testFile.path}",
-                "pathType":"LOCAL"
+                "file": "${testFile.path}"
             }
         """.toComparableJson()
 
-        adapter.fromJson(json) shouldBe original
+        json.decodeFromString<LocalPath>(jsonString) shouldBe original
     }
 
     @Test
@@ -55,12 +49,10 @@ class LocalPathTest : BaseTest() {
         testFile.tryMkFile()
         val original = LocalPath.build(file = testFile)
 
-        val adapter = moshi.adapter(LocalPath::class.java)
-
-        val json = """
+        val jsonString = """
             {
                 "file": "${testFile.path}",
-                "pathType":"LOCAL",
+                "type":"LOCAL",
                 "segmentsCache": [
                     ".",
                     "testfile"
@@ -68,7 +60,7 @@ class LocalPathTest : BaseTest() {
             }
         """.toComparableJson()
 
-        adapter.fromJson(json) shouldBe original
+        json.decodeFromString<APath>(jsonString) shouldBe original
     }
 
     @Test
@@ -76,17 +68,15 @@ class LocalPathTest : BaseTest() {
         testFile.tryMkFile()
         val original = LocalPath.build(file = testFile)
 
-        val adapter = moshi.adapter(APath::class.java)
-
-        val json = adapter.toJson(original)
-        json.toComparableJson() shouldBe """
+        val jsonString = json.encodeToString(original as APath)
+        jsonString.toComparableJson() shouldBe """
             {
                 "file":"${testFile.path}",
-                "pathType":"LOCAL"
+                "type":"LOCAL"
             }
         """.toComparableJson()
 
-        adapter.fromJson(json) shouldBe original
+        json.decodeFromString<APath>(jsonString) shouldBe original
     }
 
     @Test
@@ -97,43 +87,30 @@ class LocalPathTest : BaseTest() {
             LocalPath.build(file = testFile2),
         )
 
-        val type: Type = Types.newParameterizedType(List::class.java, APath::class.java)
-        val adapter = moshi.adapter<List<APath>>(type)
-        val json = adapter.toJson(original)
+        val jsonString = json.encodeToString(ListSerializer(APath.serializer()), original)
 
-        json.toComparableJson() shouldBe """
+        jsonString.toComparableJson() shouldBe """
                 [
                     {
                         "file":"${testFile.path}",
-                        "pathType":"LOCAL"
+                        "type":"LOCAL"
                     }, {
                         "file":"${testFile2.path}",
-                        "pathType":"LOCAL"
+                        "type":"LOCAL"
                     }
                 ]
         """.toComparableJson()
 
-        adapter.fromJson(json) shouldBe original
-    }
-
-    @Test
-    fun `test fixed type`() {
-        val file = LocalPath(testFile)
-        file.pathType shouldBe APath.PathType.LOCAL
-        shouldThrow<IllegalArgumentException> {
-            file.pathType = APath.PathType.RAW
-            Any()
-        }
-        file.pathType shouldBe APath.PathType.LOCAL
+        json.decodeFromString(ListSerializer(APath.serializer()), jsonString) shouldBe original
     }
 
     @Test
     fun `force typing`() {
         val original = RawPath.build("test", "file")
 
-        shouldThrow<JsonDataException> {
-            val json = moshi.adapter(RawPath::class.java).toJson(original)
-            moshi.adapter(LocalPath::class.java).fromJson(json)
+        shouldThrow<SerializationException> {
+            val jsonString = json.encodeToString(RawPath.serializer(), original)
+            json.decodeFromString(LocalPath.serializer(), jsonString)
         }
     }
 

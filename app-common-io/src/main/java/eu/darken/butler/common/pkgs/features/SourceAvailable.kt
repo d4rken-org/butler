@@ -1,7 +1,7 @@
 package eu.darken.butler.common.pkgs.features
 
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.local.LocalPath
+import eu.darken.butler.common.files.LocalPath
 
 interface SourceAvailable : Installed {
 

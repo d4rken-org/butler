@@ -19,7 +19,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.Ownership
 import eu.darken.butler.common.files.Permissions
-import eu.darken.butler.common.files.useQuietly
+import eu.darken.butler.common.files.io.useQuietly
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException

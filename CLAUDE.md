@@ -106,7 +106,7 @@ Butler uses a workspace concept similar to browser tabs with 4 main workspace ty
 - Single Activity architecture with Compose navigation
 - Reactive programming with Kotlin Flow and StateFlow
 - Centralized error handling with `ErrorEventHandler`
-- DataStore-based settings with Moshi serialization
+- DataStore-based settings with kotlinx serialization
 
 ### Build Flavors
 
@@ -118,7 +118,7 @@ Butler uses a workspace concept similar to browser tabs with 4 main workspace ty
 - Jetpack Compose for UI
 - Hilt for dependency injection
 - Kotlin Coroutines & Flow for async operations
-- Moshi for JSON serialization
+- kotlinx for JSON serialization
 - Coil for image loading
 - Navigation3 for navigation
 - Room for database operations
