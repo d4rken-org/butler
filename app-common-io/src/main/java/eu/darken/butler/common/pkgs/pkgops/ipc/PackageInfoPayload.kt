@@ -7,6 +7,7 @@ import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.io.remoteInputStream
+import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.ipc.RemoteInputStream
 import eu.darken.butler.common.ipc.inputStream
 import okio.Buffer
@@ -15,7 +16,13 @@ data class PackageInfoPayload(
     val payload: List<PackageInfo>,
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
-        parcel.readParcelableArray(PackageInfo::class.java.classLoader)!!.toList() as List<PackageInfo>
+        if (hasApiLevel(33)) {
+            @Suppress("NewApi")
+            (parcel.readParcelableArray(PackageInfo::class.java.classLoader, PackageInfo::class.java)!!.toList())
+        } else {
+            @Suppress("DEPRECATION", "UNCHECKED_CAST")
+            parcel.readParcelableArray(PackageInfo::class.java.classLoader)!!.toList() as List<PackageInfo>
+        }
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
