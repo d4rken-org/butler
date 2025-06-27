@@ -4,6 +4,7 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.APathLookupExtended
 import eu.darken.butler.common.files.Ownership
 import eu.darken.butler.common.files.Permissions
+import eu.darken.butler.common.files.SAFPath
 
 data class SAFPathLookupExtended(
     val lookup: SAFPathLookup,

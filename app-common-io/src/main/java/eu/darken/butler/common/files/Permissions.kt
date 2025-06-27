@@ -2,11 +2,12 @@ package eu.darken.butler.common.files
 
 import android.os.Parcel
 import android.os.Parcelable
-import com.squareup.moshi.JsonClass
 import eu.darken.butler.common.toOctal
 import kotlinx.parcelize.IgnoredOnParcel
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
-@JsonClass(generateAdapter = true)
+@Serializable
 data class Permissions(
     val mode: Int
 ) : Parcelable {

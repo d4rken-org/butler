@@ -1,15 +1,16 @@
 package eu.darken.butler.main.core.motd
 
 import android.net.Uri
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import eu.darken.butler.common.serialization.LocaleSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.util.Locale
 import java.util.UUID
 
-@JsonClass(generateAdapter = true)
+@Serializable
 data class MotdState(
-    @Json(name = "motd") val motd: MotdApi.Motd,
-    @Json(name = "locale") val locale: Locale,
+    @SerialName("motd") val motd: MotdApi.Motd,
+    @SerialName("locale") val locale: @Serializable(with = LocaleSerializer::class) Locale,
 ) {
     val id: UUID
         get() = motd.id

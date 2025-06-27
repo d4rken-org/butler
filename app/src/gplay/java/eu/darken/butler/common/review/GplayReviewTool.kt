@@ -35,8 +35,8 @@ import kotlin.system.measureTimeMillis
 
 @Singleton
 class GplayReviewTool @Inject constructor(
-    @ApplicationContext private val context: Context,
-    @AppScope private val appScope: CoroutineScope,
+    @param:ApplicationContext private val context: Context,
+    @param:AppScope private val appScope: CoroutineScope,
     private val settings: ReviewSettings,
     releaseSettings: ReleaseSettings,
     upgradeRepo: UpgradeRepo,

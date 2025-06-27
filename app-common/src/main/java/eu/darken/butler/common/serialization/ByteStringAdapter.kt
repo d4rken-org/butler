@@ -1,14 +1,22 @@
 package eu.darken.butler.common.serialization
 
-import com.squareup.moshi.FromJson
-import com.squareup.moshi.ToJson
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import okio.ByteString
 import okio.ByteString.Companion.decodeBase64
 
-class ByteStringAdapter {
-    @ToJson
-    fun toJson(value: ByteString): String = value.base64()
+object ByteStringSerializer : KSerializer<ByteString> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("ByteString", PrimitiveKind.STRING)
 
-    @FromJson
-    fun fromJson(raw: String): ByteString = raw.decodeBase64()!!
+    override fun serialize(encoder: Encoder, value: ByteString) {
+        encoder.encodeString(value.base64())
+    }
+
+    override fun deserialize(decoder: Decoder): ByteString {
+        return decoder.decodeString().decodeBase64()!!
+    }
 }

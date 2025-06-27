@@ -30,7 +30,8 @@ class WorkspaceManagerViewModel @Inject constructor(
                         title = info.title,
                         subtitle = getSubtitleForWorkspace(info.type),
                     )
-                }
+                },
+                workspaceCount = repoState.workspaceInfos.size
             )
         }
         .asStateFlow()
@@ -45,11 +46,6 @@ class WorkspaceManagerViewModel @Inject constructor(
     }
 
     fun closeWorkspace(id: Workspace.Id) = launch {
-        val currentState = state.first()
-        if (currentState.workspaces.size <= 1) {
-            // Don't allow closing the last workspace
-            return@launch
-        }
         workspaceRepo.delete(id)
     }
 
@@ -63,6 +59,11 @@ class WorkspaceManagerViewModel @Inject constructor(
         navigateBack()
     }
 
+    fun createWorkspace(type: Workspace.Type) = launch {
+        log(tag) { "createWorkspace($type)" }
+        workspaceRepo.create(type)
+    }
+
     fun navigateBack() {
         log(tag) { "navigateBack()" }
         navUp()
@@ -70,6 +71,7 @@ class WorkspaceManagerViewModel @Inject constructor(
 
     data class State(
         val workspaces: List<WorkspaceItem> = emptyList(),
+        val workspaceCount: Int = 0,
     )
 
     data class WorkspaceItem(

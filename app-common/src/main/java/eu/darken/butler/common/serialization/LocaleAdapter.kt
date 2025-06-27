@@ -1,13 +1,21 @@
 package eu.darken.butler.common.serialization
 
-import com.squareup.moshi.FromJson
-import com.squareup.moshi.ToJson
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import java.util.Locale
 
-class LocaleAdapter {
-    @ToJson
-    fun toJson(value: Locale): String = value.toLanguageTag()
+object LocaleSerializer : KSerializer<Locale> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Locale", PrimitiveKind.STRING)
 
-    @FromJson
-    fun fromJson(raw: String) = Locale.forLanguageTag(raw)
+    override fun serialize(encoder: Encoder, value: Locale) {
+        encoder.encodeString(value.toLanguageTag())
+    }
+
+    override fun deserialize(decoder: Decoder): Locale {
+        return Locale.forLanguageTag(decoder.decodeString())
+    }
 }

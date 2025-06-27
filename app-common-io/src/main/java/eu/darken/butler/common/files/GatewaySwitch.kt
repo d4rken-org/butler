@@ -7,9 +7,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.local.LocalGateway
-import eu.darken.butler.common.files.local.LocalPath
 import eu.darken.butler.common.files.saf.SAFGateway
-import eu.darken.butler.common.files.saf.SAFPath
 import eu.darken.butler.common.sharedresource.SharedResource
 import eu.darken.butler.common.sharedresource.adoptChildResource
 import eu.darken.butler.common.storage.PathMapper
@@ -24,7 +22,7 @@ import javax.inject.Singleton
 
 @Singleton
 class GatewaySwitch @Inject constructor(
-    @AppScope private val appScope: CoroutineScope,
+    @param:AppScope private val appScope: CoroutineScope,
     dispatcherProvider: DispatcherProvider,
     private val safGateway: SAFGateway,
     private val localGateway: LocalGateway,
@@ -36,17 +34,17 @@ class GatewaySwitch @Inject constructor(
         action: suspend APathGateway<T, APathLookup<T>, APathLookupExtended<T>>.() -> R
     ): R {
         @Suppress("UNCHECKED_CAST")
-        val targetGateway = getGateway(path.pathType) as APathGateway<T, APathLookup<T>, APathLookupExtended<T>>
+        val targetGateway = getGateway(path) as APathGateway<T, APathLookup<T>, APathLookupExtended<T>>
         return action(targetGateway)
     }
 
-    private suspend fun resolveGatewayType(type: APath.PathType): APathGateway<*, *, *> {
-        val gateway = when (type) {
-            APath.PathType.SAF -> {
+    private suspend fun resolveGatewayType(path: APath): APathGateway<*, *, *> {
+        val gateway = when (path) {
+            is SAFPath -> {
                 safGateway.also { adoptChildResource(it) }
             }
 
-            APath.PathType.LOCAL -> {
+            is LocalPath -> {
                 localGateway.also { adoptChildResource(it) }
             }
 
@@ -55,7 +53,7 @@ class GatewaySwitch @Inject constructor(
         return gateway
     }
 
-    suspend fun getGateway(type: APath.PathType): APathGateway<*, *, *> {
+    suspend fun getGateway(type: APath): APathGateway<*, *, *> {
         return resolveGatewayType(type)
     }
 
@@ -218,10 +216,10 @@ class GatewaySwitch @Inject constructor(
         }
     }
 
-    private suspend fun APath.toAlternative(): APath = when (this.pathType) {
-        APath.PathType.LOCAL -> mapper.toSAFPath(this as LocalPath) ?: throw ReadException("Can't map to SAF", this)
-        APath.PathType.SAF -> mapper.toLocalPath(this as SAFPath) ?: throw ReadException("Can't map to LOCAL", this)
-        APath.PathType.RAW -> throw UnsupportedOperationException("Alternative mapping for RAW not available")
+    private suspend fun APath.toAlternative(): APath = when (this) {
+        is LocalPath -> mapper.toSAFPath(this) ?: throw ReadException("Can't map to SAF", this)
+        is SAFPath -> mapper.toLocalPath(this) ?: throw ReadException("Can't map to LOCAL", this)
+        is RawPath -> throw UnsupportedOperationException("Alternative mapping for RAW not available")
     }
 
     enum class Type {

@@ -4,6 +4,10 @@ import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.extensions.isDirectory
+import eu.darken.butler.common.files.extensions.isFile
+import eu.darken.butler.common.files.extensions.lookup
+import eu.darken.butler.common.files.extensions.lookupFiles
 import kotlinx.coroutines.flow.AbstractFlow
 import kotlinx.coroutines.flow.FlowCollector
 import java.io.IOException
@@ -16,7 +20,7 @@ class PathWalker<
         PL : APathLookup<P>,
         PLE : APathLookupExtended<P>,
         GT : APathGateway<P, PL, PLE>
-        > constructor(
+        >(
     private val gateway: GT,
     private val start: P,
     private val onFilter: suspend (PL) -> Boolean = { true },

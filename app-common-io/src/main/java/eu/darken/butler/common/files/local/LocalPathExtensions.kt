@@ -5,12 +5,13 @@ import android.system.StructStat
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.Ownership
 import eu.darken.butler.common.files.Permissions
 import eu.darken.butler.common.files.ReadException
-import eu.darken.butler.common.files.Segments
-import eu.darken.butler.common.files.asFile
 import eu.darken.butler.common.files.core.local.readLink
+import eu.darken.butler.common.files.extensions.Segments
+import eu.darken.butler.common.files.extensions.asFile
 import eu.darken.butler.common.funnel.IPCFunnel
 import eu.darken.butler.common.pkgs.pkgops.LibcoreTool
 import java.io.File

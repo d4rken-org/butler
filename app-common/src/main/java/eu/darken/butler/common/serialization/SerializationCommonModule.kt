@@ -1,10 +1,12 @@
 package eu.darken.butler.common.serialization
 
-import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.contextual
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
@@ -15,17 +17,22 @@ class SerializationCommonModule {
     @Provides
     @Singleton
     @SerializationCommon
-    fun moshi(): Moshi = Moshi.Builder().apply {
-        add(InstantAdapter())
-        add(DurationAdapter())
-        add(UUIDAdapter())
-        add(ByteStringAdapter())
-        add(FileAdapter())
-        add(UriAdapter())
-        add(OffsetDateTimeAdapter())
-        add(RegexAdapter())
-        add(LocaleAdapter())
-    }.build()
+    fun json(): Json = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+        explicitNulls = false
+        serializersModule = SerializersModule {
+            contextual(InstantSerializer)
+            contextual(DurationSerializer)
+            contextual(UUIDSerializer)
+            contextual(ByteStringSerializer)
+            contextual(FileSerializer)
+            contextual(UriSerializer)
+            contextual(OffsetDateTimeSerializer)
+            contextual(RegexSerializer)
+            contextual(LocaleSerializer)
+        }
+    }
 }
 
 @Qualifier

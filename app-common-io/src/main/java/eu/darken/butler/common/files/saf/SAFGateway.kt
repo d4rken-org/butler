@@ -16,9 +16,10 @@ import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.Ownership
 import eu.darken.butler.common.files.Permissions
 import eu.darken.butler.common.files.ReadException
+import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.WriteException
-import eu.darken.butler.common.files.isDirectory
-import eu.darken.butler.common.files.isFile
+import eu.darken.butler.common.files.extensions.isDirectory
+import eu.darken.butler.common.files.extensions.isFile
 import eu.darken.butler.common.sharedresource.SharedResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -36,9 +37,9 @@ import javax.inject.Singleton
 
 @Singleton
 class SAFGateway @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val contentResolver: ContentResolver,
-    @AppScope private val appScope: CoroutineScope,
+    @param:AppScope private val appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
 ) : APathGateway<SAFPath, SAFPathLookup, SAFPathLookupExtended> {
 

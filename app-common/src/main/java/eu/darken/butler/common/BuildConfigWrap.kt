@@ -52,8 +52,8 @@ object BuildConfigWrap {
         }
         f.get(null)
     } catch (e: Exception) {
-        Log.e("getBuildConfigValue", "fieldName: $fieldName")
         e.printStackTrace()
+        Log.e("getBuildConfigValue", "fieldName: $fieldName")
         null
     }
 }

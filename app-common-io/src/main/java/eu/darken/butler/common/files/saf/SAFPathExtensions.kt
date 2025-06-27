@@ -1,7 +1,8 @@
 package eu.darken.butler.common.files.saf
 
 import android.content.UriPermission
-import eu.darken.butler.common.files.Segments
+import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.extensions.Segments
 import java.io.File
 
 

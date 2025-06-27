@@ -1,13 +1,21 @@
 package eu.darken.butler.common.serialization
 
-import com.squareup.moshi.FromJson
-import com.squareup.moshi.ToJson
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import java.io.File
 
-class FileAdapter {
-    @ToJson
-    fun toJson(file: File): String = file.path
+object FileSerializer : KSerializer<File> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("File", PrimitiveKind.STRING)
 
-    @FromJson
-    fun fromJson(path: String): File = File(path)
+    override fun serialize(encoder: Encoder, value: File) {
+        encoder.encodeString(value.path)
+    }
+
+    override fun deserialize(decoder: Decoder): File {
+        return File(decoder.decodeString())
+    }
 }

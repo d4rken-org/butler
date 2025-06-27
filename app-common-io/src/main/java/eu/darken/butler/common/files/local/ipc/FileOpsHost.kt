@@ -7,19 +7,19 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.Ownership
 import eu.darken.butler.common.files.Permissions
-import eu.darken.butler.common.files.asFile
 import eu.darken.butler.common.files.core.local.createSymlink
 import eu.darken.butler.common.files.core.local.listFiles2
-import eu.darken.butler.common.files.local.DirectLocalWalker
-import eu.darken.butler.common.files.local.LocalPath
+import eu.darken.butler.common.files.extensions.asFile
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.LocalPathLookupExtended
 import eu.darken.butler.common.files.local.performLookup
 import eu.darken.butler.common.files.local.performLookupExtended
 import eu.darken.butler.common.files.local.setOwnership
 import eu.darken.butler.common.files.local.setPermissions
+import eu.darken.butler.common.files.local.walkers.DirectLocalWalker
 import eu.darken.butler.common.funnel.IPCFunnel
 import eu.darken.butler.common.ipc.IpcHostModule
 import eu.darken.butler.common.ipc.RemoteFileHandle
@@ -37,7 +37,7 @@ import javax.inject.Inject
  * ROOT-side
  */
 class FileOpsHost @Inject constructor(
-    @AppScope private val appScope: CoroutineScope,
+    @param:AppScope private val appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
     private val libcoreTool: LibcoreTool,
     private val ipcFunnel: IPCFunnel,

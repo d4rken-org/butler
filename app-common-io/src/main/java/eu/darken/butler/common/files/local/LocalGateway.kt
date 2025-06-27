@@ -12,17 +12,21 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathGateway
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.Ownership
 import eu.darken.butler.common.files.Permissions
 import eu.darken.butler.common.files.ReadException
 import eu.darken.butler.common.files.WriteException
-import eu.darken.butler.common.files.asFile
-import eu.darken.butler.common.files.callbacks
 import eu.darken.butler.common.files.core.local.createSymlink
 import eu.darken.butler.common.files.core.local.isReadable
 import eu.darken.butler.common.files.core.local.listFiles2
 import eu.darken.butler.common.files.core.local.parentsInclusive
+import eu.darken.butler.common.files.extensions.asFile
+import eu.darken.butler.common.files.io.callbacks
 import eu.darken.butler.common.files.local.ipc.FileOpsClient
+import eu.darken.butler.common.files.local.walkers.DirectLocalWalker
+import eu.darken.butler.common.files.local.walkers.EscalatingWalker
+import eu.darken.butler.common.files.local.walkers.IndirectLocalWalker
 import eu.darken.butler.common.funnel.IPCFunnel
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.ipc.fileHandle
@@ -51,7 +55,7 @@ import javax.inject.Singleton
 class LocalGateway @Inject constructor(
     private val ipcFunnel: IPCFunnel,
     private val libcoreTool: LibcoreTool,
-    @AppScope private val appScope: CoroutineScope,
+    @param:AppScope private val appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
     private val storageEnvironment: StorageEnvironment,
     private val rootManager: RootManager,

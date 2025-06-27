@@ -1,11 +1,11 @@
-package eu.darken.butler.common.files
+package eu.darken.butler.common.files.io
 
 import okio.Buffer
 import okio.Source
 import okio.Timeout
 import java.io.IOException
 
-class ConstrainedSource constructor(
+class ConstrainedSource(
     private val parent: Source,
     byteLimit: Long
 ) : Source {
