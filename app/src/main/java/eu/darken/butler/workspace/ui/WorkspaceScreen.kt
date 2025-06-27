@@ -189,7 +189,7 @@ private fun WorkspaceButton(
     }
 
     Card(
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.95f)
         ),
