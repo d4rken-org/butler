@@ -151,7 +151,9 @@ internal fun EmptyWorkspaceContent(
                     Card(
                         modifier = Modifier.Companion
                             .fillMaxWidth()
-                            .clickable { onUpgradeButler() }) {
+                            .clickable { onUpgradeButler() },
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+                    ) {
                         Row(
                             modifier = Modifier.Companion.padding(20.dp),
                             verticalAlignment = Alignment.Companion.CenterVertically
@@ -159,17 +161,19 @@ internal fun EmptyWorkspaceContent(
                             Column(modifier = Modifier.Companion.weight(1f)) {
                                 Text(
                                     text = stringResource(R.string.upgrade_prompt_title),
-                                    style = MaterialTheme.typography.titleMedium
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer
                                 )
                                 Text(
                                     text = stringResource(R.string.upgrade_prompt_body),
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer
                                 )
                             }
                             Icon(
                                 imageVector = Icons.TwoTone.Stars,
-                                contentDescription = stringResource(R.string.upgrade_prompt_upgrade_action)
+                                contentDescription = stringResource(R.string.upgrade_prompt_upgrade_action),
+                                tint = MaterialTheme.colorScheme.onTertiaryContainer
                             )
                         }
                     }

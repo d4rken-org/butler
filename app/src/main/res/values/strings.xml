@@ -18,6 +18,39 @@
     <string name="setup_manage_storage_card_title">Manage external storage</string>
     <string name="setup_inventory_card_title">App inventory</string>
 
+    <string name="setup_title">App Setup</string>
+    <string name="setup_settings_description">Configure app permissions and features</string>
+    <string name="setup_help_description">Help</string>
+    <string name="setup_refresh_label">Refresh</string>
+    <string name="setup_configure_label">Configure</string>
+    <string name="setup_root_enable_label">Enable root access</string>
+    <string name="setup_shizuku_enable_label">Enable Shizuku</string>
+
+    <string name="setup_root_description">Access system files and perform administrative tasks</string>
+    <string name="setup_shizuku_description">Alternative privileged access method using Shizuku service</string>
+    <string name="setup_notification_description">Manage notification permissions for file operations</string>
+    <string name="setup_usagestats_description">Track app usage statistics for enhanced functionality</string>
+    <string name="setup_saf_description">Access files through Android\'s Storage Access Framework</string>
+    <string name="setup_storage_description">Manage external storage permissions</string>
+    <string name="setup_inventory_description">Build inventory of installed applications</string>
+
+    <string name="setup_grant_access_label">Grant access</string>
+    <string name="setup_access_granted_label">Access granted</string>
+    <string name="setup_use_root_label">Use Root if available</string>
+    <string name="setup_use_shizuku_label">Use Shizuku if available</string>
+
+    <string name="setup_status_checking">Checking...</string>
+    <string name="setup_status_completed">Configured</string>
+    <string name="setup_status_required">Required</string>
+    <string name="setup_status_optional">Optional</string>
+
+    <string name="setup_hint_root">Requires device to be rooted</string>
+    <string name="setup_hint_shizuku">Requires Shizuku app to be installed and running</string>
+    <string name="setup_hint_notification">Allows Butler to display notifications</string>
+    <string name="setup_hint_usagestats">Grants access to app usage statistics</string>
+    <string name="setup_hint_saf">Enables file access through Storage Access Framework</string>
+    <string name="setup_hint_storage">Grants access to manage external storage</string>
+
     <!-- Debug Log -->
     <string name="debug_notification_channel_label">Debug notifications</string>
     <string name="debug_log_consent_title">Debug log</string>
