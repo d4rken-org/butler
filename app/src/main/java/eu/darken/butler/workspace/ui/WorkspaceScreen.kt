@@ -41,7 +41,7 @@ import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.editor.ui.EditorWorkspacePageHost
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspacePageHost
 import eu.darken.butler.main.ui.AppNav
-import eu.darken.butler.searcher.ui.SearcherWorkspacePageHost
+import eu.darken.butler.searcher.ui.search.SearcherWorkspacePageHost
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.empty.EmptyWorkspaceContent
 import eu.darken.butler.workspace.ui.template.TemplatesWorkspacePageHost
