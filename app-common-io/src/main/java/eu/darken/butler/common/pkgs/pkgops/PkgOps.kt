@@ -24,7 +24,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.asFile
+import eu.darken.butler.common.files.extensions.asFile
 import eu.darken.butler.common.funnel.IPCFunnel
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.permissions.Permission
@@ -55,9 +55,9 @@ import javax.inject.Singleton
 
 @Singleton
 class PkgOps @Inject constructor(
-    @AppScope private val appScope: CoroutineScope,
+    @param:AppScope private val appScope: CoroutineScope,
     dispatcherProvider: DispatcherProvider,
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val ipcFunnel: IPCFunnel,
     private val rootManager: RootManager,
     private val adbManager: AdbManager,
@@ -190,7 +190,7 @@ class PkgOps @Inject constructor(
 
     suspend fun queryAppInfos(
         pkg: Pkg.Id,
-        flags: Int = GET_UNINSTALLED_PACKAGES
+        flags: Int = MATCH_UNINSTALLED_PACKAGES
     ): ApplicationInfo? = ipcFunnel.use {
         try {
             packageManager.getApplicationInfo(pkg.name, flags)
@@ -234,7 +234,7 @@ class PkgOps @Inject constructor(
     }
 
     suspend fun getIcon(pkg: Pkg.Id): Drawable? {
-        val appInfo = queryAppInfos(pkg, GET_UNINSTALLED_PACKAGES)
+        val appInfo = queryAppInfos(pkg, MATCH_UNINSTALLED_PACKAGES)
         return appInfo?.let { getIcon(it) }
     }
 

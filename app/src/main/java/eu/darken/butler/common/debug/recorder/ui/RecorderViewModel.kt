@@ -28,7 +28,7 @@ class RecorderViewModel @Inject constructor(
     navCtrl: NavigationController,
     dispatchers: DispatcherProvider,
     savedStateHandle: SavedStateHandle,
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val webpageTool: WebpageTool,
 ) : ViewModel4(dispatchers, logTag("Debug", "Recorder","Screen","VM"), navCtrl) {
 

@@ -3,8 +3,8 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("kotlin-android")
     id("com.google.devtools.ksp")
-    id("kotlin-kapt")
     id("projectConfig")
+    id("kotlin-kapt")
 }
 
 android {

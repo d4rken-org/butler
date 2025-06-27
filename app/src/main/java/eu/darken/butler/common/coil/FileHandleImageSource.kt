@@ -1,17 +1,13 @@
 package eu.darken.butler.common.coil
 
 import android.media.MediaDataSource
-import coil.annotation.ExperimentalCoilApi
-import coil.decode.ImageSource
-import coil.fetch.MediaDataSourceFetcher.*
+import coil3.decode.ImageSource
+import coil3.video.MediaDataSourceFetcher
 import okio.FileHandle
+import okio.FileSystem
 import okio.buffer
-import java.io.File
 
-@OptIn(ExperimentalCoilApi::class)
-internal suspend fun FileHandle.toImageSource(
-    cacheDir: File,
-): ImageSource {
+internal fun FileHandle.toImageSource(): ImageSource {
     val handle = this
     val sourceBuffer = this.source().buffer()
     val mediaDataSource = object : MediaDataSource() {
@@ -30,7 +26,7 @@ internal suspend fun FileHandle.toImageSource(
     }
     return ImageSource(
         source = sourceBuffer,
-        cacheDirectory = cacheDir,
-        metadata = MediaSourceMetadata(mediaDataSource),
+        fileSystem = FileSystem.SYSTEM,
+        metadata = MediaDataSourceFetcher.MediaSourceMetadata(mediaDataSource),
     )
 }

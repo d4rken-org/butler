@@ -1,9 +1,17 @@
 package eu.darken.butler.common.files
 
-import eu.darken.butler.common.files.local.LocalPath
+import eu.darken.butler.common.files.extensions.extension
+import eu.darken.butler.common.files.extensions.filterDistinctRoots
+import eu.darken.butler.common.files.extensions.isAncestorOf
+import eu.darken.butler.common.files.extensions.isChildOf
+import eu.darken.butler.common.files.extensions.isDescendantOf
+import eu.darken.butler.common.files.extensions.isParentOf
+import eu.darken.butler.common.files.extensions.matches
+import eu.darken.butler.common.files.extensions.removePrefix
+import eu.darken.butler.common.files.extensions.segs
+import eu.darken.butler.common.files.extensions.startsWith
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.saf.SAFDocFile
-import eu.darken.butler.common.files.saf.SAFPath
 import eu.darken.butler.common.files.saf.SAFPathLookup
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe

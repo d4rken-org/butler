@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.local
 import android.os.Parcelable
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.APathLookupExtended
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.Ownership
 import eu.darken.butler.common.files.Permissions
 import kotlinx.parcelize.Parcelize

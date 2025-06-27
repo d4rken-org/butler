@@ -1,7 +1,12 @@
-package eu.darken.butler.common.files
+package eu.darken.butler.common.files.extensions
 
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.APathGateway
+import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.APathLookupExtended
+import eu.darken.butler.common.files.FileType
 import kotlinx.coroutines.flow.Flow
 import okio.FileHandle
 

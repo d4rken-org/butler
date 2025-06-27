@@ -11,6 +11,7 @@ import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.parcel.unmarshall
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -72,13 +73,21 @@ abstract class BaseRootHost(
 
                 try {
                     Thread.sleep(1000)
-                } catch (ignored: InterruptedException) {
+                } catch (_: InterruptedException) {
                 }
             }
         }
 
         runBlocking {
-            log(iTag) { "Running on threadId=${Thread.currentThread().id}" }
+            log(iTag) {
+                if (hasApiLevel(36)) {
+                    @Suppress("NewApi")
+                    "Running on threadId=${Thread.currentThread().threadId()}"
+                } else {
+                    @Suppress("DEPRECATION")
+                    "Running on threadId=${Thread.currentThread().id}"
+                }
+            }
             onInit()
             onExecute()
         }
@@ -116,7 +125,7 @@ abstract class BaseRootHost(
             // a prepared Looper is required for the calls below to succeed
             if (Looper.getMainLooper() == null) {
                 try {
-                    Looper.prepareMainLooper()
+                    Looper.prepare()
                 } catch (e: Exception) {
                     log(ERROR) { "Failed prepareMainLooper() for systemContext" }
                 }

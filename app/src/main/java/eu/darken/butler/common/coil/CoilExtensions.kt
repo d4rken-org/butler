@@ -2,10 +2,13 @@ package eu.darken.butler.common.coil
 
 import android.view.View
 import android.widget.ImageView
+import androidx.core.content.ContextCompat
 import androidx.core.view.isInvisible
-import coil.imageLoader
-import coil.request.Disposable
-import coil.request.ImageRequest
+import coil3.asImage
+import coil3.imageLoader
+import coil3.request.Disposable
+import coil3.request.ImageRequest
+import coil3.target.ImageViewTarget
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.iconRes
 import eu.darken.butler.common.pkgs.Pkg
@@ -33,7 +36,7 @@ fun ImageView.loadAppIcon(pkg: Pkg): Disposable? {
 
     val request = ImageRequest.Builder(context).apply {
         data(pkg)
-        target(this@loadAppIcon)
+        target(ImageViewTarget(this@loadAppIcon))
     }.build()
 
     return context.imageLoader.enqueue(request)
@@ -42,7 +45,7 @@ fun ImageView.loadAppIcon(pkg: Pkg): Disposable? {
 fun ImageView.loadFilePreview(
     lookup: APathLookup<*>,
     options: ImageRequest.Builder.(APathLookup<*>) -> Unit = {
-        val alt = lookup.fileType.iconRes
+        val alt = ContextCompat.getDrawable(context, lookup.fileType.iconRes)!!.asImage()
         fallback(alt)
         error(alt)
     },
@@ -53,7 +56,7 @@ fun ImageView.loadFilePreview(
 
     val request = ImageRequest.Builder(context).apply {
         data(lookup)
-        target(this@loadFilePreview)
+        target(ImageViewTarget(this@loadFilePreview))
         options(lookup)
     }.build()
 

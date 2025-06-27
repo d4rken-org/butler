@@ -11,7 +11,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.local.LocalPath
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.pkgs.PkgDataSource
 import eu.darken.butler.common.pkgs.container.HiddenPkg
 import eu.darken.butler.common.pkgs.features.Installed

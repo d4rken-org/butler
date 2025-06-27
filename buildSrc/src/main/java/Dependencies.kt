@@ -85,40 +85,37 @@ fun DependencyHandlerScope.addCoroutines() {
 }
 
 fun DependencyHandlerScope.addCoil() {
-    val version = "2.7.0"
-    implementation("io.coil-kt:coil:$version")
-    implementation("io.coil-kt:coil-video:$version")
+    val version = "3.2.0"
+    implementation("io.coil-kt.coil3:coil:$version")
+    implementation("io.coil-kt.coil3:coil-video:$version")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:$version")
 }
 
 fun DependencyHandlerScope.addLottie() {
-    implementation("com.airbnb.android:lottie:3.5.0")
+    implementation("com.airbnb.android:lottie:6.6.6")
 }
 
 fun DependencyHandlerScope.addSerialization() {
-    val version = "1.15.1"
-    implementation("com.squareup.moshi:moshi:$version")
-    implementation("com.squareup.moshi:moshi-adapters:$version")
-    add("ksp", "com.squareup.moshi:moshi-kotlin-codegen:$version")
-
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.8.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.1")
+    val version = "1.8.1"
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$version")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$version")
 }
 
 fun DependencyHandlerScope.addIO() {
-    implementation("com.squareup.okio:okio:3.1.0")
+    implementation("com.squareup.okio:okio:3.13.0")
 }
 
 fun DependencyHandlerScope.addRetrofit() {
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
-    implementation("com.squareup.retrofit2:converter-scalars:2.9.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
+    implementation("com.squareup.retrofit2:converter-scalars:2.11.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
-    testImplementation("com.squareup.okhttp3:mockwebserver:4.11.0")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
 }
 
 fun DependencyHandlerScope.addAndroidCore() {
-    implementation("androidx.core:core-ktx:1.8.0")
+    implementation("androidx.core:core-ktx:1.16.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.annotation:annotation:1.4.0")
 
@@ -127,9 +124,9 @@ fun DependencyHandlerScope.addAndroidCore() {
 }
 
 fun DependencyHandlerScope.addRoomDb() {
-    implementation("androidx.room:room-runtime:2.7.1")
-    implementation("androidx.room:room-ktx:2.7.1")
-    kapt("androidx.room:room-compiler:2.7.1")
+    implementation("androidx.room:room-runtime:2.7.0")
+    implementation("androidx.room:room-ktx:2.7.0")
+    kapt("androidx.room:room-compiler:2.7.0")
 }
 
 fun DependencyHandlerScope.addWorkerManager() {
@@ -156,7 +153,7 @@ fun DependencyHandlerScope.addAndroidUI() {
     implementation("androidx.constraintlayout:constraintlayout:2.2.1")
     implementation("com.google.android.material:material:1.13.0-alpha12")
 
-    val composeBom = platform("androidx.compose:compose-bom:2025.05.00")
+    val composeBom = platform("androidx.compose:compose-bom:2025.06.01")
     implementation(composeBom)
     androidTestImplementation(composeBom)
 

@@ -100,7 +100,11 @@
     <string name="storage_area_public_app_data_label">Public app data</string>
 
     <!-- Workspace -->
-    <string name="workspace_manager_title">Manage Workspaces</string>
+    <string name="workspace_manager_title">Workspace Manager</string>
+    <string name="workspace_manager_add_action">Add workspace</string>
+    <string name="workspace_manager_status_count">Active workspaces: %1$d</string>
+    <string name="workspace_manager_empty_title">No workspaces</string>
+    <string name="workspace_manager_empty_subtitle">Create your first workspace to get started</string>
     <string name="workspace_tab_close_action">Close tab</string>
     <string name="workspace_tab_add_action">Create a new tab</string>
     <string name="workspace_tab_add_hint">Work in parallel: Create a tab and turn it into a tool of your choice.</string>
