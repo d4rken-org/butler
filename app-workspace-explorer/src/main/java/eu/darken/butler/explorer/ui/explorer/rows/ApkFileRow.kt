@@ -1,21 +1,20 @@
-package eu.darken.butler.explorer.ui.browser.rows
+package eu.darken.butler.explorer.ui.explorer.rows
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Android
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.explorer.ui.browser.FileItem
-import eu.darken.butler.explorer.ui.browser.preview.MockDataProvider
+import eu.darken.butler.explorer.ui.explorer.FileItem
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
-internal fun ImageFileRow(
-    item: FileItem.ImageFile,
+internal fun ApkFileRow(
+    item: FileItem.ApkFile,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
@@ -32,30 +31,32 @@ internal fun ImageFileRow(
         leadingContent = {
             // TODO: Replace with AsyncImage when Coil integration is complete
             Icon(
-                imageVector = Icons.Default.Image,
-                contentDescription = "Image",
-                tint = MaterialTheme.colorScheme.secondary,
+                imageVector = Icons.Default.Android,
+                contentDescription = "APK file",
+                tint = MaterialTheme.colorScheme.tertiary,
                 modifier = Modifier.size(40.dp)
             )
         },
         primaryText = item.displayName,
         secondaryText = buildString {
-            item.dimensions?.let { 
+            item.packageName?.let { 
                 append(it)
                 append(" • ")
             }
+            item.versionName?.let { 
+                append("v$it")
+                append(" • ")
+            }
             append(item.displaySize)
-            append(" • ")
-            append(item.displayDate)
         }
     )
 }
 
 @Preview2
 @Composable
-private fun ImageFileRowPreview() {
-    ImageFileRow(
-        item = MockDataProvider.createMockImageFile(),
+private fun ApkFileRowPreview() {
+    ApkFileRow(
+        item = MockDataProvider.createMockApkFile(),
         isSelected = false,
         onToggleSelection = {},
         onClick = {},
@@ -65,9 +66,9 @@ private fun ImageFileRowPreview() {
 
 @Preview2
 @Composable
-private fun ImageFileRowSelectedPreview() {
-    ImageFileRow(
-        item = MockDataProvider.createMockImageFile("photo.png", "4K • 3840x2160"),
+private fun ApkFileRowSelectedPreview() {
+    ApkFileRow(
+        item = MockDataProvider.createMockApkFile("butler.apk", "eu.darken.butler", "2.1.4", "Butler File Manager"),
         isSelected = true,
         onToggleSelection = {},
         onClick = {},

@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.browser.rows
+package eu.darken.butler.explorer.ui.explorer.rows
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,11 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.explorer.ui.browser.FileItem
-import eu.darken.butler.explorer.ui.browser.preview.MockDataProvider
+import eu.darken.butler.explorer.ui.explorer.FileItem
 
 @Composable
 internal fun FileRowBase(

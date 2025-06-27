@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.browser
+package eu.darken.butler.explorer.ui.explorer
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Android

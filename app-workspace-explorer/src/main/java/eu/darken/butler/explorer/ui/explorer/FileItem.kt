@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.browser
+package eu.darken.butler.explorer.ui.explorer
 
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileType
@@ -9,8 +9,8 @@ sealed interface FileItem {
     val isSelected: Boolean
 
     val displayName: String get() = lookup.name
-    val displaySize: String get() = formatFileSize(lookup.size)
-    val displayDate: String get() = formatDate(lookup.modifiedAt.toEpochMilli())
+    val displaySize: String get() = _root_ide_package_.eu.darken.butler.explorer.ui.explorer.formatFileSize(lookup.size)
+    val displayDate: String get() = _root_ide_package_.eu.darken.butler.explorer.ui.explorer.formatDate(lookup.modifiedAt.toEpochMilli())
     val isDirectory: Boolean get() = lookup.fileType == FileType.DIRECTORY
 
     data class Directory(
@@ -79,18 +79,18 @@ sealed interface FileItem {
         val author: String? = null
     ) : FileItem
 
-    fun copyWithSelection(selected: Boolean): FileItem {
-        return when (this) {
-            is Directory -> copy(isSelected = selected)
-            is RegularFile -> copy(isSelected = selected)
-            is SymbolicLink -> copy(isSelected = selected)
-            is MediaFile -> copy(isSelected = selected)
-            is ApkFile -> copy(isSelected = selected)
-            is ArchiveFile -> copy(isSelected = selected)
-            is ImageFile -> copy(isSelected = selected)
-            is DocumentFile -> copy(isSelected = selected)
-        }
-    }
+//    fun copyWithSelection(selected: Boolean): FileItem {
+//        return when (this) {
+//            is Directory -> FileItem.Directory(isSelected = selected)
+//            is RegularFile -> FileItem.RegularFile(isSelected = selected)
+//            is SymbolicLink -> FileItem.SymbolicLink(isSelected = selected)
+//            is MediaFile -> FileItem.MediaFile(isSelected = selected)
+//            is ApkFile -> FileItem.ApkFile(isSelected = selected)
+//            is ArchiveFile -> FileItem.ArchiveFile(isSelected = selected)
+//            is ImageFile -> FileItem.ImageFile(isSelected = selected)
+//            is DocumentFile -> FileItem.DocumentFile(isSelected = selected)
+//        }
+//    }
 }
 
 private fun formatFileSize(bytes: Long): String {

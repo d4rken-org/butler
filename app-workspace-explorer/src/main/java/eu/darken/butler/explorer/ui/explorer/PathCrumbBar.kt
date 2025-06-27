@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.browser
+package eu.darken.butler.explorer.ui.explorer
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

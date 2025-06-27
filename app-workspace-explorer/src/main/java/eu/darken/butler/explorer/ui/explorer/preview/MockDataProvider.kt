@@ -1,9 +1,9 @@
-package eu.darken.butler.explorer.ui.browser.preview
+package eu.darken.butler.explorer.ui.explorer.preview
 
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.RawPath
-import eu.darken.butler.explorer.ui.browser.FileItem
+import eu.darken.butler.explorer.ui.explorer.FileItem
 import java.time.Instant
 
 object MockDataProvider {

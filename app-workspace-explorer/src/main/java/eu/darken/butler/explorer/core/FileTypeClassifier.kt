@@ -1,10 +1,11 @@
-package eu.darken.butler.explorer.ui.browser
+package eu.darken.butler.explorer.core
 
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileType
+import eu.darken.butler.explorer.ui.explorer.FileItem
 
 object FileTypeClassifier {
-    
+
     fun classifyFileItem(lookup: APathLookup<*>, mimeType: String): FileItem {
         return when {
             // Directory
@@ -12,45 +13,45 @@ object FileTypeClassifier {
                 lookup = lookup,
                 mimeType = mimeType
             )
-            
+
             // Symbolic Link
             lookup.fileType == FileType.SYMBOLIC_LINK -> FileItem.SymbolicLink(
                 lookup = lookup,
                 mimeType = mimeType,
                 targetPath = lookup.target?.path
             )
-            
+
             // APK Files
             mimeType == "application/vnd.android.package-archive" ||
             lookup.name.lowercase().endsWith(".apk") -> FileItem.ApkFile(
                 lookup = lookup,
                 mimeType = mimeType
             )
-            
+
             // Media Files (Video/Audio)
             isMediaType(mimeType) -> FileItem.MediaFile(
                 lookup = lookup,
                 mimeType = mimeType
             )
-            
+
             // Image Files
             isImageType(mimeType) -> FileItem.ImageFile(
                 lookup = lookup,
                 mimeType = mimeType
             )
-            
+
             // Archive Files
             isArchiveType(mimeType) -> FileItem.ArchiveFile(
                 lookup = lookup,
                 mimeType = mimeType
             )
-            
+
             // Document Files
             isDocumentType(mimeType) -> FileItem.DocumentFile(
                 lookup = lookup,
                 mimeType = mimeType
             )
-            
+
             // Regular File (fallback)
             else -> FileItem.RegularFile(
                 lookup = lookup,
@@ -58,18 +59,18 @@ object FileTypeClassifier {
             )
         }
     }
-    
+
     private fun isMediaType(mimeType: String): Boolean {
-        return mimeType.startsWith("video/") || 
+        return mimeType.startsWith("video/") ||
                mimeType.startsWith("audio/") ||
                isMediaExtension(mimeType)
     }
-    
+
     private fun isImageType(mimeType: String): Boolean {
         return mimeType.startsWith("image/") ||
                isImageExtension(mimeType)
     }
-    
+
     private fun isArchiveType(mimeType: String): Boolean {
         return when (mimeType) {
             "application/zip",
@@ -83,7 +84,7 @@ object FileTypeClassifier {
             else -> isArchiveExtension(mimeType)
         }
     }
-    
+
     private fun isDocumentType(mimeType: String): Boolean {
         return when (mimeType) {
             "application/pdf",
@@ -100,7 +101,7 @@ object FileTypeClassifier {
             else -> isDocumentExtension(mimeType)
         }
     }
-    
+
     private fun isMediaExtension(mimeType: String): Boolean {
         // Fallback for when MIME type detection fails
         return when {
@@ -116,7 +117,7 @@ object FileTypeClassifier {
             else -> false
         }
     }
-    
+
     private fun isImageExtension(mimeType: String): Boolean {
         return when {
             mimeType.contains("jpg", ignoreCase = true) -> true
@@ -129,7 +130,7 @@ object FileTypeClassifier {
             else -> false
         }
     }
-    
+
     private fun isArchiveExtension(mimeType: String): Boolean {
         return when {
             mimeType.contains("zip", ignoreCase = true) -> true
@@ -142,7 +143,7 @@ object FileTypeClassifier {
             else -> false
         }
     }
-    
+
     private fun isDocumentExtension(mimeType: String): Boolean {
         return when {
             mimeType.contains("pdf", ignoreCase = true) -> true

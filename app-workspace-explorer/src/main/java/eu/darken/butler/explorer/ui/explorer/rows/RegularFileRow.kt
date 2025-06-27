@@ -1,21 +1,20 @@
-package eu.darken.butler.explorer.ui.browser.rows
+package eu.darken.butler.explorer.ui.explorer.rows
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.explorer.ui.browser.FileItem
-import eu.darken.butler.explorer.ui.browser.preview.MockDataProvider
+import eu.darken.butler.explorer.ui.explorer.FileItem
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
-internal fun ArchiveFileRow(
-    item: FileItem.ArchiveFile,
+internal fun RegularFileRow(
+    item: FileItem.RegularFile,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
@@ -31,18 +30,14 @@ internal fun ArchiveFileRow(
         modifier = modifier,
         leadingContent = {
             Icon(
-                imageVector = Icons.Default.Archive,
-                contentDescription = "Archive",
-                tint = MaterialTheme.colorScheme.tertiary,
+                imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
+                contentDescription = "File",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(40.dp)
             )
         },
         primaryText = item.displayName,
         secondaryText = buildString {
-            item.entryCount?.let { 
-                append("$it items")
-                append(" • ")
-            }
             append(item.displaySize)
             append(" • ")
             append(item.displayDate)
@@ -52,9 +47,9 @@ internal fun ArchiveFileRow(
 
 @Preview2
 @Composable
-private fun ArchiveFileRowPreview() {
-    ArchiveFileRow(
-        item = MockDataProvider.createMockArchiveFile(),
+private fun RegularFileRowPreview() {
+    RegularFileRow(
+        item = MockDataProvider.createMockRegularFile(),
         isSelected = false,
         onToggleSelection = {},
         onClick = {},
@@ -64,9 +59,9 @@ private fun ArchiveFileRowPreview() {
 
 @Preview2
 @Composable
-private fun ArchiveFileRowSelectedPreview() {
-    ArchiveFileRow(
-        item = MockDataProvider.createMockArchiveFile("backup.tar.gz", 156, 0.42f),
+private fun RegularFileRowSelectedPreview() {
+    RegularFileRow(
+        item = MockDataProvider.createMockRegularFile("config.json"),
         isSelected = true,
         onToggleSelection = {},
         onClick = {},

@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.browser
+package eu.darken.butler.explorer.ui.explorer
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +17,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.debug.logging.log
@@ -25,7 +26,9 @@ import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.WorkspaceButtonSpacer
-import eu.darken.butler.explorer.ui.browser.rows.FileItemRow
+import eu.darken.butler.explorer.ui.explorer.rows.FileItemRow
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import kotlinx.coroutines.flow.flowOf
 
 @Composable
 fun ExplorerWorkspacePageHost(
@@ -98,45 +101,109 @@ fun ExplorerWorkspacePage(
                 )
             }
         } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(16.dp)
-            ) {
-                // Sort directories first, then files
-                val sortedItems = fileItems.sortedWith(
-                    compareBy<FileItem> { !it.isDirectory }.thenBy { it.displayName }
+            if (fileItems.isEmpty()) {
+                EmptyFolderState(
+                    modifier = Modifier.fillMaxSize()
                 )
-
-                items(sortedItems) { fileItem ->
-                    FileItemRow(
-                        item = fileItem,
-                        isSelected = state.selectedItems.contains(fileItem.lookup.path),
-                        onToggleSelection = {
-                            vm?.toggleItemSelection(fileItem.lookup.path)
-                        },
-                        onClick = {
-                            if (fileItem.isDirectory) {
-                                vm?.navigateToPath(fileItem.lookup.lookedUp)
-                            }
-                        },
-                        showSelection = state.selectedItems.isNotEmpty()
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
+                    // Sort directories first, then files
+                    val sortedItems = fileItems.sortedWith(
+                        compareBy<FileItem> { !it.isDirectory }.thenBy { it.displayName }
                     )
-                }
 
-                // Empty state
-                if (fileItems.isEmpty()) {
-                    item {
-                        Text(
-                            text = "This folder is empty",
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.padding(vertical = 16.dp)
+                    items(sortedItems) { fileItem ->
+                        FileItemRow(
+                            item = fileItem,
+                            isSelected = state.selectedItems.contains(fileItem.lookup.path),
+                            onToggleSelection = {
+                                vm?.toggleItemSelection(fileItem.lookup.path)
+                            },
+                            onClick = {
+                                if (fileItem.isDirectory) {
+                                    vm?.navigateToPath(fileItem.lookup.lookedUp)
+                                }
+                            },
+                            showSelection = state.selectedItems.isNotEmpty()
                         )
                     }
                 }
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ExplorerWorkspacePagePreview() {
+    val mockState = ExplorerWorkspaceViewModel.State(
+        id = Workspace.Id(),
+        currentPath = RawPath.build("/storage/emulated/0"),
+        fileItemsFlow = flowOf(MockDataProvider.createAllFileTypes()),
+        isLoading = false,
+        selectedItems = emptySet()
+    )
+    
+    ExplorerWorkspacePage(
+        state = mockState,
+        vm = null
+    )
+}
+
+@Preview(showBackground = true)
+@Composable 
+fun ExplorerWorkspacePageLoadingPreview() {
+    val mockState = ExplorerWorkspaceViewModel.State(
+        id = Workspace.Id(),
+        currentPath = RawPath.build("/storage/emulated/0"),
+        fileItemsFlow = flowOf(emptyList()),
+        isLoading = true,
+        selectedItems = emptySet()
+    )
+    
+    ExplorerWorkspacePage(
+        state = mockState,
+        vm = null
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ExplorerWorkspacePageEmptyPreview() {
+    val mockState = ExplorerWorkspaceViewModel.State(
+        id = Workspace.Id(),
+        currentPath = RawPath.build("/empty/folder"),
+        fileItemsFlow = flowOf(emptyList()),
+        isLoading = false,
+        selectedItems = emptySet()
+    )
+    
+    ExplorerWorkspacePage(
+        state = mockState,
+        vm = null
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ExplorerWorkspacePageWithSelectionPreview() {
+    val mockFileItems = MockDataProvider.createAllFileTypes()
+    val mockState = ExplorerWorkspaceViewModel.State(
+        id = Workspace.Id(),
+        currentPath = RawPath.build("/storage/emulated/0"),
+        fileItemsFlow = flowOf(mockFileItems),
+        isLoading = false,
+        selectedItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path)
+    )
+    
+    ExplorerWorkspacePage(
+        state = mockState,
+        vm = null
+    )
 }
 
 

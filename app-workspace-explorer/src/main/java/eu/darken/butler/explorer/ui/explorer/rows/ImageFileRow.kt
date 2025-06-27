@@ -1,21 +1,20 @@
-package eu.darken.butler.explorer.ui.browser.rows
+package eu.darken.butler.explorer.ui.explorer.rows
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.explorer.ui.browser.FileItem
-import eu.darken.butler.explorer.ui.browser.preview.MockDataProvider
+import eu.darken.butler.explorer.ui.explorer.FileItem
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
-internal fun DocumentFileRow(
-    item: FileItem.DocumentFile,
+internal fun ImageFileRow(
+    item: FileItem.ImageFile,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
@@ -30,17 +29,18 @@ internal fun DocumentFileRow(
         showSelection = showSelection,
         modifier = modifier,
         leadingContent = {
+            // TODO: Replace with AsyncImage when Coil integration is complete
             Icon(
-                imageVector = Icons.Default.Description,
-                contentDescription = "Document",
-                tint = MaterialTheme.colorScheme.outline,
+                imageVector = Icons.Default.Image,
+                contentDescription = "Image",
+                tint = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.size(40.dp)
             )
         },
         primaryText = item.displayName,
         secondaryText = buildString {
-            item.pageCount?.let { 
-                append("$it pages")
+            item.dimensions?.let { 
+                append(it)
                 append(" • ")
             }
             append(item.displaySize)
@@ -52,9 +52,9 @@ internal fun DocumentFileRow(
 
 @Preview2
 @Composable
-private fun DocumentFileRowPreview() {
-    DocumentFileRow(
-        item = MockDataProvider.createMockDocumentFile(),
+private fun ImageFileRowPreview() {
+    ImageFileRow(
+        item = MockDataProvider.createMockImageFile(),
         isSelected = false,
         onToggleSelection = {},
         onClick = {},
@@ -64,9 +64,9 @@ private fun DocumentFileRowPreview() {
 
 @Preview2
 @Composable
-private fun DocumentFileRowSelectedPreview() {
-    DocumentFileRow(
-        item = MockDataProvider.createMockDocumentFile("manual.pdf", 128, "Butler Team"),
+private fun ImageFileRowSelectedPreview() {
+    ImageFileRow(
+        item = MockDataProvider.createMockImageFile("photo.png", "4K • 3840x2160"),
         isSelected = true,
         onToggleSelection = {},
         onClick = {},

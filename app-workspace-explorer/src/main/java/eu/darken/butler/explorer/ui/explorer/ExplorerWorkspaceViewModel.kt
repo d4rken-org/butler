@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.browser
+package eu.darken.butler.explorer.ui.explorer
 
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -10,20 +10,19 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.ui.ViewModel3
+import eu.darken.butler.explorer.core.ExplorerEngine
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.catch
 
 @HiltViewModel(assistedFactory = ExplorerWorkspaceViewModel.Factory::class)
 class ExplorerWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
     dispatchers: DispatcherProvider,
+    private val explorerEngine: ExplorerEngine,
 ) : ViewModel3(dispatchers, logTag("Workspace", "Explorer", id.shortTag, "Page")) {
-
-    private val fileSystemRepository = FileSystemRepository()
-    private val currentPathFlow = MutableStateFlow<APath>(RawPath.build("/"))
+    private val currentPathFlow = MutableStateFlow<APath>(RawPath.build("HOME"))
     private val isLoadingFlow = MutableStateFlow(false)
     private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
 
@@ -34,7 +33,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     ) { currentPath, isLoading, selectedItems ->
         val fileItems = try {
             if (!isLoading) {
-                fileSystemRepository.loadDirectory(currentPath)
+                explorerEngine.loadDirectory(currentPath)
             } else {
                 emptyFlow()
             }
@@ -58,6 +57,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         currentPathFlow.value = path
         selectedItemsFlow.value = emptySet()
         isLoadingFlow.value = false
+    }
+
+    fun navigateToItem(item: FileItem) {
+        launch {
+            val entry = explorerEngine.navigate(item)
+            entry?.let { navigateToPath(it.path) }
+        }
     }
 
     fun toggleItemSelection(itemPath: String) {
