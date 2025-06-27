@@ -10,6 +10,7 @@ import eu.darken.butler.common.datastore.PreferenceStoreMapper
 import eu.darken.butler.common.datastore.createValue
 import eu.darken.butler.common.debug.DebugSettings
 import eu.darken.butler.common.debug.logging.logTag
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -17,6 +18,7 @@ import javax.inject.Singleton
 class SearcherSettings @Inject constructor(
     @param:ApplicationContext private val context: Context,
     debugSettings: DebugSettings,
+    private val json: Json,
 ) : PreferenceScreenData {
 
     private val Context.dataStore by preferencesDataStore(name = "settings_searcher")
@@ -30,7 +32,11 @@ class SearcherSettings @Inject constructor(
     val maxHistoryItems = dataStore.createValue("searcher.max_history_items", 10)
     val saveHistory = dataStore.createValue("searcher.save_history", true)
     val maxSearchResults = dataStore.createValue("searcher.max_search_results", 1000)
-    val searchHistory = dataStore.createValue("searcher.search_history", emptyList<SearchRepository.SearchHistoryItem>())
+    val searchHistory = dataStore.createValue(
+        key = "searcher.search_history",
+        defaultValue = emptyList<SearchRepository.SearchHistoryItem>(),
+        json = json
+    )
 
     override val mapper = PreferenceStoreMapper(
         debugSettings.isDebugMode,

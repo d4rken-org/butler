@@ -1,21 +1,17 @@
 package eu.darken.butler.searcher.core
 
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.APathLookup
-import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.GatewaySwitch
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.cancellable
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapNotNull
@@ -54,7 +50,7 @@ class SearchEngine @Inject constructor(
         var itemsScanned = 0
         var resultsFound = 0
         
-        when (val gateway = gatewaySwitch.getGateway(options.startPath.pathType)) {
+        when (val gateway = gatewaySwitch.getGateway(options.startPath)) {
             is APathGateway<*, *, *> -> {
                 @Suppress("UNCHECKED_CAST")
                 val typedGateway = gateway as APathGateway<APath, APathLookup<APath>, *>

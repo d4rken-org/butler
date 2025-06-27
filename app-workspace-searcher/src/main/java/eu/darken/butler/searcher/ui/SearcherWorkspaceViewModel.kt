@@ -9,7 +9,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.local.LocalPath
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.searcher.core.SearchFilter

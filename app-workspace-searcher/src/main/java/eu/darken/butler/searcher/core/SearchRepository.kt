@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -41,6 +42,7 @@ class SearchRepository @Inject constructor(
         }
     }
     
+    @Serializable
     data class SearchHistoryItem(
         val query: String,
         val timestamp: Long = System.currentTimeMillis()

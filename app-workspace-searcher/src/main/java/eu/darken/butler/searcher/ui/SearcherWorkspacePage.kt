@@ -52,6 +52,7 @@ import eu.darken.butler.common.compose.toRelativeTime
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.FileType
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.searcher.core.SearchRepository
 import eu.darken.butler.searcher.core.SearchResult
@@ -378,7 +379,7 @@ private fun SearchPagePreview() {
         SearcherWorkspacePage(
             state = SearcherWorkspaceViewModel.State(
                 id = Workspace.Id(),
-                searchPath = eu.darken.butler.common.files.local.LocalPath.build("/")
+                searchPath = LocalPath.build("/")
             )
         )
     }
