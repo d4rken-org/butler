@@ -1,6 +1,7 @@
 package eu.darken.butler.editor.ui
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
@@ -16,7 +17,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import kotlinx.coroutines.launch
@@ -115,26 +119,30 @@ fun EditorWorkspacePage(
         }
     }
 
-    Column(
+    Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Custom header that uses full space
-        EditorHeader(
-            fileName = state.fileName,
-            isModified = state.isModified,
-            hasFile = state.hasFile || state.currentContent.isNotEmpty(),
-            isLoading = state.isLoading,
-            onOpenFile = { filePickerLauncher.launch(arrayOf("*/*")) },
-            onSaveFile = onSaveFile,
-            onCloseFile = onCloseFile,
-            onUndo = onUndo,
-            onRedo = onRedo,
-            canUndo = state.isModified,
-            canRedo = false,
-            onSearch = { showSearchDialog = true },
-            onGoToLine = { showGoToLineDialog = true },
-            onToggleMemoryStats = { showMemoryStats = !showMemoryStats }
-        )
+        // Main content area
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Header that draws under status bar
+            EditorHeader(
+                fileName = state.fileName,
+                isModified = state.isModified,
+                hasFile = state.hasFile || state.currentContent.isNotEmpty(),
+                isLoading = state.isLoading,
+                onOpenFile = { filePickerLauncher.launch(arrayOf("*/*")) },
+                onSaveFile = onSaveFile,
+                onCloseFile = onCloseFile,
+                onUndo = onUndo,
+                onRedo = onRedo,
+                canUndo = state.isModified,
+                canRedo = false,
+                onSearch = { showSearchDialog = true },
+                onGoToLine = { showGoToLineDialog = true },
+                onToggleMemoryStats = { showMemoryStats = !showMemoryStats }
+            )
 
         Column(
             modifier = Modifier.weight(1f)
@@ -147,7 +155,8 @@ fun EditorWorkspacePage(
                 )
             }
 
-            // Main editor content - always show editor, supporting in-memory editing
+
+            // Main editor content - now using fixed LazyTextEditor
             LazyTextEditor(
                 content = state.currentContent,
                 cursorPosition = state.cursorPosition,
@@ -176,13 +185,14 @@ fun EditorWorkspacePage(
             }
         }
 
-        // Bottom status bar
-        if (showMemoryStats) {
-            EditorStatusBar(
-                totalLines = state.totalLines,
-                cursorPosition = state.cursorPosition,
-                memoryStats = state.memoryStats
-            )
+            // Bottom status bar
+            if (showMemoryStats) {
+                EditorStatusBar(
+                    totalLines = state.totalLines,
+                    cursorPosition = state.cursorPosition,
+                    memoryStats = state.memoryStats
+                )
+            }
         }
     }
 
@@ -227,26 +237,26 @@ private fun EditorHeader(
     onToggleMemoryStats: () -> Unit
 ) {
     Surface(
-        color = MaterialTheme.colorScheme.surface,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
         shadowElevation = 4.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .statusBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            // Title section
+            // Title section on top
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
                     text = fileName,
                     style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.weight(1f, fill = false)
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
                 )
                 if (isModified) {
                     Text(
@@ -258,10 +268,13 @@ private fun EditorHeader(
                 }
             }
 
-            // Actions section
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Actions section below
             Row(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
@@ -314,6 +327,8 @@ private fun EditorHeader(
                 IconButton(onClick = onToggleMemoryStats) {
                     Icon(Icons.Default.Info, contentDescription = "Toggle Stats")
                 }
+
+                Spacer(modifier = Modifier.weight(1f))
 
                 WorkspaceButtonSpacer()
             }

@@ -48,11 +48,12 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val _searchQuery = MutableStateFlow("")
     private val _searchResults = MutableStateFlow<List<SearchResult>>(emptyList())
     private val _visibleRange = MutableStateFlow<IntRange>(0..50)
+    private val _totalLines = MutableStateFlow(1)
 
     val state = combine(
         flowOf(id),
         textBuffer.fileInfo,
-        textBuffer.totalLines,
+        _totalLines,
         textBuffer.isModified,
         _currentContent,
         _cursorPosition,
@@ -122,15 +123,10 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                     }
                 }
                 
-                // Adjust initial visible range based on actual content
-                val totalLines = textBuffer.totalLines.value
-                if (totalLines > 0) {
-                    val maxVisibleEnd = (totalLines - 1).coerceAtLeast(0)
-                    _visibleRange.value = 0..maxVisibleEnd.coerceAtMost(50)
-                }
-                
-                // Load initial content for visible range
-                loadVisibleContent()
+                // Initialize with empty content
+                _currentContent.value = ""
+                _totalLines.value = 1
+                _visibleRange.value = 0..0
                 
             } catch (e: Exception) {
                 log(tag, ERROR) { "Failed to initialize editor - ${e.asLog()}" }
@@ -203,7 +199,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun updateVisibleRange(startLine: Int, endLine: Int) {
-        val totalLines = textBuffer.totalLines.value
+        val totalLines = _totalLines.value
         if (totalLines <= 0) {
             return // No content to display
         }
@@ -215,27 +211,44 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         
         if (_visibleRange.value != newRange) {
             _visibleRange.value = newRange
-            launch {
-                loadVisibleContent()
-            }
+            // No need to load content since we're managing it directly now
         }
     }
 
     fun insertText(text: String) {
-        launch {
-            try {
-                val result = textBuffer.insertText(_cursorPosition.value, text)
-                if (result.isSuccess) {
-                    _cursorPosition.value = result.getOrThrow()
-                    loadVisibleContent()
-                } else {
-                    _error.value = result.exceptionOrNull()
-                }
-            } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to insert text - ${e.asLog()}" }
-                _error.value = e
-            }
+        // TEMPORARY FIX: Bypass complex text buffer and directly update content
+        val currentContent = _currentContent.value
+        val currentPos = _cursorPosition.value
+
+        // Insert text at cursor position
+        val beforeCursor = currentContent.substring(0, currentPos.offset.toInt().coerceIn(0, currentContent.length))
+        val afterCursor = currentContent.substring(currentPos.offset.toInt().coerceIn(0, currentContent.length))
+        val newContent = beforeCursor + text + afterCursor
+
+        // Update content and cursor position
+        _currentContent.value = newContent
+
+        // Update total lines
+        val lines = if (newContent.isEmpty()) 1 else newContent.split('\n').size
+        _totalLines.value = lines
+
+        // Update visible range if needed
+        val currentRange = _visibleRange.value
+        if (currentRange.last < lines - 1) {
+            _visibleRange.value = currentRange.first..minOf(currentRange.first + 50, lines - 1)
         }
+
+        val newOffset = currentPos.offset + text.length
+        val newPosition = TextPosition(
+            offset = newOffset,
+            line = currentPos.line + text.count { it == '\n' },
+            column = if (text.contains('\n')) {
+                text.length - text.lastIndexOf('\n') - 1
+            } else {
+                currentPos.column + text.length
+            }
+        )
+        _cursorPosition.value = newPosition
     }
 
     fun deleteSelection() {
@@ -288,13 +301,28 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     fun goToLine(lineNumber: Int) {
         launch {
             try {
-                val offset = textBuffer.findOffset(lineNumber, 0)
-                val position = textBuffer.findPosition(offset)
+                val totalLines = _totalLines.value
+                if (lineNumber < 0 || lineNumber >= totalLines) {
+                    return@launch
+                }
+
+                // Calculate offset for the line
+                val lines = _currentContent.value.split('\n')
+                var offset = 0
+                for (i in 0 until lineNumber) {
+                    offset += lines[i].length + 1 // +1 for newline
+                }
+
+                val position = TextPosition(
+                    offset = offset.toLong(),
+                    line = lineNumber,
+                    column = 0
+                )
                 _cursorPosition.value = position
                 
                 // Update visible range to include this line
                 val visibleStart = (lineNumber - 25).coerceAtLeast(0)
-                val visibleEnd = (lineNumber + 25).coerceAtMost(textBuffer.totalLines.value - 1)
+                val visibleEnd = (lineNumber + 25).coerceAtMost(totalLines - 1)
                 updateVisibleRange(visibleStart, visibleEnd)
                 
             } catch (e: Exception) {
@@ -345,29 +373,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     }
 
     private suspend fun loadVisibleContent() {
-        try {
-            val range = _visibleRange.value
-            val totalLines = textBuffer.totalLines.value
-            
-            // Constrain the range to available lines
-            if (totalLines <= 0) {
-                _currentContent.value = ""
-                return
-            }
-            
-            val constrainedStart = range.first.coerceIn(0, totalLines - 1)
-            val constrainedEnd = range.last.coerceIn(constrainedStart, totalLines - 1)
-            
-            val result = textBuffer.getTextForRange(constrainedStart, constrainedEnd)
-            if (result.isSuccess) {
-                _currentContent.value = result.getOrThrow()
-            } else {
-                _error.value = result.exceptionOrNull()
-            }
-        } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to load visible content - ${e.asLog()}" }
-            _error.value = e
-        }
+        // No longer needed - we're managing content directly in memory
+        // This function is kept for compatibility but does nothing
     }
 
     private fun clearState() {
@@ -378,6 +385,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         _searchQuery.value = ""
         _searchResults.value = emptyList()
         _visibleRange.value = 0..50
+        _totalLines.value = 1
     }
     
 

@@ -52,7 +52,7 @@ fun LazyTextEditor(
     modifier: Modifier = Modifier
 ) {
     val lines = remember(content) { 
-        if (content.isEmpty()) listOf("") else content.split('\n') 
+        if (content.isEmpty()) listOf("") else content.split('\n')
     }
     val focusRequester = remember { FocusRequester() }
     val listState = rememberLazyListState()
@@ -179,17 +179,15 @@ private fun VirtualizedTextContent(
     onSelectionChange: (Pair<TextPosition, TextPosition>?) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var textFieldValue by remember { mutableStateOf(TextFieldValue()) }
-    var isEditing by remember { mutableStateOf(false) }
+    var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
     
-    // Sync TextField with editor content
+    // Sync textFieldValue with content - this is crucial for proper text input
     LaunchedEffect(lines) {
-        // Update TextField when content changes from external sources
-        val content = lines.joinToString("\n")
-        if (textFieldValue.text != content) {
+        val currentContent = lines.joinToString("\n")
+        if (textFieldValue.text != currentContent) {
             textFieldValue = TextFieldValue(
-                text = content,
-                selection = androidx.compose.ui.text.TextRange(content.length)
+                text = currentContent,
+                selection = androidx.compose.ui.text.TextRange(currentContent.length)
             )
         }
     }
@@ -199,6 +197,16 @@ private fun VirtualizedTextContent(
         modifier = modifier
             .fillMaxSize()
             .clipToBounds()
+            .pointerInput(Unit) {
+                detectTapGestures {
+                    // Request focus when editor is clicked
+                    try {
+                        focusRequester.requestFocus()
+                    } catch (e: Exception) {
+                        // Ignore focus errors
+                    }
+                }
+            }
     ) {
         itemsIndexed(
             items = lines,
@@ -225,43 +233,49 @@ private fun VirtualizedTextContent(
         }
     }
 
-    // Invisible text field for keyboard input
-    // Place it off-screen instead of size 0 to avoid BringIntoViewRequester issues
-    Box(modifier = Modifier.offset((-1000).dp, (-1000).dp)) {
+    // Overlay text field for keyboard input
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .focusRequester(focusRequester)
+    ) {
         BasicTextField(
             value = textFieldValue,
             onValueChange = { newValue ->
-                // Handle text input - only process actual text changes
-                if (newValue.text != textFieldValue.text) {
-                    val oldText = textFieldValue.text
-                    val newText = newValue.text
-                    
-                    // Find the difference and call onTextChange with just the new text
-                    if (newText.length > oldText.length) {
-                        // Text was inserted
-                        val insertedText = newText.substring(oldText.length)
-                        onTextChange(insertedText)
-                    }
-                    // Note: For deletions and more complex edits, we'd need more sophisticated logic
-                }
+                val oldText = textFieldValue.text
+                val newText = newValue.text
+                
+                // Update the field value first
                 textFieldValue = newValue
+                
+                // Handle text changes - same logic as working TextField
+                if (newText != oldText) {
+                    // Find what was added and send it to the ViewModel
+                    if (newText.length > oldText.length && newText.startsWith(oldText)) {
+                        val addedText = newText.substring(oldText.length)
+                        onTextChange(addedText)
+                    }
+                }
             },
             modifier = Modifier
-                .size(1.dp)
-                .focusRequester(focusRequester),
+                .fillMaxSize(),
+            textStyle = TextStyle(
+                fontSize = fontSize.sp,
+                fontFamily = FontFamily.Monospace,
+                color = Color.Transparent // Keep invisible - text displayed in LazyColumn
+            ),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.None),
-            keyboardActions = KeyboardActions()
+            keyboardActions = KeyboardActions(),
+            decorationBox = { _ -> /* No decoration, just capture input */ }
         )
     }
 
     // Request focus when content is loaded
     LaunchedEffect(lines.size) {
-        if (lines.isNotEmpty()) {
-            try {
-                focusRequester.requestFocus()
-            } catch (e: Exception) {
-                // Ignore focus request failures
-            }
+        try {
+            focusRequester.requestFocus()
+        } catch (e: Exception) {
+            // Ignore focus errors
         }
     }
 }
@@ -322,6 +336,7 @@ private fun SelectableText(
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
+    val textColor = MaterialTheme.colorScheme.onSurface
     
     Canvas(
         modifier = modifier
@@ -340,7 +355,7 @@ private fun SelectableText(
             lineIndex = lineIndex,
             selection = selection,
             fontSize = fontSize.sp.toPx(),
-            normalColor = androidx.compose.ui.graphics.Color.Black,
+            normalColor = textColor,
             selectionColor = androidx.compose.ui.graphics.Color.Blue.copy(alpha = 0.3f)
         )
     }
