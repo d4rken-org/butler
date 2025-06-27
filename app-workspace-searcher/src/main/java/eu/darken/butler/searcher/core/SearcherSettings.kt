@@ -15,7 +15,7 @@ import javax.inject.Singleton
 
 @Singleton
 class SearcherSettings @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     debugSettings: DebugSettings,
 ) : PreferenceScreenData {
 

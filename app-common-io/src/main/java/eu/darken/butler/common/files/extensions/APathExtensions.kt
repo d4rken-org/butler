@@ -1,13 +1,22 @@
-package eu.darken.butler.common.files
+package eu.darken.butler.common.files.extensions
 
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
-import eu.darken.butler.common.files.local.LocalPath
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.APathGateway
+import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.APathLookupExtended
+import eu.darken.butler.common.files.FileType
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.Ownership
+import eu.darken.butler.common.files.PathException
+import eu.darken.butler.common.files.Permissions
+import eu.darken.butler.common.files.RawPath
+import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.local.crumbsTo
 import eu.darken.butler.common.files.local.isAncestorOf
 import eu.darken.butler.common.files.local.isParentOf
 import eu.darken.butler.common.files.local.startsWith
-import eu.darken.butler.common.files.saf.SAFPath
 import eu.darken.butler.common.files.saf.crumbsTo
 import eu.darken.butler.common.files.saf.isAncestorOf
 import eu.darken.butler.common.files.saf.isParentOf
@@ -22,12 +31,12 @@ import eu.darken.butler.common.files.local.removePrefix as removePrefixLocalPath
 import eu.darken.butler.common.files.saf.removePrefix as removePrefixSafPath
 
 fun APath.crumbsTo(child: APath): Array<String> {
-    require(this.pathType == child.pathType)
+    require(this::class == child::class)
 
-    return when (pathType) {
-        APath.PathType.RAW -> (this as RawPath).crumbsTo(child as RawPath)
-        APath.PathType.LOCAL -> (this as LocalPath).crumbsTo(child as LocalPath)
-        APath.PathType.SAF -> (this as SAFPath).crumbsTo(child as SAFPath)
+    return when (this) {
+        is RawPath -> this.crumbsTo(child as RawPath)
+        is LocalPath -> this.crumbsTo(child as LocalPath)
+        is SAFPath -> this.crumbsTo(child as SAFPath)
     }
 }
 
@@ -216,16 +225,16 @@ suspend fun <T : APath> T.isDirectory(gateway: APathGateway<T, out APathLookup<T
 }
 
 fun APath.isAncestorOf(descendant: APath): Boolean {
-    if (this.pathType != descendant.pathType) return false
-    return when (pathType) {
-        APath.PathType.LOCAL -> (this as LocalPath).isAncestorOf(descendant as LocalPath)
-        APath.PathType.SAF -> (this as SAFPath).isAncestorOf(descendant as SAFPath)
-        APath.PathType.RAW -> descendant.path.startsWith(this.path + "/")
+    if (this::class != descendant::class) return false
+    return when (this) {
+        is LocalPath -> (this as LocalPath).isAncestorOf(descendant as LocalPath)
+        is SAFPath -> (this as SAFPath).isAncestorOf(descendant as SAFPath)
+        is RawPath -> descendant.path.startsWith(this.path + "/")
     }
 }
 
 fun APath.isDescendantOf(ancestor: APath): Boolean {
-    if (this.pathType != ancestor.pathType) return false
+    if (this::class != ancestor::class) return false
     return ancestor.isAncestorOf(this)
 }
 
@@ -234,25 +243,25 @@ fun APath.isDescendantOf(ancestor: APath): Boolean {
  * See [isAncestorOf]
  */
 fun APath.isParentOf(child: APath): Boolean {
-    if (this.pathType != child.pathType) return false
-    return when (pathType) {
-        APath.PathType.LOCAL -> (this as LocalPath).isParentOf(child as LocalPath)
-        APath.PathType.SAF -> (this as SAFPath).isParentOf(child as SAFPath)
-        APath.PathType.RAW -> this.child(child.name) == child
+    if (this::class != child::class) return false
+    return when (this) {
+        is LocalPath -> this.isParentOf(child as LocalPath)
+        is SAFPath -> this.isParentOf(child as SAFPath)
+        is RawPath -> this.child(child.name) == child
     }
 }
 
 fun APath.isChildOf(parent: APath): Boolean {
-    if (this.pathType != parent.pathType) return false
+    if (this::class != parent::class) return false
     return parent.isParentOf(this)
 }
 
 fun APath.matches(other: APath): Boolean {
-    if (this.pathType != other.pathType) return false
-    return when (pathType) {
-        APath.PathType.LOCAL -> (this as LocalPath).path == (other as LocalPath).path
-        APath.PathType.SAF -> (this as SAFPath).path == (other as SAFPath).path
-        APath.PathType.RAW -> other.path == this.path
+    if (this::class != other::class) return false
+    return when (this) {
+        is LocalPath -> this.path == (other as LocalPath).path
+        is SAFPath -> this.path == (other as SAFPath).path
+        is RawPath -> other.path == this.path
     }
 }
 
@@ -261,22 +270,22 @@ fun APath.containsSegments(vararg target: String): Boolean {
 }
 
 fun APath.startsWith(prefix: APath): Boolean {
-    if (this.pathType != prefix.pathType) return false
-    return when (pathType) {
-        APath.PathType.LOCAL -> (this as LocalPath).startsWith(prefix as LocalPath)
-        APath.PathType.SAF -> (this as SAFPath).startsWith(prefix as SAFPath)
-        APath.PathType.RAW -> this.path.startsWith(prefix.path)
+    if (this::class != prefix::class) return false
+    return when (this) {
+        is LocalPath -> this.startsWith(prefix as LocalPath)
+        is SAFPath -> this.startsWith(prefix as SAFPath)
+        is RawPath -> this.path.startsWith(prefix.path)
     }
 }
 
 fun APath.removePrefix(prefix: APath, overlap: Int = 0): Segments {
-    if (this.pathType != prefix.pathType) {
+    if (this::class != prefix::class) {
         throw IllegalArgumentException("removePrefix(): Can't compare different types ($this and $prefix)")
     }
-    return when (pathType) {
-        APath.PathType.LOCAL -> (this as LocalPath).removePrefixLocalPath(prefix as LocalPath, overlap)
-        APath.PathType.SAF -> (this as SAFPath).removePrefixSafPath(prefix as SAFPath, overlap)
-        APath.PathType.RAW -> this.segments.drop(prefix.segments.size - overlap)
+    return when (this) {
+        is LocalPath -> this.removePrefixLocalPath(prefix as LocalPath, overlap)
+        is SAFPath -> this.removePrefixSafPath(prefix as SAFPath, overlap)
+        is RawPath -> this.segments.drop(prefix.segments.size - overlap)
     }
 }
 

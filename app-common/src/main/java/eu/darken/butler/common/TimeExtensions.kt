@@ -30,13 +30,7 @@ fun Instant.toUtcTimezone(): ZonedDateTime = this
  * LENGTH_SHORT for the abbreviated spelling if available (e.g. "2 hr"), and LENGTH_SHORTEST for
  * the briefest form available (e.g. "2h").
  */
-fun Duration.formatDuration(abbrev: Int = DateUtils.LENGTH_SHORT): String {
-    val width = when (abbrev) {
-        DateUtils.LENGTH_LONG -> MeasureFormat.FormatWidth.WIDE
-        DateUtils.LENGTH_SHORT, DateUtils.LENGTH_SHORTER, DateUtils.LENGTH_MEDIUM -> MeasureFormat.FormatWidth.SHORT
-        DateUtils.LENGTH_SHORTEST -> MeasureFormat.FormatWidth.NARROW
-        else -> MeasureFormat.FormatWidth.WIDE
-    }
+fun Duration.formatDuration(width: MeasureFormat.FormatWidth = MeasureFormat.FormatWidth.SHORT): String {
     val millis = toMillis()
     val formatter = MeasureFormat.getInstance(Locale.getDefault(), width)
     if (millis >= DateUtils.HOUR_IN_MILLIS) {

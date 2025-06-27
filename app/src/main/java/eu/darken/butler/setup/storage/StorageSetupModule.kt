@@ -15,7 +15,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.device.DeviceDetective
 import eu.darken.butler.common.device.RomType
-import eu.darken.butler.common.files.local.LocalPath
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.permissions.Permission
@@ -33,8 +33,8 @@ import javax.inject.Singleton
 
 @Singleton
 class StorageSetupModule @Inject constructor(
-    @AppScope private val appScope: CoroutineScope,
-    @ApplicationContext private val context: Context,
+    @param:AppScope private val appScope: CoroutineScope,
+    @param:ApplicationContext private val context: Context,
     private val storageManager2: StorageManager2,
     private val deviceDetective: DeviceDetective,
 ) : SetupModule {

@@ -1,13 +1,21 @@
 package eu.darken.butler.common.serialization
 
 import android.net.Uri
-import com.squareup.moshi.FromJson
-import com.squareup.moshi.ToJson
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
-class UriAdapter {
-    @ToJson
-    fun toJson(uri: Uri): String = uri.toString()
+object UriSerializer : KSerializer<Uri> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Uri", PrimitiveKind.STRING)
 
-    @FromJson
-    fun fromJson(uriString: String): Uri = Uri.parse(uriString)
+    override fun serialize(encoder: Encoder, value: Uri) {
+        encoder.encodeString(value.toString())
+    }
+
+    override fun deserialize(decoder: Decoder): Uri {
+        return Uri.parse(decoder.decodeString())
+    }
 }

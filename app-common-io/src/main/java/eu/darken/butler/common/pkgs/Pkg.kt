@@ -1,11 +1,11 @@
 package eu.darken.butler.common.pkgs
 
 import android.os.Parcelable
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
 import eu.darken.butler.common.ca.CaDrawable
 import eu.darken.butler.common.ca.CaString
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 interface Pkg {
 
@@ -19,9 +19,9 @@ interface Pkg {
     val icon: CaDrawable?
 
     @Parcelize
-    @JsonClass(generateAdapter = true)
+    @Serializable
     data class Id(
-        @Json(name = "name") val name: String,
+        @SerialName("name") val name: String,
     ) : Parcelable {
         override fun toString(): String = name
     }

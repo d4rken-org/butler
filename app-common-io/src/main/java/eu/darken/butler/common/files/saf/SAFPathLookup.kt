@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.saf
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileType
+import eu.darken.butler.common.files.SAFPath
 import java.time.Instant
 
 data class SAFPathLookup(

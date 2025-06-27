@@ -1,12 +1,13 @@
 package eu.darken.butler.common.coil
 
 import androidx.core.content.ContextCompat
-import coil.ImageLoader
-import coil.decode.DataSource
-import coil.fetch.DrawableResult
-import coil.fetch.FetchResult
-import coil.fetch.Fetcher
-import coil.request.Options
+import coil3.ImageLoader
+import coil3.asImage
+import coil3.decode.DataSource
+import coil3.fetch.FetchResult
+import coil3.fetch.Fetcher
+import coil3.fetch.ImageFetchResult
+import coil3.request.Options
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.funnel.IPCFunnel
 import eu.darken.butler.common.pkgs.Pkg
@@ -25,8 +26,8 @@ class AppIconFetcher @Inject constructor(
             data.icon?.get(options.context) ?: packageManager.getIcon2(data.id)
         } ?: ContextCompat.getDrawable(options.context, eu.darken.butler.common.io.R.drawable.ic_default_app_icon_24)!!
 
-        return DrawableResult(
-            drawable = baseIcon,
+        return ImageFetchResult(
+            image = baseIcon.asImage(),
             isSampled = false,
             dataSource = DataSource.DISK
         )

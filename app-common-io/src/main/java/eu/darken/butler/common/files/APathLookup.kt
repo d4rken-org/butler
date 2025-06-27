@@ -2,6 +2,7 @@ package eu.darken.butler.common.files
 
 import androidx.annotation.Keep
 import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.files.extensions.Segments
 import java.time.Instant
 
 @Keep
@@ -16,8 +17,6 @@ interface APathLookup<out T : APath> {
         get() = lookedUp.path
     val name: String
         get() = lookedUp.name
-    val pathType: APath.PathType
-        get() = lookedUp.pathType
     val userReadablePath: CaString
         get() = lookedUp.userReadablePath
     val userReadableName: CaString

@@ -1,19 +1,19 @@
 package eu.darken.butler.explorer.core
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-@JsonClass(generateAdapter = true)
+@Serializable
 data class SortSettings(
-    @Json(name = "mode") val mode: Mode = Mode.NAME,
-    @Json(name = "reversed") val reversed: Boolean = true,
+    @SerialName("mode") val mode: Mode = Mode.NAME,
+    @SerialName("reversed") val reversed: Boolean = true,
 ) {
-    @JsonClass(generateAdapter = false)
+    @Serializable
     enum class Mode {
-        @Json(name = "NAME") NAME,
-        @Json(name = "MODIFIED_AT") MODIFIED_AT,
-        @Json(name = "CREATED_AT") CREATED_AT,
-        @Json(name = "SIZE") SIZE,
+        @SerialName("NAME") NAME,
+        @SerialName("MODIFIED_AT") MODIFIED_AT,
+        @SerialName("CREATED_AT") CREATED_AT,
+        @SerialName("SIZE") SIZE,
         ;
     }
 }

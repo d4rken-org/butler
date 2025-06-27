@@ -24,20 +24,20 @@ class UpgradeRepoGplayTest : BaseTest() {
 
     }
 
-
-    @Test fun `test upgrade info pro status mapping`() {
+    @Test
+    fun `test upgrade info pro status mapping`() {
         UpgradeRepoGplay.Info(
             gracePeriod = false,
             billingData = null
         ).apply {
-            isPro shouldBe false
+            isUpgraded shouldBe false
             type shouldBe UpgradeRepo.Type.GPLAY
         }
 
         UpgradeRepoGplay.Info(
             gracePeriod = true,
             billingData = null
-        ).isPro shouldBe true
+        ).isUpgraded shouldBe true
 
         val info = UpgradeRepoGplay.Info(
             gracePeriod = false,
@@ -50,7 +50,7 @@ class UpgradeRepoGplayTest : BaseTest() {
                 )
             )
         )
-        info.isPro shouldBe true
+        info.isUpgraded shouldBe true
         info.upgradedAt shouldBe Instant.parse("2023-12-10T00:00:00Z")
         info.type
     }

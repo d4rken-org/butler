@@ -4,29 +4,29 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
-import coil.ImageLoader
-import coil.decode.DataSource
-import coil.fetch.DrawableResult
-import coil.fetch.FetchResult
-import coil.fetch.Fetcher
-import coil.fetch.SourceResult
-import coil.request.Options
+import coil3.ImageLoader
+import coil3.asImage
+import coil3.decode.DataSource
+import coil3.fetch.FetchResult
+import coil3.fetch.Fetcher
+import coil3.fetch.ImageFetchResult
+import coil3.fetch.SourceFetchResult
+import coil3.request.Options
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.MimeTypeTool
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.common.files.asFile
-import eu.darken.butler.common.files.extension
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.extensions.asFile
+import eu.darken.butler.common.files.extensions.extension
 import eu.darken.butler.common.files.iconRes
-import eu.darken.butler.common.files.local.LocalPath
 import eu.darken.butler.main.core.GeneralSettings
 import javax.inject.Inject
 
 class PathPreviewFetcher @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val coilTempFiles: CoilTempFiles,
+    @param:ApplicationContext private val context: Context,
     private val generalSettings: GeneralSettings,
     private val gatewaySwitch: GatewaySwitch,
     private val mimeTypeTool: MimeTypeTool,
@@ -34,9 +34,9 @@ class PathPreviewFetcher @Inject constructor(
     private val options: Options,
 ) : Fetcher {
 
-    private val fallbackIcon by lazy {
-        DrawableResult(
-            drawable = ContextCompat.getDrawable(options.context, data.fileType.iconRes)!!,
+    private val fallbackIcon: FetchResult by lazy {
+        ImageFetchResult(
+            image = ContextCompat.getDrawable(options.context, data.fileType.iconRes)!!.asImage(),
             isSampled = false,
             dataSource = DataSource.MEMORY
         )
@@ -56,9 +56,9 @@ class PathPreviewFetcher @Inject constructor(
             mimeType.startsWith("image") || mimeType.startsWith("video") -> {
                 val handle = gatewaySwitch.file(data.lookedUp, readWrite = false)
 
-                SourceResult(
-                    handle.toImageSource(coilTempFiles.getBaseCachePath()),
-                    mimeType,
+                SourceFetchResult(
+                    source = handle.toImageSource(),
+                    mimeType = mimeType,
                     dataSource = DataSource.DISK
                 )
             }
@@ -78,8 +78,8 @@ class PathPreviewFetcher @Inject constructor(
                     ?.let { pacMan.getApplicationIcon(it) }
 
                 iconDrawable?.let {
-                    DrawableResult(
-                        drawable = it,
+                    ImageFetchResult(
+                        image = it.asImage(),
                         isSampled = false,
                         dataSource = DataSource.DISK
                     )
@@ -91,8 +91,7 @@ class PathPreviewFetcher @Inject constructor(
     }
 
     class Factory @Inject constructor(
-        @ApplicationContext private val context: Context,
-        private val coilTempFiles: CoilTempFiles,
+        @param:ApplicationContext private val context: Context,
         private val generalSettings: GeneralSettings,
         private val gatewaySwitch: GatewaySwitch,
         private val mimeTypeTool: MimeTypeTool,
@@ -104,7 +103,6 @@ class PathPreviewFetcher @Inject constructor(
             imageLoader: ImageLoader
         ): Fetcher = PathPreviewFetcher(
             context,
-            coilTempFiles,
             generalSettings,
             gatewaySwitch,
             mimeTypeTool,

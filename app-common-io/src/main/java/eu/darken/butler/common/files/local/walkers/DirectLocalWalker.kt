@@ -1,13 +1,17 @@
-package eu.darken.butler.common.files.local
+package eu.darken.butler.common.files.local.walkers
 
 import eu.darken.butler.common.debug.Bugs
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.asFile
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.core.local.listFiles2
-import eu.darken.butler.common.files.isDirectory
-import eu.darken.butler.common.files.isFile
+import eu.darken.butler.common.files.extensions.asFile
+import eu.darken.butler.common.files.extensions.isDirectory
+import eu.darken.butler.common.files.extensions.isFile
+import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.local.performLookup
+import eu.darken.butler.common.files.local.toLocalPath
 import kotlinx.coroutines.flow.AbstractFlow
 import kotlinx.coroutines.flow.FlowCollector
 import java.util.LinkedList
@@ -38,7 +42,7 @@ class DirectLocalWalker(
                     .listFiles2()
                     .map { it.toLocalPath().performLookup() }
             } catch (e: Exception) {
-                log(TAG, ERROR) { "Failed to read $lookUp: $e" }
+                log(TAG, Logging.Priority.ERROR) { "Failed to read $lookUp: $e" }
                 if (onError(lookUp, e)) {
                     emptyList()
                 } else {
@@ -50,13 +54,13 @@ class DirectLocalWalker(
                 .filter {
                     val allowed = onFilter(it)
                     if (Bugs.isTrace) {
-                        if (!allowed) log(tag, VERBOSE) { "Skipping (filter): $it" }
+                        if (!allowed) log(tag, Logging.Priority.VERBOSE) { "Skipping (filter): $it" }
                     }
                     allowed
                 }
                 .forEach { child ->
                     if (child.isDirectory) {
-                        if (Bugs.isTrace) log(tag, VERBOSE) { "Walking: $child" }
+                        if (Bugs.isTrace) log(tag, Logging.Priority.VERBOSE) { "Walking: $child" }
                         queue.addFirst(child)
                     }
                     collector.emit(child)

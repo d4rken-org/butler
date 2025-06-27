@@ -1,5 +1,6 @@
 package testhelpers
 
+import eu.darken.butler.common.BuildConfig
 import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
@@ -16,7 +17,7 @@ open class BaseTest {
 
     companion object {
         private var testClassName: String? = null
-        const val IO_TEST_BASEDIR = "build/tmp/unit_tests"
+        val IO_TEST_BASEDIR = "build/tmp/unit_tests_${BuildConfig.BUILD_TYPE.uppercase()}"
 
         @JvmStatic
         @AfterAll

@@ -2,9 +2,9 @@ package eu.darken.butler.common.files
 
 import android.os.Parcel
 import android.os.Parcelable
-import com.squareup.moshi.JsonClass
+import kotlinx.serialization.Serializable
 
-@JsonClass(generateAdapter = true)
+@Serializable
 data class Ownership(
     val userId: Long,
     val groupId: Long,

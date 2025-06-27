@@ -3,12 +3,10 @@ package eu.darken.butler
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
-import coil.Coil
-import coil.ImageLoaderFactory
+import coil3.SingletonImageLoader
 import dagger.hilt.android.HiltAndroidApp
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.BuildWrap
-import eu.darken.butler.common.coil.CoilTempFiles
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.AutomaticBugReporter
@@ -43,12 +41,11 @@ open class App : Application(), Configuration.Provider {
     @Inject lateinit var bugReporter: AutomaticBugReporter
     @Inject lateinit var generalSettings: GeneralSettings
     @Inject lateinit var recorderModule: RecorderModule
-    @Inject lateinit var imageLoaderFactory: ImageLoaderFactory
+    @Inject lateinit var imageLoaderFactory: SingletonImageLoader.Factory
     @Inject lateinit var debugSettings: DebugSettings
     @Inject lateinit var curriculumVitae: CurriculumVitae
     @Inject lateinit var updateService: UpdateService
     @Inject lateinit var theming: Theming
-    @Inject lateinit var coilTempFiles: CoilTempFiles
     @Inject lateinit var releaseManager: ReleaseManager
 
     private val logCatLogger = LogCatLogger()
@@ -88,8 +85,7 @@ open class App : Application(), Configuration.Provider {
 
         theming.setup()
 
-        appScope.launch { coilTempFiles.cleanUp() }
-        Coil.setImageLoader(imageLoaderFactory)
+        SingletonImageLoader.setSafe(imageLoaderFactory)
 
         appScope.launch {
             curriculumVitae.updateAppLaunch()

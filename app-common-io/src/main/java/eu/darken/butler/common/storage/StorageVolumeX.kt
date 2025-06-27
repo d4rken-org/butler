@@ -16,6 +16,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.hasApiLevel
+import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parceler
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.TypeParceler
@@ -64,6 +65,7 @@ class StorageVolumeX(
     val isMounted: Boolean
         get() = volume.state == Environment.MEDIA_MOUNTED
 
+    @IgnoredOnParcel
     private val methodGetPath: Method? by lazy {
         try {
             volumeClass.getMethod("getPath")
@@ -81,6 +83,7 @@ class StorageVolumeX(
             directory?.path
         }
 
+    @IgnoredOnParcel
     private val methodGetPathFile: Method? by lazy {
         try {
             volumeClass.getMethod("getPathFile")
@@ -90,6 +93,7 @@ class StorageVolumeX(
         }
     }
 
+    @IgnoredOnParcel
     private val methodGetUserLabel: Method? by lazy {
         try {
             volumeClass.getMethod("getUserLabel")
@@ -107,6 +111,7 @@ class StorageVolumeX(
             null
         }
 
+    @IgnoredOnParcel
     private val methodGetDescription: Method? by lazy {
         try {
             volumeClass.getMethod("getDescription", Context::class.java)
@@ -132,6 +137,7 @@ class StorageVolumeX(
         }
     }
 
+    @IgnoredOnParcel
     private val methodGetOwner: Method? by lazy {
         try {
             volumeClass.getMethod("getOwner")
@@ -163,7 +169,14 @@ class StorageVolumeX(
     val rootUri: Uri
         @SuppressLint("NewApi")
         get() = if (hasApiLevel(29)) {
-            volume.createOpenDocumentTreeIntent().getParcelableExtra(DocumentsContract.EXTRA_INITIAL_URI)!!
+            if (hasApiLevel(33)) {
+                @Suppress("NewApi")
+                volume.createOpenDocumentTreeIntent()
+                    .getParcelableExtra(DocumentsContract.EXTRA_INITIAL_URI, Uri::class.java)!!
+            } else {
+                @Suppress("DEPRECATION")
+                volume.createOpenDocumentTreeIntent().getParcelableExtra<Uri>(DocumentsContract.EXTRA_INITIAL_URI)!!
+            }
         } else {
             DocumentsContract.buildRootUri(
                 EXTERNAL_STORAGE_PROVIDER_AUTHORITY,
@@ -229,7 +242,13 @@ class StorageVolumeX(
 }
 
 internal object AnyParceler : Parceler<Any> {
-    override fun create(parcel: Parcel): Any = parcel.readParcelable(StorageVolumeX::class.java.classLoader)!!
+    override fun create(parcel: Parcel): Any = if (hasApiLevel(33)) {
+        @Suppress("NewApi")
+        parcel.readParcelable(StorageVolumeX::class.java.classLoader, Any::class.java)!!
+    } else {
+        @Suppress("DEPRECATION")
+        parcel.readParcelable(StorageVolumeX::class.java.classLoader)!!
+    }
 
     override fun Any.write(parcel: Parcel, flags: Int) = parcel.writeParcelable(this as Parcelable, flags)
 }

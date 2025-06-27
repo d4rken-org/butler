@@ -1,11 +1,11 @@
 package eu.darken.butler.common.coil
 
-import coil.ImageLoader
-import coil.decode.DataSource
-import coil.fetch.FetchResult
-import coil.fetch.Fetcher
-import coil.fetch.SourceResult
-import coil.request.Options
+import coil3.ImageLoader
+import coil3.decode.DataSource
+import coil3.fetch.FetchResult
+import coil3.fetch.Fetcher
+import coil3.fetch.SourceFetchResult
+import coil3.request.Options
 import eu.darken.butler.common.MimeTypeTool
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileType
@@ -13,7 +13,6 @@ import eu.darken.butler.common.files.GatewaySwitch
 import javax.inject.Inject
 
 class BitmapFetcher @Inject constructor(
-    private val coilTempFiles: CoilTempFiles,
     private val gatewaySwitch: GatewaySwitch,
     private val mimeTypeTool: MimeTypeTool,
     private val data: Request,
@@ -32,15 +31,14 @@ class BitmapFetcher @Inject constructor(
 
         val handle = gatewaySwitch.file(target.lookedUp, readWrite = false)
 
-        return SourceResult(
-            handle.toImageSource(coilTempFiles.getBaseCachePath()),
-            mimeType,
+        return SourceFetchResult(
+            source = handle.toImageSource(),
+            mimeType = mimeType,
             dataSource = DataSource.DISK
         )
     }
 
     class Factory @Inject constructor(
-        private val coilTempFiles: CoilTempFiles,
         private val gatewaySwitch: GatewaySwitch,
         private val mimeTypeTool: MimeTypeTool,
     ) : Fetcher.Factory<Request> {
@@ -49,7 +47,7 @@ class BitmapFetcher @Inject constructor(
             data: Request,
             options: Options,
             imageLoader: ImageLoader
-        ): Fetcher = BitmapFetcher(coilTempFiles, gatewaySwitch, mimeTypeTool, data, options)
+        ): Fetcher = BitmapFetcher(gatewaySwitch, mimeTypeTool, data, options)
     }
 
     data class Request(
