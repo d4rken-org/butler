@@ -24,6 +24,7 @@ import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material.icons.twotone.Workspaces
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -34,6 +35,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,15 +47,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
@@ -62,6 +70,8 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.manager.rows.WorkspaceBadgeExplanationCard
+import eu.darken.butler.workspace.ui.manager.rows.WorkspaceButtonBehaviorCard
 import kotlin.math.roundToInt
 
 @Composable
@@ -80,7 +90,11 @@ fun WorkspaceManagerScreenHost(
             onReorderWorkspaces = vm::reorderWorkspaces,
             onSelectWorkspace = vm::selectWorkspace,
             onCreateWorkspace = vm::createWorkspace,
-            onNavigateBack = vm::navigateBack
+            onNavigateBack = vm::navigateBack,
+            onToggleButtonFlipped = { vm.toggleButtonFlipped() },
+            onDismissBadgeExplanation = vm::dismissBadgeExplanation,
+            onDismissButtonBehaviorExplanation = vm::dismissButtonBehaviorExplanation,
+            onCloseAllWorkspaces = vm::closeAllWorkspaces,
         )
     }
 }
@@ -94,14 +108,54 @@ fun WorkspaceManagerScreen(
     onSelectWorkspace: (Workspace.Id) -> Unit,
     onCreateWorkspace: (Workspace.Type) -> Unit,
     onNavigateBack: () -> Unit,
+    onToggleButtonFlipped: () -> Unit,
+    onDismissBadgeExplanation: () -> Unit,
+    onDismissButtonBehaviorExplanation: () -> Unit,
+    onCloseAllWorkspaces: () -> Unit,
 ) {
     var workspaceItems by remember { mutableStateOf(state.workspaces) }
     LaunchedEffect(state.workspaces) {
         workspaceItems = state.workspaces
     }
 
+    var showCloseAllDialog by remember { mutableStateOf(false) }
+
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            TopAppBar(
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Workspaces,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Text(
+                            text = stringResource(R.string.workspace_manager_title),
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Close,
+                            contentDescription = "Dismiss"
+                        )
+                    }
+                },
+                scrollBehavior = scrollBehavior
+            )
+        },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
@@ -109,48 +163,6 @@ fun WorkspaceManagerScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Header with title, icon, and close button
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.Workspaces,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(32.dp)
-                    )
-                    Text(
-                        text = stringResource(R.string.workspace_manager_title),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                }
-
-                // Close button
-                Card(
-                    shape = RoundedCornerShape(8.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.95f)
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-                    modifier = Modifier.clickable { onNavigateBack() }
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.Close,
-                        contentDescription = "Dismiss",
-                        tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                        modifier = Modifier.padding(12.dp)
-                    )
-                }
-            }
 
             // Status card - Add Workspace flat icon + text with dropdown
             var showDropdown by remember { mutableStateOf(false) }
@@ -158,88 +170,232 @@ fun WorkspaceManagerScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .clickable { showDropdown = true },
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 shape = RoundedCornerShape(8.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text(
-                        text = stringResource(R.string.workspace_manager_status_count, state.workspaceCount),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    Box {
+                    // Status row with counts
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Workspace count
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                imageVector = Icons.TwoTone.Add,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.surfaceVariant,
+                                        shape = CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = if (state.workspaceCount > 9) "9+" else state.workspaceCount.toString(),
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 9.sp,
+                                        lineHeight = 9.sp
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(bottom = 1.dp)
+                                )
+                            }
                             Text(
-                                text = "Add",
-                                style = MaterialTheme.typography.bodyMedium,
+                                text = if (state.workspaceCount == 1) "Workspace" else "Workspaces",
+                                style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
 
-                        DropdownMenu(
-                            expanded = showDropdown,
-                            onDismissRequest = { showDropdown = false }
+                        // Operations count
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            DropdownMenuItem(
-                                text = { Text("Explorer") },
-                                onClick = {
-                                    onCreateWorkspace(Workspace.Type.EXPLORER)
-                                    showDropdown = false
-                                },
-                                leadingIcon = {
-                                    Icon(Icons.TwoTone.Folder, contentDescription = null)
-                                }
+                            Box(
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .background(
+                                        color = if (state.operationsCount > 0)
+                                            MaterialTheme.colorScheme.primary
+                                        else
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                        shape = CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = if (state.operationsCount > 9) "9+" else state.operationsCount.toString(),
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 9.sp,
+                                        lineHeight = 9.sp
+                                    ),
+                                    color = if (state.operationsCount > 0)
+                                        MaterialTheme.colorScheme.onPrimary
+                                    else
+                                        MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(bottom = 1.dp)
+                                )
+                            }
+                            Text(
+                                text = if (state.operationsCount == 1) "Operation" else "Operations",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
-                            DropdownMenuItem(
-                                text = { Text("Search") },
-                                onClick = {
-                                    onCreateWorkspace(Workspace.Type.SEARCHER)
-                                    showDropdown = false
-                                },
-                                leadingIcon = {
-                                    Icon(Icons.TwoTone.Search, contentDescription = null)
-                                }
+                        }
+
+                        // Attention count
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .background(
+                                        color = if (state.attentionCount > 0)
+                                            MaterialTheme.colorScheme.error
+                                        else
+                                            MaterialTheme.colorScheme.error.copy(alpha = 0.2f),
+                                        shape = CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = if (state.attentionCount > 9) "9+" else state.attentionCount.toString(),
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 9.sp,
+                                        lineHeight = 9.sp
+                                    ),
+                                    color = if (state.attentionCount > 0)
+                                        MaterialTheme.colorScheme.onError
+                                    else
+                                        MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.padding(bottom = 1.dp)
+                                )
+                            }
+                            Text(
+                                text = if (state.attentionCount == 1) "Attention" else "Attention",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
-                            DropdownMenuItem(
-                                text = { Text("Editor") },
-                                onClick = {
-                                    onCreateWorkspace(Workspace.Type.EDITOR)
-                                    showDropdown = false
-                                },
-                                leadingIcon = {
-                                    Icon(Icons.TwoTone.Edit, contentDescription = null)
+                        }
+                    }
+
+                    // Action buttons row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Close All button (now first, with visibility control)
+                        Row(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable(enabled = state.workspaceCount > 1) {
+                                    if (state.workspaceCount > 1) showCloseAllDialog = true
                                 }
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
+                                .alpha(if (state.workspaceCount > 1) 1f else 0f),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.TwoTone.Close,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.error
                             )
-                            DropdownMenuItem(
-                                text = { Text("Templates") },
-                                onClick = {
-                                    onCreateWorkspace(Workspace.Type.TEMPLATES)
-                                    showDropdown = false
-                                },
-                                leadingIcon = {
-                                    Icon(Icons.TwoTone.Workspaces, contentDescription = null)
-                                }
+                            Text(
+                                text = "Close All",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(start = 4.dp)
                             )
+                        }
+
+                        // Add button with dropdown (now second)
+                        Box(modifier = Modifier.weight(1f)) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showDropdown = true }
+                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.TwoTone.Add,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = "Add",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(start = 4.dp)
+                                )
+                            }
+
+                            DropdownMenu(
+                                expanded = showDropdown,
+                                onDismissRequest = { showDropdown = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Explorer") },
+                                    onClick = {
+                                        onCreateWorkspace(Workspace.Type.EXPLORER)
+                                        showDropdown = false
+                                    },
+                                    leadingIcon = {
+                                        Icon(Icons.TwoTone.Folder, contentDescription = null)
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Search") },
+                                    onClick = {
+                                        onCreateWorkspace(Workspace.Type.SEARCHER)
+                                        showDropdown = false
+                                    },
+                                    leadingIcon = {
+                                        Icon(Icons.TwoTone.Search, contentDescription = null)
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Editor") },
+                                    onClick = {
+                                        onCreateWorkspace(Workspace.Type.EDITOR)
+                                        showDropdown = false
+                                    },
+                                    leadingIcon = {
+                                        Icon(Icons.TwoTone.Edit, contentDescription = null)
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Templates") },
+                                    onClick = {
+                                        onCreateWorkspace(Workspace.Type.TEMPLATES)
+                                        showDropdown = false
+                                    },
+                                    leadingIcon = {
+                                        Icon(Icons.TwoTone.Workspaces, contentDescription = null)
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -301,9 +457,57 @@ fun WorkspaceManagerScreen(
                             index = index
                         )
                     }
+
+                    // Button behavior explanation card
+                    if (state.showButtonBehaviorExplanation) {
+                        item(key = "button_behavior_explanation") {
+                            WorkspaceButtonBehaviorCard(
+                                isButtonFlipped = state.isButtonFlipped,
+                                onToggleFlipped = { onToggleButtonFlipped() },
+                                onDismiss = onDismissButtonBehaviorExplanation
+                            )
+                        }
+                    }
+
+                    // Badge explanation card
+                    if (state.showBadgeExplanation) {
+                        item(key = "badge_explanation") {
+                            WorkspaceBadgeExplanationCard(
+                                onDismiss = onDismissBadgeExplanation
+                            )
+                        }
+                    }
                 }
             }
         }
+    }
+
+    // Close all confirmation dialog
+    if (showCloseAllDialog) {
+        AlertDialog(
+            onDismissRequest = { showCloseAllDialog = false },
+            title = { Text("Close All Workspaces?") },
+            text = {
+                Text("This will close all ${state.workspaceCount} open ${if (state.workspaceCount == 1) "workspace" else "workspaces"}. This action cannot be undone.")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onCloseAllWorkspaces()
+                        showCloseAllDialog = false
+                    }
+                ) {
+                    Text("Close All")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showCloseAllDialog = false }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
@@ -477,6 +681,7 @@ private fun getIconForWorkspaceType(type: Workspace.Type): ImageVector {
     }
 }
 
+
 @Preview2
 @Composable
 private fun WorkspaceManagerScreenPreview() {
@@ -502,13 +707,19 @@ private fun WorkspaceManagerScreenPreview() {
                         title = "Search".toCaString(),
                         subtitle = "File search"
                     )
-                )
+                ),
+                operationsCount = 3,
+                attentionCount = 2
             ),
             onCloseWorkspace = {},
             onReorderWorkspaces = {},
             onSelectWorkspace = {},
             onCreateWorkspace = {},
-            onNavigateBack = {}
+            onNavigateBack = {},
+            onToggleButtonFlipped = {},
+            onDismissBadgeExplanation = {},
+            onDismissButtonBehaviorExplanation = {},
+            onCloseAllWorkspaces = {}
         )
     }
 }

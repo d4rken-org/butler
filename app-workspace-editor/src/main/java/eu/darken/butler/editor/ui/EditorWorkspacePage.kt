@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,6 +44,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
@@ -53,6 +55,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.editor.core.MemoryStats
+import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.SearchResult
 import eu.darken.butler.editor.core.TextPosition
 import eu.darken.butler.workspace.core.Workspace
@@ -150,15 +153,11 @@ fun EditorWorkspacePage(
         }
     }
 
-    Box(
+    Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Main content area
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            // Header that draws under status bar
-            EditorHeader(
+        // Header that draws under status bar
+        EditorHeader(
                 fileName = state.fileName,
                 isModified = state.isModified,
                 hasFile = state.hasFile || state.currentContent.isNotEmpty(),
@@ -172,69 +171,61 @@ fun EditorWorkspacePage(
                 canRedo = false,
                 onSearch = { showSearchDialog = true },
                 onGoToLine = { showGoToLineDialog = true },
-                onToggleMemoryStats = { showMemoryStats = !showMemoryStats }
+                onToggleMemoryStats = { showMemoryStats = !showMemoryStats },
+                workspaceButtonState = workspaceButtonState,
+                onWorkspaceAction = onWorkspaceAction,
+                onNavToWorkspaceManager = onNavToWorkspaceManager
             )
 
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                // Error display
-                state.error?.let { error ->
-                    ErrorBanner(
-                        error = error,
-                        onDismiss = onClearError
-                    )
-                }
-
-
-                // Main editor content - now using fixed LazyTextEditor
-                LazyTextEditor(
-                    content = state.currentContent,
-                    cursorPosition = state.cursorPosition,
-                    selection = state.selectionRange,
-                    visibleRange = state.visibleRange,
-                    showLineNumbers = true,
-                    fontSize = 14,
-                    tabSize = 4,
-                    onTextChange = onTextChange,
-                    onCursorPositionChange = onCursorPositionChange,
-                    onSelectionChange = onSelectionChange,
-                    onVisibleRangeChange = onVisibleRangeChange,
-                    modifier = Modifier.weight(1f)
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            // Error display
+            state.error?.let { error ->
+                ErrorBanner(
+                    error = error,
+                    onDismiss = onClearError
                 )
-
-                // Search results
-                if (state.hasSearchResults) {
-                    SearchResultsBar(
-                        searchResults = state.searchResults,
-                        currentIndex = 0,
-                        onNavigateToResult = { result ->
-                            onCursorPositionChange(result.position)
-                        },
-                        onClose = { onSearch("") }
-                    )
-                }
             }
 
-            // Bottom status bar
-            if (showMemoryStats) {
-                EditorStatusBar(
-                    totalLines = state.totalLines,
-                    cursorPosition = state.cursorPosition,
-                    memoryStats = state.memoryStats
+
+            // Main editor content - now using fixed LazyTextEditor
+            LazyTextEditor(
+                content = state.currentContent,
+                cursorPosition = state.cursorPosition,
+                selection = state.selectionRange,
+                visibleRange = state.visibleRange,
+                showLineNumbers = true,
+                fontSize = 14,
+                tabSize = 4,
+                onTextChange = onTextChange,
+                onCursorPositionChange = onCursorPositionChange,
+                onSelectionChange = onSelectionChange,
+                onVisibleRangeChange = onVisibleRangeChange,
+                modifier = Modifier.weight(1f)
+            )
+
+            // Search results
+            if (state.hasSearchResults) {
+                SearchResultsBar(
+                    searchResults = state.searchResults,
+                    currentIndex = 0,
+                    onNavigateToResult = { result ->
+                        onCursorPositionChange(result.position)
+                    },
+                    onClose = { onSearch("") }
                 )
             }
         }
 
-        WorkspaceButton(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(16.dp)
-                .statusBarsPadding(),
-            state = workspaceButtonState,
-            onAction = onWorkspaceAction,
-            onNavToWorkspaceManager = onNavToWorkspaceManager,
-        )
+        // Bottom status bar
+        if (showMemoryStats) {
+            EditorStatusBar(
+                totalLines = state.totalLines,
+                cursorPosition = state.cursorPosition,
+                memoryStats = state.memoryStats
+            )
+        }
     }
 
     // Dialogs
@@ -275,7 +266,10 @@ private fun EditorHeader(
     canRedo: Boolean,
     onSearch: () -> Unit,
     onGoToLine: () -> Unit,
-    onToggleMemoryStats: () -> Unit
+    onToggleMemoryStats: () -> Unit,
+    workspaceButtonState: WorkspaceButtonViewModel.State?,
+    onWorkspaceAction: (WorkspaceAction) -> Unit,
+    onNavToWorkspaceManager: () -> Unit
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -285,8 +279,7 @@ private fun EditorHeader(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             // Title section on top
             Row(
@@ -301,15 +294,23 @@ private fun EditorHeader(
                 )
                 if (isModified) {
                     Text(
-                        text = "•",
+                        text = stringResource(R.string.editor_modified_indicator),
                         modifier = Modifier.padding(horizontal = 8.dp),
                         color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
+                
+                Spacer(modifier = Modifier.width(8.dp))
+                
+                WorkspaceButton(
+                    state = workspaceButtonState,
+                    onAction = onWorkspaceAction,
+                    onNavToWorkspaceManager = onNavToWorkspaceManager,
+                )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             // Actions section below
             Row(
@@ -326,7 +327,7 @@ private fun EditorHeader(
                 }
 
                 IconButton(onClick = onOpenFile) {
-                    Icon(Icons.Default.FolderOpen, contentDescription = "Open")
+                    Icon(Icons.Default.FolderOpen, contentDescription = stringResource(R.string.editor_action_open))
                 }
 
                 // Show save/edit actions when there's content or a file
@@ -335,38 +336,38 @@ private fun EditorHeader(
                         onClick = onSaveFile,
                         enabled = isModified
                     ) {
-                        Icon(Icons.Default.Save, contentDescription = "Save")
+                        Icon(Icons.Default.Save, contentDescription = stringResource(R.string.editor_action_save))
                     }
 
                     IconButton(onClick = onCloseFile) {
-                        Icon(Icons.Default.Close, contentDescription = "Close")
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.editor_action_close))
                     }
 
                     IconButton(
                         onClick = onUndo,
                         enabled = canUndo
                     ) {
-                        Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Undo")
+                        Icon(Icons.Default.KeyboardArrowUp, contentDescription = stringResource(R.string.editor_action_undo))
                     }
 
                     IconButton(
                         onClick = onRedo,
                         enabled = canRedo
                     ) {
-                        Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Redo")
+                        Icon(Icons.Default.KeyboardArrowDown, contentDescription = stringResource(R.string.editor_action_redo))
                     }
 
                     IconButton(onClick = onSearch) {
-                        Icon(Icons.Default.Search, contentDescription = "Search")
+                        Icon(Icons.Default.Search, contentDescription = stringResource(R.string.editor_action_search))
                     }
 
                     IconButton(onClick = onGoToLine) {
-                        Icon(Icons.Default.Search, contentDescription = "Go to Line")
+                        Icon(Icons.Default.FormatListNumbered, contentDescription = stringResource(R.string.editor_action_go_to_line))
                     }
                 }
 
                 IconButton(onClick = onToggleMemoryStats) {
-                    Icon(Icons.Default.Info, contentDescription = "Toggle Stats")
+                    Icon(Icons.Default.Info, contentDescription = stringResource(R.string.editor_action_toggle_stats))
                 }
 
                 Spacer(modifier = Modifier.weight(1f))
@@ -392,17 +393,21 @@ private fun EditorStatusBar(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Line ${cursorPosition.line + 1}:${cursorPosition.column + 1}",
+                text = stringResource(R.string.editor_status_line_format, cursorPosition.line + 1, cursorPosition.column + 1),
                 style = MaterialTheme.typography.bodySmall
             )
 
             Text(
-                text = "Total: $totalLines lines",
+                text = stringResource(R.string.editor_status_total_lines, totalLines),
                 style = MaterialTheme.typography.bodySmall
             )
 
             Text(
-                text = "Memory: ${memoryStats.currentUsage / (1024 * 1024)}/${memoryStats.maxMemory / (1024 * 1024)} MB (${memoryStats.totalChunks} chunks)",
+                text = stringResource(R.string.editor_status_memory, 
+                    memoryStats.currentUsage / (1024 * 1024),
+                    memoryStats.maxMemory / (1024 * 1024),
+                    memoryStats.totalChunks
+                ),
                 style = MaterialTheme.typography.bodySmall
             )
         }
@@ -434,7 +439,7 @@ private fun ErrorBanner(
             Spacer(Modifier.width(16.dp))
 
             Text(
-                text = error.message ?: "Unknown error",
+                text = error.message ?: stringResource(R.string.editor_error_unknown),
                 color = MaterialTheme.colorScheme.onErrorContainer,
                 modifier = Modifier.weight(1f)
             )
@@ -442,7 +447,7 @@ private fun ErrorBanner(
             IconButton(onClick = onDismiss) {
                 Icon(
                     Icons.Default.Close,
-                    contentDescription = "Dismiss",
+                    contentDescription = stringResource(R.string.editor_action_dismiss),
                     tint = MaterialTheme.colorScheme.onErrorContainer
                 )
             }
@@ -468,7 +473,7 @@ private fun SearchResultsBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "${currentIndex + 1} of ${searchResults.size} results",
+                text = stringResource(R.string.editor_search_results_format, currentIndex + 1, searchResults.size),
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 modifier = Modifier.weight(1f)
             )
@@ -483,7 +488,7 @@ private fun SearchResultsBar(
             ) {
                 Icon(
                     Icons.Default.KeyboardArrowUp,
-                    contentDescription = "Previous",
+                    contentDescription = stringResource(R.string.editor_action_previous),
                     tint = MaterialTheme.colorScheme.onSecondaryContainer
                 )
             }
@@ -498,7 +503,7 @@ private fun SearchResultsBar(
             ) {
                 Icon(
                     Icons.Default.KeyboardArrowDown,
-                    contentDescription = "Next",
+                    contentDescription = stringResource(R.string.editor_action_next),
                     tint = MaterialTheme.colorScheme.onSecondaryContainer
                 )
             }
@@ -506,7 +511,7 @@ private fun SearchResultsBar(
             IconButton(onClick = onClose) {
                 Icon(
                     Icons.Default.Close,
-                    contentDescription = "Close",
+                    contentDescription = stringResource(R.string.editor_action_close),
                     tint = MaterialTheme.colorScheme.onSecondaryContainer
                 )
             }
@@ -525,12 +530,12 @@ private fun GoToLineDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Go to Line") },
+        title = { Text(stringResource(R.string.editor_dialog_go_to_line_title)) },
         text = {
             OutlinedTextField(
                 value = lineNumber,
                 onValueChange = { lineNumber = it.filter { char -> char.isDigit() } },
-                label = { Text("Line number (1-$totalLines)") },
+                label = { Text(stringResource(R.string.editor_dialog_go_to_line_label, totalLines)) },
                 singleLine = true
             )
         },
@@ -545,12 +550,12 @@ private fun GoToLineDialog(
                 },
                 enabled = lineNumber.toIntOrNull()?.let { it in 1..totalLines } == true
             ) {
-                Text("Go")
+                Text(stringResource(R.string.editor_dialog_action_go))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.editor_dialog_action_cancel))
             }
         }
     )
@@ -566,12 +571,12 @@ private fun SearchDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Search") },
+        title = { Text(stringResource(R.string.editor_dialog_search_title)) },
         text = {
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                label = { Text("Search text") },
+                label = { Text(stringResource(R.string.editor_dialog_search_label)) },
                 singleLine = true
             )
         },
@@ -580,12 +585,12 @@ private fun SearchDialog(
                 onClick = { onSearch(searchQuery) },
                 enabled = searchQuery.isNotEmpty()
             ) {
-                Text("Search")
+                Text(stringResource(R.string.editor_action_search))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.editor_dialog_action_cancel))
             }
         }
     )

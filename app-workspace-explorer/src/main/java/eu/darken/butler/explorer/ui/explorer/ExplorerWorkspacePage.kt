@@ -18,9 +18,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.RawPath
@@ -159,7 +160,7 @@ fun ExplorerWorkspacePage(
     }
 }
 
-@Preview(showBackground = true)
+@Preview2
 @Composable
 fun ExplorerWorkspacePagePreview() {
     val mockState = ExplorerWorkspaceViewModel.State(
@@ -169,17 +170,18 @@ fun ExplorerWorkspacePagePreview() {
         isLoading = false,
         selectedItems = emptySet()
     )
-
-    ExplorerWorkspacePage(
-        state = mockState,
-        vm = null,
-        workspaceButtonState = null,
-        onWorkspaceAction = {},
-        onNavToWorkspaceManager = {},
-    )
+    PreviewWrapper {
+        ExplorerWorkspacePage(
+            state = mockState,
+            vm = null,
+            workspaceButtonState = null,
+            onWorkspaceAction = {},
+            onNavToWorkspaceManager = {},
+        )
+    }
 }
 
-@Preview(showBackground = true)
+@Preview2
 @Composable
 fun ExplorerWorkspacePageLoadingPreview() {
     val mockState = ExplorerWorkspaceViewModel.State(
@@ -189,17 +191,18 @@ fun ExplorerWorkspacePageLoadingPreview() {
         isLoading = true,
         selectedItems = emptySet()
     )
-
-    ExplorerWorkspacePage(
-        state = mockState,
-        vm = null,
-        workspaceButtonState = null,
-        onWorkspaceAction = {},
-        onNavToWorkspaceManager = {},
-    )
+    PreviewWrapper {
+        ExplorerWorkspacePage(
+            state = mockState,
+            vm = null,
+            workspaceButtonState = null,
+            onWorkspaceAction = {},
+            onNavToWorkspaceManager = {},
+        )
+    }
 }
 
-@Preview(showBackground = true)
+@Preview2
 @Composable
 fun ExplorerWorkspacePageEmptyPreview() {
     val mockState = ExplorerWorkspaceViewModel.State(
@@ -209,17 +212,18 @@ fun ExplorerWorkspacePageEmptyPreview() {
         isLoading = false,
         selectedItems = emptySet()
     )
-
-    ExplorerWorkspacePage(
-        state = mockState,
-        vm = null,
-        workspaceButtonState = null,
-        onWorkspaceAction = {},
-        onNavToWorkspaceManager = {},
-    )
+    PreviewWrapper {
+        ExplorerWorkspacePage(
+            state = mockState,
+            vm = null,
+            workspaceButtonState = null,
+            onWorkspaceAction = {},
+            onNavToWorkspaceManager = {},
+        )
+    }
 }
 
-@Preview(showBackground = true)
+@Preview2
 @Composable
 fun ExplorerWorkspacePageWithSelectionPreview() {
     val mockFileItems = MockDataProvider.createAllFileTypes()
@@ -230,14 +234,15 @@ fun ExplorerWorkspacePageWithSelectionPreview() {
         isLoading = false,
         selectedItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path)
     )
-
-    ExplorerWorkspacePage(
-        state = mockState,
-        vm = null,
-        workspaceButtonState = null,
-        onWorkspaceAction = {},
-        onNavToWorkspaceManager = {},
-    )
+    PreviewWrapper {
+        ExplorerWorkspacePage(
+            state = mockState,
+            vm = null,
+            workspaceButtonState = null,
+            onWorkspaceAction = {},
+            onNavToWorkspaceManager = {},
+        )
+    }
 }
 
 

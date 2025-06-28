@@ -11,8 +11,12 @@ interface WorkspaceRemote {
         val selectedWorkspaceId: Workspace.Id? = null,
         val isButtonActionsFlipped: Boolean = false,
     ) {
-        val count: Int
+        val workspaceCount: Int
             get() = workspaceInfos.size
+        val operationCount: Int
+            get() = workspaceInfos.sumOf { it.operationCount }
+        val attentionCount: Int
+            get() = workspaceInfos.sumOf { it.attentionCount }
     }
 
     suspend fun execute(action: WorkspaceAction)

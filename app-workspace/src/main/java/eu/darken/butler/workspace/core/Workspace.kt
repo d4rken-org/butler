@@ -27,7 +27,7 @@ interface Workspace {
             get() = id.toString()
     }
 
-   interface Arguments : Parcelable {
+    interface Arguments : Parcelable {
         val type: Type
     }
 
@@ -36,5 +36,7 @@ interface Workspace {
         val type: Type,
         val title: CaString,
         val subtitle: CaString? = null,
+        val operationCount: Int = 0,
+        val attentionCount: Int = 0,
     )
 }
