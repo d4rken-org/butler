@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
@@ -41,7 +42,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
@@ -110,9 +110,20 @@ private fun SetupCard(
     onExecuteAction: (SetupAction) -> Unit,
     onOpenHelp: () -> Unit,
 ) {
+    val cardColor = when (val state = item.state) {
+        is SetupModule.State.Current -> {
+            when {
+                state.isComplete -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
+                else -> MaterialTheme.colorScheme.surface
+            }
+        }
+        else -> MaterialTheme.colorScheme.surface
+    }
+    
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = cardColor)
     ) {
         Column(
             modifier = Modifier
@@ -173,19 +184,6 @@ private fun SetupCard(
                 item = item,
                 onExecuteAction = onExecuteAction
             )
-
-            // Hint text at the bottom
-            getHintText(item.type)?.let { hintText ->
-                Text(
-                    text = hintText,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp)
-                )
-            }
         }
     }
 }
@@ -203,19 +201,60 @@ private fun SetupStateIndicator(
             )
         }
         is SetupModule.State.Current -> {
+            // Special handling for Root/Shizuku connection status
+            val (icon, tint) = when (state.type) {
+                SetupModule.Type.ROOT -> {
+                    val rootState = state as? eu.darken.butler.setup.root.RootSetupModule.Result
+                    when {
+                        rootState?.useRoot != true -> {
+                            Icons.Default.PauseCircle to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                        }
+                        !rootState.isInstalled -> {
+                            Icons.Default.Error to MaterialTheme.colorScheme.error
+                        }
+                        rootState.ourService -> {
+                            Icons.Default.CheckCircle to MaterialTheme.colorScheme.primary
+                        }
+                        else -> {
+                            Icons.Default.Error to MaterialTheme.colorScheme.tertiary
+                        }
+                    }
+                }
+                SetupModule.Type.SHIZUKU -> {
+                    val shizukuState = state as? eu.darken.butler.setup.shizuku.ShizukuSetupModule.Result
+                    when {
+                        shizukuState?.useShizuku != true -> {
+                            Icons.Default.PauseCircle to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                        }
+                        !shizukuState.isInstalled || !shizukuState.isCompatible -> {
+                            Icons.Default.Error to MaterialTheme.colorScheme.error
+                        }
+                        shizukuState.ourService -> {
+                            Icons.Default.CheckCircle to MaterialTheme.colorScheme.primary
+                        }
+                        shizukuState.basicService -> {
+                            Icons.Default.RadioButtonUnchecked to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        }
+                        else -> {
+                            Icons.Default.Error to MaterialTheme.colorScheme.tertiary
+                        }
+                    }
+                }
+                else -> {
+                    // Default status handling for other permissions
+                    when {
+                        state.isComplete -> Icons.Default.CheckCircle to MaterialTheme.colorScheme.primary
+                        isRequired -> Icons.Default.Error to MaterialTheme.colorScheme.error
+                        else -> Icons.Default.RadioButtonUnchecked to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                    }
+                }
+            }
+            
             Icon(
-                imageVector = when {
-                    state.isComplete -> Icons.Default.CheckCircle
-                    isRequired -> Icons.Default.Error
-                    else -> Icons.Default.RadioButtonUnchecked
-                },
+                imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(24.dp),
-                tint = when {
-                    state.isComplete -> MaterialTheme.colorScheme.primary
-                    isRequired -> MaterialTheme.colorScheme.error
-                    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                }
+                tint = tint
             )
         }
     }
@@ -259,6 +298,31 @@ private fun RootShizukuActions(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Connection status for Root/Shizuku
+        val connectionStatus = when (item.type) {
+            SetupModule.Type.ROOT -> {
+                val rootState = state as? eu.darken.butler.setup.root.RootSetupModule.Result
+                when {
+                    rootState?.useRoot != true -> null
+                    !rootState.isInstalled -> stringResource(R.string.setup_status_not_installed)
+                    rootState.ourService -> stringResource(R.string.setup_status_connected)
+                    else -> stringResource(R.string.setup_status_not_connected)
+                }
+            }
+            SetupModule.Type.SHIZUKU -> {
+                val shizukuState = state as? eu.darken.butler.setup.shizuku.ShizukuSetupModule.Result
+                when {
+                    shizukuState?.useShizuku != true -> null
+                    !shizukuState.isInstalled -> stringResource(R.string.setup_status_not_installed)
+                    !shizukuState.isCompatible -> stringResource(R.string.setup_status_unavailable)
+                    shizukuState.ourService -> stringResource(R.string.setup_status_connected)
+                    shizukuState.basicService -> stringResource(R.string.setup_status_connecting)
+                    else -> stringResource(R.string.setup_status_not_connected)
+                }
+            }
+            else -> null
+        }
+
         // Status indicator and message
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -269,11 +333,21 @@ private fun RootShizukuActions(
                 isRequired = item.isRequired
             )
 
-            Text(
-                text = getStatusMessage(item.state, item.isRequired),
-                style = MaterialTheme.typography.bodyMedium,
-                color = getStatusColor(item.state, item.isRequired)
-            )
+            Column {
+                Text(
+                    text = getStatusMessage(item.state, item.isRequired),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = getStatusColor(item.state, item.isRequired)
+                )
+
+                connectionStatus?.let { status ->
+                    Text(
+                        text = status,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -415,18 +489,6 @@ private fun getStatusColor(state: SetupModule.State, isRequired: Boolean): andro
     }
 }
 
-@Composable
-private fun getHintText(type: SetupModule.Type): String? {
-    return when (type) {
-        SetupModule.Type.ROOT -> stringResource(R.string.setup_hint_root)
-        SetupModule.Type.SHIZUKU -> stringResource(R.string.setup_hint_shizuku)
-        SetupModule.Type.NOTIFICATION -> stringResource(R.string.setup_hint_notification)
-        SetupModule.Type.USAGE_STATS -> stringResource(R.string.setup_hint_usagestats)
-        SetupModule.Type.SAF -> stringResource(R.string.setup_hint_saf)
-        SetupModule.Type.STORAGE -> stringResource(R.string.setup_hint_storage)
-        SetupModule.Type.INVENTORY -> null // No hint for inventory
-    }
-}
 
 @Preview2
 @Composable

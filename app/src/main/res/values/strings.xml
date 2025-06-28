@@ -26,13 +26,13 @@
     <string name="setup_root_enable_label">Enable root access</string>
     <string name="setup_shizuku_enable_label">Enable Shizuku</string>
 
-    <string name="setup_root_description">Access system files and perform administrative tasks</string>
-    <string name="setup_shizuku_description">Alternative privileged access method using Shizuku service</string>
-    <string name="setup_notification_description">Manage notification permissions for file operations</string>
-    <string name="setup_usagestats_description">Track app usage statistics for enhanced functionality</string>
-    <string name="setup_saf_description">Access files through Android\'s Storage Access Framework</string>
-    <string name="setup_storage_description">Manage external storage permissions</string>
-    <string name="setup_inventory_description">Build inventory of installed applications</string>
+    <string name="setup_root_description">Enables access to system files and protected directories for advanced file management. Unlocks Butler\'s full potential including app data access and system modifications. Device must be rooted.</string>
+    <string name="setup_shizuku_description">Alternative to root that provides privileged file operations through a secure API. Allows access to restricted directories without traditional root. Requires Shizuku app to be installed and running.</string>
+    <string name="setup_notification_description">Shows updates for file operations, background tasks, and transfer progress. Keeps you informed when operations complete or errors occur.</string>
+    <string name="setup_usagestats_description">Analyzes app storage usage to identify large files and help manage space effectively. All data stays on your device and is never transmitted.</string>
+    <string name="setup_saf_description">Secure access to external storage, SD cards, and cloud providers. Android\'s privacy-respecting approach to file access with granular folder permissions.</string>
+    <string name="setup_storage_description">Full access to all device storage for fast file operations and batch processing. Enables comprehensive file management without repeated permission prompts.</string>
+    <string name="setup_inventory_description">See all installed apps for features like APK extraction and storage analysis. Required on Android 11+ to view complete app list.</string>
 
     <string name="setup_grant_access_label">Grant access</string>
     <string name="setup_access_granted_label">Access granted</string>
@@ -43,6 +43,11 @@
     <string name="setup_status_completed">Configured</string>
     <string name="setup_status_required">Required</string>
     <string name="setup_status_optional">Optional</string>
+    <string name="setup_status_connected">Connected</string>
+    <string name="setup_status_not_connected">Not connected</string>
+    <string name="setup_status_not_installed">Not installed</string>
+    <string name="setup_status_connecting">Connecting...</string>
+    <string name="setup_status_unavailable">Unavailable</string>
 
     <string name="setup_hint_root">Requires device to be rooted</string>
     <string name="setup_hint_shizuku">Requires Shizuku app to be installed and running</string>
