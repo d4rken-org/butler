@@ -6,13 +6,17 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
-data object DestinationSearcher : NavigationDestination
+data object DestinationSearcher : NavigationDestination {
+    private fun readResolve(): Any = DestinationSearcher
+}
 
 @Suppress("UnusedReceiverParameter")
 fun Nav.Workspaces.searcher(): NavigationDestination = DestinationSearcher
 
 @Serializable
-data object DestinationSearcherSettings : NavigationDestination
+data object DestinationSearcherSettings : NavigationDestination {
+    private fun readResolve(): Any = DestinationSearcherSettings
+}
 
 @Suppress("UnusedReceiverParameter")
 fun Nav.Settings.searcher(): NavigationDestination = DestinationSearcherSettings

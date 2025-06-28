@@ -18,4 +18,6 @@ sealed interface WorkspaceAction {
     data class Reorder(
         val workspaceIds: List<Workspace.Id>,
     ) : WorkspaceAction
+
+    data object CloseAll : WorkspaceAction
 }

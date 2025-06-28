@@ -13,7 +13,7 @@ import eu.darken.butler.editor.ui.EditorWorkspaceTemplate
 import eu.darken.butler.explorer.ui.ExplorerWorkspaceTemplate
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceTemplate
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.WorkspaceRepo
+import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.ui.WorkspaceTab
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -24,7 +24,7 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
     dispatchers: DispatcherProvider,
     navCtrl: NavigationController,
-    private val workspaceRepo: WorkspaceRepo,
+    private val workspaceRemote: WorkspaceRemote,
     private val upgradeRepo: UpgradeRepo,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Templates", id.shortTag), navCtrl) {
 
@@ -36,7 +36,7 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
         )
     )
 
-    private val workspaceTabs = workspaceRepo.state
+    private val workspaceTabs = workspaceRemote.state
         .map { repoState ->
             repoState.workspaceInfos.map { info ->
                 WorkspaceTab(

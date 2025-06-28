@@ -5,6 +5,8 @@ import eu.darken.butler.common.navigation.NavigationDestination
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object DestinationWorkspaces : NavigationDestination
+data object DestinationWorkspaces : NavigationDestination {
+    private fun readResolve(): Any = DestinationWorkspaces
+}
 
 fun Nav.Main.workspaces(): NavigationDestination = DestinationWorkspaces

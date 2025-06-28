@@ -40,18 +40,15 @@ class WorkspaceRepo @Inject constructor(
         }
     }
 
-    data class State(
-        val workspaceInfos: List<Workspace.Info> = emptyList(),
-        val selectedWorkspaceId: Workspace.Id? = null
-    )
-
-    val state: Flow<State> = combine(
+    override val state: Flow<WorkspaceRemote.State> = combine(
         infos,
-        selectedWorkspaceId
-    ) { workspaceInfos, selectedId ->
-        State(
+        selectedWorkspaceId,
+        workspaceSettings.isButtonActionsFlipped.flow
+    ) { workspaceInfos, selectedId, isButtonFlipped ->
+        WorkspaceRemote.State(
             workspaceInfos = workspaceInfos,
-            selectedWorkspaceId = selectedId
+            selectedWorkspaceId = selectedId,
+            isButtonActionsFlipped = isButtonFlipped,
         )
     }
 
@@ -102,51 +99,11 @@ class WorkspaceRepo @Inject constructor(
         return _workspaces.map { wss -> wss.singleOrNull { it.id == id } }
     }
 
-    private suspend fun delete(id: Workspace.Id) {
-        log(TAG) { "delete($id)" }
-        _workspaces.value = _workspaces.value.filter { it.id != id }
-    }
-
-    private suspend fun reorder(workspaceIds: List<Workspace.Id>) {
-        log(TAG) { "reorder($workspaceIds)" }
-        val current = _workspaces.value
-        val reordered = workspaceIds.mapNotNull { id ->
-            current.find { it.id == id }
-        }
-
-        if (reordered.size != current.size) {
-            log(TAG, ERROR) { "Reorder failed: size mismatch. Expected ${current.size}, got ${reordered.size}" }
-            return
-        }
-
-        _workspaces.value = reordered
-    }
-
-    private suspend fun selectWorkspace(id: Workspace.Id) {
-        log(TAG) { "selectWorkspace($id)" }
-        _selectedWorkspaceId.value = id
-    }
-
-    private suspend fun clearSelectedWorkspace() {
-        log(TAG) { "clearSelectedWorkspace()" }
-        _selectedWorkspaceId.value = null
-    }
-
-    override val status: Flow<WorkspaceRemote.Status> = combine(
-        _workspaces,
-        workspaceSettings.isButtonActionsFlipped.flow,
-    ) { wss, isButtonFlipped ->
-        WorkspaceRemote.Status(
-            count = wss.size,
-            isButtonActionsFlipped = isButtonFlipped,
-        )
-    }
-
     override suspend fun execute(action: WorkspaceAction) = lock.withLock {
-        log(TAG) { "execute($action)" }
+        log(TAG, INFO) { "execute($action)" }
         when (action) {
             is WorkspaceAction.Select -> {
-                log(TAG) { "Selected tab $action, previous: ${_selectedWorkspaceId.value}" }
+                log(TAG, INFO) { "Selected tab $action, previous: ${_selectedWorkspaceId.value}" }
                 if (_selectedWorkspaceId.value != action.id) {
                     _selectedWorkspaceId.value = action.id
                     log(TAG) { "Tab selection changed to: ${action.id}" }
@@ -156,7 +113,7 @@ class WorkspaceRepo @Inject constructor(
             }
 
             is WorkspaceAction.Create -> {
-                log(TAG) { "Creating new workspace with $action" }
+                log(TAG, INFO) { "Creating new workspace with $action" }
                 val newId = create(
                     type = action.type,
                     arguments = action.arguments,
@@ -167,12 +124,12 @@ class WorkspaceRepo @Inject constructor(
             }
 
             is WorkspaceAction.Close -> {
-                log(TAG) { "Closing workspace with id ${action.id}" }
+                log(TAG, INFO) { "Closing workspace with id ${action.id}" }
                 val tabsBeforeDelete = _workspaces.first()
                 val closingIndex = tabsBeforeDelete.indexOfFirst { it.id == action.id }
                 val wasSelected = _selectedWorkspaceId.value == action.id
 
-                delete(action.id)
+                _workspaces.value = _workspaces.value.filter { it.id != action.id }
                 val tabsAfterDelete = tabsBeforeDelete - tabsBeforeDelete[closingIndex]
 
                 // If closed tab wasn't selected, keep current selection unchanged
@@ -192,8 +149,24 @@ class WorkspaceRepo @Inject constructor(
                 }
             }
             is WorkspaceAction.Reorder -> {
-                log(TAG) { "Reordering workspaces: ${action.workspaceIds}" }
-                reorder(action.workspaceIds)
+                log(TAG, INFO) { "Reordering workspaces: ${action.workspaceIds}" }
+
+                val current = _workspaces.value
+                val reordered = action.workspaceIds.mapNotNull { id ->
+                    current.find { it.id == id }
+                }
+
+                if (reordered.size != current.size) {
+                    log(TAG, ERROR) { "Reorder failed: size mismatch. Expected ${current.size}, got ${reordered.size}" }
+                    return
+                }
+
+                _workspaces.value = reordered
+            }
+            WorkspaceAction.CloseAll -> {
+                log(TAG, INFO) { "Closing all workspaces" }
+                _selectedWorkspaceId.value = null
+                _workspaces.value = emptyList()
             }
         }
     }
