@@ -29,3 +29,11 @@ data object DestinationSettingsAcknowledgements : NavigationDestination {
 @Suppress("UnusedReceiverParameter")
 fun Nav.Settings.acks(): NavigationDestination = DestinationSettingsAcknowledgements
 
+@Serializable
+data object DestinationUpgradeStatus : NavigationDestination {
+    private fun readResolve(): Any = DestinationUpgradeStatus
+}
+
+@Suppress("UnusedReceiverParameter")
+fun Nav.Settings.upgradeStatus(): NavigationDestination = DestinationUpgradeStatus
+

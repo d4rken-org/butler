@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Stars
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Workspaces
 import androidx.compose.material3.Icon
@@ -151,6 +152,16 @@ fun SettingsIndexScreen(
             }
 
             item { SettingsCategoryHeader(stringResource(R.string.settings_category_other_label)) }
+
+            item {
+                SettingsBaseItem(
+                    icon = Icons.Default.Stars,
+                    title = stringResource(R.string.settings_upgrade_status_label),
+                    subtitle = stringResource(R.string.settings_upgrade_status_description),
+                    onClick = { onNavigateTo(Nav.Settings.upgradeStatus()) },
+                )
+                SettingsDivider()
+            }
 
             item {
                 SettingsBaseItem(
