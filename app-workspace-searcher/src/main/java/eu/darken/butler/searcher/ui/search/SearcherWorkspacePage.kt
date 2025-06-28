@@ -447,11 +447,11 @@ fun CustomSearchField(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             leadingIcon?.let {
-                Box(modifier = Modifier.padding(end = 12.dp)) {
+                Box(modifier = Modifier.padding(end = 8.dp)) {
                     it()
                 }
             }
@@ -463,7 +463,7 @@ fun CustomSearchField(
                     .weight(1f)
                     .focusRequester(focusRequester),
                 enabled = enabled,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(
+                textStyle = MaterialTheme.typography.bodyMedium.copy(
                     color = colors.onSurface
                 ),
                 keyboardOptions = keyboardOptions,
@@ -475,7 +475,7 @@ fun CustomSearchField(
                         if (value.isEmpty()) {
                             Text(
                                 text = placeholder,
-                                style = MaterialTheme.typography.bodyLarge,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = colors.onSurfaceVariant.copy(alpha = 0.6f)
                             )
                         }
@@ -485,7 +485,7 @@ fun CustomSearchField(
             )
             
             trailingIcon?.let {
-                Box(modifier = Modifier.padding(start = 12.dp)) {
+                Box(modifier = Modifier.padding(start = 8.dp)) {
                     it()
                 }
             }
@@ -516,14 +516,24 @@ fun SearchBar(
         trailingIcon = {
             when {
                 isSearching && onCancel != null -> {
-                    IconButton(onClick = onCancel) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = "Cancel")
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cancel",
+                        modifier = Modifier
+                            .clickable { onCancel() }
+                            .size(24.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
                 query.isNotEmpty() -> {
-                    IconButton(onClick = { onQueryChange("") }) {
-                        Icon(imageVector = Icons.Default.Clear, contentDescription = "Clear")
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Clear,
+                        contentDescription = "Clear",
+                        modifier = Modifier
+                            .clickable { onQueryChange("") }
+                            .size(24.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
                 else -> null
             }
@@ -563,11 +573,14 @@ fun SearchPathBar(
             )
         },
         trailingIcon = {
-            IconButton(
-                onClick = { showPathPicker = true }
-            ) {
-                Icon(imageVector = Icons.Default.FolderOpen, contentDescription = "Browse")
-            }
+            Icon(
+                imageVector = Icons.Default.FolderOpen,
+                contentDescription = "Browse",
+                modifier = Modifier
+                    .clickable { showPathPicker = true }
+                    .size(24.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
         enabled = !isSearching,
