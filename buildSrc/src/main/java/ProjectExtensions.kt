@@ -28,6 +28,9 @@ fun LibraryExtension.setupLibraryDefaults(projectConfig: ProjectConfig) {
     defaultConfig {
         minSdk = projectConfig.minSdk
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // For modules that depend on app-common which has flavors
+        missingDimensionStrategy("version", "foss")
     }
 }
 

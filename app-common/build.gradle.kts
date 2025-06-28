@@ -17,6 +17,17 @@ android {
 
     setupLibraryDefaults(projectConfig)
 
+    flavorDimensions.add("version")
+    productFlavors {
+        create("foss") {
+            dimension = "version"
+            isDefault = true
+        }
+        create("gplay") {
+            dimension = "version"
+        }
+    }
+
     setupModuleBuildTypes()
 
     setupCompileOptions()
@@ -56,4 +67,7 @@ dependencies {
     addNavigation3()
     addCoil()
     addLottie()
+
+    "gplayImplementation"("com.android.billingclient:billing:7.1.1")
+    "gplayImplementation"("com.android.billingclient:billing-ktx:7.1.1")
 }

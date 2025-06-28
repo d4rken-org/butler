@@ -14,9 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import eu.darken.butler.R
 import eu.darken.butler.common.ca.caString
-import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -190,7 +188,7 @@ private fun WorkspaceScreenPreview() {
             WorkspaceTab(
                 type = Workspace.Type.TEMPLATES,
                 id = Workspace.Id(),
-                title = R.string.workspace_templates_tab_title.toCaString(),
+                title = caString { "Workspace templates" },
             ),
             WorkspaceTab(
                 type = Workspace.Type.EXPLORER,
