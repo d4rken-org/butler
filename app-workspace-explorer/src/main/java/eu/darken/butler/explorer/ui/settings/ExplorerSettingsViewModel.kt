@@ -3,7 +3,8 @@ package eu.darken.butler.explorer.ui.settings
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.ui.ViewModel3
+import eu.darken.butler.common.navigation.NavigationController
+import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.explorer.core.SortSettings
 import kotlinx.coroutines.flow.combine
@@ -15,8 +16,9 @@ class ExplorerSettingsViewModel
 @Inject
 constructor(
     dispatcherProvider: DispatcherProvider,
+    navigationController: NavigationController,
     explorerSettings: ExplorerSettings,
-) : ViewModel3(dispatcherProvider, logTag("Explorer", "Settings","Screen","VM")) {
+) : ViewModel4(dispatcherProvider, logTag("Explorer", "Settings","Screen","VM"), navigationController) {
 
     val state = combine(
         explorerSettings.sortSettings.flow,
