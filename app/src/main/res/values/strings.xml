@@ -70,7 +70,7 @@
     <string name="debug_log_screen_log_files_ready">Log files ready (ZIP: %1$s)</string>
     <string name="debug_log_screen_discard_action">Discard</string>
     <string name="debug_log_file_label">Recorded log file</string>
-    
+
     <string name="settings_label">Settings</string>
     <string name="settings_category_tools_label">Tools</string>
     <string name="settings_category_other_label">Other</string>
@@ -167,25 +167,5 @@
     <string name="workspace_settings_button_behavior">Button Behavior</string>
     <string name="workspace_settings_flip_button_actions_title">Flip Button Actions</string>
     <string name="workspace_settings_flip_button_actions_desc">Normal click creates new workspace, long click opens manager</string>
-
-
-    <!-- Searcher -->
-    <string name="searcher_title">Search</string>
-    <string name="searcher_subtitle">Search for files and content</string>
-    <string name="searcher_settings_title">Searcher Settings</string>
-    <string name="searcher_settings_search_options">Search Options</string>
-    <string name="searcher_settings_case_sensitive_title">Case Sensitive</string>
-    <string name="searcher_settings_case_sensitive_subtitle">Match exact case when searching</string>
-    <string name="searcher_settings_whole_word_title">Whole Word</string>
-    <string name="searcher_settings_whole_word_subtitle">Match whole words only</string>
-    <string name="searcher_settings_regex_title">Use Regular Expressions</string>
-    <string name="searcher_settings_regex_subtitle">Enable regex pattern matching</string>
-    <string name="searcher_settings_history">History</string>
-    <string name="searcher_settings_save_history_title">Save Search History</string>
-    <string name="searcher_settings_save_history_subtitle">Remember recent searches</string>
-    <string name="searcher_settings_max_history_title">Maximum History Items</string>
-    <string name="searcher_settings_max_history_subtitle">Number of recent searches to remember</string>
-    <string name="searcher_settings_clear_history_title">Clear Search History</string>
-    <string name="searcher_settings_clear_history_subtitle">Remove all saved searches</string>
 
 </resources>

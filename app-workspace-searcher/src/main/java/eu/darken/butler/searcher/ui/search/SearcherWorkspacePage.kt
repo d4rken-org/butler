@@ -3,7 +3,10 @@ package eu.darken.butler.searcher.ui.search
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +23,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -36,6 +40,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -48,6 +53,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -302,34 +310,40 @@ fun SearcherWorkspacePage(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             ) {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top
                     ) {
                         SearchBar(
                             query = state.searchQuery,
                             onQueryChange = onUpdateQuery,
                             onSearch = onPerformSearch,
                             isSearching = state.isSearching,
-                            onCancel = if (state.isSearching) onCancelSearch else null
+                            onCancel = if (state.isSearching) onCancelSearch else null,
+                            modifier = Modifier.weight(1f)
                         )
 
-                        SearchPathBar(
-                            path = state.searchPath,
-                            onPathChange = onUpdateSearchPath,
-                            isSearching = state.isSearching
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        WorkspaceButton(
+                            state = workspaceButtonState,
+                            onAction = onWorkspaceAction,
+                            onNavToWorkspaceManager = onNavToWorkspaceManager,
                         )
                     }
 
-                    // Spacer for workspace button
-                    Spacer(modifier = Modifier.size(48.dp))
+                    SearchPathBar(
+                        path = state.searchPath,
+                        onPathChange = onUpdateSearchPath,
+                        isSearching = state.isSearching
+                    )
                 }
             }
         }
@@ -357,16 +371,6 @@ fun SearcherWorkspacePage(
                 }
             }
         }
-
-        WorkspaceButton(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(16.dp)
-                .statusBarsPadding(),
-            state = workspaceButtonState,
-            onAction = onWorkspaceAction,
-            onNavToWorkspaceManager = onNavToWorkspaceManager,
-        )
     }
 }
 
@@ -410,6 +414,86 @@ fun SearchInputCard(
 }
 
 @Composable
+fun CustomSearchField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    leadingIcon: @Composable (() -> Unit)? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    enabled: Boolean = true,
+    isError: Boolean = false,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    modifier: Modifier = Modifier
+) {
+    val colors = MaterialTheme.colorScheme
+    val focusRequester = remember { FocusRequester() }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        color = colors.surfaceVariant.copy(alpha = if (isFocused) 0.9f else 0.7f),
+        border = BorderStroke(
+            width = if (isFocused) 2.dp else 0.dp,
+            color = when {
+                isError -> colors.error
+                isFocused -> colors.primary
+                else -> Color.Transparent
+            }
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            leadingIcon?.let {
+                Box(modifier = Modifier.padding(end = 8.dp)) {
+                    it()
+                }
+            }
+            
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(focusRequester),
+                enabled = enabled,
+                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                    color = colors.onSurface
+                ),
+                keyboardOptions = keyboardOptions,
+                keyboardActions = keyboardActions,
+                singleLine = true,
+                interactionSource = interactionSource,
+                decorationBox = { innerTextField ->
+                    Box {
+                        if (value.isEmpty()) {
+                            Text(
+                                text = placeholder,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = colors.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
+                        }
+                        innerTextField()
+                    }
+                }
+            )
+            
+            trailingIcon?.let {
+                Box(modifier = Modifier.padding(start = 8.dp)) {
+                    it()
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun SearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
@@ -418,31 +502,45 @@ fun SearchBar(
     onCancel: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    OutlinedTextField(
+    CustomSearchField(
         value = query,
         onValueChange = onQueryChange,
-        placeholder = { Text(text = "Search files and folders") },
+        placeholder = "Search files and folders",
         leadingIcon = {
-            Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = "Search",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         },
         trailingIcon = {
             when {
                 isSearching && onCancel != null -> {
-                    IconButton(onClick = onCancel) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = "Cancel")
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cancel",
+                        modifier = Modifier
+                            .clickable { onCancel() }
+                            .size(24.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
                 query.isNotEmpty() -> {
-                    IconButton(onClick = { onQueryChange("") }) {
-                        Icon(imageVector = Icons.Default.Clear, contentDescription = "Clear")
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Clear,
+                        contentDescription = "Clear",
+                        modifier = Modifier
+                            .clickable { onQueryChange("") }
+                            .size(24.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
+                else -> null
             }
         },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(onSearch = { onSearch() }),
-        singleLine = true,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
     )
 }
 
@@ -456,7 +554,7 @@ fun SearchPathBar(
     var pathText by remember(path) { mutableStateOf(path.path) }
     var showPathPicker by remember { mutableStateOf(false) }
 
-    OutlinedTextField(
+    CustomSearchField(
         value = pathText,
         onValueChange = { newPath ->
             pathText = newPath
@@ -466,21 +564,27 @@ fun SearchPathBar(
                 // Invalid path, don't update
             }
         },
-        placeholder = { Text(text = "Search path (e.g., /sdcard)") },
+        placeholder = "Search path (e.g., /sdcard)",
         leadingIcon = {
-            Icon(imageVector = Icons.Default.Folder, contentDescription = "Search Path")
+            Icon(
+                imageVector = Icons.Default.Folder,
+                contentDescription = "Search Path",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         },
         trailingIcon = {
-            IconButton(
-                onClick = { showPathPicker = true }
-            ) {
-                Icon(imageVector = Icons.Default.FolderOpen, contentDescription = "Browse")
-            }
+            Icon(
+                imageVector = Icons.Default.FolderOpen,
+                contentDescription = "Browse",
+                modifier = Modifier
+                    .clickable { showPathPicker = true }
+                    .size(24.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-        singleLine = true,
         enabled = !isSearching,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
     )
 
     if (showPathPicker) {
