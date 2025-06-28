@@ -21,10 +21,10 @@ class WorkspaceButtonViewModel @Inject constructor(
 
     val state = workspaceRemote.state.map {
         State(
-            workspaceCount = it.count,
+            workspaceCount = it.workspaceCount,
             isButtonFlipped = it.isButtonActionsFlipped,
-            operationsCount = 3, // TODO: Mock value, replace with actual implementation
-            attentionCount = 2, // TODO: Mock value, replace with actual implementation
+            operationsCount = it.operationCount,
+            attentionCount = it.attentionCount,
         )
     }.asStateFlow()
 

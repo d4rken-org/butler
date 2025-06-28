@@ -28,9 +28,16 @@ class WorkspaceSettings @Inject constructor(
 
     val isButtonActionsFlipped = dataStore.createValue("workspace.manager.action.flipped", false)
 
+    val showBadgeExplanation = dataStore.createValue("workspace.manager.show.badge.explanation", true)
+
+    val showButtonBehaviorExplanation =
+        dataStore.createValue("workspace.manager.show.button.behavior.explanation", true)
+
     override val mapper = PreferenceStoreMapper(
         debugSettings.isDebugMode,
         isButtonActionsFlipped,
+        showBadgeExplanation,
+        showButtonBehaviorExplanation,
     )
 
     companion object {

@@ -102,6 +102,8 @@ Butler uses a workspace concept similar to browser tabs with 4 main workspace ty
 - Use FOSS debug flavor for local testing
 - Place compose previews below the item being previewed
 - Don't add comments to code
+- When creating compose previews, use the `@Preview2` annotation, and wrap the UI element in a `PreviewWrapper`
+- When using `if` that is not single-line, always use brackets
 
 ### Project Structure
 

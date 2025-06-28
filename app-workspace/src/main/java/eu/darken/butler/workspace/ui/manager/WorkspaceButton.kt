@@ -3,7 +3,9 @@ package eu.darken.butler.workspace.ui.manager
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -24,6 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.WorkspaceAction
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -150,6 +154,77 @@ fun WorkspaceButton(
                         .padding(bottom = 1.dp)
                 )
             }
+        }
+    }
+}
+
+@Preview2
+@Composable
+private fun WorkspaceButtonPreview() {
+    PreviewWrapper {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(16.dp)
+        ) {
+            // No workspaces
+            WorkspaceButton(
+                state = WorkspaceButtonViewModel.State(
+                    workspaceCount = 0,
+                    isButtonFlipped = false,
+                    operationsCount = 0,
+                    attentionCount = 0
+                ),
+                onAction = {},
+                onNavToWorkspaceManager = {}
+            )
+
+            // Single workspace
+            WorkspaceButton(
+                state = WorkspaceButtonViewModel.State(
+                    workspaceCount = 1,
+                    isButtonFlipped = false,
+                    operationsCount = 0,
+                    attentionCount = 0
+                ),
+                onAction = {},
+                onNavToWorkspaceManager = {}
+            )
+
+            // Multiple workspaces with operations
+            WorkspaceButton(
+                state = WorkspaceButtonViewModel.State(
+                    workspaceCount = 3,
+                    isButtonFlipped = false,
+                    operationsCount = 2,
+                    attentionCount = 0
+                ),
+                onAction = {},
+                onNavToWorkspaceManager = {}
+            )
+
+            // All badges active
+            WorkspaceButton(
+                state = WorkspaceButtonViewModel.State(
+                    workspaceCount = 5,
+                    isButtonFlipped = false,
+                    operationsCount = 7,
+                    attentionCount = 1
+                ),
+                onAction = {},
+                onNavToWorkspaceManager = {}
+            )
+
+            // Max badge values
+            WorkspaceButton(
+                state = WorkspaceButtonViewModel.State(
+                    workspaceCount = 12,
+                    isButtonFlipped = true,
+                    operationsCount = 15,
+                    attentionCount = 10
+                ),
+                onAction = {},
+                onNavToWorkspaceManager = {}
+            )
         }
     }
 }
