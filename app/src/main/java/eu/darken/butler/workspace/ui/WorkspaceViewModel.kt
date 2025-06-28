@@ -10,8 +10,8 @@ import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.common.upgrade.UpgradeRepo
 import eu.darken.butler.templates.ui.WorkspaceTab
+import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRepo

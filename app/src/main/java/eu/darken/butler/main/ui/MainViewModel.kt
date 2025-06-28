@@ -9,8 +9,8 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.common.upgrade.UpgradeRepo
 import eu.darken.butler.main.core.GeneralSettings
+import eu.darken.butler.upgrade.UpgradeRepo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first

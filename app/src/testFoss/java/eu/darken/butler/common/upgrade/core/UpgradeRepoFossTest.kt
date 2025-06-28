@@ -1,6 +1,7 @@
 package eu.darken.butler.common.upgrade.core
 
-import eu.darken.butler.common.upgrade.UpgradeRepo
+import eu.darken.butler.upgrade.UpgradeRepo
+import eu.darken.butler.upgrade.core.UpgradeRepoFoss
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
