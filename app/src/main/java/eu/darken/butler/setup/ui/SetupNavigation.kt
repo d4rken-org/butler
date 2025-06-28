@@ -8,8 +8,8 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
+import eu.darken.butler.common.navigation.DestinationSetup
 import eu.darken.butler.common.navigation.NavigationEntry
-import eu.darken.butler.main.ui.DestinationSetup
 import javax.inject.Inject
 
 class SetupNavigation @Inject constructor() : NavigationEntry {

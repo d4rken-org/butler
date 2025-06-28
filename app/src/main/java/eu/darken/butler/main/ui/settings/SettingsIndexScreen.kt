@@ -33,13 +33,13 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationDestination
+import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.settings.SettingsBaseItem
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.editor.ui.editor
 import eu.darken.butler.explorer.ui.explorer
-import eu.darken.butler.main.ui.destSetup
 import eu.darken.butler.searcher.ui.searcher
 
 @Composable

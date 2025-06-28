@@ -1,7 +1,5 @@
-package eu.darken.butler.main.ui
+package eu.darken.butler.common.navigation
 
-import eu.darken.butler.common.navigation.Nav
-import eu.darken.butler.common.navigation.NavigationDestination
 import kotlinx.serialization.Serializable
 
 
