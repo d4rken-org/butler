@@ -65,8 +65,6 @@
     <string name="debug_log_screen_log_files_ready">Log files ready (ZIP: %1$s)</string>
     <string name="debug_log_screen_discard_action">Discard</string>
     <string name="debug_log_file_label">Recorded log file</string>
-
-    <string name="butler_mascot_description">Butler mascot</string>
     
     <string name="settings_label">Settings</string>
     <string name="settings_category_tools_label">Tools</string>
@@ -146,10 +144,6 @@
 
     <string name="workspace_settings_action">Open settings</string>
     <string name="workspace_settings_hint">Customize Butler to your liking. Adjust how the tools behave.</string>
-
-    <string name="workspace_templates_tab_title">New</string>
-    <string name="workspace_templates_choose_title">New workspace</string>
-    <string name="workspace_templates_choose_subtitle">Select a workspace type. How can I help?</string>
 
     <string name="workspace_settings_title">Workspace Settings</string>
     <string name="workspace_settings_button_behavior">Button Behavior</string>

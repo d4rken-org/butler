@@ -9,7 +9,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -18,7 +17,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
-
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -31,10 +29,11 @@ import eu.darken.butler.editor.ui.EditorWorkspacePageHost
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspacePageHost
 import eu.darken.butler.main.ui.settings
 import eu.darken.butler.searcher.ui.search.SearcherWorkspacePageHost
+import eu.darken.butler.templates.ui.TemplatesWorkspacePageHost
+import eu.darken.butler.templates.ui.WorkspaceTab
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.empty.EmptyWorkspaceContent
-import eu.darken.butler.workspace.ui.template.TemplatesWorkspacePageHost
 
 private val TAG = logTag("Workspace", "Screen")
 

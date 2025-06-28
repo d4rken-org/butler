@@ -8,7 +8,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import eu.darken.butler.R
+import eu.darken.butler.common.R
 
 @Composable
 fun ButlerIcon(

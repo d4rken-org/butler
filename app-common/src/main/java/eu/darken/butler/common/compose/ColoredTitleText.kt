@@ -5,12 +5,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
-import eu.darken.butler.R
 
 @Composable
 fun ColoredTitleText(
@@ -19,9 +17,8 @@ fun ColoredTitleText(
     modifier: Modifier = Modifier,
     style: TextStyle = MaterialTheme.typography.headlineSmall,
     baseColor: Color = MaterialTheme.colorScheme.primary,
-    postfixColorRes: Int = R.color.colorUpgraded
+    postfixColor: Color = MaterialTheme.colorScheme.tertiary
 ) {
-    val postfixColor = colorResource(postfixColorRes)
 
     val annotatedString = buildAnnotatedString {
         val baseTitle = fullTitle.substringBeforeLast(postfix).trimEnd()

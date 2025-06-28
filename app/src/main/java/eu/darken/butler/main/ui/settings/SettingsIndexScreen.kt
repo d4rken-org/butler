@@ -41,7 +41,6 @@ import eu.darken.butler.editor.ui.editor
 import eu.darken.butler.explorer.ui.explorer
 import eu.darken.butler.main.ui.destSetup
 import eu.darken.butler.searcher.ui.searcher
-import eu.darken.butler.workspace.ui.settings.workspaces
 
 @Composable
 fun SettingsIndexScreenHost(vm: SettingsViewModel = hiltViewModel()) {

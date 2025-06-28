@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui.template
+package eu.darken.butler.templates.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -49,7 +49,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import eu.darken.butler.R
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.Slogans
 import eu.darken.butler.common.ca.caString
@@ -65,13 +64,13 @@ import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.editor.ui.EditorWorkspaceTemplate
 import eu.darken.butler.explorer.ui.ExplorerWorkspaceTemplate
-import eu.darken.butler.main.ui.settings
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceTemplate
+import eu.darken.butler.templates.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
-import eu.darken.butler.workspace.ui.WorkspaceTab
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
+import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
 
 @Composable
 fun TemplatesWorkspacePageHost(
@@ -216,8 +215,8 @@ fun TemplatesWorkspacePage(
                         Column(modifier = Modifier.weight(1f)) {
                             if (state.isUpgraded) {
                                 ColoredTitleText(
-                                    fullTitle = stringResource(R.string.app_name_upgraded),
-                                    postfix = stringResource(R.string.app_name_upgrade_postfix),
+                                    fullTitle = stringResource(eu.darken.butler.common.R.string.app_name_upgraded),
+                                    postfix = stringResource(eu.darken.butler.common.R.string.app_name_upgrade_postfix),
                                     style = MaterialTheme.typography.titleMedium,
                                 )
                             } else {

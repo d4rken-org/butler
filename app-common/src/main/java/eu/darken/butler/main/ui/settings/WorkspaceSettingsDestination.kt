@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui.settings
+package eu.darken.butler.main.ui.settings
 
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationDestination

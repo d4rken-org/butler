@@ -19,7 +19,6 @@ import eu.darken.butler.main.ui.settings.general.GeneralSettingsScreenHost
 import eu.darken.butler.main.ui.settings.support.SupportScreenHost
 import eu.darken.butler.searcher.ui.DestinationSearcherSettings
 import eu.darken.butler.searcher.ui.settings.SearcherSettingsScreenHost
-import eu.darken.butler.workspace.ui.settings.DestinationWorkspaceSettings
 import eu.darken.butler.workspace.ui.settings.WorkspaceSettingsScreenHost
 import javax.inject.Inject
 

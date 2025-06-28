@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui
+package eu.darken.butler.templates.ui
 
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.workspace.core.Workspace

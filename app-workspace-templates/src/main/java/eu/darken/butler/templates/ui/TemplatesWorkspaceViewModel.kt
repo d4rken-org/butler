@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui.template
+package eu.darken.butler.templates.ui
 
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -14,7 +14,7 @@ import eu.darken.butler.explorer.ui.ExplorerWorkspaceTemplate
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceTemplate
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceRemote
-import eu.darken.butler.workspace.ui.WorkspaceTab
+import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map

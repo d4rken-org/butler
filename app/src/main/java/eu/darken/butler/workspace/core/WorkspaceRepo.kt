@@ -6,6 +6,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.searcher.core.SearcherWorkspace
+import eu.darken.butler.templates.core.TemplatesWorkspace
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine

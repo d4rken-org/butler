@@ -1,14 +1,15 @@
-package eu.darken.butler.workspace.core
+package eu.darken.butler.templates.core
 
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import eu.darken.butler.R
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.templates.R
+import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.parcelize.Parcelize
 
