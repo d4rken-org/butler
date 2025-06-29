@@ -4,10 +4,13 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,10 +22,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.BugReport
@@ -44,7 +46,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -92,55 +96,96 @@ private fun RecorderScreen(
     onPrivacyPolicyClick: () -> Unit
 ) {
     val context = LocalContext.current
-    val scrollState = rememberScrollState()
+    val listState = rememberLazyListState()
+
+    // Detect if user is scrolling down
+    val isScrollingDown = remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0
+        }
+    }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        bottomBar = {
+            AnimatedVisibility(
+                visible = !isScrollingDown.value,
+                enter = slideInVertically(initialOffsetY = { it }),
+                exit = slideOutVertically(targetOffsetY = { it })
+            ) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 8.dp
+                ) {
+                    ActionButtons(
+                        loading = state.loading,
+                        onCancelClick = onCancelClick,
+                        onShareClick = onShareClick,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
+        }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp, vertical = 16.dp)
+                .padding(paddingValues),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp)
         ) {
-
-            HeroSection()
-            
-            Spacer(modifier = Modifier.height(16.dp))
-
-            WarningCard(onPrivacyPolicyClick = onPrivacyPolicyClick)
-            
-            Spacer(modifier = Modifier.height(16.dp))
-
-            SessionInfoCard(logDir = state.logDir)
-            
-            Spacer(modifier = Modifier.height(16.dp))
-
-            LogFilesSection(
-                logEntries = state.logEntries,
-                modifier = Modifier.weight(1f)
-            )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-
-            AnimatedVisibility(
-                visible = !state.loading,
-                enter = fadeIn(animationSpec = tween(300)),
-                exit = fadeOut(animationSpec = tween(300))
-            ) {
-                StatusCard(
-                    formattedSize = state.getFormattedCompressedSize(context) ?: ""
-                )
+            item {
+                HeroSection()
             }
-            
-            Spacer(modifier = Modifier.height(16.dp))
 
-            ActionButtons(
-                loading = state.loading,
-                onCancelClick = onCancelClick,
-                onShareClick = onShareClick
-            )
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            item {
+                WarningCard(onPrivacyPolicyClick = onPrivacyPolicyClick)
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            item {
+                SessionInfoCard(logDir = state.logDir)
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            item {
+                AnimatedVisibility(
+                    visible = !state.loading,
+                    enter = fadeIn(animationSpec = tween(300)),
+                    exit = fadeOut(animationSpec = tween(300))
+                ) {
+                    LogFilesHeader(
+                        logEntries = state.logEntries,
+                        formattedSize = state.getFormattedCompressedSize(context) ?: ""
+                    )
+                }
+            }
+
+            itemsIndexed(state.logEntries) { index, logFile ->
+                LogFileItem(logFile = logFile)
+
+                if (index < state.logEntries.size - 1) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    )
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(80.dp))
+            }
         }
     }
 }
@@ -173,9 +218,9 @@ private fun HeroSection() {
                 modifier = Modifier.size(24.dp)
             )
         }
-        
+
         Spacer(modifier = Modifier.height(12.dp))
-        
+
         Text(
             text = stringResource(R.string.debug_log_screen_title),
             style = MaterialTheme.typography.headlineMedium.copy(
@@ -184,9 +229,9 @@ private fun HeroSection() {
             color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center
         )
-        
+
         Spacer(modifier = Modifier.height(4.dp))
-        
+
         Text(
             text = "Export debug information for troubleshooting",
             style = MaterialTheme.typography.bodyMedium,
@@ -205,9 +250,11 @@ private fun WarningCard(onPrivacyPolicyClick: () -> Unit) {
         ),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, top = 16.dp, end = 16.dp),
                 verticalAlignment = Alignment.Top
             ) {
                 Icon(
@@ -216,9 +263,9 @@ private fun WarningCard(onPrivacyPolicyClick: () -> Unit) {
                     tint = MaterialTheme.colorScheme.onSecondaryContainer,
                     modifier = Modifier.size(20.dp)
                 )
-                
+
                 Spacer(modifier = Modifier.width(12.dp))
-                
+
                 Text(
                     text = "Sensitive Information",
                     style = MaterialTheme.typography.titleMedium.copy(
@@ -228,23 +275,25 @@ private fun WarningCard(onPrivacyPolicyClick: () -> Unit) {
                     modifier = Modifier.weight(1f)
                 )
             }
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             Text(
                 text = stringResource(R.string.debug_log_screen_sensitive_information_message),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 lineHeight = MaterialTheme.typography.bodyMedium.lineHeight,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
             )
 
             TextButton(
                 onClick = onPrivacyPolicyClick,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .wrapContentWidth(Alignment.End)
-                    .padding(top = 8.dp),
+                    .wrapContentWidth(Alignment.CenterHorizontally)
+                    .padding(bottom = 8.dp),
                 colors = ButtonDefaults.textButtonColors(
                     contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                 )
@@ -280,9 +329,9 @@ private fun SessionInfoCard(logDir: File) {
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
                 )
-                
+
                 Spacer(modifier = Modifier.width(12.dp))
-                
+
                 Text(
                     text = stringResource(R.string.debug_log_screen_session_path_label),
                     style = MaterialTheme.typography.titleMedium.copy(
@@ -316,60 +365,61 @@ private fun SessionInfoCard(logDir: File) {
 }
 
 @Composable
-private fun LogFilesSection(
+private fun LogFilesHeader(
     logEntries: List<RecorderViewModel.LogFileItem>,
-    modifier: Modifier = Modifier
+    formattedSize: String
 ) {
     ElevatedCard(
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
     ) {
-        Column {
-            // Header
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.debug_log_screen_log_files_label),
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.SemiBold
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-                
-                Spacer(modifier = Modifier.width(16.dp))
-                
-                Column {
-                    Text(
-                        text = stringResource(R.string.debug_log_screen_log_files_label),
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.SemiBold
-                        ),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    
-                    Text(
-                        text = "${logEntries.size} files ready for export",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+
+                Text(
+                    text = stringResource(
+                        R.string.debug_log_screen_log_files_ready,
+                        formattedSize
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
-            LazyColumn {
-                itemsIndexed(logEntries) { index, logFile ->
-                    LogFileItem(logFile = logFile)
-
-                    if (index < logEntries.size - 1) {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                        )
-                    }
-                }
+            Surface(
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = "${logEntries.size}",
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                )
             }
         }
     }
@@ -399,9 +449,9 @@ private fun LogFileItem(logFile: RecorderViewModel.LogFileItem) {
                 modifier = Modifier.size(20.dp)
             )
         }
-        
+
         Spacer(modifier = Modifier.width(16.dp))
-        
+
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = logFile.path.name,
@@ -444,40 +494,16 @@ private fun LogFileItem(logFile: RecorderViewModel.LogFileItem) {
     }
 }
 
-@Composable
-private fun StatusCard(formattedSize: String) {
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer
-        ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
-    ) {
-        Text(
-            text = stringResource(
-                R.string.debug_log_screen_log_files_ready,
-                formattedSize
-            ),
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontWeight = FontWeight.Medium
-            ),
-            color = MaterialTheme.colorScheme.onTertiaryContainer,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        )
-    }
-}
 
 @Composable
 private fun ActionButtons(
     loading: Boolean,
     onCancelClick: () -> Unit,
-    onShareClick: () -> Unit
+    onShareClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         OutlinedButton(
