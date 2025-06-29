@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.manager
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -26,19 +27,15 @@ import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.BottomAppBarDefaults
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -55,10 +52,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
@@ -104,7 +105,7 @@ fun WorkspaceManagerScreenHost(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun WorkspaceManagerScreen(
     state: WorkspaceManagerViewModel.State,
@@ -127,14 +128,31 @@ fun WorkspaceManagerScreen(
     var showCloseAllDialog by remember { mutableStateOf(false) }
     var showDropdown by remember { mutableStateOf(false) }
 
-    val topScrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-    val bottomScrollBehavior = BottomAppBarDefaults.exitAlwaysScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    LocalHapticFeedback.current
+
+    // FAB scroll offset
+    var fabOffsetY by remember { mutableStateOf(0f) }
+    val fabNestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (available.y < 0) {
+                    // Scrolling up - hide FAB
+                    fabOffsetY = (fabOffsetY + available.y).coerceAtLeast(-200f)
+                } else if (available.y > 0) {
+                    // Scrolling down - show FAB
+                    fabOffsetY = (fabOffsetY + available.y).coerceAtMost(0f)
+                }
+                return Offset.Zero
+            }
+        }
+    }
 
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .nestedScroll(topScrollBehavior.nestedScrollConnection)
-            .nestedScroll(bottomScrollBehavior.nestedScrollConnection),
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
+            .nestedScroll(fabNestedScrollConnection),
         topBar = {
             TopAppBar(
                 title = {
@@ -168,108 +186,95 @@ fun WorkspaceManagerScreen(
                         )
                     }
                 },
-                scrollBehavior = topScrollBehavior
+                scrollBehavior = scrollBehavior
             )
         },
-        bottomBar = {
+        floatingActionButton = {
             if (workspaceItems.isNotEmpty()) {
-                BottomAppBar(
-                    scrollBehavior = bottomScrollBehavior,
-                    containerColor = MaterialTheme.colorScheme.surface,
+                Box(
+                    modifier = Modifier.graphicsLayer {
+                        translationY = fabOffsetY
+                    }
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    ExtendedFloatingActionButton(
+                        onClick = { showDropdown = true },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.TwoTone.Add,
+                                contentDescription = null
+                            )
+                        },
+                        text = { Text("Add Workspace") }
+                    )
+
+                    DropdownMenu(
+                        expanded = showDropdown,
+                        onDismissRequest = { showDropdown = false }
                     ) {
-                        // Close All button first (only visible when there are multiple workspaces)
+                        DropdownMenuItem(
+                            text = { Text("Explorer") },
+                            onClick = {
+                                onCreateWorkspace(Workspace.Type.EXPLORER)
+                                showDropdown = false
+                            },
+                            leadingIcon = {
+                                Icon(Icons.TwoTone.Folder, contentDescription = null)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Search") },
+                            onClick = {
+                                onCreateWorkspace(Workspace.Type.SEARCHER)
+                                showDropdown = false
+                            },
+                            leadingIcon = {
+                                Icon(Icons.TwoTone.Search, contentDescription = null)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Editor") },
+                            onClick = {
+                                onCreateWorkspace(Workspace.Type.EDITOR)
+                                showDropdown = false
+                            },
+                            leadingIcon = {
+                                Icon(Icons.TwoTone.Edit, contentDescription = null)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Templates") },
+                            onClick = {
+                                onCreateWorkspace(Workspace.Type.TEMPLATES)
+                                showDropdown = false
+                            },
+                            leadingIcon = {
+                                Icon(Icons.TwoTone.Workspaces, contentDescription = null)
+                            }
+                        )
                         if (state.workspaceCount > 1) {
-                            OutlinedButton(
-                                onClick = { showCloseAllDialog = true },
-                                modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    contentColor = MaterialTheme.colorScheme.error
-                                )
-                            ) {
-                                Icon(
-                                    imageVector = Icons.TwoTone.Close,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Text(
-                                    text = "Close All",
-                                    modifier = Modifier.padding(start = 8.dp)
-                                )
-                            }
-                        }
-
-                        // Add button with dropdown
-                        Box(modifier = Modifier.weight(1f)) {
-                            FilledTonalButton(
-                                onClick = { showDropdown = true },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(
-                                    imageVector = Icons.TwoTone.Add,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Text(
-                                    text = "Add",
-                                    modifier = Modifier.padding(start = 8.dp)
+                            androidx.compose.material3.HorizontalDivider()
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        "Close All Workspaces",
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                },
+                                onClick = {
+                                    showDropdown = false
+                                    showCloseAllDialog = true
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.TwoTone.Close,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error
                                 )
                             }
-
-                            DropdownMenu(
-                                expanded = showDropdown,
-                                onDismissRequest = { showDropdown = false }
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text("Explorer") },
-                                    onClick = {
-                                        onCreateWorkspace(Workspace.Type.EXPLORER)
-                                        showDropdown = false
-                                    },
-                                    leadingIcon = {
-                                        Icon(Icons.TwoTone.Folder, contentDescription = null)
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Search") },
-                                    onClick = {
-                                        onCreateWorkspace(Workspace.Type.SEARCHER)
-                                        showDropdown = false
-                                    },
-                                    leadingIcon = {
-                                        Icon(Icons.TwoTone.Search, contentDescription = null)
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Editor") },
-                                    onClick = {
-                                        onCreateWorkspace(Workspace.Type.EDITOR)
-                                        showDropdown = false
-                                    },
-                                    leadingIcon = {
-                                        Icon(Icons.TwoTone.Edit, contentDescription = null)
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Templates") },
-                                    onClick = {
-                                        onCreateWorkspace(Workspace.Type.TEMPLATES)
-                                        showDropdown = false
-                                    },
-                                    leadingIcon = {
-                                        Icon(Icons.TwoTone.Workspaces, contentDescription = null)
-                                    }
-                                )
-                            }
-                        }
+                            )
                     }
                 }
+            }
             }
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -430,61 +435,61 @@ fun WorkspaceManagerScreen(
                     }
                 }
 
-                    itemsIndexed(
-                        items = workspaceItems,
-                        key = { _, workspace -> workspace.id.toString() }
-                    ) { index, workspace ->
+                itemsIndexed(
+                    items = workspaceItems,
+                    key = { _, workspace -> workspace.id.toString() }
+                ) { index, workspace ->
+                    Box(
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    ) {
+                        DraggableWorkspaceListItem(
+                            workspace = workspace,
+                            onClose = { onCloseWorkspace(workspace.id) },
+                            onSelect = { onSelectWorkspace(workspace.id) },
+                            onDragEnd = { fromIndex, toIndex ->
+                                if (fromIndex != toIndex) {
+                                    val newList = workspaceItems.toMutableList()
+                                    val movedItem = newList.removeAt(fromIndex)
+                                    newList.add(toIndex, movedItem)
+                                    workspaceItems = newList
+                                    onReorderWorkspaces(newList.map { it.id })
+                                }
+                            },
+                            index = index
+                        )
+                    }
+                }
+
+                // Button behavior explanation card
+                if (state.showButtonBehaviorExplanation) {
+                    item(key = "button_behavior_explanation") {
                         Box(
                             modifier = Modifier.padding(horizontal = 16.dp)
                         ) {
-                            DraggableWorkspaceListItem(
-                                workspace = workspace,
-                                onClose = { onCloseWorkspace(workspace.id) },
-                                onSelect = { onSelectWorkspace(workspace.id) },
-                                onDragEnd = { fromIndex, toIndex ->
-                                    if (fromIndex != toIndex) {
-                                        val newList = workspaceItems.toMutableList()
-                                        val movedItem = newList.removeAt(fromIndex)
-                                        newList.add(toIndex, movedItem)
-                                        workspaceItems = newList
-                                        onReorderWorkspaces(newList.map { it.id })
-                                    }
-                                },
-                                index = index
+                            WorkspaceButtonBehaviorCard(
+                                isButtonFlipped = state.isButtonFlipped,
+                                onToggleFlipped = { onToggleButtonFlipped() },
+                                onDismiss = onDismissButtonBehaviorExplanation
                             )
                         }
                     }
+                }
 
-                    // Button behavior explanation card
-                    if (state.showButtonBehaviorExplanation) {
-                        item(key = "button_behavior_explanation") {
-                            Box(
-                                modifier = Modifier.padding(horizontal = 16.dp)
-                            ) {
-                                WorkspaceButtonBehaviorCard(
-                                    isButtonFlipped = state.isButtonFlipped,
-                                    onToggleFlipped = { onToggleButtonFlipped() },
-                                    onDismiss = onDismissButtonBehaviorExplanation
-                                )
-                            }
-                        }
-                    }
-
-                    // Badge explanation card
-                    if (state.showBadgeExplanation) {
-                        item(key = "badge_explanation") {
-                            Box(
-                                modifier = Modifier.padding(horizontal = 16.dp)
-                            ) {
-                                WorkspaceBadgeExplanationCard(
-                                    onDismiss = onDismissBadgeExplanation
-                                )
-                            }
+                // Badge explanation card
+                if (state.showBadgeExplanation) {
+                    item(key = "badge_explanation") {
+                        Box(
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        ) {
+                            WorkspaceBadgeExplanationCard(
+                                onDismiss = onDismissBadgeExplanation
+                            )
                         }
                     }
                 }
             }
         }
+    }
 
     // Close all confirmation dialog
     if (showCloseAllDialog) {
@@ -513,7 +518,7 @@ fun WorkspaceManagerScreen(
             }
         )
     }
-    }
+}
 
 @Composable
 private fun DraggableWorkspaceListItem(
