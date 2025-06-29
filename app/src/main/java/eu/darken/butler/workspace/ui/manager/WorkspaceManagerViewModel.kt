@@ -40,7 +40,6 @@ class WorkspaceManagerViewModel @Inject constructor(
                     subtitle = getSubtitleForWorkspace(info.type),
                 )
             },
-            workspaceCount = repoState.workspaceInfos.size,
             isButtonFlipped = isFlipped,
             showBadgeExplanation = showBadge,
             showButtonBehaviorExplanation = showBehavior,
@@ -107,13 +106,14 @@ class WorkspaceManagerViewModel @Inject constructor(
 
     data class State(
         val workspaces: List<WorkspaceItem> = emptyList(),
-        val workspaceCount: Int = 0,
         val isButtonFlipped: Boolean = false,
         val showBadgeExplanation: Boolean = true,
         val showButtonBehaviorExplanation: Boolean = true,
         val operationsCount: Int = 0,
         val attentionCount: Int = 0,
-    )
+    ) {
+        val workspaceCount: Int = workspaces.size
+    }
 
     data class WorkspaceItem(
         val id: Workspace.Id,
