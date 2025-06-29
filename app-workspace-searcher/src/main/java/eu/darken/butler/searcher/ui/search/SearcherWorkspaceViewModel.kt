@@ -20,8 +20,11 @@ import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
 import java.io.File
 
 @HiltViewModel(assistedFactory = SearcherWorkspaceViewModel.Factory::class)
@@ -37,6 +40,20 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val currentFilter = MutableStateFlow(SearchFilter.EMPTY)
     private val searchPath = MutableStateFlow<APath>(LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler"))
     
+    init {
+        combine(
+            searcherSettings.caseSensitive.flow,
+            searcherSettings.wholeWord.flow,
+            searcherSettings.useRegex.flow,
+        ) { caseSensitive, wholeWord, useRegex ->
+            currentFilter.value = currentFilter.value.copy(
+                caseSensitive = caseSensitive,
+                wholeWord = wholeWord,
+                useRegex = useRegex
+            )
+        }.launchIn(vmScope)
+    }
+    
     private var activeSearchJob: Job? = null
 
     val state = combine(
@@ -45,7 +62,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         searchRepository.searchHistory,
         currentFilter,
         searchPath,
-    ) { query, searchState, history, filter, path ->
+    ) { values ->
+        val query = values[0] as String
+        val searchState = values[1] as SearchRepository.SearchState
+        val history = values[2] as List<SearchRepository.SearchHistoryItem>
+        val filter = values[3] as SearchFilter
+        val path = values[4] as APath
+        
         State(
             id = id,
             searchQuery = query,
@@ -53,6 +76,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             searchHistory = history,
             currentFilter = filter,
             searchPath = path,
+            caseSensitive = filter.caseSensitive,
+            wholeWord = filter.wholeWord,
+            useRegex = filter.useRegex,
         )
     }.asStateFlow()
     
@@ -88,6 +114,27 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         currentFilter.value = filter
     }
     
+    fun toggleCaseSensitive() {
+        vmScope.launch {
+            val current = searcherSettings.caseSensitive.flow.first()
+            searcherSettings.caseSensitive.update { !current }
+        }
+    }
+    
+    fun toggleWholeWord() {
+        vmScope.launch {
+            val current = searcherSettings.wholeWord.flow.first()
+            searcherSettings.wholeWord.update { !current }
+        }
+    }
+    
+    fun toggleRegex() {
+        vmScope.launch {
+            val current = searcherSettings.useRegex.flow.first()
+            searcherSettings.useRegex.update { !current }
+        }
+    }
+    
     fun updateSearchPath(path: APath) {
         log(TAG) { "Updating search path: $path" }
         searchPath.value = path
@@ -113,6 +160,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val searchHistory: List<SearchRepository.SearchHistoryItem> = emptyList(),
         val currentFilter: SearchFilter = SearchFilter.EMPTY,
         val searchPath: APath,
+        val caseSensitive: Boolean = false,
+        val wholeWord: Boolean = false,
+        val useRegex: Boolean = false,
     ) {
         val isSearching: Boolean
             get() = searchState.status == SearchRepository.SearchState.Status.SEARCHING

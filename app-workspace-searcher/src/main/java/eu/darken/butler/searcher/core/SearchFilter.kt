@@ -16,7 +16,8 @@ data class SearchFilter(
     val excludePaths: Set<String>? = null,
     val searchHidden: Boolean = false,
     val caseSensitive: Boolean = false,
-    val useRegex: Boolean = false
+    val useRegex: Boolean = false,
+    val wholeWord: Boolean = false
 ) : Parcelable {
     
     fun isEmpty(): Boolean = this == EMPTY
