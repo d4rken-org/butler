@@ -1,5 +1,8 @@
 package eu.darken.butler.setup.ui
 
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.WebpageTool
 import eu.darken.butler.common.coroutine.DispatcherProvider
@@ -12,15 +15,20 @@ import eu.darken.butler.setup.core.SetupItem
 import eu.darken.butler.setup.core.SetupManager
 import eu.darken.butler.setup.core.SetupModule
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
 
-@HiltViewModel
-class SetupViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = SetupViewModel.Factory::class)
+class SetupViewModel @AssistedInject constructor(
+    @Assisted private val options: SetupScreenOptions,
     dispatcherProvider: DispatcherProvider,
     navCtrl: NavigationController,
     private val setupManager: SetupManager,
     private val webpageTool: WebpageTool,
 ) : ViewModel4(dispatcherProvider, logTag("Setup", "ViewModel"), navCtrl) {
+
+    init {
+        log(tag) { "init with options: $options" }
+        setupManager.setOptions(options)
+    }
 
     val state = setupManager.setupItems
         .map { items ->
@@ -60,4 +68,9 @@ class SetupViewModel @Inject constructor(
     data class State(
         val items: List<SetupItem> = emptyList(),
     )
+
+    @AssistedFactory
+    interface Factory {
+        fun create(options: SetupScreenOptions): SetupViewModel
+    }
 }

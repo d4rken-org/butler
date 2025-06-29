@@ -54,7 +54,6 @@ fun SettingsIndexScreenHost(vm: SettingsViewModel = hiltViewModel()) {
             state = state,
             onNavigateUp = { vm.navUp() },
             onNavigateTo = { vm.navTo(it) },
-            onNavigateToSetup = { vm.navTo(Nav.Main.destSetup()) },
             onOpenUrl = { vm.openUrl(it) },
         )
     }
@@ -65,7 +64,6 @@ fun SettingsIndexScreen(
     state: SettingsViewModel.State,
     onNavigateUp: () -> Unit,
     onNavigateTo: (NavigationDestination) -> Unit,
-    onNavigateToSetup: () -> Unit,
     onOpenUrl: (String) -> Unit,
 ) {
     Scaffold(
@@ -114,7 +112,7 @@ fun SettingsIndexScreen(
                     icon = Icons.Default.Tune,
                     title = stringResource(R.string.setup_title),
                     subtitle = stringResource(R.string.setup_settings_description),
-                    onClick = { onNavigateToSetup() },
+                    onClick = { onNavigateTo(Nav.Main.destSetup(showCompleted = true)) },
                 )
                 SettingsDivider()
             }
@@ -213,7 +211,6 @@ private fun SettingsScreenPreview() {
             state = SettingsViewModel.State(),
             onNavigateUp = {},
             onNavigateTo = {},
-            onNavigateToSetup = {},
             onOpenUrl = {},
         )
     }

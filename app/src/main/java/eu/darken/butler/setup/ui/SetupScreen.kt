@@ -527,7 +527,14 @@ private fun SetupScreenPreview() {
 }
 
 @Composable
-fun SetupScreenHost(vm: SetupViewModel = hiltViewModel()) {
+fun SetupScreenHost(
+    options: SetupScreenOptions = SetupScreenOptions(),
+    vm: SetupViewModel = hiltViewModel(
+        creationCallback = { factory: SetupViewModel.Factory ->
+            factory.create(options = options)
+        }
+    )
+) {
     ErrorEventHandler(vm)
 
     val state by waitForState(vm.state)

@@ -5,8 +5,10 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.setup.core.root.RootSetupModule
 import eu.darken.butler.setup.core.shizuku.ShizukuSetupModule
+import eu.darken.butler.setup.ui.SetupScreenOptions
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -15,11 +17,29 @@ class SetupManager @Inject constructor(
     private val setupRepository: SetupRepository,
 ) {
 
-    val setupItems: Flow<List<SetupItem>> = setupRepository.modules
-        .map { moduleStates ->
-            SetupModule.Type.values().mapNotNull { type ->
+    private val options = MutableStateFlow(SetupScreenOptions())
+
+    fun setOptions(newOptions: SetupScreenOptions) {
+        log(TAG) { "setOptions($newOptions)" }
+        options.value = newOptions
+    }
+
+    val setupItems: Flow<List<SetupItem>> = combine(
+        setupRepository.modules,
+        options
+    ) { moduleStates, currentOptions ->
+        SetupModule.Type.values().mapNotNull { type ->
+            // Filter by typeFilter if provided
+            if (currentOptions.typeFilter != null && type !in currentOptions.typeFilter) {
+                return@mapNotNull null
+            }
                 val state = moduleStates[type]
                 if (state != null) {
+                    // Filter by showCompleted if set to false
+                    if (!currentOptions.showCompleted && state is SetupModule.State.Current && state.isComplete) {
+                        return@mapNotNull null
+                    }
+                    
                     SetupItem(
                         type = type,
                         state = state,
@@ -31,7 +51,7 @@ class SetupManager @Inject constructor(
                     null
                 }
             }.sortedBy { it.priority }
-        }
+    }
 
     suspend fun refresh() {
         log(TAG) { "refresh()" }

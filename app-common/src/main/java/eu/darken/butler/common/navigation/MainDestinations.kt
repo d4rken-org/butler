@@ -28,9 +28,19 @@ data object DestinationUpgrade : NavigationDestination {
 fun Nav.Main.upgrade(): NavigationDestination = DestinationUpgrade
 
 @Serializable
-data object DestinationSetup : NavigationDestination {
-    private fun readResolve(): Any = DestinationSetup
-}
+data class DestinationSetup(
+    val typeFilter: Set<String>? = null,
+    val isOnboarding: Boolean = false,
+    val showCompleted: Boolean = false,
+) : NavigationDestination
 
 @Suppress("UnusedReceiverParameter")
-fun Nav.Main.destSetup(): NavigationDestination = DestinationSetup
+fun Nav.Main.destSetup(
+    typeFilter: Set<String>? = null,
+    isOnboarding: Boolean = false,
+    showCompleted: Boolean = false,
+): NavigationDestination = DestinationSetup(
+    typeFilter = typeFilter,
+    isOnboarding = isOnboarding,
+    showCompleted = showCompleted,
+)
