@@ -23,6 +23,7 @@ import androidx.compose.material.icons.twotone.DragIndicator
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Search
+import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -91,6 +92,7 @@ fun WorkspaceManagerScreenHost(
             onSelectWorkspace = vm::selectWorkspace,
             onCreateWorkspace = vm::createWorkspace,
             onNavigateBack = vm::navigateBack,
+            onNavigateToSettings = vm::navigateToSettings,
             onToggleButtonFlipped = { vm.toggleButtonFlipped() },
             onDismissBadgeExplanation = vm::dismissBadgeExplanation,
             onDismissButtonBehaviorExplanation = vm::dismissButtonBehaviorExplanation,
@@ -108,6 +110,7 @@ fun WorkspaceManagerScreen(
     onSelectWorkspace: (Workspace.Id) -> Unit,
     onCreateWorkspace: (Workspace.Type) -> Unit,
     onNavigateBack: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     onToggleButtonFlipped: () -> Unit,
     onDismissBadgeExplanation: () -> Unit,
     onDismissButtonBehaviorExplanation: () -> Unit,
@@ -146,6 +149,12 @@ fun WorkspaceManagerScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Settings,
+                            contentDescription = "Settings"
+                        )
+                    }
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.TwoTone.Close,
@@ -716,6 +725,7 @@ private fun WorkspaceManagerScreenPreview() {
             onSelectWorkspace = {},
             onCreateWorkspace = {},
             onNavigateBack = {},
+            onNavigateToSettings = {},
             onToggleButtonFlipped = {},
             onDismissBadgeExplanation = {},
             onDismissButtonBehaviorExplanation = {},

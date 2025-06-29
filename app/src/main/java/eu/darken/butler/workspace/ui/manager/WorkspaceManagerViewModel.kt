@@ -6,7 +6,9 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
+import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
@@ -78,6 +80,11 @@ class WorkspaceManagerViewModel @Inject constructor(
     fun navigateBack() {
         log(tag) { "navigateBack()" }
         navUp()
+    }
+
+    fun navigateToSettings() {
+        log(tag) { "navigateToSettings()" }
+        navTo(Nav.Main.settings())
     }
 
     fun toggleButtonFlipped() = launch {
