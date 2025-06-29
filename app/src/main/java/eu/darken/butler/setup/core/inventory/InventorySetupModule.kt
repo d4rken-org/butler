@@ -1,6 +1,8 @@
-package eu.darken.butler.setup.notification
+package eu.darken.butler.setup.core.inventory
 
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -8,13 +10,18 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import eu.darken.butler.common.coroutine.AppScope
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.permissions.Permission
+import eu.darken.butler.common.pkgs.getSettingsIntent
+import eu.darken.butler.common.pkgs.pkgops.PkgOps
+import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.common.rngString
-import eu.darken.butler.setup.SetupModule
+import eu.darken.butler.setup.core.SetupModule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,9 +32,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class NotificationSetupModule @Inject constructor(
+class InventorySetupModule @Inject constructor(
     @param:AppScope private val appScope: CoroutineScope,
     @param:ApplicationContext private val context: Context,
+    private val pkgOps: PkgOps,
 ) : SetupModule {
 
     private val refreshTrigger = MutableStateFlow(rngString)
@@ -41,16 +49,38 @@ class NotificationSetupModule @Inject constructor(
                 !isGranted
             }.toSet()
 
+            val isAccessFaked = when {
+                missingPermission.isEmpty() -> {
+                    run {
+                        val pkgs = try {
+                            pkgOps.queryPkgs(PackageManager.MATCH_ALL).map { it.packageName }
+                        } catch (e: Exception) {
+                            log(TAG, ERROR) { "Check for fake access failed: ${e.asLog()}" }
+                            null
+                        }
+                        when {
+                            pkgs == null -> false
+                            pkgs.isEmpty() -> true
+                            else -> !pkgs.contains(context.packageName)
+                        }
+                    }
+                }
+
+                else -> false
+            }
+
             @Suppress("USELESS_CAST")
             Result(
                 missingPermission = missingPermission,
+                isAccessFaked = isAccessFaked,
+                settingsIntent = context.packageName.toPkgId().getSettingsIntent(context)
             ) as SetupModule.State
         }
         .onStart { emit(Loading()) }
         .replayingShare(appScope)
 
     private fun getRequiredPermission(): Set<Permission> = when {
-        hasApiLevel(33) -> setOf(Permission.POST_NOTIFICATIONS)
+        hasApiLevel(34) -> setOf(Permission.QUERY_ALL_PACKAGES)
         else -> emptySet()
     }
 
@@ -62,26 +92,29 @@ class NotificationSetupModule @Inject constructor(
     data class Loading(
         override val startAt: Instant = Instant.now(),
     ) : SetupModule.State.Loading {
-        override val type: SetupModule.Type = SetupModule.Type.NOTIFICATION
+        override val type: SetupModule.Type = SetupModule.Type.INVENTORY
     }
 
     data class Result(
         val missingPermission: Set<Permission>,
+        val isAccessFaked: Boolean,
+        val settingsIntent: Intent,
     ) : SetupModule.State.Current {
 
         override val type: SetupModule.Type
-            get() = SetupModule.Type.NOTIFICATION
+            get() = SetupModule.Type.INVENTORY
 
-        override val isComplete: Boolean = missingPermission.isEmpty()
+        override val isComplete: Boolean = !isAccessFaked && missingPermission.isEmpty()
 
     }
 
     @Module @InstallIn(SingletonComponent::class)
     abstract class DIM {
-        @Binds @IntoSet abstract fun mod(mod: NotificationSetupModule): SetupModule
+        @Binds @IntoSet abstract fun mod(mod: InventorySetupModule): SetupModule
     }
 
     companion object {
-        private val TAG = logTag("Setup", "Notification", "Module")
+        private val TAG = logTag("Setup", "Inventory", "Module")
+        const val INFO_URL = "https://github.com/d4rken/butler/wiki/Setup#app-inventory"
     }
 }

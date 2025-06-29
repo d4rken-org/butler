@@ -1,4 +1,4 @@
-package eu.darken.butler.setup.root
+package eu.darken.butler.setup.core.root
 
 import dagger.Binds
 import dagger.Module
@@ -14,7 +14,7 @@ import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.rngString
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.root.RootSettings
-import eu.darken.butler.setup.SetupModule
+import eu.darken.butler.setup.core.SetupModule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

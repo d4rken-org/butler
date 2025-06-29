@@ -1,4 +1,4 @@
-package eu.darken.butler.setup
+package eu.darken.butler.setup.core
 
 import androidx.annotation.StringRes
 import eu.darken.butler.R

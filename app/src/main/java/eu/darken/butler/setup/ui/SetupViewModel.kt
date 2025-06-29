@@ -7,10 +7,10 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.setup.SetupModule
 import eu.darken.butler.setup.core.SetupAction
 import eu.darken.butler.setup.core.SetupItem
 import eu.darken.butler.setup.core.SetupManager
+import eu.darken.butler.setup.core.SetupModule
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 

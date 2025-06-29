@@ -5,7 +5,13 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.replayingShare
-import eu.darken.butler.setup.SetupModule
+import eu.darken.butler.setup.core.inventory.InventorySetupModule
+import eu.darken.butler.setup.core.notification.NotificationSetupModule
+import eu.darken.butler.setup.core.root.RootSetupModule
+import eu.darken.butler.setup.core.saf.SAFSetupModule
+import eu.darken.butler.setup.core.shizuku.ShizukuSetupModule
+import eu.darken.butler.setup.core.storage.StorageSetupModule
+import eu.darken.butler.setup.core.usagestats.UsageStatsSetupModule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -48,13 +54,13 @@ class SetupRepository @Inject constructor(
             // Since we can't access the flow synchronously, we'll need to find by the module's type
             // Let's check if the module has a companion object with the type
             when (type) {
-                SetupModule.Type.ROOT -> module is eu.darken.butler.setup.root.RootSetupModule
-                SetupModule.Type.NOTIFICATION -> module is eu.darken.butler.setup.notification.NotificationSetupModule
-                SetupModule.Type.USAGE_STATS -> module is eu.darken.butler.setup.usagestats.UsageStatsSetupModule
-                SetupModule.Type.SHIZUKU -> module is eu.darken.butler.setup.shizuku.ShizukuSetupModule
-                SetupModule.Type.SAF -> module is eu.darken.butler.setup.saf.SAFSetupModule
-                SetupModule.Type.STORAGE -> module is eu.darken.butler.setup.storage.StorageSetupModule
-                SetupModule.Type.INVENTORY -> module is eu.darken.butler.setup.inventory.InventorySetupModule
+                SetupModule.Type.ROOT -> module is RootSetupModule
+                SetupModule.Type.NOTIFICATION -> module is NotificationSetupModule
+                SetupModule.Type.USAGE_STATS -> module is UsageStatsSetupModule
+                SetupModule.Type.SHIZUKU -> module is ShizukuSetupModule
+                SetupModule.Type.SAF -> module is SAFSetupModule
+                SetupModule.Type.STORAGE -> module is StorageSetupModule
+                SetupModule.Type.INVENTORY -> module is InventorySetupModule
             }
         }
     }

@@ -49,9 +49,11 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
-import eu.darken.butler.setup.SetupModule
 import eu.darken.butler.setup.core.SetupAction
 import eu.darken.butler.setup.core.SetupItem
+import eu.darken.butler.setup.core.SetupModule
+import eu.darken.butler.setup.core.root.RootSetupModule
+import eu.darken.butler.setup.core.shizuku.ShizukuSetupModule
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -204,7 +206,7 @@ private fun SetupStateIndicator(
             // Special handling for Root/Shizuku connection status
             val (icon, tint) = when (state.type) {
                 SetupModule.Type.ROOT -> {
-                    val rootState = state as? eu.darken.butler.setup.root.RootSetupModule.Result
+                    val rootState = state as? RootSetupModule.Result
                     when {
                         rootState?.useRoot != true -> {
                             Icons.Default.PauseCircle to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
@@ -221,7 +223,7 @@ private fun SetupStateIndicator(
                     }
                 }
                 SetupModule.Type.SHIZUKU -> {
-                    val shizukuState = state as? eu.darken.butler.setup.shizuku.ShizukuSetupModule.Result
+                    val shizukuState = state as? ShizukuSetupModule.Result
                     when {
                         shizukuState?.useShizuku != true -> {
                             Icons.Default.PauseCircle to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
@@ -301,7 +303,7 @@ private fun RootShizukuActions(
         // Connection status for Root/Shizuku
         val connectionStatus = when (item.type) {
             SetupModule.Type.ROOT -> {
-                val rootState = state as? eu.darken.butler.setup.root.RootSetupModule.Result
+                val rootState = state as? RootSetupModule.Result
                 when {
                     rootState?.useRoot != true -> null
                     !rootState.isInstalled -> stringResource(R.string.setup_status_not_installed)
@@ -310,7 +312,7 @@ private fun RootShizukuActions(
                 }
             }
             SetupModule.Type.SHIZUKU -> {
-                val shizukuState = state as? eu.darken.butler.setup.shizuku.ShizukuSetupModule.Result
+                val shizukuState = state as? ShizukuSetupModule.Result
                 when {
                     shizukuState?.useShizuku != true -> null
                     !shizukuState.isInstalled -> stringResource(R.string.setup_status_not_installed)
@@ -367,10 +369,10 @@ private fun RootShizukuActions(
             Switch(
                 checked = when (item.type) {
                     SetupModule.Type.ROOT -> {
-                        (state as? eu.darken.butler.setup.root.RootSetupModule.Result)?.useRoot == true
+                        (state as? RootSetupModule.Result)?.useRoot == true
                     }
                     SetupModule.Type.SHIZUKU -> {
-                        (state as? eu.darken.butler.setup.shizuku.ShizukuSetupModule.Result)?.useShizuku == true
+                        (state as? ShizukuSetupModule.Result)?.useShizuku == true
                     }
                     else -> false
                 },

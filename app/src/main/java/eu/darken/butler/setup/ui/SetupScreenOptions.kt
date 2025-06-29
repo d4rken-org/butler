@@ -1,6 +1,7 @@
-package eu.darken.butler.setup
+package eu.darken.butler.setup.ui
 
 import android.os.Parcelable
+import eu.darken.butler.setup.core.SetupModule
 import kotlinx.parcelize.Parcelize
 
 @Parcelize

@@ -1,4 +1,4 @@
-package eu.darken.butler.setup.storage
+package eu.darken.butler.setup.core.storage
 
 import android.content.Context
 import dagger.Binds
@@ -21,7 +21,7 @@ import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.permissions.Permission
 import eu.darken.butler.common.rngString
 import eu.darken.butler.common.storage.StorageManager2
-import eu.darken.butler.setup.SetupModule
+import eu.darken.butler.setup.core.SetupModule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

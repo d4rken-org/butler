@@ -1,4 +1,4 @@
-package eu.darken.butler.setup.shizuku
+package eu.darken.butler.setup.core.shizuku
 
 import dagger.Binds
 import dagger.Module
@@ -15,7 +15,7 @@ import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.rngString
 import eu.darken.butler.common.root.RootManager
-import eu.darken.butler.setup.SetupModule
+import eu.darken.butler.setup.core.SetupModule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope

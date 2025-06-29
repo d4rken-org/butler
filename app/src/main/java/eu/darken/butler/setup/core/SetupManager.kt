@@ -3,7 +3,8 @@ package eu.darken.butler.setup.core
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.setup.SetupModule
+import eu.darken.butler.setup.core.root.RootSetupModule
+import eu.darken.butler.setup.core.shizuku.ShizukuSetupModule
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -48,12 +49,12 @@ class SetupManager @Inject constructor(
         when (action) {
             SetupAction.REFRESH -> module.refresh()
             is SetupAction.TOGGLE_ROOT -> {
-                val rootModule = module as? eu.darken.butler.setup.root.RootSetupModule
+                val rootModule = module as? RootSetupModule
                 rootModule?.toggleUseRoot(action.useRoot)
                     ?: log(TAG, WARN) { "Module for $type is not a RootSetupModule" }
             }
             is SetupAction.TOGGLE_SHIZUKU -> {
-                val shizukuModule = module as? eu.darken.butler.setup.shizuku.ShizukuSetupModule
+                val shizukuModule = module as? ShizukuSetupModule
                 shizukuModule?.toggleUseShizuku(action.useShizuku)
                     ?: log(TAG, WARN) { "Module for $type is not a ShizukuSetupModule" }
             }

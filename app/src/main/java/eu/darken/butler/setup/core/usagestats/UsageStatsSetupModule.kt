@@ -1,4 +1,4 @@
-package eu.darken.butler.setup.usagestats
+package eu.darken.butler.setup.core.usagestats
 
 import android.content.Context
 import dagger.Binds
@@ -13,7 +13,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.permissions.Permission
 import eu.darken.butler.common.rngString
-import eu.darken.butler.setup.SetupModule
+import eu.darken.butler.setup.core.SetupModule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

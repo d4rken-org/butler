@@ -1,4 +1,4 @@
-package eu.darken.butler.setup.saf
+package eu.darken.butler.setup.core.saf
 
 import android.content.ContentResolver
 import android.content.Intent
@@ -36,7 +36,7 @@ import eu.darken.butler.common.storage.PathMapper
 import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.common.storage.StorageManager2
 import eu.darken.butler.common.user.UserHandle2
-import eu.darken.butler.setup.SetupModule
+import eu.darken.butler.setup.core.SetupModule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
