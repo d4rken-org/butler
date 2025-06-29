@@ -1,6 +1,7 @@
 package eu.darken.butler.setup.core.notification
 
 import android.content.Context
+import android.content.Intent
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -57,6 +58,20 @@ class NotificationSetupModule @Inject constructor(
     override suspend fun refresh() {
         log(TAG) { "refresh()" }
         refreshTrigger.value = rngString
+    }
+
+    fun getPermissionIntent(): Intent? {
+        // POST_NOTIFICATIONS is a runtime permission, not a special permission
+        // Return null here since it should be handled via permission launcher
+        return null
+    }
+
+    fun getRuntimePermissions(): Set<String> {
+        val requiredPermissions = getRequiredPermission()
+        return requiredPermissions
+            .filter { !it.isGranted(context) }
+            .map { it.permissionId }
+            .toSet()
     }
 
     data class Loading(

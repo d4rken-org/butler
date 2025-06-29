@@ -1,6 +1,7 @@
 package eu.darken.butler.setup.core.usagestats
 
 import android.content.Context
+import android.content.Intent
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -10,8 +11,10 @@ import dagger.multibindings.IntoSet
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.device.DeviceDetective
 import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.permissions.Permission
+import eu.darken.butler.common.permissions.Specialpermission
 import eu.darken.butler.common.rngString
 import eu.darken.butler.setup.core.SetupModule
 import kotlinx.coroutines.CoroutineScope
@@ -27,6 +30,7 @@ import javax.inject.Singleton
 class UsageStatsSetupModule @Inject constructor(
     @param:AppScope private val appScope: CoroutineScope,
     @param:ApplicationContext private val context: Context,
+    private val deviceDetective: DeviceDetective,
 ) : SetupModule {
 
     private val refreshTrigger = MutableStateFlow(rngString)
@@ -53,6 +57,20 @@ class UsageStatsSetupModule @Inject constructor(
     override suspend fun refresh() {
         log(TAG) { "refresh()" }
         refreshTrigger.value = rngString
+    }
+
+    fun getPermissionIntent(): Intent? {
+        val requiredPermissions = getRequiredPermission()
+        val specialPermission = requiredPermissions.find { it is Specialpermission } as? Specialpermission
+
+        return specialPermission?.let {
+            try {
+                it.createIntent(context, deviceDetective)
+            } catch (e: Exception) {
+                log(TAG) { "Failed to create intent: $e" }
+                it.createIntentFallback(context)
+            }
+        }
     }
 
     data class Loading(

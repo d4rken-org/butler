@@ -1,5 +1,6 @@
 package eu.darken.butler.setup.core
 
+import android.content.Intent
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
@@ -86,16 +87,50 @@ class SetupManager @Inject constructor(
         }
     }
 
-    suspend fun executeAction(type: SetupModule.Type, action: SetupAction) {
+    suspend fun executeAction(type: SetupModule.Type, action: SetupAction): PermissionResult? {
         log(TAG) { "executeAction(type=$type, action=$action)" }
         val module = getModule(type)
         if (module == null) {
             log(TAG, WARN) { "No module found for type: $type" }
-            return
+            return null
         }
 
         when (action) {
             SetupAction.REFRESH -> module.refresh()
+            SetupAction.REQUEST_PERMISSION -> {
+                when (type) {
+                    SetupModule.Type.STORAGE -> {
+                        val storageModule = module as? StorageSetupModule
+                        val intent = storageModule?.getPermissionIntent()
+                        if (intent != null) {
+                            return PermissionResult(intent = intent)
+                        } else {
+                            log(TAG, WARN) { "No permission intent available for $type" }
+                        }
+                    }
+                    SetupModule.Type.NOTIFICATION -> {
+                        val notificationModule = module as? NotificationSetupModule
+                        val runtimePerms = notificationModule?.getRuntimePermissions() ?: emptySet()
+                        if (runtimePerms.isNotEmpty()) {
+                            return PermissionResult(runtimePermissions = runtimePerms)
+                        } else {
+                            log(TAG) { "No runtime permissions needed for $type" }
+                        }
+                    }
+                    SetupModule.Type.USAGE_STATS -> {
+                        val usageStatsModule = module as? UsageStatsSetupModule
+                        val intent = usageStatsModule?.getPermissionIntent()
+                        if (intent != null) {
+                            return PermissionResult(intent = intent)
+                        } else {
+                            log(TAG, WARN) { "No permission intent available for $type" }
+                        }
+                    }
+                    else -> {
+                        log(TAG, WARN) { "REQUEST_PERMISSION not implemented for $type" }
+                    }
+                }
+            }
             is SetupAction.TOGGLE_ROOT -> {
                 val rootModule = module as? RootSetupModule
                 rootModule?.toggleUseRoot(action.useRoot)
@@ -107,6 +142,7 @@ class SetupManager @Inject constructor(
                     ?: log(TAG, WARN) { "Module for $type is not a ShizukuSetupModule" }
             }
         }
+        return null
     }
 
     private fun isRequired(type: SetupModule.Type): Boolean = when (type) {
@@ -153,6 +189,12 @@ data class SetupItem(
 
 sealed interface SetupAction {
     object REFRESH : SetupAction
+    object REQUEST_PERMISSION : SetupAction
     data class TOGGLE_ROOT(val useRoot: Boolean?) : SetupAction
     data class TOGGLE_SHIZUKU(val useShizuku: Boolean?) : SetupAction
 }
+
+data class PermissionResult(
+    val intent: Intent? = null,
+    val runtimePermissions: Set<String> = emptySet()
+)

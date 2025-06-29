@@ -14,6 +14,9 @@ import eu.darken.butler.setup.core.SetupAction
 import eu.darken.butler.setup.core.SetupItem
 import eu.darken.butler.setup.core.SetupManager
 import eu.darken.butler.setup.core.SetupModule
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
 
 @HiltViewModel(assistedFactory = SetupViewModel.Factory::class)
@@ -24,6 +27,20 @@ class SetupViewModel @AssistedInject constructor(
     private val setupManager: SetupManager,
     private val webpageTool: WebpageTool,
 ) : ViewModel4(dispatcherProvider, logTag("Setup", "ViewModel"), navCtrl) {
+
+    private val _permissionRequestEvents = MutableSharedFlow<android.content.Intent>(
+        replay = 0,
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    val permissionRequestEvents = _permissionRequestEvents.asSharedFlow()
+
+    private val _runtimePermissionEvents = MutableSharedFlow<Set<String>>(
+        replay = 0,
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    val runtimePermissionEvents = _runtimePermissionEvents.asSharedFlow()
 
     init {
         log(tag) { "init with options: $options" }
@@ -43,7 +60,17 @@ class SetupViewModel @AssistedInject constructor(
 
     fun executeAction(type: SetupModule.Type, action: SetupAction) = launch {
         log(tag) { "executeAction(type=$type, action=$action)" }
-        setupManager.executeAction(type, action)
+        val result = setupManager.executeAction(type, action)
+        when {
+            result?.intent != null -> {
+                log(tag) { "Emitting permission request intent for $type" }
+                _permissionRequestEvents.emit(result.intent)
+            }
+            result?.runtimePermissions?.isNotEmpty() == true -> {
+                log(tag) { "Emitting runtime permission request for $type: ${result.runtimePermissions}" }
+                _runtimePermissionEvents.emit(result.runtimePermissions)
+            }
+        }
     }
 
     fun openHelp(type: SetupModule.Type) = launch {

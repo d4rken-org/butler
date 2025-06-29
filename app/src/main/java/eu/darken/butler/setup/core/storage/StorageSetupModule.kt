@@ -1,6 +1,7 @@
 package eu.darken.butler.setup.core.storage
 
 import android.content.Context
+import android.content.Intent
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -19,6 +20,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.permissions.Permission
+import eu.darken.butler.common.permissions.Specialpermission
 import eu.darken.butler.common.rngString
 import eu.darken.butler.common.storage.StorageManager2
 import eu.darken.butler.setup.core.SetupModule
@@ -104,6 +106,28 @@ class StorageSetupModule @Inject constructor(
     suspend fun onPermissionChanged(permission: Permission, granted: Boolean) {
         log(TAG) { "onPermissionChanged($permission, $granted)" }
 
+    }
+
+    fun getPermissionIntent(): Intent? {
+        val requiredPermissions = getRequiredPermission()
+        val specialPermission = requiredPermissions.find { it is Specialpermission } as? Specialpermission
+
+        return specialPermission?.let {
+            try {
+                it.createIntent(context, deviceDetective)
+            } catch (e: Exception) {
+                log(TAG) { "Failed to create intent: $e" }
+                it.createIntentFallback(context)
+            }
+        }
+    }
+
+    fun getRuntimePermissions(): Set<String> {
+        val requiredPermissions = getRequiredPermission()
+        return requiredPermissions
+            .filter { it !is Specialpermission && !it.isGranted(context) }
+            .map { it.permissionId }
+            .toSet()
     }
 
     data class Loading(

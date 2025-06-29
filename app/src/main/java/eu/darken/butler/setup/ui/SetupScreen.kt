@@ -1,5 +1,7 @@
 package eu.darken.butler.setup.ui
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,17 +38,28 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.setup.core.SetupAction
@@ -425,7 +438,11 @@ private fun DefaultActions(
 
         // Grant access button
         Button(
-            onClick = { onExecuteAction(SetupAction.REFRESH) },
+            onClick = {
+                onExecuteAction(
+                    if (isCompleted) SetupAction.REFRESH else SetupAction.REQUEST_PERMISSION
+                )
+            },
             modifier = Modifier.fillMaxWidth(),
             enabled = !isCompleted
         ) {
@@ -537,6 +554,53 @@ fun SetupScreenHost(
 ) {
     ErrorEventHandler(vm)
 
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var isPermissionSettingsLaunched by remember { mutableStateOf(false) }
+    var isRuntimePermissionLaunched by remember { mutableStateOf(false) }
+
+    // Runtime permission launcher
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        log(TAG) { "Runtime permissions result: $permissions" }
+        isRuntimePermissionLaunched = false
+        vm.refresh()
+    }
+
+    // Handle permission request intents
+    LaunchedEffect(vm) {
+        vm.permissionRequestEvents.collect { intent ->
+            isPermissionSettingsLaunched = true
+            context.startActivity(intent)
+        }
+    }
+
+    // Handle runtime permission requests
+    LaunchedEffect(vm) {
+        vm.runtimePermissionEvents.collect { permissions ->
+            isRuntimePermissionLaunched = true
+            permissionLauncher.launch(permissions.toTypedArray())
+        }
+    }
+
+    // Monitor lifecycle to refresh when returning from settings
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME && (isPermissionSettingsLaunched || isRuntimePermissionLaunched)) {
+                // Refresh when returning from permission settings
+                vm.refresh()
+                isPermissionSettingsLaunched = false
+                isRuntimePermissionLaunched = false
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     val state by waitForState(vm.state)
 
     state?.let { vmState ->
@@ -548,3 +612,5 @@ fun SetupScreenHost(
         )
     }
 }
+
+private val TAG = logTag("Setup", "Screen")
