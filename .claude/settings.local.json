@@ -1,22 +1,24 @@
 {
   "permissions": {
-	"allow": [
-	  "Bash(find:*)",
-	  "Bash(ls:*)",
-	  "Bash(grep:*)",
-	  "Bash(./gradlew:*)",
-	  "Bash(rg:*)",
-	  "Bash(done)",
-	  "Bash(rm:*)",
-	  "Bash(cp:*)",
-	  "WebFetch(domain:coil-kt.github.io)",
-	  "WebFetch(domain:github.com)",
-	  "WebFetch(domain:raw.githubusercontent.com)",
-	  "Bash(mkdir:*)",
-	  "Bash(mv:*)",
-	  "Bash(for module in app-common-pkgs app-common-root app-common-shell app-workspace app-workspace-editor app-workspace-searcher app-workspace-templates)",
-	  "Bash(do echo \"=== $module ===\")"
-	],
-	"deny": []
+    "allow": [
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)",
+      "Bash(./gradlew:*)",
+      "Bash(rg:*)",
+      "Bash(done)",
+      "Bash(rm:*)",
+      "Bash(cp:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(for module in app-common-pkgs app-common-root app-common-shell app-workspace app-workspace-editor app-workspace-searcher app-workspace-templates)",
+      "Bash(do echo \"=== $module ===\")",
+      "WebFetch(domain:coil-kt.github.io)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:dev.to)",
+      "WebFetch(domain:medium.com)"
+    ],
+    "deny": []
   }
 }
