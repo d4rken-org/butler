@@ -26,14 +26,19 @@ import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.BottomAppBarDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -48,7 +53,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -59,7 +63,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
@@ -122,13 +125,16 @@ fun WorkspaceManagerScreen(
     }
 
     var showCloseAllDialog by remember { mutableStateOf(false) }
+    var showDropdown by remember { mutableStateOf(false) }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val topScrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val bottomScrollBehavior = BottomAppBarDefaults.exitAlwaysScrollBehavior()
 
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
+            .nestedScroll(topScrollBehavior.nestedScrollConnection)
+            .nestedScroll(bottomScrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 title = {
@@ -162,201 +168,57 @@ fun WorkspaceManagerScreen(
                         )
                     }
                 },
-                scrollBehavior = scrollBehavior
+                scrollBehavior = topScrollBehavior
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-
-            // Status card - Add Workspace flat icon + text with dropdown
-            var showDropdown by remember { mutableStateOf(false) }
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+        bottomBar = {
+            if (workspaceItems.isNotEmpty()) {
+                BottomAppBar(
+                    scrollBehavior = bottomScrollBehavior,
+                    containerColor = MaterialTheme.colorScheme.surface,
                 ) {
-                    // Status row with counts
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Workspace count
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(16.dp)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.surfaceVariant,
-                                        shape = CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
+                        // Close All button first (only visible when there are multiple workspaces)
+                        if (state.workspaceCount > 1) {
+                            OutlinedButton(
+                                onClick = { showCloseAllDialog = true },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.error
+                                )
                             ) {
+                                Icon(
+                                    imageVector = Icons.TwoTone.Close,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
                                 Text(
-                                    text = if (state.workspaceCount > 9) "9+" else state.workspaceCount.toString(),
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontSize = 9.sp,
-                                        lineHeight = 9.sp
-                                    ),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(bottom = 1.dp)
+                                    text = "Close All",
+                                    modifier = Modifier.padding(start = 8.dp)
                                 )
                             }
-                            Text(
-                                text = if (state.workspaceCount == 1) "Workspace" else "Workspaces",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
                         }
 
-                        // Operations count
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(16.dp)
-                                    .background(
-                                        color = if (state.operationsCount > 0)
-                                            MaterialTheme.colorScheme.primary
-                                        else
-                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                        shape = CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = if (state.operationsCount > 9) "9+" else state.operationsCount.toString(),
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontSize = 9.sp,
-                                        lineHeight = 9.sp
-                                    ),
-                                    color = if (state.operationsCount > 0)
-                                        MaterialTheme.colorScheme.onPrimary
-                                    else
-                                        MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.padding(bottom = 1.dp)
-                                )
-                            }
-                            Text(
-                                text = if (state.operationsCount == 1) "Operation" else "Operations",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-
-                        // Attention count
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(16.dp)
-                                    .background(
-                                        color = if (state.attentionCount > 0)
-                                            MaterialTheme.colorScheme.error
-                                        else
-                                            MaterialTheme.colorScheme.error.copy(alpha = 0.2f),
-                                        shape = CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = if (state.attentionCount > 9) "9+" else state.attentionCount.toString(),
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontSize = 9.sp,
-                                        lineHeight = 9.sp
-                                    ),
-                                    color = if (state.attentionCount > 0)
-                                        MaterialTheme.colorScheme.onError
-                                    else
-                                        MaterialTheme.colorScheme.error,
-                                    modifier = Modifier.padding(bottom = 1.dp)
-                                )
-                            }
-                            Text(
-                                text = if (state.attentionCount == 1) "Attention" else "Attention",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-                    }
-
-                    // Action buttons row
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Close All button (now first, with visibility control)
-                        Row(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable(enabled = state.workspaceCount > 1) {
-                                    if (state.workspaceCount > 1) showCloseAllDialog = true
-                                }
-                                .padding(horizontal = 12.dp, vertical = 8.dp)
-                                .alpha(if (state.workspaceCount > 1) 1f else 0f),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.TwoTone.Close,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                            Text(
-                                text = "Close All",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.padding(start = 4.dp)
-                            )
-                        }
-
-                        // Add button with dropdown (now second)
+                        // Add button with dropdown
                         Box(modifier = Modifier.weight(1f)) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { showDropdown = true }
-                                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically
+                            FilledTonalButton(
+                                onClick = { showDropdown = true },
+                                modifier = Modifier.fillMaxWidth()
                             ) {
                                 Icon(
                                     imageVector = Icons.TwoTone.Add,
                                     contentDescription = null,
-                                    modifier = Modifier.size(18.dp),
-                                    tint = MaterialTheme.colorScheme.primary
+                                    modifier = Modifier.size(18.dp)
                                 )
                                 Text(
                                     text = "Add",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.padding(start = 4.dp)
+                                    modifier = Modifier.padding(start = 8.dp)
                                 )
                             }
 
@@ -409,87 +271,220 @@ fun WorkspaceManagerScreen(
                     }
                 }
             }
-
-            // Workspace list or empty state
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
+        // Single LazyColumn for all content
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentPadding = paddingValues,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             if (workspaceItems.isEmpty()) {
-                // Empty state
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.Workspaces,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.size(64.dp)
-                    )
-                    Text(
-                        text = stringResource(R.string.workspace_manager_empty_title),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(top = 16.dp)
-                    )
-                    Text(
-                        text = stringResource(R.string.workspace_manager_empty_subtitle),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
+                // Empty state as a single item
+                item(key = "empty_state") {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillParentMaxHeight()
+                            .padding(32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Workspaces,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.size(64.dp)
+                        )
+                        Text(
+                            text = stringResource(R.string.workspace_manager_empty_title),
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(top = 16.dp)
+                        )
+                        Text(
+                            text = stringResource(R.string.workspace_manager_empty_subtitle),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                // Status card as first item
+                if (state.workspaceCount > 0) {
+                    item(key = "status_card") {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 24.dp, vertical = 12.dp),
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // Workspace count
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .background(
+                                                color = MaterialTheme.colorScheme.primaryContainer,
+                                                shape = CircleShape
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = if (state.workspaceCount > 9) "9+" else state.workspaceCount.toString(),
+                                            style = MaterialTheme.typography.labelLarge,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    }
+                                    Text(
+                                        text = if (state.workspaceCount == 1) "Workspace" else "Workspaces",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+
+                                // Operations count
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .background(
+                                                color = if (state.operationsCount > 0)
+                                                    MaterialTheme.colorScheme.primaryContainer
+                                                else
+                                                    MaterialTheme.colorScheme.surfaceVariant,
+                                                shape = CircleShape
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = if (state.operationsCount > 9) "9+" else state.operationsCount.toString(),
+                                            style = MaterialTheme.typography.labelLarge,
+                                            color = if (state.operationsCount > 0)
+                                                MaterialTheme.colorScheme.primary
+                                            else
+                                                MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    Text(
+                                        text = if (state.operationsCount == 1) "Operation" else "Operations",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+
+                                // Attention count
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .background(
+                                                color = if (state.attentionCount > 0)
+                                                    MaterialTheme.colorScheme.errorContainer
+                                                else
+                                                    MaterialTheme.colorScheme.surfaceVariant,
+                                                shape = CircleShape
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = if (state.attentionCount > 9) "9+" else state.attentionCount.toString(),
+                                            style = MaterialTheme.typography.labelLarge,
+                                            color = if (state.attentionCount > 0)
+                                                MaterialTheme.colorScheme.error
+                                            else
+                                                MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    Text(
+                                        text = "Attention",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                     itemsIndexed(
                         items = workspaceItems,
                         key = { _, workspace -> workspace.id.toString() }
                     ) { index, workspace ->
-                        DraggableWorkspaceListItem(
-                            workspace = workspace,
-                            onClose = { onCloseWorkspace(workspace.id) },
-                            onSelect = { onSelectWorkspace(workspace.id) },
-                            onDragEnd = { fromIndex, toIndex ->
-                                if (fromIndex != toIndex) {
-                                    val newList = workspaceItems.toMutableList()
-                                    val movedItem = newList.removeAt(fromIndex)
-                                    newList.add(toIndex, movedItem)
-                                    workspaceItems = newList
-                                    onReorderWorkspaces(newList.map { it.id })
-                                }
-                            },
-                            index = index
-                        )
+                        Box(
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        ) {
+                            DraggableWorkspaceListItem(
+                                workspace = workspace,
+                                onClose = { onCloseWorkspace(workspace.id) },
+                                onSelect = { onSelectWorkspace(workspace.id) },
+                                onDragEnd = { fromIndex, toIndex ->
+                                    if (fromIndex != toIndex) {
+                                        val newList = workspaceItems.toMutableList()
+                                        val movedItem = newList.removeAt(fromIndex)
+                                        newList.add(toIndex, movedItem)
+                                        workspaceItems = newList
+                                        onReorderWorkspaces(newList.map { it.id })
+                                    }
+                                },
+                                index = index
+                            )
+                        }
                     }
 
                     // Button behavior explanation card
                     if (state.showButtonBehaviorExplanation) {
                         item(key = "button_behavior_explanation") {
-                            WorkspaceButtonBehaviorCard(
-                                isButtonFlipped = state.isButtonFlipped,
-                                onToggleFlipped = { onToggleButtonFlipped() },
-                                onDismiss = onDismissButtonBehaviorExplanation
-                            )
+                            Box(
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            ) {
+                                WorkspaceButtonBehaviorCard(
+                                    isButtonFlipped = state.isButtonFlipped,
+                                    onToggleFlipped = { onToggleButtonFlipped() },
+                                    onDismiss = onDismissButtonBehaviorExplanation
+                                )
+                            }
                         }
                     }
 
                     // Badge explanation card
                     if (state.showBadgeExplanation) {
                         item(key = "badge_explanation") {
-                            WorkspaceBadgeExplanationCard(
-                                onDismiss = onDismissBadgeExplanation
-                            )
+                            Box(
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            ) {
+                                WorkspaceBadgeExplanationCard(
+                                    onDismiss = onDismissBadgeExplanation
+                                )
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
     // Close all confirmation dialog
     if (showCloseAllDialog) {
@@ -518,7 +513,7 @@ fun WorkspaceManagerScreen(
             }
         )
     }
-}
+    }
 
 @Composable
 private fun DraggableWorkspaceListItem(
@@ -620,30 +615,13 @@ private fun WorkspaceListItem(
                     }
             )
 
-            // Workspace type icon with background
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .padding(4.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                // Circular background
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                            shape = CircleShape
-                        )
-                )
-
-                Icon(
-                    imageVector = getIconForWorkspaceType(workspace.type),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(28.dp)
-                )
-            }
+            // Workspace type icon
+            Icon(
+                imageVector = getIconForWorkspaceType(workspace.type),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(32.dp)
+            )
 
             // Title and subtitle
             Column(
