@@ -9,7 +9,9 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.locale.LocaleManager
+import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
+import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.theming.ThemeMode
 import eu.darken.butler.common.theming.ThemeState
 import eu.darken.butler.common.theming.ThemeStyle
@@ -17,6 +19,7 @@ import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.motd.MotdSettings
+import eu.darken.butler.upgrade.UpgradeRepo
 import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
@@ -29,6 +32,7 @@ constructor(
     private val generalSettings: GeneralSettings,
     private val localeManager: LocaleManager,
     private val motdSettings: MotdSettings,
+    private val upgradeRepo: UpgradeRepo,
 ) : ViewModel4(dispatcherProvider, logTag("Settings", "General", "ViewModel"), navCtrl) {
 
     val state = combine(
@@ -38,7 +42,8 @@ constructor(
         generalSettings.isUpdateCheckEnabled.flow,
         motdSettings.isMotdEnabled.flow,
         generalSettings.isConfirmExitEnabled.flow,
-    ) { themeState, languageSwitcher, usePreviews, updateCheckEnabled, motdEnabled, confirmExitEnabled ->
+        upgradeRepo.upgradeInfo,
+    ) { themeState, languageSwitcher, usePreviews, updateCheckEnabled, motdEnabled, confirmExitEnabled, upgradeInfo ->
         State(
             themeState = themeState,
             filePreviews = usePreviews,
@@ -46,6 +51,7 @@ constructor(
             updateCheckEnabled = updateCheckEnabled,
             motdEnabled = motdEnabled,
             confirmExitEnabled = confirmExitEnabled,
+            isUpgraded = upgradeInfo.isUpgraded,
         )
     }
         .asStateFlow()
@@ -90,6 +96,11 @@ constructor(
         generalSettings.isConfirmExitEnabled.value(enabled)
     }
 
+    fun upgradeButler() = launch {
+        log(tag) { "upgradeButler()" }
+        navTo(Nav.Main.upgrade())
+    }
+
     data class State(
         val themeState: ThemeState = ThemeState(),
         val filePreviews: Boolean = false,
@@ -97,5 +108,6 @@ constructor(
         val updateCheckEnabled: Boolean = false,
         val motdEnabled: Boolean = false,
         val confirmExitEnabled: Boolean = true,
+        val isUpgraded: Boolean = false,
     )
 }
