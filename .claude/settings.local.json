@@ -15,7 +15,7 @@
 	  "Bash(mkdir:*)",
 	  "Bash(mv:*)",
 	  "Bash(for module in app-common-pkgs app-common-root app-common-shell app-workspace app-workspace-editor app-workspace-searcher app-workspace-templates)",
-	  "Bash(do echo \"=== $module ===\")"
+	  "mcp__ide__getDiagnostics"
 	],
 	"deny": []
   }
