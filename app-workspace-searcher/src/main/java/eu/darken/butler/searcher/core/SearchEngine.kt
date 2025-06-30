@@ -147,20 +147,32 @@ class SearchEngine @Inject constructor(
         
         // Name matching
         val name = lookup.name
-        val matches = if (filter.useRegex) {
-            try {
+        val matches = when {
+            filter.useRegex -> {
+                try {
+                    val regex = if (filter.caseSensitive) {
+                        query.toRegex()
+                    } else {
+                        query.toRegex(RegexOption.IGNORE_CASE)
+                    }
+                    regex.containsMatchIn(name)
+                } catch (e: Exception) {
+                    log(TAG, VERBOSE) { "Invalid regex: $query" }
+                    false
+                }
+            }
+            filter.wholeWord -> {
+                val pattern = "\\b${Regex.escape(query)}\\b"
                 val regex = if (filter.caseSensitive) {
-                    query.toRegex()
+                    pattern.toRegex()
                 } else {
-                    query.toRegex(RegexOption.IGNORE_CASE)
+                    pattern.toRegex(RegexOption.IGNORE_CASE)
                 }
                 regex.containsMatchIn(name)
-            } catch (e: Exception) {
-                log(TAG, VERBOSE) { "Invalid regex: $query" }
-                false
             }
-        } else {
-            name.contains(query, ignoreCase = !filter.caseSensitive)
+            else -> {
+                name.contains(query, ignoreCase = !filter.caseSensitive)
+            }
         }
         
         matches

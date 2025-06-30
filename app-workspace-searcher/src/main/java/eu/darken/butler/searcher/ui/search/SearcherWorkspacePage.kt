@@ -110,6 +110,9 @@ fun SearcherWorkspacePageHost(
                 vm.updateSearchQuery(item.query)
                 vm.performSearch()
             },
+            onToggleCaseSensitive = vm::toggleCaseSensitive,
+            onToggleWholeWord = vm::toggleWholeWord,
+            onToggleRegex = vm::toggleRegex,
             workspaceButtonState = workspaceButtonState,
             onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
             onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
@@ -127,6 +130,9 @@ fun SearcherWorkspacePage(
     onResultClick: (SearchResult) -> Unit = {},
     onClearHistory: () -> Unit = {},
     onHistoryItemClick: (SearchRepository.SearchHistoryItem) -> Unit = {},
+    onToggleCaseSensitive: () -> Unit = {},
+    onToggleWholeWord: () -> Unit = {},
+    onToggleRegex: () -> Unit = {},
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
@@ -343,6 +349,16 @@ fun SearcherWorkspacePage(
                         path = state.searchPath,
                         onPathChange = onUpdateSearchPath,
                         isSearching = state.isSearching
+                    )
+                    
+                    SearchOptionsRow(
+                        caseSensitive = state.caseSensitive,
+                        wholeWord = state.wholeWord,
+                        useRegex = state.useRegex,
+                        onToggleCaseSensitive = onToggleCaseSensitive,
+                        onToggleWholeWord = onToggleWholeWord,
+                        onToggleRegex = onToggleRegex,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
