@@ -72,6 +72,7 @@ class OnboardingViewModel @Inject constructor(
         enum class Page {
             WELCOME,
             BETA,
+            WORKSPACES,
             PRIVACY,
             ;
         }

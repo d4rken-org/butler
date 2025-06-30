@@ -10,6 +10,19 @@
     <string name="onboarding_privacy_read_action">Read Privacy Policy</string>
     <string name="onboarding_privacy_action">Accept</string>
 
+    <string name="onboarding_workspaces_title">Your Workspace</string>
+    <string name="onboarding_workspaces_message">Butler organizes your work into specialized workspaces</string>
+    <string name="onboarding_workspaces_action">Continue</string>
+    <string name="onboarding_workspaces_hint">💡 Swipe between workspaces like browser tabs</string>
+    <string name="onboarding_workspaces_explorer_title">Explorer</string>
+    <string name="onboarding_workspaces_explorer_description">Browse and manage files</string>
+    <string name="onboarding_workspaces_searcher_title">Searcher</string>
+    <string name="onboarding_workspaces_searcher_description">Find files quickly</string>
+    <string name="onboarding_workspaces_editor_title">Editor</string>
+    <string name="onboarding_workspaces_editor_description">View and edit text files</string>
+    <string name="onboarding_workspaces_templates_title">Templates</string>
+    <string name="onboarding_workspaces_templates_description">Save workspace setups</string>
+
     <string name="setup_usagestats_title">Usage stats</string>
     <string name="setup_shizuku_card_title">Shizuku</string>
     <string name="setup_root_card_title">Root</string>
