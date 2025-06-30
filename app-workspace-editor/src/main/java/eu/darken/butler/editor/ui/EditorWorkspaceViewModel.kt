@@ -32,8 +32,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.onEach
 import eu.darken.butler.common.BuildConfigWrap
+import eu.darken.butler.editor.core.ChunkManager
+import eu.darken.butler.editor.core.ChunkRepository
 
 @HiltViewModel(assistedFactory = EditorWorkspaceViewModel.Factory::class)
 class EditorWorkspaceViewModel @AssistedInject constructor(
@@ -51,15 +54,19 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val workspaceProvider: WorkspaceProvider,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Editor", id.shortTag, "Page"), navCtrl) {
 
-    private val workspace = runBlocking { workspaceProvider.get(id).first() as EditorWorkspace }
-    private val dataSource: EditorDataSource =
-        workspace.filePath?.let { filePath ->
-            fileDataSourceFactory.create(filePath, gatewaySwitch)
-        } ?: inMemoryDataSourceFactory.create("")
+    private data class EditorResources(
+        val workspace: EditorWorkspace,
+        val dataSource: EditorDataSource,
+        val chunkRepository: ChunkRepository,
+        val chunkManager: ChunkManager,
+        val textBuffer: VirtualTextBuffer
+    )
 
-    private val chunkRepository = chunkRepositoryFactory.create(dataSource)
-    private val chunkManager = chunkManagerFactory.create(chunkRepository)
-    private val textBuffer: VirtualTextBuffer = chunkedTextBufferFactory.create(chunkManager, chunkRepository)
+    private val editorResources = MutableStateFlow<EditorResources?>(null)
+    
+    private val workspaceFlow = flow {
+        emit(workspaceProvider.get(id))
+    }.flatMapLatest { it }
 
     private val _currentContent = MutableStateFlow("")
     private val _cursorPosition = MutableStateFlow(TextPosition.ZERO)
@@ -73,9 +80,13 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     val state = combine(
         flowOf(id),
-        textBuffer.fileInfo,
+        editorResources.flatMapLatest { resources ->
+            resources?.textBuffer?.fileInfo ?: flowOf(null)
+        },
         _totalLines,
-        textBuffer.isModified,
+        editorResources.flatMapLatest { resources ->
+            resources?.textBuffer?.isModified ?: flowOf(false)
+        },
         _currentContent,
         _cursorPosition,
         _selectionRange,
@@ -86,7 +97,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         _visibleRange,
         flow { emit(memoryManager.getMemoryStats()) }.catch { emit(MemoryStats(0, 0, 0, 0, 0)) },
         editorSettings.showLineNumbers.flow,
-        editorSettings.wordWrap.flow
+        editorSettings.wordWrap.flow,
+        editorResources
     ) { values ->
         State(
             id = values[0] as Workspace.Id,
@@ -103,84 +115,159 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             visibleRange = values[11] as IntRange,
             memoryStats = values[12] as MemoryStats,
             showLineNumbers = values[13] as Boolean,
-            wordWrap = values[14] as Boolean
+            wordWrap = values[14] as Boolean,
+            hasWorkspace = values[15] != null
         )
     }.asStateFlow()
 
     init {
-        launch {
-            try {
-                _isLoading.value = true
-                _error.value = null
-
-                when (dataSource) {
-                    is FileDataSource -> {
-                        val filePath = workspace.filePath!!
-                        log(tag) { "Initializing file data source: $filePath" }
-
-                        // Initialize the file data source
-                        val initResult = dataSource.initialize()
-                        if (initResult.isFailure) {
-                            _error.value = initResult.exceptionOrNull()
-                            return@launch
-                        }
-
-                        // Open file in text buffer
-                        val openResult = textBuffer.openFile(filePath)
-                        if (openResult.isFailure) {
-                            _error.value = openResult.exceptionOrNull()
-                            return@launch
-                        }
-
-                        log(tag) { "Successfully initialized with file: $filePath" }
-                    }
-                    is InMemoryDataSource -> {
-                        log(tag) { "Initializing in-memory data source" }
-
-                        // Initialize the text buffer for in-memory content
-                        val initResult = textBuffer.initialize()
-                        if (initResult.isFailure) {
-                            _error.value = initResult.exceptionOrNull()
-                            return@launch
-                        }
-
-                        log(tag) { "Successfully initialized in-memory editor" }
-                    }
-                }
-
-                // Initialize with debug content in DEV mode
-                if (BuildConfigWrap.BUILD_TYPE == BuildConfigWrap.BuildType.DEV && dataSource is InMemoryDataSource) {
-                    val debugContent = generateDebugContent()
-                    _currentContent.value = debugContent
-                    val lines = debugContent.split('\n')
-                    _totalLines.value = lines.size
-                    _visibleRange.value = 0..minOf(50, lines.size - 1)
-                    log(tag) { "Initialized with debug content: ${lines.size} lines" }
+        // Collect workspace flow and manage resources lifecycle
+        workspaceFlow
+            .onEach { workspace ->
+                if (workspace != null) {
+                    createResources(workspace as EditorWorkspace)
                 } else {
-                    // Initialize with empty content
-                    _currentContent.value = ""
-                    _totalLines.value = 1
-                    _visibleRange.value = 0..0
+                    cleanupResources()
                 }
-
-            } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to initialize editor - ${e.asLog()}" }
+            }
+            .catch { e ->
+                log(tag, ERROR) { "Failed to monitor workspace - ${e.asLog()}" }
                 _error.value = e
-            } finally {
-                _isLoading.value = false
+                cleanupResources()
+            }
+            .launchInViewModel()
+    }
+    
+    private suspend fun createResources(workspace: EditorWorkspace) {
+        try {
+            _isLoading.value = true
+            _error.value = null
+            
+            log(tag) { "Creating editor resources for workspace: ${workspace.id}" }
+            
+            // Create data source
+            val dataSource = workspace.filePath?.let { filePath ->
+                fileDataSourceFactory.create(filePath, gatewaySwitch)
+            } ?: inMemoryDataSourceFactory.create(
+                if (BuildConfigWrap.BUILD_TYPE == BuildConfigWrap.BuildType.DEV) {
+                    generateDebugContent()
+                } else {
+                    ""
+                }
+            )
+            
+            // Create dependent resources
+            val chunkRepository = chunkRepositoryFactory.create(dataSource)
+            val chunkManager = chunkManagerFactory.create(chunkRepository)
+            val textBuffer = chunkedTextBufferFactory.create(chunkManager, chunkRepository)
+            
+            // Store resources
+            val resources = EditorResources(
+                workspace = workspace,
+                dataSource = dataSource,
+                chunkRepository = chunkRepository,
+                chunkManager = chunkManager,
+                textBuffer = textBuffer
+            )
+            editorResources.value = resources
+            
+            // Initialize based on data source type
+            when (dataSource) {
+                is FileDataSource -> {
+                    val filePath = workspace.filePath!!
+                    log(tag) { "Initializing file data source: $filePath" }
+
+                    // Initialize the file data source
+                    val initResult = dataSource.initialize()
+                    if (initResult.isFailure) {
+                        _error.value = initResult.exceptionOrNull()
+                        return
+                    }
+
+                    // Open file in text buffer
+                    val openResult = textBuffer.openFile(filePath)
+                    if (openResult.isFailure) {
+                        _error.value = openResult.exceptionOrNull()
+                        return
+                    }
+
+                    log(tag) { "Successfully initialized with file: $filePath" }
+                }
+                is InMemoryDataSource -> {
+                    log(tag) { "Initializing in-memory data source" }
+
+                    // Initialize the text buffer for in-memory content
+                    val initResult = textBuffer.initialize()
+                    if (initResult.isFailure) {
+                        _error.value = initResult.exceptionOrNull()
+                        return
+                    }
+
+                    // Load initial content for DEV mode
+                    if (BuildConfigWrap.BUILD_TYPE == BuildConfigWrap.BuildType.DEV) {
+                        val content = dataSource.getContent()
+                        _currentContent.value = content
+                        val lines = content.split('\n')
+                        _totalLines.value = lines.size
+                        _visibleRange.value = 0..minOf(50, lines.size - 1)
+                        log(tag) { "Initialized with debug content: ${lines.size} lines" }
+                    } else {
+                        _currentContent.value = ""
+                        _totalLines.value = 1
+                        _visibleRange.value = 0..0
+                    }
+
+                    log(tag) { "Successfully initialized in-memory editor" }
+                }
+            }
+            
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to create editor resources - ${e.asLog()}" }
+            _error.value = e
+        } finally {
+            _isLoading.value = false
+        }
+    }
+    
+    private suspend fun cleanupResources() {
+        log(tag) { "Cleaning up editor resources" }
+        
+        val resources = editorResources.value
+        resources?.let {
+            try {
+                // Close text buffer
+                it.textBuffer.closeFile()
+                
+                // Close data source
+                it.dataSource.close()
+            } catch (e: Exception) {
+                log(tag, ERROR) { "Error during cleanup - ${e.asLog()}" }
             }
         }
+        
+        // Clear resources
+        editorResources.value = null
+        
+        // Clear state
+        clearState()
     }
 
     fun openFile(filePath: APath) {
         launch {
             try {
+                val resources = editorResources.value
+                if (resources == null) {
+                    log(tag, WARN) { "Cannot open file - no workspace resources available" }
+                    _error.value = IllegalStateException("Editor not initialized")
+                    return@launch
+                }
+                
                 _isLoading.value = true
                 _error.value = null
 
                 log(tag) { "Opening file: $filePath" }
 
-                val result = textBuffer.openFile(filePath)
+                val result = resources.textBuffer.openFile(filePath)
                 if (result.isFailure) {
                     _error.value = result.exceptionOrNull()
                     return@launch
@@ -203,8 +290,14 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     fun closeFile() {
         launch {
             try {
+                val resources = editorResources.value
+                if (resources == null) {
+                    log(tag, WARN) { "Cannot close file - no workspace resources available" }
+                    return@launch
+                }
+                
                 _isLoading.value = true
-                textBuffer.closeFile()
+                resources.textBuffer.closeFile()
                 clearState()
                 log(tag) { "File closed" }
             } catch (e: Exception) {
@@ -219,8 +312,15 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     fun saveFile() {
         launch {
             try {
+                val resources = editorResources.value
+                if (resources == null) {
+                    log(tag, WARN) { "Cannot save file - no workspace resources available" }
+                    _error.value = IllegalStateException("Editor not initialized")
+                    return@launch
+                }
+                
                 _isLoading.value = true
-                val result = textBuffer.saveFile()
+                val result = resources.textBuffer.saveFile()
                 if (result.isFailure) {
                     _error.value = result.exceptionOrNull()
                 }
@@ -251,6 +351,12 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun insertText(text: String) {
+        val resources = editorResources.value
+        if (resources == null) {
+            log(tag, WARN) { "Cannot insert text - no workspace resources available" }
+            return
+        }
+        
         // TEMPORARY FIX: Bypass complex text buffer and directly update content
         val currentContent = _currentContent.value
         val currentPos = _cursorPosition.value
@@ -291,7 +397,13 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         if (selection != null) {
             launch {
                 try {
-                    val result = textBuffer.deleteText(selection.first, selection.second)
+                    val resources = editorResources.value
+                    if (resources == null) {
+                        log(tag, WARN) { "Cannot delete selection - no workspace resources available" }
+                        return@launch
+                    }
+                    
+                    val result = resources.textBuffer.deleteText(selection.first, selection.second)
                     if (result.isSuccess) {
                         _selectionRange.value = null
                         _cursorPosition.value = selection.first
@@ -321,7 +433,13 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         if (query.isNotEmpty()) {
             launch {
                 try {
-                    val results = textBuffer.search(query, _cursorPosition.value, ignoreCase = true)
+                    val resources = editorResources.value
+                    if (resources == null) {
+                        log(tag, WARN) { "Cannot search - no workspace resources available" }
+                        return@launch
+                    }
+                    
+                    val results = resources.textBuffer.search(query, _cursorPosition.value, ignoreCase = true)
                     _searchResults.value = results
                 } catch (e: Exception) {
                     log(tag, ERROR) { "Failed to search - ${e.asLog()}" }
@@ -370,7 +488,13 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     fun undo() {
         launch {
             try {
-                val result = textBuffer.undo()
+                val resources = editorResources.value
+                if (resources == null) {
+                    log(tag, WARN) { "Cannot undo - no workspace resources available" }
+                    return@launch
+                }
+                
+                val result = resources.textBuffer.undo()
                 if (result.isSuccess) {
                     loadVisibleContent()
                 } else {
@@ -386,7 +510,13 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     fun redo() {
         launch {
             try {
-                val result = textBuffer.redo()
+                val resources = editorResources.value
+                if (resources == null) {
+                    log(tag, WARN) { "Cannot redo - no workspace resources available" }
+                    return@launch
+                }
+                
+                val result = resources.textBuffer.redo()
                 if (result.isSuccess) {
                     loadVisibleContent()
                 } else {
@@ -399,9 +529,9 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun canUndo(): Boolean = textBuffer.canUndo()
+    fun canUndo(): Boolean = editorResources.value?.textBuffer?.canUndo() ?: false
 
-    fun canRedo(): Boolean = textBuffer.canRedo()
+    fun canRedo(): Boolean = editorResources.value?.textBuffer?.canRedo() ?: false
 
     fun clearError() {
         _error.value = null
@@ -439,7 +569,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val visibleRange: IntRange = 0..50,
         val memoryStats: MemoryStats = MemoryStats(0, 0, 0, 0, 0),
         val showLineNumbers: Boolean = true,
-        val wordWrap: Boolean = false
+        val wordWrap: Boolean = false,
+        val hasWorkspace: Boolean = true
     ) {
         val hasFile: Boolean get() = fileInfo != null
         val fileName: String get() = fileInfo?.path?.name ?: "Untitled"
@@ -453,30 +584,32 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     interface Factory {
         fun create(id: Workspace.Id): EditorWorkspaceViewModel
     }
-
-    private fun generateDebugContent(): String {
-        return """
-            |Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-            |Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-            |Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-            |Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-            |
-            |The quick brown fox jumps over the lazy dog. This is a test line with very long content that should demonstrate horizontal scrolling when line wrap is disabled in the editor settings.
-            |Short line.
-            |Another medium length line with some content.
-            |
-            |    Indented line with 4 spaces
-            |        Double indented line with 8 spaces
-            |            Triple indented line with 12 spaces
-            |
-            |Special characters: !@#$%^&*()_+-={}[]|\:";'<>?,./
-            |Numbers: 0123456789
-            |Mixed case: AbCdEfGhIjKlMnOpQrStUvWxYz
-            |
-            |This is line 17 of the debug content.
-            |Line 18 - Testing scrolling behavior
-            |Line 19 - More test content
-            |Line 20 - Final line of debug text
-        """.trimMargin()
+    
+    companion object {
+        private fun generateDebugContent(): String {
+            return """
+                |Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                |Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                |Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+                |Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                |
+                |The quick brown fox jumps over the lazy dog. This is a test line with very long content that should demonstrate horizontal scrolling when line wrap is disabled in the editor settings.
+                |Short line.
+                |Another medium length line with some content.
+                |
+                |    Indented line with 4 spaces
+                |        Double indented line with 8 spaces
+                |            Triple indented line with 12 spaces
+                |
+                |Special characters: !@#$%^&*()_+-={}[]|\:";'<>?,./
+                |Numbers: 0123456789
+                |Mixed case: AbCdEfGhIjKlMnOpQrStUvWxYz
+                |
+                |This is line 17 of the debug content.
+                |Line 18 - Testing scrolling behavior
+                |Line 19 - More test content
+                |Line 20 - Final line of debug text
+            """.trimMargin()
+        }
     }
 }

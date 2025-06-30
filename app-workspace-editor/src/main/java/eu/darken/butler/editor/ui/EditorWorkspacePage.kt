@@ -198,21 +198,31 @@ fun EditorWorkspacePage(
                     .weight(1f)
                     .fillMaxWidth()
             ) {
-                LazyTextEditor(
-                    content = state.currentContent,
-                    cursorPosition = state.cursorPosition,
-                    selection = state.selectionRange,
-                    visibleRange = state.visibleRange,
-                    showLineNumbers = state.showLineNumbers,
-                    wordWrap = state.wordWrap,
-                    fontSize = 14,
-                    tabSize = 4,
-                    onTextChange = onTextChange,
-                    onCursorPositionChange = onCursorPositionChange,
-                    onSelectionChange = onSelectionChange,
-                    onVisibleRangeChange = onVisibleRangeChange,
-                    modifier = Modifier.fillMaxSize()
-                )
+                if (state.hasWorkspace) {
+                    LazyTextEditor(
+                        content = state.currentContent,
+                        cursorPosition = state.cursorPosition,
+                        selection = state.selectionRange,
+                        visibleRange = state.visibleRange,
+                        showLineNumbers = state.showLineNumbers,
+                        wordWrap = state.wordWrap,
+                        fontSize = 14,
+                        tabSize = 4,
+                        onTextChange = onTextChange,
+                        onCursorPositionChange = onCursorPositionChange,
+                        onSelectionChange = onSelectionChange,
+                        onVisibleRangeChange = onVisibleRangeChange,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    // Show loading or error state when workspace is not available
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
             }
 
             // Search results
