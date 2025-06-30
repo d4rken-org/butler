@@ -89,90 +89,31 @@ fun LazyTextEditor(
         }
     }
 
-    Row(modifier = modifier.fillMaxSize()) {
-        // Line numbers
-        if (showLineNumbers) {
-            LineNumberColumn(
-                totalLines = lines.size,
-                visibleRange = visibleRange,
-                listState = listState,
-                fontSize = fontSize
-            )
-        }
-
-        // Text content
-        VirtualizedTextContent(
-            lines = lines,
-            cursorPosition = cursorPosition,
-            selection = selection,
-            listState = listState,
-            focusRequester = focusRequester,
-            fontSize = fontSize,
-            tabSize = tabSize,
-            onTextChange = onTextChange,
-            onCursorPositionChange = onCursorPositionChange,
-            onSelectionChange = onSelectionChange,
-            modifier = Modifier.weight(1f)
-        )
-    }
-}
-
-@Composable
-private fun LineNumberColumn(
-    totalLines: Int,
-    visibleRange: IntRange,
-    listState: LazyListState,
-    fontSize: Int,
-    modifier: Modifier = Modifier
-) {
-    val lineNumberWidth = remember(totalLines) {
-        (totalLines.toString().length * 8 + 16).dp
-    }
-
-    LazyColumn(
-        state = listState,
+    // Combined content with line numbers and text
+    CombinedEditorContent(
+        lines = lines,
+        cursorPosition = cursorPosition,
+        selection = selection,
+        listState = listState,
+        focusRequester = focusRequester,
+        showLineNumbers = showLineNumbers,
+        fontSize = fontSize,
+        tabSize = tabSize,
+        onTextChange = onTextChange,
+        onCursorPositionChange = onCursorPositionChange,
+        onSelectionChange = onSelectionChange,
         modifier = modifier
-            .width(lineNumberWidth)
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(horizontal = 8.dp),
-        userScrollEnabled = false
-    ) {
-        itemsIndexed(
-            items = (0 until totalLines).toList(),
-            key = { index, _ -> "line_$index" }
-        ) { _, lineNumber ->
-            LineNumberItem(
-                lineNumber = lineNumber + 1,
-                fontSize = fontSize
-            )
-        }
-    }
-}
-
-@Composable
-private fun LineNumberItem(
-    lineNumber: Int,
-    fontSize: Int,
-    modifier: Modifier = Modifier
-) {
-    Text(
-        text = lineNumber.toString(),
-        style = TextStyle(
-            fontSize = fontSize.sp,
-            fontFamily = FontFamily.Monospace,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        ),
-        modifier = modifier.padding(vertical = 2.dp)
     )
 }
 
 @Composable
-private fun VirtualizedTextContent(
+private fun CombinedEditorContent(
     lines: List<String>,
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
     listState: LazyListState,
     focusRequester: FocusRequester,
+    showLineNumbers: Boolean,
     fontSize: Int,
     tabSize: Int,
     onTextChange: (String) -> Unit,
@@ -182,7 +123,7 @@ private fun VirtualizedTextContent(
 ) {
     var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
     
-    // Sync textFieldValue with content - this is crucial for proper text input
+    // Sync textFieldValue with content
     LaunchedEffect(lines) {
         val currentContent = lines.joinToString("\n")
         if (textFieldValue.text != currentContent) {
@@ -193,25 +134,30 @@ private fun VirtualizedTextContent(
         }
     }
 
-    // Use Box to layer components properly
+    // Calculate line number width
+    val lineNumberWidth = if (showLineNumbers) {
+        remember(lines.size) {
+            (lines.size.toString().length * 8 + 16).dp
+        }
+    } else {
+        0.dp
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
             .focusRequester(focusRequester)
     ) {
-        // Hidden text field for keyboard input - make it tiny so it doesn't block
+        // Hidden text field for keyboard input
         BasicTextField(
             value = textFieldValue,
             onValueChange = { newValue ->
                 val oldText = textFieldValue.text
                 val newText = newValue.text
                 
-                // Update the field value first
                 textFieldValue = newValue
                 
-                // Handle text changes - same logic as working TextField
                 if (newText != oldText) {
-                    // Find what was added and send it to the ViewModel
                     if (newText.length > oldText.length && newText.startsWith(oldText)) {
                         val addedText = newText.substring(oldText.length)
                         onTextChange(addedText)
@@ -219,7 +165,7 @@ private fun VirtualizedTextContent(
                 }
             },
             modifier = Modifier
-                .size(1.dp) // Make it tiny instead of full size
+                .size(1.dp)
                 .align(Alignment.TopStart),
             textStyle = TextStyle(
                 fontSize = 1.sp,
@@ -227,10 +173,10 @@ private fun VirtualizedTextContent(
             ),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.None),
             keyboardActions = KeyboardActions(),
-            decorationBox = { _ -> /* No decoration, just capture input */ }
+            decorationBox = { _ -> }
         )
         
-        // LazyColumn for displaying text
+        // LazyColumn with both line numbers and text
         LazyColumn(
             state = listState,
             modifier = Modifier
@@ -238,7 +184,6 @@ private fun VirtualizedTextContent(
                 .clipToBounds()
                 .pointerInput(Unit) {
                     detectTapGestures {
-                        // Request focus when editor is clicked
                         try {
                             focusRequester.requestFocus()
                         } catch (e: Exception) {
@@ -249,26 +194,52 @@ private fun VirtualizedTextContent(
         ) {
             itemsIndexed(
                 items = lines,
-                key = { index, _ -> "text_line_$index" }
+                key = { index, _ -> "line_$index" }
             ) { lineIndex, lineContent ->
-                TextLineItem(
-                    lineIndex = lineIndex,
-                    lineContent = lineContent,
-                    cursorPosition = cursorPosition,
-                    selection = selection,
-                    isCurrentLine = lineIndex == cursorPosition.line,
-                    fontSize = fontSize,
-                    tabSize = tabSize,
-                    onLineClick = { clickPosition ->
-                        val newPosition = TextPosition(
-                            offset = calculateOffsetForLine(lines, lineIndex, clickPosition),
-                            line = lineIndex,
-                            column = clickPosition
-                        )
-                        onCursorPositionChange(newPosition)
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    // Line number
+                    if (showLineNumbers) {
+                        Box(
+                            modifier = Modifier
+                                .width(lineNumberWidth)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .padding(horizontal = 8.dp, vertical = 2.dp),
+                            contentAlignment = Alignment.TopEnd
+                        ) {
+                            Text(
+                                text = (lineIndex + 1).toString(),
+                                style = TextStyle(
+                                    fontSize = fontSize.sp,
+                                    fontFamily = FontFamily.Monospace,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            )
+                        }
+                    }
+                    
+                    // Text content
+                    TextLineItem(
+                        lineIndex = lineIndex,
+                        lineContent = lineContent,
+                        cursorPosition = cursorPosition,
+                        selection = selection,
+                        isCurrentLine = lineIndex == cursorPosition.line,
+                        fontSize = fontSize,
+                        tabSize = tabSize,
+                        onLineClick = { clickPosition ->
+                            val newPosition = TextPosition(
+                                offset = calculateOffsetForLine(lines, lineIndex, clickPosition),
+                                line = lineIndex,
+                                column = clickPosition
+                            )
+                            onCursorPositionChange(newPosition)
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
         }
     }
@@ -282,6 +253,7 @@ private fun VirtualizedTextContent(
         }
     }
 }
+
 
 @Composable
 private fun TextLineItem(
@@ -371,7 +343,8 @@ private fun SelectableText(
             modifier = modifier
                 .pointerInput(lineIndex) {
                     detectTapGestures { offset ->
-                        // Calculate character position from click
+                        // For wrapped text, we can't easily calculate exact character position
+                        // So we'll approximate based on x position only
                         val charWidth = fontSize * density.density * 0.6f // Approximate monospace char width
                         val clickedColumn = (offset.x / charWidth).toInt().coerceIn(0, text.length)
                         onTextClick(clickedColumn)
@@ -400,7 +373,7 @@ private fun SelectableText(
                 }
             }
             
-            // Text content with debug background
+            // Text content
             Text(
                 text = if (text.isEmpty()) " " else text, // Show at least a space for empty lines
                 style = TextStyle(
@@ -408,10 +381,9 @@ private fun SelectableText(
                     fontFamily = FontFamily.Monospace,
                     color = textColor
                 ),
-                maxLines = 1,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.Yellow.copy(alpha = 0.1f)) // Debug: light yellow background
+                softWrap = true,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Visible,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
