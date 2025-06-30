@@ -12,7 +12,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.compose.Preview2
@@ -26,12 +28,16 @@ import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.editor.ui.EditorWorkspacePageHost
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspacePageHost
+import eu.darken.butler.main.core.motd.MotdApi
+import eu.darken.butler.main.core.motd.MotdState
+import eu.darken.butler.main.ui.motd.MotdCard
 import eu.darken.butler.searcher.ui.search.SearcherWorkspacePageHost
 import eu.darken.butler.templates.ui.TemplatesWorkspacePageHost
 import eu.darken.butler.templates.ui.WorkspaceTab
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.empty.EmptyWorkspaceContent
+import java.util.UUID
 
 private val TAG = logTag("Workspace", "Screen")
 
@@ -46,8 +52,12 @@ fun WorkspaceScreenHost(vm: WorkspaceViewModel = hiltViewModel()) {
         WorkspaceScreen(
             state = state,
             onNavToSettings = { vm.navTo(Nav.Main.settings()) },
-            onTabAction = { vm.modifyTab(it) },
+            onTabAction = { vm.executeAction(it) },
+            onOpenWorkspaceManager = { vm.openWorkspaceManager() },
             onUpgradeButler = { vm.upgradeButler() },
+            onHideMotd = { vm.hideMotd(it) },
+            onDismissMotd = { vm.dismissMotd(it) },
+            onMotdLinkClick = { vm.openMotdLink(it) },
         )
     }
 }
@@ -57,7 +67,11 @@ fun WorkspaceScreen(
     state: WorkspaceViewModel.State,
     onNavToSettings: () -> Unit,
     onTabAction: (WorkspaceAction) -> Unit,
+    onOpenWorkspaceManager: () -> Unit,
     onUpgradeButler: () -> Unit,
+    onHideMotd: (UUID) -> Unit,
+    onDismissMotd: (UUID) -> Unit,
+    onMotdLinkClick: (String) -> Unit,
 ) {
     val pagerState = rememberPagerState(pageCount = { state.tabs.size })
 
@@ -110,13 +124,16 @@ fun WorkspaceScreen(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            // Main content
             if (state.tabs.isNotEmpty()) {
                 HorizontalPager(
                     state = pagerState,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
+                    modifier = Modifier.fillMaxSize()
                 ) { page ->
                     TabContent(
                         modifier = Modifier.fillMaxSize(),
@@ -125,16 +142,27 @@ fun WorkspaceScreen(
                 }
             } else {
                 EmptyWorkspaceContent(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
+                    modifier = Modifier.fillMaxSize(),
                     onNavToSettings = onNavToSettings,
                     onTabAction = onTabAction,
+                    onOpenWorkspaceManager = onOpenWorkspaceManager,
                     isUpgraded = state.isUpgraded,
                     onUpgradeButler = onUpgradeButler,
                 )
             }
 
+            // MOTD overlay at the top
+            state.motd?.let { motd ->
+                MotdCard(
+                    motd = motd,
+                    onHide = { onHideMotd(motd.id) },
+                    onMarkAsRead = onDismissMotd,
+                    onLinkClick = onMotdLinkClick,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                )
+            }
         }
     }
 }
@@ -175,7 +203,11 @@ private fun EmptyWorkspaceScreenPreview() {
             ),
             onNavToSettings = {},
             onTabAction = {},
+            onOpenWorkspaceManager = {},
             onUpgradeButler = {},
+            onHideMotd = {},
+            onDismissMotd = {},
+            onMotdLinkClick = {},
         )
     }
 }
@@ -201,10 +233,24 @@ private fun WorkspaceScreenPreview() {
                 tabs = tabs,
                 selected = tabs.last().id,
                 isUpgraded = false,
+                motd = MotdState(
+                    motd = MotdApi.Motd(
+                        id = UUID.randomUUID(),
+                        message = "This is a message of the day. It can contain important information about updates, new features, or announcements.",
+                        primaryLink = "https://example.com",
+                        minimumVersion = null,
+                        maximumVersion = null,
+                    ),
+                    locale = java.util.Locale.ENGLISH,
+                )
             ),
             onNavToSettings = {},
             onTabAction = {},
+            onOpenWorkspaceManager = {},
             onUpgradeButler = {},
+            onHideMotd = {},
+            onDismissMotd = {},
+            onMotdLinkClick = {},
         )
     }
 }

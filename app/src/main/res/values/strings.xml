@@ -151,18 +151,23 @@
     <string name="storage_area_public_app_data_label">Public app data</string>
 
     <!-- Workspace -->
+    <!-- Workspace > Manager -->
     <string name="workspace_manager_title">Workspace Manager</string>
     <string name="workspace_manager_add_action">Add workspace</string>
     <string name="workspace_manager_status_count">Active workspaces: %1$d</string>
     <string name="workspace_manager_empty_title">No workspaces</string>
     <string name="workspace_manager_empty_subtitle">Create your first workspace to get started</string>
     <string name="workspace_tab_close_action">Close tab</string>
-    <string name="workspace_tab_add_action">Create a new tab</string>
-    <string name="workspace_tab_add_hint">Work in parallel: Create a tab and turn it into a tool of your choice.</string>
 
-    <string name="workspace_settings_action">Open settings</string>
-    <string name="workspace_settings_hint">Customize Butler to your liking. Adjust how the tools behave.</string>
+    <!-- Workspace > Empty Content-->
+    <string name="workspace_empty_create_action">Create workspace</string>
+    <string name="workspace_empty_create_hint">Work in parallel: Create a workspace and turn it into a tool of your choice.</string>
+    <string name="workspace_empty_settings_action">Open settings</string>
+    <string name="workspace_empty_settings_hint">Customize Butler to your liking. Adjust how the tools behave.</string>
+    <string name="workspace_empty_manager_action">Manage workspaces</string>
+    <string name="workspace_empty_manager_hint">View and organize all your open workspaces in one place.</string>
 
+    <!-- Workspace > Settings-->
     <string name="workspace_settings_title">Workspace Settings</string>
     <string name="workspace_settings_button_behavior">Button Behavior</string>
     <string name="workspace_settings_flip_button_actions_title">Flip Button Actions</string>

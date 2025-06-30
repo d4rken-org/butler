@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.AddCircle
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Stars
+import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -39,7 +40,8 @@ internal fun EmptyWorkspaceContent(
     modifier: Modifier = Modifier,
     isUpgraded: Boolean,
     onNavToSettings: () -> Unit,
-    onTabAction: (WorkspaceAction.Create) -> Unit,
+    onTabAction: (WorkspaceAction) -> Unit,
+    onOpenWorkspaceManager: () -> Unit,
     onUpgradeButler: () -> Unit,
 ) {
     Column(
@@ -100,21 +102,56 @@ internal fun EmptyWorkspaceContent(
                 ) {
                     Row(
                         modifier = Modifier.Companion.padding(20.dp),
-                        verticalAlignment = Alignment.Companion.CenterVertically
+                        verticalAlignment = Alignment.Companion.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Column(modifier = Modifier.Companion.weight(1f)) {
                             Text(
-                                text = stringResource(R.string.workspace_tab_add_action),
+                                text = stringResource(R.string.workspace_empty_create_action),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                             Text(
-                                text = stringResource(R.string.workspace_tab_add_hint),
+                                text = stringResource(R.string.workspace_empty_create_hint),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                         Icon(imageVector = Icons.TwoTone.AddCircle, contentDescription = null)
+                    }
+                }
+            }
+
+            // Add workspace manager entry
+            item {
+                Card(
+                    modifier = Modifier.Companion
+                        .fillMaxWidth()
+                        .clickable { onOpenWorkspaceManager() },
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+                ) {
+                    Row(
+                        modifier = Modifier.Companion.padding(20.dp),
+                        verticalAlignment = Alignment.Companion.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Column(modifier = Modifier.Companion.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.workspace_empty_manager_action),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                            Text(
+                                text = stringResource(R.string.workspace_empty_manager_hint),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.TwoTone.Workspaces,
+                            contentDescription = stringResource(R.string.workspace_empty_manager_action),
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
                     }
                 }
             }
@@ -126,15 +163,16 @@ internal fun EmptyWorkspaceContent(
                         .clickable { onNavToSettings() }) {
                     Row(
                         modifier = Modifier.Companion.padding(20.dp),
-                        verticalAlignment = Alignment.Companion.CenterVertically
+                        verticalAlignment = Alignment.Companion.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Column(modifier = Modifier.Companion.weight(1f)) {
                             Text(
-                                text = stringResource(R.string.workspace_settings_action),
+                                text = stringResource(R.string.workspace_empty_settings_action),
                                 style = MaterialTheme.typography.titleMedium
                             )
                             Text(
-                                text = stringResource(R.string.workspace_settings_hint),
+                                text = stringResource(R.string.workspace_empty_settings_hint),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -191,6 +229,7 @@ private fun EmptyWorkspaceContentPreview() {
             isUpgraded = false,
             onNavToSettings = {},
             onTabAction = {},
+            onOpenWorkspaceManager = {},
             onUpgradeButler = {},
         )
     }
