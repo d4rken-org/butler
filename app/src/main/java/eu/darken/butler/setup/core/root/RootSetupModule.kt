@@ -89,7 +89,11 @@ class RootSetupModule @Inject constructor(
 
         override val type: SetupModule.Type = SetupModule.Type.ROOT
 
-        override val isComplete: Boolean = useRoot != null
+        override val isComplete: Boolean = when {
+            useRoot == true -> ourService // Only complete if enabled AND connected
+            useRoot == false -> true // Complete if explicitly disabled
+            else -> false // Not complete if not configured
+        }
     }
 
     @Module @InstallIn(SingletonComponent::class)

@@ -141,8 +141,11 @@ class ShizukuSetupModule @Inject constructor(
 
         override val type: SetupModule.Type = SetupModule.Type.SHIZUKU
 
-        override val isComplete: Boolean =
-            useShizuku == false || !isCompatible || (useShizuku == true && (!isInstalled || ourService))
+        override val isComplete: Boolean = when {
+            useShizuku == true -> ourService // Only complete if enabled AND connected
+            useShizuku == false -> true // Complete if explicitly disabled
+            else -> false // Not complete if not configured
+        }
     }
 
     @Module @InstallIn(SingletonComponent::class)
