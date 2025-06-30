@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
@@ -120,37 +121,54 @@ fun ExplorerWorkspacePage(
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                        contentPadding = PaddingValues(12.dp)
-                    ) {
-                        // Sort directories first, then files
-                        val sortedItems = state.items.sortedWith(
-                            compareBy<ExplorerPathItem> { !it.isDirectory }.thenBy { it.displayName }
-                        )
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            contentPadding = PaddingValues(12.dp)
+                        ) {
+                            // Sort directories first, then files
+                            val sortedItems = state.items.sortedWith(
+                                compareBy<ExplorerPathItem> { !it.isDirectory }.thenBy { it.displayName }
+                            )
 
-                        items(sortedItems) { fileItem ->
-                            FileItemRow(
-                                item = fileItem,
-                                isSelected = state.selectedItems.contains(fileItem.lookup.lookedUp),
-                                onToggleSelection = {
-                                    vm?.toggleItemSelection(fileItem)
-                                },
-                                onClick = {
-                                    when (fileItem) {
-                                        is ExplorerPathItem.Shortcut -> {
-                                            vm?.navigateToShortcut(fileItem)
-                                        }
-                                        else -> {
-                                            if (fileItem.isDirectory) {
-                                                vm?.navigateToPath(fileItem.lookup.lookedUp)
+                            items(sortedItems) { fileItem ->
+                                FileItemRow(
+                                    item = fileItem,
+                                    isSelected = state.selectedItems.contains(fileItem.lookup.lookedUp),
+                                    onToggleSelection = {
+                                        vm?.toggleItemSelection(fileItem)
+                                    },
+                                    onClick = {
+                                        when (fileItem) {
+                                            is ExplorerPathItem.Shortcut -> {
+                                                vm?.navigateToShortcut(fileItem)
+                                            }
+                                            else -> {
+                                                if (fileItem.isDirectory) {
+                                                    vm?.navigateToPath(fileItem.lookup.lookedUp)
+                                                }
                                             }
                                         }
-                                    }
-                                },
-                                showSelection = state.selectedItems.isNotEmpty()
-                            )
+                                    },
+                                    showSelection = state.selectedItems.isNotEmpty()
+                                )
+                            }
+                        }
+
+                        // Extended data loading indicator
+                        if (state.isLoadingExtended) {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(16.dp)
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
                         }
                     }
                 }

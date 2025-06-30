@@ -63,7 +63,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         lookup = createShortcutLookup("device_item_$index"),
                         icon = item.icon,
                         label = item.label,
-                        target = ExplorerLocation.Directory(item.target),
+                        target = ExplorerLocation.Directory(item.target, parent = location),
                     )
                 }
             }
@@ -90,6 +90,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 }
             },
             isLoading = wsState.isLoading,
+            isLoadingExtended = wsState.isLoadingExtended,
             error = wsState.error,
             selectedItems = selectedItems,
             canGoBack = wsState.canGoBack,
@@ -174,6 +175,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val breadcrumbs: List<ExplorerLocation.Breadcrumb> = emptyList(),
         val items: List<ExplorerPathItem>,
         val isLoading: Boolean,
+        val isLoadingExtended: Boolean = false,
         val error: Throwable? = null,
         val selectedItems: Set<APath>,
         val canGoBack: Boolean = false,

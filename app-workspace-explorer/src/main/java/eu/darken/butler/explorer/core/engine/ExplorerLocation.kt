@@ -86,6 +86,7 @@ sealed interface ExplorerLocation {
     data class Directory(
         val path: APath,
         val items: List<ExplorerPathItem>? = null,
+        val parent: ExplorerLocation? = null,
     ) : ExplorerLocation {
         override val displayIcon: ImageVector
             get() = Icons.TwoTone.FolderOpen
@@ -95,21 +96,29 @@ sealed interface ExplorerLocation {
 
         override val breadcrumbs: List<Breadcrumb>
             get() = buildList {
-                add(Home.CRUMB)
-                add(Device.CRUMB)
-
-                // Add path segments
-                val segments = path.segments
-                segments.forEachIndexed { index, segment ->
-                    val segmentPath = path.child(*segments.take(index + 1).toTypedArray())
-                    add(
-                        Breadcrumb(
-                            label = segment.toCaString(),
-                            icon = if (index == segments.lastIndex) Icons.TwoTone.FolderOpen else null,
-                            target = Breadcrumb.Target.Directory(segmentPath)
-                        )
-                    )
+                // Build parent breadcrumbs based on actual navigation path
+                when (parent) {
+                    is Home -> add(Home.CRUMB)
+                    is Device -> {
+                        add(Home.CRUMB)
+                        add(Device.CRUMB)
+                    }
+                    is Directory -> addAll(parent.breadcrumbs)
+                    null -> {
+                        // Default fallback if no parent is set
+                        add(Home.CRUMB)
+                        add(Device.CRUMB)
+                    }
                 }
+
+                // Add current directory as breadcrumb
+                add(
+                    Breadcrumb(
+                        label = path.name.toCaString(),
+                        icon = Icons.TwoTone.FolderOpen,
+                        target = Breadcrumb.Target.Directory(path)
+                    )
+                )
             }
     }
 

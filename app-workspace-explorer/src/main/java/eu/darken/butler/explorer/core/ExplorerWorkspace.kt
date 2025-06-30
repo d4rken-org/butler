@@ -48,6 +48,7 @@ class ExplorerWorkspace @AssistedInject constructor(
         val navigationHistory: List<ExplorerLocation> = emptyList(),
         val historyIndex: Int = 0,
         val isLoading: Boolean = false,
+        val isLoadingExtended: Boolean = false,
         val error: Throwable? = null,
         val progress: Progress.Data? = null,
     ) {
@@ -87,7 +88,8 @@ class ExplorerWorkspace @AssistedInject constructor(
 
     fun navigateTo(path: APath) {
         scope.launch {
-            val location = ExplorerLocation.Directory(path)
+            val currentLoc = current.value.currentLocation
+            val location = ExplorerLocation.Directory(path, parent = currentLoc)
             navigateToLocationInternal(location, addToHistory = true)
         }
     }
@@ -103,7 +105,15 @@ class ExplorerWorkspace @AssistedInject constructor(
             val location = when (target) {
                 is ExplorerLocation.Breadcrumb.Target.Home -> engine.getHomeEntry()
                 is ExplorerLocation.Breadcrumb.Target.Device -> engine.getDevice()
-                is ExplorerLocation.Breadcrumb.Target.Directory -> ExplorerLocation.Directory(target.path)
+                is ExplorerLocation.Breadcrumb.Target.Directory -> {
+                    // Find the parent from breadcrumb navigation
+                    val currentLoc = current.value.currentLocation
+                    val parent = when {
+                        target.path.segments.size == 1 -> ExplorerLocation.Device(emptyList())
+                        else -> currentLoc
+                    }
+                    ExplorerLocation.Directory(target.path, parent = parent)
+                }
             }
             navigateToLocationInternal(location, addToHistory = true)
         }
@@ -144,7 +154,8 @@ class ExplorerWorkspace @AssistedInject constructor(
     }
 
     private suspend fun navigateToInternal(path: APath, addToHistory: Boolean) {
-        val location = ExplorerLocation.Directory(path)
+        val currentLoc = current.value.currentLocation
+        val location = ExplorerLocation.Directory(path, parent = currentLoc)
         navigateToLocationInternal(location, addToHistory)
     }
 
@@ -159,9 +170,16 @@ class ExplorerWorkspace @AssistedInject constructor(
                 is ExplorerLocation.Device -> location // Already has its items
                 is ExplorerLocation.Directory -> {
                     if (location.items == null) {
-                        // Load items for this directory
+                        // Load basic items for this directory
                         val items = engine.getContent(location.path)
-                        location.copy(items = items)
+                        val newLocation = location.copy(items = items)
+
+                        // Load extended data in background
+                        scope.launch {
+                            loadExtendedData(location.path)
+                        }
+
+                        newLocation
                     } else {
                         location // Already loaded
                     }
@@ -199,6 +217,43 @@ class ExplorerWorkspace @AssistedInject constructor(
     private fun updateInfo(location: ExplorerLocation) {
         val newTitle = location.displayName ?: "Explorer".toCaString()
         info.value = info.value.copy(title = newTitle)
+    }
+
+    private suspend fun loadExtendedData(path: APath) {
+        try {
+            log(tag, INFO) { "Loading extended data for: $path" }
+            current.value = current.value.copy(isLoadingExtended = true)
+
+            // Load extended data with permissions/ownership
+            val extendedItems = engine.getContentExtended(path)
+
+            // Update the current location with extended items
+            val currentLoc = current.value.currentLocation
+            if (currentLoc is ExplorerLocation.Directory && currentLoc.path == path) {
+                val updatedLocation = currentLoc.copy(items = extendedItems)
+
+                // Update the navigation history with the enhanced items
+                val updatedHistory = current.value.navigationHistory.map { loc ->
+                    if (loc is ExplorerLocation.Directory && loc.path == path) {
+                        updatedLocation
+                    } else {
+                        loc
+                    }
+                }
+
+                current.value = current.value.copy(
+                    currentLocation = updatedLocation,
+                    navigationHistory = updatedHistory,
+                    isLoadingExtended = false
+                )
+            } else {
+                // Location changed, extended data no longer relevant
+                current.value = current.value.copy(isLoadingExtended = false)
+            }
+        } catch (e: Exception) {
+            log(tag, WARN) { "Failed to load extended data: $e" }
+            current.value = current.value.copy(isLoadingExtended = false)
+        }
     }
 
     override suspend fun release() {

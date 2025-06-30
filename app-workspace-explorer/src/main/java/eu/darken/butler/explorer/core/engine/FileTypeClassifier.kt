@@ -2,56 +2,54 @@ package eu.darken.butler.explorer.core.engine
 
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileType
+import java.util.Locale
 
-object FileTypeClassifier {
+class FileTypeClassifier {
 
-    fun classifyFileItem(lookup: APathLookup<*>, mimeType: String): ExplorerPathItem {
+    fun classify(lookup: APathLookup<*>): ExplorerPathItem {
+        return when (lookup.fileType) {
+            FileType.DIRECTORY -> ExplorerPathItem.Directory(
+                lookup = lookup,
+                mimeType = "inode/directory"
+            )
+            FileType.SYMBOLIC_LINK -> ExplorerPathItem.SymbolicLink(
+                lookup = lookup,
+                mimeType = getMimeType(lookup.name),
+                targetPath = lookup.target?.path,
+                isBroken = lookup.target == null
+            )
+            FileType.FILE -> classifyFile(lookup)
+            else -> ExplorerPathItem.RegularFile(
+                lookup = lookup,
+                mimeType = getMimeType(lookup.name)
+            )
+        }
+    }
+
+    private fun classifyFile(lookup: APathLookup<*>): ExplorerPathItem {
+        val mimeType = getMimeType(lookup.name)
+
         return when {
-            // Directory
-            lookup.fileType == FileType.DIRECTORY -> ExplorerPathItem.Directory(
+            mimeType.startsWith("image/") -> ExplorerPathItem.ImageFile(
                 lookup = lookup,
                 mimeType = mimeType
             )
-
-            // Symbolic Link
-            lookup.fileType == FileType.SYMBOLIC_LINK -> ExplorerPathItem.SymbolicLink(
-                lookup = lookup,
-                mimeType = mimeType,
-                targetPath = lookup.target?.path
-            )
-
-            // APK Files
-            mimeType == "application/vnd.android.package-archive" ||
-                lookup.name.lowercase().endsWith(".apk") -> ExplorerPathItem.ApkFile(
+            mimeType.startsWith("video/") || mimeType.startsWith("audio/") -> ExplorerPathItem.MediaFile(
                 lookup = lookup,
                 mimeType = mimeType
             )
-
-            // Media Files (Video/Audio)
-            isMediaType(mimeType) -> ExplorerPathItem.MediaFile(
+            mimeType == "application/vnd.android.package-archive" -> ExplorerPathItem.ApkFile(
                 lookup = lookup,
                 mimeType = mimeType
             )
-
-            // Image Files
-            isImageType(mimeType) -> ExplorerPathItem.ImageFile(
-                lookup = lookup,
-                mimeType = mimeType
-            )
-
-            // Archive Files
             isArchiveType(mimeType) -> ExplorerPathItem.ArchiveFile(
                 lookup = lookup,
                 mimeType = mimeType
             )
-
-            // Document Files
             isDocumentType(mimeType) -> ExplorerPathItem.DocumentFile(
                 lookup = lookup,
                 mimeType = mimeType
             )
-
-            // Regular File (fallback)
             else -> ExplorerPathItem.RegularFile(
                 lookup = lookup,
                 mimeType = mimeType
@@ -59,102 +57,69 @@ object FileTypeClassifier {
         }
     }
 
-    private fun isMediaType(mimeType: String): Boolean {
-        return mimeType.startsWith("video/") ||
-               mimeType.startsWith("audio/") ||
-               isMediaExtension(mimeType)
-    }
+    private fun getMimeType(fileName: String): String {
+        val extension = fileName.substringAfterLast('.', "").lowercase(Locale.ROOT)
 
-    private fun isImageType(mimeType: String): Boolean {
-        return mimeType.startsWith("image/") ||
-               isImageExtension(mimeType)
+        return when (extension) {
+            // Images
+            "jpg", "jpeg" -> "image/jpeg"
+            "png" -> "image/png"
+            "gif" -> "image/gif"
+            "webp" -> "image/webp"
+            "bmp" -> "image/bmp"
+
+            // Videos
+            "mp4" -> "video/mp4"
+            "mkv" -> "video/x-matroska"
+            "avi" -> "video/x-msvideo"
+            "mov" -> "video/quicktime"
+            "webm" -> "video/webm"
+
+            // Audio
+            "mp3" -> "audio/mpeg"
+            "wav" -> "audio/wav"
+            "flac" -> "audio/flac"
+            "ogg" -> "audio/ogg"
+            "m4a" -> "audio/mp4"
+
+            // Archives
+            "zip" -> "application/zip"
+            "tar" -> "application/x-tar"
+            "gz" -> "application/gzip"
+            "7z" -> "application/x-7z-compressed"
+            "rar" -> "application/vnd.rar"
+
+            // Documents
+            "pdf" -> "application/pdf"
+            "doc" -> "application/msword"
+            "docx" -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            "txt" -> "text/plain"
+            "md" -> "text/markdown"
+
+            // Android
+            "apk" -> "application/vnd.android.package-archive"
+
+            else -> "application/octet-stream"
+        }
     }
 
     private fun isArchiveType(mimeType: String): Boolean {
-        return when (mimeType) {
+        return mimeType in setOf(
             "application/zip",
-            "application/x-zip-compressed",
-            "application/x-rar-compressed",
-            "application/x-7z-compressed",
             "application/x-tar",
             "application/gzip",
-            "application/x-bzip2",
-            "application/x-xz" -> true
-            else -> isArchiveExtension(mimeType)
-        }
+            "application/x-7z-compressed",
+            "application/vnd.rar"
+        )
     }
 
     private fun isDocumentType(mimeType: String): Boolean {
-        return when (mimeType) {
+        return mimeType in setOf(
             "application/pdf",
             "application/msword",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "application/vnd.ms-excel",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "application/vnd.ms-powerpoint",
-            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
             "text/plain",
-            "text/html",
-            "text/rtf",
-            "application/rtf" -> true
-            else -> isDocumentExtension(mimeType)
-        }
-    }
-
-    private fun isMediaExtension(mimeType: String): Boolean {
-        // Fallback for when MIME type detection fails
-        return when {
-            mimeType.contains("mp4", ignoreCase = true) -> true
-            mimeType.contains("avi", ignoreCase = true) -> true
-            mimeType.contains("mkv", ignoreCase = true) -> true
-            mimeType.contains("webm", ignoreCase = true) -> true
-            mimeType.contains("mp3", ignoreCase = true) -> true
-            mimeType.contains("wav", ignoreCase = true) -> true
-            mimeType.contains("flac", ignoreCase = true) -> true
-            mimeType.contains("ogg", ignoreCase = true) -> true
-            mimeType.contains("m4a", ignoreCase = true) -> true
-            else -> false
-        }
-    }
-
-    private fun isImageExtension(mimeType: String): Boolean {
-        return when {
-            mimeType.contains("jpg", ignoreCase = true) -> true
-            mimeType.contains("jpeg", ignoreCase = true) -> true
-            mimeType.contains("png", ignoreCase = true) -> true
-            mimeType.contains("gif", ignoreCase = true) -> true
-            mimeType.contains("webp", ignoreCase = true) -> true
-            mimeType.contains("bmp", ignoreCase = true) -> true
-            mimeType.contains("svg", ignoreCase = true) -> true
-            else -> false
-        }
-    }
-
-    private fun isArchiveExtension(mimeType: String): Boolean {
-        return when {
-            mimeType.contains("zip", ignoreCase = true) -> true
-            mimeType.contains("rar", ignoreCase = true) -> true
-            mimeType.contains("7z", ignoreCase = true) -> true
-            mimeType.contains("tar", ignoreCase = true) -> true
-            mimeType.contains("gz", ignoreCase = true) -> true
-            mimeType.contains("bz2", ignoreCase = true) -> true
-            mimeType.contains("xz", ignoreCase = true) -> true
-            else -> false
-        }
-    }
-
-    private fun isDocumentExtension(mimeType: String): Boolean {
-        return when {
-            mimeType.contains("pdf", ignoreCase = true) -> true
-            mimeType.contains("doc", ignoreCase = true) -> true
-            mimeType.contains("docx", ignoreCase = true) -> true
-            mimeType.contains("xls", ignoreCase = true) -> true
-            mimeType.contains("xlsx", ignoreCase = true) -> true
-            mimeType.contains("ppt", ignoreCase = true) -> true
-            mimeType.contains("pptx", ignoreCase = true) -> true
-            mimeType.contains("txt", ignoreCase = true) -> true
-            mimeType.contains("rtf", ignoreCase = true) -> true
-            else -> false
-        }
+            "text/markdown"
+        )
     }
 }

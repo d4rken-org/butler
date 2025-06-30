@@ -43,6 +43,14 @@ internal fun DirectoryRow(
                 append(" • ")
             }
             append(item.displayDate)
+            item.permissions?.let { perms ->
+                append(" • ")
+                append(perms.mode)
+            }
+            item.ownership?.let { owner ->
+                append(" • ")
+                append(owner.userName ?: owner.userId)
+            }
         }
     )
 }

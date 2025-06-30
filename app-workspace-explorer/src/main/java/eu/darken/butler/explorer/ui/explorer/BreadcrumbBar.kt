@@ -13,8 +13,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -74,45 +72,31 @@ fun BreadcrumbBar(
                         .padding(horizontal = 6.dp, vertical = 4.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    when (breadcrumb.target) {
-                        is ExplorerLocation.Breadcrumb.Target.Home -> {
-                            Icon(
-                                imageVector = Icons.Default.Home,
-                                contentDescription = breadcrumb.label.get(context),
-                                tint = if (isLast) {
-                                    MaterialTheme.colorScheme.onSurface
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                },
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                        is ExplorerLocation.Breadcrumb.Target.Device -> {
-                            Icon(
-                                imageVector = Icons.Default.Storage,
-                                contentDescription = breadcrumb.label.get(context),
-                                tint = if (isLast) {
-                                    MaterialTheme.colorScheme.onSurface
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                },
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                        is ExplorerLocation.Breadcrumb.Target.Directory -> {
-                            Text(
-                                text = breadcrumb.label.get(context),
-                                style = if (isLast) {
-                                    MaterialTheme.typography.bodyMedium.copy(
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                } else {
-                                    MaterialTheme.typography.bodySmall.copy(
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            )
-                        }
+                    // Use icon from breadcrumb data, or show text if no icon or preferIcon is false
+                    if (breadcrumb.icon != null && (breadcrumb.preferIcon || breadcrumb.label.get(context).isEmpty())) {
+                        Icon(
+                            imageVector = breadcrumb.icon,
+                            contentDescription = breadcrumb.label.get(context),
+                            tint = if (isLast) {
+                                MaterialTheme.colorScheme.onSurface
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                            modifier = Modifier.size(20.dp)
+                        )
+                    } else {
+                        Text(
+                            text = breadcrumb.label.get(context),
+                            style = if (isLast) {
+                                MaterialTheme.typography.bodyMedium.copy(
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            } else {
+                                MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        )
                     }
                 }
 
@@ -133,14 +117,8 @@ fun BreadcrumbBar(
 @Composable
 fun BreadcrumbBarPreview() {
     val breadcrumbs = listOf(
-        ExplorerLocation.Breadcrumb(
-            label = "Home".toCaString(),
-            target = ExplorerLocation.Breadcrumb.Target.Home
-        ),
-        ExplorerLocation.Breadcrumb(
-            label = "Device".toCaString(),
-            target = ExplorerLocation.Breadcrumb.Target.Device
-        ),
+        ExplorerLocation.Home.CRUMB,
+        ExplorerLocation.Device.CRUMB,
         ExplorerLocation.Breadcrumb(
             label = "storage".toCaString(),
             target = ExplorerLocation.Breadcrumb.Target.Directory(RawPath.build("/storage"))
@@ -167,10 +145,7 @@ fun BreadcrumbBarPreview() {
 @Composable
 fun BreadcrumbBarHomeOnlyPreview() {
     val breadcrumbs = listOf(
-        ExplorerLocation.Breadcrumb(
-            label = "Home".toCaString(),
-            target = ExplorerLocation.Breadcrumb.Target.Home
-        )
+        ExplorerLocation.Home.CRUMB
     )
 
     PreviewWrapper {
