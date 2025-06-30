@@ -33,7 +33,7 @@ internal fun RegularFileRow(
                 imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
                 contentDescription = "File",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(32.dp)
             )
         },
         primaryText = item.displayName,

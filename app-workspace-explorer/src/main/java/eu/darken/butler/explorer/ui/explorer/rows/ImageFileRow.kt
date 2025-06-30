@@ -34,7 +34,7 @@ internal fun ImageFileRow(
                 imageVector = Icons.Default.Image,
                 contentDescription = "Image",
                 tint = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(32.dp)
             )
         },
         primaryText = item.displayName,

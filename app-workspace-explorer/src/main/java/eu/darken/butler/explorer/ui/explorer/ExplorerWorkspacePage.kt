@@ -122,8 +122,8 @@ fun ExplorerWorkspacePage(
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(16.dp)
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        contentPadding = PaddingValues(12.dp)
                     ) {
                         // Sort directories first, then files
                         val sortedItems = state.items.sortedWith(

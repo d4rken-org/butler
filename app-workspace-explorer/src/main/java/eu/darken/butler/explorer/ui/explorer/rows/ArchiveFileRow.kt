@@ -33,7 +33,7 @@ internal fun ArchiveFileRow(
                 imageVector = Icons.Default.Archive,
                 contentDescription = "Archive",
                 tint = MaterialTheme.colorScheme.tertiary,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(32.dp)
             )
         },
         primaryText = item.displayName,

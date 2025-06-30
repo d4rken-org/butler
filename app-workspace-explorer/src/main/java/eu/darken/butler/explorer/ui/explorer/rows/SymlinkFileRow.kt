@@ -37,7 +37,7 @@ internal fun SymlinkFileRow(
                 } else {
                     MaterialTheme.colorScheme.primary
                 },
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(32.dp)
             )
         },
         primaryText = item.displayName,

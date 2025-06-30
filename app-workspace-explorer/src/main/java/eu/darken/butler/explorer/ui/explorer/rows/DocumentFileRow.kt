@@ -33,7 +33,7 @@ internal fun DocumentFileRow(
                 imageVector = Icons.Default.Description,
                 contentDescription = "Document",
                 tint = MaterialTheme.colorScheme.outline,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(32.dp)
             )
         },
         primaryText = item.displayName,
