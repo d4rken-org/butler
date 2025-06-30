@@ -1,16 +1,19 @@
-package eu.darken.butler.explorer.ui.explorer
+package eu.darken.butler.explorer.core.engine
 
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileType
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-sealed interface FileItem {
+sealed interface ExplorerPathItem {
     val lookup: APathLookup<*>
     val mimeType: String
     val isSelected: Boolean
 
     val displayName: String get() = lookup.name
-    val displaySize: String get() = _root_ide_package_.eu.darken.butler.explorer.ui.explorer.formatFileSize(lookup.size)
-    val displayDate: String get() = _root_ide_package_.eu.darken.butler.explorer.ui.explorer.formatDate(lookup.modifiedAt.toEpochMilli())
+    val displaySize: String get() = formatFileSize(lookup.size)
+    val displayDate: String get() = formatDate(lookup.modifiedAt.toEpochMilli())
     val isDirectory: Boolean get() = lookup.fileType == FileType.DIRECTORY
 
     data class Directory(
@@ -18,13 +21,13 @@ sealed interface FileItem {
         override val mimeType: String = "inode/directory",
         override val isSelected: Boolean = false,
         val childCount: Int? = null
-    ) : FileItem
+    ) : ExplorerPathItem
 
     data class RegularFile(
         override val lookup: APathLookup<*>,
         override val mimeType: String,
         override val isSelected: Boolean = false
-    ) : FileItem
+    ) : ExplorerPathItem
 
     data class SymbolicLink(
         override val lookup: APathLookup<*>,
@@ -32,7 +35,7 @@ sealed interface FileItem {
         override val isSelected: Boolean = false,
         val targetPath: String? = null,
         val isBroken: Boolean = false
-    ) : FileItem
+    ) : ExplorerPathItem
 
     data class MediaFile(
         override val lookup: APathLookup<*>,
@@ -40,7 +43,7 @@ sealed interface FileItem {
         override val isSelected: Boolean = false,
         val duration: String? = null,
         val resolution: String? = null
-    ) : FileItem {
+    ) : ExplorerPathItem {
         val isVideo: Boolean get() = mimeType.startsWith("video/")
         val isAudio: Boolean get() = mimeType.startsWith("audio/")
     }
@@ -52,7 +55,7 @@ sealed interface FileItem {
         val packageName: String? = null,
         val versionName: String? = null,
         val appName: String? = null
-    ) : FileItem {
+    ) : ExplorerPathItem {
         override val displayName: String get() = appName ?: lookup.name
     }
 
@@ -62,14 +65,14 @@ sealed interface FileItem {
         override val isSelected: Boolean = false,
         val compressionRatio: Float? = null,
         val entryCount: Int? = null
-    ) : FileItem
+    ) : ExplorerPathItem
 
     data class ImageFile(
         override val lookup: APathLookup<*>,
         override val mimeType: String,
         override val isSelected: Boolean = false,
         val dimensions: String? = null
-    ) : FileItem
+    ) : ExplorerPathItem
 
     data class DocumentFile(
         override val lookup: APathLookup<*>,
@@ -77,7 +80,18 @@ sealed interface FileItem {
         override val isSelected: Boolean = false,
         val pageCount: Int? = null,
         val author: String? = null
-    ) : FileItem
+    ) : ExplorerPathItem
+
+    data class Shortcut(
+        override val lookup: APathLookup<*>,
+        override val mimeType: String = "inode/shortcut",
+        override val isSelected: Boolean = false,
+        val icon: androidx.compose.ui.graphics.vector.ImageVector,
+        val label: eu.darken.butler.common.ca.CaString,
+        val target: ExplorerLocation,
+    ) : ExplorerPathItem {
+        override val displayName: String get() = label.toString() // This will be resolved in UI with context
+    }
 
 //    fun copyWithSelection(selected: Boolean): FileItem {
 //        return when (this) {
@@ -105,6 +119,6 @@ private fun formatFileSize(bytes: Long): String {
 
 private fun formatDate(timestamp: Long): String {
     // This would use a proper date formatter in a real implementation
-    return java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault())
-        .format(java.util.Date(timestamp))
+    return SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+        .format(Date(timestamp))
 }

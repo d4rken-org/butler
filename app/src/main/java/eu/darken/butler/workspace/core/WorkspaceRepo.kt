@@ -96,7 +96,7 @@ class WorkspaceRepo @Inject constructor(
         return newWorkspace.id
     }
 
-    override suspend fun get(id: Workspace.Id): Flow<Workspace?> {
+    override fun retrieve(id: Workspace.Id): Flow<Workspace?> {
         return _workspaces.map { wss -> wss.singleOrNull { it.id == id } }
     }
 

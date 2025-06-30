@@ -8,12 +8,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.explorer.ui.explorer.FileItem
+import eu.darken.butler.explorer.core.engine.ExplorerPathItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
 fun FileItemRow(
-    item: FileItem,
+    item: ExplorerPathItem,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
@@ -21,7 +21,7 @@ fun FileItemRow(
     modifier: Modifier = Modifier
 ) {
     when (item) {
-        is FileItem.Directory -> DirectoryRow(
+        is ExplorerPathItem.Directory -> DirectoryRow(
             item = item,
             isSelected = isSelected,
             onToggleSelection = onToggleSelection,
@@ -29,8 +29,8 @@ fun FileItemRow(
             showSelection = showSelection,
             modifier = modifier
         )
-        
-        is FileItem.ImageFile -> ImageFileRow(
+
+        is ExplorerPathItem.ImageFile -> ImageFileRow(
             item = item,
             isSelected = isSelected,
             onToggleSelection = onToggleSelection,
@@ -38,8 +38,8 @@ fun FileItemRow(
             showSelection = showSelection,
             modifier = modifier
         )
-        
-        is FileItem.MediaFile -> MediaFileRow(
+
+        is ExplorerPathItem.MediaFile -> MediaFileRow(
             item = item,
             isSelected = isSelected,
             onToggleSelection = onToggleSelection,
@@ -47,8 +47,8 @@ fun FileItemRow(
             showSelection = showSelection,
             modifier = modifier
         )
-        
-        is FileItem.ApkFile -> ApkFileRow(
+
+        is ExplorerPathItem.ApkFile -> ApkFileRow(
             item = item,
             isSelected = isSelected,
             onToggleSelection = onToggleSelection,
@@ -56,8 +56,8 @@ fun FileItemRow(
             showSelection = showSelection,
             modifier = modifier
         )
-        
-        is FileItem.ArchiveFile -> ArchiveFileRow(
+
+        is ExplorerPathItem.ArchiveFile -> ArchiveFileRow(
             item = item,
             isSelected = isSelected,
             onToggleSelection = onToggleSelection,
@@ -65,8 +65,8 @@ fun FileItemRow(
             showSelection = showSelection,
             modifier = modifier
         )
-        
-        is FileItem.DocumentFile -> DocumentFileRow(
+
+        is ExplorerPathItem.DocumentFile -> DocumentFileRow(
             item = item,
             isSelected = isSelected,
             onToggleSelection = onToggleSelection,
@@ -74,8 +74,8 @@ fun FileItemRow(
             showSelection = showSelection,
             modifier = modifier
         )
-        
-        is FileItem.SymbolicLink -> SymlinkFileRow(
+
+        is ExplorerPathItem.SymbolicLink -> SymlinkFileRow(
             item = item,
             isSelected = isSelected,
             onToggleSelection = onToggleSelection,
@@ -83,8 +83,17 @@ fun FileItemRow(
             showSelection = showSelection,
             modifier = modifier
         )
-        
-        is FileItem.RegularFile -> RegularFileRow(
+
+        is ExplorerPathItem.RegularFile -> RegularFileRow(
+            item = item,
+            isSelected = isSelected,
+            onToggleSelection = onToggleSelection,
+            onClick = onClick,
+            showSelection = showSelection,
+            modifier = modifier
+        )
+
+        is ExplorerPathItem.Shortcut -> ShortcutRow(
             item = item,
             isSelected = isSelected,
             onToggleSelection = onToggleSelection,
@@ -124,7 +133,7 @@ private fun FileItemRowsWithSelectionPreview() {
         items(MockDataProvider.createAllFileTypes()) { item ->
             FileItemRow(
                 item = item,
-                isSelected = item is FileItem.Directory,
+                isSelected = item is ExplorerPathItem.Directory,
                 onToggleSelection = {},
                 onClick = {},
                 showSelection = true

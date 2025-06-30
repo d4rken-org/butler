@@ -20,19 +20,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.ui.waitForState
+import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.core.engine.ExplorerPathItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.explorer.ui.explorer.rows.FileItemRow
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
-import kotlinx.coroutines.flow.flowOf
 
 @Composable
 fun ExplorerWorkspacePageHost(
@@ -69,7 +71,6 @@ fun ExplorerWorkspacePage(
     onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
 ) {
-    val fileItems by state.fileItemsFlow.collectAsState(initial = emptyList())
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -81,27 +82,18 @@ fun ExplorerWorkspacePage(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
-                PathCrumbBar(
-                    currentPath = state.currentPath.path,
-                    onPathChanged = { newPath ->
-                        vm?.navigateToPath(RawPath.build(newPath))
-                    },
-                    onNavigateToPath = { targetPath ->
-                        vm?.navigateToPath(RawPath.build(targetPath))
-                    },
-                    onNavigateToHome = {
-                        vm?.navigateToPath(RawPath.build("/"))
-                    },
-                    onValidationError = { error ->
-                        log("ExplorerWorkspacePage") { "Path validation error: $error" }
+                BreadcrumbBar(
+                    breadcrumbs = state.breadcrumbs,
+                    onBreadcrumbClick = { target ->
+                        vm?.navigateToBreadcrumb(target)
                     },
                     modifier = Modifier
                         .weight(1f)
-                        .padding(top = 2.dp)
+                        .padding(end = 8.dp)
                 )
 
                 WorkspaceButton(
-                    modifier = Modifier.padding(start = 8.dp),
+                    modifier = Modifier,
                     state = workspaceButtonState,
                     onAction = onWorkspaceAction,
                     onNavToWorkspaceManager = onNavToWorkspaceManager,
@@ -123,7 +115,7 @@ fun ExplorerWorkspacePage(
                     )
                 }
             } else {
-                if (fileItems.isEmpty()) {
+                if (state.items.isEmpty()) {
                     EmptyFolderState(
                         modifier = Modifier.fillMaxSize()
                     )
@@ -134,20 +126,27 @@ fun ExplorerWorkspacePage(
                         contentPadding = PaddingValues(16.dp)
                     ) {
                         // Sort directories first, then files
-                        val sortedItems = fileItems.sortedWith(
-                            compareBy<FileItem> { !it.isDirectory }.thenBy { it.displayName }
+                        val sortedItems = state.items.sortedWith(
+                            compareBy<ExplorerPathItem> { !it.isDirectory }.thenBy { it.displayName }
                         )
 
                         items(sortedItems) { fileItem ->
                             FileItemRow(
                                 item = fileItem,
-                                isSelected = state.selectedItems.contains(fileItem.lookup.path),
+                                isSelected = state.selectedItems.contains(fileItem.lookup.lookedUp),
                                 onToggleSelection = {
-                                    vm?.toggleItemSelection(fileItem.lookup.path)
+                                    vm?.toggleItemSelection(fileItem)
                                 },
                                 onClick = {
-                                    if (fileItem.isDirectory) {
-                                        vm?.navigateToPath(fileItem.lookup.lookedUp)
+                                    when (fileItem) {
+                                        is ExplorerPathItem.Shortcut -> {
+                                            vm?.navigateToShortcut(fileItem)
+                                        }
+                                        else -> {
+                                            if (fileItem.isDirectory) {
+                                                vm?.navigateToPath(fileItem.lookup.lookedUp)
+                                            }
+                                        }
                                     }
                                 },
                                 showSelection = state.selectedItems.isNotEmpty()
@@ -163,10 +162,32 @@ fun ExplorerWorkspacePage(
 @Preview2
 @Composable
 fun ExplorerWorkspacePagePreview() {
+    val mockBreadcrumbs = listOf(
+        ExplorerLocation.Breadcrumb(
+            label = "Home".toCaString(),
+            target = ExplorerLocation.Breadcrumb.Target.Home
+        ),
+        ExplorerLocation.Breadcrumb(
+            label = "Device".toCaString(),
+            target = ExplorerLocation.Breadcrumb.Target.Device
+        ),
+        ExplorerLocation.Breadcrumb(
+            label = "storage".toCaString(),
+            target = ExplorerLocation.Breadcrumb.Target.Directory(RawPath.build("/storage"))
+        ),
+        ExplorerLocation.Breadcrumb(
+            label = "emulated".toCaString(),
+            target = ExplorerLocation.Breadcrumb.Target.Directory(RawPath.build("/storage/emulated"))
+        ),
+        ExplorerLocation.Breadcrumb(
+            label = "0".toCaString(),
+            target = ExplorerLocation.Breadcrumb.Target.Directory(RawPath.build("/storage/emulated/0"))
+        )
+    )
     val mockState = ExplorerWorkspaceViewModel.State(
-        id = Workspace.Id(),
-        currentPath = RawPath.build("/storage/emulated/0"),
-        fileItemsFlow = flowOf(MockDataProvider.createAllFileTypes()),
+        currentLocation = ExplorerLocation.Directory(RawPath.build("/storage/emulated/0")),
+        breadcrumbs = mockBreadcrumbs,
+        items = MockDataProvider.createAllFileTypes(),
         isLoading = false,
         selectedItems = emptySet()
     )
@@ -185,9 +206,9 @@ fun ExplorerWorkspacePagePreview() {
 @Composable
 fun ExplorerWorkspacePageLoadingPreview() {
     val mockState = ExplorerWorkspaceViewModel.State(
-        id = Workspace.Id(),
-        currentPath = RawPath.build("/storage/emulated/0"),
-        fileItemsFlow = flowOf(emptyList()),
+        currentLocation = ExplorerLocation.Directory(RawPath.build("/storage/emulated/0")),
+        breadcrumbs = emptyList(),
+        items = emptyList(),
         isLoading = true,
         selectedItems = emptySet()
     )
@@ -206,9 +227,9 @@ fun ExplorerWorkspacePageLoadingPreview() {
 @Composable
 fun ExplorerWorkspacePageEmptyPreview() {
     val mockState = ExplorerWorkspaceViewModel.State(
-        id = Workspace.Id(),
-        currentPath = RawPath.build("/empty/folder"),
-        fileItemsFlow = flowOf(emptyList()),
+        currentLocation = ExplorerLocation.Directory(RawPath.build("/empty/folder")),
+        breadcrumbs = emptyList(),
+        items = emptyList(),
         isLoading = false,
         selectedItems = emptySet()
     )
@@ -228,11 +249,11 @@ fun ExplorerWorkspacePageEmptyPreview() {
 fun ExplorerWorkspacePageWithSelectionPreview() {
     val mockFileItems = MockDataProvider.createAllFileTypes()
     val mockState = ExplorerWorkspaceViewModel.State(
-        id = Workspace.Id(),
-        currentPath = RawPath.build("/storage/emulated/0"),
-        fileItemsFlow = flowOf(mockFileItems),
+        currentLocation = ExplorerLocation.Directory(RawPath.build("/storage/emulated/0")),
+        breadcrumbs = emptyList(),
+        items = mockFileItems,
         isLoading = false,
-        selectedItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path)
+        selectedItems = setOf(mockFileItems[0].lookup.lookedUp, mockFileItems[2].lookup.lookedUp)
     )
     PreviewWrapper {
         ExplorerWorkspacePage(

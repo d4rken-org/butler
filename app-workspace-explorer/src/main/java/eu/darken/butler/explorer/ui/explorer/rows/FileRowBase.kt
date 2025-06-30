@@ -20,11 +20,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import eu.darken.butler.explorer.ui.explorer.FileItem
+import eu.darken.butler.explorer.core.engine.ExplorerPathItem
 
 @Composable
 internal fun FileRowBase(
-    item: FileItem,
+    item: ExplorerPathItem,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,

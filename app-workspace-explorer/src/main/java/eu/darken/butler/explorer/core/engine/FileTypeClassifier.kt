@@ -1,21 +1,20 @@
-package eu.darken.butler.explorer.core
+package eu.darken.butler.explorer.core.engine
 
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileType
-import eu.darken.butler.explorer.ui.explorer.FileItem
 
 object FileTypeClassifier {
 
-    fun classifyFileItem(lookup: APathLookup<*>, mimeType: String): FileItem {
+    fun classifyFileItem(lookup: APathLookup<*>, mimeType: String): ExplorerPathItem {
         return when {
             // Directory
-            lookup.fileType == FileType.DIRECTORY -> FileItem.Directory(
+            lookup.fileType == FileType.DIRECTORY -> ExplorerPathItem.Directory(
                 lookup = lookup,
                 mimeType = mimeType
             )
 
             // Symbolic Link
-            lookup.fileType == FileType.SYMBOLIC_LINK -> FileItem.SymbolicLink(
+            lookup.fileType == FileType.SYMBOLIC_LINK -> ExplorerPathItem.SymbolicLink(
                 lookup = lookup,
                 mimeType = mimeType,
                 targetPath = lookup.target?.path
@@ -23,37 +22,37 @@ object FileTypeClassifier {
 
             // APK Files
             mimeType == "application/vnd.android.package-archive" ||
-            lookup.name.lowercase().endsWith(".apk") -> FileItem.ApkFile(
+                lookup.name.lowercase().endsWith(".apk") -> ExplorerPathItem.ApkFile(
                 lookup = lookup,
                 mimeType = mimeType
             )
 
             // Media Files (Video/Audio)
-            isMediaType(mimeType) -> FileItem.MediaFile(
+            isMediaType(mimeType) -> ExplorerPathItem.MediaFile(
                 lookup = lookup,
                 mimeType = mimeType
             )
 
             // Image Files
-            isImageType(mimeType) -> FileItem.ImageFile(
+            isImageType(mimeType) -> ExplorerPathItem.ImageFile(
                 lookup = lookup,
                 mimeType = mimeType
             )
 
             // Archive Files
-            isArchiveType(mimeType) -> FileItem.ArchiveFile(
+            isArchiveType(mimeType) -> ExplorerPathItem.ArchiveFile(
                 lookup = lookup,
                 mimeType = mimeType
             )
 
             // Document Files
-            isDocumentType(mimeType) -> FileItem.DocumentFile(
+            isDocumentType(mimeType) -> ExplorerPathItem.DocumentFile(
                 lookup = lookup,
                 mimeType = mimeType
             )
 
             // Regular File (fallback)
-            else -> FileItem.RegularFile(
+            else -> ExplorerPathItem.RegularFile(
                 lookup = lookup,
                 mimeType = mimeType
             )
