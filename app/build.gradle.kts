@@ -217,5 +217,8 @@ dependencies {
 
     implementation("io.github.z4kn4fein:semver:3.0.0")
 
+    // Drag and drop support for LazyColumn
+    implementation("sh.calvin.reorderable:reorderable:2.5.1")
+
     addCoil()
 }
