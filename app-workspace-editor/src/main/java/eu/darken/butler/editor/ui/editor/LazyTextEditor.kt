@@ -1,5 +1,7 @@
-package eu.darken.butler.editor.ui
+package eu.darken.butler.editor.ui.editor
 
+import android.graphics.Paint
+import android.graphics.Typeface
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -24,6 +26,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.nativeCanvas
@@ -31,10 +34,12 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.darken.butler.editor.core.TextPosition
@@ -145,7 +150,7 @@ private fun DualColumnEditorContent(
         if (textFieldValue.text != currentContent) {
             textFieldValue = TextFieldValue(
                 text = currentContent,
-                selection = androidx.compose.ui.text.TextRange(currentContent.length)
+                selection = TextRange(currentContent.length)
             )
         }
     }
@@ -401,7 +406,7 @@ private fun SelectableText(
                 selection = selection,
                 fontSize = fontSize.sp.toPx(),
                 normalColor = textColor,
-                selectionColor = androidx.compose.ui.graphics.Color.Blue.copy(alpha = 0.3f)
+                selectionColor = Color.Blue.copy(alpha = 0.3f)
             )
         }
     } else {
@@ -448,7 +453,7 @@ private fun SelectableText(
                     color = textColor
                 ),
                 softWrap = wordWrap,
-                overflow = androidx.compose.ui.text.style.TextOverflow.Visible,
+                overflow = TextOverflow.Visible,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -468,7 +473,7 @@ private fun CursorIndicator(
 
     Canvas(modifier = modifier.fillMaxSize()) {
         drawLine(
-            color = androidx.compose.ui.graphics.Color.Black,
+            color = Color.Black,
             start = Offset(cursorX, 0f),
             end = Offset(cursorX, size.height),
             strokeWidth = 2.dp.toPx()
@@ -481,8 +486,8 @@ private fun DrawScope.drawTextLine(
     lineIndex: Int,
     selection: Pair<TextPosition, TextPosition>?,
     fontSize: Float,
-    normalColor: androidx.compose.ui.graphics.Color,
-    selectionColor: androidx.compose.ui.graphics.Color
+    normalColor: Color,
+    selectionColor: Color
 ) {
     // Draw selection background if this line is selected
     selection?.let { (start, end) ->
@@ -498,14 +503,14 @@ private fun DrawScope.drawTextLine(
                 drawRect(
                     color = selectionColor,
                     topLeft = Offset(startX, 0f),
-                    size = androidx.compose.ui.geometry.Size(endX - startX, size.height)
+                    size = Size(endX - startX, size.height)
                 )
             }
         }
     }
 
     // Draw text using native canvas
-    val paint = android.graphics.Paint().apply {
+    val paint = Paint().apply {
         color = normalColor.toArgb()
         textSize = fontSize
         isAntiAlias = true

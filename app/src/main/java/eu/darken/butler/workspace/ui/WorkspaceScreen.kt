@@ -24,7 +24,7 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.ui.waitForState
-import eu.darken.butler.editor.ui.EditorWorkspacePageHost
+import eu.darken.butler.editor.ui.editor.EditorWorkspacePageHost
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspacePageHost
 import eu.darken.butler.searcher.ui.search.SearcherWorkspacePageHost
 import eu.darken.butler.templates.ui.TemplatesWorkspacePageHost

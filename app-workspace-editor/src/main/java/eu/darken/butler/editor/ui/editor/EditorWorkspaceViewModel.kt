@@ -1,11 +1,11 @@
-package eu.darken.butler.editor.ui
+package eu.darken.butler.editor.ui.editor
 
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -13,6 +13,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.EditorWorkspace
+import eu.darken.butler.editor.core.FileInfo
 import eu.darken.butler.editor.core.MemoryStats
 import eu.darken.butler.editor.core.SearchResult
 import eu.darken.butler.editor.core.TextPosition
@@ -22,11 +23,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlin.text.get
 
 @HiltViewModel(assistedFactory = EditorWorkspaceViewModel.Factory::class)
 class EditorWorkspaceViewModel @AssistedInject constructor(
@@ -39,10 +40,10 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val workspaceFlow = flow {
         emit(workspaceProvider.get(id))
     }.flatMapLatest { it }
-    
+
     private val _isLoading = MutableStateFlow(true)
     private var currentWorkspace: EditorWorkspace? = null
-    
+
     val state = workspaceFlow
         .flatMapLatest { workspace ->
             if (workspace is EditorWorkspace) {
@@ -81,7 +82,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             }
         }
         .catch { e ->
-            log(tag, ERROR) { "Failed to monitor workspace state - ${e.asLog()}" }
+            log(tag, Logging.Priority.ERROR) { "Failed to monitor workspace state - ${e.asLog()}" }
             emit(
                 State(
                     id = id,
@@ -107,11 +108,11 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 }
             }
             .catch { e ->
-                log(tag, ERROR) { "Failed to monitor workspace - ${e.asLog()}" }
+                log(tag, Logging.Priority.ERROR) { "Failed to monitor workspace - ${e.asLog()}" }
             }
             .launchInViewModel()
     }
-    
+
     // All operations delegate to workspace
 
     fun openFile(filePath: APath) {
@@ -121,7 +122,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 val workspace = workspaceFlow.first() as? EditorWorkspace
                 workspace?.openFile(filePath)
             } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to open file: $filePath - ${e.asLog()}" }
+                log(tag, Logging.Priority.ERROR) { "Failed to open file: $filePath - ${e.asLog()}" }
             } finally {
                 _isLoading.value = false
             }
@@ -135,7 +136,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 val workspace = workspaceFlow.first() as? EditorWorkspace
                 workspace?.closeFile()
             } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to close file - ${e.asLog()}" }
+                log(tag, Logging.Priority.ERROR) { "Failed to close file - ${e.asLog()}" }
             } finally {
                 _isLoading.value = false
             }
@@ -149,7 +150,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 val workspace = workspaceFlow.first() as? EditorWorkspace
                 workspace?.saveFile()
             } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to save file - ${e.asLog()}" }
+                log(tag, Logging.Priority.ERROR) { "Failed to save file - ${e.asLog()}" }
             } finally {
                 _isLoading.value = false
             }
@@ -172,7 +173,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 val workspace = workspaceFlow.first() as? EditorWorkspace
                 workspace?.deleteSelection()
             } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to delete selection - ${e.asLog()}" }
+                log(tag, Logging.Priority.ERROR) { "Failed to delete selection - ${e.asLog()}" }
             }
         }
     }
@@ -193,7 +194,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 val workspace = workspaceFlow.first() as? EditorWorkspace
                 workspace?.search(query)
             } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to search - ${e.asLog()}" }
+                log(tag, Logging.Priority.ERROR) { "Failed to search - ${e.asLog()}" }
             }
         }
     }
@@ -204,7 +205,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 val workspace = workspaceFlow.first() as? EditorWorkspace
                 workspace?.goToLine(lineNumber)
             } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to go to line: $lineNumber - ${e.asLog()}" }
+                log(tag, Logging.Priority.ERROR) { "Failed to go to line: $lineNumber - ${e.asLog()}" }
             }
         }
     }
@@ -215,7 +216,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 val workspace = workspaceFlow.first() as? EditorWorkspace
                 workspace?.undo()
             } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to undo - ${e.asLog()}" }
+                log(tag, Logging.Priority.ERROR) { "Failed to undo - ${e.asLog()}" }
             }
         }
     }
@@ -226,7 +227,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 val workspace = workspaceFlow.first() as? EditorWorkspace
                 workspace?.redo()
             } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to redo - ${e.asLog()}" }
+                log(tag, Logging.Priority.ERROR) { "Failed to redo - ${e.asLog()}" }
             }
         }
     }
@@ -243,11 +244,11 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     data class State(
         val id: Workspace.Id,
-        val fileInfo: eu.darken.butler.editor.core.FileInfo? = null,
+        val fileInfo: FileInfo? = null,
         val totalLines: Int = 0,
         val isModified: Boolean = false,
         val currentContent: String = "",
-        val cursorPosition: TextPosition = TextPosition.ZERO,
+        val cursorPosition: TextPosition = TextPosition.Companion.ZERO,
         val selectionRange: Pair<TextPosition, TextPosition>? = null,
         val isLoading: Boolean = false,
         val error: Throwable? = null,
