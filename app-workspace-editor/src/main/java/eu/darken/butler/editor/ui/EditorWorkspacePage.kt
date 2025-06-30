@@ -3,6 +3,7 @@ package eu.darken.butler.editor.ui
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,6 +45,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -154,7 +156,8 @@ fun EditorWorkspacePage(
     }
 
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
     ) {
         // Header that draws under status bar
         EditorHeader(
@@ -190,20 +193,26 @@ fun EditorWorkspacePage(
 
 
             // Main editor content - now using fixed LazyTextEditor
-            LazyTextEditor(
-                content = state.currentContent,
-                cursorPosition = state.cursorPosition,
-                selection = state.selectionRange,
-                visibleRange = state.visibleRange,
-                showLineNumbers = true,
-                fontSize = 14,
-                tabSize = 4,
-                onTextChange = onTextChange,
-                onCursorPositionChange = onCursorPositionChange,
-                onSelectionChange = onSelectionChange,
-                onVisibleRangeChange = onVisibleRangeChange,
-                modifier = Modifier.weight(1f)
-            )
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
+                LazyTextEditor(
+                    content = state.currentContent,
+                    cursorPosition = state.cursorPosition,
+                    selection = state.selectionRange,
+                    visibleRange = state.visibleRange,
+                    showLineNumbers = true,
+                    fontSize = 14,
+                    tabSize = 4,
+                    onTextChange = onTextChange,
+                    onCursorPositionChange = onCursorPositionChange,
+                    onSelectionChange = onSelectionChange,
+                    onVisibleRangeChange = onVisibleRangeChange,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
 
             // Search results
             if (state.hasSearchResults) {

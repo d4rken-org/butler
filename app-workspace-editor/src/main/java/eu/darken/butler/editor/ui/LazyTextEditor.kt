@@ -13,6 +13,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -192,53 +193,13 @@ private fun VirtualizedTextContent(
         }
     }
 
-    LazyColumn(
-        state = listState,
-        modifier = modifier
-            .fillMaxSize()
-            .clipToBounds()
-            .pointerInput(Unit) {
-                detectTapGestures {
-                    // Request focus when editor is clicked
-                    try {
-                        focusRequester.requestFocus()
-                    } catch (e: Exception) {
-                        // Ignore focus errors
-                    }
-                }
-            }
-    ) {
-        itemsIndexed(
-            items = lines,
-            key = { index, _ -> "text_line_$index" }
-        ) { lineIndex, lineContent ->
-            TextLineItem(
-                lineIndex = lineIndex,
-                lineContent = lineContent,
-                cursorPosition = cursorPosition,
-                selection = selection,
-                isCurrentLine = lineIndex == cursorPosition.line,
-                fontSize = fontSize,
-                tabSize = tabSize,
-                onLineClick = { clickPosition ->
-                    val newPosition = TextPosition(
-                        offset = calculateOffsetForLine(lines, lineIndex, clickPosition),
-                        line = lineIndex,
-                        column = clickPosition
-                    )
-                    onCursorPositionChange(newPosition)
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-    }
-
-    // Overlay text field for keyboard input
+    // Use Box to layer components properly
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .focusRequester(focusRequester)
     ) {
+        // Hidden text field for keyboard input - make it tiny so it doesn't block
         BasicTextField(
             value = textFieldValue,
             onValueChange = { newValue ->
@@ -258,16 +219,58 @@ private fun VirtualizedTextContent(
                 }
             },
             modifier = Modifier
-                .fillMaxSize(),
+                .size(1.dp) // Make it tiny instead of full size
+                .align(Alignment.TopStart),
             textStyle = TextStyle(
-                fontSize = fontSize.sp,
-                fontFamily = FontFamily.Monospace,
-                color = Color.Transparent // Keep invisible - text displayed in LazyColumn
+                fontSize = 1.sp,
+                color = Color.Transparent
             ),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.None),
             keyboardActions = KeyboardActions(),
             decorationBox = { _ -> /* No decoration, just capture input */ }
         )
+        
+        // LazyColumn for displaying text
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .clipToBounds()
+                .pointerInput(Unit) {
+                    detectTapGestures {
+                        // Request focus when editor is clicked
+                        try {
+                            focusRequester.requestFocus()
+                        } catch (e: Exception) {
+                            // Ignore focus errors
+                        }
+                    }
+                }
+        ) {
+            itemsIndexed(
+                items = lines,
+                key = { index, _ -> "text_line_$index" }
+            ) { lineIndex, lineContent ->
+                TextLineItem(
+                    lineIndex = lineIndex,
+                    lineContent = lineContent,
+                    cursorPosition = cursorPosition,
+                    selection = selection,
+                    isCurrentLine = lineIndex == cursorPosition.line,
+                    fontSize = fontSize,
+                    tabSize = tabSize,
+                    onLineClick = { clickPosition ->
+                        val newPosition = TextPosition(
+                            offset = calculateOffsetForLine(lines, lineIndex, clickPosition),
+                            line = lineIndex,
+                            column = clickPosition
+                        )
+                        onCursorPositionChange(newPosition)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
     }
 
     // Request focus when content is loaded
@@ -292,6 +295,7 @@ private fun TextLineItem(
     onLineClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    
     val backgroundColor = if (isCurrentLine) {
         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
     } else {
@@ -305,7 +309,7 @@ private fun TextLineItem(
     ) {
         // Text content with selection highlighting
         SelectableText(
-            text = lineContent.expandTabs(tabSize),
+            text = lineContent.expandTabs(tabSize).ifEmpty { " " }, // Ensure empty lines have height
             lineIndex = lineIndex,
             cursorPosition = cursorPosition,
             selection = selection,
@@ -337,27 +341,79 @@ private fun SelectableText(
 ) {
     val density = LocalDensity.current
     val textColor = MaterialTheme.colorScheme.onSurface
+    val useCanvasRendering = false // Switch to compose text rendering for now
     
-    Canvas(
-        modifier = modifier
-            .height(with(density) { (fontSize + 4).sp.toDp() })
-            .pointerInput(lineIndex) {
-                detectTapGestures { offset ->
-                    // Calculate character position from click
-                    val charWidth = fontSize * density.density * 0.6f // Approximate monospace char width
-                    val clickedColumn = (offset.x / charWidth).toInt().coerceIn(0, text.length)
-                    onTextClick(clickedColumn)
+    if (useCanvasRendering) {
+        Canvas(
+            modifier = modifier
+                .height(with(density) { (fontSize + 4).sp.toDp() })
+                .pointerInput(lineIndex) {
+                    detectTapGestures { offset ->
+                        // Calculate character position from click
+                        val charWidth = fontSize * density.density * 0.6f // Approximate monospace char width
+                        val clickedColumn = (offset.x / charWidth).toInt().coerceIn(0, text.length)
+                        onTextClick(clickedColumn)
+                    }
+                }
+        ) {
+            drawTextLine(
+                text = text,
+                lineIndex = lineIndex,
+                selection = selection,
+                fontSize = fontSize.sp.toPx(),
+                normalColor = textColor,
+                selectionColor = androidx.compose.ui.graphics.Color.Blue.copy(alpha = 0.3f)
+            )
+        }
+    } else {
+        // Use Compose Text rendering (more reliable)
+        Box(
+            modifier = modifier
+                .pointerInput(lineIndex) {
+                    detectTapGestures { offset ->
+                        // Calculate character position from click
+                        val charWidth = fontSize * density.density * 0.6f // Approximate monospace char width
+                        val clickedColumn = (offset.x / charWidth).toInt().coerceIn(0, text.length)
+                        onTextClick(clickedColumn)
+                    }
+                }
+        ) {
+            // Selection background
+            selection?.let { (start, end) ->
+                if (lineIndex >= start.line && lineIndex <= end.line) {
+                    val selectionStart = if (lineIndex == start.line) start.column else 0
+                    val selectionEnd = if (lineIndex == end.line) end.column else text.length
+                    
+                    if (selectionStart < selectionEnd) {
+                        val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
+                        val startX = selectionStart * charWidth
+                        val width = (selectionEnd - selectionStart) * charWidth
+                        
+                        Box(
+                            modifier = Modifier
+                                .offset(x = with(density) { startX.toDp() })
+                                .width(with(density) { width.toDp() })
+                                .fillMaxHeight()
+                                .background(Color.Blue.copy(alpha = 0.3f))
+                        )
+                    }
                 }
             }
-    ) {
-        drawTextLine(
-            text = text,
-            lineIndex = lineIndex,
-            selection = selection,
-            fontSize = fontSize.sp.toPx(),
-            normalColor = textColor,
-            selectionColor = androidx.compose.ui.graphics.Color.Blue.copy(alpha = 0.3f)
-        )
+            
+            // Text content with debug background
+            Text(
+                text = if (text.isEmpty()) " " else text, // Show at least a space for empty lines
+                style = TextStyle(
+                    fontSize = fontSize.sp,
+                    fontFamily = FontFamily.Monospace,
+                    color = textColor
+                ),
+                maxLines = 1,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Yellow.copy(alpha = 0.1f)) // Debug: light yellow background
+            )
+        }
     }
 }
 
@@ -390,10 +446,6 @@ private fun DrawScope.drawTextLine(
     normalColor: androidx.compose.ui.graphics.Color,
     selectionColor: androidx.compose.ui.graphics.Color
 ) {
-    val paint = androidx.compose.ui.graphics.Paint().apply {
-        isAntiAlias = true
-    }
-
     // Draw selection background if this line is selected
     selection?.let { (start, end) ->
         if (lineIndex >= start.line && lineIndex <= end.line) {
@@ -414,16 +466,19 @@ private fun DrawScope.drawTextLine(
         }
     }
 
-    // Draw text
-    val frameworkPaint = paint.asFrameworkPaint().apply {
+    // Draw text using native canvas
+    val paint = android.graphics.Paint().apply {
         color = normalColor.toArgb()
         textSize = fontSize
+        isAntiAlias = true
+        typeface = android.graphics.Typeface.MONOSPACE
     }
+    
     drawContext.canvas.nativeCanvas.drawText(
         text,
         0f,
         fontSize * 0.8f, // Baseline offset
-        frameworkPaint
+        paint
     )
 }
 
