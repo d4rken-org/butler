@@ -2,14 +2,19 @@ package eu.darken.butler.main.ui.motd
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
@@ -51,6 +56,12 @@ fun MotdCard(
 
     AnimatedVisibility(
         visible = isVisible,
+        enter = slideInVertically(
+            initialOffsetY = { -it },
+            animationSpec = tween(durationMillis = 400)
+        ) + fadeIn(
+            animationSpec = tween(durationMillis = 400)
+        ),
         exit = shrinkVertically(
             animationSpec = tween(durationMillis = 300)
         ) + fadeOut(
@@ -65,6 +76,10 @@ fun MotdCard(
             ),
             elevation = CardDefaults.cardElevation(
                 defaultElevation = 6.dp
+            ),
+            border = BorderStroke(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
             ),
         ) {
             Column(
@@ -124,6 +139,14 @@ fun MotdCard(
                             }
                         },
                     ) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(18.dp)
+                                .padding(end = 4.dp),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
                         Text(
                             text = stringResource(eu.darken.butler.common.R.string.general_mark_as_read_action),
                             color = MaterialTheme.colorScheme.primary,
