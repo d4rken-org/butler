@@ -14,6 +14,7 @@ import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.EditorDataSource
 import eu.darken.butler.editor.core.EditorModule
+import eu.darken.butler.editor.core.EditorSettings
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.editor.core.FileDataSource
 import eu.darken.butler.editor.core.FileInfo
@@ -43,6 +44,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val chunkedTextBufferFactory: EditorModule.ChunkedTextBufferFactory,
     private val memoryManager: MemoryManager,
     private val gatewaySwitch: eu.darken.butler.common.files.GatewaySwitch,
+    private val editorSettings: EditorSettings,
     dispatchers: DispatcherProvider,
     navCtrl: NavigationController,
     private val workspaceProvider: WorkspaceProvider,
@@ -81,7 +83,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         _searchQuery,
         _searchResults,
         _visibleRange,
-        flow { emit(memoryManager.getMemoryStats()) }.catch { emit(MemoryStats(0, 0, 0, 0, 0)) }
+        flow { emit(memoryManager.getMemoryStats()) }.catch { emit(MemoryStats(0, 0, 0, 0, 0)) },
+        editorSettings.showLineNumbers.flow
     ) { values ->
         State(
             id = values[0] as Workspace.Id,
@@ -96,7 +99,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             searchQuery = values[9] as String,
             searchResults = values[10] as List<SearchResult>,
             visibleRange = values[11] as IntRange,
-            memoryStats = values[12] as MemoryStats
+            memoryStats = values[12] as MemoryStats,
+            showLineNumbers = values[13] as Boolean
         )
     }.asStateFlow()
 
@@ -420,7 +424,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val searchQuery: String = "",
         val searchResults: List<SearchResult> = emptyList(),
         val visibleRange: IntRange = 0..50,
-        val memoryStats: MemoryStats = MemoryStats(0, 0, 0, 0, 0)
+        val memoryStats: MemoryStats = MemoryStats(0, 0, 0, 0, 0),
+        val showLineNumbers: Boolean = true
     ) {
         val hasFile: Boolean get() = fileInfo != null
         val fileName: String get() = fileInfo?.path?.name ?: "Untitled"

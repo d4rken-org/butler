@@ -7,6 +7,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.TextFormat
+import androidx.compose.material.icons.twotone.FormatListNumbered
+import androidx.compose.material.icons.twotone.TextFormat
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -61,7 +63,7 @@ fun EditorSettingsScreen(
         ) {
             item {
                 SettingsSwitchItem(
-                    icon = Icons.Default.TextFormat,
+                    icon = Icons.TwoTone.FormatListNumbered,
                     title = stringResource(R.string.editor_settings_show_line_numbers_title),
                     subtitle = stringResource(R.string.editor_settings_show_line_numbers_subtitle),
                     checked = state.showLineNumbers,

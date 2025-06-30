@@ -203,7 +203,7 @@ fun EditorWorkspacePage(
                     cursorPosition = state.cursorPosition,
                     selection = state.selectionRange,
                     visibleRange = state.visibleRange,
-                    showLineNumbers = true,
+                    showLineNumbers = state.showLineNumbers,
                     fontSize = 14,
                     tabSize = 4,
                     onTextChange = onTextChange,
