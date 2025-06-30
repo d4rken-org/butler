@@ -56,12 +56,14 @@ class WorkspaceViewModel @Inject constructor(
         selectedTabId,
         upgradeRepo.upgradeInfo,
         workspaceSettings.isButtonActionsFlipped.flow,
-    ) { tabs, selectedTabId, upgradeInfo, isButtonActionsFlipped ->
+        workspaceSettings.swipeGesturesEnabled.flow,
+    ) { tabs, selectedTabId, upgradeInfo, isButtonActionsFlipped, swipeGesturesEnabled ->
         State(
             tabs = tabs,
             selected = selectedTabId,
             isUpgraded = upgradeInfo.isUpgraded,
-            isButtonActionsFlipped = isButtonActionsFlipped
+            isButtonActionsFlipped = isButtonActionsFlipped,
+            swipeGesturesEnabled = swipeGesturesEnabled,
         )
     }.asStateFlow()
 
@@ -96,6 +98,7 @@ class WorkspaceViewModel @Inject constructor(
         val selected: Workspace.Id?,
         val isUpgraded: Boolean,
         val isButtonActionsFlipped: Boolean = false,
+        val swipeGesturesEnabled: Boolean = true,
     ) {
         val current: WorkspaceTab?
             get() = tabs.firstOrNull { it.id == selected }

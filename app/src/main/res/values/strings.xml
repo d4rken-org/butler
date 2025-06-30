@@ -167,5 +167,8 @@
     <string name="workspace_settings_button_behavior">Button Behavior</string>
     <string name="workspace_settings_flip_button_actions_title">Flip Button Actions</string>
     <string name="workspace_settings_flip_button_actions_desc">Normal click creates new workspace, long click opens manager</string>
+    <string name="workspace_settings_navigation">Navigation</string>
+    <string name="workspace_settings_swipe_gestures_title">Swipe Gestures</string>
+    <string name="workspace_settings_swipe_gestures_desc">Swipe left or right to switch between workspaces</string>
 
 </resources>

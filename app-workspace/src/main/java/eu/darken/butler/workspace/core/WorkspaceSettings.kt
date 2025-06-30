@@ -33,11 +33,14 @@ class WorkspaceSettings @Inject constructor(
     val showButtonBehaviorExplanation =
         dataStore.createValue("workspace.manager.show.button.behavior.explanation", true)
 
+    val swipeGesturesEnabled = dataStore.createValue("workspace.swipe.gestures.enabled", true)
+
     override val mapper = PreferenceStoreMapper(
         debugSettings.isDebugMode,
         isButtonActionsFlipped,
         showBadgeExplanation,
         showButtonBehaviorExplanation,
+        swipeGesturesEnabled,
     )
 
     companion object {

@@ -116,7 +116,8 @@ fun WorkspaceScreen(
                     state = pagerState,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues)
+                        .padding(paddingValues),
+                    userScrollEnabled = state.swipeGesturesEnabled,
                 ) { page ->
                     TabContent(
                         modifier = Modifier.fillMaxSize(),
@@ -172,6 +173,7 @@ private fun EmptyWorkspaceScreenPreview() {
                 tabs = emptyList(),
                 selected = null,
                 isUpgraded = false,
+                swipeGesturesEnabled = true,
             ),
             onNavToSettings = {},
             onTabAction = {},
@@ -201,6 +203,7 @@ private fun WorkspaceScreenPreview() {
                 tabs = tabs,
                 selected = tabs.last().id,
                 isUpgraded = false,
+                swipeGesturesEnabled = true,
             ),
             onNavToSettings = {},
             onTabAction = {},
