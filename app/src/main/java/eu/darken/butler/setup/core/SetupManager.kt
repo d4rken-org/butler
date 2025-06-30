@@ -73,7 +73,14 @@ class SetupManager @Inject constructor(
                     log(TAG, WARN) { "No state found for setup type: $type" }
                     null
                 }
-            }.sortedBy { it.priority }
+        }.sortedWith(
+            compareBy(
+                // First sort by completion status (incomplete first)
+                { (it.state as? SetupModule.State.Current)?.isComplete == true },
+                // Then by priority within each group
+                { it.priority }
+            )
+        )
     }
 
     suspend fun refresh() {

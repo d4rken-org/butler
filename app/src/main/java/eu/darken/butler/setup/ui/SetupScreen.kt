@@ -125,20 +125,20 @@ private fun SetupCard(
     onExecuteAction: (SetupAction) -> Unit,
     onOpenHelp: () -> Unit,
 ) {
-    val cardColor = when (val state = item.state) {
-        is SetupModule.State.Current -> {
-            when {
-                state.isComplete -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
-                else -> MaterialTheme.colorScheme.surface
-            }
-        }
-        else -> MaterialTheme.colorScheme.surface
-    }
+    val isComplete = (item.state as? SetupModule.State.Current)?.isComplete == true
     
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = cardColor)
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isComplete) 2.dp else 4.dp
+        ),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isComplete) {
+                MaterialTheme.colorScheme.surfaceVariant
+            } else {
+                MaterialTheme.colorScheme.surface
+            }
+        )
     ) {
         Column(
             modifier = Modifier
