@@ -10,8 +10,9 @@
     <string name="editor_settings_line_numbers_desc">Display line numbers in editor</string>
     <string name="editor_settings_show_line_numbers_title">Show line numbers</string>
     <string name="editor_settings_show_line_numbers_subtitle">Display line numbers in editor</string>
-    <string name="editor_settings_word_wrap_title">Word wrap</string>
+    <string name="editor_settings_word_wrap_title">Line wrap</string>
     <string name="editor_settings_word_wrap_desc">Wrap long lines to fit screen</string>
+    <string name="editor_settings_word_wrap_subtitle">Wrap long lines to fit screen width</string>
     <string name="editor_settings_behavior_category">Behavior</string>
     <string name="editor_settings_auto_save_title">Auto save</string>
     <string name="editor_settings_auto_save_desc">Automatically save changes</string>

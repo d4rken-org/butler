@@ -204,6 +204,7 @@ fun EditorWorkspacePage(
                     selection = state.selectionRange,
                     visibleRange = state.visibleRange,
                     showLineNumbers = state.showLineNumbers,
+                    wordWrap = state.wordWrap,
                     fontSize = 14,
                     tabSize = 4,
                     onTextChange = onTextChange,

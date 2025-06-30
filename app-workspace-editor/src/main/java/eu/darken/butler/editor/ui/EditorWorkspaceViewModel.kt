@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
+import eu.darken.butler.common.BuildConfigWrap
 
 @HiltViewModel(assistedFactory = EditorWorkspaceViewModel.Factory::class)
 class EditorWorkspaceViewModel @AssistedInject constructor(
@@ -84,7 +85,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         _searchResults,
         _visibleRange,
         flow { emit(memoryManager.getMemoryStats()) }.catch { emit(MemoryStats(0, 0, 0, 0, 0)) },
-        editorSettings.showLineNumbers.flow
+        editorSettings.showLineNumbers.flow,
+        editorSettings.wordWrap.flow
     ) { values ->
         State(
             id = values[0] as Workspace.Id,
@@ -100,7 +102,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             searchResults = values[10] as List<SearchResult>,
             visibleRange = values[11] as IntRange,
             memoryStats = values[12] as MemoryStats,
-            showLineNumbers = values[13] as Boolean
+            showLineNumbers = values[13] as Boolean,
+            wordWrap = values[14] as Boolean
         )
     }.asStateFlow()
 
@@ -145,10 +148,20 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                     }
                 }
 
-                // Initialize with empty content
-                _currentContent.value = ""
-                _totalLines.value = 1
-                _visibleRange.value = 0..0
+                // Initialize with debug content in DEV mode
+                if (BuildConfigWrap.BUILD_TYPE == BuildConfigWrap.BuildType.DEV && dataSource is InMemoryDataSource) {
+                    val debugContent = generateDebugContent()
+                    _currentContent.value = debugContent
+                    val lines = debugContent.split('\n')
+                    _totalLines.value = lines.size
+                    _visibleRange.value = 0..minOf(50, lines.size - 1)
+                    log(tag) { "Initialized with debug content: ${lines.size} lines" }
+                } else {
+                    // Initialize with empty content
+                    _currentContent.value = ""
+                    _totalLines.value = 1
+                    _visibleRange.value = 0..0
+                }
 
             } catch (e: Exception) {
                 log(tag, ERROR) { "Failed to initialize editor - ${e.asLog()}" }
@@ -425,7 +438,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val searchResults: List<SearchResult> = emptyList(),
         val visibleRange: IntRange = 0..50,
         val memoryStats: MemoryStats = MemoryStats(0, 0, 0, 0, 0),
-        val showLineNumbers: Boolean = true
+        val showLineNumbers: Boolean = true,
+        val wordWrap: Boolean = false
     ) {
         val hasFile: Boolean get() = fileInfo != null
         val fileName: String get() = fileInfo?.path?.name ?: "Untitled"
@@ -438,5 +452,31 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     @AssistedFactory
     interface Factory {
         fun create(id: Workspace.Id): EditorWorkspaceViewModel
+    }
+
+    private fun generateDebugContent(): String {
+        return """
+            |Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+            |Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+            |Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+            |Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+            |
+            |The quick brown fox jumps over the lazy dog. This is a test line with very long content that should demonstrate horizontal scrolling when line wrap is disabled in the editor settings.
+            |Short line.
+            |Another medium length line with some content.
+            |
+            |    Indented line with 4 spaces
+            |        Double indented line with 8 spaces
+            |            Triple indented line with 12 spaces
+            |
+            |Special characters: !@#$%^&*()_+-={}[]|\:";'<>?,./
+            |Numbers: 0123456789
+            |Mixed case: AbCdEfGhIjKlMnOpQrStUvWxYz
+            |
+            |This is line 17 of the debug content.
+            |Line 18 - Testing scrolling behavior
+            |Line 19 - More test content
+            |Line 20 - Final line of debug text
+        """.trimMargin()
     }
 }

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.WrapText
 import androidx.compose.material.icons.filled.TextFormat
 import androidx.compose.material.icons.twotone.FormatListNumbered
 import androidx.compose.material.icons.twotone.TextFormat
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.editor.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -35,6 +37,7 @@ fun EditorSettingsScreen(
     state: EditorSettingsViewModel.State,
     onNavigateUp: () -> Unit,
     onShowLineNumbersChange: (Boolean) -> Unit,
+    onWordWrapChange: (Boolean) -> Unit,
 ) {
     LocalContext.current
 
@@ -71,6 +74,17 @@ fun EditorSettingsScreen(
                 )
                 SettingsDivider()
             }
+            
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.AutoMirrored.Filled.WrapText,
+                    title = stringResource(R.string.editor_settings_word_wrap_title),
+                    subtitle = stringResource(R.string.editor_settings_word_wrap_subtitle),
+                    checked = state.wordWrap,
+                    onCheckedChange = onWordWrapChange
+                )
+                SettingsDivider()
+            }
         }
     }
 }
@@ -81,10 +95,12 @@ private fun EditorSettingsScreenPreview() {
     PreviewWrapper {
         EditorSettingsScreen(
             state = EditorSettingsViewModel.State(
-                showLineNumbers = true
+                showLineNumbers = true,
+                wordWrap = false
             ),
             onNavigateUp = {},
             onShowLineNumbersChange = {},
+            onWordWrapChange = {},
         )
     }
 }
@@ -100,6 +116,7 @@ fun EditorSettingsScreenHost(vm: EditorSettingsViewModel = hiltViewModel()) {
             state = vmState,
             onNavigateUp = { vm.navUp() },
             onShowLineNumbersChange = { vm.updateShowLineNumbers(it) },
+            onWordWrapChange = { vm.updateWordWrap(it) },
         )
     }
 }

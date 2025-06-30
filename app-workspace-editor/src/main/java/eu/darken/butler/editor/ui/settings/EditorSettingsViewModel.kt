@@ -23,10 +23,11 @@ constructor(
 
     val state = combine(
         editorSettings.showLineNumbers.flow,
-        flowOf(Unit),
-    ) { showLineNumbers, _ ->
+        editorSettings.wordWrap.flow,
+    ) { showLineNumbers, wordWrap ->
         State(
             showLineNumbers = showLineNumbers,
+            wordWrap = wordWrap,
         )
     }.asStateFlow()
 
@@ -35,8 +36,14 @@ constructor(
         log(tag) { "updateShowLineNumbers($enabled)" }
         editorSettings.showLineNumbers.value(enabled)
     }
+    
+    fun updateWordWrap(enabled: Boolean) = launch {
+        log(tag) { "updateWordWrap($enabled)" }
+        editorSettings.wordWrap.value(enabled)
+    }
 
     data class State(
         val showLineNumbers: Boolean = true,
+        val wordWrap: Boolean = false,
     )
 }

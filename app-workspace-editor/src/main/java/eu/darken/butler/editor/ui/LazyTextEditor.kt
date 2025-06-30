@@ -3,11 +3,14 @@ package eu.darken.butler.editor.ui
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -44,6 +47,7 @@ fun LazyTextEditor(
     selection: Pair<TextPosition, TextPosition>?,
     visibleRange: IntRange,
     showLineNumbers: Boolean = true,
+    wordWrap: Boolean = false,
     fontSize: Int = 14,
     tabSize: Int = 4,
     onTextChange: (String) -> Unit,
@@ -56,14 +60,16 @@ fun LazyTextEditor(
         if (content.isEmpty()) listOf("") else content.split('\n')
     }
     val focusRequester = remember { FocusRequester() }
-    val listState = rememberLazyListState()
+    val lineNumbersListState = rememberLazyListState()
+    val contentListState = rememberLazyListState()
+    val horizontalScrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
     
     // Update visible range when scroll position changes
-    LaunchedEffect(listState.firstVisibleItemIndex, listState.layoutInfo.visibleItemsInfo.size, lines.size) {
-        if (lines.isNotEmpty() && listState.layoutInfo.totalItemsCount > 0) {
-            val startIndex = listState.firstVisibleItemIndex.coerceAtLeast(0)
-            val visibleCount = listState.layoutInfo.visibleItemsInfo.size.coerceAtLeast(1)
+    LaunchedEffect(contentListState.firstVisibleItemIndex, contentListState.layoutInfo.visibleItemsInfo.size, lines.size) {
+        if (lines.isNotEmpty() && contentListState.layoutInfo.totalItemsCount > 0) {
+            val startIndex = contentListState.firstVisibleItemIndex.coerceAtLeast(0)
+            val visibleCount = contentListState.layoutInfo.visibleItemsInfo.size.coerceAtLeast(1)
             val endIndex = minOf(
                 startIndex + visibleCount + 10, // Buffer
                 lines.size - 1
@@ -76,12 +82,15 @@ fun LazyTextEditor(
     // Scroll to cursor position when it changes - only if the layout is ready
     // We check layoutInfo.totalItemsCount to ensure the layout has been measured
     LaunchedEffect(cursorPosition.line) {
-        if (lines.isNotEmpty() && cursorPosition.line >= 0 && listState.layoutInfo.totalItemsCount > 0) {
+        if (lines.isNotEmpty() && cursorPosition.line >= 0 && contentListState.layoutInfo.totalItemsCount > 0) {
             val targetLine = cursorPosition.line.coerceIn(0, lines.size - 1)
-            if (targetLine < listState.firstVisibleItemIndex || 
-                targetLine >= listState.firstVisibleItemIndex + listState.layoutInfo.visibleItemsInfo.size) {
+            if (targetLine < contentListState.firstVisibleItemIndex || 
+                targetLine >= contentListState.firstVisibleItemIndex + contentListState.layoutInfo.visibleItemsInfo.size) {
                 try {
-                    listState.animateScrollToItem(targetLine)
+                    scope.launch {
+                        contentListState.animateScrollToItem(targetLine)
+                        lineNumbersListState.animateScrollToItem(targetLine)
+                    }
                 } catch (e: Exception) {
                     // Ignore scroll errors - layout might not be ready yet
                 }
@@ -89,14 +98,17 @@ fun LazyTextEditor(
         }
     }
 
-    // Combined content with line numbers and text
-    CombinedEditorContent(
+    // Synchronized dual-column content
+    DualColumnEditorContent(
         lines = lines,
         cursorPosition = cursorPosition,
         selection = selection,
-        listState = listState,
+        lineNumbersListState = lineNumbersListState,
+        contentListState = contentListState,
+        horizontalScrollState = horizontalScrollState,
         focusRequester = focusRequester,
         showLineNumbers = showLineNumbers,
+        wordWrap = wordWrap,
         fontSize = fontSize,
         tabSize = tabSize,
         onTextChange = onTextChange,
@@ -107,13 +119,16 @@ fun LazyTextEditor(
 }
 
 @Composable
-private fun CombinedEditorContent(
+private fun DualColumnEditorContent(
     lines: List<String>,
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
-    listState: LazyListState,
+    lineNumbersListState: LazyListState,
+    contentListState: LazyListState,
+    horizontalScrollState: ScrollState,
     focusRequester: FocusRequester,
     showLineNumbers: Boolean,
+    wordWrap: Boolean,
     fontSize: Int,
     tabSize: Int,
     onTextChange: (String) -> Unit,
@@ -122,6 +137,7 @@ private fun CombinedEditorContent(
     modifier: Modifier = Modifier
 ) {
     var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
+    val scope = rememberCoroutineScope()
     
     // Sync textFieldValue with content
     LaunchedEffect(lines) {
@@ -141,6 +157,35 @@ private fun CombinedEditorContent(
         }
     } else {
         0.dp
+    }
+
+    // Synchronize vertical scrolling between line numbers and content
+    LaunchedEffect(contentListState.firstVisibleItemIndex, contentListState.firstVisibleItemScrollOffset) {
+        if (lineNumbersListState.firstVisibleItemIndex != contentListState.firstVisibleItemIndex ||
+            lineNumbersListState.firstVisibleItemScrollOffset != contentListState.firstVisibleItemScrollOffset) {
+            try {
+                lineNumbersListState.scrollToItem(
+                    contentListState.firstVisibleItemIndex,
+                    contentListState.firstVisibleItemScrollOffset
+                )
+            } catch (e: Exception) {
+                // Ignore sync errors
+            }
+        }
+    }
+
+    LaunchedEffect(lineNumbersListState.firstVisibleItemIndex, lineNumbersListState.firstVisibleItemScrollOffset) {
+        if (contentListState.firstVisibleItemIndex != lineNumbersListState.firstVisibleItemIndex ||
+            contentListState.firstVisibleItemScrollOffset != lineNumbersListState.firstVisibleItemScrollOffset) {
+            try {
+                contentListState.scrollToItem(
+                    lineNumbersListState.firstVisibleItemIndex,
+                    lineNumbersListState.firstVisibleItemScrollOffset
+                )
+            } catch (e: Exception) {
+                // Ignore sync errors
+            }
+        }
     }
 
     Box(
@@ -176,36 +221,26 @@ private fun CombinedEditorContent(
             decorationBox = { _ -> }
         )
         
-        // LazyColumn with both line numbers and text
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxSize()
-                .clipToBounds()
-                .pointerInput(Unit) {
-                    detectTapGestures {
-                        try {
-                            focusRequester.requestFocus()
-                        } catch (e: Exception) {
-                            // Ignore focus errors
-                        }
-                    }
-                }
+        Row(
+            modifier = Modifier.fillMaxSize()
         ) {
-            itemsIndexed(
-                items = lines,
-                key = { index, _ -> "line_$index" }
-            ) { lineIndex, lineContent ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Top
+            // Line numbers column
+            if (showLineNumbers) {
+                LazyColumn(
+                    state = lineNumbersListState,
+                    modifier = Modifier
+                        .width(lineNumberWidth)
+                        .fillMaxHeight()
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .clipToBounds()
                 ) {
-                    // Line number
-                    if (showLineNumbers) {
+                    itemsIndexed(
+                        items = lines,
+                        key = { index, _ -> "line_num_$index" }
+                    ) { lineIndex, _ ->
                         Box(
                             modifier = Modifier
-                                .width(lineNumberWidth)
-                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .fillMaxWidth()
                                 .padding(horizontal = 8.dp, vertical = 2.dp),
                             contentAlignment = Alignment.TopEnd
                         ) {
@@ -219,14 +254,43 @@ private fun CombinedEditorContent(
                             )
                         }
                     }
-                    
-                    // Text content
+                }
+            }
+            
+            // Content column with horizontal scrolling when not wrapping
+            val contentModifier = if (wordWrap) {
+                Modifier.fillMaxSize()
+            } else {
+                Modifier
+                    .fillMaxSize()
+                    .horizontalScroll(horizontalScrollState)
+            }
+            
+            LazyColumn(
+                state = contentListState,
+                modifier = contentModifier
+                    .clipToBounds()
+                    .pointerInput(Unit) {
+                        detectTapGestures {
+                            try {
+                                focusRequester.requestFocus()
+                            } catch (e: Exception) {
+                                // Ignore focus errors
+                            }
+                        }
+                    }
+            ) {
+                itemsIndexed(
+                    items = lines,
+                    key = { index, _ -> "line_content_$index" }
+                ) { lineIndex, lineContent ->
                     TextLineItem(
                         lineIndex = lineIndex,
                         lineContent = lineContent,
                         cursorPosition = cursorPosition,
                         selection = selection,
                         isCurrentLine = lineIndex == cursorPosition.line,
+                        wordWrap = wordWrap,
                         fontSize = fontSize,
                         tabSize = tabSize,
                         onLineClick = { clickPosition ->
@@ -237,7 +301,7 @@ private fun CombinedEditorContent(
                             )
                             onCursorPositionChange(newPosition)
                         },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
@@ -262,6 +326,7 @@ private fun TextLineItem(
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
     isCurrentLine: Boolean,
+    wordWrap: Boolean,
     fontSize: Int,
     tabSize: Int,
     onLineClick: (Int) -> Unit,
@@ -285,6 +350,7 @@ private fun TextLineItem(
             lineIndex = lineIndex,
             cursorPosition = cursorPosition,
             selection = selection,
+            wordWrap = wordWrap,
             fontSize = fontSize,
             onTextClick = onLineClick,
             modifier = Modifier.fillMaxWidth()
@@ -307,6 +373,7 @@ private fun SelectableText(
     lineIndex: Int,
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
+    wordWrap: Boolean,
     fontSize: Int,
     onTextClick: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -373,7 +440,6 @@ private fun SelectableText(
                 }
             }
             
-            // Text content
             Text(
                 text = if (text.isEmpty()) " " else text, // Show at least a space for empty lines
                 style = TextStyle(
@@ -381,7 +447,7 @@ private fun SelectableText(
                     fontFamily = FontFamily.Monospace,
                     color = textColor
                 ),
-                softWrap = true,
+                softWrap = wordWrap,
                 overflow = androidx.compose.ui.text.style.TextOverflow.Visible,
                 modifier = Modifier.fillMaxWidth()
             )
