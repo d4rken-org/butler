@@ -2,7 +2,10 @@ package eu.darken.butler.workspace.core
 
 import android.os.Parcelable
 import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.parcel.UUIDParceler
 import kotlinx.coroutines.flow.Flow
+import kotlinx.parcelize.Parcelize
+import kotlinx.parcelize.TypeParceler
 import java.util.UUID
 
 interface Workspace {
@@ -18,9 +21,11 @@ interface Workspace {
         ;
     }
 
+    @Parcelize
+    @TypeParceler<UUID, UUIDParceler>
     data class Id(
         val id: UUID = UUID.randomUUID(),
-    ) {
+    ) : Parcelable {
         val shortTag: String
             get() = id.toString().take(4)
         val longTag: String

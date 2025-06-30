@@ -6,7 +6,9 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
+import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
@@ -38,7 +40,6 @@ class WorkspaceManagerViewModel @Inject constructor(
                     subtitle = getSubtitleForWorkspace(info.type),
                 )
             },
-            workspaceCount = repoState.workspaceInfos.size,
             isButtonFlipped = isFlipped,
             showBadgeExplanation = showBadge,
             showButtonBehaviorExplanation = showBehavior,
@@ -80,6 +81,11 @@ class WorkspaceManagerViewModel @Inject constructor(
         navUp()
     }
 
+    fun navigateToSettings() {
+        log(tag) { "navigateToSettings()" }
+        navTo(Nav.Main.settings())
+    }
+
     fun toggleButtonFlipped() = launch {
         val current = workspaceSettings.isButtonActionsFlipped.value()
         workspaceSettings.isButtonActionsFlipped.update { !current }
@@ -100,13 +106,14 @@ class WorkspaceManagerViewModel @Inject constructor(
 
     data class State(
         val workspaces: List<WorkspaceItem> = emptyList(),
-        val workspaceCount: Int = 0,
         val isButtonFlipped: Boolean = false,
         val showBadgeExplanation: Boolean = true,
         val showButtonBehaviorExplanation: Boolean = true,
         val operationsCount: Int = 0,
         val attentionCount: Int = 0,
-    )
+    ) {
+        val workspaceCount: Int = workspaces.size
+    }
 
     data class WorkspaceItem(
         val id: Workspace.Id,
