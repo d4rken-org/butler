@@ -127,3 +127,7 @@ Butler uses a workspace concept similar to browser tabs with 4 main workspace ty
 - Coil for image loading
 - Navigation3 for navigation
 - Room for database operations
+
+## Agent instructions
+
+- Reminder: Our core principle is to maintain focused contexts for both yourself (the orchestrator/main agent) and each sub-agent. Therefore, please use the Task tool to delegate suitable tasks to sub-agents to improve task efficiency and optimize token usage.
