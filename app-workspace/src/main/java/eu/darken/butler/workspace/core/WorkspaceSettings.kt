@@ -35,12 +35,15 @@ class WorkspaceSettings @Inject constructor(
 
     val swipeGesturesEnabled = dataStore.createValue("workspace.swipe.gestures.enabled", true)
 
+    val paneMode = dataStore.createValue("workspace.pane.mode", "AUTO")
+
     override val mapper = PreferenceStoreMapper(
         debugSettings.isDebugMode,
         isButtonActionsFlipped,
         showBadgeExplanation,
         showButtonBehaviorExplanation,
         swipeGesturesEnabled,
+        paneMode,
     )
 
     companion object {

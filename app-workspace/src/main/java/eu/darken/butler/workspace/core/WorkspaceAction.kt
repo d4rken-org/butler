@@ -5,6 +5,18 @@ sealed interface WorkspaceAction {
         val id: Workspace.Id,
     ) : WorkspaceAction
 
+    data class SelectMultiple(
+        val ids: List<Workspace.Id>,
+    ) : WorkspaceAction
+
+    data class Focus(
+        val id: Workspace.Id,
+    ) : WorkspaceAction
+
+    data class ToggleSelection(
+        val id: Workspace.Id,
+    ) : WorkspaceAction
+
     data class Create(
         val type: Workspace.Type = Workspace.Type.TEMPLATES,
         val arguments: Workspace.Arguments? = null,

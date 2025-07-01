@@ -31,6 +31,7 @@ import eu.darken.butler.templates.ui.TemplatesWorkspacePageHost
 import eu.darken.butler.templates.ui.WorkspaceTab
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.ui.adaptive.AdaptiveWorkspaceScreen
 import eu.darken.butler.workspace.ui.empty.EmptyWorkspaceContent
 
 private val TAG = logTag("Workspace", "Screen")
@@ -43,11 +44,17 @@ fun WorkspaceScreenHost(vm: WorkspaceViewModel = hiltViewModel()) {
     log(vm.tag) { "Workspace state: $state" }
 
     state?.let { state ->
-        WorkspaceScreen(
+        AdaptiveWorkspaceScreen(
             state = state,
             onNavToSettings = { vm.navTo(Nav.Main.settings()) },
             onTabAction = { vm.modifyTab(it) },
             onUpgradeButler = { vm.upgradeButler() },
+            paneModeFlow = vm.workspaceSettings.paneMode.flow,
+            onPaneModeChange = { mode ->
+                vm.launch {
+                    vm.workspaceSettings.paneMode.update { mode }
+                }
+            },
         )
     }
 }
@@ -172,6 +179,8 @@ private fun EmptyWorkspaceScreenPreview() {
             state = WorkspaceViewModel.State(
                 tabs = emptyList(),
                 selected = null,
+                selectedIds = emptyList(),
+                focusedId = null,
                 isUpgraded = false,
                 swipeGesturesEnabled = true,
             ),
@@ -202,6 +211,8 @@ private fun WorkspaceScreenPreview() {
             state = WorkspaceViewModel.State(
                 tabs = tabs,
                 selected = tabs.last().id,
+                selectedIds = listOf(tabs.last().id),
+                focusedId = tabs.last().id,
                 isUpgraded = false,
                 swipeGesturesEnabled = true,
             ),

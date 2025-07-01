@@ -9,6 +9,8 @@ interface WorkspaceRemote {
     data class State(
         val workspaceInfos: List<Workspace.Info> = emptyList(),
         val selectedWorkspaceId: Workspace.Id? = null,
+        val selectedWorkspaceIds: List<Workspace.Id> = emptyList(),
+        val focusedWorkspaceId: Workspace.Id? = null,
         val isButtonActionsFlipped: Boolean = false,
     ) {
         val workspaceCount: Int
