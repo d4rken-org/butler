@@ -11,6 +11,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Icon
@@ -18,10 +21,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
@@ -33,14 +50,35 @@ import eu.darken.butler.explorer.core.engine.ExplorerLocation
 fun BreadcrumbBar(
     breadcrumbs: List<ExplorerLocation.Breadcrumb>,
     onBreadcrumbClick: (ExplorerLocation.Breadcrumb.Target) -> Unit,
+    onNavigateToPath: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
+    var isEditMode by remember { mutableStateOf(false) }
+    var editTextValue by remember { mutableStateOf(TextFieldValue("")) }
+    val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    // Build current path from breadcrumbs
+    val currentPath = remember(breadcrumbs) {
+        when (val lastTarget = breadcrumbs.lastOrNull()?.target) {
+            is ExplorerLocation.Breadcrumb.Target.Directory -> lastTarget.path.path
+            else -> "/"
+        }
+    }
 
     LaunchedEffect(breadcrumbs.size) {
-        if (breadcrumbs.isNotEmpty()) {
+        if (breadcrumbs.isNotEmpty() && !isEditMode) {
             scrollState.animateScrollTo(scrollState.maxValue)
+        }
+    }
+
+    // Enter edit mode with current path
+    LaunchedEffect(isEditMode) {
+        if (isEditMode) {
+            editTextValue = TextFieldValue(currentPath, TextRange(currentPath.length))
+            focusRequester.requestFocus()
         }
     }
 
@@ -51,21 +89,61 @@ fun BreadcrumbBar(
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
             .padding(horizontal = 8.dp, vertical = 8.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(scrollState),
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        if (isEditMode && onNavigateToPath != null) {
+            // Edit mode - show text field
+            BasicTextField(
+                value = editTextValue,
+                onValueChange = { editTextValue = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester)
+                    .onKeyEvent { keyEvent ->
+                        if (keyEvent.key == Key.Escape) {
+                            keyboardController?.hide()
+                            isEditMode = false
+                            true
+                        } else {
+                            false
+                        }
+                    },
+                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurface
+                ),
+                singleLine = true,
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        keyboardController?.hide()
+                        val pathToNavigate = editTextValue.text.trim()
+                        if (pathToNavigate.isNotEmpty()) {
+                            onNavigateToPath(pathToNavigate)
+                        }
+                        isEditMode = false
+                    }
+                )
+            )
+        } else {
+            // Display mode - show breadcrumbs
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(scrollState),
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
             breadcrumbs.forEachIndexed { index, breadcrumb ->
                 val isLast = index == breadcrumbs.lastIndex
 
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(4.dp))
-                        .clickable(enabled = !isLast) {
-                            if (!isLast) {
+                        .clickable {
+                            if (isLast && onNavigateToPath != null) {
+                                // Click on last breadcrumb enters edit mode
+                                isEditMode = true
+                            } else if (!isLast) {
+                                // Click on other breadcrumbs navigates
                                 onBreadcrumbClick(breadcrumb.target)
                             }
                         }
@@ -108,6 +186,7 @@ fun BreadcrumbBar(
                         modifier = Modifier.size(16.dp)
                     )
                 }
+            }
             }
         }
     }

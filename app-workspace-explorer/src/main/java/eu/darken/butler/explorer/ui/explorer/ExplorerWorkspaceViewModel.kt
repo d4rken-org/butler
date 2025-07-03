@@ -5,6 +5,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
@@ -151,6 +152,28 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun validatePath(path: String): Boolean {
         return path.isNotEmpty() && (path.startsWith("/") || path == "HOME")
+    }
+
+    fun navigateToPathString(pathString: String) = launch {
+        log(tag) { "navigateToPathString($pathString)" }
+        val normalizedPath = pathString.trim()
+
+        when {
+            normalizedPath.isEmpty() || normalizedPath.equals("HOME", ignoreCase = true) -> {
+                // Navigate to home
+                workspace.first()?.navigateToBreadcrumb(ExplorerLocation.Breadcrumb.Target.Home)
+            }
+            normalizedPath.startsWith("/") -> {
+                // Valid absolute path
+                val path = RawPath.build(normalizedPath)
+                workspace.first()?.navigateTo(path)
+                clearSelection()
+            }
+            else -> {
+                // Invalid path - could show error
+                log(tag, WARN) { "Invalid path: $pathString" }
+            }
+        }
     }
 
     fun navigateToShortcut(shortcut: ExplorerPathItem.Shortcut) = launch {

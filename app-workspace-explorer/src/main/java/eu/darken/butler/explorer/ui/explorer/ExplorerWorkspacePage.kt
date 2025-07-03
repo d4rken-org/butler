@@ -88,6 +88,9 @@ fun ExplorerWorkspacePage(
                     onBreadcrumbClick = { target ->
                         vm?.navigateToBreadcrumb(target)
                     },
+                    onNavigateToPath = { path ->
+                        vm?.navigateToPathString(path)
+                    },
                     modifier = Modifier
                         .weight(1f)
                         .padding(end = 8.dp)
