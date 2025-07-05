@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui
+package eu.darken.butler.workspace.ui.workspaces
 
 import androidx.navigation3.runtime.EntryProviderBuilder
 import androidx.navigation3.runtime.NavKey

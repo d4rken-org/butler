@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui
+package eu.darken.butler.workspace.ui.workspaces
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
@@ -35,7 +35,6 @@ class WorkspaceViewModel @Inject constructor(
     val workspaceSettings: WorkspaceSettings,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Screen","VM"), navCtrl) {
 
-    private val tabLock = Mutex()
     private val currentTabs = workspaceRepo.state
         .map { state ->
             state.workspaceInfos.map {
@@ -117,6 +116,6 @@ class WorkspaceViewModel @Inject constructor(
             get() = tabs.firstOrNull { it.id == selected }
 
         val selectedTabs: List<WorkspaceTab>
-            get() = tabs.filter { tab -> selectedIds.contains(tab.id) }
+            get() = selectedIds.mapNotNull { id -> tabs.firstOrNull { tab -> tab.id == id } }
     }
 }

@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui.adaptive
+package eu.darken.butler.workspace.ui.workspaces.adaptive
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalConfiguration

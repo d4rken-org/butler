@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui.adaptive
+package eu.darken.butler.workspace.ui.workspaces.adaptive
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -102,10 +102,12 @@ fun WorkspaceNavigationRail(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 tabs.forEach { tab ->
+                    val paneIndex = selectedIds.indexOf(tab.id)
                     WorkspaceRailItem(
                         tab = tab,
                         isSelected = selectedIds.contains(tab.id),
                         isFocused = focusedId == tab.id,
+                        currentPaneIndex = if (paneIndex >= 0) paneIndex else null,
                         onTabAction = onTabAction,
                         onPaneAssignment = onPaneAssignment,
                         showPaneNumbers = showPaneNumbers,
@@ -184,6 +186,7 @@ private fun WorkspaceRailItem(
     tab: WorkspaceTab,
     isSelected: Boolean,
     isFocused: Boolean,
+    currentPaneIndex: Int?,
     onTabAction: (WorkspaceAction) -> Unit,
     onPaneAssignment: (workspaceId: Workspace.Id, paneIndex: Int) -> Unit,
     showPaneNumbers: Boolean,
@@ -225,6 +228,24 @@ private fun WorkspaceRailItem(
                         shape = CircleShape,
                     ),
             )
+        }
+        
+        // Show pane number indicator
+        currentPaneIndex?.let { paneIdx ->
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(4.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.secondaryContainer,
+            ) {
+                Text(
+                    text = "${paneIdx + 1}",
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+            }
         }
 
         DropdownMenu(

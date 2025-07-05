@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui.empty
+package eu.darken.butler.workspace.ui.workspaces.empty
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
