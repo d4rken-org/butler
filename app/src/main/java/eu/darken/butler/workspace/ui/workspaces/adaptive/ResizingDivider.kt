@@ -20,22 +20,35 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 
 
 private val TAG = logTag("Workspace", "Container", "Adaptive", "Divider")
 
+private const val DIVIDER_WIDTH = 12
+private const val DIVIDER_HANDLE_SIZE = 32
+private const val DIVIDER_HANDLE_WIDTH = 4
+private const val MIN_POSITION = 0.2f
+private const val MAX_POSITION = 0.8f
+
+/**
+ * A draggable divider component that allows users to resize panes.
+ *
+ * @param isVertical Whether this is a vertical divider (separates left/right) or horizontal (top/bottom)
+ * @param position Current position as a fraction (0.2f to 0.8f) of the container size
+ * @param containerSize The size of the container this divider is in
+ * @param onPositionChange Callback when the divider is dragged to a new position
+ */
 @Composable
 internal fun ResizingDivider(
-    modifier: Modifier = Modifier.Companion,
+    modifier: Modifier = Modifier,
     isVertical: Boolean,
     position: Float,
     containerSize: IntSize,
     onPositionChange: (Float) -> Unit,
 ) {
     var isDragging by remember { mutableStateOf(false) }
-    val parentSize = if (isVertical) containerSize.width.toFloat() else containerSize.height.toFloat()
+    if (isVertical) containerSize.width.toFloat() else containerSize.height.toFloat()
 
     // Track the current position locally to avoid stale closure issues
     var currentPosition by remember { mutableStateOf(position) }
@@ -55,12 +68,12 @@ internal fun ResizingDivider(
         modifier = modifier
             .then(
                 if (isVertical) {
-                    Modifier.Companion
-                        .width(12.dp)
+                    Modifier
+                        .width(DIVIDER_WIDTH.dp)
                         .fillMaxHeight()
                 } else {
-                    Modifier.Companion
-                        .height(12.dp)
+                    Modifier
+                        .height(DIVIDER_WIDTH.dp)
                         .fillMaxWidth()
                 }
             )
@@ -73,11 +86,12 @@ internal fun ResizingDivider(
                         isDragging = false
                     },
                     onDrag = { _, dragAmount ->
-                        val currentParentSize = if (isVertical) containerSize.width.toFloat() else containerSize.height.toFloat()
+                        val currentParentSize =
+                            if (isVertical) containerSize.width.toFloat() else containerSize.height.toFloat()
                         if (currentParentSize > 0) {
                             val delta = if (isVertical) dragAmount.x else dragAmount.y
                             val newPosition = currentPosition + (delta / currentParentSize)
-                            val clampedPosition = newPosition.coerceIn(0.2f, 0.8f)
+                            val clampedPosition = newPosition.coerceIn(MIN_POSITION, MAX_POSITION)
                             currentPosition = clampedPosition
                             onPositionChange(clampedPosition)
                         }
@@ -86,23 +100,23 @@ internal fun ResizingDivider(
             }
             .clip(RoundedCornerShape(6.dp))
             .background(dividerColor),
-        contentAlignment = Alignment.Companion.Center,
+        contentAlignment = Alignment.Center,
     ) {
         // Divider handle indicator
         Box(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .then(
                     if (isVertical) {
-                        Modifier.Companion
-                            .width(4.dp)
-                            .height(32.dp)
+                        Modifier
+                            .width(DIVIDER_HANDLE_WIDTH.dp)
+                            .height(DIVIDER_HANDLE_SIZE.dp)
                     } else {
-                        Modifier.Companion
-                            .height(4.dp)
-                            .width(32.dp)
+                        Modifier
+                            .height(DIVIDER_HANDLE_WIDTH.dp)
+                            .width(DIVIDER_HANDLE_SIZE.dp)
                     }
                 )
-                .clip(androidx.compose.foundation.shape.RoundedCornerShape(2.dp))
+                .clip(RoundedCornerShape(2.dp))
                 .background(
                     if (isDragging) {
                         MaterialTheme.colorScheme.onPrimary

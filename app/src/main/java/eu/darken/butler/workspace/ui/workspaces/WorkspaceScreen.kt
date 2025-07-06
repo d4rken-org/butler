@@ -13,7 +13,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.max
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -23,15 +22,14 @@ import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.WorkspacePanelMode
-import eu.darken.butler.workspace.ui.manager.WindowSizeInfo
-import eu.darken.butler.workspace.ui.workspaces.empty.EmptyWorkspaceContent
-import eu.darken.butler.workspace.ui.workspaces.adaptive.AdaptiveWorkspaceContainer
-import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
-import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceNavigationRail
 import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
+import eu.darken.butler.workspace.ui.workspaces.adaptive.AdaptiveWorkspaceContainer
+import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
+import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceNavigationRail
 import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContainer
+import eu.darken.butler.workspace.ui.workspaces.empty.EmptyWorkspaceContent
 
 private val TAG = logTag("Workspace", "Screen")
 
@@ -211,8 +209,6 @@ fun WorkspaceScreen(
                         onUpgradeButler = onUpgradeButler,
                     )
                 }
-
-
             }
         )
     }

@@ -3,11 +3,7 @@ package eu.darken.butler.workspace.ui.workspaces.adaptive
 import android.os.Parcelable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,24 +19,60 @@ import androidx.compose.ui.unit.IntSize
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.templates.ui.WorkspaceTab
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import kotlinx.parcelize.Parcelize
 
 private val TAG = logTag("Workspace", "Container", "Adaptive")
 
+/**
+ * Creates a callback function for divider position changes.
+ * This helper ensures that divider positions are always updated with the current state,
+ * avoiding stale closure issues.
+ */
+private fun createDividerCallback(
+    getCurrentDividerPositions: () -> DividerPositions,
+    onDividerPositionsChange: (DividerPositions) -> Unit,
+    updatePosition: DividerPositions.(Float) -> DividerPositions,
+): (Float) -> Unit = { newPos ->
+    val current = getCurrentDividerPositions()
+    onDividerPositionsChange(current.updatePosition(newPos))
+}
 
+
+/**
+ * Holds the positions of dividers for different workspace layouts.
+ * Each position is a float between 0.2f and 0.8f representing the percentage
+ * of space allocated to the first pane in each split.
+ */
 @Parcelize
 data class DividerPositions(
     val dualVertical: Float = 0.5f,
     val dualHorizontal: Float = 0.5f,
     val tripleMain: Float = 0.5f,
     val tripleSecondary: Float = 0.5f,
-) : Parcelable
+) : Parcelable {
+    fun withDualVertical(value: Float) = copy(dualVertical = value)
+    fun withDualHorizontal(value: Float) = copy(dualHorizontal = value)
+    fun withTripleMain(value: Float) = copy(tripleMain = value)
+    fun withTripleSecondary(value: Float) = copy(tripleSecondary = value)
+}
 
+/**
+ * An adaptive container that displays workspaces in different layouts based on the design.
+ * Supports single, dual (vertical/horizontal), and triple pane layouts with draggable dividers.
+ *
+ * @param design The workspace design configuration determining the layout
+ * @param selected List of selected workspaces to display
+ * @param focusedTabId The ID of the currently focused workspace
+ * @param dividerPositions Current positions of the dividers
+ * @param onDividerPositionsChange Callback when divider positions change
+ * @param getCurrentDividerPositions Function to get the latest divider positions (used to avoid stale closures)
+ * @param onTabFocus Callback when a workspace tab receives focus
+ * @param showPaneNumbers Whether to show pane numbers for workspace assignment
+ * @param paneContent Content to display for each workspace
+ */
 @Composable
 fun AdaptiveWorkspaceContainer(
     modifier: Modifier = Modifier,
@@ -54,7 +86,6 @@ fun AdaptiveWorkspaceContainer(
     showPaneNumbers: Boolean = false,
     paneContent: @Composable (Workspace.Info?) -> Unit,
 ) {
-    val showFocusBorder = selected.size > 1
     var containerSize by remember { mutableStateOf(IntSize.Zero) }
 
     Box(
@@ -64,207 +95,58 @@ fun AdaptiveWorkspaceContainer(
                 containerSize = coordinates.size
             }
     ) {
+        val dividerCallbackFactory: (DividerPositions.(Float) -> DividerPositions) -> (Float) -> Unit = { updateFn ->
+            createDividerCallback(getCurrentDividerPositions, onDividerPositionsChange, updateFn)
+        }
+        
         when (design.layout) {
             WorkspaceDesign.Layout.SINGLE -> {
-                val ws1 = selected.getOrNull(0)
-                WorkspacePaneWrapper(
-                    modifier = Modifier.fillMaxSize(),
-                    isFocused = focusedTabId == ws1?.id,
-                    showFocusBorder = false, // Single pane doesn't need focus border
-                    onFocus = { ws1?.let { onTabFocus(it.id) } },
-                    paneNumber = if (showPaneNumbers) 1 else null,
-                ) {
-                    paneContent(ws1)
-                }
+                SinglePaneLayout(
+                    selected = selected,
+                    focusedTabId = focusedTabId,
+                    showPaneNumbers = showPaneNumbers,
+                    onTabFocus = onTabFocus,
+                    paneContent = paneContent,
+                )
             }
 
             WorkspaceDesign.Layout.DUAL_VERTICAL -> {
-                Row(modifier = Modifier.fillMaxSize()) {
-                    val ws1 = selected.getOrNull(0)
-                    WorkspacePaneWrapper(
-                        modifier = Modifier
-                            .weight(dividerPositions.dualVertical)
-                            .fillMaxHeight(),
-                        isFocused = focusedTabId == ws1?.id,
-                        showFocusBorder = showFocusBorder,
-                        onFocus = { ws1?.let { onTabFocus(it.id) } },
-                        paneNumber = if (showPaneNumbers) 1 else null,
-                    ) {
-                        paneContent(ws1)
-                    }
-
-                    val dualVerticalCallback = { newPos: Float ->
-                        val current = getCurrentDividerPositions()
-                        val newPositions = DividerPositions(
-                            dualVertical = newPos,
-                            dualHorizontal = current.dualHorizontal,
-                            tripleMain = current.tripleMain,
-                            tripleSecondary = current.tripleSecondary,
-                        )
-                        onDividerPositionsChange(newPositions)
-                    }
-                    
-                    ResizingDivider(
-                        modifier = Modifier.fillMaxHeight(),
-                        isVertical = true,
-                        position = dividerPositions.dualVertical,
-                        containerSize = containerSize,
-                        onPositionChange = dualVerticalCallback,
-                    )
-
-                    val ws2 = selected.getOrNull(1)
-                    WorkspacePaneWrapper(
-                        modifier = Modifier
-                            .weight(1f - dividerPositions.dualVertical)
-                            .fillMaxHeight(),
-                        isFocused = focusedTabId == ws2?.id,
-                        showFocusBorder = showFocusBorder,
-                        onFocus = { ws2?.let { onTabFocus(it.id) } },
-                        paneNumber = if (showPaneNumbers) 2 else null,
-                    ) {
-                        paneContent(ws2)
-                    }
-                }
+                DualVerticalLayout(
+                    selected = selected,
+                    focusedTabId = focusedTabId,
+                    dividerPositions = dividerPositions,
+                    containerSize = containerSize,
+                    showPaneNumbers = showPaneNumbers,
+                    onTabFocus = onTabFocus,
+                    createDividerCallback = dividerCallbackFactory,
+                    paneContent = paneContent,
+                )
             }
 
             WorkspaceDesign.Layout.DUAL_HORIZONTAL -> {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    val ws1 = selected.getOrNull(0)
-                    WorkspacePaneWrapper(
-                        modifier = Modifier
-                            .weight(dividerPositions.dualHorizontal)
-                            .fillMaxHeight(),
-                        isFocused = focusedTabId == ws1?.id,
-                        showFocusBorder = showFocusBorder,
-                        onFocus = { ws1?.let { onTabFocus(it.id) } },
-                        paneNumber = if (showPaneNumbers) 1 else null,
-                    ) {
-                        paneContent(ws1)
-                    }
-
-                    val dualHorizontalCallback = { newPos: Float ->
-                        val current = getCurrentDividerPositions()
-                        val newPositions = DividerPositions(
-                            dualVertical = current.dualVertical,
-                            dualHorizontal = newPos,
-                            tripleMain = current.tripleMain,
-                            tripleSecondary = current.tripleSecondary,
-                        )
-                        onDividerPositionsChange(newPositions)
-                    }
-                    
-                    ResizingDivider(
-                        modifier = Modifier.fillMaxWidth(),
-                        isVertical = false,
-                        position = dividerPositions.dualHorizontal,
-                        containerSize = containerSize,
-                        onPositionChange = dualHorizontalCallback,
-                    )
-
-                    val ws2 = selected.getOrNull(1)
-                    WorkspacePaneWrapper(
-                        modifier = Modifier
-                            .weight(1f - dividerPositions.dualHorizontal)
-                            .fillMaxHeight(),
-                        isFocused = focusedTabId == ws2?.id,
-                        showFocusBorder = showFocusBorder,
-                        onFocus = { ws2?.let { onTabFocus(it.id) } },
-                        paneNumber = if (showPaneNumbers) 2 else null,
-                    ) {
-                        paneContent(ws2)
-                    }
-                }
+                DualHorizontalLayout(
+                    selected = selected,
+                    focusedTabId = focusedTabId,
+                    dividerPositions = dividerPositions,
+                    containerSize = containerSize,
+                    showPaneNumbers = showPaneNumbers,
+                    onTabFocus = onTabFocus,
+                    createDividerCallback = dividerCallbackFactory,
+                    paneContent = paneContent,
+                )
             }
 
             WorkspaceDesign.Layout.TRIPLE_MAIN_LEFT -> {
-                Row(modifier = Modifier.fillMaxSize()) {
-                    val ws1 = selected.getOrNull(0)
-                    WorkspacePaneWrapper(
-                        modifier = Modifier
-                            .weight(dividerPositions.tripleMain)
-                            .fillMaxHeight(),
-                        isFocused = focusedTabId == ws1?.id,
-                        showFocusBorder = showFocusBorder,
-                        onFocus = { ws1?.let { onTabFocus(it.id) } },
-                        paneNumber = if (showPaneNumbers) 1 else null,
-                    ) {
-                        paneContent(ws1)
-                    }
-
-                    val mainDividerCallback = { newPos: Float ->
-                        val current = getCurrentDividerPositions()
-                        val newPositions = DividerPositions(
-                            dualVertical = current.dualVertical,
-                            dualHorizontal = current.dualHorizontal,
-                            tripleMain = newPos,
-                            tripleSecondary = current.tripleSecondary,
-                        )
-                        onDividerPositionsChange(newPositions)
-                    }
-                    
-                    ResizingDivider(
-                        modifier = Modifier.fillMaxHeight(),
-                        isVertical = true,
-                        position = dividerPositions.tripleMain,
-                        containerSize = containerSize,
-                        onPositionChange = mainDividerCallback,
-                    )
-
-                    // Calculate column size based on container size and divider position
-                    val columnWidth = (containerSize.width * (1f - dividerPositions.tripleMain)).toInt()
-                    val columnSize = IntSize(columnWidth, containerSize.height)
-                    
-                    Column(
-                        modifier = Modifier
-                            .weight(1f - dividerPositions.tripleMain)
-                            .fillMaxHeight()
-                    ) {
-                        val ws2 = selected.getOrNull(1)
-                        WorkspacePaneWrapper(
-                            modifier = Modifier
-                                .weight(dividerPositions.tripleSecondary)
-                                .fillMaxHeight(),
-                            isFocused = focusedTabId == ws2?.id,
-                            showFocusBorder = showFocusBorder,
-                            onFocus = { ws2?.let { onTabFocus(it.id) } },
-                            paneNumber = if (showPaneNumbers) 2 else null,
-                        ) {
-                            paneContent(ws2)
-                        }
-
-                        val secondaryDividerCallback = { newPos: Float ->
-                            val current = getCurrentDividerPositions()
-                            val newPositions = DividerPositions(
-                                dualVertical = current.dualVertical,
-                                dualHorizontal = current.dualHorizontal,
-                                tripleMain = current.tripleMain,
-                                tripleSecondary = newPos,
-                            )
-                            onDividerPositionsChange(newPositions)
-                        }
-                        
-                        ResizingDivider(
-                            modifier = Modifier.fillMaxWidth(),
-                            isVertical = false,
-                            position = dividerPositions.tripleSecondary,
-                            containerSize = columnSize,
-                            onPositionChange = secondaryDividerCallback,
-                        )
-
-                        val ws3 = selected.getOrNull(2)
-                        WorkspacePaneWrapper(
-                            modifier = Modifier
-                                .weight(1f - dividerPositions.tripleSecondary)
-                                .fillMaxHeight(),
-                            isFocused = focusedTabId == ws3?.id,
-                            showFocusBorder = showFocusBorder,
-                            onFocus = { ws3?.let { onTabFocus(it.id) } },
-                            paneNumber = if (showPaneNumbers) 3 else null,
-                        ) {
-                            paneContent(ws3)
-                        }
-                    }
-                }
+                TripleMainLeftLayout(
+                    selected = selected,
+                    focusedTabId = focusedTabId,
+                    dividerPositions = dividerPositions,
+                    containerSize = containerSize,
+                    showPaneNumbers = showPaneNumbers,
+                    onTabFocus = onTabFocus,
+                    createDividerCallback = dividerCallbackFactory,
+                    paneContent = paneContent,
+                )
             }
         }
     }
