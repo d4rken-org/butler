@@ -13,11 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import eu.darken.butler.templates.ui.WorkspaceTab
+import eu.darken.butler.workspace.core.Workspace
 
 @Composable
 internal fun WorkspacePaneWrapper(
     modifier: Modifier = Modifier.Companion,
-    tab: WorkspaceTab,
     isFocused: Boolean,
     showFocusBorder: Boolean,
     onFocus: () -> Unit,

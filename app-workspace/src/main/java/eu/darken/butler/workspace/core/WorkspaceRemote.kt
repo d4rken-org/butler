@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.core
 
+import eu.darken.butler.workspace.ui.WorkspacePanelMode
 import kotlinx.coroutines.flow.Flow
 
 interface WorkspaceRemote {
@@ -7,18 +8,19 @@ interface WorkspaceRemote {
     val state: Flow<State>
 
     data class State(
-        val workspaceInfos: List<Workspace.Info> = emptyList(),
-        val selectedWorkspaceId: Workspace.Id? = null,
-        val selectedWorkspaceIds: List<Workspace.Id> = emptyList(),
-        val focusedWorkspaceId: Workspace.Id? = null,
+        val infos: List<Workspace.Info> = emptyList(),
+        val focusedWorkspace: Workspace.Id? = null,
+        val selectedWorkspaces: List<Workspace.Id> = emptyList(),
         val isButtonActionsFlipped: Boolean = false,
+        val panelMode: WorkspacePanelMode = WorkspacePanelMode.AUTO,
     ) {
         val workspaceCount: Int
-            get() = workspaceInfos.size
+            get() = infos.size
         val operationCount: Int
-            get() = workspaceInfos.sumOf { it.operationCount }
+            get() = infos.sumOf { it.operationCount }
         val attentionCount: Int
-            get() = workspaceInfos.sumOf { it.attentionCount }
+            get() = infos.sumOf { it.attentionCount }
+
     }
 
     suspend fun execute(action: WorkspaceAction)

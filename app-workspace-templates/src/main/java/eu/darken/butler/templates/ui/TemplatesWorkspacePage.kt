@@ -69,13 +69,16 @@ import eu.darken.butler.searcher.ui.search.SearcherWorkspaceTemplate
 import eu.darken.butler.templates.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.ui.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
+import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
 
 @Composable
 fun TemplatesWorkspacePageHost(
     id: Workspace.Id,
+    design: WorkspaceDesign,
     vm: TemplatesWorkspaceViewModel = hiltViewModel(
         key = id.longTag,
         creationCallback = { factory: TemplatesWorkspaceViewModel.Factory -> factory.create(id = id) }
@@ -91,6 +94,7 @@ fun TemplatesWorkspacePageHost(
 
     state?.let { state ->
         TemplatesWorkspacePage(
+            design = design,
             state = state,
             onNavToSettings = { vm.navTo(Nav.Main.settings()) },
             workspaceButtonState = workspaceButtonState,
@@ -102,6 +106,7 @@ fun TemplatesWorkspacePageHost(
 
 @Composable
 fun TemplatesWorkspacePage(
+    design: WorkspaceDesign = WorkspaceDesign(),
     state: TemplatesWorkspaceViewModel.State,
     onNavToSettings: () -> Unit,
     workspaceButtonState: WorkspaceButtonViewModel.State?,
@@ -112,8 +117,7 @@ fun TemplatesWorkspacePage(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Compact tab pills row
-            if (state.workspaceTabs.isNotEmpty()) {
+            if (state.workspaceTabs.isNotEmpty() && design.isSingle) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -380,11 +384,13 @@ private fun CompactTabPillsRow(
                         // Show all tabs
                         TabLayout(tabs, tabs.map { defaultWidth }, 0)
                     }
+
                     maxTabsWithOverflow >= 1 -> {
                         // Show some tabs with overflow
                         val visibleTabs = tabs.take(maxTabsWithOverflow)
                         TabLayout(visibleTabs, visibleTabs.map { defaultWidth }, tabs.size - visibleTabs.size)
                     }
+
                     else -> {
                         // Show at least one tab
                         TabLayout(tabs.take(1), listOf(defaultWidth), tabs.size - 1)
@@ -589,6 +595,7 @@ private fun TemplatesWorkspacePagePreview() {
                 ),
                 selectedTabId = workspaceId,
                 isUpgraded = true,
+                panelMode = WorkspacePanelMode.AUTO,
             ),
             onNavToSettings = {},
             workspaceButtonState = null,

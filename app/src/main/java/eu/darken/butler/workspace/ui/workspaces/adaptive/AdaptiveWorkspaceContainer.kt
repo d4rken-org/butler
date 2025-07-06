@@ -27,16 +27,11 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.templates.ui.WorkspaceTab
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import kotlinx.parcelize.Parcelize
 
 private val TAG = logTag("Workspace", "Container", "Adaptive")
 
-enum class PaneLayout {
-    SINGLE,
-    DUAL_VERTICAL,
-    DUAL_HORIZONTAL,
-    TRIPLE_MAIN_LEFT,
-}
 
 @Parcelize
 data class DividerPositions(
@@ -49,19 +44,19 @@ data class DividerPositions(
 @Composable
 fun AdaptiveWorkspaceContainer(
     modifier: Modifier = Modifier,
-    selectedTabs: List<WorkspaceTab>,
+    design: WorkspaceDesign = WorkspaceDesign(),
+    selected: List<Workspace.Info>,
     focusedTabId: Workspace.Id?,
-    paneLayout: PaneLayout,
     dividerPositions: DividerPositions,
     onDividerPositionsChange: (DividerPositions) -> Unit,
     onTabFocus: (Workspace.Id) -> Unit,
     showPaneNumbers: Boolean = false,
-    tabContent: @Composable (WorkspaceTab) -> Unit,
+    paneContent: @Composable (Workspace.Info?) -> Unit,
 ) {
     val componentId = remember { System.currentTimeMillis() }
-    log(TAG) { "AdaptiveWorkspaceContainer($componentId) recomposing - layout: $paneLayout, dividerPositions: $dividerPositions" }
+    log(TAG) { "AdaptiveWorkspaceContainer($componentId) recomposing - design: $design, dividerPositions: $dividerPositions" }
 
-    val showFocusBorder = selectedTabs.size > 1
+    val showFocusBorder = selected.size > 1
     var containerSize by remember { mutableStateOf(IntSize.Zero) }
 
     Box(
@@ -71,37 +66,33 @@ fun AdaptiveWorkspaceContainer(
                 containerSize = coordinates.size
             }
     ) {
-        when (paneLayout) {
-            PaneLayout.SINGLE -> {
-                selectedTabs.firstOrNull()?.let { tab ->
-                    WorkspacePaneWrapper(
-                        modifier = Modifier.fillMaxSize(),
-                        tab = tab,
-                        isFocused = focusedTabId == tab.id,
-                        showFocusBorder = false, // Single pane doesn't need focus border
-                        onFocus = { onTabFocus(tab.id) },
-                        paneNumber = if (showPaneNumbers) 1 else null,
-                    ) {
-                        tabContent(tab)
-                    }
+        when (design.layout) {
+            WorkspaceDesign.Layout.SINGLE -> {
+                val ws1 = selected.getOrNull(0)
+                WorkspacePaneWrapper(
+                    modifier = Modifier.fillMaxSize(),
+                    isFocused = focusedTabId == ws1?.id,
+                    showFocusBorder = false, // Single pane doesn't need focus border
+                    onFocus = { ws1?.let { onTabFocus(it.id) } },
+                    paneNumber = if (showPaneNumbers) 1 else null,
+                ) {
+                    paneContent(ws1)
                 }
             }
 
-            PaneLayout.DUAL_VERTICAL -> {
+            WorkspaceDesign.Layout.DUAL_VERTICAL -> {
                 Row(modifier = Modifier.fillMaxSize()) {
-                    selectedTabs.getOrNull(0)?.let { tab ->
-                        WorkspacePaneWrapper(
-                            modifier = Modifier
-                                .weight(dividerPositions.dualVertical)
-                                .fillMaxHeight(),
-                            tab = tab,
-                            isFocused = focusedTabId == tab.id,
-                            showFocusBorder = showFocusBorder,
-                            onFocus = { onTabFocus(tab.id) },
-                            paneNumber = if (showPaneNumbers) 1 else null,
-                        ) {
-                            tabContent(tab)
-                        }
+                    val ws1 = selected.getOrNull(0)
+                    WorkspacePaneWrapper(
+                        modifier = Modifier
+                            .weight(dividerPositions.dualVertical)
+                            .fillMaxHeight(),
+                        isFocused = focusedTabId == ws1?.id,
+                        showFocusBorder = showFocusBorder,
+                        onFocus = { ws1?.let { onTabFocus(it.id) } },
+                        paneNumber = if (showPaneNumbers) 1 else null,
+                    ) {
+                        paneContent(ws1)
                     }
 
                     ResizingDivider(
@@ -115,38 +106,34 @@ fun AdaptiveWorkspaceContainer(
                         },
                     )
 
-                    selectedTabs.getOrNull(1)?.let { tab ->
-                        WorkspacePaneWrapper(
-                            modifier = Modifier
-                                .weight(1f - dividerPositions.dualVertical)
-                                .fillMaxHeight(),
-                            tab = tab,
-                            isFocused = focusedTabId == tab.id,
-                            showFocusBorder = showFocusBorder,
-                            onFocus = { onTabFocus(tab.id) },
-                            paneNumber = if (showPaneNumbers) 2 else null,
-                        ) {
-                            tabContent(tab)
-                        }
+                    val ws2 = selected.getOrNull(1)
+                    WorkspacePaneWrapper(
+                        modifier = Modifier
+                            .weight(1f - dividerPositions.dualVertical)
+                            .fillMaxHeight(),
+                        isFocused = focusedTabId == ws2?.id,
+                        showFocusBorder = showFocusBorder,
+                        onFocus = { ws2?.let { onTabFocus(it.id) } },
+                        paneNumber = if (showPaneNumbers) 2 else null,
+                    ) {
+                        paneContent(ws2)
                     }
                 }
             }
 
-            PaneLayout.DUAL_HORIZONTAL -> {
+            WorkspaceDesign.Layout.DUAL_HORIZONTAL -> {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    selectedTabs.getOrNull(0)?.let { tab ->
-                        WorkspacePaneWrapper(
-                            modifier = Modifier
-                                .weight(dividerPositions.dualHorizontal)
-                                .fillMaxWidth(),
-                            tab = tab,
-                            isFocused = focusedTabId == tab.id,
-                            showFocusBorder = showFocusBorder,
-                            onFocus = { onTabFocus(tab.id) },
-                            paneNumber = if (showPaneNumbers) 1 else null,
-                        ) {
-                            tabContent(tab)
-                        }
+                    val ws1 = selected.getOrNull(0)
+                    WorkspacePaneWrapper(
+                        modifier = Modifier
+                            .weight(dividerPositions.dualHorizontal)
+                            .fillMaxHeight(),
+                        isFocused = focusedTabId == ws1?.id,
+                        showFocusBorder = showFocusBorder,
+                        onFocus = { ws1?.let { onTabFocus(it.id) } },
+                        paneNumber = if (showPaneNumbers) 1 else null,
+                    ) {
+                        paneContent(ws1)
                     }
 
                     ResizingDivider(
@@ -160,38 +147,34 @@ fun AdaptiveWorkspaceContainer(
                         },
                     )
 
-                    selectedTabs.getOrNull(1)?.let { tab ->
-                        WorkspacePaneWrapper(
-                            modifier = Modifier
-                                .weight(1f - dividerPositions.dualHorizontal)
-                                .fillMaxWidth(),
-                            tab = tab,
-                            isFocused = focusedTabId == tab.id,
-                            showFocusBorder = showFocusBorder,
-                            onFocus = { onTabFocus(tab.id) },
-                            paneNumber = if (showPaneNumbers) 2 else null,
-                        ) {
-                            tabContent(tab)
-                        }
+                    val ws2 = selected.getOrNull(1)
+                    WorkspacePaneWrapper(
+                        modifier = Modifier
+                            .weight(1f - dividerPositions.dualHorizontal)
+                            .fillMaxHeight(),
+                        isFocused = focusedTabId == ws2?.id,
+                        showFocusBorder = showFocusBorder,
+                        onFocus = { ws2?.let { onTabFocus(it.id) } },
+                        paneNumber = if (showPaneNumbers) 2 else null,
+                    ) {
+                        paneContent(ws2)
                     }
                 }
             }
 
-            PaneLayout.TRIPLE_MAIN_LEFT -> {
+            WorkspaceDesign.Layout.TRIPLE_MAIN_LEFT -> {
                 Row(modifier = Modifier.fillMaxSize()) {
-                    selectedTabs.getOrNull(0)?.let { tab ->
-                        WorkspacePaneWrapper(
-                            modifier = Modifier
-                                .weight(dividerPositions.tripleMain)
-                                .fillMaxHeight(),
-                            tab = tab,
-                            isFocused = focusedTabId == tab.id,
-                            showFocusBorder = showFocusBorder,
-                            onFocus = { onTabFocus(tab.id) },
-                            paneNumber = if (showPaneNumbers) 1 else null,
-                        ) {
-                            tabContent(tab)
-                        }
+                    val ws1 = selected.getOrNull(0)
+                    WorkspacePaneWrapper(
+                        modifier = Modifier
+                            .weight(dividerPositions.tripleMain)
+                            .fillMaxHeight(),
+                        isFocused = focusedTabId == ws1?.id,
+                        showFocusBorder = showFocusBorder,
+                        onFocus = { ws1?.let { onTabFocus(it.id) } },
+                        paneNumber = if (showPaneNumbers) 1 else null,
+                    ) {
+                        paneContent(ws1)
                     }
 
                     ResizingDivider(
@@ -205,50 +188,50 @@ fun AdaptiveWorkspaceContainer(
                         },
                     )
 
+                    var columnSize by remember { mutableStateOf(IntSize.Zero) }
                     Column(
                         modifier = Modifier
                             .weight(1f - dividerPositions.tripleMain)
                             .fillMaxHeight()
-                    ) {
-                        selectedTabs.getOrNull(1)?.let { tab ->
-                            WorkspacePaneWrapper(
-                                modifier = Modifier
-                                    .weight(dividerPositions.tripleSecondary)
-                                    .fillMaxWidth(),
-                                tab = tab,
-                                isFocused = focusedTabId == tab.id,
-                                showFocusBorder = showFocusBorder,
-                                onFocus = { onTabFocus(tab.id) },
-                                paneNumber = if (showPaneNumbers) 2 else null,
-                            ) {
-                                tabContent(tab)
+                            .onGloballyPositioned { coordinates ->
+                                columnSize = coordinates.size
                             }
+                    ) {
+                        val ws2 = selected.getOrNull(1)
+                        WorkspacePaneWrapper(
+                            modifier = Modifier
+                                .weight(dividerPositions.tripleSecondary)
+                                .fillMaxHeight(),
+                            isFocused = focusedTabId == ws2?.id,
+                            showFocusBorder = showFocusBorder,
+                            onFocus = { ws2?.let { onTabFocus(it.id) } },
+                            paneNumber = if (showPaneNumbers) 2 else null,
+                        ) {
+                            paneContent(ws2)
                         }
 
                         ResizingDivider(
                             modifier = Modifier.fillMaxWidth(),
                             isVertical = false,
                             position = dividerPositions.tripleSecondary,
-                            containerSize = containerSize,
+                            containerSize = columnSize,
                             onPositionChange = { newPos ->
                                 log(TAG) { "TRIPLE_SECONDARY divider onPositionChange - current: ${dividerPositions.tripleSecondary}, new: $newPos" }
                                 onDividerPositionsChange(dividerPositions.copy(tripleSecondary = newPos))
                             },
                         )
 
-                        selectedTabs.getOrNull(2)?.let { tab ->
-                            WorkspacePaneWrapper(
-                                modifier = Modifier
-                                    .weight(1f - dividerPositions.tripleSecondary)
-                                    .fillMaxWidth(),
-                                tab = tab,
-                                isFocused = focusedTabId == tab.id,
-                                showFocusBorder = showFocusBorder,
-                                onFocus = { onTabFocus(tab.id) },
-                                paneNumber = if (showPaneNumbers) 3 else null,
-                            ) {
-                                tabContent(tab)
-                            }
+                        val ws3 = selected.getOrNull(2)
+                        WorkspacePaneWrapper(
+                            modifier = Modifier
+                                .weight(1f - dividerPositions.tripleSecondary)
+                                .fillMaxHeight(),
+                            isFocused = focusedTabId == ws3?.id,
+                            showFocusBorder = showFocusBorder,
+                            onFocus = { ws3?.let { onTabFocus(it.id) } },
+                            paneNumber = if (showPaneNumbers) 3 else null,
+                        ) {
+                            paneContent(ws3)
                         }
                     }
                 }
@@ -257,23 +240,22 @@ fun AdaptiveWorkspaceContainer(
     }
 }
 
-
 @Preview2
 @Composable
 private fun AdaptiveWorkspaceContainerPreview() {
     PreviewWrapper {
         val tabs = listOf(
-            WorkspaceTab(
+            Workspace.Info(
                 id = Workspace.Id(),
                 type = Workspace.Type.EXPLORER,
                 title = "Explorer".toCaString(),
             ),
-            WorkspaceTab(
+            Workspace.Info(
                 id = Workspace.Id(),
                 type = Workspace.Type.SEARCHER,
                 title = "Search".toCaString(),
             ),
-            WorkspaceTab(
+            Workspace.Info(
                 id = Workspace.Id(),
                 type = Workspace.Type.EDITOR,
                 title = "Editor".toCaString(),
@@ -281,21 +263,23 @@ private fun AdaptiveWorkspaceContainerPreview() {
         )
         var dividerPositions by remember { mutableStateOf(DividerPositions()) }
         AdaptiveWorkspaceContainer(
-            selectedTabs = tabs.take(2),
+            selected = tabs.take(2),
+            design = WorkspaceDesign(
+                layout = WorkspaceDesign.Layout.DUAL_VERTICAL,
+            ),
             focusedTabId = tabs[0].id,
-            paneLayout = PaneLayout.DUAL_VERTICAL,
             dividerPositions = dividerPositions,
             onDividerPositionsChange = { dividerPositions = it },
             onTabFocus = {},
             showPaneNumbers = true,
-            tabContent = { tab ->
+            paneContent = { tab ->
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.surface),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(tab.title.get(LocalContext.current))
+                    Text(tab!!.title.get(LocalContext.current))
                 }
             }
         )

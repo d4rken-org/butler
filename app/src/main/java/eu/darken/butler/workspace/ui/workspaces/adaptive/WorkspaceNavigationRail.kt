@@ -1,13 +1,11 @@
 package eu.darken.butler.workspace.ui.workspaces.adaptive
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,7 +15,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Search
@@ -38,41 +35,33 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.templates.ui.WorkspaceTab
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.ui.manager.WorkspaceButton
+import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
+import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
-enum class PaneMode {
-    AUTO,
-    SINGLE,
-    DUAL,
-    TRIPLE
-}
 
 @Composable
 fun WorkspaceNavigationRail(
     modifier: Modifier = Modifier,
-    tabs: List<WorkspaceTab>,
-    selectedIds: List<Workspace.Id>,
+    workspaceButtonState: WorkspaceButtonViewModel.State?,
+    onWorkspaceAction: (WorkspaceAction) -> Unit,
+    onNavToWorkspaceManager: () -> Unit,
+    workspaces: List<Workspace.Info>,
+    selected: List<Workspace.Info>,
     focusedId: Workspace.Id?,
-    paneMode: PaneMode,
-    onPaneModeChange: (PaneMode) -> Unit,
+    design: WorkspaceDesign = WorkspaceDesign(),
     onTabAction: (WorkspaceAction) -> Unit,
     onPaneAssignment: (workspaceId: Workspace.Id, paneIndex: Int) -> Unit,
     showPaneNumbers: Boolean = false,
 ) {
-    val maxPanes = when (paneMode) {
-        PaneMode.AUTO -> 3 // Show all options in auto mode
-        PaneMode.SINGLE -> 1
-        PaneMode.DUAL -> 2
-        PaneMode.TRIPLE -> 3
-    }
+
     Surface(
         modifier = modifier
             .fillMaxHeight()
@@ -86,12 +75,13 @@ fun WorkspaceNavigationRail(
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            PaneModeSelector(
-                paneMode = paneMode,
-                onPaneModeChange = onPaneModeChange,
+            WorkspaceButton(
+                state = workspaceButtonState,
+                onAction = onWorkspaceAction,
+                onNavToWorkspaceManager = onNavToWorkspaceManager,
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             HorizontalDivider()
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -101,17 +91,17 @@ fun WorkspaceNavigationRail(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                tabs.forEach { tab ->
-                    val paneIndex = selectedIds.indexOf(tab.id)
+                workspaces.forEach { ws ->
+                    val paneIndex = selected.indexOfFirst { it.id == ws.id }
                     WorkspaceRailItem(
-                        tab = tab,
-                        isSelected = selectedIds.contains(tab.id),
-                        isFocused = focusedId == tab.id,
+                        workspace = ws,
+                        isSelected = selected.map { it.id }.contains(ws.id),
+                        isFocused = focusedId == ws.id,
                         currentPaneIndex = if (paneIndex >= 0) paneIndex else null,
                         onTabAction = onTabAction,
                         onPaneAssignment = onPaneAssignment,
                         showPaneNumbers = showPaneNumbers,
-                        maxPanes = maxPanes,
+                        maxPanes = design.maxPanes,
                     )
                 }
             }
@@ -130,60 +120,8 @@ fun WorkspaceNavigationRail(
 }
 
 @Composable
-private fun PaneModeSelector(
-    paneMode: PaneMode,
-    onPaneModeChange: (PaneMode) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Box {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(MaterialTheme.shapes.small)
-                .clickable { expanded = true },
-            tonalElevation = 2.dp,
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 8.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = paneMode.name,
-                    style = MaterialTheme.typography.labelMedium,
-                )
-                Icon(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .align(Alignment.CenterEnd),
-                    imageVector = Icons.Default.ArrowDropDown,
-                    contentDescription = null,
-                )
-            }
-        }
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            PaneMode.values().forEach { mode ->
-                DropdownMenuItem(
-                    text = { Text(mode.name) },
-                    onClick = {
-                        onPaneModeChange(mode)
-                        expanded = false
-                    },
-                )
-            }
-        }
-    }
-}
-
-@Composable
 private fun WorkspaceRailItem(
-    tab: WorkspaceTab,
+    workspace: Workspace.Info,
     isSelected: Boolean,
     isFocused: Boolean,
     currentPaneIndex: Int?,
@@ -200,18 +138,18 @@ private fun WorkspaceRailItem(
             onClick = { showPaneMenu = true },
             icon = {
                 Icon(
-                    imageVector = when (tab.type) {
+                    imageVector = when (workspace.type) {
                         Workspace.Type.TEMPLATES -> Icons.TwoTone.Workspaces
                         Workspace.Type.EXPLORER -> Icons.TwoTone.Folder
                         Workspace.Type.SEARCHER -> Icons.TwoTone.Search
                         Workspace.Type.EDITOR -> Icons.TwoTone.Edit
                     },
-                    contentDescription = tab.title.get(LocalContext.current),
+                    contentDescription = workspace.title.get(LocalContext.current),
                 )
             },
             label = {
                 Text(
-                    text = tab.title.get(LocalContext.current),
+                    text = workspace.title.get(LocalContext.current),
                     style = MaterialTheme.typography.labelSmall,
                     maxLines = 1,
                 )
@@ -229,7 +167,7 @@ private fun WorkspaceRailItem(
                     ),
             )
         }
-        
+
         // Show pane number indicator
         currentPaneIndex?.let { paneIdx ->
             Surface(
@@ -256,7 +194,7 @@ private fun WorkspaceRailItem(
                 DropdownMenuItem(
                     text = { Text("Pane ${paneIndex + 1}") },
                     onClick = {
-                        onPaneAssignment(tab.id, paneIndex)
+                        onPaneAssignment(workspace.id, paneIndex)
                         showPaneMenu = false
                     },
                 )
@@ -265,7 +203,7 @@ private fun WorkspaceRailItem(
             DropdownMenuItem(
                 text = { Text("Close") },
                 onClick = {
-                    onTabAction(WorkspaceAction.Close(tab.id))
+                    onTabAction(WorkspaceAction.Close(workspace.id))
                     showPaneMenu = false
                 },
             )
@@ -294,28 +232,29 @@ private fun AddWorkspaceButton(
 private fun WorkspaceNavigationRailPreview() {
     PreviewWrapper {
         val tabs = listOf(
-            WorkspaceTab(
+            Workspace.Info(
                 id = Workspace.Id(),
                 type = Workspace.Type.EXPLORER,
                 title = "Explorer".toCaString(),
             ),
-            WorkspaceTab(
+            Workspace.Info(
                 id = Workspace.Id(),
                 type = Workspace.Type.SEARCHER,
                 title = "Search".toCaString(),
             ),
-            WorkspaceTab(
+            Workspace.Info(
                 id = Workspace.Id(),
                 type = Workspace.Type.EDITOR,
                 title = "Editor".toCaString(),
             ),
         )
         WorkspaceNavigationRail(
-            tabs = tabs,
-            selectedIds = listOf(tabs[0].id, tabs[1].id),
+            workspaceButtonState = null,
+            onWorkspaceAction = {},
+            onNavToWorkspaceManager = {},
+            workspaces = tabs,
+            selected = listOf(tabs[0], tabs[1]),
             focusedId = tabs[0].id,
-            paneMode = PaneMode.DUAL,
-            onPaneModeChange = {},
             onTabAction = {},
             onPaneAssignment = { _, _ -> },
         )

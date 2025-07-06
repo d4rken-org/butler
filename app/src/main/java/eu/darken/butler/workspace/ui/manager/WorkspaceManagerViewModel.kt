@@ -32,7 +32,7 @@ class WorkspaceManagerViewModel @Inject constructor(
         workspaceSettings.showButtonBehaviorExplanation.flow,
     ) { repoState, isFlipped, showBadge, showBehavior ->
         State(
-            workspaces = repoState.workspaceInfos.map { info ->
+            workspaces = repoState.infos.map { info ->
                 WorkspaceItem(
                     id = info.id,
                     type = info.type,

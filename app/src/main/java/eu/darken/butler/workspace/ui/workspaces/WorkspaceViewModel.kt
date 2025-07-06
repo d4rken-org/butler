@@ -2,27 +2,20 @@ package eu.darken.butler.workspace.ui.workspaces
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.templates.ui.WorkspaceTab
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
-import kotlinx.coroutines.flow.MutableStateFlow
+import eu.darken.butler.workspace.ui.WorkspacePanelMode
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.sync.Mutex
 import javax.inject.Inject
 
 
@@ -33,62 +26,22 @@ class WorkspaceViewModel @Inject constructor(
     upgradeRepo: UpgradeRepo,
     private val workspaceRepo: WorkspaceRepo,
     val workspaceSettings: WorkspaceSettings,
-) : ViewModel4(dispatchers, logTag("Workspace", "Screen","VM"), navCtrl) {
-
-    private val currentTabs = workspaceRepo.state
-        .map { state ->
-            state.workspaceInfos.map {
-                WorkspaceTab(
-                    id = it.id,
-                    type = it.type,
-                    title = it.title,
-                )
-            }
-        }
-        .onEach { tabs ->
-            tabs.forEachIndexed { index, tab -> log(tag, VERBOSE) { "TAB#$index: $tab" } }
-        }
-        .replayingShare(vmScope)
-    private val selectedTabId = MutableStateFlow<Workspace.Id?>(null)
+) : ViewModel4(dispatchers, logTag("Workspace", "Screen", "VM"), navCtrl) {
 
     val state = combine(
-        currentTabs,
-        selectedTabId,
         workspaceRepo.state,
         upgradeRepo.upgradeInfo,
         workspaceSettings.isButtonActionsFlipped.flow,
         workspaceSettings.swipeGesturesEnabled.flow,
-    ) { values ->
-        val tabs = values[0] as List<WorkspaceTab>
-        val selectedTabId = values[1] as Workspace.Id?
-        val repoState = values[2] as WorkspaceRemote.State
-        val upgradeInfo = values[3] as UpgradeRepo.Info
-        val isButtonActionsFlipped = values[4] as Boolean
-        val swipeGesturesEnabled = values[5] as Boolean
-        
+    ) { repoState, upgradeInfo, isButtonFlipped, swipeGesturesEnabled ->
+
         State(
-            tabs = tabs,
-            selected = selectedTabId,
-            selectedIds = repoState.selectedWorkspaceIds,
-            focusedId = repoState.focusedWorkspaceId,
+            state = repoState,
             isUpgraded = upgradeInfo.isUpgraded,
-            isButtonActionsFlipped = isButtonActionsFlipped,
+            isButtonActionsFlipped = isButtonFlipped,
             swipeGesturesEnabled = swipeGesturesEnabled,
         )
     }.asStateFlow()
-
-    init {
-        // Observe workspace selection from WorkspaceManagerViewModel
-        workspaceRepo.state
-            .map { it.selectedWorkspaceId }
-            .onEach { workspaceId ->
-                if (workspaceId != selectedTabId.value) {
-                    log(tag) { "External workspace selection: $workspaceId" }
-                    selectedTabId.value = workspaceId
-                }
-            }
-            .launchIn(vmScope)
-    }
 
     fun modifyTab(
         action: WorkspaceAction,
@@ -104,18 +57,24 @@ class WorkspaceViewModel @Inject constructor(
     }
 
     data class State(
-        val tabs: List<WorkspaceTab>,
-        val selected: Workspace.Id?,
-        val selectedIds: List<Workspace.Id>,
-        val focusedId: Workspace.Id?,
+        private val state: WorkspaceRemote.State,
         val isUpgraded: Boolean,
         val isButtonActionsFlipped: Boolean = false,
         val swipeGesturesEnabled: Boolean = true,
     ) {
-        val current: WorkspaceTab?
-            get() = tabs.firstOrNull { it.id == selected }
+        val displayMode: WorkspacePanelMode
+            get() = state.panelMode
 
-        val selectedTabs: List<WorkspaceTab>
-            get() = selectedIds.mapNotNull { id -> tabs.firstOrNull { tab -> tab.id == id } }
+        val focused: Workspace.Id?
+            get() = state.focusedWorkspace
+
+        val current: Workspace.Info?
+            get() = state.infos.firstOrNull { it.id == focused }
+
+        val selected: List<Workspace.Info>
+            get() = state.infos.filter { state.selectedWorkspaces.contains(it.id) }
+
+        val all: List<Workspace.Info>
+            get() = state.infos
     }
 }

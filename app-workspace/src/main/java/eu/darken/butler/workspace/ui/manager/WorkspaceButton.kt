@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.ui.WorkspacePanelMode
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -172,7 +173,7 @@ private fun WorkspaceButtonPreview() {
                     workspaceCount = 0,
                     isButtonFlipped = false,
                     operationsCount = 0,
-                    attentionCount = 0
+                    attentionCount = 0,
                 ),
                 onAction = {},
                 onNavToWorkspaceManager = {}
@@ -184,7 +185,7 @@ private fun WorkspaceButtonPreview() {
                     workspaceCount = 1,
                     isButtonFlipped = false,
                     operationsCount = 0,
-                    attentionCount = 0
+                    attentionCount = 0,
                 ),
                 onAction = {},
                 onNavToWorkspaceManager = {}
@@ -196,7 +197,7 @@ private fun WorkspaceButtonPreview() {
                     workspaceCount = 3,
                     isButtonFlipped = false,
                     operationsCount = 2,
-                    attentionCount = 0
+                    attentionCount = 0,
                 ),
                 onAction = {},
                 onNavToWorkspaceManager = {}
@@ -208,7 +209,7 @@ private fun WorkspaceButtonPreview() {
                     workspaceCount = 5,
                     isButtonFlipped = false,
                     operationsCount = 7,
-                    attentionCount = 1
+                    attentionCount = 1,
                 ),
                 onAction = {},
                 onNavToWorkspaceManager = {}
@@ -220,7 +221,7 @@ private fun WorkspaceButtonPreview() {
                     workspaceCount = 12,
                     isButtonFlipped = true,
                     operationsCount = 15,
-                    attentionCount = 10
+                    attentionCount = 10,
                 ),
                 onAction = {},
                 onNavToWorkspaceManager = {}

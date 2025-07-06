@@ -4,7 +4,6 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,18 +12,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -54,19 +52,21 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.ui.waitForState
-import eu.darken.butler.editor.core.MemoryStats
 import eu.darken.butler.editor.R
+import eu.darken.butler.editor.core.MemoryStats
 import eu.darken.butler.editor.core.SearchResult
 import eu.darken.butler.editor.core.TextPosition
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
+import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
 
 @Composable
 fun EditorWorkspacePageHost(
     id: Workspace.Id,
+    design: WorkspaceDesign,
     vm: EditorWorkspaceViewModel = hiltViewModel(
         key = id.longTag,
         creationCallback = { factory: EditorWorkspaceViewModel.Factory ->
@@ -87,6 +87,7 @@ fun EditorWorkspacePageHost(
             workspaceButtonState = workspaceButtonState,
             onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
             onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
+            design = design,
             state = state,
             onOpenFile = vm::openFile,
             onSaveFile = vm::saveFile,
@@ -118,6 +119,7 @@ fun EditorWorkspacePage(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
+    design: WorkspaceDesign,
     state: EditorWorkspaceViewModel.State,
     onOpenFile: (APath) -> Unit,
     onSaveFile: () -> Unit,
@@ -158,24 +160,25 @@ fun EditorWorkspacePage(
     ) {
         // Header that draws under status bar
         EditorHeader(
-                fileName = state.fileName,
-                isModified = state.isModified,
-                hasFile = state.hasFile || state.currentContent.isNotEmpty(),
-                isLoading = state.isLoading,
-                onOpenFile = { filePickerLauncher.launch(arrayOf("*/*")) },
-                onSaveFile = onSaveFile,
-                onCloseFile = onCloseFile,
-                onUndo = onUndo,
-                onRedo = onRedo,
-                canUndo = state.isModified,
-                canRedo = false,
-                onSearch = { showSearchDialog = true },
-                onGoToLine = { showGoToLineDialog = true },
-                onToggleMemoryStats = { showMemoryStats = !showMemoryStats },
-                workspaceButtonState = workspaceButtonState,
-                onWorkspaceAction = onWorkspaceAction,
-                onNavToWorkspaceManager = onNavToWorkspaceManager
-            )
+            design = design,
+            fileName = state.fileName,
+            isModified = state.isModified,
+            hasFile = state.hasFile || state.currentContent.isNotEmpty(),
+            isLoading = state.isLoading,
+            onOpenFile = { filePickerLauncher.launch(arrayOf("*/*")) },
+            onSaveFile = onSaveFile,
+            onCloseFile = onCloseFile,
+            onUndo = onUndo,
+            onRedo = onRedo,
+            canUndo = state.isModified,
+            canRedo = false,
+            onSearch = { showSearchDialog = true },
+            onGoToLine = { showGoToLineDialog = true },
+            onToggleMemoryStats = { showMemoryStats = !showMemoryStats },
+            workspaceButtonState = workspaceButtonState,
+            onWorkspaceAction = onWorkspaceAction,
+            onNavToWorkspaceManager = onNavToWorkspaceManager
+        )
 
         Column(
             modifier = Modifier.weight(1f)
@@ -253,6 +256,7 @@ fun EditorWorkspacePage(
 
 @Composable
 private fun EditorHeader(
+    design: WorkspaceDesign,
     fileName: String,
     isModified: Boolean,
     hasFile: Boolean,
@@ -300,14 +304,16 @@ private fun EditorHeader(
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
-                
-                Spacer(modifier = Modifier.width(8.dp))
-                
-                WorkspaceButton(
-                    state = workspaceButtonState,
-                    onAction = onWorkspaceAction,
-                    onNavToWorkspaceManager = onNavToWorkspaceManager,
-                )
+
+                if (design.isSingle) {
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    WorkspaceButton(
+                        state = workspaceButtonState,
+                        onAction = onWorkspaceAction,
+                        onNavToWorkspaceManager = onNavToWorkspaceManager,
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -347,14 +353,20 @@ private fun EditorHeader(
                         onClick = onUndo,
                         enabled = canUndo
                     ) {
-                        Icon(Icons.Default.KeyboardArrowUp, contentDescription = stringResource(R.string.editor_action_undo))
+                        Icon(
+                            Icons.Default.KeyboardArrowUp,
+                            contentDescription = stringResource(R.string.editor_action_undo)
+                        )
                     }
 
                     IconButton(
                         onClick = onRedo,
                         enabled = canRedo
                     ) {
-                        Icon(Icons.Default.KeyboardArrowDown, contentDescription = stringResource(R.string.editor_action_redo))
+                        Icon(
+                            Icons.Default.KeyboardArrowDown,
+                            contentDescription = stringResource(R.string.editor_action_redo)
+                        )
                     }
 
                     IconButton(onClick = onSearch) {
@@ -362,7 +374,10 @@ private fun EditorHeader(
                     }
 
                     IconButton(onClick = onGoToLine) {
-                        Icon(Icons.Default.FormatListNumbered, contentDescription = stringResource(R.string.editor_action_go_to_line))
+                        Icon(
+                            Icons.Default.FormatListNumbered,
+                            contentDescription = stringResource(R.string.editor_action_go_to_line)
+                        )
                     }
                 }
 
@@ -393,7 +408,11 @@ private fun EditorStatusBar(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = stringResource(R.string.editor_status_line_format, cursorPosition.line + 1, cursorPosition.column + 1),
+                text = stringResource(
+                    R.string.editor_status_line_format,
+                    cursorPosition.line + 1,
+                    cursorPosition.column + 1
+                ),
                 style = MaterialTheme.typography.bodySmall
             )
 
@@ -403,7 +422,8 @@ private fun EditorStatusBar(
             )
 
             Text(
-                text = stringResource(R.string.editor_status_memory, 
+                text = stringResource(
+                    R.string.editor_status_memory,
                     memoryStats.currentUsage / (1024 * 1024),
                     memoryStats.maxMemory / (1024 * 1024),
                     memoryStats.totalChunks
@@ -601,6 +621,7 @@ private fun SearchDialog(
 private fun EditorPagePreview() {
     PreviewWrapper {
         EditorWorkspacePage(
+            design = WorkspaceDesign(),
             workspaceButtonState = null,
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
