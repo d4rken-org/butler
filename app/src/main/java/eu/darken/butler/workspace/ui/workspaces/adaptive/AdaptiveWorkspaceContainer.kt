@@ -49,13 +49,11 @@ fun AdaptiveWorkspaceContainer(
     focusedTabId: Workspace.Id?,
     dividerPositions: DividerPositions,
     onDividerPositionsChange: (DividerPositions) -> Unit,
+    getCurrentDividerPositions: () -> DividerPositions = { dividerPositions },
     onTabFocus: (Workspace.Id) -> Unit,
     showPaneNumbers: Boolean = false,
     paneContent: @Composable (Workspace.Info?) -> Unit,
 ) {
-    val componentId = remember { System.currentTimeMillis() }
-    log(TAG) { "AdaptiveWorkspaceContainer($componentId) recomposing - design: $design, dividerPositions: $dividerPositions" }
-
     val showFocusBorder = selected.size > 1
     var containerSize by remember { mutableStateOf(IntSize.Zero) }
 
@@ -95,15 +93,23 @@ fun AdaptiveWorkspaceContainer(
                         paneContent(ws1)
                     }
 
+                    val dualVerticalCallback = { newPos: Float ->
+                        val current = getCurrentDividerPositions()
+                        val newPositions = DividerPositions(
+                            dualVertical = newPos,
+                            dualHorizontal = current.dualHorizontal,
+                            tripleMain = current.tripleMain,
+                            tripleSecondary = current.tripleSecondary,
+                        )
+                        onDividerPositionsChange(newPositions)
+                    }
+                    
                     ResizingDivider(
                         modifier = Modifier.fillMaxHeight(),
                         isVertical = true,
                         position = dividerPositions.dualVertical,
                         containerSize = containerSize,
-                        onPositionChange = { newPos ->
-                            log(TAG) { "DUAL_VERTICAL divider onPositionChange - current: ${dividerPositions.dualVertical}, new: $newPos" }
-                            onDividerPositionsChange(dividerPositions.copy(dualVertical = newPos))
-                        },
+                        onPositionChange = dualVerticalCallback,
                     )
 
                     val ws2 = selected.getOrNull(1)
@@ -136,15 +142,23 @@ fun AdaptiveWorkspaceContainer(
                         paneContent(ws1)
                     }
 
+                    val dualHorizontalCallback = { newPos: Float ->
+                        val current = getCurrentDividerPositions()
+                        val newPositions = DividerPositions(
+                            dualVertical = current.dualVertical,
+                            dualHorizontal = newPos,
+                            tripleMain = current.tripleMain,
+                            tripleSecondary = current.tripleSecondary,
+                        )
+                        onDividerPositionsChange(newPositions)
+                    }
+                    
                     ResizingDivider(
                         modifier = Modifier.fillMaxWidth(),
                         isVertical = false,
                         position = dividerPositions.dualHorizontal,
                         containerSize = containerSize,
-                        onPositionChange = { newPos ->
-                            log(TAG) { "DUAL_HORIZONTAL divider onPositionChange - current: ${dividerPositions.dualHorizontal}, new: $newPos" }
-                            onDividerPositionsChange(dividerPositions.copy(dualHorizontal = newPos))
-                        },
+                        onPositionChange = dualHorizontalCallback,
                     )
 
                     val ws2 = selected.getOrNull(1)
@@ -177,25 +191,33 @@ fun AdaptiveWorkspaceContainer(
                         paneContent(ws1)
                     }
 
+                    val mainDividerCallback = { newPos: Float ->
+                        val current = getCurrentDividerPositions()
+                        val newPositions = DividerPositions(
+                            dualVertical = current.dualVertical,
+                            dualHorizontal = current.dualHorizontal,
+                            tripleMain = newPos,
+                            tripleSecondary = current.tripleSecondary,
+                        )
+                        onDividerPositionsChange(newPositions)
+                    }
+                    
                     ResizingDivider(
                         modifier = Modifier.fillMaxHeight(),
                         isVertical = true,
                         position = dividerPositions.tripleMain,
                         containerSize = containerSize,
-                        onPositionChange = { newPos ->
-                            log(TAG) { "TRIPLE_MAIN divider onPositionChange - current: ${dividerPositions.tripleMain}, new: $newPos" }
-                            onDividerPositionsChange(dividerPositions.copy(tripleMain = newPos))
-                        },
+                        onPositionChange = mainDividerCallback,
                     )
 
-                    var columnSize by remember { mutableStateOf(IntSize.Zero) }
+                    // Calculate column size based on container size and divider position
+                    val columnWidth = (containerSize.width * (1f - dividerPositions.tripleMain)).toInt()
+                    val columnSize = IntSize(columnWidth, containerSize.height)
+                    
                     Column(
                         modifier = Modifier
                             .weight(1f - dividerPositions.tripleMain)
                             .fillMaxHeight()
-                            .onGloballyPositioned { coordinates ->
-                                columnSize = coordinates.size
-                            }
                     ) {
                         val ws2 = selected.getOrNull(1)
                         WorkspacePaneWrapper(
@@ -210,15 +232,23 @@ fun AdaptiveWorkspaceContainer(
                             paneContent(ws2)
                         }
 
+                        val secondaryDividerCallback = { newPos: Float ->
+                            val current = getCurrentDividerPositions()
+                            val newPositions = DividerPositions(
+                                dualVertical = current.dualVertical,
+                                dualHorizontal = current.dualHorizontal,
+                                tripleMain = current.tripleMain,
+                                tripleSecondary = newPos,
+                            )
+                            onDividerPositionsChange(newPositions)
+                        }
+                        
                         ResizingDivider(
                             modifier = Modifier.fillMaxWidth(),
                             isVertical = false,
                             position = dividerPositions.tripleSecondary,
                             containerSize = columnSize,
-                            onPositionChange = { newPos ->
-                                log(TAG) { "TRIPLE_SECONDARY divider onPositionChange - current: ${dividerPositions.tripleSecondary}, new: $newPos" }
-                                onDividerPositionsChange(dividerPositions.copy(tripleSecondary = newPos))
-                            },
+                            onPositionChange = secondaryDividerCallback,
                         )
 
                         val ws3 = selected.getOrNull(2)
@@ -270,6 +300,7 @@ private fun AdaptiveWorkspaceContainerPreview() {
             focusedTabId = tabs[0].id,
             dividerPositions = dividerPositions,
             onDividerPositionsChange = { dividerPositions = it },
+            getCurrentDividerPositions = { dividerPositions },
             onTabFocus = {},
             showPaneNumbers = true,
             paneContent = { tab ->

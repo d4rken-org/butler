@@ -34,16 +34,16 @@ internal fun ResizingDivider(
     containerSize: IntSize,
     onPositionChange: (Float) -> Unit,
 ) {
-    val dividerId = remember { System.currentTimeMillis() }
-    log(TAG) { "ResizableDivider($dividerId) recomposing - isVertical: $isVertical, position: $position, containerSize: $containerSize" }
-
     var isDragging by remember { mutableStateOf(false) }
     val parentSize = if (isVertical) containerSize.width.toFloat() else containerSize.height.toFloat()
-    log(TAG) { "ResizableDivider($dividerId) parentSize: $parentSize" }
 
     // Track the current position locally to avoid stale closure issues
     var currentPosition by remember { mutableStateOf(position) }
-    currentPosition = position // Update when position prop changes
+    
+    // Update currentPosition when position changes AND we're not dragging
+    if (!isDragging && currentPosition != position) {
+        currentPosition = position
+    }
 
     val dividerColor = if (isDragging) {
         MaterialTheme.colorScheme.primary
@@ -64,26 +64,22 @@ internal fun ResizingDivider(
                         .fillMaxWidth()
                 }
             )
-            .pointerInput(parentSize) {
+            .pointerInput(Unit) {
                 detectDragGestures(
-                    onDragStart = { offset ->
-                        log(TAG) { "ResizableDivider($dividerId) onDragStart - offset: $offset, startPosition: $currentPosition" }
+                    onDragStart = {
                         isDragging = true
                     },
                     onDragEnd = {
-                        log(TAG) { "ResizableDivider($dividerId) onDragEnd - final position: $currentPosition" }
                         isDragging = false
                     },
                     onDrag = { _, dragAmount ->
-                        if (parentSize > 0) {
+                        val currentParentSize = if (isVertical) containerSize.width.toFloat() else containerSize.height.toFloat()
+                        if (currentParentSize > 0) {
                             val delta = if (isVertical) dragAmount.x else dragAmount.y
-                            val newPosition = currentPosition + (delta / parentSize)
+                            val newPosition = currentPosition + (delta / currentParentSize)
                             val clampedPosition = newPosition.coerceIn(0.2f, 0.8f)
-                            log(TAG) { "ResizableDivider($dividerId) onDrag - delta: $delta, current: $currentPosition, new: $newPosition, clamped: $clampedPosition" }
                             currentPosition = clampedPosition
                             onPositionChange(clampedPosition)
-                        } else {
-                            log(TAG) { "ResizableDivider($dividerId) onDrag - skipped, parentSize is 0" }
                         }
                     }
                 )

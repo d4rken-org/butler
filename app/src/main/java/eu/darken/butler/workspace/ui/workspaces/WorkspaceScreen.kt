@@ -75,13 +75,9 @@ fun WorkspaceScreen(
     val windowSizeInfo = rememberWindowSizeInfo()
     var showPaneNumbers by remember { mutableStateOf(false) }
 
-    val stateId = remember { System.currentTimeMillis() }
     var dividerPositions by rememberSaveable {
-        log(TAG) { "Creating/Restoring divider positions state with stateId: $stateId" }
         mutableStateOf(DividerPositions())
     }
-
-    log(TAG) { "AdaptiveWorkspaceScreen($stateId) recomposing - dividerPositions: $dividerPositions" }
 
 
     val effectivePaneLayout = when (state.displayMode) {
@@ -117,31 +113,24 @@ fun WorkspaceScreen(
                     focusedId = state.focused,
                     onTabAction = onTabAction,
                     onPaneAssignment = { workspaceId, paneIndex ->
-                        log(TAG) { "onPaneAssignment: workspaceId=$workspaceId, paneIndex=$paneIndex" }
-                        log(TAG) { "Current selectedIds: ${state.selected.map { it.id }}" }
-
                         // Create new selection with the workspace at the specified pane index
                         val currentSelection = state.all.map { it.id }.toMutableList()
 
                         // Check if this workspace is already assigned to this pane
                         if (paneIndex < currentSelection.size && currentSelection[paneIndex] == workspaceId) {
-                            log(TAG) { "Workspace already in pane $paneIndex, ignoring" }
                             // Workspace is already in this pane, do nothing to prevent hang
                             return@WorkspaceNavigationRail
                         }
 
                         // Check if the workspace is already assigned to another pane
                         val existingPaneIndex = currentSelection.indexOf(workspaceId)
-                        log(TAG) { "Existing pane index for workspace: $existingPaneIndex" }
 
                         // Ensure we have enough panes
                         while (currentSelection.size <= paneIndex) {
                             val newWorkspace = state.all.firstOrNull { !currentSelection.contains(it.id) }?.id
                             if (newWorkspace != null) {
                                 currentSelection.add(newWorkspace)
-                                log(TAG) { "Added new workspace to fill pane: $newWorkspace" }
                             } else {
-                                log(TAG) { "No available workspace to fill pane" }
                                 break
                             }
                         }
@@ -149,18 +138,14 @@ fun WorkspaceScreen(
                         if (existingPaneIndex != -1 && existingPaneIndex != paneIndex && paneIndex < currentSelection.size) {
                             // Workspace is already in another pane - swap them
                             val targetWorkspaceId = currentSelection[paneIndex]
-                            log(TAG) { "Swapping: $workspaceId (from pane $existingPaneIndex) with $targetWorkspaceId (in pane $paneIndex)" }
                             currentSelection[paneIndex] = workspaceId
                             currentSelection[existingPaneIndex] = targetWorkspaceId
                         } else {
                             // Normal assignment
                             if (paneIndex < currentSelection.size) {
-                                log(TAG) { "Normal assignment: $workspaceId to pane $paneIndex" }
                                 currentSelection[paneIndex] = workspaceId
                             }
                         }
-
-                        log(TAG) { "New selection after assignment: $currentSelection" }
 
                         onTabAction(WorkspaceAction.SelectMultiple(currentSelection))
 
@@ -180,9 +165,9 @@ fun WorkspaceScreen(
                     focusedTabId = state.focused,
                     dividerPositions = dividerPositions,
                     onDividerPositionsChange = { newPositions ->
-                        log(TAG) { "onDividerPositionsChange called - old: $dividerPositions, new: $newPositions" }
                         dividerPositions = newPositions
                     },
+                    getCurrentDividerPositions = { dividerPositions },
                     onTabFocus = { id ->
                         onTabAction(WorkspaceAction.Focus(id))
                     },
