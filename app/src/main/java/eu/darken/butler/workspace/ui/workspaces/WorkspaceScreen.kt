@@ -165,7 +165,7 @@ fun WorkspaceScreen(
                         onTabAction(WorkspaceAction.Focus(id))
                     },
                     showPaneNumbers = showPaneNumbers,
-                    paneContent = { info ->
+                    paneContent = { info, paneNumber ->
                         if (info != null) {
                             WorkspaceMapper(
                                 info = info,
@@ -174,10 +174,7 @@ fun WorkspaceScreen(
                         } else {
                             EmptyAdaptiveWorkspaceContent(
                                 modifier = Modifier.weight(1f),
-                                onNavToSettings = onNavToSettings,
-                                onTabAction = onTabAction,
-                                isUpgraded = state.isUpgraded,
-                                onUpgradeButler = onUpgradeButler,
+                                paneNumber = paneNumber,
                             )
                         }
                     }

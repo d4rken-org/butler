@@ -16,7 +16,7 @@ internal fun SinglePaneLayout(
     focusedTabId: Workspace.Id?,
     showPaneNumbers: Boolean,
     onTabFocus: (Workspace.Id) -> Unit,
-    paneContent: @Composable (Workspace.Info?) -> Unit,
+    paneContent: @Composable (Workspace.Info?, Int) -> Unit,
 ) {
     val ws1 = selected.getOrNull(0)
     WorkspacePaneWrapper(
@@ -26,7 +26,7 @@ internal fun SinglePaneLayout(
         onFocus = { ws1?.let { onTabFocus(it.id) } },
         paneNumber = if (showPaneNumbers) 1 else null,
     ) {
-        paneContent(ws1)
+        paneContent(ws1, 1)
     }
 }
 
@@ -39,7 +39,7 @@ internal fun DualVerticalLayout(
     showPaneNumbers: Boolean,
     onTabFocus: (Workspace.Id) -> Unit,
     createDividerCallback: (DividerPositions.(Float) -> DividerPositions) -> (Float) -> Unit,
-    paneContent: @Composable (Workspace.Info?) -> Unit,
+    paneContent: @Composable (Workspace.Info?, Int) -> Unit,
 ) {
     val showFocusBorder = selected.size > 1
 
@@ -54,7 +54,7 @@ internal fun DualVerticalLayout(
             onFocus = { ws1?.let { onTabFocus(it.id) } },
             paneNumber = if (showPaneNumbers) 1 else null,
         ) {
-            paneContent(ws1)
+            paneContent(ws1, 1)
         }
 
         ResizingDivider(
@@ -75,7 +75,7 @@ internal fun DualVerticalLayout(
             onFocus = { ws2?.let { onTabFocus(it.id) } },
             paneNumber = if (showPaneNumbers) 2 else null,
         ) {
-            paneContent(ws2)
+            paneContent(ws2, 2)
         }
     }
 }
@@ -89,7 +89,7 @@ internal fun DualHorizontalLayout(
     showPaneNumbers: Boolean,
     onTabFocus: (Workspace.Id) -> Unit,
     createDividerCallback: (DividerPositions.(Float) -> DividerPositions) -> (Float) -> Unit,
-    paneContent: @Composable (Workspace.Info?) -> Unit,
+    paneContent: @Composable (Workspace.Info?, Int) -> Unit,
 ) {
     val showFocusBorder = selected.size > 1
 
@@ -104,7 +104,7 @@ internal fun DualHorizontalLayout(
             onFocus = { ws1?.let { onTabFocus(it.id) } },
             paneNumber = if (showPaneNumbers) 1 else null,
         ) {
-            paneContent(ws1)
+            paneContent(ws1, 1)
         }
 
         ResizingDivider(
@@ -125,7 +125,7 @@ internal fun DualHorizontalLayout(
             onFocus = { ws2?.let { onTabFocus(it.id) } },
             paneNumber = if (showPaneNumbers) 2 else null,
         ) {
-            paneContent(ws2)
+            paneContent(ws2, 2)
         }
     }
 }
@@ -139,7 +139,7 @@ internal fun TripleMainLeftLayout(
     showPaneNumbers: Boolean,
     onTabFocus: (Workspace.Id) -> Unit,
     createDividerCallback: (DividerPositions.(Float) -> DividerPositions) -> (Float) -> Unit,
-    paneContent: @Composable (Workspace.Info?) -> Unit,
+    paneContent: @Composable (Workspace.Info?, Int) -> Unit,
 ) {
     val showFocusBorder = selected.size > 1
 
@@ -154,7 +154,7 @@ internal fun TripleMainLeftLayout(
             onFocus = { ws1?.let { onTabFocus(it.id) } },
             paneNumber = if (showPaneNumbers) 1 else null,
         ) {
-            paneContent(ws1)
+            paneContent(ws1, 1)
         }
 
         ResizingDivider(
@@ -184,7 +184,7 @@ internal fun TripleMainLeftLayout(
                 onFocus = { ws2?.let { onTabFocus(it.id) } },
                 paneNumber = if (showPaneNumbers) 2 else null,
             ) {
-                paneContent(ws2)
+                paneContent(ws2, 2)
             }
 
             ResizingDivider(
@@ -205,7 +205,7 @@ internal fun TripleMainLeftLayout(
                 onFocus = { ws3?.let { onTabFocus(it.id) } },
                 paneNumber = if (showPaneNumbers) 3 else null,
             ) {
-                paneContent(ws3)
+                paneContent(ws3, 3)
             }
         }
     }

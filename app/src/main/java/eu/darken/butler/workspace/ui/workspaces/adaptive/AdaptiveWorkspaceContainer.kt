@@ -84,7 +84,7 @@ fun AdaptiveWorkspaceContainer(
     getCurrentDividerPositions: () -> DividerPositions = { dividerPositions },
     onTabFocus: (Workspace.Id) -> Unit,
     showPaneNumbers: Boolean = false,
-    paneContent: @Composable (Workspace.Info?) -> Unit,
+    paneContent: @Composable (Workspace.Info?, Int) -> Unit,
 ) {
     var containerSize by remember { mutableStateOf(IntSize.Zero) }
 
@@ -186,14 +186,14 @@ private fun AdaptiveWorkspaceContainerPreview() {
             getCurrentDividerPositions = { dividerPositions },
             onTabFocus = {},
             showPaneNumbers = true,
-            paneContent = { tab ->
+            paneContent = { tab, paneNumber ->
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.surface),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(tab!!.title.get(LocalContext.current))
+                    Text(tab?.title?.get(LocalContext.current) ?: "Empty Pane $paneNumber")
                 }
             }
         )
