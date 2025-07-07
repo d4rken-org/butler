@@ -91,6 +91,7 @@ fun AdaptiveWorkspaceContainer(
     Box(
         modifier = modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .onGloballyPositioned { coordinates ->
                 containerSize = coordinates.size
             }

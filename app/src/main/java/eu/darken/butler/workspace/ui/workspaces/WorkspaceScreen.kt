@@ -1,10 +1,9 @@
 package eu.darken.butler.workspace.ui.workspaces
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -27,9 +26,9 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
 import eu.darken.butler.workspace.ui.workspaces.adaptive.AdaptiveWorkspaceContainer
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
+import eu.darken.butler.workspace.ui.workspaces.adaptive.EmptyAdaptiveWorkspaceContent
 import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceNavigationRail
 import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContainer
-import eu.darken.butler.workspace.ui.workspaces.empty.EmptyWorkspaceContent
 
 private val TAG = logTag("Workspace", "Screen")
 
@@ -95,22 +94,18 @@ fun WorkspaceScreen(
     )
 
     if (!design.isSingle) {
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            containerColor = MaterialTheme.colorScheme.background
-        ) { paddingValues ->
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            ) {
-                WorkspaceNavigationRail(
-                    design = design,
-                    workspaces = state.all,
-                    selected = state.selected,
-                    focusedId = state.focused,
-                    onTabAction = onTabAction,
-                    onPaneAssignment = { workspaceId, paneIndex ->
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            WorkspaceNavigationRail(
+                design = design,
+                workspaces = state.all,
+                selected = state.selected,
+                focusedId = state.focused,
+                onTabAction = onTabAction,
+                onPaneAssignment = { workspaceId, paneIndex ->
                         // Create new selection with the workspace at the specified pane index
                         val currentSelection = state.all.map { it.id }.toMutableList()
 
@@ -177,7 +172,7 @@ fun WorkspaceScreen(
                                 design = design,
                             )
                         } else {
-                            EmptyWorkspaceContent(
+                            EmptyAdaptiveWorkspaceContent(
                                 modifier = Modifier.weight(1f),
                                 onNavToSettings = onNavToSettings,
                                 onTabAction = onTabAction,
@@ -187,7 +182,6 @@ fun WorkspaceScreen(
                         }
                     }
                 )
-            }
         }
     } else {
         ClassicWorkspaceContainer(
@@ -195,21 +189,6 @@ fun WorkspaceScreen(
             onNavToSettings = onNavToSettings,
             onTabAction = onTabAction,
             onUpgradeButler = onUpgradeButler,
-            onContent = { info ->
-                if (info != null) {
-                    WorkspaceMapper(
-                        info = info,
-                        design = design,
-                    )
-                } else {
-                    EmptyWorkspaceContent(
-                        onNavToSettings = onNavToSettings,
-                        onTabAction = onTabAction,
-                        isUpgraded = state.isUpgraded,
-                        onUpgradeButler = onUpgradeButler,
-                    )
-                }
-            }
         )
     }
 }
