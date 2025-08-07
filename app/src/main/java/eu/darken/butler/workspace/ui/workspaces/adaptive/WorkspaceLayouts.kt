@@ -15,6 +15,7 @@ internal fun SinglePaneLayout(
     selected: Map<Int, Workspace.Info>,
     focusedTabId: Workspace.Id?,
     showPaneNumbers: Boolean,
+    showPaneOverlay: Boolean,
     onTabFocus: (Workspace.Id) -> Unit,
     paneContent: @Composable (Workspace.Info?, Int) -> Unit,
 ) {
@@ -25,6 +26,7 @@ internal fun SinglePaneLayout(
         showFocusBorder = false, // Single pane doesn't need focus border
         onFocus = { ws1?.let { onTabFocus(it.id) } },
         paneNumber = if (showPaneNumbers) 1 else null,
+        showOverlay = showPaneOverlay,
     ) {
         paneContent(ws1, 1)
     }
@@ -37,6 +39,7 @@ internal fun DualVerticalLayout(
     dividerPositions: DividerPositions,
     containerSize: IntSize,
     showPaneNumbers: Boolean,
+    showPaneOverlay: Boolean,
     onTabFocus: (Workspace.Id) -> Unit,
     createDividerCallback: (DividerPositions.(Float) -> DividerPositions) -> (Float) -> Unit,
     paneContent: @Composable (Workspace.Info?, Int) -> Unit,
@@ -53,6 +56,7 @@ internal fun DualVerticalLayout(
             showFocusBorder = showFocusBorder,
             onFocus = { ws1?.let { onTabFocus(it.id) } },
             paneNumber = if (showPaneNumbers) 1 else null,
+            showOverlay = showPaneOverlay,
         ) {
             paneContent(ws1, 1)
         }
@@ -74,6 +78,7 @@ internal fun DualVerticalLayout(
             showFocusBorder = showFocusBorder,
             onFocus = { ws2?.let { onTabFocus(it.id) } },
             paneNumber = if (showPaneNumbers) 2 else null,
+            showOverlay = showPaneOverlay,
         ) {
             paneContent(ws2, 2)
         }
@@ -87,6 +92,7 @@ internal fun DualHorizontalLayout(
     dividerPositions: DividerPositions,
     containerSize: IntSize,
     showPaneNumbers: Boolean,
+    showPaneOverlay: Boolean,
     onTabFocus: (Workspace.Id) -> Unit,
     createDividerCallback: (DividerPositions.(Float) -> DividerPositions) -> (Float) -> Unit,
     paneContent: @Composable (Workspace.Info?, Int) -> Unit,
@@ -103,6 +109,7 @@ internal fun DualHorizontalLayout(
             showFocusBorder = showFocusBorder,
             onFocus = { ws1?.let { onTabFocus(it.id) } },
             paneNumber = if (showPaneNumbers) 1 else null,
+            showOverlay = showPaneOverlay,
         ) {
             paneContent(ws1, 1)
         }
@@ -124,6 +131,7 @@ internal fun DualHorizontalLayout(
             showFocusBorder = showFocusBorder,
             onFocus = { ws2?.let { onTabFocus(it.id) } },
             paneNumber = if (showPaneNumbers) 2 else null,
+            showOverlay = showPaneOverlay,
         ) {
             paneContent(ws2, 2)
         }
@@ -137,6 +145,7 @@ internal fun TripleMainLeftLayout(
     dividerPositions: DividerPositions,
     containerSize: IntSize,
     showPaneNumbers: Boolean,
+    showPaneOverlay: Boolean,
     onTabFocus: (Workspace.Id) -> Unit,
     createDividerCallback: (DividerPositions.(Float) -> DividerPositions) -> (Float) -> Unit,
     paneContent: @Composable (Workspace.Info?, Int) -> Unit,
@@ -153,6 +162,7 @@ internal fun TripleMainLeftLayout(
             showFocusBorder = showFocusBorder,
             onFocus = { ws1?.let { onTabFocus(it.id) } },
             paneNumber = if (showPaneNumbers) 1 else null,
+            showOverlay = showPaneOverlay,
         ) {
             paneContent(ws1, 1)
         }
@@ -183,6 +193,7 @@ internal fun TripleMainLeftLayout(
                 showFocusBorder = showFocusBorder,
                 onFocus = { ws2?.let { onTabFocus(it.id) } },
                 paneNumber = if (showPaneNumbers) 2 else null,
+                showOverlay = showPaneOverlay,
             ) {
                 paneContent(ws2, 2)
             }
@@ -204,6 +215,7 @@ internal fun TripleMainLeftLayout(
                 showFocusBorder = showFocusBorder,
                 onFocus = { ws3?.let { onTabFocus(it.id) } },
                 paneNumber = if (showPaneNumbers) 3 else null,
+                showOverlay = showPaneOverlay,
             ) {
                 paneContent(ws3, 3)
             }

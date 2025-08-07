@@ -84,6 +84,7 @@ fun AdaptiveWorkspaceContainer(
     getCurrentDividerPositions: () -> DividerPositions = { dividerPositions },
     onTabFocus: (Workspace.Id) -> Unit,
     showPaneNumbers: Boolean = false,
+    showPaneOverlay: Boolean = false,
     paneContent: @Composable (Workspace.Info?, Int) -> Unit,
 ) {
     var containerSize by remember { mutableStateOf(IntSize.Zero) }
@@ -106,6 +107,7 @@ fun AdaptiveWorkspaceContainer(
                     selected = selected,
                     focusedTabId = focusedTabId,
                     showPaneNumbers = showPaneNumbers,
+                    showPaneOverlay = showPaneOverlay,
                     onTabFocus = onTabFocus,
                     paneContent = paneContent,
                 )
@@ -118,6 +120,7 @@ fun AdaptiveWorkspaceContainer(
                     dividerPositions = dividerPositions,
                     containerSize = containerSize,
                     showPaneNumbers = showPaneNumbers,
+                    showPaneOverlay = showPaneOverlay,
                     onTabFocus = onTabFocus,
                     createDividerCallback = dividerCallbackFactory,
                     paneContent = paneContent,
@@ -131,6 +134,7 @@ fun AdaptiveWorkspaceContainer(
                     dividerPositions = dividerPositions,
                     containerSize = containerSize,
                     showPaneNumbers = showPaneNumbers,
+                    showPaneOverlay = showPaneOverlay,
                     onTabFocus = onTabFocus,
                     createDividerCallback = dividerCallbackFactory,
                     paneContent = paneContent,
@@ -144,6 +148,7 @@ fun AdaptiveWorkspaceContainer(
                     dividerPositions = dividerPositions,
                     containerSize = containerSize,
                     showPaneNumbers = showPaneNumbers,
+                    showPaneOverlay = showPaneOverlay,
                     onTabFocus = onTabFocus,
                     createDividerCallback = dividerCallbackFactory,
                     paneContent = paneContent,

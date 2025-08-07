@@ -71,6 +71,7 @@ fun WorkspaceScreen(
 ) {
     val windowSizeInfo = rememberWindowSizeInfo()
     var showPaneNumbers by remember { mutableStateOf(false) }
+    var showPaneOverlay by remember { mutableStateOf(false) }
 
     var dividerPositions by rememberSaveable {
         mutableStateOf(DividerPositions())
@@ -142,12 +143,16 @@ fun WorkspaceScreen(
                         onTabAction(WorkspaceAction.SelectMultiple(newPositions))
                         
                         showPaneNumbers = false
+                        showPaneOverlay = false
                     },
                     showPaneNumbers = showPaneNumbers,
+                    onPaneMenuToggle = { isOpen ->
+                        showPaneOverlay = isOpen
+                        showPaneNumbers = isOpen
+                    },
                     workspaceButtonState = workspaceButtonState,
                     onWorkspaceAction = onWorkspaceAction,
                     onNavToWorkspaceManager = onNavToWorkspaceManager,
-
                     )
 
                 AdaptiveWorkspaceContainer(
@@ -164,6 +169,7 @@ fun WorkspaceScreen(
                         onTabAction(WorkspaceAction.Focus(id))
                     },
                     showPaneNumbers = showPaneNumbers,
+                    showPaneOverlay = showPaneOverlay,
                     paneContent = { info, paneNumber ->
                         if (info != null) {
                             WorkspaceMapper(

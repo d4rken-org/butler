@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.workspaces.adaptive
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -22,6 +23,7 @@ internal fun WorkspacePaneWrapper(
     showFocusBorder: Boolean,
     onFocus: () -> Unit,
     paneNumber: Int?,
+    showOverlay: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     Box(
@@ -50,7 +52,36 @@ internal fun WorkspacePaneWrapper(
     ) {
         content()
 
-        paneNumber?.let {
+        // Show overlay when pane menu is open
+        if (showOverlay) {
+            // Dark overlay
+            Box(
+                modifier = Modifier.Companion
+                    .matchParentSize()
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.5f))
+                    .zIndex(5f)
+            )
+            
+            // Pane number indicator
+            paneNumber?.let {
+                Surface(
+                    modifier = Modifier.Companion
+                        .align(Alignment.Companion.Center)
+                        .zIndex(10f),
+                    shape = MaterialTheme.shapes.large,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    tonalElevation = 8.dp,
+                ) {
+                    Text(
+                        text = it.toString(),
+                        modifier = Modifier.Companion.padding(horizontal = 32.dp, vertical = 24.dp),
+                        style = MaterialTheme.typography.displayMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                }
+            }
+        } else if (paneNumber != null && !showOverlay) {
+            // Original pane number display (when not showing overlay)
             Surface(
                 modifier = Modifier.Companion
                     .align(Alignment.Companion.Center)
@@ -60,7 +91,7 @@ internal fun WorkspacePaneWrapper(
                 tonalElevation = 8.dp,
             ) {
                 Text(
-                    text = it.toString(),
+                    text = paneNumber.toString(),
                     modifier = Modifier.Companion.padding(horizontal = 24.dp, vertical = 16.dp),
                     style = MaterialTheme.typography.headlineLarge,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,

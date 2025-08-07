@@ -32,6 +32,7 @@ import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,6 +64,7 @@ fun WorkspaceNavigationRail(
     onTabAction: (WorkspaceAction) -> Unit,
     onPaneAssignment: (workspaceId: Workspace.Id, paneIndex: Int) -> Unit,
     showPaneNumbers: Boolean = false,
+    onPaneMenuToggle: (Boolean) -> Unit = {},
 ) {
 
     Surface(
@@ -104,8 +106,8 @@ fun WorkspaceNavigationRail(
                         currentPaneIndex = paneIndex,
                         onTabAction = onTabAction,
                         onPaneAssignment = onPaneAssignment,
-                        showPaneNumbers = showPaneNumbers,
                         maxPanes = design.maxPanes,
+                        onPaneMenuToggle = onPaneMenuToggle,
                     )
                 }
             }
@@ -131,10 +133,15 @@ private fun WorkspaceRailItem(
     currentPaneIndex: Int?,
     onTabAction: (WorkspaceAction) -> Unit,
     onPaneAssignment: (workspaceId: Workspace.Id, paneIndex: Int) -> Unit,
-    showPaneNumbers: Boolean,
     maxPanes: Int,
+    onPaneMenuToggle: (Boolean) -> Unit,
 ) {
     var showPaneMenu by remember { mutableStateOf(false) }
+    
+    // Notify parent when menu state changes
+    LaunchedEffect(showPaneMenu) {
+        onPaneMenuToggle(showPaneMenu)
+    }
 
     Box {
         NavigationRailItem(
@@ -261,6 +268,7 @@ private fun WorkspaceNavigationRailPreview() {
             focusedId = tabs[0].id,
             onTabAction = {},
             onPaneAssignment = { _, _ -> },
+            onPaneMenuToggle = {},
         )
     }
 }
