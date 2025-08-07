@@ -6,6 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Butler is an open-source Android file explorer with advanced features including root access, ADB integration, and multiple workspace support. It's built using modern Android development practices with Jetpack Compose, Kotlin Coroutines, and Hilt dependency injection.
 
+Butler uses a workspace concept similar to browser tabs with 4 main workspace types:
+
+- **EXPLORER**: File browsing and management
+- **SEARCHER**: File search functionality
+- **EDITOR**: Text editing
+- **TEMPLATES**: Workspace template management
+
 ## Development Commands
 
 ### Building the Project
@@ -43,25 +50,33 @@ fastlane android production
 
 ## Architecture Overview
 
-### Workspace-Based Architecture
+### Build Flavors
 
-Butler uses a workspace concept similar to browser tabs with 4 main workspace types:
-
-- **EXPLORER**: File browsing and management
-- **SEARCHER**: File search functionality
-- **EDITOR**: Text editing
-- **TEMPLATES**: Workspace template management
+- **FOSS**: Open source version without Google Play dependencies
+- **GPLAY**: Google Play version with additional features
 
 ### Module Structure
 
-- `app`: Main application module
-- `app-common`: Core shared utilities and base classes
-- `app-common-io`: File I/O operations and abstract path system
-- `app-common-root`: Root access functionality
-- `app-common-adb`: Android Debug Bridge integration
-- `app-common-shell`: Shell operations
-- `app-common-pkgs`: Package management utilities
-- `app-common-test`: Testing utilities and helpers
+#### Core Application
+- `app`: Main application module with entry point, flavor-specific implementations, and setup flow
+
+#### Foundation Modules
+- `app-common`: Core shared utilities, base architecture components, custom ViewModel hierarchy, theming system
+- `app-common-test`: Testing utilities, helpers, and base test classes for all modules
+
+#### Platform Integration Modules  
+- `app-common-io`: File I/O operations, abstract path system (APath), gateway pattern for file access methods
+- `app-common-root`: Root access functionality and root-based file operations
+- `app-common-adb`: Android Debug Bridge integration via Shizuku API
+- `app-common-shell`: Shell operations and reactive command execution with FlowShell
+- `app-common-pkgs`: Package management utilities and package event handling
+
+#### Workspace Modules
+- `app-workspace`: Core workspace framework, base classes, and tab-like workspace management
+- `app-workspace-explorer`: File browsing workspace with navigation, file operations, sorting/filtering
+- `app-workspace-searcher`: File search workspace with search engine, filters, and result caching
+- `app-workspace-editor`: Text editing workspace with chunked buffer system for large files
+- `app-workspace-templates`: Workspace template management and type switching
 
 ### Key Architectural Patterns
 
@@ -90,7 +105,24 @@ Butler uses a workspace concept similar to browser tabs with 4 main workspace ty
 - Gateway pattern for different file access methods
 - Support for root, ADB, and shell operations
 
+**Other Architecture Components**
+
+- Jetpack Compose for UI
+- Hilt for dependency injection
+- Kotlin Coroutines & Flow for async operations
+- KotlinX for JSON serialization
+- Coil for image loading
+- Navigation3 for navigation
+- Room for database operations
+
 ## Development Guidelines
+
+### Project Structure
+
+- Single Activity architecture with Compose navigation
+- Reactive programming with Kotlin Flow and StateFlow
+- Centralized error handling with `ErrorEventHandler`
+- DataStore-based settings with kotlinx serialization
 
 ### Coding Standards
 
@@ -105,28 +137,6 @@ Butler uses a workspace concept similar to browser tabs with 4 main workspace ty
 - When creating compose previews, use the `@Preview2` annotation, and wrap the UI element in a `PreviewWrapper`
 - When using `if` that is not single-line, always use brackets
 - Always add trailing commas
-
-### Project Structure
-
-- Single Activity architecture with Compose navigation
-- Reactive programming with Kotlin Flow and StateFlow
-- Centralized error handling with `ErrorEventHandler`
-- DataStore-based settings with kotlinx serialization
-
-### Build Flavors
-
-- **FOSS**: Open source version without Google Play dependencies
-- **GPLAY**: Google Play version with additional features
-
-## Key Dependencies
-
-- Jetpack Compose for UI
-- Hilt for dependency injection
-- Kotlin Coroutines & Flow for async operations
-- kotlinx for JSON serialization
-- Coil for image loading
-- Navigation3 for navigation
-- Room for database operations
 
 ## Agent instructions
 
