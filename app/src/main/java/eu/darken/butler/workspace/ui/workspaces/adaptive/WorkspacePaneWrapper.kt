@@ -13,12 +13,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import eu.darken.butler.templates.ui.WorkspaceTab
-import eu.darken.butler.workspace.core.Workspace
 
 @Composable
 internal fun WorkspacePaneWrapper(
-    modifier: Modifier = Modifier.Companion,
+    modifier: Modifier = Modifier,
     isFocused: Boolean,
     showFocusBorder: Boolean,
     onFocus: () -> Unit,
@@ -80,7 +78,7 @@ internal fun WorkspacePaneWrapper(
                     )
                 }
             }
-        } else if (paneNumber != null && !showOverlay) {
+        } else if (paneNumber != null) {
             // Original pane number display (when not showing overlay)
             Surface(
                 modifier = Modifier.Companion

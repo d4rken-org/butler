@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -47,6 +47,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
@@ -70,7 +72,6 @@ fun WorkspaceNavigationRail(
     design: WorkspaceDesign = WorkspaceDesign(),
     onTabAction: (WorkspaceAction) -> Unit,
     onPaneAssignment: (workspaceId: Workspace.Id, paneIndex: Int) -> Unit,
-    showPaneNumbers: Boolean = false,
     onPaneMenuToggle: (Boolean) -> Unit = {},
 ) {
 
@@ -144,8 +145,7 @@ private fun WorkspaceRailItem(
     onPaneMenuToggle: (Boolean) -> Unit,
 ) {
     var showPaneMenu by remember { mutableStateOf(false) }
-    
-    // Notify parent when menu state changes
+
     LaunchedEffect(showPaneMenu) {
         onPaneMenuToggle(showPaneMenu)
     }
@@ -154,6 +154,15 @@ private fun WorkspaceRailItem(
         NavigationRailItem(
             selected = isSelected,
             onClick = { showPaneMenu = true },
+            modifier = if (isFocused) {
+                Modifier
+                    .background(
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+            } else {
+                Modifier
+            },
             icon = {
                 Row(
                     horizontalArrangement = Arrangement.Center,
@@ -188,23 +197,14 @@ private fun WorkspaceRailItem(
             label = {
                 Text(
                     text = workspace.title.get(LocalContext.current),
-                    style = MaterialTheme.typography.labelSmall,
-                    maxLines = 1,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        textDecoration = if (isFocused) TextDecoration.Underline else TextDecoration.None
+                    ),
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
                 )
             },
         )
-
-        if (isFocused) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .size(8.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = CircleShape,
-                    ),
-            )
-        }
 
         DropdownMenu(
             expanded = showPaneMenu,
@@ -272,17 +272,17 @@ private fun WorkspaceNavigationRailPreview() {
             Workspace.Info(
                 id = Workspace.Id(),
                 type = Workspace.Type.EXPLORER,
-                title = "Explorer".toCaString(),
+                title = "Explorer 1234".toCaString(),
             ),
             Workspace.Info(
                 id = Workspace.Id(),
                 type = Workspace.Type.SEARCHER,
-                title = "Search".toCaString(),
+                title = "Search 1234".toCaString(),
             ),
             Workspace.Info(
                 id = Workspace.Id(),
                 type = Workspace.Type.EDITOR,
-                title = "Editor".toCaString(),
+                title = "Editor 1234".toCaString(),
             ),
         )
         WorkspaceNavigationRail(

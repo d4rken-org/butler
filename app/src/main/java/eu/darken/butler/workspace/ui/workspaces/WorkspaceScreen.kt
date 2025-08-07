@@ -30,8 +30,6 @@ import eu.darken.butler.workspace.ui.workspaces.adaptive.EmptyAdaptiveWorkspaceC
 import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceNavigationRail
 import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContainer
 
-private val TAG = logTag("Workspace", "Screen")
-
 @Composable
 fun WorkspaceScreenHost(
     vm: WorkspaceViewModel = hiltViewModel(),
@@ -145,7 +143,6 @@ fun WorkspaceScreen(
                         showPaneNumbers = false
                         showPaneOverlay = false
                     },
-                    showPaneNumbers = showPaneNumbers,
                     onPaneMenuToggle = { isOpen ->
                         showPaneOverlay = isOpen
                         showPaneNumbers = isOpen

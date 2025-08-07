@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.WorkspaceAction
-import eu.darken.butler.workspace.ui.WorkspacePanelMode
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

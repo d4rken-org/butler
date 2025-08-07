@@ -30,7 +30,7 @@ class WorkspaceRepo @Inject constructor(
     private val explorerWorkspaceFactory: ExplorerWorkspace.Factory,
     private val searcherWorkspaceFactory: SearcherWorkspace.Factory,
     private val editorWorkspaceFactory: EditorWorkspace.Factory,
-    private val workspaceSettings: WorkspaceSettings,
+    workspaceSettings: WorkspaceSettings,
 ) : WorkspaceProvider, WorkspaceRemote {
 
     private val lock = Mutex()
@@ -173,7 +173,7 @@ class WorkspaceRepo @Inject constructor(
                 log(TAG) { "New workspace created with ID $newId" }
 
                 if (action.replace != null) {
-                    selectedWorkspaces.value.entries.find { (_, id) -> id == action.replace }?.let { (index, id) ->
+                    selectedWorkspaces.value.entries.find { (_, id) -> id == action.replace }?.let { (index, _) ->
                         log(TAG) { "Replaced workspace was selected, updating selection at $index" }
                         selectedWorkspaces.value = selectedWorkspaces.value.toMutableMap().apply {
                             this[index] = newId

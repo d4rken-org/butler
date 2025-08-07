@@ -25,7 +25,7 @@ class WorkspaceViewModel @Inject constructor(
     private val navCtrl: NavigationController,
     upgradeRepo: UpgradeRepo,
     private val workspaceRepo: WorkspaceRepo,
-    val workspaceSettings: WorkspaceSettings,
+    workspaceSettings: WorkspaceSettings,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Screen", "VM"), navCtrl) {
 
     val state = combine(

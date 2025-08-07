@@ -24,8 +24,6 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import kotlinx.parcelize.Parcelize
 
-private val TAG = logTag("Workspace", "Container", "Adaptive")
-
 /**
  * Creates a callback function for divider position changes.
  * This helper ensures that divider positions are always updated with the current state,
