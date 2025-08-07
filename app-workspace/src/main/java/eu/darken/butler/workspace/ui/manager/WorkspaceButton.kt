@@ -76,12 +76,12 @@ fun WorkspaceButton(
             )
         }
 
-        // Badge showing workspace count (top-right)
+        // Badge showing workspace count (top-left)
         if (state?.workspaceCount != null && state.workspaceCount > 0) {
             Box(
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .offset(x = 8.dp, y = (-8).dp)
+                    .align(Alignment.TopStart)
+                    .offset(x = (-8).dp, y = (-8).dp)
                     .size(16.dp)
                     .background(
                         color = MaterialTheme.colorScheme.surfaceVariant,
@@ -103,12 +103,12 @@ fun WorkspaceButton(
             }
         }
 
-        // Badge showing operations count (top-left)
+        // Badge showing operations count (top-right)
         if (state?.operationsCount != null && state.operationsCount > 0) {
             Box(
                 modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .offset(x = (-8).dp, y = (-8).dp)
+                    .align(Alignment.TopEnd)
+                    .offset(x = 8.dp, y = (-8).dp)
                     .size(16.dp)
                     .background(
                         color = MaterialTheme.colorScheme.primary,

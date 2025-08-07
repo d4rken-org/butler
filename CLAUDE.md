@@ -78,53 +78,7 @@ fastlane android production
 - `app-workspace-editor`: Text editing workspace with chunked buffer system for large files
 - `app-workspace-templates`: Workspace template management and type switching
 
-### Key Architectural Patterns
-
-**MVVM with Custom ViewModel Hierarchy**:
-
-- `ViewModel1` → `ViewModel2` → `ViewModel3` → `ViewModel4`
-- `ViewModel4` adds navigation capabilities
-- Uses Hilt for assisted injection
-
-**Dependency Injection**:
-
-- Hilt/Dagger throughout the application
-- `@AndroidEntryPoint` for Activities/Fragments
-- `@HiltViewModel` for ViewModels
-- Modular DI setup across different modules
-
-**UI Framework**:
-
-- Full Jetpack Compose with Material 3
-- Custom theming system (`ButlerTheme`, `ButlerColors`)
-- Edge-to-edge display support
-
-**File System Abstraction**:
-
-- Abstract path system (`APath`, `RawPath`)
-- Gateway pattern for different file access methods
-- Support for root, ADB, and shell operations
-
-**Other Architecture Components**
-
-- Jetpack Compose for UI
-- Hilt for dependency injection
-- Kotlin Coroutines & Flow for async operations
-- KotlinX for JSON serialization
-- Coil for image loading
-- Navigation3 for navigation
-- Room for database operations
-
-## Development Guidelines
-
-### Project Structure
-
-- Single Activity architecture with Compose navigation
-- Reactive programming with Kotlin Flow and StateFlow
-- Centralized error handling with `ErrorEventHandler`
-- DataStore-based settings with kotlinx serialization
-
-### Coding Standards
+## Coding Standards
 
 - Package by feature, not by layer
 - Extract user-facing text to `strings.xml`
@@ -134,10 +88,53 @@ fastlane android production
 - Use FOSS debug flavor for local testing
 - Place compose previews below the item being previewed
 - Don't add comments to code
-- When creating compose previews, use the `@Preview2` annotation, and wrap the UI element in a `PreviewWrapper`
 - When using `if` that is not single-line, always use brackets
 - Always add trailing commas
 
 ## Agent instructions
 
 - Reminder: Our core principle is to maintain focused contexts for both yourself (the orchestrator/main agent) and each sub-agent. Therefore, please use the Task tool to delegate suitable tasks to sub-agents to improve task efficiency and optimize token usage.
+
+## Development Guidelines
+
+### General
+
+- Single Activity architecture with Compose Navigation3
+- Reactive programming with Kotlin Flow and StateFlow
+- Centralized error handling with `ErrorEventHandler`
+- DataStore-based settings with kotlinx serialization
+- Jetpack Compose for UI
+- Hilt for dependency injection
+- Kotlin Coroutines & Flow for async operations
+- KotlinX for JSON serialization
+- Coil for image loading
+- Room for database operations
+
+#### Dependency Injection
+
+- Hilt/Dagger throughout the application
+- `@AndroidEntryPoint` for Activities/Fragments
+- `@HiltViewModel` for ViewModels
+- Modular DI setup across different modules
+
+### User Interface
+
+- Full Jetpack Compose with Material 3
+- Custom theming system (`ButlerTheme`, `ButlerColors`)
+- Edge-to-edge display support
+- Use icons out of the `androidx.compose.material.icons.twotone` package where possible.
+- When creating compose previews, use the `@Preview2` annotation, and wrap the UI element in a `PreviewWrapper`
+
+#### MVVM with Custom ViewModel Hierarchy
+
+- `ViewModel1` → `ViewModel2` → `ViewModel3` → `ViewModel4`
+- `ViewModel4` adds navigation capabilities
+- Uses Hilt for assisted injection
+
+### Business Logic
+
+#### General
+
+- Abstract path system (`APath`, `RawPath`)
+- Gateway pattern for different file access methods
+- Support for root, ADB, and shell operations

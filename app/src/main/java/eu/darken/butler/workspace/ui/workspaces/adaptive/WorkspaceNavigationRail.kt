@@ -4,9 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,8 +20,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Folder
+import androidx.compose.material.icons.twotone.Looks3
+import androidx.compose.material.icons.twotone.LooksOne
+import androidx.compose.material.icons.twotone.LooksTwo
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.DropdownMenu
@@ -40,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
@@ -148,15 +155,35 @@ private fun WorkspaceRailItem(
             selected = isSelected,
             onClick = { showPaneMenu = true },
             icon = {
-                Icon(
-                    imageVector = when (workspace.type) {
-                        Workspace.Type.TEMPLATES -> Icons.TwoTone.Workspaces
-                        Workspace.Type.EXPLORER -> Icons.TwoTone.Folder
-                        Workspace.Type.SEARCHER -> Icons.TwoTone.Search
-                        Workspace.Type.EDITOR -> Icons.TwoTone.Edit
-                    },
-                    contentDescription = workspace.title.get(LocalContext.current),
-                )
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    // Show pane number on the left of the icon
+                    currentPaneIndex?.let { paneIdx ->
+                        Text(
+                            text = "${paneIdx + 1}",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(end = 2.dp)
+                        )
+                    }
+                    Icon(
+                        imageVector = when (workspace.type) {
+                            Workspace.Type.TEMPLATES -> Icons.TwoTone.Workspaces
+                            Workspace.Type.EXPLORER -> Icons.TwoTone.Folder
+                            Workspace.Type.SEARCHER -> Icons.TwoTone.Search
+                            Workspace.Type.EDITOR -> Icons.TwoTone.Edit
+                        },
+                        contentDescription = workspace.title.get(LocalContext.current),
+                        modifier = if (currentPaneIndex != null) {
+                            Modifier.padding(start = 2.dp)
+                        } else {
+                            Modifier
+                        }
+                    )
+                }
             },
             label = {
                 Text(
@@ -179,24 +206,6 @@ private fun WorkspaceRailItem(
             )
         }
 
-        // Show pane number indicator
-        currentPaneIndex?.let { paneIdx ->
-            Surface(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(4.dp),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.secondaryContainer,
-            ) {
-                Text(
-                    text = "${paneIdx + 1}",
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                )
-            }
-        }
-
         DropdownMenu(
             expanded = showPaneMenu,
             onDismissRequest = { showPaneMenu = false },
@@ -204,6 +213,17 @@ private fun WorkspaceRailItem(
             repeat(maxPanes) { paneIndex ->
                 DropdownMenuItem(
                     text = { Text("Pane ${paneIndex + 1}") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = when (paneIndex) {
+                                0 -> Icons.TwoTone.LooksOne
+                                1 -> Icons.TwoTone.LooksTwo
+                                2 -> Icons.TwoTone.Looks3
+                                else -> Icons.TwoTone.LooksOne
+                            },
+                            contentDescription = null,
+                        )
+                    },
                     onClick = {
                         onPaneAssignment(workspace.id, paneIndex)
                         showPaneMenu = false
@@ -213,6 +233,12 @@ private fun WorkspaceRailItem(
             HorizontalDivider()
             DropdownMenuItem(
                 text = { Text("Close") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.TwoTone.Close,
+                        contentDescription = null,
+                    )
+                },
                 onClick = {
                     onTabAction(WorkspaceAction.Close(workspace.id))
                     showPaneMenu = false
@@ -270,5 +296,64 @@ private fun WorkspaceNavigationRailPreview() {
             onPaneAssignment = { _, _ -> },
             onPaneMenuToggle = {},
         )
+    }
+}
+
+@Preview2
+@Composable
+private fun PaneMenuPreview() {
+    PreviewWrapper {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            DropdownMenu(
+                expanded = true,
+                onDismissRequest = {},
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Pane 1") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.TwoTone.LooksOne,
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {},
+                )
+                DropdownMenuItem(
+                    text = { Text("Pane 2") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.TwoTone.LooksTwo,
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {},
+                )
+                DropdownMenuItem(
+                    text = { Text("Pane 3") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.TwoTone.Looks3,
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {},
+                )
+                HorizontalDivider()
+                DropdownMenuItem(
+                    text = { Text("Close") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.TwoTone.Close,
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {},
+                )
+            }
+        }
     }
 }
