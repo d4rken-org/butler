@@ -1,12 +1,16 @@
 package eu.darken.butler.workspace.core
 
+import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.flow.replayingShare
+import eu.darken.butler.common.flow.setupCommonEventHandlers
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.templates.core.TemplatesWorkspace
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -21,6 +25,7 @@ import javax.inject.Singleton
 
 @Singleton
 class WorkspaceRepo @Inject constructor(
+    @param:AppScope private val appScope: CoroutineScope,
     private val templatesWorkspaceFactory: TemplatesWorkspace.Factory,
     private val explorerWorkspaceFactory: ExplorerWorkspace.Factory,
     private val searcherWorkspaceFactory: SearcherWorkspace.Factory,
@@ -31,7 +36,7 @@ class WorkspaceRepo @Inject constructor(
     private val lock = Mutex()
     private val _workspaces = MutableStateFlow<List<Workspace>>(emptyList())
     private val focusedWorkspace = MutableStateFlow<Workspace.Id?>(null)
-    private val selectedWorkspaces = MutableStateFlow<List<Workspace.Id>>(emptyList())
+    private val selectedWorkspaces = MutableStateFlow<Map<Int, Workspace.Id>>(emptyMap())
     private val infos: Flow<List<Workspace.Info>> = _workspaces.flatMapLatest { workspaces ->
         if (workspaces.isEmpty()) {
             flowOf(emptyList())
@@ -54,8 +59,10 @@ class WorkspaceRepo @Inject constructor(
             isButtonActionsFlipped = isButtonFlipped,
         )
     }
+        .setupCommonEventHandlers(TAG) { "WorkspaceState" }
+        .replayingShare(appScope)
 
-    private suspend fun create(
+    private fun create(
         type: Workspace.Type,
         arguments: Workspace.Arguments? = null,
         idToReplace: Workspace.Id? = null,
@@ -85,9 +92,6 @@ class WorkspaceRepo @Inject constructor(
             val index = wip.indexOfFirst { it.id == idToReplace }
             if (index == -1) throw IllegalStateException("Tab not found")
             log(TAG) { "Replacing workspace at index $index" }
-
-            // TODO clean up old tab?
-
             wip[index] = newWorkspace
         } else {
             wip.add(newWorkspace)
@@ -109,7 +113,7 @@ class WorkspaceRepo @Inject constructor(
                 log(TAG, INFO) { "Selected tab $action, previous: ${focusedWorkspace.value}" }
                 if (focusedWorkspace.value != action.id) {
                     focusedWorkspace.value = action.id
-                    selectedWorkspaces.value = listOf(action.id)
+                    selectedWorkspaces.value = mapOf(0 to action.id)
                     log(TAG) { "Tab selection changed to: ${action.id}" }
                 } else {
                     log(TAG) { "Tab selection unchanged, already selected: ${action.id}" }
@@ -117,20 +121,21 @@ class WorkspaceRepo @Inject constructor(
             }
 
             is WorkspaceAction.SelectMultiple -> {
-                log(TAG, INFO) { "Selecting multiple tabs: ${action.ids}" }
-                selectedWorkspaces.value = action.ids
-                if (action.ids.isNotEmpty() && (focusedWorkspace.value == null || !action.ids.contains(
+                log(TAG, INFO) { "Selecting multiple tabs: ${action.positions}" }
+                selectedWorkspaces.value = action.positions
+                val selectedIds = action.positions.values
+                if (selectedIds.isNotEmpty() && (focusedWorkspace.value == null || !selectedIds.contains(
                         focusedWorkspace.value
                     ))
                 ) {
-                    focusedWorkspace.value = action.ids.first()
+                    focusedWorkspace.value = selectedIds.first()
                 }
-                focusedWorkspace.value = action.ids.firstOrNull()
+                focusedWorkspace.value = selectedIds.firstOrNull()
             }
 
             is WorkspaceAction.Focus -> {
                 log(TAG, INFO) { "Focusing tab: ${action.id}" }
-                if (selectedWorkspaces.value.contains(action.id)) {
+                if (selectedWorkspaces.value.values.contains(action.id)) {
                     focusedWorkspace.value = action.id
                 } else {
                     log(TAG, WARN) { "Cannot focus tab ${action.id} - not in selected tabs" }
@@ -138,17 +143,23 @@ class WorkspaceRepo @Inject constructor(
             }
 
             is WorkspaceAction.ToggleSelection -> {
-                log(TAG, INFO) { "Toggling selection for tab: ${action.id}" }
+                log(TAG, INFO) { "Toggling selection for tab: ${action.id} at position ${action.position}" }
                 val current = selectedWorkspaces.value
-                selectedWorkspaces.value = if (current.contains(action.id)) {
-                    current - action.id
+                val existingPosition = current.entries.find { it.value == action.id }?.key
+
+                selectedWorkspaces.value = if (existingPosition != null) {
+                    // Remove from selection
+                    current - existingPosition
                 } else {
-                    current + action.id
+                    // Add to selection at specified position or next available
+                    val position = action.position ?: current.keys.maxOrNull()?.plus(1) ?: 0
+                    current + (position to action.id)
                 }
+
                 if (selectedWorkspaces.value.isEmpty()) {
                     focusedWorkspace.value = null
-                } else if (!selectedWorkspaces.value.contains(focusedWorkspace.value)) {
-                    focusedWorkspace.value = selectedWorkspaces.value.first()
+                } else if (!selectedWorkspaces.value.values.contains(focusedWorkspace.value)) {
+                    focusedWorkspace.value = selectedWorkspaces.value.values.first()
                 }
             }
 
@@ -159,16 +170,39 @@ class WorkspaceRepo @Inject constructor(
                     arguments = action.arguments,
                     idToReplace = action.replace
                 )
-                log(TAG) { "New workspace created with id $newId, selecting and scrolling to it" }
-                focusedWorkspace.value = newId
-                selectedWorkspaces.value = listOf(newId)
+                log(TAG) { "New workspace created with ID $newId" }
+
+                if (action.replace != null) {
+                    selectedWorkspaces.value.entries.find { (_, id) -> id == action.replace }?.let { (index, id) ->
+                        log(TAG) { "Replaced workspace was selected, updating selection at $index" }
+                        selectedWorkspaces.value = selectedWorkspaces.value.toMutableMap().apply {
+                            this[index] = newId
+                        }
+                    }
+                    if (focusedWorkspace.value == action.replace) {
+                        log(TAG) { "Replaced workspace was focused, updating focus" }
+                        focusedWorkspace.value = newId
+                    }
+                } else {
+                    if (focusedWorkspace.value == null) {
+                        log(TAG) { "There is no focused workspace, focusing the new one" }
+                        focusedWorkspace.value = newId
+                    }
+                    val nextEmptyIndex = generateSequence(0) { it + 1 }.first { index ->
+                        !selectedWorkspaces.value.containsKey(index)
+                    }
+
+                    log(TAG) { "Adding new workspace to selection at #$nextEmptyIndex" }
+                    selectedWorkspaces.value = selectedWorkspaces.value + mapOf(nextEmptyIndex to newId)
+                }
+
             }
 
             is WorkspaceAction.Close -> {
                 log(TAG, INFO) { "Closing workspace with id ${action.id}" }
                 val tabsBeforeDelete = _workspaces.first()
                 val closingIndex = tabsBeforeDelete.indexOfFirst { it.id == action.id }
-                val wasInMultiSelection = selectedWorkspaces.value.contains(action.id)
+                val wasInMultiSelection = selectedWorkspaces.value.values.contains(action.id)
                 val wasFocused = focusedWorkspace.value == action.id
 
                 _workspaces.value = _workspaces.value.filter { it.id != action.id }
@@ -176,7 +210,10 @@ class WorkspaceRepo @Inject constructor(
 
                 // Update multi-selection
                 if (wasInMultiSelection) {
-                    selectedWorkspaces.value = selectedWorkspaces.value.filter { it != action.id }
+                    val positionToRemove = selectedWorkspaces.value.entries.find { it.value == action.id }?.key
+                    if (positionToRemove != null) {
+                        selectedWorkspaces.value = selectedWorkspaces.value - positionToRemove
+                    }
                 }
 
                 // If closed tab wasn't selected, keep current selection unchanged
@@ -191,17 +228,17 @@ class WorkspaceRepo @Inject constructor(
                     log(TAG) { "Closed selected tab, selecting new tab: $newSelectedId" }
                     focusedWorkspace.value = newSelectedId
                     if (selectedWorkspaces.value.isEmpty()) {
-                        selectedWorkspaces.value = listOf(newSelectedId)
+                        selectedWorkspaces.value = mapOf(0 to newSelectedId)
                     }
                 } else if (tabsAfterDelete.isEmpty()) {
                     log(TAG) { "Closed last tab, setting selection to null" }
                     focusedWorkspace.value = null
-                    selectedWorkspaces.value = emptyList()
+                    selectedWorkspaces.value = emptyMap()
                 }
 
                 // Update focus if needed
                 if (wasFocused && tabsAfterDelete.isNotEmpty()) {
-                    focusedWorkspace.value = selectedWorkspaces.value.firstOrNull() ?: focusedWorkspace.value
+                    focusedWorkspace.value = selectedWorkspaces.value.values.firstOrNull() ?: focusedWorkspace.value
                 }
             }
             is WorkspaceAction.Reorder -> {
@@ -222,7 +259,7 @@ class WorkspaceRepo @Inject constructor(
             WorkspaceAction.CloseAll -> {
                 log(TAG, INFO) { "Closing all workspaces" }
                 focusedWorkspace.value = null
-                selectedWorkspaces.value = emptyList()
+                selectedWorkspaces.value = emptyMap()
                 _workspaces.value = emptyList()
             }
         }

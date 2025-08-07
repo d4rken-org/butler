@@ -107,41 +107,40 @@ fun WorkspaceScreen(
                 onTabAction = onTabAction,
                 onPaneAssignment = { workspaceId, paneIndex ->
                         // Create new selection with the workspace at the specified pane index
-                        val currentSelection = state.all.map { it.id }.toMutableList()
-
+                        val currentSelection = state.selected.toMutableMap()
+                        
                         // Check if this workspace is already assigned to this pane
-                        if (paneIndex < currentSelection.size && currentSelection[paneIndex] == workspaceId) {
+                        if (currentSelection[paneIndex] == workspaceId) {
                             // Workspace is already in this pane, do nothing to prevent hang
                             return@WorkspaceNavigationRail
                         }
-
+                        
                         // Check if the workspace is already assigned to another pane
-                        val existingPaneIndex = currentSelection.indexOf(workspaceId)
-
-                        // Ensure we have enough panes
-                        while (currentSelection.size <= paneIndex) {
-                            val newWorkspace = state.all.firstOrNull { !currentSelection.contains(it.id) }?.id
-                            if (newWorkspace != null) {
-                                currentSelection.add(newWorkspace)
+                        val existingPosition = currentSelection.entries.find { it.value.id == workspaceId }?.key
+                        
+                        if (existingPosition != null && existingPosition != paneIndex) {
+                            // Workspace is already in another pane - swap them if target pane is occupied
+                            val targetWorkspace = currentSelection[paneIndex]
+                            if (targetWorkspace != null) {
+                                // Swap workspaces
+                                currentSelection[paneIndex] = currentSelection[existingPosition]!!
+                                currentSelection[existingPosition] = targetWorkspace
                             } else {
-                                break
+                                // Move workspace to empty pane
+                                currentSelection.remove(existingPosition)
+                                currentSelection[paneIndex] = state.all.find { it.id == workspaceId }!!
+                            }
+                        } else if (existingPosition == null) {
+                            // Workspace not currently selected - add it to the specified pane
+                            state.all.find { it.id == workspaceId }?.let { workspace ->
+                                currentSelection[paneIndex] = workspace
                             }
                         }
-
-                        if (existingPaneIndex != -1 && existingPaneIndex != paneIndex && paneIndex < currentSelection.size) {
-                            // Workspace is already in another pane - swap them
-                            val targetWorkspaceId = currentSelection[paneIndex]
-                            currentSelection[paneIndex] = workspaceId
-                            currentSelection[existingPaneIndex] = targetWorkspaceId
-                        } else {
-                            // Normal assignment
-                            if (paneIndex < currentSelection.size) {
-                                currentSelection[paneIndex] = workspaceId
-                            }
-                        }
-
-                        onTabAction(WorkspaceAction.SelectMultiple(currentSelection))
-
+                        
+                        // Convert back to Map<Int, Workspace.Id> for the action
+                        val newPositions = currentSelection.mapValues { it.value.id }
+                        onTabAction(WorkspaceAction.SelectMultiple(newPositions))
+                        
                         showPaneNumbers = false
                     },
                     showPaneNumbers = showPaneNumbers,

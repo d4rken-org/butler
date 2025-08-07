@@ -77,7 +77,7 @@ data class DividerPositions(
 fun AdaptiveWorkspaceContainer(
     modifier: Modifier = Modifier,
     design: WorkspaceDesign = WorkspaceDesign(),
-    selected: List<Workspace.Info>,
+    selected: Map<Int, Workspace.Info>,
     focusedTabId: Workspace.Id?,
     dividerPositions: DividerPositions,
     onDividerPositionsChange: (DividerPositions) -> Unit,
@@ -176,7 +176,7 @@ private fun AdaptiveWorkspaceContainerPreview() {
         )
         var dividerPositions by remember { mutableStateOf(DividerPositions()) }
         AdaptiveWorkspaceContainer(
-            selected = tabs.take(2),
+            selected = tabs.take(2).mapIndexed { index, info -> index to info }.toMap(),
             design = WorkspaceDesign(
                 layout = WorkspaceDesign.Layout.DUAL_VERTICAL,
             ),

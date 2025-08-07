@@ -6,7 +6,7 @@ sealed interface WorkspaceAction {
     ) : WorkspaceAction
 
     data class SelectMultiple(
-        val ids: List<Workspace.Id>,
+        val positions: Map<Int, Workspace.Id>,
     ) : WorkspaceAction
 
     data class Focus(
@@ -15,6 +15,7 @@ sealed interface WorkspaceAction {
 
     data class ToggleSelection(
         val id: Workspace.Id,
+        val position: Int? = null,
     ) : WorkspaceAction
 
     data class Create(

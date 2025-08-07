@@ -12,13 +12,13 @@ import eu.darken.butler.workspace.core.Workspace
 
 @Composable
 internal fun SinglePaneLayout(
-    selected: List<Workspace.Info>,
+    selected: Map<Int, Workspace.Info>,
     focusedTabId: Workspace.Id?,
     showPaneNumbers: Boolean,
     onTabFocus: (Workspace.Id) -> Unit,
     paneContent: @Composable (Workspace.Info?, Int) -> Unit,
 ) {
-    val ws1 = selected.getOrNull(0)
+    val ws1 = selected[0]
     WorkspacePaneWrapper(
         modifier = Modifier.fillMaxSize(),
         isFocused = focusedTabId == ws1?.id,
@@ -32,7 +32,7 @@ internal fun SinglePaneLayout(
 
 @Composable
 internal fun DualVerticalLayout(
-    selected: List<Workspace.Info>,
+    selected: Map<Int, Workspace.Info>,
     focusedTabId: Workspace.Id?,
     dividerPositions: DividerPositions,
     containerSize: IntSize,
@@ -44,7 +44,7 @@ internal fun DualVerticalLayout(
     val showFocusBorder = selected.size > 1
 
     Row(modifier = Modifier.fillMaxSize()) {
-        val ws1 = selected.getOrNull(0)
+        val ws1 = selected[0]
         WorkspacePaneWrapper(
             modifier = Modifier
                 .weight(dividerPositions.dualVertical)
@@ -65,7 +65,7 @@ internal fun DualVerticalLayout(
             onPositionChange = createDividerCallback(DividerPositions::withDualVertical),
         )
 
-        val ws2 = selected.getOrNull(1)
+        val ws2 = selected[1]
         WorkspacePaneWrapper(
             modifier = Modifier
                 .weight(1f - dividerPositions.dualVertical)
@@ -82,7 +82,7 @@ internal fun DualVerticalLayout(
 
 @Composable
 internal fun DualHorizontalLayout(
-    selected: List<Workspace.Info>,
+    selected: Map<Int, Workspace.Info>,
     focusedTabId: Workspace.Id?,
     dividerPositions: DividerPositions,
     containerSize: IntSize,
@@ -94,7 +94,7 @@ internal fun DualHorizontalLayout(
     val showFocusBorder = selected.size > 1
 
     Column(modifier = Modifier.fillMaxSize()) {
-        val ws1 = selected.getOrNull(0)
+        val ws1 = selected[0]
         WorkspacePaneWrapper(
             modifier = Modifier
                 .weight(dividerPositions.dualHorizontal)
@@ -115,7 +115,7 @@ internal fun DualHorizontalLayout(
             onPositionChange = createDividerCallback(DividerPositions::withDualHorizontal),
         )
 
-        val ws2 = selected.getOrNull(1)
+        val ws2 = selected[1]
         WorkspacePaneWrapper(
             modifier = Modifier
                 .weight(1f - dividerPositions.dualHorizontal)
@@ -132,7 +132,7 @@ internal fun DualHorizontalLayout(
 
 @Composable
 internal fun TripleMainLeftLayout(
-    selected: List<Workspace.Info>,
+    selected: Map<Int, Workspace.Info>,
     focusedTabId: Workspace.Id?,
     dividerPositions: DividerPositions,
     containerSize: IntSize,
@@ -144,7 +144,7 @@ internal fun TripleMainLeftLayout(
     val showFocusBorder = selected.size > 1
 
     Row(modifier = Modifier.fillMaxSize()) {
-        val ws1 = selected.getOrNull(0)
+        val ws1 = selected[0]
         WorkspacePaneWrapper(
             modifier = Modifier
                 .weight(dividerPositions.tripleMain)
@@ -174,7 +174,7 @@ internal fun TripleMainLeftLayout(
                 .weight(1f - dividerPositions.tripleMain)
                 .fillMaxHeight()
         ) {
-            val ws2 = selected.getOrNull(1)
+            val ws2 = selected[1]
             WorkspacePaneWrapper(
                 modifier = Modifier
                     .weight(dividerPositions.tripleSecondary)
@@ -195,7 +195,7 @@ internal fun TripleMainLeftLayout(
                 onPositionChange = createDividerCallback(DividerPositions::withTripleSecondary),
             )
 
-            val ws3 = selected.getOrNull(2)
+            val ws3 = selected[2]
             WorkspacePaneWrapper(
                 modifier = Modifier
                     .weight(1f - dividerPositions.tripleSecondary)

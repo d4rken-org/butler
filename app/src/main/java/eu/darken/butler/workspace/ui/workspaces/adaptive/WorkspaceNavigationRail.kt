@@ -57,7 +57,7 @@ fun WorkspaceNavigationRail(
     onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
     workspaces: List<Workspace.Info>,
-    selected: List<Workspace.Info>,
+    selected: Map<Int, Workspace.Info>,
     focusedId: Workspace.Id?,
     design: WorkspaceDesign = WorkspaceDesign(),
     onTabAction: (WorkspaceAction) -> Unit,
@@ -96,12 +96,12 @@ fun WorkspaceNavigationRail(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 workspaces.forEach { ws ->
-                    val paneIndex = selected.indexOfFirst { it.id == ws.id }
+                    val paneIndex = selected.entries.find { it.value.id == ws.id }?.key
                     WorkspaceRailItem(
                         workspace = ws,
-                        isSelected = selected.map { it.id }.contains(ws.id),
+                        isSelected = selected.values.any { it.id == ws.id },
                         isFocused = focusedId == ws.id,
-                        currentPaneIndex = if (paneIndex >= 0) paneIndex else null,
+                        currentPaneIndex = paneIndex,
                         onTabAction = onTabAction,
                         onPaneAssignment = onPaneAssignment,
                         showPaneNumbers = showPaneNumbers,
@@ -257,7 +257,7 @@ private fun WorkspaceNavigationRailPreview() {
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
             workspaces = tabs,
-            selected = listOf(tabs[0], tabs[1]),
+            selected = mapOf(0 to tabs[0], 1 to tabs[1]),
             focusedId = tabs[0].id,
             onTabAction = {},
             onPaneAssignment = { _, _ -> },

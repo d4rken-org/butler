@@ -10,7 +10,7 @@ interface WorkspaceRemote {
     data class State(
         val infos: List<Workspace.Info> = emptyList(),
         val focusedWorkspace: Workspace.Id? = null,
-        val selectedWorkspaces: List<Workspace.Id> = emptyList(),
+        val selectedWorkspaces: Map<Int, Workspace.Id> = emptyMap(),
         val isButtonActionsFlipped: Boolean = false,
         val panelMode: WorkspacePanelMode = WorkspacePanelMode.AUTO,
     ) {

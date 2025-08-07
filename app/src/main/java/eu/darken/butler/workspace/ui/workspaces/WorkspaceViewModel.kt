@@ -71,8 +71,10 @@ class WorkspaceViewModel @Inject constructor(
         val current: Workspace.Info?
             get() = state.infos.firstOrNull { it.id == focused }
 
-        val selected: List<Workspace.Info>
-            get() = state.infos.filter { state.selectedWorkspaces.contains(it.id) }
+        val selected: Map<Int, Workspace.Info>
+            get() = state.selectedWorkspaces.mapNotNull { (position, id) ->
+                state.infos.find { it.id == id }?.let { position to it }
+            }.toMap()
 
         val all: List<Workspace.Info>
             get() = state.infos
