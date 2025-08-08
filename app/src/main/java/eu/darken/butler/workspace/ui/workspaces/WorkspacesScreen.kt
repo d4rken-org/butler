@@ -32,8 +32,6 @@ import eu.darken.butler.workspace.ui.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
-import eu.darken.butler.workspace.ui.manager.workspaceManager
-import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
 import eu.darken.butler.workspace.ui.workspaces.adaptive.AdaptiveWorkspaceContainer
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.EmptyAdaptiveWorkspaceContent
@@ -59,7 +57,7 @@ fun WorkspacesScreenHost(
         WorkspaceScreen(
             workspaceButtonState = workspaceButtonState,
             onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
-            onNavToWorkspaceManager = { vm.navTo(Nav.workspaceManager()) },
+            onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
             state = state,
             onNavToSettings = { vm.navTo(Nav.Main.settings()) },
             onWorkspaceTabAction = { vm.executeAction(it) },
