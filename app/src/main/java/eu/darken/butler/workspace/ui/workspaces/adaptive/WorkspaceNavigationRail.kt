@@ -95,9 +95,9 @@ fun WorkspaceNavigationRail(
                 onNavToWorkspaceManager = onNavToWorkspaceManager,
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             HorizontalDivider()
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Column(
                 modifier = Modifier
@@ -128,7 +128,7 @@ fun WorkspaceNavigationRail(
                 onClick = { onTabAction(WorkspaceAction.Create(Workspace.Type.TEMPLATES)) }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
