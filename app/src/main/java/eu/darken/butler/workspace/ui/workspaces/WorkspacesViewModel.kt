@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui
+package eu.darken.butler.workspace.ui.workspaces
 
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,6 +21,7 @@ import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.ui.manager.workspaceManager
+import eu.darken.butler.workspace.ui.WorkspacePanelMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
@@ -30,7 +31,7 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class WorkspaceViewModel @Inject constructor(
+class WorkspacesViewModel @Inject constructor(
     dispatchers: DispatcherProvider,
     private val navCtrl: NavigationController,
     upgradeRepo: UpgradeRepo,

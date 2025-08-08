@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui
+package eu.darken.butler.workspace.ui.workspaces
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
@@ -28,6 +28,7 @@ import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.main.ui.motd.MotdCard
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.ui.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
@@ -44,7 +45,7 @@ private val TAG = logTag("Workspace", "Screen")
 
 @Composable
 fun WorkspacesScreenHost(
-    vm: WorkspaceViewModel = hiltViewModel(),
+    vm: WorkspacesViewModel = hiltViewModel(),
     workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
     ErrorEventHandler(vm)
@@ -77,7 +78,7 @@ fun WorkspaceScreen(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
-    state: WorkspaceViewModel.State,
+    state: WorkspacesViewModel.State,
     onNavToSettings: () -> Unit,
     onWorkspaceTabAction: (WorkspaceAction) -> Unit,
     onScreenAction: (WorkspaceScreenAction) -> Unit,
@@ -237,7 +238,7 @@ fun WorkspaceScreen(
 @Composable
 private fun WorkspacesScreenPreview() {
     PreviewWrapper {
-        val state = WorkspaceViewModel.State(
+        val state = WorkspacesViewModel.State(
             state = WorkspaceRemote.State(
                 infos = emptyList(), // No workspaces
                 isButtonActionsFlipped = false,
@@ -267,7 +268,7 @@ private fun WorkspacesScreenPreview() {
 @Composable
 private fun WorkspacesScreenPreviewContent(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
-    state: WorkspaceViewModel.State,
+    state: WorkspacesViewModel.State,
 ) {
     val design = WorkspaceDesign(
         layout = WorkspaceDesign.Layout.DUAL_VERTICAL,
