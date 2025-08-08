@@ -1,10 +1,11 @@
-package eu.darken.butler.workspace.ui.workspaces
+package eu.darken.butler.workspace.ui
 
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.upgrade
@@ -16,10 +17,7 @@ import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
-import eu.darken.butler.workspace.ui.WorkspacePanelMode
-import eu.darken.butler.workspace.ui.WorkspaceScreenAction
 import kotlinx.coroutines.flow.MutableStateFlow
-import eu.darken.butler.common.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import java.util.UUID
@@ -27,7 +25,7 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class WorkspacesViewModel @Inject constructor(
+class WorkspaceViewModel @Inject constructor(
     dispatchers: DispatcherProvider,
     private val navCtrl: NavigationController,
     upgradeRepo: UpgradeRepo,

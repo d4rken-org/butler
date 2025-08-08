@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui.workspaces
+package eu.darken.butler.workspace.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
@@ -24,11 +24,10 @@ import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
-import eu.darken.butler.workspace.ui.WorkspacePanelMode
-import eu.darken.butler.workspace.ui.WorkspaceScreenAction
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
+import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
 import eu.darken.butler.workspace.ui.workspaces.adaptive.AdaptiveWorkspaceContainer
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.EmptyAdaptiveWorkspaceContent
@@ -37,7 +36,7 @@ import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContaine
 
 @Composable
 fun WorkspacesScreenHost(
-    vm: WorkspacesViewModel = hiltViewModel(),
+    vm: WorkspaceViewModel = hiltViewModel(),
     workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
     ErrorEventHandler(vm)
@@ -68,7 +67,7 @@ fun WorkspaceScreen(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
-    state: WorkspacesViewModel.State,
+    state: WorkspaceViewModel.State,
     onNavToSettings: () -> Unit,
     onTabAction: (WorkspaceAction) -> Unit,
     onScreenAction: (WorkspaceScreenAction) -> Unit,
@@ -211,7 +210,7 @@ fun WorkspaceScreen(
 @Composable
 private fun WorkspacesScreenPreview() {
     PreviewWrapper {
-        val state = WorkspacesViewModel.State(
+        val state = WorkspaceViewModel.State(
             state = WorkspaceRemote.State(
                 infos = emptyList(), // No workspaces
                 isButtonActionsFlipped = false,
@@ -241,7 +240,7 @@ private fun WorkspacesScreenPreview() {
 @Composable
 private fun WorkspacesScreenPreviewContent(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
-    state: WorkspacesViewModel.State,
+    state: WorkspaceViewModel.State,
 ) {
     val design = WorkspaceDesign(
         layout = WorkspaceDesign.Layout.DUAL_VERTICAL,
