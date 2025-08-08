@@ -1,27 +1,26 @@
 package eu.darken.butler.workspace.ui
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
-import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.settings
@@ -36,24 +35,43 @@ import eu.darken.butler.templates.ui.TemplatesWorkspacePageHost
 import eu.darken.butler.templates.ui.WorkspaceTab
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
+import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
+import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
+import eu.darken.butler.workspace.ui.workspaces.adaptive.AdaptiveWorkspaceContainer
+import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
+import eu.darken.butler.workspace.ui.workspaces.adaptive.EmptyAdaptiveWorkspaceContent
+import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceNavigationRail
+import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContainer
 import eu.darken.butler.workspace.ui.empty.EmptyWorkspaceContent
 import java.util.UUID
 
 private val TAG = logTag("Workspace", "Screen")
 
 @Composable
-fun WorkspaceScreenHost(vm: WorkspaceViewModel = hiltViewModel()) {
+fun WorkspacesScreenHost(
+    vm: WorkspaceViewModel = hiltViewModel(),
+    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
+) {
     ErrorEventHandler(vm)
+
+    val workspaceButtonState by workspaceButtonVm.state.collectAsState(null)
 
     val state by waitForState(vm.state)
     log(vm.tag) { "Workspace state: $state" }
 
     state?.let { state ->
         WorkspaceScreen(
+            workspaceButtonState = workspaceButtonState,
+            onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
+            onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
+
             state = state,
             onNavToSettings = { vm.navTo(Nav.Main.settings()) },
-            onTabAction = { vm.executeAction(it) },
-            onOpenWorkspaceManager = { vm.openWorkspaceManager() },
+            onTabAction = { vm.modifyTab(it) },
+            onScreenAction = { vm.executeScreenAction(it) },
             onUpgradeButler = { vm.upgradeButler() },
             onHideMotd = { vm.hideMotd(it) },
             onDismissMotd = { vm.dismissMotd(it) },
@@ -62,196 +80,249 @@ fun WorkspaceScreenHost(vm: WorkspaceViewModel = hiltViewModel()) {
     }
 }
 
+
 @Composable
 fun WorkspaceScreen(
+    workspaceButtonState: WorkspaceButtonViewModel.State?,
+    onWorkspaceAction: (WorkspaceAction) -> Unit,
+    onNavToWorkspaceManager: () -> Unit,
     state: WorkspaceViewModel.State,
     onNavToSettings: () -> Unit,
     onTabAction: (WorkspaceAction) -> Unit,
-    onOpenWorkspaceManager: () -> Unit,
+    onScreenAction: (WorkspaceScreenAction) -> Unit,
     onUpgradeButler: () -> Unit,
     onHideMotd: (UUID) -> Unit,
     onDismissMotd: (UUID) -> Unit,
     onMotdLinkClick: (String) -> Unit,
 ) {
-    val pagerState = rememberPagerState(pageCount = { state.tabs.size })
+    val windowSizeInfo = rememberWindowSizeInfo()
+    var showPaneNumbers by remember { mutableStateOf(false) }
+    var showPaneOverlay by remember { mutableStateOf(false) }
 
-    // Sync pager with selected tab
-    LaunchedEffect(state.selected, state.tabs) {
-        val selectedId = state.selected ?: return@LaunchedEffect
-        val selectedIndex = state.tabs.indexOfFirst { it.id == selectedId }
-        log(TAG) { "Syncing pager with selected tab: selectedId=$selectedId, selectedIndex=$selectedIndex, currentPage=${pagerState.currentPage}" }
-
-        if (selectedIndex < 0) {
-            log(TAG) { "Selected tab not found in tabs list yet - waiting for state consistency" }
-            return@LaunchedEffect
-        }
-
-        if (selectedIndex >= state.tabs.size || selectedIndex == pagerState.currentPage) return@LaunchedEffect
-
-        log(TAG) { "Animating pager to page $selectedIndex" }
-        pagerState.animateScrollToPage(selectedIndex)
+    var dividerPositions by rememberSaveable {
+        mutableStateOf(DividerPositions())
     }
 
 
-    val currentPage by remember { derivedStateOf { pagerState.currentPage } }
-    val isScrolling by remember { derivedStateOf { pagerState.isScrollInProgress } }
-
-    // Sync selected tab with pager when user swipes
-    LaunchedEffect(currentPage, isScrolling, state.tabs, state.selected) {
-        if (isScrolling) return@LaunchedEffect
-
-        log(TAG) { "Pager scroll completed at page: $currentPage" }
-        if (currentPage < 0 || currentPage >= state.tabs.size) return@LaunchedEffect
-
-        val currentTabId = state.tabs[currentPage].id
-        log(TAG) { "Current tab ID: $currentTabId, selected: ${state.selected}" }
-
-        // Only trigger tab selection if the currently selected tab actually exists in the tabs list
-        // This prevents race conditions during tab creation where selected ID is set before tabs list is updated
-        val selectedTabExists = state.selected?.let { selectedId ->
-            state.tabs.any { it.id == selectedId }
-        } ?: false
-
-        if (selectedTabExists && currentTabId != state.selected) {
-            log(TAG) { "Selecting tab due to user swipe: $currentTabId" }
-            onTabAction(WorkspaceAction.Select(currentTabId))
-        } else if (!selectedTabExists) {
-            log(TAG, WARN) { "Skipping tab selection - selected tab doesn't exist in tabs list yet" }
+    val effectivePaneLayout = when (state.displayMode) {
+        WorkspacePanelMode.AUTO -> windowSizeInfo.recommendedLayout
+        WorkspacePanelMode.SINGLE -> WorkspaceDesign.Layout.SINGLE
+        WorkspacePanelMode.DUAL -> if (windowSizeInfo.widthDp > windowSizeInfo.heightDp) {
+            WorkspaceDesign.Layout.DUAL_VERTICAL
+        } else {
+            WorkspaceDesign.Layout.DUAL_HORIZONTAL
         }
+
+        WorkspacePanelMode.TRIPLE -> WorkspaceDesign.Layout.TRIPLE_MAIN_LEFT
     }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background
-    ) { paddingValues ->
-        Box(
+    val design = WorkspaceDesign(
+        layout = effectivePaneLayout,
+    )
+
+    // Update pane count when design changes
+    LaunchedEffect(design.maxPanes) {
+        onScreenAction(WorkspaceScreenAction.SetPaneCount(design.maxPanes))
+    }
+
+    if (!design.isSingle) {
+        Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            // Main content
-            if (state.tabs.isNotEmpty()) {
-                HorizontalPager(
-                    state = pagerState,
-                    modifier = Modifier.fillMaxSize()
-                ) { page ->
-                    TabContent(
+            WorkspaceNavigationRail(
+                design = design,
+                workspaces = state.all,
+                selected = state.selected,
+                focusedId = state.focused,
+                onTabAction = onTabAction,
+                onPaneAssignment = { workspaceId, paneIndex ->
+                        // Create new selection with the workspace at the specified pane index
+                        val currentSelection = state.selected.toMutableMap()
+
+                        // Check if this workspace is already assigned to this pane
+                        if (currentSelection[paneIndex] == workspaceId) {
+                            // Workspace is already in this pane, do nothing to prevent hang
+                            return@WorkspaceNavigationRail
+                        }
+
+                        // Check if the workspace is already assigned to another pane
+                        val existingPosition = currentSelection.entries.find { it.value.id == workspaceId }?.key
+
+                        if (existingPosition != null && existingPosition != paneIndex) {
+                            // Workspace is already in another pane - swap them if target pane is occupied
+                            val targetWorkspace = currentSelection[paneIndex]
+                            if (targetWorkspace != null) {
+                                // Swap workspaces
+                                currentSelection[paneIndex] = currentSelection[existingPosition]!!
+                                currentSelection[existingPosition] = targetWorkspace
+                            } else {
+                                // Move workspace to empty pane
+                                currentSelection.remove(existingPosition)
+                                currentSelection[paneIndex] = state.all.find { it.id == workspaceId }!!
+                            }
+                        } else if (existingPosition == null) {
+                            // Workspace not currently selected - add it to the specified pane
+                            state.all.find { it.id == workspaceId }?.let { workspace ->
+                                currentSelection[paneIndex] = workspace
+                            }
+                        }
+
+                        // Convert back to Map<Int, Workspace.Id> for the action
+                        val newPositions = currentSelection.mapValues { it.value.id }
+                        onScreenAction(WorkspaceScreenAction.SelectMultiple(newPositions))
+
+                        showPaneNumbers = false
+                        showPaneOverlay = false
+                    },
+                    onPaneMenuToggle = { isOpen ->
+                        showPaneOverlay = isOpen
+                        showPaneNumbers = isOpen
+                    },
+                    workspaceButtonState = workspaceButtonState,
+                    onWorkspaceAction = onWorkspaceAction,
+                    onNavToWorkspaceManager = onNavToWorkspaceManager,
+                    )
+
+                AdaptiveWorkspaceContainer(
+                    modifier = Modifier
+                        .weight(1f)
+                        .systemBarsPadding(),
+                    design = design,
+                    selected = state.selected,
+                    focusedTabId = state.focused,
+                    dividerPositions = dividerPositions,
+                    onDividerPositionsChange = { newPositions ->
+                        dividerPositions = newPositions
+                    },
+                    getCurrentDividerPositions = { dividerPositions },
+                    onTabFocus = { id ->
+                        onScreenAction(WorkspaceScreenAction.Focus(id))
+                    },
+                    showPaneNumbers = showPaneNumbers,
+                    showPaneOverlay = showPaneOverlay,
+                    paneContent = { info, paneNumber ->
+                        if (info != null) {
+                            WorkspaceMapper(
+                                info = info,
+                                design = design,
+                            )
+                        } else {
+                            EmptyAdaptiveWorkspaceContent(
+                                modifier = Modifier.weight(1f),
+                                paneNumber = paneNumber,
+                            )
+                        }
+                    }
+                )
+        }
+    } else {
+        ClassicWorkspaceContainer(
+            state = state,
+            onNavToSettings = onNavToSettings,
+            onTabAction = onTabAction,
+            onUiAction = onScreenAction,
+            onUpgradeButler = onUpgradeButler,
+        )
+    }
+
+    // MOTD overlay at the top
+    state.motd?.let { motd ->
+        MotdCard(
+            motd = motd,
+            onHide = { onHideMotd(motd.id) },
+            onMarkAsRead = onDismissMotd,
+            onLinkClick = onMotdLinkClick,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun WorkspacesScreenPreview() {
+    PreviewWrapper {
+        val state = WorkspaceViewModel.State(
+            state = WorkspaceRemote.State(
+                infos = emptyList(), // No workspaces
+                isButtonActionsFlipped = false,
+                panelMode = WorkspacePanelMode.DUAL,
+            ),
+            focusedWorkspace = null,
+            selectedWorkspaces = emptyMap(), // No selected workspaces
+            isUpgraded = true,
+            isButtonActionsFlipped = false,
+            swipeGesturesEnabled = true,
+        )
+
+        val workspaceButtonState = WorkspaceButtonViewModel.State(
+            workspaceCount = 0,
+            isButtonFlipped = false,
+            operationsCount = 0,
+            attentionCount = 0,
+        )
+
+        WorkspacesScreenPreviewContent(
+            workspaceButtonState = workspaceButtonState,
+            state = state,
+        )
+    }
+}
+
+@Composable
+private fun WorkspacesScreenPreviewContent(
+    workspaceButtonState: WorkspaceButtonViewModel.State?,
+    state: WorkspaceViewModel.State,
+) {
+    val design = WorkspaceDesign(
+        layout = WorkspaceDesign.Layout.DUAL_VERTICAL,
+    )
+
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        WorkspaceNavigationRail(
+            design = design,
+            workspaces = state.all,
+            selected = state.selected,
+            focusedId = state.focused,
+            onTabAction = {},
+            onPaneAssignment = { _, _ -> },
+            onPaneMenuToggle = {},
+            workspaceButtonState = workspaceButtonState,
+            onWorkspaceAction = {},
+            onNavToWorkspaceManager = {},
+        )
+
+        AdaptiveWorkspaceContainer(
+            modifier = Modifier.weight(1f),
+            design = design,
+            selected = state.selected,
+            focusedTabId = state.focused,
+            dividerPositions = DividerPositions(),
+            onDividerPositionsChange = {},
+            onTabFocus = {},
+            showPaneNumbers = false,
+            showPaneOverlay = false,
+            paneContent = { info, paneNumber ->
+                if (info != null) {
+                    // Simple placeholder content for preview
+                    EmptyAdaptiveWorkspaceContent(
                         modifier = Modifier.fillMaxSize(),
-                        selected = state.tabs[page],
+                        paneNumber = paneNumber,
+                    )
+                } else {
+                    EmptyAdaptiveWorkspaceContent(
+                        modifier = Modifier.fillMaxSize(),
+                        paneNumber = paneNumber,
                     )
                 }
-            } else {
-                EmptyWorkspaceContent(
-                    modifier = Modifier.fillMaxSize(),
-                    onNavToSettings = onNavToSettings,
-                    onTabAction = onTabAction,
-                    onOpenWorkspaceManager = onOpenWorkspaceManager,
-                    isUpgraded = state.isUpgraded,
-                    onUpgradeButler = onUpgradeButler,
-                )
             }
-
-            // MOTD overlay at the top
-            state.motd?.let { motd ->
-                MotdCard(
-                    motd = motd,
-                    onHide = { onHideMotd(motd.id) },
-                    onMarkAsRead = onDismissMotd,
-                    onLinkClick = onMotdLinkClick,
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                )
-            }
-        }
-    }
-}
-
-
-@Composable
-private fun TabContent(
-    modifier: Modifier = Modifier,
-    selected: WorkspaceTab,
-) {
-    Box(modifier = modifier) {
-        when (selected.type) {
-            Workspace.Type.TEMPLATES -> TemplatesWorkspacePageHost(
-                id = selected.id,
-            )
-            Workspace.Type.EXPLORER -> ExplorerWorkspacePageHost(
-                id = selected.id,
-            )
-            Workspace.Type.SEARCHER -> SearcherWorkspacePageHost(
-                id = selected.id,
-            )
-            Workspace.Type.EDITOR -> EditorWorkspacePageHost(
-                id = selected.id,
-            )
-        }
-    }
-}
-
-@Preview2
-@Composable
-private fun EmptyWorkspaceScreenPreview() {
-    PreviewWrapper {
-        WorkspaceScreen(
-            state = WorkspaceViewModel.State(
-                tabs = emptyList(),
-                selected = null,
-                isUpgraded = false,
-            ),
-            onNavToSettings = {},
-            onTabAction = {},
-            onOpenWorkspaceManager = {},
-            onUpgradeButler = {},
-            onHideMotd = {},
-            onDismissMotd = {},
-            onMotdLinkClick = {},
         )
     }
 }
-
-@Preview2
-@Composable
-private fun WorkspaceScreenPreview() {
-    PreviewWrapper {
-        val tabs = listOf(
-            WorkspaceTab(
-                type = Workspace.Type.TEMPLATES,
-                id = Workspace.Id(),
-                title = caString { "Workspace templates" },
-            ),
-            WorkspaceTab(
-                type = Workspace.Type.EXPLORER,
-                id = Workspace.Id(),
-                title = caString { "Explorer" },
-            ),
-        )
-        WorkspaceScreen(
-            state = WorkspaceViewModel.State(
-                tabs = tabs,
-                selected = tabs.last().id,
-                isUpgraded = false,
-                motd = MotdState(
-                    motd = MotdApi.Motd(
-                        id = UUID.randomUUID(),
-                        message = "This is a message of the day. It can contain important information about updates, new features, or announcements.",
-                        primaryLink = "https://example.com",
-                        minimumVersion = null,
-                        maximumVersion = null,
-                    ),
-                    locale = java.util.Locale.ENGLISH,
-                )
-            ),
-            onNavToSettings = {},
-            onTabAction = {},
-            onOpenWorkspaceManager = {},
-            onUpgradeButler = {},
-            onHideMotd = {},
-            onDismissMotd = {},
-            onMotdLinkClick = {},
-        )
-    }
-}
-

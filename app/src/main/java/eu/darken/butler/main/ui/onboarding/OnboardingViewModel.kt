@@ -13,7 +13,7 @@ import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.motd.MotdSettings
-import eu.darken.butler.workspace.ui.workspaces
+import eu.darken.butler.workspace.ui.workspaces.workspaces
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 

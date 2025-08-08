@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -36,10 +35,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -77,6 +74,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
+import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import kotlinx.coroutines.delay
 import eu.darken.butler.searcher.ui.search.rows.FileType as UIFileType
 
@@ -84,6 +82,7 @@ import eu.darken.butler.searcher.ui.search.rows.FileType as UIFileType
 @Composable
 fun SearcherWorkspacePageHost(
     id: Workspace.Id,
+    design: WorkspaceDesign,
     vm: SearcherWorkspaceViewModel = hiltViewModel(
         key = id.longTag,
         creationCallback = { factory: SearcherWorkspaceViewModel.Factory -> factory.create(id = id) }
@@ -99,6 +98,7 @@ fun SearcherWorkspacePageHost(
 
     state?.let { state ->
         SearcherWorkspacePage(
+            design = design,
             state = state,
             onUpdateQuery = vm::updateSearchQuery,
             onUpdateSearchPath = vm::updateSearchPath,
@@ -122,6 +122,7 @@ fun SearcherWorkspacePageHost(
 
 @Composable
 fun SearcherWorkspacePage(
+    design: WorkspaceDesign = WorkspaceDesign(),
     state: SearcherWorkspaceViewModel.State,
     onUpdateQuery: (String) -> Unit = {},
     onUpdateSearchPath: (APath) -> Unit = {},
@@ -336,13 +337,15 @@ fun SearcherWorkspacePage(
                             modifier = Modifier.weight(1f)
                         )
 
-                        Spacer(modifier = Modifier.width(8.dp))
+                        if (design.isSingle) {
+                            Spacer(modifier = Modifier.width(8.dp))
 
-                        WorkspaceButton(
-                            state = workspaceButtonState,
-                            onAction = onWorkspaceAction,
-                            onNavToWorkspaceManager = onNavToWorkspaceManager,
-                        )
+                            WorkspaceButton(
+                                state = workspaceButtonState,
+                                onAction = onWorkspaceAction,
+                                onNavToWorkspaceManager = onNavToWorkspaceManager,
+                            )
+                        }
                     }
 
                     SearchPathBar(
@@ -350,7 +353,7 @@ fun SearcherWorkspacePage(
                         onPathChange = onUpdateSearchPath,
                         isSearching = state.isSearching
                     )
-                    
+
                     SearchOptionsRow(
                         caseSensitive = state.caseSensitive,
                         wholeWord = state.wholeWord,
@@ -446,7 +449,7 @@ fun CustomSearchField(
     val focusRequester = remember { FocusRequester() }
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
-    
+
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
@@ -471,7 +474,7 @@ fun CustomSearchField(
                     it()
                 }
             }
-            
+
             BasicTextField(
                 value = value,
                 onValueChange = onValueChange,
@@ -499,7 +502,7 @@ fun CustomSearchField(
                     }
                 }
             )
-            
+
             trailingIcon?.let {
                 Box(modifier = Modifier.padding(start = 8.dp)) {
                     it()
@@ -541,6 +544,7 @@ fun SearchBar(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+
                 query.isNotEmpty() -> {
                     Icon(
                         imageVector = Icons.Default.Clear,
@@ -551,6 +555,7 @@ fun SearchBar(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+
                 else -> null
             }
         },

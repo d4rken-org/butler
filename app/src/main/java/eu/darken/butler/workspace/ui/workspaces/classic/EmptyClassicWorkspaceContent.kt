@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui.empty
+package eu.darken.butler.workspace.ui.workspaces.classic
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -36,7 +36,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.WorkspaceAction
 
 @Composable
-internal fun EmptyWorkspaceContent(
+internal fun EmptyClassicWorkspaceContent(
     modifier: Modifier = Modifier,
     isUpgraded: Boolean,
     onNavToSettings: () -> Unit,
@@ -225,7 +225,7 @@ internal fun EmptyWorkspaceContent(
 @Composable
 private fun EmptyWorkspaceContentPreview() {
     PreviewWrapper {
-        EmptyWorkspaceContent(
+        EmptyClassicWorkspaceContent(
             isUpgraded = false,
             onNavToSettings = {},
             onTabAction = {},

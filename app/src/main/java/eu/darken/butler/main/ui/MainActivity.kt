@@ -43,7 +43,7 @@ import eu.darken.butler.common.theming.ThemeState
 import eu.darken.butler.common.ui.Activity2
 import eu.darken.butler.main.core.CurriculumVitae
 import eu.darken.butler.main.core.GeneralSettings
-import eu.darken.butler.workspace.ui.workspaces
+import eu.darken.butler.workspace.ui.workspaces.workspaces
 import javax.inject.Inject
 
 @AndroidEntryPoint

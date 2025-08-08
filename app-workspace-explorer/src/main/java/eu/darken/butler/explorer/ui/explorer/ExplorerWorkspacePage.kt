@@ -32,11 +32,13 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
+import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import kotlinx.coroutines.flow.flowOf
 
 @Composable
 fun ExplorerWorkspacePageHost(
     id: Workspace.Id,
+    design: WorkspaceDesign,
     vm: ExplorerWorkspaceViewModel = hiltViewModel(
         key = id.longTag,
         creationCallback = { factory: ExplorerWorkspaceViewModel.Factory -> factory.create(id = id) }
@@ -52,6 +54,7 @@ fun ExplorerWorkspacePageHost(
 
     state?.let { state ->
         ExplorerWorkspacePage(
+            design = design,
             state = state,
             vm = vm,
             workspaceButtonState = workspaceButtonState,
@@ -63,6 +66,7 @@ fun ExplorerWorkspacePageHost(
 
 @Composable
 fun ExplorerWorkspacePage(
+    design: WorkspaceDesign = WorkspaceDesign(),
     state: ExplorerWorkspaceViewModel.State,
     vm: ExplorerWorkspaceViewModel? = null,
     workspaceButtonState: WorkspaceButtonViewModel.State?,
@@ -99,13 +103,14 @@ fun ExplorerWorkspacePage(
                         .weight(1f)
                         .padding(top = 2.dp)
                 )
-
-                WorkspaceButton(
-                    modifier = Modifier.padding(start = 8.dp),
-                    state = workspaceButtonState,
-                    onAction = onWorkspaceAction,
-                    onNavToWorkspaceManager = onNavToWorkspaceManager,
-                )
+                if (design.isSingle) {
+                    WorkspaceButton(
+                        modifier = Modifier.padding(start = 8.dp),
+                        state = workspaceButtonState,
+                        onAction = onWorkspaceAction,
+                        onNavToWorkspaceManager = onNavToWorkspaceManager,
+                    )
+                }
             }
 
             // File list

@@ -75,12 +75,12 @@ fun WorkspaceButton(
             )
         }
 
-        // Badge showing workspace count (top-right)
+        // Badge showing workspace count (top-left)
         if (state?.workspaceCount != null && state.workspaceCount > 0) {
             Box(
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .offset(x = 8.dp, y = (-8).dp)
+                    .align(Alignment.TopStart)
+                    .offset(x = (-8).dp, y = (-8).dp)
                     .size(16.dp)
                     .background(
                         color = MaterialTheme.colorScheme.surfaceVariant,
@@ -102,12 +102,12 @@ fun WorkspaceButton(
             }
         }
 
-        // Badge showing operations count (top-left)
+        // Badge showing operations count (top-right)
         if (state?.operationsCount != null && state.operationsCount > 0) {
             Box(
                 modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .offset(x = (-8).dp, y = (-8).dp)
+                    .align(Alignment.TopEnd)
+                    .offset(x = 8.dp, y = (-8).dp)
                     .size(16.dp)
                     .background(
                         color = MaterialTheme.colorScheme.primary,
@@ -172,7 +172,7 @@ private fun WorkspaceButtonPreview() {
                     workspaceCount = 0,
                     isButtonFlipped = false,
                     operationsCount = 0,
-                    attentionCount = 0
+                    attentionCount = 0,
                 ),
                 onAction = {},
                 onNavToWorkspaceManager = {}
@@ -184,7 +184,7 @@ private fun WorkspaceButtonPreview() {
                     workspaceCount = 1,
                     isButtonFlipped = false,
                     operationsCount = 0,
-                    attentionCount = 0
+                    attentionCount = 0,
                 ),
                 onAction = {},
                 onNavToWorkspaceManager = {}
@@ -196,7 +196,7 @@ private fun WorkspaceButtonPreview() {
                     workspaceCount = 3,
                     isButtonFlipped = false,
                     operationsCount = 2,
-                    attentionCount = 0
+                    attentionCount = 0,
                 ),
                 onAction = {},
                 onNavToWorkspaceManager = {}
@@ -208,7 +208,7 @@ private fun WorkspaceButtonPreview() {
                     workspaceCount = 5,
                     isButtonFlipped = false,
                     operationsCount = 7,
-                    attentionCount = 1
+                    attentionCount = 1,
                 ),
                 onAction = {},
                 onNavToWorkspaceManager = {}
@@ -220,7 +220,7 @@ private fun WorkspaceButtonPreview() {
                     workspaceCount = 12,
                     isButtonFlipped = true,
                     operationsCount = 15,
-                    attentionCount = 10
+                    attentionCount = 10,
                 ),
                 onAction = {},
                 onNavToWorkspaceManager = {}

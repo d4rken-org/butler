@@ -32,7 +32,7 @@ class WorkspaceManagerViewModel @Inject constructor(
         workspaceSettings.showButtonBehaviorExplanation.flow,
     ) { repoState, isFlipped, showBadge, showBehavior ->
         State(
-            workspaces = repoState.workspaceInfos.map { info ->
+            workspaces = repoState.infos.map { info ->
                 WorkspaceItem(
                     id = info.id,
                     type = info.type,
@@ -67,7 +67,8 @@ class WorkspaceManagerViewModel @Inject constructor(
 
     fun selectWorkspace(id: Workspace.Id) = launch {
         log(tag) { "selectWorkspace($id)" }
-        workspaceRepo.execute(WorkspaceAction.Select(id))
+        // Selection is now handled through navigation result
+        // The parent screen will handle the actual selection
         navigateBack()
     }
 
