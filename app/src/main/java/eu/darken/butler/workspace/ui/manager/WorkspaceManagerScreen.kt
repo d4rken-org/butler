@@ -228,13 +228,13 @@ fun WorkspaceManagerScreen(
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(
                             imageVector = Icons.TwoTone.Settings,
-                            contentDescription = "Settings"
+                            contentDescription = stringResource(R.string.workspace_manager_settings_content_desc)
                         )
                     }
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.TwoTone.Close,
-                            contentDescription = "Dismiss"
+                            contentDescription = stringResource(R.string.workspace_manager_dismiss_content_desc)
                         )
                     }
                 },
@@ -363,9 +363,20 @@ fun WorkspaceManagerScreen(
     if (showCloseAllDialog) {
         AlertDialog(
             onDismissRequest = { showCloseAllDialog = false },
-            title = { Text("Close All Workspaces?") },
+            title = { Text(stringResource(R.string.workspace_manager_close_all_title)) },
             text = {
-                Text("This will close all ${state.workspaceCount} open ${if (state.workspaceCount == 1) "workspace" else "workspaces"}. This action cannot be undone.")
+                val workspaceString = if (state.workspaceCount == 1) {
+                    stringResource(R.string.workspace_manager_close_all_message_singular)
+                } else {
+                    stringResource(R.string.workspace_manager_close_all_message_plural)
+                }
+                Text(
+                    stringResource(
+                        R.string.workspace_manager_close_all_message,
+                        state.workspaceCount,
+                        workspaceString
+                    )
+                )
             },
             confirmButton = {
                 TextButton(
@@ -374,14 +385,14 @@ fun WorkspaceManagerScreen(
                         showCloseAllDialog = false
                     }
                 ) {
-                    Text("Close All")
+                    Text(stringResource(R.string.workspace_manager_close_all_action))
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showCloseAllDialog = false }
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.general_cancel_action))
                 }
             }
         )

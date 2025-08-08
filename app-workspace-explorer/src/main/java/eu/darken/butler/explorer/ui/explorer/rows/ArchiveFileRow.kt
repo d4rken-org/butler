@@ -7,8 +7,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerPathItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
@@ -31,15 +33,15 @@ internal fun ArchiveFileRow(
         leadingContent = {
             Icon(
                 imageVector = Icons.Default.Archive,
-                contentDescription = "Archive",
+                contentDescription = stringResource(R.string.explorer_file_archive_content_desc),
                 tint = MaterialTheme.colorScheme.tertiary,
                 modifier = Modifier.size(32.dp)
             )
         },
         primaryText = item.displayName,
         secondaryText = buildString {
-            item.entryCount?.let { 
-                append("$it items")
+            item.entryCount?.let {
+                append(stringResource(R.string.explorer_file_items_count, it))
                 append(" • ")
             }
             append(item.displaySize)

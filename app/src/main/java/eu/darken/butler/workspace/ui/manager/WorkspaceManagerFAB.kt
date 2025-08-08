@@ -22,6 +22,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
+import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
@@ -49,7 +51,7 @@ fun WorkspaceManagerFAB(
                     contentDescription = null
                 )
             },
-            text = { Text("Add Workspace") }
+            text = { Text(stringResource(R.string.workspace_fab_add_workspace)) }
         )
 
         DropdownMenu(
@@ -57,7 +59,7 @@ fun WorkspaceManagerFAB(
             onDismissRequest = { showDropdown = false }
         ) {
             DropdownMenuItem(
-                text = { Text("Explorer") },
+                text = { Text(stringResource(R.string.workspace_fab_explorer)) },
                 onClick = {
                     onCreateWorkspace(Workspace.Type.EXPLORER)
                     showDropdown = false
@@ -67,7 +69,7 @@ fun WorkspaceManagerFAB(
                 }
             )
             DropdownMenuItem(
-                text = { Text("Search") },
+                text = { Text(stringResource(R.string.workspace_fab_search)) },
                 onClick = {
                     onCreateWorkspace(Workspace.Type.SEARCHER)
                     showDropdown = false
@@ -77,7 +79,7 @@ fun WorkspaceManagerFAB(
                 }
             )
             DropdownMenuItem(
-                text = { Text("Editor") },
+                text = { Text(stringResource(R.string.workspace_fab_editor)) },
                 onClick = {
                     onCreateWorkspace(Workspace.Type.EDITOR)
                     showDropdown = false
@@ -87,7 +89,7 @@ fun WorkspaceManagerFAB(
                 }
             )
             DropdownMenuItem(
-                text = { Text("Templates") },
+                text = { Text(stringResource(R.string.workspace_fab_templates)) },
                 onClick = {
                     onCreateWorkspace(Workspace.Type.TEMPLATES)
                     showDropdown = false
@@ -101,7 +103,7 @@ fun WorkspaceManagerFAB(
                 DropdownMenuItem(
                     text = {
                         Text(
-                            "Close All Workspaces",
+                            stringResource(R.string.workspace_fab_close_all),
                             color = MaterialTheme.colorScheme.error
                         )
                     },

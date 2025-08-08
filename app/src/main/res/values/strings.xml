@@ -204,4 +204,36 @@
     <string name="workspace_badge_active_operations">Active operations (file copies, searches, etc.)</string>
     <string name="workspace_badge_attention_items">Items needing attention (errors, unsaved changes)</string>
 
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_settings_content_desc">Settings</string>
+    <string name="workspace_manager_dismiss_content_desc">Dismiss</string>
+    <string name="workspace_manager_close_all_title">Close All Workspaces?</string>
+    <string name="workspace_manager_close_all_message">This will close all %1$d open %2$s. This action cannot be undone.</string>
+    <string name="workspace_manager_close_all_message_singular">workspace</string>
+    <string name="workspace_manager_close_all_message_plural">workspaces</string>
+    <string name="workspace_manager_close_all_action">Close All</string>
+    <string name="general_cancel_action">Cancel</string>
+
+    <!-- Workspace Manager FAB -->
+    <string name="workspace_fab_add_workspace">Add Workspace</string>
+    <string name="workspace_fab_explorer">Explorer</string>
+    <string name="workspace_fab_search">Search</string>
+    <string name="workspace_fab_editor">Editor</string>
+    <string name="workspace_fab_templates">Templates</string>
+    <string name="workspace_fab_close_all">Close All Workspaces</string>
+
+    <!-- Workspace Navigation Rail -->
+    <string name="workspace_pane_label">Pane %1$d</string>
+    <string name="workspace_pane_close">Close</string>
+
+    <!-- Workspace Manager Row -->
+    <string name="workspace_row_reorder_content_desc">Reorder</string>
+    <string name="workspace_row_close_content_desc">Close workspace</string>
+
+    <!-- Settings Index -->
+    <string name="workspace_settings_subtitle">Configure workspace behavior</string>
+    <string name="explorer_settings_subtitle">Configure file explorer behavior</string>
+    <string name="searcher_settings_subtitle">Configure search behavior</string>
+    <string name="editor_settings_subtitle">Configure text editor behavior</string>
+
 </resources>

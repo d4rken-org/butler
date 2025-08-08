@@ -27,4 +27,21 @@
     <string name="searcher_settings_max_history_subtitle">Maximum number of saved searches</string>
     <string name="searcher_settings_clear_history_title">Clear search history</string>
     <string name="searcher_settings_clear_history_subtitle">Remove all saved searches</string>
+
+    <!-- Searcher UI -->
+    <string name="searcher_recent_searches">Recent searches</string>
+    <string name="searcher_placeholder_search">Search files and folders</string>
+    <string name="searcher_search_error">Search error</string>
+    <string name="searcher_no_results">No results found</string>
+    <string name="searcher_placeholder_path">Search path (e.g., /sdcard)</string>
+    <string name="searcher_select_path_title">Select Search Path</string>
+    <string name="general_cancel_action">Cancel</string>
+
+    <!-- Search Options -->
+    <string name="searcher_option_case_sensitive_label">Aa</string>
+    <string name="searcher_option_case_sensitive_desc">Case sensitive search</string>
+    <string name="searcher_option_whole_word_label">Word</string>
+    <string name="searcher_option_whole_word_desc">Whole word search</string>
+    <string name="searcher_option_regex_label">.*</string>
+    <string name="searcher_option_regex_desc">Regular expression search</string>
 </resources>

@@ -53,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -66,6 +67,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.ui.waitForState
+import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchRepository
 import eu.darken.butler.searcher.core.SearchResult
 import eu.darken.butler.searcher.ui.search.rows.FileRowData
@@ -174,7 +176,7 @@ fun SearcherWorkspacePage(
                 ) {
                     item {
                         Text(
-                            text = "Recent searches",
+                            text = stringResource(R.string.searcher_recent_searches),
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
@@ -217,7 +219,7 @@ fun SearcherWorkspacePage(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Search files and folders",
+                        text = stringResource(R.string.searcher_placeholder_search),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
@@ -238,7 +240,7 @@ fun SearcherWorkspacePage(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Search error",
+                            text = stringResource(R.string.searcher_search_error),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.error
                         )
@@ -261,7 +263,7 @@ fun SearcherWorkspacePage(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No results found",
+                        text = stringResource(R.string.searcher_no_results),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
@@ -524,7 +526,7 @@ fun SearchBar(
     CustomSearchField(
         value = query,
         onValueChange = onQueryChange,
-        placeholder = "Search files and folders",
+        placeholder = stringResource(R.string.searcher_placeholder_search),
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Search,
@@ -537,7 +539,7 @@ fun SearchBar(
                 isSearching && onCancel != null -> {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Cancel",
+                        contentDescription = stringResource(R.string.general_cancel_action),
                         modifier = Modifier
                             .clickable { onCancel() }
                             .size(24.dp),
@@ -585,7 +587,7 @@ fun SearchPathBar(
                 // Invalid path, don't update
             }
         },
-        placeholder = "Search path (e.g., /sdcard)",
+        placeholder = stringResource(R.string.searcher_placeholder_path),
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Folder,
@@ -642,7 +644,7 @@ fun PathPickerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Select Search Path") },
+        title = { Text(stringResource(R.string.searcher_select_path_title)) },
         text = {
             LazyColumn {
                 items(commonPaths) { (path, name) ->
@@ -679,7 +681,7 @@ fun PathPickerDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.general_cancel_action))
             }
         }
     )

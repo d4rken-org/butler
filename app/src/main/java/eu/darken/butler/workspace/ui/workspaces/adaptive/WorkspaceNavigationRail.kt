@@ -46,10 +46,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.R
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -212,7 +214,7 @@ private fun WorkspaceRailItem(
         ) {
             repeat(maxPanes) { paneIndex ->
                 DropdownMenuItem(
-                    text = { Text("Pane ${paneIndex + 1}") },
+                    text = { Text(stringResource(R.string.workspace_pane_label, paneIndex + 1)) },
                     leadingIcon = {
                         Icon(
                             imageVector = when (paneIndex) {
@@ -233,7 +235,7 @@ private fun WorkspaceRailItem(
             }
             HorizontalDivider()
             DropdownMenuItem(
-                text = { Text("Close") },
+                text = { Text(stringResource(R.string.workspace_pane_close)) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.TwoTone.Close,
@@ -315,7 +317,7 @@ private fun PaneMenuPreview() {
                 onDismissRequest = {},
             ) {
                 DropdownMenuItem(
-                    text = { Text("Pane 1") },
+                    text = { Text(stringResource(R.string.workspace_pane_label, 1)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.TwoTone.LooksOne,
@@ -325,7 +327,7 @@ private fun PaneMenuPreview() {
                     onClick = {},
                 )
                 DropdownMenuItem(
-                    text = { Text("Pane 2") },
+                    text = { Text(stringResource(R.string.workspace_pane_label, 2)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.TwoTone.LooksTwo,
@@ -335,7 +337,7 @@ private fun PaneMenuPreview() {
                     onClick = {},
                 )
                 DropdownMenuItem(
-                    text = { Text("Pane 3") },
+                    text = { Text(stringResource(R.string.workspace_pane_label, 3)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.TwoTone.Looks3,
@@ -346,7 +348,7 @@ private fun PaneMenuPreview() {
                 )
                 HorizontalDivider()
                 DropdownMenuItem(
-                    text = { Text("Close") },
+                    text = { Text(stringResource(R.string.workspace_pane_close)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.TwoTone.Close,
