@@ -40,7 +40,7 @@ internal fun EmptyClassicWorkspaceContent(
     modifier: Modifier = Modifier,
     isUpgraded: Boolean,
     onNavToSettings: () -> Unit,
-    onTabAction: (WorkspaceAction) -> Unit,
+    onWorkspaceAction: (WorkspaceAction) -> Unit,
     onOpenWorkspaceManager: () -> Unit,
     onUpgradeButler: () -> Unit,
 ) {
@@ -97,7 +97,7 @@ internal fun EmptyClassicWorkspaceContent(
                 Card(
                     modifier = Modifier.Companion
                         .fillMaxWidth()
-                        .clickable { onTabAction(WorkspaceAction.Create()) },
+                        .clickable { onWorkspaceAction(WorkspaceAction.Create()) },
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                 ) {
                     Row(
@@ -228,7 +228,7 @@ private fun EmptyWorkspaceContentPreview() {
         EmptyClassicWorkspaceContent(
             isUpgraded = false,
             onNavToSettings = {},
-            onTabAction = {},
+            onWorkspaceAction = {},
             onOpenWorkspaceManager = {},
             onUpgradeButler = {},
         )

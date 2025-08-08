@@ -14,38 +14,30 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.ui.waitForState
-import eu.darken.butler.editor.ui.EditorWorkspacePageHost
-import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspacePageHost
-import eu.darken.butler.main.core.motd.MotdApi
-import eu.darken.butler.main.core.motd.MotdState
 import eu.darken.butler.main.ui.motd.MotdCard
-import eu.darken.butler.searcher.ui.search.SearcherWorkspacePageHost
-import eu.darken.butler.templates.ui.TemplatesWorkspacePageHost
-import eu.darken.butler.templates.ui.WorkspaceTab
-import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
+import eu.darken.butler.workspace.ui.manager.workspaceManager
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
 import eu.darken.butler.workspace.ui.workspaces.adaptive.AdaptiveWorkspaceContainer
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.EmptyAdaptiveWorkspaceContent
 import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceNavigationRail
 import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContainer
-import eu.darken.butler.workspace.ui.empty.EmptyWorkspaceContent
 import java.util.UUID
 
 private val TAG = logTag("Workspace", "Screen")
@@ -66,11 +58,10 @@ fun WorkspacesScreenHost(
         WorkspaceScreen(
             workspaceButtonState = workspaceButtonState,
             onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
-            onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
-
+            onNavToWorkspaceManager = { vm.navTo(Nav.workspaceManager()) },
             state = state,
             onNavToSettings = { vm.navTo(Nav.Main.settings()) },
-            onTabAction = { vm.modifyTab(it) },
+            onWorkspaceTabAction = { vm.executeAction(it) },
             onScreenAction = { vm.executeScreenAction(it) },
             onUpgradeButler = { vm.upgradeButler() },
             onHideMotd = { vm.hideMotd(it) },
@@ -88,7 +79,7 @@ fun WorkspaceScreen(
     onNavToWorkspaceManager: () -> Unit,
     state: WorkspaceViewModel.State,
     onNavToSettings: () -> Unit,
-    onTabAction: (WorkspaceAction) -> Unit,
+    onWorkspaceTabAction: (WorkspaceAction) -> Unit,
     onScreenAction: (WorkspaceScreenAction) -> Unit,
     onUpgradeButler: () -> Unit,
     onHideMotd: (UUID) -> Unit,
@@ -136,93 +127,94 @@ fun WorkspaceScreen(
                 workspaces = state.all,
                 selected = state.selected,
                 focusedId = state.focused,
-                onTabAction = onTabAction,
+                onTabAction = onWorkspaceTabAction,
                 onPaneAssignment = { workspaceId, paneIndex ->
-                        // Create new selection with the workspace at the specified pane index
-                        val currentSelection = state.selected.toMutableMap()
+                    // Create new selection with the workspace at the specified pane index
+                    val currentSelection = state.selected.toMutableMap()
 
-                        // Check if this workspace is already assigned to this pane
-                        if (currentSelection[paneIndex] == workspaceId) {
-                            // Workspace is already in this pane, do nothing to prevent hang
-                            return@WorkspaceNavigationRail
-                        }
+                    // Check if this workspace is already assigned to this pane
+                    if (currentSelection[paneIndex] == workspaceId) {
+                        // Workspace is already in this pane, do nothing to prevent hang
+                        return@WorkspaceNavigationRail
+                    }
 
-                        // Check if the workspace is already assigned to another pane
-                        val existingPosition = currentSelection.entries.find { it.value.id == workspaceId }?.key
+                    // Check if the workspace is already assigned to another pane
+                    val existingPosition = currentSelection.entries.find { it.value.id == workspaceId }?.key
 
-                        if (existingPosition != null && existingPosition != paneIndex) {
-                            // Workspace is already in another pane - swap them if target pane is occupied
-                            val targetWorkspace = currentSelection[paneIndex]
-                            if (targetWorkspace != null) {
-                                // Swap workspaces
-                                currentSelection[paneIndex] = currentSelection[existingPosition]!!
-                                currentSelection[existingPosition] = targetWorkspace
-                            } else {
-                                // Move workspace to empty pane
-                                currentSelection.remove(existingPosition)
-                                currentSelection[paneIndex] = state.all.find { it.id == workspaceId }!!
-                            }
-                        } else if (existingPosition == null) {
-                            // Workspace not currently selected - add it to the specified pane
-                            state.all.find { it.id == workspaceId }?.let { workspace ->
-                                currentSelection[paneIndex] = workspace
-                            }
-                        }
-
-                        // Convert back to Map<Int, Workspace.Id> for the action
-                        val newPositions = currentSelection.mapValues { it.value.id }
-                        onScreenAction(WorkspaceScreenAction.SelectMultiple(newPositions))
-
-                        showPaneNumbers = false
-                        showPaneOverlay = false
-                    },
-                    onPaneMenuToggle = { isOpen ->
-                        showPaneOverlay = isOpen
-                        showPaneNumbers = isOpen
-                    },
-                    workspaceButtonState = workspaceButtonState,
-                    onWorkspaceAction = onWorkspaceAction,
-                    onNavToWorkspaceManager = onNavToWorkspaceManager,
-                    )
-
-                AdaptiveWorkspaceContainer(
-                    modifier = Modifier
-                        .weight(1f)
-                        .systemBarsPadding(),
-                    design = design,
-                    selected = state.selected,
-                    focusedTabId = state.focused,
-                    dividerPositions = dividerPositions,
-                    onDividerPositionsChange = { newPositions ->
-                        dividerPositions = newPositions
-                    },
-                    getCurrentDividerPositions = { dividerPositions },
-                    onTabFocus = { id ->
-                        onScreenAction(WorkspaceScreenAction.Focus(id))
-                    },
-                    showPaneNumbers = showPaneNumbers,
-                    showPaneOverlay = showPaneOverlay,
-                    paneContent = { info, paneNumber ->
-                        if (info != null) {
-                            WorkspaceMapper(
-                                info = info,
-                                design = design,
-                            )
+                    if (existingPosition != null && existingPosition != paneIndex) {
+                        // Workspace is already in another pane - swap them if target pane is occupied
+                        val targetWorkspace = currentSelection[paneIndex]
+                        if (targetWorkspace != null) {
+                            // Swap workspaces
+                            currentSelection[paneIndex] = currentSelection[existingPosition]!!
+                            currentSelection[existingPosition] = targetWorkspace
                         } else {
-                            EmptyAdaptiveWorkspaceContent(
-                                modifier = Modifier.weight(1f),
-                                paneNumber = paneNumber,
-                            )
+                            // Move workspace to empty pane
+                            currentSelection.remove(existingPosition)
+                            currentSelection[paneIndex] = state.all.find { it.id == workspaceId }!!
+                        }
+                    } else if (existingPosition == null) {
+                        // Workspace not currently selected - add it to the specified pane
+                        state.all.find { it.id == workspaceId }?.let { workspace ->
+                            currentSelection[paneIndex] = workspace
                         }
                     }
-                )
+
+                    // Convert back to Map<Int, Workspace.Id> for the action
+                    val newPositions = currentSelection.mapValues { it.value.id }
+                    onScreenAction(WorkspaceScreenAction.SelectMultiple(newPositions))
+
+                    showPaneNumbers = false
+                    showPaneOverlay = false
+                },
+                onPaneMenuToggle = { isOpen ->
+                    showPaneOverlay = isOpen
+                    showPaneNumbers = isOpen
+                },
+                workspaceButtonState = workspaceButtonState,
+                onWorkspaceAction = onWorkspaceAction,
+                onNavToWorkspaceManager = onNavToWorkspaceManager,
+            )
+
+            AdaptiveWorkspaceContainer(
+                modifier = Modifier
+                    .weight(1f)
+                    .systemBarsPadding(),
+                design = design,
+                selected = state.selected,
+                focusedTabId = state.focused,
+                dividerPositions = dividerPositions,
+                onDividerPositionsChange = { newPositions ->
+                    dividerPositions = newPositions
+                },
+                getCurrentDividerPositions = { dividerPositions },
+                onTabFocus = { id ->
+                    onScreenAction(WorkspaceScreenAction.Focus(id))
+                },
+                showPaneNumbers = showPaneNumbers,
+                showPaneOverlay = showPaneOverlay,
+                paneContent = { info, paneNumber ->
+                    if (info != null) {
+                        WorkspaceMapper(
+                            info = info,
+                            design = design,
+                        )
+                    } else {
+                        EmptyAdaptiveWorkspaceContent(
+                            modifier = Modifier.weight(1f),
+                            paneNumber = paneNumber,
+                        )
+                    }
+                }
+            )
         }
     } else {
         ClassicWorkspaceContainer(
             state = state,
             onNavToSettings = onNavToSettings,
-            onTabAction = onTabAction,
-            onUiAction = onScreenAction,
+            onOpenWorkspaceManager = onNavToWorkspaceManager,
+            onWorkspaceAction = onWorkspaceTabAction,
+            onWorkspaceScreenAction = onScreenAction,
             onUpgradeButler = onUpgradeButler,
         )
     }
@@ -235,7 +227,7 @@ fun WorkspaceScreen(
             onMarkAsRead = onDismissMotd,
             onLinkClick = onMotdLinkClick,
             modifier = Modifier
-                .align(Alignment.TopCenter)
+//                .align(Alignment.TopCenter)
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         )
     }

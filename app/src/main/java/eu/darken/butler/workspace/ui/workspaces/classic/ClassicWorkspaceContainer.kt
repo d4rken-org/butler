@@ -28,8 +28,9 @@ internal fun ClassicWorkspaceContainer(
     design: WorkspaceDesign = WorkspaceDesign(),
     state: WorkspaceViewModel.State,
     onNavToSettings: () -> Unit,
-    onTabAction: (WorkspaceAction) -> Unit,
-    onUiAction: (WorkspaceScreenAction) -> Unit,
+    onOpenWorkspaceManager: () -> Unit,
+    onWorkspaceAction: (WorkspaceAction) -> Unit,
+    onWorkspaceScreenAction: (WorkspaceScreenAction) -> Unit,
     onUpgradeButler: () -> Unit,
 ) {
     val pagerState = rememberPagerState(pageCount = { state.all.size })
@@ -70,7 +71,7 @@ internal fun ClassicWorkspaceContainer(
 
         if (focusedTabExists && currentTabId != state.focused) {
             log(TAG) { "Selecting tab due to user swipe: $currentTabId" }
-            onUiAction(WorkspaceScreenAction.Select(currentTabId))
+            onWorkspaceScreenAction(WorkspaceScreenAction.Select(currentTabId))
         } else if (!focusedTabExists) {
             log(TAG, Logging.Priority.WARN) { "Skipping tab selection - focused tab doesn't exist in tabs list yet" }
         }
@@ -97,8 +98,9 @@ internal fun ClassicWorkspaceContainer(
             EmptyClassicWorkspaceContent(
                 modifier = Modifier.padding(paddingValues),
                 onNavToSettings = onNavToSettings,
-                onTabAction = onTabAction,
+                onWorkspaceAction = onWorkspaceAction,
                 isUpgraded = state.isUpgraded,
+                onOpenWorkspaceManager = onOpenWorkspaceManager,
                 onUpgradeButler = onUpgradeButler,
             )
         }

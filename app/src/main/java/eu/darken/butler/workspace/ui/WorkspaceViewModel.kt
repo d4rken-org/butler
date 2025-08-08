@@ -12,9 +12,7 @@ import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.main.core.motd.MotdRepo
-import eu.darken.butler.main.core.motd.MotdRepo
 import eu.darken.butler.main.core.motd.MotdState
-import eu.darken.butler.templates.ui.WorkspaceTab
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
@@ -26,9 +24,7 @@ import eu.darken.butler.workspace.ui.manager.workspaceManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
-import java.util.UUID
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.sync.Mutex
 import java.util.UUID
 import javax.inject.Inject
 
@@ -44,6 +40,8 @@ class WorkspaceViewModel @Inject constructor(
     private val motdRepo: MotdRepo,
     private val webpageTool: WebpageTool,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Screen", "VM"), navCtrl) {
+
+    private val hiddenMotdIds = MutableStateFlow<Set<UUID>>(emptySet())
 
     private val focusedWorkspaceId = MutableStateFlow(
         savedStateHandle.get<String>("focusedWorkspaceId")
