@@ -6,11 +6,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Preview
-import androidx.compose.material.icons.filled.Translate
-import androidx.compose.material.icons.filled.Update
+import androidx.compose.material.icons.twotone.Notifications
+import androidx.compose.material.icons.twotone.Palette
+import androidx.compose.material.icons.twotone.Preview
+import androidx.compose.material.icons.twotone.Translate
+import androidx.compose.material.icons.twotone.Update
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -100,7 +100,7 @@ fun GeneralSettingsScreen(
 
             item {
                 SettingsPreferenceItem(
-                    icon = Icons.Default.Palette,
+                    icon = Icons.TwoTone.Palette,
                     title = stringResource(R.string.ui_theme_mode_setting_label),
                     subtitle = stringResource(R.string.ui_theme_mode_setting_explanation),
                     value = state.themeState.mode.label.get(context),
@@ -125,7 +125,7 @@ fun GeneralSettingsScreen(
 
             item {
                 SettingsPreferenceItem(
-                    icon = Icons.Default.Palette,
+                    icon = Icons.TwoTone.Palette,
                     title = stringResource(R.string.ui_theme_style_setting_label),
                     subtitle = stringResource(R.string.ui_theme_style_setting_explanation),
                     value = state.themeState.style.label.get(context),
@@ -151,7 +151,7 @@ fun GeneralSettingsScreen(
             onLanguageSwitcher?.let { action ->
                 item {
                     SettingsPreferenceItem(
-                        icon = Icons.Default.Translate,
+                        icon = Icons.TwoTone.Translate,
                         title = stringResource(R.string.ui_language_override_label),
                         subtitle = stringResource(R.string.ui_language_override_desc),
                         onClick = { action.invoke() }
@@ -162,7 +162,7 @@ fun GeneralSettingsScreen(
 
             item {
                 SettingsSwitchItem(
-                    icon = Icons.Default.Notifications,
+                    icon = Icons.TwoTone.Notifications,
                     title = stringResource(R.string.confirm_exit_setting_title),
                     subtitle = stringResource(R.string.confirm_exit_setting_description),
                     checked = state.confirmExitEnabled,
@@ -173,7 +173,7 @@ fun GeneralSettingsScreen(
 
             item {
                 SettingsSwitchItem(
-                    icon = Icons.Default.Preview,
+                    icon = Icons.TwoTone.Preview,
                     title = stringResource(R.string.ui_previews_title),
                     subtitle = stringResource(R.string.ui_previews_summary),
                     checked = state.filePreviews,
@@ -189,7 +189,7 @@ fun GeneralSettingsScreen(
 
             item {
                 SettingsSwitchItem(
-                    icon = Icons.Default.Update,
+                    icon = Icons.TwoTone.Update,
                     title = stringResource(R.string.updater_check_enabled_setting_title),
                     subtitle =
                         stringResource(R.string.updater_check_enabled_setting_description),
@@ -201,7 +201,7 @@ fun GeneralSettingsScreen(
 
             item {
                 SettingsSwitchItem(
-                    icon = Icons.Default.Notifications,
+                    icon = Icons.TwoTone.Notifications,
                     title = stringResource(R.string.motd_check_enabled_setting_title),
                     subtitle = stringResource(R.string.motd_check_enabled_setting_description),
                     checked = state.motdEnabled,

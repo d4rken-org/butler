@@ -8,6 +8,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.SwipeLeft
+import androidx.compose.material.icons.twotone.SwapHoriz
+import androidx.compose.material.icons.twotone.SwipeLeft
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -64,7 +66,7 @@ fun WorkspaceSettingsScreen(
 
             item {
                 SettingsSwitchItem(
-                    icon = Icons.Default.SwapHoriz,
+                    icon = Icons.TwoTone.SwapHoriz,
                     title = stringResource(R.string.workspace_settings_flip_button_actions_title),
                     subtitle = stringResource(R.string.workspace_settings_flip_button_actions_desc),
                     checked = state.isButtonActionsFlipped,
@@ -78,7 +80,7 @@ fun WorkspaceSettingsScreen(
 
             item {
                 SettingsSwitchItem(
-                    icon = Icons.Default.SwipeLeft,
+                    icon = Icons.TwoTone.SwipeLeft,
                     title = stringResource(R.string.workspace_settings_swipe_gestures_title),
                     subtitle = stringResource(R.string.workspace_settings_swipe_gestures_desc),
                     checked = state.swipeGesturesEnabled,

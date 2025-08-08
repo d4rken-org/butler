@@ -31,6 +31,11 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.twotone.Clear
+import androidx.compose.material.icons.twotone.Close
+import androidx.compose.material.icons.twotone.Folder
+import androidx.compose.material.icons.twotone.FolderOpen
+import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -192,7 +197,7 @@ fun SearcherWorkspacePage(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Search,
+                                    imageVector = Icons.TwoTone.Search,
                                     contentDescription = null,
                                     modifier = Modifier.size(20.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -527,7 +532,7 @@ fun SearchBar(
         placeholder = "Search files and folders",
         leadingIcon = {
             Icon(
-                imageVector = Icons.Default.Search,
+                imageVector = Icons.TwoTone.Search,
                 contentDescription = "Search",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -536,7 +541,7 @@ fun SearchBar(
             when {
                 isSearching && onCancel != null -> {
                     Icon(
-                        imageVector = Icons.Default.Close,
+                        imageVector = Icons.TwoTone.Close,
                         contentDescription = "Cancel",
                         modifier = Modifier
                             .clickable { onCancel() }
@@ -547,7 +552,7 @@ fun SearchBar(
 
                 query.isNotEmpty() -> {
                     Icon(
-                        imageVector = Icons.Default.Clear,
+                        imageVector = Icons.TwoTone.Clear,
                         contentDescription = "Clear",
                         modifier = Modifier
                             .clickable { onQueryChange("") }
@@ -588,14 +593,14 @@ fun SearchPathBar(
         placeholder = "Search path (e.g., /sdcard)",
         leadingIcon = {
             Icon(
-                imageVector = Icons.Default.Folder,
+                imageVector = Icons.TwoTone.Folder,
                 contentDescription = "Search Path",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         },
         trailingIcon = {
             Icon(
-                imageVector = Icons.Default.FolderOpen,
+                imageVector = Icons.TwoTone.FolderOpen,
                 contentDescription = "Browse",
                 modifier = Modifier
                     .clickable { showPathPicker = true }
@@ -656,7 +661,7 @@ fun PathPickerDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Folder,
+                            imageVector = Icons.TwoTone.Folder,
                             contentDescription = null,
                             modifier = Modifier.size(20.dp),
                             tint = MaterialTheme.colorScheme.primary

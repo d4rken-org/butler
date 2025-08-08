@@ -2,6 +2,7 @@ package eu.darken.butler.searcher.ui.search
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.twotone.Search
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.searcher.R
 import eu.darken.butler.common.ca.CaString
@@ -11,7 +12,7 @@ import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
 
 
 data class SearcherWorkspaceTemplate(
-    override val icon: ImageVector =  Icons.Default.Search,
+    override val icon: ImageVector =  Icons.TwoTone.Search,
     override val title: CaString = R.string.searcher_title.toCaString(),
     override val subtitle: CaString = R.string.searcher_subtitle.toCaString(),
     override val arguments: Workspace.Arguments? = null,

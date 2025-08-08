@@ -2,7 +2,7 @@ package eu.darken.butler.explorer.ui.explorer.rows
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.twotone.Image
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -31,7 +31,7 @@ internal fun ImageFileRow(
         leadingContent = {
             // TODO: Replace with AsyncImage when Coil integration is complete
             Icon(
-                imageVector = Icons.Default.Image,
+                imageVector = Icons.TwoTone.Image,
                 contentDescription = "Image",
                 tint = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.size(32.dp)

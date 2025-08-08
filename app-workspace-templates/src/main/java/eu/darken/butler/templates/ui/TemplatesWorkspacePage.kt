@@ -17,12 +17,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Apps
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.twotone.Add
+import androidx.compose.material.icons.twotone.Apps
+import androidx.compose.material.icons.twotone.Edit
+import androidx.compose.material.icons.twotone.Folder
+import androidx.compose.material.icons.twotone.Search
+import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -244,7 +244,7 @@ fun TemplatesWorkspacePage(
                         }
 
                         Icon(
-                            imageVector = Icons.Default.Settings,
+                            imageVector = Icons.TwoTone.Settings,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
@@ -318,7 +318,7 @@ private fun TemplateCard(
             }
 
             Icon(
-                imageVector = Icons.Default.Add,
+                imageVector = Icons.TwoTone.Add,
                 contentDescription = null,
                 tint = if (isFirstItem) {
                     MaterialTheme.colorScheme.onPrimaryContainer
@@ -440,10 +440,10 @@ private data class TabLayout(
 
 private fun getWorkspaceTypeIcon(type: Workspace.Type): ImageVector {
     return when (type) {
-        Workspace.Type.EXPLORER -> Icons.Default.Folder
-        Workspace.Type.SEARCHER -> Icons.Default.Search
-        Workspace.Type.EDITOR -> Icons.Default.Edit
-        Workspace.Type.TEMPLATES -> Icons.Default.Apps
+        Workspace.Type.EXPLORER -> Icons.TwoTone.Folder
+        Workspace.Type.SEARCHER -> Icons.TwoTone.Search
+        Workspace.Type.EDITOR -> Icons.TwoTone.Edit
+        Workspace.Type.TEMPLATES -> Icons.TwoTone.Apps
     }
 }
 

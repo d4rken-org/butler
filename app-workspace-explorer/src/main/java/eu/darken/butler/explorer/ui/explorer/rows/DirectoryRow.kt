@@ -3,6 +3,7 @@ package eu.darken.butler.explorer.ui.explorer.rows
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -30,7 +31,7 @@ internal fun DirectoryRow(
         modifier = modifier,
         leadingContent = {
             Icon(
-                imageVector = Icons.Default.Folder,
+                imageVector = Icons.TwoTone.Folder,
                 contentDescription = "Folder",
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp)

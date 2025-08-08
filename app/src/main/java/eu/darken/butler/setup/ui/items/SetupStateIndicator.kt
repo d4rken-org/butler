@@ -2,10 +2,10 @@ package eu.darken.butler.setup.ui.items
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.PauseCircle
-import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material.icons.twotone.CheckCircle
+import androidx.compose.material.icons.twotone.Error
+import androidx.compose.material.icons.twotone.PauseCircle
+import androidx.compose.material.icons.twotone.RadioButtonUnchecked
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,16 +35,16 @@ fun SetupStateIndicator(
                     val rootState = state as? RootSetupModule.Result
                     when {
                         rootState?.useRoot != true -> {
-                            Icons.Default.PauseCircle to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                            Icons.TwoTone.PauseCircle to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                         }
                         !rootState.isInstalled -> {
-                            Icons.Default.Error to MaterialTheme.colorScheme.error
+                            Icons.TwoTone.Error to MaterialTheme.colorScheme.error
                         }
                         rootState.ourService -> {
-                            Icons.Default.CheckCircle to MaterialTheme.colorScheme.primary
+                            Icons.TwoTone.CheckCircle to MaterialTheme.colorScheme.primary
                         }
                         else -> {
-                            Icons.Default.Error to MaterialTheme.colorScheme.tertiary
+                            Icons.TwoTone.Error to MaterialTheme.colorScheme.tertiary
                         }
                     }
                 }
@@ -52,28 +52,28 @@ fun SetupStateIndicator(
                     val shizukuState = state as? ShizukuSetupModule.Result
                     when {
                         shizukuState?.useShizuku != true -> {
-                            Icons.Default.PauseCircle to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                            Icons.TwoTone.PauseCircle to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                         }
                         !shizukuState.isInstalled || !shizukuState.isCompatible -> {
-                            Icons.Default.Error to MaterialTheme.colorScheme.error
+                            Icons.TwoTone.Error to MaterialTheme.colorScheme.error
                         }
                         shizukuState.ourService -> {
-                            Icons.Default.CheckCircle to MaterialTheme.colorScheme.primary
+                            Icons.TwoTone.CheckCircle to MaterialTheme.colorScheme.primary
                         }
                         shizukuState.basicService -> {
-                            Icons.Default.RadioButtonUnchecked to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            Icons.TwoTone.RadioButtonUnchecked to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         }
                         else -> {
-                            Icons.Default.Error to MaterialTheme.colorScheme.tertiary
+                            Icons.TwoTone.Error to MaterialTheme.colorScheme.tertiary
                         }
                     }
                 }
                 else -> {
                     // Default status handling for other permissions
                     when {
-                        state.isComplete -> Icons.Default.CheckCircle to MaterialTheme.colorScheme.primary
-                        isRequired -> Icons.Default.Error to MaterialTheme.colorScheme.error
-                        else -> Icons.Default.RadioButtonUnchecked to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                        state.isComplete -> Icons.TwoTone.CheckCircle to MaterialTheme.colorScheme.primary
+                        isRequired -> Icons.TwoTone.Error to MaterialTheme.colorScheme.error
+                        else -> Icons.TwoTone.RadioButtonUnchecked to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                     }
                 }
             }

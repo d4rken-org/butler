@@ -3,6 +3,7 @@ package eu.darken.butler.common.settings
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,7 +46,7 @@ fun SettingsPreferenceItem(
 private fun SettingsPreferenceItemPreview() {
     PreviewWrapper {
         SettingsPreferenceItem(
-            icon = Icons.Default.Settings,
+            icon = Icons.TwoTone.Settings,
             title = "Settings",
             subtitle = "General settings",
             onClick = {},

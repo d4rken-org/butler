@@ -2,7 +2,7 @@ package eu.darken.butler.explorer.ui.explorer.rows
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.twotone.Archive
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -30,7 +30,7 @@ internal fun ArchiveFileRow(
         modifier = modifier,
         leadingContent = {
             Icon(
-                imageVector = Icons.Default.Archive,
+                imageVector = Icons.TwoTone.Archive,
                 contentDescription = "Archive",
                 tint = MaterialTheme.colorScheme.tertiary,
                 modifier = Modifier.size(32.dp)
