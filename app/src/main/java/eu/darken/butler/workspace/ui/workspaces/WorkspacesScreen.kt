@@ -1,6 +1,8 @@
 package eu.darken.butler.workspace.ui.workspaces
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -16,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
@@ -36,6 +39,7 @@ import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
 import eu.darken.butler.workspace.ui.workspaces.adaptive.AdaptiveWorkspaceContainer
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DragDropState
+import eu.darken.butler.workspace.ui.workspaces.adaptive.DragPreview
 import eu.darken.butler.workspace.ui.workspaces.adaptive.EmptyAdaptiveWorkspaceContent
 import eu.darken.butler.workspace.ui.workspaces.adaptive.LocalDragDropState
 import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceNavigationRail
@@ -122,18 +126,97 @@ fun WorkspaceScreen(
         val dragDropState = remember { DragDropState() }
 
         CompositionLocalProvider(LocalDragDropState provides dragDropState) {
-            Row(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
+                    .pointerInput(dragDropState.isDragging) {
+                        if (dragDropState.isDragging) {
+                            awaitEachGesture {
+                                // Track pointer movements while dragging
+                                while (true) {
+                                    val event = awaitPointerEvent()
+                                    val pointer = event.changes.firstOrNull()
+
+                                    if (pointer != null) {
+                                        // Update drag position
+                                        dragDropState.updateDragPosition(pointer.position)
+
+                                        // Determine which pane we're over
+                                        val screenWidth = size.width.toFloat()
+                                        val dragX = pointer.position.x
+
+                                        dragDropState.hoveredPaneIndex = when {
+                                            dragX < 100 -> null
+                                            design.maxPanes == 1 -> if (dragX > 100) 0 else null
+                                            design.maxPanes == 2 -> when {
+                                                dragX < 100 -> null
+                                                dragX < screenWidth * 0.6f -> 0
+                                                else -> 1
+                                            }
+                                            design.maxPanes >= 3 -> when {
+                                                dragX < 100 -> null
+                                                dragX < screenWidth * 0.4f -> 0
+                                                dragX < screenWidth * 0.7f -> 1
+                                                else -> 2
+                                            }
+                                            else -> null
+                                        }
+
+                                        // Check if pointer is released
+                                        if (pointer.pressed == false) {
+                                            // Handle drop
+                                            dragDropState.hoveredPaneIndex?.let { paneIndex ->
+                                                dragDropState.draggedWorkspace?.let { workspace ->
+                                                    val currentSelection = state.selected.toMutableMap()
+
+                                                    if (currentSelection[paneIndex]?.id != workspace.id) {
+                                                        val existingPosition =
+                                                            currentSelection.entries.find { it.value.id == workspace.id }?.key
+
+                                                        if (existingPosition != null && existingPosition != paneIndex) {
+                                                            val targetWorkspace = currentSelection[paneIndex]
+                                                            if (targetWorkspace != null) {
+                                                                currentSelection[paneIndex] =
+                                                                    currentSelection[existingPosition]!!
+                                                                currentSelection[existingPosition] = targetWorkspace
+                                                            } else {
+                                                                currentSelection.remove(existingPosition)
+                                                                currentSelection[paneIndex] = workspace
+                                                            }
+                                                        } else if (existingPosition == null) {
+                                                            currentSelection[paneIndex] = workspace
+                                                        }
+
+                                                        val newPositions = currentSelection.mapValues { it.value.id }
+                                                        onScreenAction(WorkspaceScreenAction.SelectMultiple(newPositions))
+                                                    }
+                                                }
+                                            }
+                                            dragDropState.endDrag()
+                                            break
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
             ) {
-            WorkspaceNavigationRail(
-                design = design,
-                workspaces = state.all,
-                selected = state.selected,
-                focusedId = state.focused,
-                onTabAction = onWorkspaceTabAction,
-                onPaneAssignment = { workspaceId, paneIndex ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background)
+                ) {
+                    WorkspaceNavigationRail(
+                        design = design,
+                        workspaces = state.all,
+                        selected = state.selected,
+                        focusedId = state.focused,
+                        onTabAction = onWorkspaceTabAction,
+                        onDragToPaneStart = { workspace, offset ->
+                            // Start drag-to-pane operation
+                            dragDropState.startDrag(workspace, offset)
+                        },
+                        onPaneAssignment = { workspaceId, paneIndex ->
                     // Create new selection with the workspace at the specified pane index
                     val currentSelection = state.selected.toMutableMap()
 
@@ -171,15 +254,15 @@ fun WorkspaceScreen(
 
                     showPaneNumbers = false
                     showPaneOverlay = false
-                },
-                onPaneMenuToggle = { isOpen ->
-                    showPaneOverlay = isOpen
-                    showPaneNumbers = isOpen
-                },
-                workspaceButtonState = workspaceButtonState,
-                onWorkspaceAction = onWorkspaceAction,
-                onNavToWorkspaceManager = onNavToWorkspaceManager,
-            )
+                        },
+                        onPaneMenuToggle = { isOpen ->
+                            showPaneOverlay = isOpen
+                            showPaneNumbers = isOpen
+                        },
+                        workspaceButtonState = workspaceButtonState,
+                        onWorkspaceAction = onWorkspaceAction,
+                        onNavToWorkspaceManager = onNavToWorkspaceManager,
+                    )
 
             AdaptiveWorkspaceContainer(
                 modifier = Modifier
@@ -212,7 +295,16 @@ fun WorkspaceScreen(
                     }
                 }
             )
-        }
+                }
+
+                // Floating drag preview
+                if (dragDropState.isDragging) {
+                    DragPreview(
+                        workspace = dragDropState.draggedWorkspace,
+                        dragPosition = dragDropState.dragPosition,
+                    )
+                }
+            }
         }
     } else {
         ClassicWorkspaceContainer(
@@ -292,6 +384,7 @@ private fun WorkspacesScreenPreviewContent(
             onTabAction = {},
             onPaneAssignment = { _, _ -> },
             onPaneMenuToggle = {},
+            onDragToPaneStart = null,
             workspaceButtonState = workspaceButtonState,
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
