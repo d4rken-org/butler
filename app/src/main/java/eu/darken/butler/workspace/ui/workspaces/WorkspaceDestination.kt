@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data object DestinationWorkspaces : NavigationDestination {
+    @Suppress("unused")
     private fun readResolve(): Any = DestinationWorkspaces
 }
 

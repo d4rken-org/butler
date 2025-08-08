@@ -47,7 +47,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.Slogans
@@ -438,25 +437,6 @@ private data class TabLayout(
     val tabWidths: List<Float>, // Width in pixels
     val hiddenCount: Int
 )
-
-private fun calculateIdealTabWidth(
-    tab: WorkspaceTab,
-    textMeasurer: androidx.compose.ui.text.TextMeasurer,
-    density: androidx.compose.ui.unit.Density,
-    iconAndCloseWidth: Float,
-    context: android.content.Context
-): Float {
-    val textStyle = androidx.compose.ui.text.TextStyle(
-        fontSize = 14.sp
-    )
-
-    val textWidth = textMeasurer.measure(
-        text = tab.title.get(context),
-        style = textStyle
-    ).size.width.toFloat()
-
-    return textWidth + iconAndCloseWidth
-}
 
 private fun getWorkspaceTypeIcon(type: Workspace.Type): ImageVector {
     return when (type) {
