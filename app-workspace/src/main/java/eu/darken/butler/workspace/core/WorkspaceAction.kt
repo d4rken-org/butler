@@ -1,36 +1,33 @@
 package eu.darken.butler.workspace.core
 
 sealed interface WorkspaceAction {
-    data class Select(
-        val id: Workspace.Id,
-    ) : WorkspaceAction
-
-    data class SelectMultiple(
-        val positions: Map<Int, Workspace.Id>,
-    ) : WorkspaceAction
-
-    data class Focus(
-        val id: Workspace.Id,
-    ) : WorkspaceAction
-
-    data class ToggleSelection(
-        val id: Workspace.Id,
-        val position: Int? = null,
-    ) : WorkspaceAction
-
     data class Create(
         val type: Workspace.Type = Workspace.Type.TEMPLATES,
         val arguments: Workspace.Arguments? = null,
         val replace: Workspace.Id? = null,
-    ) : WorkspaceAction
+    ) : WorkspaceAction {
+        data class Result(
+            val newId: Workspace.Id,
+        ) : WorkspaceAction.Result
+    }
 
     data class Close(
         val id: Workspace.Id,
-    ) : WorkspaceAction
+    ) : WorkspaceAction {
+        data object Result : WorkspaceAction.Result
+    }
 
     data class Reorder(
         val workspaceIds: List<Workspace.Id>,
-    ) : WorkspaceAction
+    ) : WorkspaceAction {
+        data class Result(
+            val success: Boolean,
+        ) : WorkspaceAction.Result
+    }
 
-    data object CloseAll : WorkspaceAction
+    data object CloseAll : WorkspaceAction {
+        data object Result : WorkspaceAction.Result
+    }
+
+    interface Result
 }

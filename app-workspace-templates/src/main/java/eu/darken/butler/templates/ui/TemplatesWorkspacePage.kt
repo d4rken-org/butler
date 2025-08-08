@@ -416,7 +416,7 @@ private fun CompactTabPillsRow(
             CompactTabPill(
                 tab = tab,
                 isSelected = tab.id == selectedTabId,
-                onSelect = { onWorkspaceAction(WorkspaceAction.Select(tab.id)) },
+                onSelect = { /* Tab selection is handled by parent UI */ },
                 onClose = { onWorkspaceAction(WorkspaceAction.Close(tab.id)) },
                 fixedWidth = if (index < tabLayout.tabWidths.size) {
                     with(density) { tabLayout.tabWidths[index].toDp() }

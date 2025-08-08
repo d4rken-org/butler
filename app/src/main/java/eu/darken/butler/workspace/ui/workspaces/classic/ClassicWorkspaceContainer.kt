@@ -16,6 +16,7 @@ import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.ui.WorkspaceScreenAction
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceViewModel
@@ -28,13 +29,14 @@ internal fun ClassicWorkspaceContainer(
     state: WorkspaceViewModel.State,
     onNavToSettings: () -> Unit,
     onTabAction: (WorkspaceAction) -> Unit,
+    onUiAction: (WorkspaceScreenAction) -> Unit,
     onUpgradeButler: () -> Unit,
 ) {
     val pagerState = rememberPagerState(pageCount = { state.all.size })
 
     // Sync pager with selected tab
-    LaunchedEffect(state.selected, state.all) {
-        val selectedId = state.selected ?: return@LaunchedEffect
+    LaunchedEffect(state.focused, state.all) {
+        val selectedId = state.focused ?: return@LaunchedEffect
         val selectedIndex = state.all.indexOfFirst { it.id == selectedId }
         log(TAG) { "Syncing pager with selected tab: selectedId=$selectedId, selectedIndex=$selectedIndex, currentPage=${pagerState.currentPage}" }
 
@@ -53,24 +55,24 @@ internal fun ClassicWorkspaceContainer(
     val isScrolling by remember { derivedStateOf { pagerState.isScrollInProgress } }
 
     // Sync selected tab with pager when user swipes
-    LaunchedEffect(currentPage, isScrolling, state.all, state.selected) {
+    LaunchedEffect(currentPage, isScrolling, state.all, state.focused) {
         if (isScrolling) return@LaunchedEffect
 
         log(TAG) { "Pager scroll completed at page: $currentPage" }
         if (currentPage < 0 || currentPage >= state.all.size) return@LaunchedEffect
 
         val currentTabId = state.all[currentPage].id
-        log(TAG) { "Current tab ID: $currentTabId, selected: ${state.selected}" }
+        log(TAG) { "Current tab ID: $currentTabId, focused: ${state.focused}" }
 
-        val selectedTabExists = state.selected?.let { selectedId ->
-            state.all.any { it.id == selectedId }
+        val focusedTabExists = state.focused?.let { focusedId ->
+            state.all.any { it.id == focusedId }
         } ?: false
 
-        if (selectedTabExists && currentTabId != state.selected) {
+        if (focusedTabExists && currentTabId != state.focused) {
             log(TAG) { "Selecting tab due to user swipe: $currentTabId" }
-            onTabAction(WorkspaceAction.Select(currentTabId))
-        } else if (!selectedTabExists) {
-            log(TAG, Logging.Priority.WARN) { "Skipping tab selection - selected tab doesn't exist in tabs list yet" }
+            onUiAction(WorkspaceScreenAction.Select(currentTabId))
+        } else if (!focusedTabExists) {
+            log(TAG, Logging.Priority.WARN) { "Skipping tab selection - focused tab doesn't exist in tabs list yet" }
         }
     }
 

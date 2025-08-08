@@ -67,7 +67,8 @@ class WorkspaceManagerViewModel @Inject constructor(
 
     fun selectWorkspace(id: Workspace.Id) = launch {
         log(tag) { "selectWorkspace($id)" }
-        workspaceRepo.execute(WorkspaceAction.Select(id))
+        // Selection is now handled through navigation result
+        // The parent screen will handle the actual selection
         navigateBack()
     }
 

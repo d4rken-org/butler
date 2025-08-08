@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,13 +15,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.debug.logging.log
-import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.WorkspacePanelMode
+import eu.darken.butler.workspace.ui.WorkspaceScreenAction
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
@@ -51,6 +52,7 @@ fun WorkspaceScreenHost(
             state = state,
             onNavToSettings = { vm.navTo(Nav.Main.settings()) },
             onTabAction = { vm.modifyTab(it) },
+            onScreenAction = { vm.executeScreenAction(it) },
             onUpgradeButler = { vm.upgradeButler() },
         )
     }
@@ -65,6 +67,7 @@ fun WorkspaceScreen(
     state: WorkspaceViewModel.State,
     onNavToSettings: () -> Unit,
     onTabAction: (WorkspaceAction) -> Unit,
+    onScreenAction: (WorkspaceScreenAction) -> Unit,
     onUpgradeButler: () -> Unit,
 ) {
     val windowSizeInfo = rememberWindowSizeInfo()
@@ -91,6 +94,11 @@ fun WorkspaceScreen(
     val design = WorkspaceDesign(
         layout = effectivePaneLayout,
     )
+    
+    // Update pane count when design changes
+    LaunchedEffect(design.maxPanes) {
+        onScreenAction(WorkspaceScreenAction.SetPaneCount(design.maxPanes))
+    }
 
     if (!design.isSingle) {
         Row(
@@ -138,7 +146,7 @@ fun WorkspaceScreen(
                         
                         // Convert back to Map<Int, Workspace.Id> for the action
                         val newPositions = currentSelection.mapValues { it.value.id }
-                        onTabAction(WorkspaceAction.SelectMultiple(newPositions))
+                        onScreenAction(WorkspaceScreenAction.SelectMultiple(newPositions))
                         
                         showPaneNumbers = false
                         showPaneOverlay = false
@@ -163,7 +171,7 @@ fun WorkspaceScreen(
                     },
                     getCurrentDividerPositions = { dividerPositions },
                     onTabFocus = { id ->
-                        onTabAction(WorkspaceAction.Focus(id))
+                        onScreenAction(WorkspaceScreenAction.Focus(id))
                     },
                     showPaneNumbers = showPaneNumbers,
                     showPaneOverlay = showPaneOverlay,
@@ -187,6 +195,7 @@ fun WorkspaceScreen(
             state = state,
             onNavToSettings = onNavToSettings,
             onTabAction = onTabAction,
+            onUiAction = onScreenAction,
             onUpgradeButler = onUpgradeButler,
         )
     }

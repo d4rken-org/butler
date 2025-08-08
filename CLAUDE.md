@@ -52,44 +52,44 @@ fastlane android production
 
 ### Build Flavors
 
-- **FOSS**: Open source version without Google Play dependencies
-- **GPLAY**: Google Play version with additional features
+- **FOSS**: Open source version without Google Play dependencies.
+- **GPLAY**: Google Play version with additional features.
 
 ### Module Structure
 
 #### Core Application
-- `app`: Main application module with entry point, flavor-specific implementations, and setup flow
+- `app`: Main application module with entry point, flavor-specific implementations, and setup flow.
 
 #### Foundation Modules
-- `app-common`: Core shared utilities, base architecture components, custom ViewModel hierarchy, theming system
-- `app-common-test`: Testing utilities, helpers, and base test classes for all modules
+- `app-common`: Core shared utilities, base architecture components, custom ViewModel hierarchy, theming system.
+- `app-common-test`: Testing utilities, helpers, and base test classes for all modules.
 
 #### Platform Integration Modules  
-- `app-common-io`: File I/O operations, abstract path system (APath), gateway pattern for file access methods
-- `app-common-root`: Root access functionality and root-based file operations
-- `app-common-adb`: Android Debug Bridge integration via Shizuku API
-- `app-common-shell`: Shell operations and reactive command execution with FlowShell
-- `app-common-pkgs`: Package management utilities and package event handling
+- `app-common-io`: File I/O operations, abstract path system (APath), gateway pattern for file access methods.
+- `app-common-root`: Root access functionality and root-based file operations.
+- `app-common-adb`: Android Debug Bridge integration via Shizuku API.
+- `app-common-shell`: Shell operations and reactive command execution with FlowShell.
+- `app-common-pkgs`: Package management utilities and package event handling.
 
 #### Workspace Modules
-- `app-workspace`: Core workspace framework, base classes, and tab-like workspace management
-- `app-workspace-explorer`: File browsing workspace with navigation, file operations, sorting/filtering
-- `app-workspace-searcher`: File search workspace with search engine, filters, and result caching
-- `app-workspace-editor`: Text editing workspace with chunked buffer system for large files
-- `app-workspace-templates`: Workspace template management and type switching
+- `app-workspace`: Core workspace framework, base classes, and tab-like workspace management.
+- `app-workspace-explorer`: File browsing workspace with navigation, file operations, sorting/filtering.
+- `app-workspace-searcher`: File search workspace with search engine, filters, and result caching.
+- `app-workspace-editor`: Text editing workspace with chunked buffer system for large files.
+- `app-workspace-templates`: Workspace template management and type switching.
 
 ## Coding Standards
 
-- Package by feature, not by layer
-- Extract user-facing text to `strings.xml`
-- Prefer adding to existing files unless creating new logical components
-- Write tests for web APIs and serialized data
-- No UI tests required
-- Use FOSS debug flavor for local testing
-- Place compose previews below the item being previewed
-- Don't add comments to code
-- When using `if` that is not single-line, always use brackets
-- Always add trailing commas
+- Package by feature, not by layer.
+- Extract user-facing text to `strings.xml`.
+- Prefer adding to existing files unless creating new logical components.
+- Write tests for web APIs and serialized data.
+- No UI tests required.
+- Use FOSS debug flavor for local testing.
+- Place compose previews below the item being previewed.
+- Don't code comments for obvious code.
+- When using `if` that is not single-line, always use brackets.
+- Always add trailing commas.
 
 ## Agent instructions
 
@@ -99,42 +99,43 @@ fastlane android production
 
 ### General
 
-- Single Activity architecture with Compose Navigation3
-- Reactive programming with Kotlin Flow and StateFlow
-- Centralized error handling with `ErrorEventHandler`
-- DataStore-based settings with kotlinx serialization
-- Jetpack Compose for UI
-- Hilt for dependency injection
-- Kotlin Coroutines & Flow for async operations
-- KotlinX for JSON serialization
-- Coil for image loading
-- Room for database operations
+- Single Activity architecture with Compose Navigation3.
+- Reactive programming with Kotlin Flow and StateFlow.
+- Centralized error handling with `ErrorEventHandler`.
+- DataStore-based settings with kotlinx serialization.
+- Jetpack Compose for UI.
+- Hilt for dependency injection.
+- Kotlin Coroutines & Flow for async operations.
+- KotlinX for JSON serialization.
+- Coil for image loading.
+- Room for database operations.
+- Use `FlowCombineExtensions` instead of nesting multiple combine statements.
 
 #### Dependency Injection
 
-- Hilt/Dagger throughout the application
-- `@AndroidEntryPoint` for Activities/Fragments
-- `@HiltViewModel` for ViewModels
-- Modular DI setup across different modules
+- Hilt/Dagger throughout the application.
+- `@AndroidEntryPoint` for Activities/Fragments.
+- `@HiltViewModel` for ViewModels.
+- Modular DI setup across different modules.
 
 ### User Interface
 
-- Full Jetpack Compose with Material 3
-- Custom theming system (`ButlerTheme`, `ButlerColors`)
-- Edge-to-edge display support
+- Full Jetpack Compose with Material 3.
+- Custom theming system (`ButlerTheme`, `ButlerColors`).
+- Edge-to-edge display support.
 - Use icons out of the `androidx.compose.material.icons.twotone` package where possible.
-- When creating compose previews, use the `@Preview2` annotation, and wrap the UI element in a `PreviewWrapper`
+- When creating compose previews, use the `@Preview2` annotation, and wrap the UI element in a `PreviewWrapper`.
 
 #### MVVM with Custom ViewModel Hierarchy
 
-- `ViewModel1` → `ViewModel2` → `ViewModel3` → `ViewModel4`
-- `ViewModel4` adds navigation capabilities
-- Uses Hilt for assisted injection
+- `ViewModel1` → `ViewModel2` → `ViewModel3` → `ViewModel4`.
+- `ViewModel4` adds navigation capabilities.
+- Uses Hilt for assisted injection.
 
 ### Business Logic
 
 #### General
 
-- Abstract path system (`APath`, `RawPath`)
-- Gateway pattern for different file access methods
-- Support for root, ADB, and shell operations
+- Abstract path system (`APath`, `RawPath`).
+- Gateway pattern for different file access methods.
+- Support for root, ADB, and shell operations.

@@ -13,8 +13,8 @@ import eu.darken.butler.templates.core.TemplatesWorkspace
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -35,8 +35,7 @@ class WorkspaceRepo @Inject constructor(
 
     private val lock = Mutex()
     private val _workspaces = MutableStateFlow<List<Workspace>>(emptyList())
-    private val focusedWorkspace = MutableStateFlow<Workspace.Id?>(null)
-    private val selectedWorkspaces = MutableStateFlow<Map<Int, Workspace.Id>>(emptyMap())
+    private val _events = MutableSharedFlow<WorkspaceEvent>()
     private val infos: Flow<List<Workspace.Info>> = _workspaces.flatMapLatest { workspaces ->
         if (workspaces.isEmpty()) {
             flowOf(emptyList())
@@ -48,18 +47,18 @@ class WorkspaceRepo @Inject constructor(
 
     override val state: Flow<WorkspaceRemote.State> = combine(
         infos,
-        focusedWorkspace,
-        selectedWorkspaces,
         workspaceSettings.isButtonActionsFlipped.flow
-    ) { workspaceInfos, focusedId, selectedIds, isButtonFlipped ->
+    ) { workspaceInfos, isButtonFlipped ->
         WorkspaceRemote.State(
             infos = workspaceInfos,
-            selectedWorkspaces = selectedIds,
-            focusedWorkspace = focusedId,
             isButtonActionsFlipped = isButtonFlipped,
         )
     }
         .setupCommonEventHandlers(TAG) { "WorkspaceState" }
+        .replayingShare(appScope)
+        
+    override val events: Flow<WorkspaceEvent> = _events
+        .setupCommonEventHandlers(TAG) { "WorkspaceEvents" }
         .replayingShare(appScope)
 
     private fun create(
@@ -106,63 +105,9 @@ class WorkspaceRepo @Inject constructor(
         return _workspaces.map { wss -> wss.singleOrNull { it.id == id } }
     }
 
-    override suspend fun execute(action: WorkspaceAction) = lock.withLock {
+    override suspend fun execute(action: WorkspaceAction): WorkspaceAction.Result = lock.withLock {
         log(TAG, INFO) { "execute($action)" }
         when (action) {
-            is WorkspaceAction.Select -> {
-                log(TAG, INFO) { "Selected tab $action, previous: ${focusedWorkspace.value}" }
-                if (focusedWorkspace.value != action.id) {
-                    focusedWorkspace.value = action.id
-                    selectedWorkspaces.value = mapOf(0 to action.id)
-                    log(TAG) { "Tab selection changed to: ${action.id}" }
-                } else {
-                    log(TAG) { "Tab selection unchanged, already selected: ${action.id}" }
-                }
-            }
-
-            is WorkspaceAction.SelectMultiple -> {
-                log(TAG, INFO) { "Selecting multiple tabs: ${action.positions}" }
-                selectedWorkspaces.value = action.positions
-                val selectedIds = action.positions.values
-                if (selectedIds.isNotEmpty() && (focusedWorkspace.value == null || !selectedIds.contains(
-                        focusedWorkspace.value
-                    ))
-                ) {
-                    focusedWorkspace.value = selectedIds.first()
-                }
-                focusedWorkspace.value = selectedIds.firstOrNull()
-            }
-
-            is WorkspaceAction.Focus -> {
-                log(TAG, INFO) { "Focusing tab: ${action.id}" }
-                if (selectedWorkspaces.value.values.contains(action.id)) {
-                    focusedWorkspace.value = action.id
-                } else {
-                    log(TAG, WARN) { "Cannot focus tab ${action.id} - not in selected tabs" }
-                }
-            }
-
-            is WorkspaceAction.ToggleSelection -> {
-                log(TAG, INFO) { "Toggling selection for tab: ${action.id} at position ${action.position}" }
-                val current = selectedWorkspaces.value
-                val existingPosition = current.entries.find { it.value == action.id }?.key
-
-                selectedWorkspaces.value = if (existingPosition != null) {
-                    // Remove from selection
-                    current - existingPosition
-                } else {
-                    // Add to selection at specified position or next available
-                    val position = action.position ?: current.keys.maxOrNull()?.plus(1) ?: 0
-                    current + (position to action.id)
-                }
-
-                if (selectedWorkspaces.value.isEmpty()) {
-                    focusedWorkspace.value = null
-                } else if (!selectedWorkspaces.value.values.contains(focusedWorkspace.value)) {
-                    focusedWorkspace.value = selectedWorkspaces.value.values.first()
-                }
-            }
-
             is WorkspaceAction.Create -> {
                 log(TAG, INFO) { "Creating new workspace with $action" }
                 val newId = create(
@@ -170,76 +115,19 @@ class WorkspaceRepo @Inject constructor(
                     arguments = action.arguments,
                     idToReplace = action.replace
                 )
-                log(TAG) { "New workspace created with ID $newId" }
-
-                if (action.replace != null) {
-                    selectedWorkspaces.value.entries.find { (_, id) -> id == action.replace }?.let { (index, _) ->
-                        log(TAG) { "Replaced workspace was selected, updating selection at $index" }
-                        selectedWorkspaces.value = selectedWorkspaces.value.toMutableMap().apply {
-                            this[index] = newId
-                        }
-                    }
-                    if (focusedWorkspace.value == action.replace) {
-                        log(TAG) { "Replaced workspace was focused, updating focus" }
-                        focusedWorkspace.value = newId
-                    }
-                } else {
-                    if (focusedWorkspace.value == null) {
-                        log(TAG) { "There is no focused workspace, focusing the new one" }
-                        focusedWorkspace.value = newId
-                    }
-                    val nextEmptyIndex = generateSequence(0) { it + 1 }.first { index ->
-                        !selectedWorkspaces.value.containsKey(index)
-                    }
-
-                    log(TAG) { "Adding new workspace to selection at #$nextEmptyIndex" }
-                    selectedWorkspaces.value = selectedWorkspaces.value + mapOf(nextEmptyIndex to newId)
-                }
-
+                log(TAG) { "New workspace created with ID $newId, emitting event" }
+                _events.emit(WorkspaceEvent.Created(
+                    workspaceId = newId,
+                    replacedId = action.replace
+                ))
+                WorkspaceAction.Create.Result(newId)
             }
 
             is WorkspaceAction.Close -> {
                 log(TAG, INFO) { "Closing workspace with id ${action.id}" }
-                val tabsBeforeDelete = _workspaces.first()
-                val closingIndex = tabsBeforeDelete.indexOfFirst { it.id == action.id }
-                val wasInMultiSelection = selectedWorkspaces.value.values.contains(action.id)
-                val wasFocused = focusedWorkspace.value == action.id
-
                 _workspaces.value = _workspaces.value.filter { it.id != action.id }
-                val tabsAfterDelete = tabsBeforeDelete - tabsBeforeDelete[closingIndex]
-
-                // Update multi-selection
-                if (wasInMultiSelection) {
-                    val positionToRemove = selectedWorkspaces.value.entries.find { it.value == action.id }?.key
-                    if (positionToRemove != null) {
-                        selectedWorkspaces.value = selectedWorkspaces.value - positionToRemove
-                    }
-                }
-
-                // If closed tab wasn't selected, keep current selection unchanged
-                if (tabsAfterDelete.isNotEmpty() && wasFocused) {
-                    // Select next most intuitive tab when closing the selected tab
-                    val newSelectedId = when {
-                        // If there's a tab to the right, select it
-                        closingIndex < tabsAfterDelete.size -> tabsAfterDelete[closingIndex].id
-                        // Otherwise select the tab to the left (last tab)
-                        else -> tabsAfterDelete.last().id
-                    }
-                    log(TAG) { "Closed selected tab, selecting new tab: $newSelectedId" }
-                    focusedWorkspace.value = newSelectedId
-                    if (selectedWorkspaces.value.isEmpty()) {
-                        selectedWorkspaces.value = mapOf(0 to newSelectedId)
-                    }
-                } else if (tabsAfterDelete.isEmpty()) {
-                    log(TAG) { "Closed last tab, setting selection to null" }
-                    focusedWorkspace.value = null
-                    selectedWorkspaces.value = emptyMap()
-                }
-
-                // Update focus if needed
-                if (wasFocused && tabsAfterDelete.isNotEmpty()) {
-                    focusedWorkspace.value = selectedWorkspaces.value.values.firstOrNull() ?: focusedWorkspace.value
-                }
+                _events.emit(WorkspaceEvent.Closed(workspaceId = action.id))
+                WorkspaceAction.Close.Result
             }
             is WorkspaceAction.Reorder -> {
                 log(TAG, INFO) { "Reordering workspaces: ${action.workspaceIds}" }
@@ -251,16 +139,18 @@ class WorkspaceRepo @Inject constructor(
 
                 if (reordered.size != current.size) {
                     log(TAG, ERROR) { "Reorder failed: size mismatch. Expected ${current.size}, got ${reordered.size}" }
-                    return
+                    return WorkspaceAction.Reorder.Result(false)
                 }
 
                 _workspaces.value = reordered
+                _events.emit(WorkspaceEvent.Reordered(workspaceIds = action.workspaceIds))
+                WorkspaceAction.Reorder.Result(true)
             }
             WorkspaceAction.CloseAll -> {
                 log(TAG, INFO) { "Closing all workspaces" }
-                focusedWorkspace.value = null
-                selectedWorkspaces.value = emptyMap()
                 _workspaces.value = emptyList()
+                _events.emit(WorkspaceEvent.AllClosed)
+                WorkspaceAction.CloseAll.Result
             }
         }
     }

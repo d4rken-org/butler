@@ -6,11 +6,11 @@ import kotlinx.coroutines.flow.Flow
 interface WorkspaceRemote {
 
     val state: Flow<State>
+    
+    val events: Flow<WorkspaceEvent>
 
     data class State(
         val infos: List<Workspace.Info> = emptyList(),
-        val focusedWorkspace: Workspace.Id? = null,
-        val selectedWorkspaces: Map<Int, Workspace.Id> = emptyMap(),
         val isButtonActionsFlipped: Boolean = false,
         val panelMode: WorkspacePanelMode = WorkspacePanelMode.AUTO,
     ) {
@@ -23,5 +23,5 @@ interface WorkspaceRemote {
 
     }
 
-    suspend fun execute(action: WorkspaceAction)
+    suspend fun execute(action: WorkspaceAction): WorkspaceAction.Result
 }
