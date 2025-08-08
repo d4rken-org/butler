@@ -225,8 +225,9 @@ private fun WorkspaceRailItem(
                         )
                     },
                     onClick = {
-                        onPaneAssignment(workspace.id, paneIndex)
                         showPaneMenu = false
+                        onPaneMenuToggle(false)  // Explicitly hide overlays
+                        onPaneAssignment(workspace.id, paneIndex)
                     },
                 )
             }
@@ -240,8 +241,9 @@ private fun WorkspaceRailItem(
                     )
                 },
                 onClick = {
-                    onTabAction(WorkspaceAction.Close(workspace.id))
                     showPaneMenu = false
+                    onPaneMenuToggle(false)  // Explicitly hide overlays before closing
+                    onTabAction(WorkspaceAction.Close(workspace.id))
                 },
             )
         }
