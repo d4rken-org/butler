@@ -100,7 +100,6 @@ internal fun ClassicWorkspaceContainer(
                 onNavToSettings = onNavToSettings,
                 onWorkspaceAction = onWorkspaceAction,
                 isUpgraded = state.isUpgraded,
-                onOpenWorkspaceManager = onOpenWorkspaceManager,
                 onUpgradeButler = onUpgradeButler,
             )
         }
