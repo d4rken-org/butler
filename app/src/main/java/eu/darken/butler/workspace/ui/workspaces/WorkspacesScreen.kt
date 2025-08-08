@@ -210,77 +210,84 @@ fun WorkspaceScreen(
 @Composable
 private fun WorkspacesScreenPreview() {
     PreviewWrapper {
-        // Create mock workspace infos
-        val workspace1 = Workspace.Info(
-            id = Workspace.Id(),
-            type = Workspace.Type.EXPLORER,
-            title = "Explorer".toCaString(),
-            subtitle = "/storage/emulated/0".toCaString(),
-            operationCount = 2,
-            attentionCount = 0,
-        )
-        
-        val workspace2 = Workspace.Info(
-            id = Workspace.Id(),
-            type = Workspace.Type.SEARCHER,
-            title = "Search Results".toCaString(),
-            subtitle = "Found 42 items".toCaString(),
-            operationCount = 0,
-            attentionCount = 1,
-        )
-        
-        val workspace3 = Workspace.Info(
-            id = Workspace.Id(),
-            type = Workspace.Type.EDITOR,
-            title = "config.json".toCaString(),
-            subtitle = "Modified".toCaString(),
-            operationCount = 0,
-            attentionCount = 0,
-        )
-        
-        val workspace4 = Workspace.Info(
-            id = Workspace.Id(),
-            type = Workspace.Type.TEMPLATES,
-            title = "Templates".toCaString(),
-            subtitle = null,
-            operationCount = 0,
-            attentionCount = 0,
-        )
-        
-        // Create mock state
         val state = WorkspacesViewModel.State(
             state = WorkspaceRemote.State(
-                infos = listOf(workspace1, workspace2, workspace3, workspace4),
+                infos = emptyList(), // No workspaces
                 isButtonActionsFlipped = false,
                 panelMode = WorkspacePanelMode.DUAL,
             ),
-            focusedWorkspace = workspace1.id,
-            selectedWorkspaces = mapOf(
-                0 to workspace1.id,
-                1 to workspace2.id,
-            ),
+            focusedWorkspace = null,
+            selectedWorkspaces = emptyMap(), // No selected workspaces
             isUpgraded = true,
             isButtonActionsFlipped = false,
             swipeGesturesEnabled = true,
         )
-        
-        // Mock WorkspaceButtonViewModel state
+
         val workspaceButtonState = WorkspaceButtonViewModel.State(
-            workspaceCount = 4,
+            workspaceCount = 0,
             isButtonFlipped = false,
-            operationsCount = 2,
-            attentionCount = 1,
+            operationsCount = 0,
+            attentionCount = 0,
         )
-        
-        WorkspaceScreen(
+
+        WorkspacesScreenPreviewContent(
+            workspaceButtonState = workspaceButtonState,
+            state = state,
+        )
+    }
+}
+
+@Composable
+private fun WorkspacesScreenPreviewContent(
+    workspaceButtonState: WorkspaceButtonViewModel.State?,
+    state: WorkspacesViewModel.State,
+) {
+    val design = WorkspaceDesign(
+        layout = WorkspaceDesign.Layout.DUAL_VERTICAL,
+    )
+    
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        WorkspaceNavigationRail(
+            design = design,
+            workspaces = state.all,
+            selected = state.selected,
+            focusedId = state.focused,
+            onTabAction = {},
+            onPaneAssignment = { _, _ -> },
+            onPaneMenuToggle = {},
             workspaceButtonState = workspaceButtonState,
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
-            state = state,
-            onNavToSettings = {},
-            onTabAction = {},
-            onScreenAction = {},
-            onUpgradeButler = {},
+        )
+        
+        AdaptiveWorkspaceContainer(
+            modifier = Modifier.weight(1f),
+            design = design,
+            selected = state.selected,
+            focusedTabId = state.focused,
+            dividerPositions = DividerPositions(),
+            onDividerPositionsChange = {},
+            onTabFocus = {},
+            showPaneNumbers = false,
+            showPaneOverlay = false,
+            paneContent = { info, paneNumber ->
+                if (info != null) {
+                    // Simple placeholder content for preview
+                    EmptyAdaptiveWorkspaceContent(
+                        modifier = Modifier.fillMaxSize(),
+                        paneNumber = paneNumber,
+                    )
+                } else {
+                    EmptyAdaptiveWorkspaceContent(
+                        modifier = Modifier.fillMaxSize(),
+                        paneNumber = paneNumber,
+                    )
+                }
+            }
         )
     }
 }
