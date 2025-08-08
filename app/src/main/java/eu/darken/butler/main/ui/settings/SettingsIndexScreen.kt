@@ -18,7 +18,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stars
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Workspaces
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -63,7 +62,6 @@ fun SettingsIndexScreenHost(vm: SettingsViewModel = hiltViewModel()) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsIndexScreen(
     state: SettingsViewModel.State,
