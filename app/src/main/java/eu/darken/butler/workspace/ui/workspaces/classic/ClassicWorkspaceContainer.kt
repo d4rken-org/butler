@@ -16,17 +16,17 @@ import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.WorkspaceAction
-import eu.darken.butler.workspace.ui.WorkspaceScreenAction
-import eu.darken.butler.workspace.ui.WorkspaceViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
+import eu.darken.butler.workspace.ui.workspaces.WorkspaceScreenAction
+import eu.darken.butler.workspace.ui.workspaces.WorkspacesViewModel
 
 private val TAG = logTag("Workspace", "Container", "Classic")
 
 @Composable
 internal fun ClassicWorkspaceContainer(
     design: WorkspaceDesign = WorkspaceDesign(),
-    state: WorkspaceViewModel.State,
+    state: WorkspacesViewModel.State,
     onNavToSettings: () -> Unit,
     onTabAction: (WorkspaceAction) -> Unit,
     onUiAction: (WorkspaceScreenAction) -> Unit,

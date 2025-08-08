@@ -9,7 +9,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import eu.darken.butler.common.navigation.NavigationEntry
-import eu.darken.butler.workspace.ui.WorkspacesScreenHost
 import eu.darken.butler.workspace.ui.manager.DestinationWorkspaceManager
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerScreenHost
 import javax.inject.Inject

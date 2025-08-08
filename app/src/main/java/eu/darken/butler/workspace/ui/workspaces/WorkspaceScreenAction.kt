@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui
+package eu.darken.butler.workspace.ui.workspaces
 
 import eu.darken.butler.workspace.core.Workspace
 
