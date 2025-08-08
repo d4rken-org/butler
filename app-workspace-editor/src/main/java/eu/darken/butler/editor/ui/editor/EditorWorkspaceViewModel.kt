@@ -38,7 +38,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 ) : ViewModel4(dispatchers, logTag("Workspace", "Editor", id.shortTag, "Page"), navCtrl) {
 
     private val workspaceFlow = flow {
-        emit(workspaceProvider.get(id))
+        emit(workspaceProvider.retrieve(id))
     }.flatMapLatest { it }
 
     private val _isLoading = MutableStateFlow(true)
