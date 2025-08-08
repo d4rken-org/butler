@@ -1,3 +1,5 @@
+@file:Suppress("UnusedReceiverParameter")
+
 package eu.darken.butler.workspace.ui.workspaces
 
 import eu.darken.butler.common.navigation.Nav

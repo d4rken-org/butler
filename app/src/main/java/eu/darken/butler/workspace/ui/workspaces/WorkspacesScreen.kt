@@ -14,12 +14,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.ui.waitForState
+import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.ui.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.WorkspaceScreenAction
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
@@ -32,8 +37,8 @@ import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceNavigationRail
 import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContainer
 
 @Composable
-fun WorkspaceScreenHost(
-    vm: WorkspaceViewModel = hiltViewModel(),
+fun WorkspacesScreenHost(
+    vm: WorkspacesViewModel = hiltViewModel(),
     workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
     ErrorEventHandler(vm)
@@ -64,7 +69,7 @@ fun WorkspaceScreen(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
-    state: WorkspaceViewModel.State,
+    state: WorkspacesViewModel.State,
     onNavToSettings: () -> Unit,
     onTabAction: (WorkspaceAction) -> Unit,
     onScreenAction: (WorkspaceScreenAction) -> Unit,
@@ -201,3 +206,81 @@ fun WorkspaceScreen(
     }
 }
 
+@Preview2
+@Composable
+private fun WorkspacesScreenPreview() {
+    PreviewWrapper {
+        // Create mock workspace infos
+        val workspace1 = Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.EXPLORER,
+            title = "Explorer".toCaString(),
+            subtitle = "/storage/emulated/0".toCaString(),
+            operationCount = 2,
+            attentionCount = 0,
+        )
+        
+        val workspace2 = Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.SEARCHER,
+            title = "Search Results".toCaString(),
+            subtitle = "Found 42 items".toCaString(),
+            operationCount = 0,
+            attentionCount = 1,
+        )
+        
+        val workspace3 = Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.EDITOR,
+            title = "config.json".toCaString(),
+            subtitle = "Modified".toCaString(),
+            operationCount = 0,
+            attentionCount = 0,
+        )
+        
+        val workspace4 = Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.TEMPLATES,
+            title = "Templates".toCaString(),
+            subtitle = null,
+            operationCount = 0,
+            attentionCount = 0,
+        )
+        
+        // Create mock state
+        val state = WorkspacesViewModel.State(
+            state = WorkspaceRemote.State(
+                infos = listOf(workspace1, workspace2, workspace3, workspace4),
+                isButtonActionsFlipped = false,
+                panelMode = WorkspacePanelMode.DUAL,
+            ),
+            focusedWorkspace = workspace1.id,
+            selectedWorkspaces = mapOf(
+                0 to workspace1.id,
+                1 to workspace2.id,
+            ),
+            isUpgraded = true,
+            isButtonActionsFlipped = false,
+            swipeGesturesEnabled = true,
+        )
+        
+        // Mock WorkspaceButtonViewModel state
+        val workspaceButtonState = WorkspaceButtonViewModel.State(
+            workspaceCount = 4,
+            isButtonFlipped = false,
+            operationsCount = 2,
+            attentionCount = 1,
+        )
+        
+        WorkspaceScreen(
+            workspaceButtonState = workspaceButtonState,
+            onWorkspaceAction = {},
+            onNavToWorkspaceManager = {},
+            state = state,
+            onNavToSettings = {},
+            onTabAction = {},
+            onScreenAction = {},
+            onUpgradeButler = {},
+        )
+    }
+}

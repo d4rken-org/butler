@@ -19,14 +19,14 @@ import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.WorkspaceScreenAction
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
-import eu.darken.butler.workspace.ui.workspaces.WorkspaceViewModel
+import eu.darken.butler.workspace.ui.workspaces.WorkspacesViewModel
 
 private val TAG = logTag("Workspace", "Container", "Classic")
 
 @Composable
 internal fun ClassicWorkspaceContainer(
     design: WorkspaceDesign = WorkspaceDesign(),
-    state: WorkspaceViewModel.State,
+    state: WorkspacesViewModel.State,
     onNavToSettings: () -> Unit,
     onTabAction: (WorkspaceAction) -> Unit,
     onUiAction: (WorkspaceScreenAction) -> Unit,

@@ -22,6 +22,10 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.DualHorizontalLayout
+import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.DualVerticalLayout
+import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.SinglePaneLayout
+import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.TripleMainLeftLayout
 import kotlinx.parcelize.Parcelize
 
 /**

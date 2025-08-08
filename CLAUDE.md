@@ -94,6 +94,8 @@ fastlane android production
 ## Agent instructions
 
 - Reminder: Our core principle is to maintain focused contexts for both yourself (the orchestrator/main agent) and each sub-agent. Therefore, please use the Task tool to delegate suitable tasks to sub-agents to improve task efficiency and optimize token usage.
+- Be critical.
+- Challenge suggestions.
 
 ## Development Guidelines
 

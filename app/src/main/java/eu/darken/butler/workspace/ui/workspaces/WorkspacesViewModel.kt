@@ -27,7 +27,7 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class WorkspaceViewModel @Inject constructor(
+class WorkspacesViewModel @Inject constructor(
     dispatchers: DispatcherProvider,
     private val navCtrl: NavigationController,
     upgradeRepo: UpgradeRepo,
