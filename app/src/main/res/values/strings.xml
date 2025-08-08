@@ -10,6 +10,19 @@
     <string name="onboarding_privacy_read_action">Read Privacy Policy</string>
     <string name="onboarding_privacy_action">Accept</string>
 
+    <string name="onboarding_workspaces_title">Your Workspace</string>
+    <string name="onboarding_workspaces_message">Butler organizes your work into specialized workspaces</string>
+    <string name="onboarding_workspaces_action">Continue</string>
+    <string name="onboarding_workspaces_hint">💡 Swipe between workspaces like browser tabs</string>
+    <string name="onboarding_workspaces_explorer_title">Explorer</string>
+    <string name="onboarding_workspaces_explorer_description">Browse and manage files</string>
+    <string name="onboarding_workspaces_searcher_title">Searcher</string>
+    <string name="onboarding_workspaces_searcher_description">Find files quickly</string>
+    <string name="onboarding_workspaces_editor_title">Editor</string>
+    <string name="onboarding_workspaces_editor_description">View and edit text files</string>
+    <string name="onboarding_workspaces_templates_title">Templates</string>
+    <string name="onboarding_workspaces_templates_description">Save workspace setups</string>
+
     <string name="setup_usagestats_title">Usage stats</string>
     <string name="setup_shizuku_card_title">Shizuku</string>
     <string name="setup_root_card_title">Root</string>
@@ -151,21 +164,34 @@
     <string name="storage_area_public_app_data_label">Public app data</string>
 
     <!-- Workspace -->
+    <!-- Workspace > Manager -->
     <string name="workspace_manager_title">Workspace Manager</string>
     <string name="workspace_manager_add_action">Add workspace</string>
     <string name="workspace_manager_status_count">Active workspaces: %1$d</string>
     <string name="workspace_manager_empty_title">No workspaces</string>
     <string name="workspace_manager_empty_subtitle">Create your first workspace to get started</string>
     <string name="workspace_tab_close_action">Close tab</string>
-    <string name="workspace_tab_add_action">Create a new tab</string>
-    <string name="workspace_tab_add_hint">Work in parallel: Create a tab and turn it into a tool of your choice.</string>
 
-    <string name="workspace_settings_action">Open settings</string>
-    <string name="workspace_settings_hint">Customize Butler to your liking. Adjust how the tools behave.</string>
+    <!-- Workspace > Empty Content-->
+    <string name="workspace_empty_create_action">Create workspace</string>
+    <string name="workspace_empty_create_hint">Work in parallel: Create a workspace and turn it into a tool of your choice.</string>
+    <string name="workspace_empty_settings_action">Open settings</string>
+    <string name="workspace_empty_settings_hint">Customize Butler to your liking. Adjust how the tools behave.</string>
+    <string name="workspace_empty_manager_action">Manage workspaces</string>
+    <string name="workspace_empty_manager_hint">View and organize all your open workspaces in one place.</string>
 
+    <!-- Workspace > Settings-->
     <string name="workspace_settings_title">Workspace Settings</string>
     <string name="workspace_settings_button_behavior">Button Behavior</string>
     <string name="workspace_settings_flip_button_actions_title">Flip Button Actions</string>
     <string name="workspace_settings_flip_button_actions_desc">Normal click creates new workspace, long click opens manager</string>
+    <string name="workspace_settings_navigation">Navigation</string>
+    <string name="workspace_settings_swipe_gestures_title">Swipe Gestures</string>
+    <string name="workspace_settings_swipe_gestures_desc">Swipe left or right to switch between workspaces</string>
+    
+    <string name="workspace_badge_tip_title">Tip: Workspace Button Indicators</string>
+    <string name="workspace_badge_open_workspaces">Number of open workspaces</string>
+    <string name="workspace_badge_active_operations">Active operations (file copies, searches, etc.)</string>
+    <string name="workspace_badge_attention_items">Items needing attention (errors, unsaved changes)</string>
 
 </resources>

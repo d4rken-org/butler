@@ -9,12 +9,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.explorer.ui.explorer.FileItem
+import eu.darken.butler.explorer.core.engine.ExplorerPathItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
 internal fun ArchiveFileRow(
-    item: FileItem.ArchiveFile,
+    item: ExplorerPathItem.ArchiveFile,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
@@ -33,7 +33,7 @@ internal fun ArchiveFileRow(
                 imageVector = Icons.Default.Archive,
                 contentDescription = "Archive",
                 tint = MaterialTheme.colorScheme.tertiary,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(32.dp)
             )
         },
         primaryText = item.displayName,

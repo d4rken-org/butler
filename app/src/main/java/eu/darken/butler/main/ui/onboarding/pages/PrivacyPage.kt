@@ -1,5 +1,9 @@
 package eu.darken.butler.main.ui.onboarding.pages
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +20,11 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -35,19 +44,34 @@ internal fun PrivacyPage(
     onReadPrivacyPolicy: () -> Unit = {},
     onAccept: () -> Unit
 ) {
+    var isVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        isVisible = true
+    }
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(32.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        AnimatedVisibility(
+            visible = isVisible,
+            enter = fadeIn(
+                animationSpec = tween(400)
+            ) + slideInVertically(
+                initialOffsetY = { 30 },
+                animationSpec = tween(400)
+            ),
+            modifier = Modifier.weight(1f)
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
             Text(
                 text = stringResource(R.string.onboarding_privacy_title),
                 style = MaterialTheme.typography.headlineMedium,
@@ -133,14 +157,25 @@ internal fun PrivacyPage(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
+            }
         }
 
-        Button(
-            onClick = onAccept,
-            modifier = Modifier
-                .fillMaxWidth()
+        AnimatedVisibility(
+            visible = isVisible,
+            enter = fadeIn(
+                animationSpec = tween(
+                    durationMillis = 400,
+                    delayMillis = 200
+                )
+            )
         ) {
-            Text(stringResource(R.string.onboarding_privacy_action))
+            Button(
+                onClick = onAccept,
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.onboarding_privacy_action))
+            }
         }
     }
 }

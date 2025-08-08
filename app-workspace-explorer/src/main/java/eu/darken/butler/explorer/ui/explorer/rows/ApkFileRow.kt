@@ -9,12 +9,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.explorer.ui.explorer.FileItem
+import eu.darken.butler.explorer.core.engine.ExplorerPathItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.explorer.ui.explorer.rows.FileRowBase
 
 @Composable
 internal fun ApkFileRow(
-    item: FileItem.ApkFile,
+    item: ExplorerPathItem.ApkFile,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
@@ -34,7 +35,7 @@ internal fun ApkFileRow(
                 imageVector = Icons.Default.Android,
                 contentDescription = "APK file",
                 tint = MaterialTheme.colorScheme.tertiary,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(32.dp)
             )
         },
         primaryText = item.displayName,

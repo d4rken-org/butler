@@ -1,6 +1,7 @@
 package eu.darken.butler.main.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Workspaces
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -29,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.ButlerLinks
+import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -69,7 +72,25 @@ fun SettingsIndexScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.settings_label)) },
+                title = {
+                    Column {
+                        Text(stringResource(R.string.settings_label))
+                        // TODO: Add subtitle showing upgrade status
+                        if (state.isUpgraded) {
+                            ColoredTitleText(
+                                fullTitle = stringResource(eu.darken.butler.common.R.string.app_name_upgraded),
+                                postfix = stringResource(eu.darken.butler.common.R.string.app_name_upgrade_postfix),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        } else {
+                            Text(
+                                text = stringResource(eu.darken.butler.common.R.string.app_name),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
                         Icon(
@@ -208,7 +229,9 @@ fun SettingsIndexScreen(
 private fun SettingsScreenPreview() {
     PreviewWrapper {
         SettingsIndexScreen(
-            state = SettingsViewModel.State(),
+            state = SettingsViewModel.State(
+                isUpgraded = true // TODO: Preview with upgrade status
+            ),
             onNavigateUp = {},
             onNavigateTo = {},
             onOpenUrl = {},

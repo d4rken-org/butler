@@ -8,7 +8,6 @@ import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,10 +21,11 @@ constructor(
 
     val state = combine(
         workspaceSettings.isButtonActionsFlipped.flow,
-        flowOf(Unit),
-    ) { isButtonActionsFlipped, _ ->
+        workspaceSettings.swipeGesturesEnabled.flow,
+    ) { isButtonActionsFlipped, swipeGesturesEnabled ->
         State(
             isButtonActionsFlipped = isButtonActionsFlipped,
+            swipeGesturesEnabled = swipeGesturesEnabled,
         )
     }.asStateFlow()
 
@@ -34,7 +34,13 @@ constructor(
         workspaceSettings.isButtonActionsFlipped.value(!current)
     }
 
+    fun toggleSwipeGestures() = launch {
+        val current = workspaceSettings.swipeGesturesEnabled.value()
+        workspaceSettings.swipeGesturesEnabled.value(!current)
+    }
+
     data class State(
         val isButtonActionsFlipped: Boolean,
+        val swipeGesturesEnabled: Boolean,
     )
 }

@@ -1,0 +1,236 @@
+package eu.darken.butler.explorer.ui.explorer
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.files.RawPath
+import eu.darken.butler.explorer.core.engine.ExplorerLocation
+
+@Composable
+fun BreadcrumbBar(
+    breadcrumbs: List<ExplorerLocation.Breadcrumb>,
+    onBreadcrumbClick: (ExplorerLocation.Breadcrumb.Target) -> Unit,
+    onNavigateToPath: ((String) -> Unit)? = null,
+    modifier: Modifier = Modifier
+) {
+    val scrollState = rememberScrollState()
+    val context = LocalContext.current
+    var isEditMode by remember { mutableStateOf(false) }
+    var editTextValue by remember { mutableStateOf(TextFieldValue("")) }
+    val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    // Build current path from breadcrumbs
+    val currentPath = remember(breadcrumbs) {
+        when (val lastTarget = breadcrumbs.lastOrNull()?.target) {
+            is ExplorerLocation.Breadcrumb.Target.Directory -> lastTarget.path.path
+            else -> "/"
+        }
+    }
+
+    LaunchedEffect(breadcrumbs.size) {
+        if (breadcrumbs.isNotEmpty() && !isEditMode) {
+            scrollState.animateScrollTo(scrollState.maxValue)
+        }
+    }
+
+    // Enter edit mode with current path
+    LaunchedEffect(isEditMode) {
+        if (isEditMode) {
+            editTextValue = TextFieldValue(currentPath, TextRange(currentPath.length))
+            focusRequester.requestFocus()
+        }
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(4.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+            .padding(horizontal = 8.dp, vertical = 8.dp)
+    ) {
+        if (isEditMode && onNavigateToPath != null) {
+            // Edit mode - show text field
+            BasicTextField(
+                value = editTextValue,
+                onValueChange = { editTextValue = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester)
+                    .onKeyEvent { keyEvent ->
+                        if (keyEvent.key == Key.Escape) {
+                            keyboardController?.hide()
+                            isEditMode = false
+                            true
+                        } else {
+                            false
+                        }
+                    },
+                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurface
+                ),
+                singleLine = true,
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        keyboardController?.hide()
+                        val pathToNavigate = editTextValue.text.trim()
+                        if (pathToNavigate.isNotEmpty()) {
+                            onNavigateToPath(pathToNavigate)
+                        }
+                        isEditMode = false
+                    }
+                )
+            )
+        } else {
+            // Display mode - show breadcrumbs
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(scrollState),
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+            breadcrumbs.forEachIndexed { index, breadcrumb ->
+                val isLast = index == breadcrumbs.lastIndex
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .clickable {
+                            if (isLast && onNavigateToPath != null) {
+                                // Click on last breadcrumb enters edit mode
+                                isEditMode = true
+                            } else if (!isLast) {
+                                // Click on other breadcrumbs navigates
+                                onBreadcrumbClick(breadcrumb.target)
+                            }
+                        }
+                        .padding(horizontal = 6.dp, vertical = 4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Use icon from breadcrumb data, or show text if no icon or preferIcon is false
+                    if (breadcrumb.icon != null && (breadcrumb.preferIcon || breadcrumb.label.get(context).isEmpty())) {
+                        Icon(
+                            imageVector = breadcrumb.icon,
+                            contentDescription = breadcrumb.label.get(context),
+                            tint = if (isLast) {
+                                MaterialTheme.colorScheme.onSurface
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                            modifier = Modifier.size(20.dp)
+                        )
+                    } else {
+                        Text(
+                            text = breadcrumb.label.get(context),
+                            style = if (isLast) {
+                                MaterialTheme.typography.bodyMedium.copy(
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            } else {
+                                MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        )
+                    }
+                }
+
+                if (!isLast) {
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+            }
+        }
+    }
+}
+
+@Preview2
+@Composable
+fun BreadcrumbBarPreview() {
+    val breadcrumbs = listOf(
+        ExplorerLocation.Home.CRUMB,
+        ExplorerLocation.Device.CRUMB,
+        ExplorerLocation.Breadcrumb(
+            label = "storage".toCaString(),
+            target = ExplorerLocation.Breadcrumb.Target.Directory(RawPath.build("/storage"))
+        ),
+        ExplorerLocation.Breadcrumb(
+            label = "emulated".toCaString(),
+            target = ExplorerLocation.Breadcrumb.Target.Directory(RawPath.build("/storage/emulated"))
+        ),
+        ExplorerLocation.Breadcrumb(
+            label = "0".toCaString(),
+            target = ExplorerLocation.Breadcrumb.Target.Directory(RawPath.build("/storage/emulated/0"))
+        )
+    )
+
+    PreviewWrapper {
+        BreadcrumbBar(
+            breadcrumbs = breadcrumbs,
+            onBreadcrumbClick = {}
+        )
+    }
+}
+
+@Preview2
+@Composable
+fun BreadcrumbBarHomeOnlyPreview() {
+    val breadcrumbs = listOf(
+        ExplorerLocation.Home.CRUMB
+    )
+
+    PreviewWrapper {
+        BreadcrumbBar(
+            breadcrumbs = breadcrumbs,
+            onBreadcrumbClick = {}
+        )
+    }
+}

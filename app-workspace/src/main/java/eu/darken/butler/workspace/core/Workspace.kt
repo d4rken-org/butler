@@ -13,6 +13,10 @@ interface Workspace {
     val type: Type
     val info: Flow<Info>
 
+    suspend fun release() {
+
+    }
+
     enum class Type {
         TEMPLATES,
         EXPLORER,

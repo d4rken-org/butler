@@ -6,15 +6,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Lightbulb
-import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -24,13 +21,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.ui.manager.WorkspaceButton
+import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 
 @Composable
 fun WorkspaceBadgeExplanationCard(
@@ -63,7 +61,7 @@ fun WorkspaceBadgeExplanationCard(
                         modifier = Modifier.size(20.dp)
                     )
                     Text(
-                        text = "Tip: Workspace Button Indicators",
+                        text = stringResource(R.string.workspace_badge_tip_title),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
@@ -80,102 +78,18 @@ fun WorkspaceBadgeExplanationCard(
                 }
             }
 
-            // Demo button
-            Box(
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            ) {
-                // Button background
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.tertiaryContainer),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.Workspaces,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-
-                // Demo badges
-                // Workspace count (top-right)
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .offset(x = 8.dp, y = (-8).dp)
-                        .size(16.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "3",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 9.sp,
-                        lineHeight = 9.sp,
-                        fontWeight = FontWeight.Medium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(bottom = 1.dp)
-                    )
-                }
-
-                // Operations count (top-left)
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .offset(x = (-8).dp, y = (-8).dp)
-                        .size(16.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primary,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "2",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontSize = 9.sp,
-                        lineHeight = 9.sp,
-                        fontWeight = FontWeight.Medium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(bottom = 1.dp)
-                    )
-                }
-
-                // Attention count (bottom-right)
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .offset(x = 8.dp, y = 8.dp)
-                        .size(16.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.error,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "1",
-                        color = MaterialTheme.colorScheme.onError,
-                        fontSize = 9.sp,
-                        lineHeight = 9.sp,
-                        fontWeight = FontWeight.Medium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(bottom = 1.dp)
-                    )
-                }
-            }
+            // Demo button using the actual WorkspaceButton component
+            WorkspaceButton(
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                state = WorkspaceButtonViewModel.State(
+                    workspaceCount = 3,
+                    operationsCount = 2,
+                    attentionCount = 1,
+                    isButtonFlipped = false,
+                ),
+                onAction = { /* Demo, no action */ },
+                onNavToWorkspaceManager = { /* Demo, no action */ }
+            )
 
             // Explanations
             Column(
@@ -194,7 +108,7 @@ fun WorkspaceBadgeExplanationCard(
                             )
                     )
                     Text(
-                        text = "Number of open workspaces",
+                        text = stringResource(R.string.workspace_badge_open_workspaces),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -212,7 +126,7 @@ fun WorkspaceBadgeExplanationCard(
                             )
                     )
                     Text(
-                        text = "Active operations (file copies, searches, etc.)",
+                        text = stringResource(R.string.workspace_badge_active_operations),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -230,7 +144,7 @@ fun WorkspaceBadgeExplanationCard(
                             )
                     )
                     Text(
-                        text = "Items needing attention (errors, unsaved changes)",
+                        text = stringResource(R.string.workspace_badge_attention_items),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }

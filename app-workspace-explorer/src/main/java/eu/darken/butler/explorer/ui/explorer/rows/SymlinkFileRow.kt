@@ -9,12 +9,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.explorer.ui.explorer.FileItem
+import eu.darken.butler.explorer.core.engine.ExplorerPathItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
 internal fun SymlinkFileRow(
-    item: FileItem.SymbolicLink,
+    item: ExplorerPathItem.SymbolicLink,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
@@ -37,7 +37,7 @@ internal fun SymlinkFileRow(
                 } else {
                     MaterialTheme.colorScheme.primary
                 },
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(32.dp)
             )
         },
         primaryText = item.displayName,

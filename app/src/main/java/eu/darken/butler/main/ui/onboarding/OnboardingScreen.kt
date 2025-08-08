@@ -20,6 +20,7 @@ import eu.darken.butler.main.ui.onboarding.OnboardingViewModel.State.*
 import eu.darken.butler.main.ui.onboarding.pages.BetaPage
 import eu.darken.butler.main.ui.onboarding.pages.PrivacyPage
 import eu.darken.butler.main.ui.onboarding.pages.WelcomePage
+import eu.darken.butler.main.ui.onboarding.pages.WorkspacesPage
 import kotlinx.coroutines.launch
 
 @Composable
@@ -62,6 +63,15 @@ private fun OnboardingScreen(
 
                 Page.BETA ->
                     BetaPage(
+                        onContinue = {
+                            scope.launch {
+                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                            }
+                        }
+                    )
+
+                Page.WORKSPACES ->
+                    WorkspacesPage(
                         onContinue = {
                             scope.launch {
                                 pagerState.animateScrollToPage(pagerState.currentPage + 1)

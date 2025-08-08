@@ -9,12 +9,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.explorer.ui.explorer.FileItem
+import eu.darken.butler.explorer.core.engine.ExplorerPathItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
 internal fun DocumentFileRow(
-    item: FileItem.DocumentFile,
+    item: ExplorerPathItem.DocumentFile,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
@@ -33,7 +33,7 @@ internal fun DocumentFileRow(
                 imageVector = Icons.Default.Description,
                 contentDescription = "Document",
                 tint = MaterialTheme.colorScheme.outline,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(32.dp)
             )
         },
         primaryText = item.displayName,
