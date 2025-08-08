@@ -61,8 +61,7 @@ class WorkspaceViewModel @Inject constructor(
                         handleWorkspaceCreated(event.workspaceId, event.replacedId)
                     }
                     is WorkspaceEvent.Closed -> {
-                        // Cleanup handled by existing cleanup logic
-                        log(tag) { "Workspace ${event.workspaceId} closed" }
+                        handleWorkspaceClosed(event.workspaceId)
                     }
                     is WorkspaceEvent.Reordered -> {
                         log(tag) { "Workspaces reordered: ${event.workspaceIds}" }
@@ -159,6 +158,41 @@ class WorkspaceViewModel @Inject constructor(
         }
     }
     
+    private suspend fun handleWorkspaceClosed(workspaceId: Workspace.Id) {
+        log(tag) { "handleWorkspaceClosed: workspaceId=$workspaceId" }
+        
+        val wasSelected = selectedWorkspaces.value.values.contains(workspaceId)
+        val wasFocused = focusedWorkspaceId.value == workspaceId
+        
+        if (wasSelected) {
+            // Remove from selection
+            val position = selectedWorkspaces.value.entries.find { it.value == workspaceId }?.key
+            if (position != null) {
+                selectedWorkspaces.value = selectedWorkspaces.value - position
+                savedStateHandle["selectedWorkspaces"] = selectedWorkspaces.value.mapValues { (_, wsId) -> wsId.id.toString() }
+            }
+            
+            // Select next workspace if this was focused
+            if (wasFocused) {
+                val workspaces = workspaceRepo.state.first().infos
+                if (workspaces.isNotEmpty()) {
+                    val newSelected = workspaces.firstOrNull()
+                    newSelected?.let {
+                        focusedWorkspaceId.value = it.id
+                        savedStateHandle["focusedWorkspaceId"] = it.id.toString()
+                        if (selectedWorkspaces.value.isEmpty()) {
+                            selectedWorkspaces.value = mapOf(0 to it.id)
+                            savedStateHandle["selectedWorkspaces"] = selectedWorkspaces.value.mapValues { (_, wsId) -> wsId.id.toString() }
+                        }
+                    }
+                } else {
+                    focusedWorkspaceId.value = null
+                    savedStateHandle["focusedWorkspaceId"] = null
+                }
+            }
+        }
+    }
+    
     private fun assignToEmptyPane(workspaceId: Workspace.Id) {
         val paneCount = currentPaneCount.value
         val currentSelections = selectedWorkspaces.value
@@ -175,19 +209,24 @@ class WorkspaceViewModel @Inject constructor(
                 // Assign to empty pane
                 selectedWorkspaces.value = currentSelections + (emptyPaneIndex to workspaceId)
                 log(tag) { "assignToEmptyPane: Assigned to empty pane $emptyPaneIndex" }
+                // Persist the selection
+                savedStateHandle["selectedWorkspaces"] = selectedWorkspaces.value.mapValues { (_, wsId) -> wsId.id.toString() }
             } else {
-                // All panes full, replace pane 0
-                selectedWorkspaces.value = currentSelections + (0 to workspaceId)
-                log(tag) { "assignToEmptyPane: All panes full, replaced pane 0" }
+                // All panes full, don't select the new workspace
+                log(tag) { "assignToEmptyPane: All panes full, workspace created but not selected" }
             }
         } else {
-            // Single pane, use pane 0
-            selectedWorkspaces.value = mapOf(0 to workspaceId)
-            log(tag) { "assignToEmptyPane: Single pane mode, assigned to pane 0" }
+            // Single pane mode
+            if (currentSelections.isEmpty()) {
+                // No workspace selected, assign to pane 0
+                selectedWorkspaces.value = mapOf(0 to workspaceId)
+                log(tag) { "assignToEmptyPane: Single pane mode, assigned to pane 0" }
+                savedStateHandle["selectedWorkspaces"] = selectedWorkspaces.value.mapValues { (_, wsId) -> wsId.id.toString() }
+            } else {
+                // Pane 0 already occupied, don't select the new workspace
+                log(tag) { "assignToEmptyPane: Single pane mode, pane 0 occupied, workspace created but not selected" }
+            }
         }
-        
-        // Persist the selection
-        savedStateHandle["selectedWorkspaces"] = selectedWorkspaces.value.mapValues { (_, wsId) -> wsId.id.toString() }
     }
 
     fun modifyTab(
@@ -198,41 +237,13 @@ class WorkspaceViewModel @Inject constructor(
         when (action) {
             is WorkspaceAction.Create -> {
                 log(tag) { "Create action: type=${action.type}, replace=${action.replace}" }
-                
-                // Just execute the action - all pane assignment is handled reactively
                 val result = workspaceRepo.execute(action) as WorkspaceAction.Create.Result
                 log(tag) { "Workspace created with ID: ${result.newId}, pane assignment will be handled reactively" }
             }
             is WorkspaceAction.Close -> {
-                val closingId = action.id
-                val wasSelected = selectedWorkspaces.value.values.contains(closingId)
-                val wasFocused = focusedWorkspaceId.value == closingId
-
+                log(tag) { "Close action: id=${action.id}" }
                 workspaceRepo.execute(action)
-
-                if (wasSelected) {
-                    // Remove from selection
-                    val position = selectedWorkspaces.value.entries.find { it.value == closingId }?.key
-                    if (position != null) {
-                        selectedWorkspaces.value = selectedWorkspaces.value - position
-                    }
-
-                    // Select next workspace if this was focused
-                    if (wasFocused) {
-                        val workspaces = workspaceRepo.state.first().infos
-                        if (workspaces.isNotEmpty()) {
-                            val newSelected = workspaces.firstOrNull()
-                            newSelected?.let {
-                                focusedWorkspaceId.value = it.id
-                                if (selectedWorkspaces.value.isEmpty()) {
-                                    selectedWorkspaces.value = mapOf(0 to it.id)
-                                }
-                            }
-                        } else {
-                            focusedWorkspaceId.value = null
-                        }
-                    }
-                }
+                log(tag) { "Workspace closed, selection handling will be done reactively" }
             }
             else -> workspaceRepo.execute(action)
         }
