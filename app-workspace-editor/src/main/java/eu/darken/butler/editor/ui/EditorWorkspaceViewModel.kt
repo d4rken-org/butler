@@ -48,7 +48,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val workspaceProvider: WorkspaceProvider,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Editor", id.shortTag, "Page"), navCtrl) {
 
-    private val workspace = runBlocking { workspaceProvider.get(id).first() as EditorWorkspace }
+    private val workspace = runBlocking { workspaceProvider.retrieve(id).first() as EditorWorkspace }
     private val dataSource: EditorDataSource =
         workspace.filePath?.let { filePath ->
             fileDataSourceFactory.create(filePath, gatewaySwitch)
