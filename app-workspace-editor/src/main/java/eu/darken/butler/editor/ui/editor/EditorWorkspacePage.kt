@@ -163,7 +163,7 @@ fun EditorWorkspacePage(
         // Header that draws under status bar
         EditorHeader(
             design = design,
-            fileName = state.fileName,
+            fileName = if (state.hasFile) state.fileName else stringResource(R.string.editor_file_untitled),
             isModified = state.isModified,
             hasFile = state.hasFile || state.currentContent.isNotEmpty(),
             isLoading = state.isLoading,

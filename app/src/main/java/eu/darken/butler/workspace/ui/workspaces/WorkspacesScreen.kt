@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -37,7 +38,9 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
 import eu.darken.butler.workspace.ui.workspaces.adaptive.AdaptiveWorkspaceContainer
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
+import eu.darken.butler.workspace.ui.workspaces.adaptive.DragDropState
 import eu.darken.butler.workspace.ui.workspaces.adaptive.EmptyAdaptiveWorkspaceContent
+import eu.darken.butler.workspace.ui.workspaces.adaptive.LocalDragDropState
 import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceNavigationRail
 import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContainer
 import java.util.UUID
@@ -119,12 +122,15 @@ fun WorkspaceScreen(
     }
 
     if (!design.isSingle) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+        val dragDropState = remember { DragDropState() }
+
+        CompositionLocalProvider(LocalDragDropState provides dragDropState) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
                 .windowInsetsPadding(WindowInsets.navigationBars)
-        ) {
+            ) {
             WorkspaceNavigationRail(
                 design = design,
                 workspaces = state.all,
@@ -210,6 +216,7 @@ fun WorkspaceScreen(
                     }
                 }
             )
+        }
         }
     } else {
         ClassicWorkspaceContainer(

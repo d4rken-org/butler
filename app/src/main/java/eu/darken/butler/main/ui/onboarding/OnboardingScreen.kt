@@ -17,6 +17,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.main.ui.onboarding.OnboardingViewModel.State.*
+import eu.darken.butler.main.ui.onboarding.pages.AdaptiveLayoutPage
 import eu.darken.butler.main.ui.onboarding.pages.BetaPage
 import eu.darken.butler.main.ui.onboarding.pages.PrivacyPage
 import eu.darken.butler.main.ui.onboarding.pages.WelcomePage
@@ -72,6 +73,15 @@ private fun OnboardingScreen(
 
                 Page.WORKSPACES ->
                     WorkspacesPage(
+                        onContinue = {
+                            scope.launch {
+                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                            }
+                        }
+                    )
+
+                Page.ADAPTIVE_LAYOUT ->
+                    AdaptiveLayoutPage(
                         onContinue = {
                             scope.launch {
                                 pagerState.animateScrollToPage(pagerState.currentPage + 1)

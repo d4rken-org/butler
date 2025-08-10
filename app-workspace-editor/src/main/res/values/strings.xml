@@ -47,4 +47,7 @@
     <string name="editor_dialog_search_label">Search text</string>
     <string name="editor_dialog_action_go">Go</string>
     <string name="editor_dialog_action_cancel">Cancel</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">Untitled</string>
 </resources>

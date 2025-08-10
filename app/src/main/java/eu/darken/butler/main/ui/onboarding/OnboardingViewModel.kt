@@ -73,6 +73,7 @@ class OnboardingViewModel @Inject constructor(
             WELCOME,
             BETA,
             WORKSPACES,
+            ADAPTIVE_LAYOUT,
             PRIVACY,
             ;
         }

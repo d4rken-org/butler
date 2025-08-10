@@ -5,4 +5,21 @@
     <string name="explorer_subtitle">Browse files and directories</string>
     <string name="explorer_settings_title">Explorer Settings</string>
     <string name="explorer_settings_file_display">File Display</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_apk_content_desc">APK file</string>
+    <string name="explorer_file_regular_content_desc">File</string>
+    <string name="explorer_file_symlink_content_desc">Symbolic link</string>
+    <string name="explorer_file_video_content_desc">Video file</string>
+    <string name="explorer_file_audio_content_desc">Audio file</string>
+    <string name="explorer_file_image_content_desc">Image</string>
+    <string name="explorer_file_archive_content_desc">Archive</string>
+    <string name="explorer_file_document_content_desc">Document</string>
+    <string name="explorer_file_folder_content_desc">Folder</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">Shortcut</string>
+    <string name="explorer_file_broken_link_label">Broken link</string>
+    <string name="explorer_file_items_count">%1$d items</string>
+    <string name="explorer_file_pages_count">%1$d pages</string>
 </resources>
