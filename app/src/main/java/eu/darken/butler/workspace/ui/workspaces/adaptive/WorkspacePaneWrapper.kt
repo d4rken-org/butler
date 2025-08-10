@@ -12,15 +12,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.boundsInWindow
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 
@@ -32,14 +26,10 @@ internal fun WorkspacePaneWrapper(
     onFocus: () -> Unit,
     paneNumber: Int?,
     showOverlay: Boolean = false,
-    onPaneBoundsChanged: ((Int, Rect) -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     val dragDropState = LocalDragDropState.current
-    val paneIndex = paneNumber?.minus(1)
-    val isDropTarget = dragDropState.isDragging && dragDropState.hoveredPaneIndex == paneIndex
-
-    var paneBounds by remember { mutableStateOf(Rect.Zero) }
+    val isDropTarget = dragDropState.isDragging && dragDropState.hoveredPaneIndex == paneNumber?.minus(1)
 
     val borderColor by animateColorAsState(
         targetValue = when {
@@ -74,14 +64,7 @@ internal fun WorkspacePaneWrapper(
                     Modifier
                 }
             )
-            .padding(if (showFocusBorder || isDropTarget) 2.dp else 0.dp)
-            .onGloballyPositioned { coordinates ->
-                val bounds = coordinates.boundsInWindow()
-                paneBounds = bounds
-                paneIndex?.let { idx ->
-                    onPaneBoundsChanged?.invoke(idx, bounds)
-                }
-            },
+            .padding(if (showFocusBorder || isDropTarget) 2.dp else 0.dp),
     ) {
         content()
 

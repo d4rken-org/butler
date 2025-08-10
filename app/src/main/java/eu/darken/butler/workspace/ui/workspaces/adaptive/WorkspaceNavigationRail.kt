@@ -1,9 +1,6 @@
 package eu.darken.butler.workspace.ui.workspaces.adaptive
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.twotone.Close
+import androidx.compose.material.icons.twotone.DragIndicator
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Looks3
@@ -49,14 +47,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -70,12 +62,9 @@ import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
-private enum class DragMode {
-    NONE,
-    REORDERING,
-    PANE_ASSIGNMENT
-}
 
 @Composable
 fun WorkspaceNavigationRail(
@@ -90,9 +79,35 @@ fun WorkspaceNavigationRail(
     onTabAction: (WorkspaceAction) -> Unit,
     onPaneAssignment: (workspaceId: Workspace.Id, paneIndex: Int) -> Unit,
     onPaneMenuToggle: (Boolean) -> Unit = {},
-    onDragToPaneStart: ((Workspace.Info, Offset) -> Unit)? = null,
 ) {
+    // Local state for reordering
+    var localWorkspaces by remember { mutableStateOf(workspaces) }
+    var isDragging by remember { mutableStateOf(false) }
+
+    // Update local workspaces when input changes and not dragging
+    if (!isDragging && localWorkspaces != workspaces) {
+        localWorkspaces = workspaces
+    }
+
     val lazyListState = rememberLazyListState()
+    val reorderableLazyListState = rememberReorderableLazyListState(
+        lazyListState = lazyListState
+    ) { from, to ->
+        val fromId = from.key as? Workspace.Id
+        val toId = to.key as? Workspace.Id
+
+        if (fromId != null && toId != null) {
+            val fromIndex = localWorkspaces.indexOfFirst { it.id == fromId }
+            val toIndex = localWorkspaces.indexOfFirst { it.id == toId }
+
+            if (fromIndex != -1 && toIndex != -1) {
+                val mutableList = localWorkspaces.toMutableList()
+                val movedItem = mutableList.removeAt(fromIndex)
+                mutableList.add(toIndex, movedItem)
+                localWorkspaces = mutableList
+            }
+        }
+    }
 
     Surface(
         modifier = modifier
@@ -124,21 +139,36 @@ fun WorkspaceNavigationRail(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 items(
-                    items = workspaces,
+                    items = localWorkspaces,
                     key = { it.id }
                 ) { ws ->
-                    val paneIndex = selected.entries.find { it.value.id == ws.id }?.key
-                    DraggableWorkspaceRailItem(
-                        workspace = ws,
-                        isSelected = selected.values.any { it.id == ws.id },
-                        isFocused = focusedId == ws.id,
-                        currentPaneIndex = paneIndex,
-                        onTabAction = onTabAction,
-                        onPaneAssignment = onPaneAssignment,
-                        maxPanes = design.maxPanes,
-                        onPaneMenuToggle = onPaneMenuToggle,
-                        onDragToPaneStart = onDragToPaneStart,
-                    )
+                    ReorderableItem(
+                        reorderableLazyListState,
+                        key = ws.id
+                    ) { isDraggingItem ->
+                        val paneIndex = selected.entries.find { it.value.id == ws.id }?.key
+                        DraggableWorkspaceRailItem(
+                            workspace = ws,
+                            isSelected = selected.values.any { it.id == ws.id },
+                            isFocused = focusedId == ws.id,
+                            currentPaneIndex = paneIndex,
+                            onTabAction = onTabAction,
+                            onPaneAssignment = onPaneAssignment,
+                            maxPanes = design.maxPanes,
+                            onPaneMenuToggle = onPaneMenuToggle,
+                            isDraggingItem = isDraggingItem,
+                            onDragStarted = {
+                                isDragging = true
+                            },
+                            onDragStopped = {
+                                isDragging = false
+                                // Trigger reorder action with new order
+                                val newOrder = localWorkspaces.map { it.id }
+                                onTabAction(WorkspaceAction.Reorder(newOrder))
+                            },
+                            reorderableScope = this,
+                        )
+                    }
                 }
             }
 
@@ -155,7 +185,6 @@ fun WorkspaceNavigationRail(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun DraggableWorkspaceRailItem(
     workspace: Workspace.Info,
@@ -166,73 +195,64 @@ private fun DraggableWorkspaceRailItem(
     onPaneAssignment: (workspaceId: Workspace.Id, paneIndex: Int) -> Unit,
     maxPanes: Int,
     onPaneMenuToggle: (Boolean) -> Unit,
-    onDragToPaneStart: ((Workspace.Info, Offset) -> Unit)? = null,
+    isDraggingItem: Boolean,
+    onDragStarted: () -> Unit,
+    onDragStopped: () -> Unit,
+    reorderableScope: sh.calvin.reorderable.ReorderableCollectionItemScope,
 ) {
     val hapticFeedback = LocalHapticFeedback.current
-    val dragDropState = LocalDragDropState.current
-    LocalDensity.current
-    
     var showPaneMenu by remember { mutableStateOf(false) }
-    var itemPosition by remember { mutableStateOf(Offset.Zero) }
-    val interactionSource = remember { MutableInteractionSource() }
 
     LaunchedEffect(showPaneMenu) {
         onPaneMenuToggle(showPaneMenu)
     }
 
-    // Track if this specific item is being dragged to a pane
-    val isDraggingToPane = dragDropState.isDragging && dragDropState.draggedWorkspace?.id == workspace.id
-
-    Box(
-        modifier = Modifier
-            .onGloballyPositioned { coordinates ->
-                itemPosition = coordinates.positionInWindow()
-            }
-    ) {
+    Box {
         NavigationRailItem(
             selected = isSelected,
             onClick = { showPaneMenu = true },
-            interactionSource = interactionSource,
-            modifier = Modifier
-                .then(
-                    if (isFocused) {
-                        Modifier
-                            .background(
-                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                    } else if (isDraggingToPane) {
-                        Modifier
-                            .background(
-                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                    } else {
-                        Modifier
-                    }
-                ),
+            modifier = if (isFocused) {
+                Modifier
+                    .background(
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+            } else if (isDraggingItem) {
+                Modifier
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+            } else {
+                Modifier
+            },
             icon = {
                 Box(
-                    modifier = Modifier,
+                    modifier = with(reorderableScope) {
+                        Modifier.draggableHandle(
+                            onDragStarted = {
+                                onDragStarted()
+                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                            },
+                            onDragStopped = {
+                                onDragStopped()
+                                hapticFeedback.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                            }
+                        )
+                    },
                     contentAlignment = Alignment.Center,
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        if (isDraggingToPane) {
-                            // Show reduced opacity when being dragged
-                            Box(modifier = Modifier.alpha(0.5f)) {
-                                Icon(
-                                    imageVector = when (workspace.type) {
-                                        Workspace.Type.TEMPLATES -> Icons.TwoTone.Workspaces
-                                        Workspace.Type.EXPLORER -> Icons.TwoTone.Folder
-                                        Workspace.Type.SEARCHER -> Icons.TwoTone.Search
-                                        Workspace.Type.EDITOR -> Icons.TwoTone.Edit
-                                    },
-                                    contentDescription = workspace.title.get(LocalContext.current),
-                                )
-                            }
+                        if (isDraggingItem) {
+                            // Show drag indicator when dragging
+                            Icon(
+                                imageVector = Icons.TwoTone.DragIndicator,
+                                contentDescription = "Dragging",
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
                         } else {
                             // Show pane number on the left of the icon
                             currentPaneIndex?.let { paneIdx ->
@@ -272,25 +292,6 @@ private fun DraggableWorkspaceRailItem(
                     maxLines = 2,
                 )
             },
-        )
-
-        // Transparent overlay for long press detection
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .pointerInput(workspace.id) {
-                    detectTapGestures(
-                        onLongPress = { offset ->
-                            // Start drag operation
-                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onDragToPaneStart?.invoke(workspace, itemPosition + offset)
-                        },
-                        onTap = {
-                            // Pass through to NavigationRailItem
-                            showPaneMenu = true
-                        }
-                    )
-                }
         )
 
         DropdownMenu(
@@ -501,7 +502,6 @@ private fun WorkspaceNavigationRailPreview() {
             onTabAction = {},
             onPaneAssignment = { _, _ -> },
             onPaneMenuToggle = {},
-            onDragToPaneStart = null,
         )
     }
 }

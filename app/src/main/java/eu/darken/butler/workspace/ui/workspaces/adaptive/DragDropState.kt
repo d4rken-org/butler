@@ -19,10 +19,9 @@ class DragDropState {
 
     var hoveredPaneIndex by mutableStateOf<Int?>(null)
 
-    fun startDrag(workspace: Workspace.Info, position: Offset = Offset.Zero) {
+    fun startDrag(workspace: Workspace.Info) {
         isDragging = true
         draggedWorkspace = workspace
-        dragPosition = position
     }
 
     fun updateDragPosition(position: Offset) {
