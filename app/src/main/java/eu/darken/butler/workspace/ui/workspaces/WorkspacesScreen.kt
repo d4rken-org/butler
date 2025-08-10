@@ -218,14 +218,12 @@ fun WorkspaceScreen(
         ClassicWorkspaceContainer(
             state = state,
             onNavToSettings = onNavToSettings,
-            onOpenWorkspaceManager = onNavToWorkspaceManager,
             onWorkspaceAction = onWorkspaceTabAction,
             onWorkspaceScreenAction = onScreenAction,
             onUpgradeButler = onUpgradeButler,
         )
     }
 
-    // MOTD overlay at the top
     state.motd?.let { motd ->
         MotdCard(
             motd = motd,
