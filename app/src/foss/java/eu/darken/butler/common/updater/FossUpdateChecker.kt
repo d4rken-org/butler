@@ -128,9 +128,9 @@ class FossUpdateChecker @Inject constructor(
     ) : UpdateChecker.Update
 
     companion object {
-        private val UPDATE_CHECK_INTERVAL = Duration.ofHours(6)
+        private val UPDATE_CHECK_INTERVAL = Duration.ofDays(3)
         private const val OWNER = "d4rken-org"
-        private const val REPO = "sdmaid-se"
+        private const val REPO = "butler"
         private val FDROIDS = setOf(
             "org.fdroid.fdroid",
             "com.machiav3lli.fdroid",

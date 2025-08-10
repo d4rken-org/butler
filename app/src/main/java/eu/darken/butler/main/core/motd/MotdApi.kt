@@ -18,7 +18,7 @@ interface MotdApi {
         @SerialName("download_url") val downloadUrl: String?,
     )
 
-    @GET("repos/d4rken-org/sdmaid-se/contents/{path}")
+    @GET("repos/d4rken-org/butler/contents/{path}")
     suspend fun listMotds(
         @Path("path") path: String,
         @Query("ref") branch: String,
