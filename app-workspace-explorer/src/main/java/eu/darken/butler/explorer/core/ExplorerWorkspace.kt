@@ -106,13 +106,9 @@ class ExplorerWorkspace @AssistedInject constructor(
                 is ExplorerLocation.Breadcrumb.Target.Home -> engine.getHomeEntry()
                 is ExplorerLocation.Breadcrumb.Target.Device -> engine.getDevice()
                 is ExplorerLocation.Breadcrumb.Target.Directory -> {
-                    // Find the parent from breadcrumb navigation
-                    val currentLoc = current.value.currentLocation
-                    val parent = when {
-                        target.path.segments.size == 1 -> ExplorerLocation.Device(emptyList())
-                        else -> currentLoc
-                    }
-                    ExplorerLocation.Directory(target.path, parent = parent)
+                    // Don't set a parent - let navigateToLocationInternal handle it properly
+                    // This prevents the duplicate breadcrumb issue
+                    ExplorerLocation.Directory(target.path, parent = null)
                 }
             }
             navigateToLocationInternal(location, addToHistory = true)
