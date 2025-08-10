@@ -41,6 +41,6 @@ fun getFileIconAndTint(data: FileRowData): Pair<ImageVector, Color> {
         rowType == FileRowType.Document -> Icons.TwoTone.PictureAsPdf to MaterialTheme.colorScheme.error
         rowType == FileRowType.Code -> Icons.TwoTone.Code to MaterialTheme.colorScheme.surfaceTint
         
-        else -> Icons.TwoTone.InsertDriveFile to MaterialTheme.colorScheme.secondary
+        else -> Icons.AutoMirrored.Filled.InsertDriveFile to MaterialTheme.colorScheme.secondary
     }
 }
