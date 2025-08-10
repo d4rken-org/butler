@@ -37,7 +37,6 @@ import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
-import kotlinx.coroutines.flow.flowOf
 
 @Composable
 fun ExplorerWorkspacePageHost(
@@ -90,19 +89,15 @@ fun ExplorerWorkspacePage(
             ) {
                 BreadcrumbBar(
                     breadcrumbs = state.breadcrumbs,
-                    onBreadcrumbClick = { target ->
-                        vm?.navigateToBreadcrumb(target)
-                    },
-                    onNavigateToPath = { path ->
-                        vm?.navigateToPathString(path)
-                    },
+                    onBreadcrumbClick = { target -> vm?.navigateToBreadcrumb(target) },
+                    onNavigateToPath = { path -> vm?.navigateToPathString(path) },
                     modifier = Modifier
                         .weight(1f)
                         .padding(end = 8.dp)
                 )
                 if (design.isSingle) {
                     WorkspaceButton(
-                    modifier = Modifier,
+                        modifier = Modifier,
                         state = workspaceButtonState,
                         onAction = onWorkspaceAction,
                         onNavToWorkspaceManager = onNavToWorkspaceManager,
@@ -145,21 +140,8 @@ fun ExplorerWorkspacePage(
                                 FileItemRow(
                                     item = fileItem,
                                     isSelected = state.selectedItems.contains(fileItem.lookup.lookedUp),
-                                    onToggleSelection = {
-                                        vm?.toggleItemSelection(fileItem)
-                                    },
-                                    onClick = {
-                                        when (fileItem) {
-                                            is ExplorerPathItem.Shortcut -> {
-                                                vm?.navigateToShortcut(fileItem)
-                                            }
-                                            else -> {
-                                                if (fileItem.isDirectory) {
-                                                    vm?.navigateToPath(fileItem.lookup.lookedUp)
-                                                }
-                                            }
-                                        }
-                                    },
+                                    onToggleSelection = { vm?.toggleItemSelection(fileItem) },
+                                    onClick = { vm?.navigate(fileItem) },
                                     showSelection = state.selectedItems.isNotEmpty()
                                 )
                             }

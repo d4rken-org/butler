@@ -11,9 +11,11 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileType
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.ui.ViewModel3
 import eu.darken.butler.explorer.core.ExplorerWorkspace
+import eu.darken.butler.explorer.core.NavigationRequest
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.ExplorerPathItem
 import eu.darken.butler.workspace.core.Workspace
@@ -21,6 +23,7 @@ import eu.darken.butler.workspace.core.WorkspaceProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -38,6 +41,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val workspace: Flow<ExplorerWorkspace?> = workspaceProvider.retrieve(id).map {
         it as? ExplorerWorkspace
     }
+
+    private suspend fun getWorkspace() = workspace.filterNotNull().first()
 
     private val workspaceState: Flow<ExplorerWorkspace.State> = workspace.flatMapLatest { ws ->
         ws?.current ?: MutableStateFlow(ExplorerWorkspace.State())
@@ -99,41 +104,52 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         )
     }.asStateFlow()
 
-    fun navigateToPath(path: APath) = launch {
-        log(tag) { "navigateToPath($path)" }
-        workspace.first()?.navigateTo(path)
-        clearSelection()
-    }
-
-    fun navigateToItem(item: ExplorerPathItem) = launch {
-        log(tag) { "navigateToItem($item)" }
-        if (item.isDirectory) {
-            workspace.first()?.navigateTo(item.lookup.lookedUp)
-            clearSelection()
+    fun navigate(item: ExplorerPathItem) = launch {
+        log(tag) { "navigate($item)" }
+        when (item) {
+            is ExplorerPathItem.Shortcut -> {
+                getWorkspace().navigate(NavigationRequest.ToLocation(item.target))
+                clearSelection()
+            }
+            else -> {
+                if (item.isDirectory) {
+                    getWorkspace().navigate(NavigationRequest.ToPath(item.lookup.lookedUp))
+                    clearSelection()
+                }
+                // Non-directory items are not navigable, do nothing
+            }
         }
     }
 
-    fun navigateBack() = launch {
-        log(tag) { "navigateBack()" }
-        workspace.first()?.navigateBack()
-        clearSelection()
+    fun navigateToPathString(pathString: String) = launch {
+        log(tag) { "navigateToPathString($pathString)" }
+        val normalizedPath = pathString.trim()
+
+        when {
+            normalizedPath.isEmpty() -> {
+                getWorkspace().navigate(NavigationRequest.ToBreadcrumb(ExplorerLocation.Breadcrumb.Target.Home))
+            }
+            normalizedPath.startsWith("/") -> {
+                val path = LocalPath.build(normalizedPath)
+                getWorkspace().navigate(NavigationRequest.ToPath(path))
+                clearSelection()
+            }
+            else -> {
+                // Invalid path - could show error
+                log(tag, WARN) { "Invalid path: $pathString" }
+            }
+        }
     }
 
-    fun navigateForward() = launch {
-        log(tag) { "navigateForward()" }
-        workspace.first()?.navigateForward()
+    fun navigateToBreadcrumb(target: ExplorerLocation.Breadcrumb.Target) = launch {
+        log(tag) { "navigateToBreadcrumb($target)" }
+        getWorkspace().navigate(NavigationRequest.ToBreadcrumb(target))
         clearSelection()
     }
 
     fun refresh() = launch {
         log(tag) { "refresh()" }
-        workspace.first()?.refresh()
-    }
-
-    fun navigateToBreadcrumb(target: ExplorerLocation.Breadcrumb.Target) = launch {
-        log(tag) { "navigateToBreadcrumb($target)" }
-        workspace.first()?.navigateToBreadcrumb(target)
-        clearSelection()
+        getWorkspace().navigate(NavigationRequest.Refresh)
     }
 
     fun toggleItemSelection(item: ExplorerPathItem) {
@@ -148,49 +164,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun clearSelection() {
         selectedItemsFlow.value = emptySet()
-    }
-
-    fun validatePath(path: String): Boolean {
-        return path.isNotEmpty() && (path.startsWith("/") || path == "HOME")
-    }
-
-    fun navigateToPathString(pathString: String) = launch {
-        log(tag) { "navigateToPathString($pathString)" }
-        val normalizedPath = pathString.trim()
-
-        when {
-            normalizedPath.isEmpty() || normalizedPath.equals("HOME", ignoreCase = true) -> {
-                // Navigate to home
-                workspace.first()?.navigateToBreadcrumb(ExplorerLocation.Breadcrumb.Target.Home)
-            }
-            normalizedPath.startsWith("/") -> {
-                // Valid absolute path
-                val path = RawPath.build(normalizedPath)
-                workspace.first()?.navigateTo(path)
-                clearSelection()
-            }
-            else -> {
-                // Invalid path - could show error
-                log(tag, WARN) { "Invalid path: $pathString" }
-            }
-        }
-    }
-
-    fun navigateToShortcut(shortcut: ExplorerPathItem.Shortcut) = launch {
-        log(tag) { "navigateToShortcut($shortcut)" }
-        workspace.first()?.navigateToLocation(shortcut.target)
-        clearSelection()
-    }
-
-    private fun createShortcutLookup(id: String): APathLookup<RawPath> {
-        val path = RawPath.build("/virtual/$id")
-        return object : APathLookup<RawPath> {
-            override val lookedUp: RawPath = path
-            override val fileType: FileType = FileType.DIRECTORY
-            override val size: Long = 0
-            override val modifiedAt: Instant = Instant.now()
-            override val target: APath? = null
-        }
     }
 
     data class State(

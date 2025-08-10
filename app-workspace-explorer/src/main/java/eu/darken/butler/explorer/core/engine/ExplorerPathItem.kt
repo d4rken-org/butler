@@ -1,5 +1,7 @@
 package eu.darken.butler.explorer.core.engine
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.Ownership
@@ -150,8 +152,8 @@ sealed interface ExplorerPathItem {
         override val isSelected: Boolean = false,
         override val ownership: Ownership? = null,
         override val permissions: Permissions? = null,
-        val icon: androidx.compose.ui.graphics.vector.ImageVector,
-        val label: eu.darken.butler.common.ca.CaString,
+        val icon: ImageVector,
+        val label: CaString,
         val target: ExplorerLocation,
     ) : ExplorerPathItem {
         override val displayName: String get() = label.toString() // This will be resolved in UI with context
@@ -161,19 +163,6 @@ sealed interface ExplorerPathItem {
             permissions = permissions
         )
     }
-
-//    fun copyWithSelection(selected: Boolean): FileItem {
-//        return when (this) {
-//            is Directory -> FileItem.Directory(isSelected = selected)
-//            is RegularFile -> FileItem.RegularFile(isSelected = selected)
-//            is SymbolicLink -> FileItem.SymbolicLink(isSelected = selected)
-//            is MediaFile -> FileItem.MediaFile(isSelected = selected)
-//            is ApkFile -> FileItem.ApkFile(isSelected = selected)
-//            is ArchiveFile -> FileItem.ArchiveFile(isSelected = selected)
-//            is ImageFile -> FileItem.ImageFile(isSelected = selected)
-//            is DocumentFile -> FileItem.DocumentFile(isSelected = selected)
-//        }
-//    }
 }
 
 private fun formatFileSize(bytes: Long): String {
@@ -186,8 +175,7 @@ private fun formatFileSize(bytes: Long): String {
     return "%.1f GB".format(gb)
 }
 
+// TODO: This would use a proper date formatter in a real implementation
 private fun formatDate(timestamp: Long): String {
-    // This would use a proper date formatter in a real implementation
-    return SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-        .format(Date(timestamp))
+    return SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(timestamp))
 }
