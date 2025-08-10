@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -71,10 +72,12 @@ internal fun ResizingDivider(
                     Modifier
                         .width(DIVIDER_WIDTH.dp)
                         .fillMaxHeight()
+                        .padding(vertical = 32.dp)
                 } else {
                     Modifier
                         .height(DIVIDER_WIDTH.dp)
                         .fillMaxWidth()
+                        .padding(horizontal = 32.dp)
                 }
             )
             .pointerInput(Unit) {

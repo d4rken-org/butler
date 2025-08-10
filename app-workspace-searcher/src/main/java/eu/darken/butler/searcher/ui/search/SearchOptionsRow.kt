@@ -39,10 +39,11 @@ fun SearchOptionsRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        val caseSensitiveDesc = stringResource(R.string.searcher_option_case_sensitive_desc)
         FilterChip(
             selected = caseSensitive,
             onClick = onToggleCaseSensitive,
-            label = { Text("Aa") },
+            label = { Text(stringResource(R.string.searcher_option_case_sensitive_label)) },
             leadingIcon = if (caseSensitive) {
                 {
                     Icon(
@@ -58,14 +59,15 @@ fun SearchOptionsRow(
                 selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
             ),
             modifier = Modifier.semantics {
-                contentDescription = "Case sensitive search"
+                contentDescription = caseSensitiveDesc
             }
         )
-        
+
+        val wholeWordDesc = stringResource(R.string.searcher_option_whole_word_desc)
         FilterChip(
             selected = wholeWord,
             onClick = onToggleWholeWord,
-            label = { Text("Word") },
+            label = { Text(stringResource(R.string.searcher_option_whole_word_label)) },
             leadingIcon = if (wholeWord) {
                 {
                     Icon(
@@ -81,14 +83,15 @@ fun SearchOptionsRow(
                 selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
             ),
             modifier = Modifier.semantics {
-                contentDescription = "Whole word search"
+                contentDescription = wholeWordDesc
             }
         )
-        
+
+        val regexDesc = stringResource(R.string.searcher_option_regex_desc)
         FilterChip(
             selected = useRegex,
             onClick = onToggleRegex,
-            label = { Text(".*") },
+            label = { Text(stringResource(R.string.searcher_option_regex_label)) },
             leadingIcon = if (useRegex) {
                 {
                     Icon(
@@ -104,7 +107,7 @@ fun SearchOptionsRow(
                 selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
             ),
             modifier = Modifier.semantics {
-                contentDescription = "Regular expression search"
+                contentDescription = regexDesc
             }
         )
     }

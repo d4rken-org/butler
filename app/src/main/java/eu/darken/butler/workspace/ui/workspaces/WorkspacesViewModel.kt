@@ -20,8 +20,8 @@ import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
-import eu.darken.butler.workspace.ui.manager.workspaceManager
 import eu.darken.butler.workspace.ui.WorkspacePanelMode
+import eu.darken.butler.workspace.ui.manager.workspaceManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
@@ -256,6 +256,11 @@ class WorkspacesViewModel @Inject constructor(
                 log(tag) { "Close action: id=${action.id}" }
                 workspaceRepo.execute(action)
                 log(tag) { "Workspace closed, selection handling will be done reactively" }
+            }
+            is WorkspaceAction.Reorder -> {
+                log(tag) { "Reorder action: workspaceIds=${action.workspaceIds}" }
+                workspaceRepo.execute(action)
+                log(tag) { "Workspaces reordered" }
             }
             else -> workspaceRepo.execute(action)
         }

@@ -8,8 +8,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerPathItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
@@ -34,14 +36,14 @@ internal fun MediaFileRow(
                 // TODO: Replace with AsyncImage when Coil integration is complete
                 Icon(
                     imageVector = Icons.Default.Movie,
-                    contentDescription = "Video file",
+                    contentDescription = stringResource(R.string.explorer_file_video_content_desc),
                     tint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.size(32.dp)
                 )
             } else {
                 Icon(
                     imageVector = Icons.Default.MusicNote,
-                    contentDescription = "Audio file",
+                    contentDescription = stringResource(R.string.explorer_file_audio_content_desc),
                     tint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.size(32.dp)
                 )

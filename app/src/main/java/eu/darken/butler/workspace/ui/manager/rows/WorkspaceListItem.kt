@@ -28,8 +28,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.R
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -87,7 +89,7 @@ fun WorkspaceListItem(
             ) {
                 Icon(
                     imageVector = Icons.TwoTone.DragIndicator,
-                    contentDescription = "Reorder",
+                    contentDescription = stringResource(R.string.workspace_row_reorder_content_desc),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
@@ -125,7 +127,7 @@ fun WorkspaceListItem(
             ) {
                 Icon(
                     imageVector = Icons.TwoTone.Close,
-                    contentDescription = "Close workspace",
+                    contentDescription = stringResource(R.string.workspace_row_close_content_desc),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp)
                 )

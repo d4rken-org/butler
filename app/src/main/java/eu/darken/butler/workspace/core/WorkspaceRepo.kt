@@ -12,8 +12,8 @@ import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.templates.core.TemplatesWorkspace
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -133,9 +133,11 @@ class WorkspaceRepo @Inject constructor(
                 log(TAG, INFO) { "Reordering workspaces: ${action.workspaceIds}" }
 
                 val current = _workspaces.value
+                log(TAG) { "BEFORE re-order:\n${current.joinToString("\n")}" }
                 val reordered = action.workspaceIds.mapNotNull { id ->
                     current.find { it.id == id }
                 }
+                log(TAG) { "AFTER re-order:\n${reordered.joinToString("\n")}" }
 
                 if (reordered.size != current.size) {
                     log(TAG, ERROR) { "Reorder failed: size mismatch. Expected ${current.size}, got ${reordered.size}" }

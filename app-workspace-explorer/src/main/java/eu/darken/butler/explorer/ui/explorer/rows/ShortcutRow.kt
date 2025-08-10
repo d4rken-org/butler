@@ -21,7 +21,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerPathItem
 
 @Composable
@@ -79,7 +81,7 @@ fun ShortcutRow(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "Shortcut",
+                text = stringResource(R.string.explorer_file_shortcut_label),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
