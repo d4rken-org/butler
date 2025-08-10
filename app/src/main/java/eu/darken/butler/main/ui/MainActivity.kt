@@ -1,5 +1,6 @@
 package eu.darken.butler.main.ui
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
@@ -22,6 +23,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.entryProvider
@@ -57,6 +59,16 @@ class MainActivity : Activity2() {
     @Inject lateinit var generalSettings: GeneralSettings
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Set initial window background to prevent white flash
+        // This will be updated once the Compose theme is loaded
+        window.decorView.setBackgroundColor(
+            if (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES) {
+                0xFF0E1514.toInt() // Dark background
+            } else {
+                0xFFF4FBF8.toInt() // Light background
+            }
+        )
+
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
@@ -76,6 +88,12 @@ class MainActivity : Activity2() {
             themeState?.let { themeState ->
                 log(TAG) { "Theme state: $themeState" }
                 MyAppTheme(state = themeState) {
+                    // Set window background to match the current theme
+                    val backgroundColor = MaterialTheme.colorScheme.background
+                    LaunchedEffect(backgroundColor) {
+                        window.decorView.setBackgroundColor(backgroundColor.toArgb())
+                    }
+
                     ErrorEventHandler(vm)
                     vmState?.let { mainState ->
                         log(TAG) { "Main state: $mainState" }

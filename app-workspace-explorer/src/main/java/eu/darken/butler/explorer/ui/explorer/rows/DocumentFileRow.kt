@@ -7,8 +7,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerPathItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
@@ -31,15 +33,15 @@ internal fun DocumentFileRow(
         leadingContent = {
             Icon(
                 imageVector = Icons.TwoTone.Description,
-                contentDescription = "Document",
+                contentDescription = stringResource(R.string.explorer_file_document_content_desc),
                 tint = MaterialTheme.colorScheme.outline,
                 modifier = Modifier.size(32.dp)
             )
         },
         primaryText = item.displayName,
         secondaryText = buildString {
-            item.pageCount?.let { 
-                append("$it pages")
+            item.pageCount?.let {
+                append(stringResource(R.string.explorer_file_pages_count, it))
                 append(" • ")
             }
             append(item.displaySize)

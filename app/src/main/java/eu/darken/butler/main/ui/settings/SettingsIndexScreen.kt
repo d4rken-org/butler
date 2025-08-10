@@ -131,7 +131,7 @@ fun SettingsIndexScreen(
                 SettingsBaseItem(
                     icon = Icons.TwoTone.Workspaces,
                     title = stringResource(R.string.workspace_settings_title),
-                    subtitle = "Configure workspace behavior",
+                    subtitle = stringResource(R.string.workspace_settings_subtitle),
                     onClick = { onNavigateTo(Nav.Settings.workspaces()) },
                 )
                 SettingsDivider()
@@ -152,8 +152,8 @@ fun SettingsIndexScreen(
             item {
                 SettingsBaseItem(
                     icon = Icons.TwoTone.Folder,
-                    title = "Explorer Settings",
-                    subtitle = "Configure file explorer behavior",
+                    title = stringResource(eu.darken.butler.explorer.R.string.explorer_settings_title),
+                    subtitle = stringResource(R.string.explorer_settings_subtitle),
                     onClick = { onNavigateTo(Nav.Settings.explorer()) },
                 )
                 SettingsDivider()
@@ -162,8 +162,8 @@ fun SettingsIndexScreen(
             item {
                 SettingsBaseItem(
                     icon = Icons.TwoTone.Search,
-                    title = "Searcher Settings",
-                    subtitle = "Configure search behavior",
+                    title = stringResource(eu.darken.butler.searcher.R.string.searcher_settings_title),
+                    subtitle = stringResource(R.string.searcher_settings_subtitle),
                     onClick = { onNavigateTo(Nav.Settings.searcher()) },
                 )
                 SettingsDivider()
@@ -172,8 +172,8 @@ fun SettingsIndexScreen(
             item {
                 SettingsBaseItem(
                     icon = Icons.TwoTone.Edit,
-                    title = "Editor Settings",
-                    subtitle = "Configure text editor behavior",
+                    title = stringResource(eu.darken.butler.editor.R.string.editor_settings_title),
+                    subtitle = stringResource(R.string.editor_settings_subtitle),
                     onClick = { onNavigateTo(Nav.Settings.editor()) },
                 )
                 SettingsDivider()

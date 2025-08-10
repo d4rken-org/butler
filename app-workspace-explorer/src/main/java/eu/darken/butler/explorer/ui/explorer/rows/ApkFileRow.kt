@@ -7,11 +7,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerPathItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
-import eu.darken.butler.explorer.ui.explorer.rows.FileRowBase
 
 @Composable
 internal fun ApkFileRow(
@@ -33,7 +34,7 @@ internal fun ApkFileRow(
             // TODO: Replace with AsyncImage when Coil integration is complete
             Icon(
                 imageVector = Icons.TwoTone.Android,
-                contentDescription = "APK file",
+                contentDescription = stringResource(R.string.explorer_file_apk_content_desc),
                 tint = MaterialTheme.colorScheme.tertiary,
                 modifier = Modifier.size(32.dp)
             )

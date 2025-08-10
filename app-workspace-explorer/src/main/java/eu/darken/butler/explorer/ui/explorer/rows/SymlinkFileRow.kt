@@ -7,8 +7,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerPathItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
@@ -31,7 +33,7 @@ internal fun SymlinkFileRow(
         leadingContent = {
             Icon(
                 imageVector = Icons.TwoTone.Link,
-                contentDescription = "Symbolic link",
+                contentDescription = stringResource(R.string.explorer_file_symlink_content_desc),
                 tint = if (item.isBroken) {
                     MaterialTheme.colorScheme.error
                 } else {
@@ -47,7 +49,7 @@ internal fun SymlinkFileRow(
                 append(" • ")
             }
             if (item.isBroken) {
-                append("Broken link")
+                append(stringResource(R.string.explorer_file_broken_link_label))
             } else {
                 append(item.displayDate)
             }

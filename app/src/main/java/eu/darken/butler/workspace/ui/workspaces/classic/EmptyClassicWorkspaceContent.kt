@@ -17,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.AddCircle
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Stars
-import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -41,7 +40,6 @@ internal fun EmptyClassicWorkspaceContent(
     isUpgraded: Boolean,
     onNavToSettings: () -> Unit,
     onWorkspaceAction: (WorkspaceAction) -> Unit,
-    onOpenWorkspaceManager: () -> Unit,
     onUpgradeButler: () -> Unit,
 ) {
     Column(
@@ -122,40 +120,6 @@ internal fun EmptyClassicWorkspaceContent(
                 }
             }
 
-            // Add workspace manager entry
-            item {
-                Card(
-                    modifier = Modifier.Companion
-                        .fillMaxWidth()
-                        .clickable { onOpenWorkspaceManager() },
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-                ) {
-                    Row(
-                        modifier = Modifier.Companion.padding(20.dp),
-                        verticalAlignment = Alignment.Companion.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Column(modifier = Modifier.Companion.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.workspace_empty_manager_action),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                            Text(
-                                text = stringResource(R.string.workspace_empty_manager_hint),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.TwoTone.Workspaces,
-                            contentDescription = stringResource(R.string.workspace_empty_manager_action),
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    }
-                }
-            }
-
             item {
                 Card(
                     modifier = Modifier.Companion
@@ -229,7 +193,6 @@ private fun EmptyWorkspaceContentPreview() {
             isUpgraded = false,
             onNavToSettings = {},
             onWorkspaceAction = {},
-            onOpenWorkspaceManager = {},
             onUpgradeButler = {},
         )
     }

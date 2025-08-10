@@ -228,13 +228,13 @@ fun WorkspaceManagerScreen(
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(
                             imageVector = Icons.TwoTone.Settings,
-                            contentDescription = "Settings"
+                            contentDescription = stringResource(R.string.workspace_manager_settings_content_desc)
                         )
                     }
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.TwoTone.Close,
-                            contentDescription = "Dismiss"
+                            contentDescription = stringResource(R.string.workspace_manager_dismiss_content_desc)
                         )
                     }
                 },
@@ -242,14 +242,12 @@ fun WorkspaceManagerScreen(
             )
         },
         floatingActionButton = {
-            if (state.workspaces.isNotEmpty()) {
-                WorkspaceManagerFAB(
-                    workspaceCount = state.workspaceCount,
-                    fabOffsetY = fabOffsetY,
-                    onCreateWorkspace = onCreateWorkspace,
-                    onShowCloseAllDialog = { showCloseAllDialog = true }
-                )
-            }
+            WorkspaceManagerFAB(
+                workspaceCount = state.workspaceCount,
+                fabOffsetY = fabOffsetY,
+                onCreateWorkspace = onCreateWorkspace,
+                onShowCloseAllDialog = { showCloseAllDialog = true }
+            )
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
@@ -260,6 +258,17 @@ fun WorkspaceManagerScreen(
             contentPadding = paddingValues,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            // Status card (show when there are workspaces)
+            if (state.workspaceCount > 0) {
+                item(key = LazyColumnItemKey.StatusCard) {
+                    WorkspaceStatusCard(
+                        workspaceCount = state.workspaceCount,
+                        operationsCount = state.operationsCount,
+                        attentionCount = state.attentionCount
+                    )
+                }
+            }
+
             if (state.workspaces.isEmpty()) {
                 // Empty state as a single item
                 item(key = LazyColumnItemKey.Custom("empty_state", "")) {
@@ -292,17 +301,6 @@ fun WorkspaceManagerScreen(
                     }
                 }
             } else {
-                // Status card as first item
-                if (state.workspaceCount > 0) {
-                    item(key = LazyColumnItemKey.StatusCard) {
-                        WorkspaceStatusCard(
-                            workspaceCount = state.workspaceCount,
-                            operationsCount = state.operationsCount,
-                            attentionCount = state.attentionCount
-                        )
-                    }
-                }
-
                 items(
                     items = localWorkspaceItems,
                     key = { workspace -> LazyColumnItemKey.Workspace.Standard(workspace.id) }
@@ -329,32 +327,32 @@ fun WorkspaceManagerScreen(
                         )
                     }
                 }
+            }
 
-                // Button behavior explanation card
-                if (state.showButtonBehaviorExplanation) {
-                    item(key = LazyColumnItemKey.Explanation.ButtonBehaviorExplanation) {
-                        Box(
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        ) {
-                            WorkspaceButtonBehaviorCard(
-                                isButtonFlipped = state.isButtonFlipped,
-                                onToggleFlipped = { onToggleButtonFlipped() },
-                                onDismiss = onDismissButtonBehaviorExplanation
-                            )
-                        }
+            // Button behavior explanation card (show regardless of workspace state)
+            if (state.showButtonBehaviorExplanation) {
+                item(key = LazyColumnItemKey.Explanation.ButtonBehaviorExplanation) {
+                    Box(
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    ) {
+                        WorkspaceButtonBehaviorCard(
+                            isButtonFlipped = state.isButtonFlipped,
+                            onToggleFlipped = { onToggleButtonFlipped() },
+                            onDismiss = onDismissButtonBehaviorExplanation
+                        )
                     }
                 }
+            }
 
-                // Badge explanation card
-                if (state.showBadgeExplanation) {
-                    item(key = LazyColumnItemKey.Explanation.BadgeExplanation) {
-                        Box(
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        ) {
-                            WorkspaceBadgeExplanationCard(
-                                onDismiss = onDismissBadgeExplanation
-                            )
-                        }
+            // Badge explanation card (show regardless of workspace state)
+            if (state.showBadgeExplanation) {
+                item(key = LazyColumnItemKey.Explanation.BadgeExplanation) {
+                    Box(
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    ) {
+                        WorkspaceBadgeExplanationCard(
+                            onDismiss = onDismissBadgeExplanation
+                        )
                     }
                 }
             }
@@ -365,9 +363,20 @@ fun WorkspaceManagerScreen(
     if (showCloseAllDialog) {
         AlertDialog(
             onDismissRequest = { showCloseAllDialog = false },
-            title = { Text("Close All Workspaces?") },
+            title = { Text(stringResource(R.string.workspace_manager_close_all_title)) },
             text = {
-                Text("This will close all ${state.workspaceCount} open ${if (state.workspaceCount == 1) "workspace" else "workspaces"}. This action cannot be undone.")
+                val workspaceString = if (state.workspaceCount == 1) {
+                    stringResource(R.string.workspace_manager_close_all_message_singular)
+                } else {
+                    stringResource(R.string.workspace_manager_close_all_message_plural)
+                }
+                Text(
+                    stringResource(
+                        R.string.workspace_manager_close_all_message,
+                        state.workspaceCount,
+                        workspaceString
+                    )
+                )
             },
             confirmButton = {
                 TextButton(
@@ -376,14 +385,14 @@ fun WorkspaceManagerScreen(
                         showCloseAllDialog = false
                     }
                 ) {
-                    Text("Close All")
+                    Text(stringResource(R.string.workspace_manager_close_all_action))
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showCloseAllDialog = false }
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.general_cancel_action))
                 }
             }
         )
