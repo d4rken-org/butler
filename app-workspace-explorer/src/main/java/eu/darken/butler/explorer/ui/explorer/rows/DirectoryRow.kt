@@ -22,6 +22,7 @@ internal fun DirectoryRow(
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
+    onLongClick: () -> Unit = {},
     showSelection: Boolean,
 ) {
     FileRowBase(
@@ -29,6 +30,7 @@ internal fun DirectoryRow(
         isSelected = isSelected,
         onToggleSelection = onToggleSelection,
         onClick = onClick,
+        onLongClick = onLongClick,
         showSelection = showSelection,
         modifier = modifier,
         leadingContent = {

@@ -8,7 +8,6 @@ import eu.darken.butler.common.files.Ownership
 import eu.darken.butler.common.files.Permissions
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import java.text.SimpleDateFormat
-import java.time.Instant
 import java.util.Date
 import java.util.Locale
 
@@ -23,11 +22,11 @@ sealed interface ExplorerItem {
     ) : ExplorerItem
 
     sealed interface PathItem : ExplorerItem {
-        override val displayName: CaString get() = caString { lookup.name }
-
         val lookup: APathLookup<*>
         val ownership: Ownership?
         val permissions: Permissions?
+
+        override val displayName: CaString get() = caString { lookup.name }
 
         fun withExtendedData(ownership: Ownership?, permissions: Permissions?): PathItem
     }
@@ -77,4 +76,19 @@ sealed interface ExplorerItem {
             permissions = permissions
         )
     }
+}
+
+private fun formatFileSize(bytes: Long): String {
+    if (bytes < 1024) return "$bytes B"
+    val kb = bytes / 1024.0
+    if (kb < 1024) return "%.1f KB".format(kb)
+    val mb = kb / 1024.0
+    if (mb < 1024) return "%.1f MB".format(mb)
+    val gb = mb / 1024.0
+    return "%.1f GB".format(gb)
+}
+
+// TODO: This would use a proper date formatter in a real implementation
+private fun formatDate(timestamp: Long): String {
+    return SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(timestamp))
 }

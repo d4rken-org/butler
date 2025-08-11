@@ -18,6 +18,7 @@ fun PathItemRow(
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
+    onLongClick: () -> Unit = {},
     showSelection: Boolean = false,
 ) {
     when (item) {
@@ -26,6 +27,7 @@ fun PathItemRow(
             isSelected = isSelected,
             onToggleSelection = onToggleSelection,
             onClick = onClick,
+            onLongClick = onLongClick,
             showSelection = showSelection,
             modifier = modifier
         )
@@ -35,6 +37,7 @@ fun PathItemRow(
             isSelected = isSelected,
             onToggleSelection = onToggleSelection,
             onClick = onClick,
+            onLongClick = onLongClick,
             showSelection = showSelection,
             modifier = modifier
         )
@@ -44,6 +47,7 @@ fun PathItemRow(
             isSelected = isSelected,
             onToggleSelection = onToggleSelection,
             onClick = onClick,
+            onLongClick = onLongClick,
             showSelection = showSelection,
             modifier = modifier
         )

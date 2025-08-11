@@ -140,7 +140,16 @@ fun ExplorerWorkspacePage(
                                         item = item,
                                         isSelected = state.selectedItems.contains(item.lookup.path),
                                         onToggleSelection = { vm?.toggleItemSelection(item) },
-                                        onClick = { vm?.navigate(item) },
+                                        onClick = { 
+                                            if (state.selectedItems.isNotEmpty()) {
+                                                // In selection mode, clicks toggle selection
+                                                vm?.toggleItemSelection(item)
+                                            } else {
+                                                // Not in selection mode, navigate
+                                                vm?.navigate(item)
+                                            }
+                                        },
+                                        onLongClick = { vm?.toggleItemSelection(item) },
                                         showSelection = state.selectedItems.isNotEmpty()
                                     )
                                     is ExplorerItem.Shortcut -> ShortcutRow(

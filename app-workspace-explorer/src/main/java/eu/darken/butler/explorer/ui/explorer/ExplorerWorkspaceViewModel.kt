@@ -13,8 +13,8 @@ import eu.darken.butler.common.ui.ViewModel3
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
-import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import kotlinx.coroutines.flow.Flow
@@ -114,17 +114,18 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun toggleItemSelection(item: ExplorerItem) {
-//        if (item !is ExplorerItem.PathItem) {
-//            log(tag, WARN) { "toggleItemSelection($item) is not a path" }
-//            return
-//        }
-//        val path = item.id
-//        val currentSelection = selectedItemsFlow.value
-//        selectedItemsFlow.value = if (currentSelection.contains(path)) {
-//            currentSelection - path
-//        } else {
-//            currentSelection + path
-//        }
+        log(tag) { "toggleItemSelection($item)" }
+        if (item !is ExplorerItem.PathItem) {
+            log(tag, WARN) { "toggleItemSelection($item) is not a path" }
+            return
+        }
+        val path = item.lookup.path
+        val currentSelection = selectedItemsFlow.value
+        selectedItemsFlow.value = if (currentSelection.contains(path)) {
+            currentSelection - path
+        } else {
+            currentSelection + path
+        }
     }
 
     fun clearSelection() {

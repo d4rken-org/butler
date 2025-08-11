@@ -18,8 +18,15 @@ Butler uses a workspace concept similar to browser tabs with 4 main workspace ty
 ### Building the Project
 
 ```bash
-# Build debug version (FOSS flavor)
+# Build debug version (FOSS flavor) - main app
 ./gradlew :app:compileFossDebugKotlin --no-daemon
+
+# Build specific modules (use compileDebugKotlin, not compileFossDebugKotlin for modules)
+./gradlew :app-workspace:compileDebugKotlin --no-daemon
+./gradlew :app-workspace-explorer:compileDebugKotlin --no-daemon
+./gradlew :app-workspace-searcher:compileDebugKotlin --no-daemon
+./gradlew :app-workspace-editor:compileDebugKotlin --no-daemon
+./gradlew :app-workspace-templates:compileDebugKotlin --no-daemon
 
 # Build release version
 ./gradlew :app:bundleFossRelease
