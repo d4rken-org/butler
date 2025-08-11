@@ -27,7 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
-import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.twotone.BugReport
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.ButtonDefaults
@@ -212,7 +212,7 @@ private fun HeroSection() {
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Filled.BugReport,
+                imageVector = Icons.TwoTone.BugReport,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(24.dp)

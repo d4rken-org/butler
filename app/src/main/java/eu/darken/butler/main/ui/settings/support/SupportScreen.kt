@@ -6,10 +6,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.BugReport
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.twotone.Book
+import androidx.compose.material.icons.twotone.BugReport
+import androidx.compose.material.icons.twotone.Description
+import androidx.compose.material.icons.twotone.Notifications
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -105,7 +105,7 @@ fun SupportScreen(
         ) {
             item {
                 SettingsPreferenceItem(
-                    icon = Icons.Filled.Book,
+                    icon = Icons.TwoTone.Book,
                     title = stringResource(R.string.settings_support_wiki_label),
                     subtitle = stringResource(R.string.settings_support_wiki_description),
                     onClick = { onOpenUrl(ButlerLinks.WIKI) }
@@ -115,7 +115,7 @@ fun SupportScreen(
 
             item {
                 SettingsPreferenceItem(
-                    icon = Icons.Filled.BugReport,
+                    icon = Icons.TwoTone.BugReport,
                     title = stringResource(R.string.settings_support_issue_tracker_label),
                     subtitle =
                         stringResource(R.string.settings_support_issue_tracker_description),
@@ -138,7 +138,7 @@ fun SupportScreen(
 
             item {
                 SettingsPreferenceItem(
-                    icon = if (state.isRecording) Icons.Filled.Notifications else Icons.Filled.Description,
+                    icon = if (state.isRecording) Icons.TwoTone.Notifications else Icons.TwoTone.Description,
                     title = stringResource(R.string.settings_support_debuglog_label),
                     subtitle = if (state.isRecording) {
                         stringResource(R.string.settings_support_debuglog_recording_desc) + 

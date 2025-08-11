@@ -2,8 +2,8 @@ package eu.darken.butler.explorer.ui.explorer.rows
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Movie
-import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.twotone.Movie
+import androidx.compose.material.icons.twotone.MusicNote
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -35,14 +35,14 @@ internal fun MediaFileRow(
             if (item.isVideo) {
                 // TODO: Replace with AsyncImage when Coil integration is complete
                 Icon(
-                    imageVector = Icons.Default.Movie,
+                    imageVector = Icons.TwoTone.Movie,
                     contentDescription = stringResource(R.string.explorer_file_video_content_desc),
                     tint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.size(32.dp)
                 )
             } else {
                 Icon(
-                    imageVector = Icons.Default.MusicNote,
+                    imageVector = Icons.TwoTone.MusicNote,
                     contentDescription = stringResource(R.string.explorer_file_audio_content_desc),
                     tint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.size(32.dp)

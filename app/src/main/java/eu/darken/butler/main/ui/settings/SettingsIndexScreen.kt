@@ -8,16 +8,25 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ListAlt
+import androidx.compose.material.icons.automirrored.twotone.ListAlt
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.twotone.Favorite
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.PrivacyTip
+import androidx.compose.material.icons.twotone.PrivacyTip
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stars
-import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.twotone.Tune
 import androidx.compose.material.icons.filled.Workspaces
+import androidx.compose.material.icons.twotone.Edit
+import androidx.compose.material.icons.twotone.Folder
+import androidx.compose.material.icons.twotone.Info
+import androidx.compose.material.icons.twotone.ListAlt
+import androidx.compose.material.icons.twotone.Search
+import androidx.compose.material.icons.twotone.Settings
+import androidx.compose.material.icons.twotone.Stars
+import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -110,7 +119,7 @@ fun SettingsIndexScreen(
         ) {
             item {
                 SettingsBaseItem(
-                    icon = Icons.Default.Settings,
+                    icon = Icons.TwoTone.Settings,
                     title = stringResource(R.string.general_settings_label),
                     subtitle = stringResource(R.string.general_settings_desc),
                     onClick = { onNavigateTo(Nav.Settings.general()) },
@@ -120,7 +129,7 @@ fun SettingsIndexScreen(
 
             item {
                 SettingsBaseItem(
-                    icon = Icons.Default.Workspaces,
+                    icon = Icons.TwoTone.Workspaces,
                     title = stringResource(R.string.workspace_settings_title),
                     subtitle = stringResource(R.string.workspace_settings_subtitle),
                     onClick = { onNavigateTo(Nav.Settings.workspaces()) },
@@ -130,7 +139,7 @@ fun SettingsIndexScreen(
 
             item {
                 SettingsBaseItem(
-                    icon = Icons.Default.Tune,
+                    icon = Icons.TwoTone.Tune,
                     title = stringResource(R.string.setup_title),
                     subtitle = stringResource(R.string.setup_settings_description),
                     onClick = { onNavigateTo(Nav.Main.destSetup(showCompleted = true)) },
@@ -142,7 +151,7 @@ fun SettingsIndexScreen(
 
             item {
                 SettingsBaseItem(
-                    icon = Icons.Default.Folder,
+                    icon = Icons.TwoTone.Folder,
                     title = stringResource(eu.darken.butler.explorer.R.string.explorer_settings_title),
                     subtitle = stringResource(R.string.explorer_settings_subtitle),
                     onClick = { onNavigateTo(Nav.Settings.explorer()) },
@@ -152,7 +161,7 @@ fun SettingsIndexScreen(
 
             item {
                 SettingsBaseItem(
-                    icon = Icons.Default.Search,
+                    icon = Icons.TwoTone.Search,
                     title = stringResource(eu.darken.butler.searcher.R.string.searcher_settings_title),
                     subtitle = stringResource(R.string.searcher_settings_subtitle),
                     onClick = { onNavigateTo(Nav.Settings.searcher()) },
@@ -162,7 +171,7 @@ fun SettingsIndexScreen(
 
             item {
                 SettingsBaseItem(
-                    icon = Icons.Default.Edit,
+                    icon = Icons.TwoTone.Edit,
                     title = stringResource(eu.darken.butler.editor.R.string.editor_settings_title),
                     subtitle = stringResource(R.string.editor_settings_subtitle),
                     onClick = { onNavigateTo(Nav.Settings.editor()) },
@@ -174,7 +183,7 @@ fun SettingsIndexScreen(
 
             item {
                 SettingsBaseItem(
-                    icon = Icons.Default.Stars,
+                    icon = Icons.TwoTone.Stars,
                     title = stringResource(R.string.settings_upgrade_status_label),
                     subtitle = stringResource(R.string.settings_upgrade_status_description),
                     onClick = { onNavigateTo(Nav.Settings.upgradeStatus()) },
@@ -184,7 +193,7 @@ fun SettingsIndexScreen(
 
             item {
                 SettingsBaseItem(
-                    icon = Icons.Default.Info,
+                    icon = Icons.TwoTone.Info,
                     title = stringResource(R.string.settings_support_label),
                     subtitle = stringResource(R.string.settings_support_description),
                     onClick = { onNavigateTo(Nav.Settings.support()) },
@@ -194,7 +203,7 @@ fun SettingsIndexScreen(
 
             item {
                 SettingsBaseItem(
-                    icon = Icons.AutoMirrored.Filled.ListAlt,
+                    icon = Icons.AutoMirrored.TwoTone.ListAlt,
                     title = stringResource(R.string.changelog_label),
                     subtitle = state.versionText,
                     onClick = { onOpenUrl(ButlerLinks.CHANGELOG) },
@@ -204,7 +213,7 @@ fun SettingsIndexScreen(
 
             item {
                 SettingsBaseItem(
-                    icon = Icons.Default.Favorite,
+                    icon = Icons.TwoTone.Favorite,
                     title = stringResource(R.string.settings_acknowledgements_label),
                     subtitle = stringResource(R.string.settings_acknowledgements_description),
                     onClick = { onNavigateTo(Nav.Settings.acks()) },
@@ -214,7 +223,7 @@ fun SettingsIndexScreen(
 
             item {
                 SettingsBaseItem(
-                    icon = Icons.Default.PrivacyTip,
+                    icon = Icons.TwoTone.PrivacyTip,
                     title = stringResource(R.string.settings_privacy_policy_label),
                     subtitle = stringResource(R.string.settings_privacy_policy_desc),
                     onClick = { onOpenUrl(ButlerLinks.PRIVACY_POLICY) },

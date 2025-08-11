@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.twotone.Favorite
+import androidx.compose.material.icons.twotone.Translate
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -68,7 +68,7 @@ fun AcknowledgementsScreen(
 
             item {
                 SettingsBaseItem(
-                    icon = Icons.Default.Translate,
+                    icon = Icons.TwoTone.Translate,
                     title = stringResource(R.string.settings_acks_translate_title),
                     subtitle = stringResource(R.string.settings_acks_translate_desc),
                     onClick = { onOpenUrl("http://crowdin.com/project/butler") }
@@ -78,7 +78,7 @@ fun AcknowledgementsScreen(
 
             item {
                 SettingsBaseItem(
-                    icon = Icons.Default.Favorite,
+                    icon = Icons.TwoTone.Favorite,
                     title = stringResource(R.string.settings_acks_translators_title),
                     subtitle = stringResource(R.string.settings_acks_translators_people),
                     onClick = { onOpenUrl("http://crowdin.com/project/butler") }

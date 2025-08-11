@@ -5,9 +5,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.WrapText
 import androidx.compose.material.icons.filled.FormatQuote
 import androidx.compose.material.icons.filled.TextFormat
 import androidx.compose.material.icons.filled.WrapText
+import androidx.compose.material.icons.twotone.FormatQuote
+import androidx.compose.material.icons.twotone.TextFormat
+import androidx.compose.material.icons.twotone.WrapText
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -47,7 +51,7 @@ fun SearchOptionsRow(
             leadingIcon = if (caseSensitive) {
                 {
                     Icon(
-                        imageVector = Icons.Default.TextFormat,
+                        imageVector = Icons.TwoTone.TextFormat,
                         contentDescription = null,
                         modifier = Modifier.size(FilterChipDefaults.IconSize)
                     )
@@ -71,7 +75,7 @@ fun SearchOptionsRow(
             leadingIcon = if (wholeWord) {
                 {
                     Icon(
-                        imageVector = Icons.Default.FormatQuote,
+                        imageVector = Icons.TwoTone.FormatQuote,
                         contentDescription = null,
                         modifier = Modifier.size(FilterChipDefaults.IconSize)
                     )
@@ -95,7 +99,7 @@ fun SearchOptionsRow(
             leadingIcon = if (useRegex) {
                 {
                     Icon(
-                        imageVector = Icons.Default.WrapText,
+                        imageVector = Icons.AutoMirrored.TwoTone.WrapText,
                         contentDescription = null,
                         modifier = Modifier.size(FilterChipDefaults.IconSize)
                     )

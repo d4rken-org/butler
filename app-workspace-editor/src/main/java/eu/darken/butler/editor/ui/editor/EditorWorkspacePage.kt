@@ -15,15 +15,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.twotone.Close
+import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.twotone.Save
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.twotone.FolderOpen
+import androidx.compose.material.icons.twotone.FormatListNumbered
+import androidx.compose.material.icons.twotone.Info
+import androidx.compose.material.icons.twotone.KeyboardArrowDown
+import androidx.compose.material.icons.twotone.KeyboardArrowUp
+import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -352,7 +358,7 @@ private fun EditorHeader(
                 }
 
                 IconButton(onClick = onOpenFile) {
-                    Icon(Icons.Default.FolderOpen, contentDescription = stringResource(R.string.editor_action_open))
+                    Icon(Icons.TwoTone.FolderOpen, contentDescription = stringResource(R.string.editor_action_open))
                 }
 
                 // Show save/edit actions when there's content or a file
@@ -361,11 +367,11 @@ private fun EditorHeader(
                         onClick = onSaveFile,
                         enabled = isModified
                     ) {
-                        Icon(Icons.Default.Save, contentDescription = stringResource(R.string.editor_action_save))
+                        Icon(Icons.TwoTone.Save, contentDescription = stringResource(R.string.editor_action_save))
                     }
 
                     IconButton(onClick = onCloseFile) {
-                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.editor_action_close))
+                        Icon(Icons.TwoTone.Close, contentDescription = stringResource(R.string.editor_action_close))
                     }
 
                     IconButton(
@@ -373,7 +379,7 @@ private fun EditorHeader(
                         enabled = canUndo
                     ) {
                         Icon(
-                            Icons.Default.KeyboardArrowUp,
+                            Icons.TwoTone.KeyboardArrowUp,
                             contentDescription = stringResource(R.string.editor_action_undo)
                         )
                     }
@@ -383,25 +389,25 @@ private fun EditorHeader(
                         enabled = canRedo
                     ) {
                         Icon(
-                            Icons.Default.KeyboardArrowDown,
+                            Icons.TwoTone.KeyboardArrowDown,
                             contentDescription = stringResource(R.string.editor_action_redo)
                         )
                     }
 
                     IconButton(onClick = onSearch) {
-                        Icon(Icons.Default.Search, contentDescription = stringResource(R.string.editor_action_search))
+                        Icon(Icons.TwoTone.Search, contentDescription = stringResource(R.string.editor_action_search))
                     }
 
                     IconButton(onClick = onGoToLine) {
                         Icon(
-                            Icons.Default.FormatListNumbered,
+                            Icons.TwoTone.FormatListNumbered,
                             contentDescription = stringResource(R.string.editor_action_go_to_line)
                         )
                     }
                 }
 
                 IconButton(onClick = onToggleMemoryStats) {
-                    Icon(Icons.Default.Info, contentDescription = stringResource(R.string.editor_action_toggle_stats))
+                    Icon(Icons.TwoTone.Info, contentDescription = stringResource(R.string.editor_action_toggle_stats))
                 }
 
                 Spacer(modifier = Modifier.weight(1f))
@@ -470,7 +476,7 @@ private fun ErrorBanner(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                Icons.Default.Error,
+                Icons.TwoTone.Error,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onErrorContainer
             )
@@ -485,7 +491,7 @@ private fun ErrorBanner(
 
             IconButton(onClick = onDismiss) {
                 Icon(
-                    Icons.Default.Close,
+                    Icons.TwoTone.Close,
                     contentDescription = stringResource(R.string.editor_action_dismiss),
                     tint = MaterialTheme.colorScheme.onErrorContainer
                 )
@@ -526,7 +532,7 @@ private fun SearchResultsBar(
                 enabled = currentIndex > 0
             ) {
                 Icon(
-                    Icons.Default.KeyboardArrowUp,
+                    Icons.TwoTone.KeyboardArrowUp,
                     contentDescription = stringResource(R.string.editor_action_previous),
                     tint = MaterialTheme.colorScheme.onSecondaryContainer
                 )
@@ -541,7 +547,7 @@ private fun SearchResultsBar(
                 enabled = currentIndex < searchResults.size - 1
             ) {
                 Icon(
-                    Icons.Default.KeyboardArrowDown,
+                    Icons.TwoTone.KeyboardArrowDown,
                     contentDescription = stringResource(R.string.editor_action_next),
                     tint = MaterialTheme.colorScheme.onSecondaryContainer
                 )
@@ -549,7 +555,7 @@ private fun SearchResultsBar(
 
             IconButton(onClick = onClose) {
                 Icon(
-                    Icons.Default.Close,
+                    Icons.TwoTone.Close,
                     contentDescription = stringResource(R.string.editor_action_close),
                     tint = MaterialTheme.colorScheme.onSecondaryContainer
                 )

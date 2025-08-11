@@ -2,7 +2,7 @@ package eu.darken.butler.explorer.ui.explorer.rows
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.twotone.Link
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -32,7 +32,7 @@ internal fun SymlinkFileRow(
         modifier = modifier,
         leadingContent = {
             Icon(
-                imageVector = Icons.Default.Link,
+                imageVector = Icons.TwoTone.Link,
                 contentDescription = stringResource(R.string.explorer_file_symlink_content_desc),
                 tint = if (item.isBroken) {
                     MaterialTheme.colorScheme.error

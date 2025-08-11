@@ -20,7 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.DragIndicator
 import androidx.compose.material.icons.twotone.Edit
@@ -467,7 +467,7 @@ private fun AddWorkspaceButton(
         containerColor = MaterialTheme.colorScheme.primaryContainer,
     ) {
         Icon(
-            imageVector = Icons.Default.Add,
+            imageVector = Icons.TwoTone.Add,
             contentDescription = "Add Workspace",
         )
     }

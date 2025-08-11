@@ -17,9 +17,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.filled.FolderOpen
-import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.twotone.Layers
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -121,13 +121,13 @@ internal fun WorkspacesPage(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     WorkspaceCard(
-                        icon = Icons.Filled.Description,
+                        icon = Icons.TwoTone.Description,
                         title = stringResource(R.string.onboarding_workspaces_editor_title),
                         description = stringResource(R.string.onboarding_workspaces_editor_description),
                         modifier = Modifier.weight(1f)
                     )
                     WorkspaceCard(
-                        icon = Icons.Filled.Layers,
+                        icon = Icons.TwoTone.Layers,
                         title = stringResource(R.string.onboarding_workspaces_templates_title),
                         description = stringResource(R.string.onboarding_workspaces_templates_description),
                         modifier = Modifier.weight(1f)

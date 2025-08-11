@@ -7,8 +7,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ClearAll
-import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.twotone.History
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.twotone.ClearAll
+import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -71,7 +73,7 @@ fun SearcherSettingsScreen(
 
             item {
                 SettingsSwitchItem(
-                    icon = Icons.Default.Search,
+                    icon = Icons.TwoTone.Search,
                     title = stringResource(R.string.searcher_settings_case_sensitive_title),
                     subtitle = stringResource(R.string.searcher_settings_case_sensitive_subtitle),
                     checked = state.caseSensitive,
@@ -82,7 +84,7 @@ fun SearcherSettingsScreen(
 
             item {
                 SettingsSwitchItem(
-                    icon = Icons.Default.Search,
+                    icon = Icons.TwoTone.Search,
                     title = stringResource(R.string.searcher_settings_whole_word_title),
                     subtitle = stringResource(R.string.searcher_settings_whole_word_subtitle),
                     checked = state.wholeWord,
@@ -93,7 +95,7 @@ fun SearcherSettingsScreen(
 
             item {
                 SettingsSwitchItem(
-                    icon = Icons.Default.Search,
+                    icon = Icons.TwoTone.Search,
                     title = stringResource(R.string.searcher_settings_regex_title),
                     subtitle = stringResource(R.string.searcher_settings_regex_subtitle),
                     checked = state.useRegex,
@@ -108,7 +110,7 @@ fun SearcherSettingsScreen(
 
             item {
                 SettingsSwitchItem(
-                    icon = Icons.Default.History,
+                    icon = Icons.TwoTone.History,
                     title = stringResource(R.string.searcher_settings_save_history_title),
                     subtitle = stringResource(R.string.searcher_settings_save_history_subtitle),
                     checked = state.saveHistory,
@@ -119,7 +121,7 @@ fun SearcherSettingsScreen(
 
             item {
                 SettingsPreferenceItem(
-                    icon = Icons.Default.History,
+                    icon = Icons.TwoTone.History,
                     title = stringResource(R.string.searcher_settings_max_history_title),
                     subtitle = stringResource(R.string.searcher_settings_max_history_subtitle),
                     value = state.maxHistoryItems.toString(),
@@ -135,7 +137,7 @@ fun SearcherSettingsScreen(
 
             item {
                 SettingsPreferenceItem(
-                    icon = Icons.Default.ClearAll,
+                    icon = Icons.TwoTone.ClearAll,
                     title = stringResource(R.string.searcher_settings_clear_history_title),
                     subtitle = stringResource(R.string.searcher_settings_clear_history_subtitle),
                     onClick = onClearSearchHistory
