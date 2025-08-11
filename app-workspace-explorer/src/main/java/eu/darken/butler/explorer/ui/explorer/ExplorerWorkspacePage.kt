@@ -1,8 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
@@ -29,7 +27,6 @@ import androidx.compose.material.icons.twotone.Share
 import androidx.compose.material.icons.automirrored.twotone.Sort
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -108,6 +105,7 @@ fun ExplorerWorkspacePage(
             ExplorerBottomBar(
                 isSelectionMode = state.selectedItems.isNotEmpty(),
                 selectedCount = state.selectedItems.size,
+                onCreateFolderClick = { vm?.createNewFolder() },
                 onCopyClick = { vm?.copySelectedItems() },
                 onCutClick = { vm?.cutSelectedItems() },
                 onDeleteClick = { vm?.deleteSelectedItems() },
@@ -116,22 +114,6 @@ fun ExplorerWorkspacePage(
                 onFilterClick = { vm?.showFilterOptions() },
                 onMoreClick = { vm?.showMoreOptions() },
             )
-        },
-        floatingActionButton = {
-            AnimatedVisibility(
-                visible = state.selectedItems.isEmpty(),
-                enter = fadeIn() + slideInVertically { it },
-                exit = fadeOut() + slideOutVertically { it },
-            ) {
-                FloatingActionButton(
-                    onClick = { vm?.createNewFolder() },
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.CreateNewFolder,
-                        contentDescription = "Create new folder",
-                    )
-                }
-            }
         },
     ) { paddingValues ->
         Column(
@@ -243,6 +225,7 @@ fun ExplorerBottomBar(
     modifier: Modifier = Modifier,
     isSelectionMode: Boolean,
     selectedCount: Int,
+    onCreateFolderClick: () -> Unit,
     onCopyClick: () -> Unit,
     onCutClick: () -> Unit,
     onDeleteClick: () -> Unit,
@@ -311,6 +294,12 @@ fun ExplorerBottomBar(
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
+                        IconButton(onClick = onCreateFolderClick) {
+                            Icon(
+                                imageVector = Icons.TwoTone.CreateNewFolder,
+                                contentDescription = "Create new folder",
+                            )
+                        }
                         IconButton(onClick = onSortClick) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.TwoTone.Sort,
@@ -450,6 +439,7 @@ fun ExplorerBottomBarNormalModePreview() {
         ExplorerBottomBar(
             isSelectionMode = false,
             selectedCount = 0,
+            onCreateFolderClick = {},
             onCopyClick = {},
             onCutClick = {},
             onDeleteClick = {},
@@ -468,6 +458,7 @@ fun ExplorerBottomBarSelectionModePreview() {
         ExplorerBottomBar(
             isSelectionMode = true,
             selectedCount = 3,
+            onCreateFolderClick = {},
             onCopyClick = {},
             onCutClick = {},
             onDeleteClick = {},
