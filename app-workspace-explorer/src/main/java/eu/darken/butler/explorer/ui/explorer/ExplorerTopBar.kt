@@ -45,7 +45,7 @@ fun ExplorerTopBar(
                 onNavigateToPath = onNavigateToPath,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(end = 8.dp)
+                    .padding(end = 16.dp)
             )
         },
         actions = {
