@@ -1,18 +1,39 @@
 package eu.darken.butler.explorer.ui.explorer
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.ContentCopy
+import androidx.compose.material.icons.twotone.ContentCut
+import androidx.compose.material.icons.twotone.CreateNewFolder
+import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material.icons.twotone.FilterList
+import androidx.compose.material.icons.twotone.MoreVert
+import androidx.compose.material.icons.twotone.Share
+import androidx.compose.material.icons.automirrored.twotone.Sort
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -80,8 +101,44 @@ fun ExplorerWorkspacePage(
     onNavToWorkspaceManager: () -> Unit,
 ) {
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        bottomBar = {
+            ExplorerBottomBar(
+                isSelectionMode = state.selectedItems.isNotEmpty(),
+                selectedCount = state.selectedItems.size,
+                onCopyClick = { vm?.copySelectedItems() },
+                onCutClick = { vm?.cutSelectedItems() },
+                onDeleteClick = { vm?.deleteSelectedItems() },
+                onShareClick = { vm?.shareSelectedItems() },
+                onSortClick = { vm?.showSortOptions() },
+                onFilterClick = { vm?.showFilterOptions() },
+                onMoreClick = { vm?.showMoreOptions() },
+            )
+        },
+        floatingActionButton = {
+            AnimatedVisibility(
+                visible = state.selectedItems.isEmpty(),
+                enter = fadeIn() + slideInVertically { it },
+                exit = fadeOut() + slideOutVertically { it },
+            ) {
+                FloatingActionButton(
+                    onClick = { vm?.createNewFolder() },
+                ) {
+                    Icon(
+                        imageVector = Icons.TwoTone.CreateNewFolder,
+                        contentDescription = "Create new folder",
+                    )
+                }
+            }
+        },
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
             // Path display with spacer for floating button
             Row(
                 modifier = Modifier
@@ -178,6 +235,104 @@ fun ExplorerWorkspacePage(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ExplorerBottomBar(
+    modifier: Modifier = Modifier,
+    isSelectionMode: Boolean,
+    selectedCount: Int,
+    onCopyClick: () -> Unit,
+    onCutClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+    onShareClick: () -> Unit,
+    onSortClick: () -> Unit,
+    onFilterClick: () -> Unit,
+    onMoreClick: () -> Unit,
+) {
+    AnimatedVisibility(
+        visible = true, // Always show the bottom bar
+        enter = slideInVertically { it },
+        exit = slideOutVertically { it },
+    ) {
+        BottomAppBar(
+            modifier = modifier.height(56.dp), // Compact height
+            windowInsets = WindowInsets(0, 0, 0, 0),
+            tonalElevation = 0.dp, // Remove elevation for cleaner look
+            actions = {
+                if (isSelectionMode) {
+                    // Selection mode actions
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = "$selectedCount selected",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        )
+                    }
+                    IconButton(onClick = onCopyClick) {
+                        Icon(
+                            imageVector = Icons.TwoTone.ContentCopy,
+                            contentDescription = "Copy",
+                        )
+                    }
+                    IconButton(onClick = onCutClick) {
+                        Icon(
+                            imageVector = Icons.TwoTone.ContentCut,
+                            contentDescription = "Cut",
+                        )
+                    }
+                    IconButton(onClick = onDeleteClick) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Delete,
+                            contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                    IconButton(onClick = onShareClick) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Share,
+                            contentDescription = "Share",
+                        )
+                    }
+                    IconButton(onClick = onMoreClick) {
+                        Icon(
+                            imageVector = Icons.TwoTone.MoreVert,
+                            contentDescription = "More options",
+                        )
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        IconButton(onClick = onSortClick) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.TwoTone.Sort,
+                                contentDescription = "Sort",
+                            )
+                        }
+                        IconButton(onClick = onFilterClick) {
+                            Icon(
+                                imageVector = Icons.TwoTone.FilterList,
+                                contentDescription = "Filter",
+                            )
+                        }
+                        IconButton(onClick = onMoreClick) {
+                            Icon(
+                                imageVector = Icons.TwoTone.MoreVert,
+                                contentDescription = "More options",
+                            )
+                        }
+                    }
+                }
+            },
+        )
     }
 }
 
@@ -284,6 +439,42 @@ fun ExplorerWorkspacePageWithSelectionPreview() {
             workspaceButtonState = null,
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
+        )
+    }
+}
+
+@Preview2
+@Composable
+fun ExplorerBottomBarNormalModePreview() {
+    PreviewWrapper {
+        ExplorerBottomBar(
+            isSelectionMode = false,
+            selectedCount = 0,
+            onCopyClick = {},
+            onCutClick = {},
+            onDeleteClick = {},
+            onShareClick = {},
+            onSortClick = {},
+            onFilterClick = {},
+            onMoreClick = {},
+        )
+    }
+}
+
+@Preview2
+@Composable
+fun ExplorerBottomBarSelectionModePreview() {
+    PreviewWrapper {
+        ExplorerBottomBar(
+            isSelectionMode = true,
+            selectedCount = 3,
+            onCopyClick = {},
+            onCutClick = {},
+            onDeleteClick = {},
+            onShareClick = {},
+            onSortClick = {},
+            onFilterClick = {},
+            onMoreClick = {},
         )
     }
 }

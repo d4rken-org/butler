@@ -132,6 +132,51 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         selectedItemsFlow.value = emptySet()
     }
 
+    fun createNewFolder() = launch {
+        log(tag) { "createNewFolder()" }
+        // TODO: Show dialog to get folder name and create it
+        // For now, just log the action
+    }
+
+    fun copySelectedItems() = launch {
+        log(tag) { "copySelectedItems(): ${selectedItemsFlow.value.size} items" }
+        // TODO: Implement copy to clipboard
+        // Store selected paths for paste operation
+    }
+
+    fun cutSelectedItems() = launch {
+        log(tag) { "cutSelectedItems(): ${selectedItemsFlow.value.size} items" }
+        // TODO: Implement cut to clipboard
+        // Store selected paths for move operation
+    }
+
+    fun deleteSelectedItems() = launch {
+        log(tag) { "deleteSelectedItems(): ${selectedItemsFlow.value.size} items" }
+        // TODO: Show confirmation dialog
+        // Delete selected files/folders
+    }
+
+    fun shareSelectedItems() = launch {
+        log(tag) { "shareSelectedItems(): ${selectedItemsFlow.value.size} items" }
+        // TODO: Implement share via Android share sheet
+    }
+
+    fun showSortOptions() = launch {
+        log(tag) { "showSortOptions()" }
+        // TODO: Show sort options dialog/menu
+    }
+
+    fun showFilterOptions() = launch {
+        log(tag) { "showFilterOptions()" }
+        // TODO: Show filter options dialog/menu
+    }
+
+    fun showMoreOptions() = launch {
+        log(tag) { "showMoreOptions()" }
+        // TODO: Show more options menu
+        // Could include: Select All, Properties, etc.
+    }
+
     data class State(
         val currentLocation: ExplorerLocation? = null,
         val breadcrumbs: List<ExplorerBreadcrumb> = emptyList(),

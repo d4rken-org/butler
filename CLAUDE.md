@@ -97,12 +97,14 @@ fastlane android production
 - Don't code comments for obvious code.
 - When using `if` that is not single-line, always use brackets.
 - Always add trailing commas.
+- In `@Composable` functions, the parameter `modifier: Modifier = Modifier,` should be the first parameter.
 
 ## Agent instructions
 
 - Reminder: Our core principle is to maintain focused contexts for both yourself (the orchestrator/main agent) and each sub-agent. Therefore, please use the Task tool to delegate suitable tasks to sub-agents to improve task efficiency and optimize token usage.
 - Be critical.
 - Challenge suggestions.
+- Do not add comments.
 
 ## Development Guidelines
 
