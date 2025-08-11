@@ -56,14 +56,14 @@ class BreadcrumbGenerator @Inject constructor() {
 
     companion object {
 
-        val HOME = ExplorerBreadcrumb(
+        val DEVICE = ExplorerBreadcrumb(
             label = "Device".toCaString(),
             icon = Icons.TwoTone.PhoneAndroid,
             target = ExplorerNavigation.Target.Device,
             preferIcon = true,
         )
 
-        val DEVICE = ExplorerBreadcrumb(
+        val HOME = ExplorerBreadcrumb(
             label = "Home".toCaString(),
             icon = Icons.TwoTone.Home,
             target = ExplorerNavigation.Target.Home,
