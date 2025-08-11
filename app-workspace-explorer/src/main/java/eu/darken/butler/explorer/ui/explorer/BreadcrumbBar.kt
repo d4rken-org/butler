@@ -139,12 +139,19 @@ fun BreadcrumbBar(
                     modifier = Modifier
                         .clip(RoundedCornerShape(4.dp))
                         .clickable {
-                            if (isLast && onNavigateToPath != null) {
-                                // Click on last breadcrumb enters edit mode
-                                isEditMode = true
-                            } else if (!isLast) {
-                                // Click on other breadcrumbs navigates
-                                onBreadcrumbClick(breadcrumb.target)
+                            when {
+                                // Only allow edit mode for actual directory paths, not Home/Device
+                                isLast && onNavigateToPath != null && 
+                                    breadcrumb.target is ExplorerLocation.Breadcrumb.Target.Directory -> {
+                                    // Click on last breadcrumb that is a directory enters edit mode
+                                    isEditMode = true
+                                }
+                                !isLast -> {
+                                    // Click on non-last breadcrumbs always navigates
+                                    onBreadcrumbClick(breadcrumb.target)
+                                }
+                                // For Home/Device when last, clicking does nothing
+                                // (could optionally refresh by calling onBreadcrumbClick)
                             }
                         }
                         .padding(horizontal = 6.dp, vertical = 4.dp),
