@@ -1,8 +1,5 @@
 package eu.darken.butler.explorer.ui.explorer
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,13 +27,18 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.ca.toCaString
@@ -88,6 +90,7 @@ fun ExplorerWorkspacePageHost(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExplorerWorkspacePage(
     design: WorkspaceDesign = WorkspaceDesign(),
@@ -97,10 +100,23 @@ fun ExplorerWorkspacePage(
     onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
 ) {
-
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        topBar = {
+            ExplorerTopBar(
+                breadcrumbs = state.breadcrumbs,
+                scrollBehavior = scrollBehavior,
+                onBreadcrumbClick = { target -> vm?.navigate(target) },
+                onNavigateToPath = { path -> vm?.navigateToPathString(path) },
+                workspaceButtonState = workspaceButtonState,
+                showWorkspaceButton = design.isSingle,
+                onWorkspaceAction = onWorkspaceAction,
+                onNavToWorkspaceManager = onNavToWorkspaceManager,
+            )
+        },
         bottomBar = {
             ExplorerBottomBar(
                 isSelectionMode = state.selectedItems.isNotEmpty(),
@@ -116,108 +132,118 @@ fun ExplorerWorkspacePage(
             )
         },
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            // Path display with spacer for floating button
-            Row(
+        if (state.isLoading) {
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                BreadcrumbBar(
-                    breadcrumbs = state.breadcrumbs,
-                    onBreadcrumbClick = { target -> vm?.navigate(target) },
-                    onNavigateToPath = { path -> vm?.navigateToPathString(path) },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 8.dp)
+                CircularProgressIndicator()
+                Text(
+                    text = "Loading...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 16.dp)
                 )
-                if (design.isSingle) {
-                    WorkspaceButton(
-                        modifier = Modifier,
-                        state = workspaceButtonState,
-                        onAction = onWorkspaceAction,
-                        onNavToWorkspaceManager = onNavToWorkspaceManager,
-                    )
-                }
             }
-
-            // File list
-            if (state.isLoading) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+        } else if (state.items.isEmpty()) {
+            EmptyFolderState(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .nestedScroll(scrollBehavior.nestedScrollConnection),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    contentPadding = PaddingValues(12.dp)
                 ) {
-                    CircularProgressIndicator()
-                    Text(
-                        text = "Loading...",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(top = 16.dp)
-                    )
+                    items(state.items) { item ->
+                        when (item) {
+                            is ExplorerItem.PathItem -> PathItemRow(
+                                item = item,
+                                isSelected = state.selectedItems.contains(item.lookup.path),
+                                onToggleSelection = { vm?.toggleItemSelection(item) },
+                                onClick = { 
+                                    if (state.selectedItems.isNotEmpty()) {
+                                        vm?.toggleItemSelection(item)
+                                    } else {
+                                        vm?.navigate(item)
+                                    }
+                                },
+                                onLongClick = { vm?.toggleItemSelection(item) },
+                                showSelection = state.selectedItems.isNotEmpty()
+                            )
+                            is ExplorerItem.Shortcut -> ShortcutRow(
+                                item = item,
+                                onClick = { vm?.navigate(item) },
+                            )
+                        }
+                    }
                 }
-            } else {
-                if (state.items.isEmpty()) {
-                    EmptyFolderState(
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                            contentPadding = PaddingValues(12.dp)
-                        ) {
-                            items(state.items) { item ->
-                                when (item) {
-                                    is ExplorerItem.PathItem -> PathItemRow(
-                                        item = item,
-                                        isSelected = state.selectedItems.contains(item.lookup.path),
-                                        onToggleSelection = { vm?.toggleItemSelection(item) },
-                                        onClick = { 
-                                            if (state.selectedItems.isNotEmpty()) {
-                                                // In selection mode, clicks toggle selection
-                                                vm?.toggleItemSelection(item)
-                                            } else {
-                                                // Not in selection mode, navigate
-                                                vm?.navigate(item)
-                                            }
-                                        },
-                                        onLongClick = { vm?.toggleItemSelection(item) },
-                                        showSelection = state.selectedItems.isNotEmpty()
-                                    )
-                                    is ExplorerItem.Shortcut -> ShortcutRow(
-                                        item = item,
-                                        onClick = { vm?.navigate(item) },
-                                    )
-                                }
-                            }
-                        }
 
-                        // Extended data loading indicator
-                        if (state.isLoadingExtended) {
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .padding(16.dp)
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
-                                    strokeWidth = 2.dp,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                            }
-                        }
+                if (state.isLoadingExtended) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(16.dp)
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
                     }
                 }
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ExplorerTopBar(
+    modifier: Modifier = Modifier,
+    breadcrumbs: List<ExplorerBreadcrumb>,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
+    onBreadcrumbClick: (ExplorerNavigation) -> Unit,
+    onNavigateToPath: (String) -> Unit,
+    workspaceButtonState: WorkspaceButtonViewModel.State?,
+    showWorkspaceButton: Boolean,
+    onWorkspaceAction: (WorkspaceAction) -> Unit,
+    onNavToWorkspaceManager: () -> Unit,
+) {
+    TopAppBar(
+        modifier = modifier,
+        scrollBehavior = scrollBehavior,
+        windowInsets = WindowInsets(0, 0, 0, 0),
+        title = {
+            BreadcrumbBar(
+                breadcrumbs = breadcrumbs,
+                onBreadcrumbClick = onBreadcrumbClick,
+                onNavigateToPath = onNavigateToPath,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        actions = {
+            if (showWorkspaceButton) {
+                WorkspaceButton(
+                    modifier = Modifier,
+                    state = workspaceButtonState,
+                    onAction = onWorkspaceAction,
+                    onNavToWorkspaceManager = onNavToWorkspaceManager,
+                )
+            }
+        },
+    )
 }
 
 @Composable
@@ -234,16 +260,11 @@ fun ExplorerBottomBar(
     onFilterClick: () -> Unit,
     onMoreClick: () -> Unit,
 ) {
-    AnimatedVisibility(
-        visible = true, // Always show the bottom bar
-        enter = slideInVertically { it },
-        exit = slideOutVertically { it },
-    ) {
-        BottomAppBar(
-            modifier = modifier.height(56.dp), // Compact height
-            windowInsets = WindowInsets(0, 0, 0, 0),
-            tonalElevation = 0.dp, // Remove elevation for cleaner look
-            actions = {
+    BottomAppBar(
+        modifier = modifier.height(56.dp),
+        windowInsets = WindowInsets(0, 0, 0, 0),
+        tonalElevation = 0.dp,
+        actions = {
                 if (isSelectionMode) {
                     // Selection mode actions
                     Row(
@@ -322,7 +343,6 @@ fun ExplorerBottomBar(
                 }
             },
         )
-    }
 }
 
 @Preview2

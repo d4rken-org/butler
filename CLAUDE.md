@@ -98,6 +98,7 @@ fastlane android production
 - When using `if` that is not single-line, always use brackets.
 - Always add trailing commas.
 - In `@Composable` functions, the parameter `modifier: Modifier = Modifier,` should be the first parameter.
+- We don't need `@OptIn(ExperimentalMaterial3Api:class)` as we have this enabled project wide via `freeCompilerArgs`.
 
 ## Agent instructions
 
