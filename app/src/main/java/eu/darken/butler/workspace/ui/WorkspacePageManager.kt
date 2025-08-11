@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui
 
+import android.os.Parcelable
 import androidx.lifecycle.SavedStateHandle
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.debug.logging.log
@@ -10,50 +11,31 @@ import eu.darken.butler.workspace.core.WorkspaceRemote
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import java.util.UUID
+import kotlinx.parcelize.Parcelize
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Centralized UI state manager for workspace operations.
- * Handles workspace selection, focus, pane assignments, and UI-specific workspace lifecycle.
- */
 @Singleton
-class WorkspaceUIManager @Inject constructor(
+class WorkspacePageManager @Inject constructor(
     @param:AppScope private val appScope: CoroutineScope,
     private val workspaceRemote: WorkspaceRemote,
 ) {
+    @Parcelize
     data class State(
         val focusedWorkspaceId: Workspace.Id? = null,
         val selectedWorkspaces: Map<Int, Workspace.Id> = emptyMap(),
         val currentPaneCount: Int = 1,
-    )
+    ) : Parcelable
 
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state.asStateFlow()
-
-    // Convenience accessors for backward compatibility
-    val focusedWorkspaceId: StateFlow<Workspace.Id?> = _state
-        .map { it.focusedWorkspaceId }
-        .stateIn(appScope, SharingStarted.Eagerly, null)
-
-    val selectedWorkspaces: StateFlow<Map<Int, Workspace.Id>> = _state
-        .map { it.selectedWorkspaces }
-        .stateIn(appScope, SharingStarted.Eagerly, emptyMap())
-
-    val currentPaneCount: StateFlow<Int> = _state
-        .map { it.currentPaneCount }
-        .stateIn(appScope, SharingStarted.Eagerly, 1)
 
     private val _selectionEvents = MutableSharedFlow<Workspace.Id>()
     val selectionEvents = _selectionEvents.asSharedFlow()
@@ -111,20 +93,10 @@ class WorkspaceUIManager @Inject constructor(
      * Initialize state from SavedStateHandle for persistence
      */
     fun initializeFromSavedState(savedStateHandle: SavedStateHandle) {
-        val focusedId = savedStateHandle.get<String>("focusedWorkspaceId")
-            ?.let { Workspace.Id(UUID.fromString(it)) }
-
-        val selectedWs = savedStateHandle.get<Map<Int, String>>("selectedWorkspaces")
-            ?.mapValues { Workspace.Id(UUID.fromString(it.value)) }
-            ?: emptyMap()
-
-        val paneCount = savedStateHandle.get<Int>("currentPaneCount") ?: 1
-
-        _state.value = State(
-            focusedWorkspaceId = focusedId,
-            selectedWorkspaces = selectedWs,
-            currentPaneCount = paneCount
-        )
+        val savedState = savedStateHandle.get<State>("workspaceUIState")
+        if (savedState != null) {
+            _state.value = savedState
+        }
     }
 
     suspend fun selectWorkspaceFromManager(workspaceId: Workspace.Id) {
