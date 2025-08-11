@@ -8,11 +8,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Sort
+import androidx.compose.material.icons.automirrored.twotone.ViewList
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.CreateNewFolder
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.FilterList
+import androidx.compose.material.icons.twotone.GridView
 import androidx.compose.material.icons.twotone.MoreVert
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.material3.BottomAppBar
@@ -26,12 +28,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 
 @Composable
 fun ExplorerBottomBar(
     modifier: Modifier = Modifier,
     isSelectionMode: Boolean,
     selectedCount: Int,
+    viewMode: ExplorerWorkspaceViewModel.ViewMode,
     onCreateFolderClick: () -> Unit,
     onCopyClick: () -> Unit,
     onCutClick: () -> Unit,
@@ -39,6 +43,7 @@ fun ExplorerBottomBar(
     onShareClick: () -> Unit,
     onSortClick: () -> Unit,
     onFilterClick: () -> Unit,
+    onToggleViewMode: () -> Unit,
     onMoreClick: () -> Unit,
 ) {
     BottomAppBar(
@@ -113,6 +118,20 @@ fun ExplorerBottomBar(
                             contentDescription = "Filter",
                         )
                     }
+                    IconButton(onClick = onToggleViewMode) {
+                        Icon(
+                            imageVector = if (viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
+                                Icons.TwoTone.GridView
+                            } else {
+                                Icons.AutoMirrored.TwoTone.ViewList
+                            },
+                            contentDescription = if (viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
+                                "Switch to grid view"
+                            } else {
+                                "Switch to list view"
+                            },
+                        )
+                    }
                     IconButton(onClick = onMoreClick) {
                         Icon(
                             imageVector = Icons.TwoTone.MoreVert,
@@ -132,6 +151,7 @@ fun ExplorerBottomBarNormalModePreview() {
         ExplorerBottomBar(
             isSelectionMode = false,
             selectedCount = 0,
+            viewMode = ExplorerWorkspaceViewModel.ViewMode.LIST,
             onCreateFolderClick = {},
             onCopyClick = {},
             onCutClick = {},
@@ -139,6 +159,7 @@ fun ExplorerBottomBarNormalModePreview() {
             onShareClick = {},
             onSortClick = {},
             onFilterClick = {},
+            onToggleViewMode = {},
             onMoreClick = {},
         )
     }
@@ -151,6 +172,7 @@ fun ExplorerBottomBarSelectionModePreview() {
         ExplorerBottomBar(
             isSelectionMode = true,
             selectedCount = 3,
+            viewMode = ExplorerWorkspaceViewModel.ViewMode.GRID,
             onCreateFolderClick = {},
             onCopyClick = {},
             onCutClick = {},
@@ -158,6 +180,7 @@ fun ExplorerBottomBarSelectionModePreview() {
             onShareClick = {},
             onSortClick = {},
             onFilterClick = {},
+            onToggleViewMode = {},
             onMoreClick = {},
         )
     }

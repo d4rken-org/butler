@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer.rows
+package eu.darken.butler.explorer.ui.explorer.row
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background

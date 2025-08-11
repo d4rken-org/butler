@@ -1,8 +1,8 @@
-package eu.darken.butler.explorer.ui.explorer.rows
+package eu.darken.butler.explorer.ui.explorer.row
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -16,9 +16,9 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
-internal fun SymlinkFileRow(
+internal fun RegularFileRow(
     modifier: Modifier = Modifier,
-    item: ExplorerItem.SymbolicLink,
+    item: ExplorerItem.RegularFile,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
@@ -35,26 +35,24 @@ internal fun SymlinkFileRow(
         modifier = modifier,
         leadingContent = {
             Icon(
-                imageVector = Icons.Default.Link,
-                contentDescription = stringResource(R.string.explorer_file_symlink_content_desc),
-                tint = if (item.isBroken) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    MaterialTheme.colorScheme.primary
-                },
+                imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
+                contentDescription = stringResource(R.string.explorer_file_regular_content_desc),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(32.dp)
             )
         },
         primaryText = item.displayName.get(LocalContext.current),
         secondaryText = buildString {
-            item.targetPath?.let {
-                append("→ $it")
+            append(formatFileSize(item.lookup.size))
+            append(" • ")
+            append(formatDate(item.lookup.modifiedAt.toEpochMilli()))
+            item.permissions?.let { perms ->
                 append(" • ")
+                append(perms.mode)
             }
-            if (item.isBroken) {
-                append(stringResource(R.string.explorer_file_broken_link_label))
-            } else {
-                append(formatDate(item.lookup.modifiedAt.toEpochMilli()))
+            item.ownership?.let { owner ->
+                append(" • ")
+                append(owner.userName ?: owner.userId)
             }
         }
     )
@@ -62,9 +60,9 @@ internal fun SymlinkFileRow(
 
 @Preview2
 @Composable
-private fun SymlinkFileRowPreview() {
-    SymlinkFileRow(
-        item = MockDataProvider.createMockSymbolicLink(),
+private fun RegularFileRowPreview() {
+    RegularFileRow(
+        item = MockDataProvider.createMockRegularFile(),
         isSelected = false,
         onToggleSelection = {},
         onClick = {},
@@ -74,9 +72,9 @@ private fun SymlinkFileRowPreview() {
 
 @Preview2
 @Composable
-private fun SymlinkFileRowBrokenPreview() {
-    SymlinkFileRow(
-        item = MockDataProvider.createMockSymbolicLink("broken_link", "/path/to/missing/file", true),
+private fun RegularFileRowSelectedPreview() {
+    RegularFileRow(
+        item = MockDataProvider.createMockRegularFile("config.json"),
         isSelected = true,
         onToggleSelection = {},
         onClick = {},

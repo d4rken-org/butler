@@ -32,11 +32,15 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val workspaceProvider: WorkspaceProvider,
 ) : ViewModel3(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
 
-    private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
-
-    private val workspace: Flow<ExplorerWorkspace?> = workspaceProvider.retrieve(id).map {
-        it as? ExplorerWorkspace
+    enum class ViewMode {
+        LIST,
+        GRID
     }
+
+    private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
+    private val viewModeFlow = MutableStateFlow(ViewMode.LIST)
+
+    private val workspace: Flow<ExplorerWorkspace?> = workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
 
     private suspend fun getWorkspace() = workspace.filterNotNull().first()
 
@@ -47,7 +51,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     val state = combine(
         workspaceState,
         selectedItemsFlow,
-    ) { wsState, selectedItems ->
+        viewModeFlow,
+    ) { wsState, selectedItems, viewMode ->
         val items = wsState.currentLocation?.items ?: emptyList()
 
         State(
@@ -58,6 +63,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             isLoadingExtended = wsState.isLoadingExtended,
             error = wsState.error,
             selectedItems = selectedItems,
+            viewMode = viewMode,
             canGoBack = wsState.canGoBack,
             canGoForward = wsState.canGoForward,
         )
@@ -177,6 +183,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         // Could include: Select All, Properties, etc.
     }
 
+    fun toggleViewMode() {
+        log(tag) { "toggleViewMode()" }
+        viewModeFlow.value = when (viewModeFlow.value) {
+            ViewMode.LIST -> ViewMode.GRID
+            ViewMode.GRID -> ViewMode.LIST
+        }
+    }
+
     data class State(
         val currentLocation: ExplorerLocation? = null,
         val breadcrumbs: List<ExplorerBreadcrumb> = emptyList(),
@@ -185,6 +199,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val isLoadingExtended: Boolean = false,
         val error: Throwable? = null,
         val selectedItems: Set<String>,
+        val viewMode: ViewMode = ViewMode.LIST,
         val canGoBack: Boolean = false,
         val canGoForward: Boolean = false,
     ) {

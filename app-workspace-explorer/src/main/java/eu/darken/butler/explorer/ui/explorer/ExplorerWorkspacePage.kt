@@ -14,9 +14,12 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -45,8 +48,10 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
-import eu.darken.butler.explorer.ui.explorer.rows.PathItemRow
-import eu.darken.butler.explorer.ui.explorer.rows.ShortcutRow
+import eu.darken.butler.explorer.ui.explorer.row.PathItemRow
+import eu.darken.butler.explorer.ui.explorer.row.ShortcutRow
+import eu.darken.butler.explorer.ui.explorer.grid.PathItemGrid
+import eu.darken.butler.explorer.ui.explorer.grid.ShortcutGrid
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
@@ -92,23 +97,41 @@ fun ExplorerWorkspacePage(
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val listState = rememberLazyListState()
+    val gridState = rememberLazyGridState()
     var isBottomBarVisible by remember { mutableStateOf(true) }
     
-    LaunchedEffect(listState) {
+    LaunchedEffect(listState, gridState, state.viewMode) {
         var previousIndex = 0
         var previousScrollOffset = 0
-        snapshotFlow { 
-            listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset 
-        }.collect { (currentIndex, currentOffset) ->
-            if (currentIndex > previousIndex || 
-                (currentIndex == previousIndex && currentOffset > previousScrollOffset)) {
-                isBottomBarVisible = false
-            } else if (currentIndex < previousIndex || 
-                      (currentIndex == previousIndex && currentOffset < previousScrollOffset)) {
-                isBottomBarVisible = true
+        
+        if (state.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
+            snapshotFlow { 
+                listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset 
+            }.collect { (currentIndex, currentOffset) ->
+                if (currentIndex > previousIndex || 
+                    (currentIndex == previousIndex && currentOffset > previousScrollOffset)) {
+                    isBottomBarVisible = false
+                } else if (currentIndex < previousIndex || 
+                          (currentIndex == previousIndex && currentOffset < previousScrollOffset)) {
+                    isBottomBarVisible = true
+                }
+                previousIndex = currentIndex
+                previousScrollOffset = currentOffset
             }
-            previousIndex = currentIndex
-            previousScrollOffset = currentOffset
+        } else {
+            snapshotFlow { 
+                gridState.firstVisibleItemIndex to gridState.firstVisibleItemScrollOffset 
+            }.collect { (currentIndex, currentOffset) ->
+                if (currentIndex > previousIndex || 
+                    (currentIndex == previousIndex && currentOffset > previousScrollOffset)) {
+                    isBottomBarVisible = false
+                } else if (currentIndex < previousIndex || 
+                          (currentIndex == previousIndex && currentOffset < previousScrollOffset)) {
+                    isBottomBarVisible = true
+                }
+                previousIndex = currentIndex
+                previousScrollOffset = currentOffset
+            }
         }
     }
     
@@ -156,39 +179,80 @@ fun ExplorerWorkspacePage(
                         .fillMaxSize()
                         .padding(top = paddingValues.calculateTopPadding())
                 ) {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .nestedScroll(scrollBehavior.nestedScrollConnection),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                        contentPadding = PaddingValues(
-                            start = 12.dp,
-                            end = 12.dp,
-                            top = 12.dp,
-                            bottom = if (isBottomBarVisible) 68.dp else 12.dp
-                        )
-                    ) {
-                        items(state.items) { item ->
-                            when (item) {
-                                is ExplorerItem.PathItem -> PathItemRow(
-                                    item = item,
-                                    isSelected = state.selectedItems.contains(item.lookup.path),
-                                    onToggleSelection = { vm?.toggleItemSelection(item) },
-                                    onClick = { 
-                                        if (state.selectedItems.isNotEmpty()) {
-                                            vm?.toggleItemSelection(item)
-                                        } else {
-                                            vm?.navigate(item)
-                                        }
-                                    },
-                                    onLongClick = { vm?.toggleItemSelection(item) },
-                                    showSelection = state.selectedItems.isNotEmpty()
-                                )
-                                is ExplorerItem.Shortcut -> ShortcutRow(
-                                    item = item,
-                                    onClick = { vm?.navigate(item) },
-                                )
+                    if (state.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .nestedScroll(scrollBehavior.nestedScrollConnection),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            contentPadding = PaddingValues(
+                                start = 12.dp,
+                                end = 12.dp,
+                                top = 12.dp,
+                                bottom = if (isBottomBarVisible) 68.dp else 12.dp
+                            )
+                        ) {
+                            items(state.items) { item ->
+                                when (item) {
+                                    is ExplorerItem.PathItem -> PathItemRow(
+                                        item = item,
+                                        isSelected = state.selectedItems.contains(item.lookup.path),
+                                        onToggleSelection = { vm?.toggleItemSelection(item) },
+                                        onClick = { 
+                                            if (state.selectedItems.isNotEmpty()) {
+                                                vm?.toggleItemSelection(item)
+                                            } else {
+                                                vm?.navigate(item)
+                                            }
+                                        },
+                                        onLongClick = { vm?.toggleItemSelection(item) },
+                                        showSelection = state.selectedItems.isNotEmpty()
+                                    )
+                                    is ExplorerItem.Shortcut -> ShortcutRow(
+                                        item = item,
+                                        onClick = { vm?.navigate(item) },
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        LazyVerticalGrid(
+                            state = gridState,
+                            columns = GridCells.Adaptive(minSize = 120.dp),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .nestedScroll(scrollBehavior.nestedScrollConnection),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                            horizontalArrangement = Arrangement.spacedBy(2.dp),
+                            contentPadding = PaddingValues(
+                                start = 2.dp,
+                                end = 2.dp,
+                                top = 2.dp,
+                                bottom = if (isBottomBarVisible) 58.dp else 2.dp
+                            )
+                        ) {
+                            items(state.items) { item ->
+                                when (item) {
+                                    is ExplorerItem.PathItem -> PathItemGrid(
+                                        item = item,
+                                        isSelected = state.selectedItems.contains(item.lookup.path),
+                                        onToggleSelection = { vm?.toggleItemSelection(item) },
+                                        onClick = { 
+                                            if (state.selectedItems.isNotEmpty()) {
+                                                vm?.toggleItemSelection(item)
+                                            } else {
+                                                vm?.navigate(item)
+                                            }
+                                        },
+                                        onLongClick = { vm?.toggleItemSelection(item) },
+                                        showSelection = state.selectedItems.isNotEmpty()
+                                    )
+                                    is ExplorerItem.Shortcut -> ShortcutGrid(
+                                        item = item,
+                                        onClick = { vm?.navigate(item) },
+                                    )
+                                }
                             }
                         }
                     }
@@ -219,6 +283,7 @@ fun ExplorerWorkspacePage(
             ExplorerBottomBar(
                 isSelectionMode = state.selectedItems.isNotEmpty(),
                 selectedCount = state.selectedItems.size,
+                viewMode = state.viewMode,
                 onCreateFolderClick = { vm?.createNewFolder() },
                 onCopyClick = { vm?.copySelectedItems() },
                 onCutClick = { vm?.cutSelectedItems() },
@@ -226,13 +291,12 @@ fun ExplorerWorkspacePage(
                 onShareClick = { vm?.shareSelectedItems() },
                 onSortClick = { vm?.showSortOptions() },
                 onFilterClick = { vm?.showFilterOptions() },
+                onToggleViewMode = { vm?.toggleViewMode() },
                 onMoreClick = { vm?.showMoreOptions() },
             )
         }
     }
 }
-
-
 
 @Preview2
 @Composable
@@ -329,6 +393,70 @@ fun ExplorerWorkspacePageWithSelectionPreview() {
         items = mockFileItems,
         isLoading = false,
         selectedItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path)
+    )
+    PreviewWrapper {
+        ExplorerWorkspacePage(
+            state = mockState,
+            vm = null,
+            workspaceButtonState = null,
+            onWorkspaceAction = {},
+            onNavToWorkspaceManager = {},
+        )
+    }
+}
+
+@Preview2
+@Composable
+fun ExplorerWorkspacePageGridModePreview() {
+    val mockBreadcrumbs = listOf(
+        ExplorerBreadcrumb(
+            label = "Home".toCaString(),
+            target = ExplorerNavigation.Target.Home
+        ),
+        ExplorerBreadcrumb(
+            label = "Pictures".toCaString(),
+            target = ExplorerNavigation.Target.Directory(RawPath.build("/storage/emulated/0/Pictures"))
+        )
+    )
+    val mockState = ExplorerWorkspaceViewModel.State(
+        currentLocation = ExplorerLocation.Directory(RawPath.build("/storage/emulated/0/Pictures")),
+        breadcrumbs = mockBreadcrumbs,
+        items = MockDataProvider.createAllFileTypes(),
+        isLoading = false,
+        selectedItems = emptySet(),
+        viewMode = ExplorerWorkspaceViewModel.ViewMode.GRID
+    )
+    PreviewWrapper {
+        ExplorerWorkspacePage(
+            state = mockState,
+            vm = null,
+            workspaceButtonState = null,
+            onWorkspaceAction = {},
+            onNavToWorkspaceManager = {},
+        )
+    }
+}
+
+@Preview2
+@Composable
+fun ExplorerWorkspacePageGridModeWithSelectionPreview() {
+    val mockFileItems = MockDataProvider.createAllFileTypes()
+    val mockState = ExplorerWorkspaceViewModel.State(
+        currentLocation = ExplorerLocation.Directory(RawPath.build("/storage/emulated/0/Downloads")),
+        breadcrumbs = listOf(
+            ExplorerBreadcrumb(
+                label = "Device".toCaString(),
+                target = ExplorerNavigation.Target.Device
+            ),
+            ExplorerBreadcrumb(
+                label = "Downloads".toCaString(),
+                target = ExplorerNavigation.Target.Directory(RawPath.build("/storage/emulated/0/Downloads"))
+            )
+        ),
+        items = mockFileItems,
+        isLoading = false,
+        selectedItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path, mockFileItems[3].lookup.path),
+        viewMode = ExplorerWorkspaceViewModel.ViewMode.GRID
     )
     PreviewWrapper {
         ExplorerWorkspacePage(
