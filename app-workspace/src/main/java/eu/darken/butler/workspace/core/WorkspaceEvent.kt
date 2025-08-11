@@ -13,6 +13,10 @@ sealed interface WorkspaceEvent {
     data class Reordered(
         val workspaceIds: List<Workspace.Id>,
     ) : WorkspaceEvent
+
+    data class Selected(
+        val workspaceId: Workspace.Id,
+    ) : WorkspaceEvent
     
     data object AllClosed : WorkspaceEvent
 }

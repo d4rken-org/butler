@@ -74,6 +74,10 @@ class WorkspacesViewModel @Inject constructor(
                     is WorkspaceEvent.Reordered -> {
                         log(tag) { "Workspaces reordered: ${event.workspaceIds}" }
                     }
+                    is WorkspaceEvent.Selected -> {
+                        log(tag) { "Workspace selected from manager: ${event.workspaceId}" }
+                        handleWorkspaceSelection(event.workspaceId)
+                    }
                     WorkspaceEvent.AllClosed -> {
                         log(tag) { "All workspaces closed" }
                         focusedWorkspaceId.value = null
@@ -238,6 +242,53 @@ class WorkspacesViewModel @Inject constructor(
                 // Pane 0 already occupied, don't select the new workspace
                 log(tag) { "assignToEmptyPane: Single pane mode, pane 0 occupied, workspace created but not selected" }
             }
+        }
+    }
+
+    private fun handleWorkspaceSelection(workspaceId: Workspace.Id) {
+        log(tag) { "handleWorkspaceSelection: workspaceId=$workspaceId" }
+
+        // Check if workspace is already selected in any pane
+        val currentSelections = selectedWorkspaces.value
+        val existingPosition = currentSelections.entries.find { it.value == workspaceId }?.key
+
+        if (existingPosition != null) {
+            // Workspace already selected, just focus it
+            log(tag) { "Workspace $workspaceId already selected in pane $existingPosition, focusing it" }
+            focusedWorkspaceId.value = workspaceId
+            savedStateHandle["focusedWorkspaceId"] = workspaceId.id.toString()
+        } else {
+            // Workspace not selected, assign it to an empty pane or replace current selection
+            val paneCount = currentPaneCount.value
+
+            if (paneCount > 1) {
+                // Multi-pane mode: find empty pane
+                val emptyPaneIndex = (0 until paneCount).firstOrNull { paneIndex ->
+                    !currentSelections.containsKey(paneIndex)
+                }
+
+                if (emptyPaneIndex != null) {
+                    // Assign to empty pane
+                    selectedWorkspaces.value = currentSelections + (emptyPaneIndex to workspaceId)
+                    log(tag) { "Assigned workspace $workspaceId to empty pane $emptyPaneIndex" }
+                } else {
+                    // All panes full, replace pane 0
+                    selectedWorkspaces.value = currentSelections + (0 to workspaceId)
+                    log(tag) { "All panes full, replaced pane 0 with workspace $workspaceId" }
+                }
+            } else {
+                // Single pane mode: replace current selection
+                selectedWorkspaces.value = mapOf(0 to workspaceId)
+                log(tag) { "Single pane mode, selected workspace $workspaceId" }
+            }
+
+            // Focus the newly selected workspace
+            focusedWorkspaceId.value = workspaceId
+
+            // Persist the state
+            savedStateHandle["selectedWorkspaces"] =
+                selectedWorkspaces.value.mapValues { (_, wsId) -> wsId.id.toString() }
+            savedStateHandle["focusedWorkspaceId"] = workspaceId.id.toString()
         }
     }
 

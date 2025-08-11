@@ -157,6 +157,11 @@ class WorkspaceRepo @Inject constructor(
         }
     }
 
+    suspend fun emitSelectionEvent(workspaceId: Workspace.Id) {
+        log(TAG, INFO) { "Emitting selection event for workspace $workspaceId" }
+        _events.emit(WorkspaceEvent.Selected(workspaceId = workspaceId))
+    }
+
     companion object {
         private val TAG = logTag("Workspace", "Repo")
     }
