@@ -28,10 +28,13 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.ui.waitForState
+import eu.darken.butler.explorer.core.ExplorerNavigation
+import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.explorer.core.engine.ExplorerPathItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
-import eu.darken.butler.explorer.ui.explorer.rows.FileItemRow
+import eu.darken.butler.explorer.ui.explorer.rows.PathItemRow
+import eu.darken.butler.explorer.ui.explorer.rows.ShortcutRow
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
@@ -89,7 +92,7 @@ fun ExplorerWorkspacePage(
             ) {
                 BreadcrumbBar(
                     breadcrumbs = state.breadcrumbs,
-                    onBreadcrumbClick = { target -> vm?.navigateToBreadcrumb(target) },
+                    onBreadcrumbClick = { target -> vm?.navigate(target) },
                     onNavigateToPath = { path -> vm?.navigateToPathString(path) },
                     modifier = Modifier
                         .weight(1f)
@@ -131,19 +134,20 @@ fun ExplorerWorkspacePage(
                             verticalArrangement = Arrangement.spacedBy(4.dp),
                             contentPadding = PaddingValues(12.dp)
                         ) {
-                            // Sort directories first, then files
-                            val sortedItems = state.items.sortedWith(
-                                compareBy<ExplorerPathItem> { !it.isDirectory }.thenBy { it.displayName }
-                            )
-
-                            items(sortedItems) { fileItem ->
-                                FileItemRow(
-                                    item = fileItem,
-                                    isSelected = state.selectedItems.contains(fileItem.lookup.lookedUp),
-                                    onToggleSelection = { vm?.toggleItemSelection(fileItem) },
-                                    onClick = { vm?.navigate(fileItem) },
-                                    showSelection = state.selectedItems.isNotEmpty()
-                                )
+                            items(state.items) { item ->
+                                when (item) {
+                                    is ExplorerItem.PathItem -> PathItemRow(
+                                        item = item,
+                                        isSelected = state.selectedItems.contains(item.lookup.path),
+                                        onToggleSelection = { vm?.toggleItemSelection(item) },
+                                        onClick = { vm?.navigate(item) },
+                                        showSelection = state.selectedItems.isNotEmpty()
+                                    )
+                                    is ExplorerItem.Shortcut -> ShortcutRow(
+                                        item = item,
+                                        onClick = { vm?.navigate(item) },
+                                    )
+                                }
                             }
                         }
 
@@ -172,25 +176,25 @@ fun ExplorerWorkspacePage(
 @Composable
 fun ExplorerWorkspacePagePreview() {
     val mockBreadcrumbs = listOf(
-        ExplorerLocation.Breadcrumb(
+        ExplorerBreadcrumb(
             label = "Home".toCaString(),
-            target = ExplorerLocation.Breadcrumb.Target.Home
+            target = ExplorerNavigation.Target.Home
         ),
-        ExplorerLocation.Breadcrumb(
+        ExplorerBreadcrumb(
             label = "Device".toCaString(),
-            target = ExplorerLocation.Breadcrumb.Target.Device
+            target = ExplorerNavigation.Target.Device
         ),
-        ExplorerLocation.Breadcrumb(
+        ExplorerBreadcrumb(
             label = "storage".toCaString(),
-            target = ExplorerLocation.Breadcrumb.Target.Directory(RawPath.build("/storage"))
+            target = ExplorerNavigation.Target.Directory(RawPath.build("/storage"))
         ),
-        ExplorerLocation.Breadcrumb(
+        ExplorerBreadcrumb(
             label = "emulated".toCaString(),
-            target = ExplorerLocation.Breadcrumb.Target.Directory(RawPath.build("/storage/emulated"))
+            target = ExplorerNavigation.Target.Directory(RawPath.build("/storage/emulated"))
         ),
-        ExplorerLocation.Breadcrumb(
+        ExplorerBreadcrumb(
             label = "0".toCaString(),
-            target = ExplorerLocation.Breadcrumb.Target.Directory(RawPath.build("/storage/emulated/0"))
+            target = ExplorerNavigation.Target.Directory(RawPath.build("/storage/emulated/0"))
         )
     )
     val mockState = ExplorerWorkspaceViewModel.State(
@@ -262,7 +266,7 @@ fun ExplorerWorkspacePageWithSelectionPreview() {
         breadcrumbs = emptyList(),
         items = mockFileItems,
         isLoading = false,
-        selectedItems = setOf(mockFileItems[0].lookup.lookedUp, mockFileItems[2].lookup.lookedUp)
+        selectedItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path)
     )
     PreviewWrapper {
         ExplorerWorkspacePage(

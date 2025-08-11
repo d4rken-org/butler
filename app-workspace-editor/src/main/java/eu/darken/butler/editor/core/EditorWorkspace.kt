@@ -28,7 +28,7 @@ class EditorWorkspace @AssistedInject constructor(
     private val editorSettings: EditorSettings,
 ) : Workspace {
 
-    private val tag = logTag("Workspace", "Editor", id.shortTag)
+    private val tag = logTag("Editor","Workspace",  id.shortTag)
     private val workspaceScope = CoroutineScope(SupervisorJob())
 
     override val type: Workspace.Type = Workspace.Type.EDITOR

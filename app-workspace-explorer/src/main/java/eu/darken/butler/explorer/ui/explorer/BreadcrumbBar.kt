@@ -6,9 +6,11 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -16,6 +18,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -44,14 +47,16 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.RawPath
-import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.core.BreadcrumbGenerator
+import eu.darken.butler.explorer.core.ExplorerBreadcrumb
+import eu.darken.butler.explorer.core.ExplorerNavigation
 
 @Composable
 fun BreadcrumbBar(
-    breadcrumbs: List<ExplorerLocation.Breadcrumb>,
-    onBreadcrumbClick: (ExplorerLocation.Breadcrumb.Target) -> Unit,
+    modifier: Modifier = Modifier,
+    breadcrumbs: List<ExplorerBreadcrumb>,
+    onBreadcrumbClick: (ExplorerNavigation) -> Unit,
     onNavigateToPath: ((String) -> Unit)? = null,
-    modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
@@ -63,7 +68,7 @@ fun BreadcrumbBar(
     // Build current path from breadcrumbs
     val currentPath = remember(breadcrumbs) {
         when (val lastTarget = breadcrumbs.lastOrNull()?.target) {
-            is ExplorerLocation.Breadcrumb.Target.Directory -> lastTarget.path.path
+            is ExplorerNavigation.Target.Directory -> lastTarget.path.path
             else -> "/"
         }
     }
@@ -124,76 +129,106 @@ fun BreadcrumbBar(
                 )
             )
         } else {
-            // Display mode - show breadcrumbs
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(scrollState),
-                horizontalArrangement = Arrangement.spacedBy(2.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-            breadcrumbs.forEachIndexed { index, breadcrumb ->
-                val isLast = index == breadcrumbs.lastIndex
-
+            // Display mode - show breadcrumbs or loading state
+            if (breadcrumbs.isEmpty()) {
+                // Show loading state when breadcrumbs are empty
+                // Match the height of regular breadcrumbs (icon 20.dp + padding 8.dp vertical)
                 Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(4.dp))
-                        .clickable {
-                            when {
-                                // Only allow edit mode for actual directory paths, not Home/Device
-                                isLast && onNavigateToPath != null && 
-                                    breadcrumb.target is ExplorerLocation.Breadcrumb.Target.Directory -> {
-                                    // Click on last breadcrumb that is a directory enters edit mode
-                                    isEditMode = true
-                                }
-                                !isLast -> {
-                                    // Click on non-last breadcrumbs always navigates
-                                    onBreadcrumbClick(breadcrumb.target)
-                                }
-                                // For Home/Device when last, clicking does nothing
-                                // (could optionally refresh by calling onBreadcrumbClick)
-                            }
-                        }
+                        .fillMaxWidth()
                         .padding(horizontal = 6.dp, vertical = 4.dp),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.CenterStart
                 ) {
-                    // Use icon from breadcrumb data, or show text if no icon or preferIcon is false
-                    if (breadcrumb.icon != null && (breadcrumb.preferIcon || breadcrumb.label.get(context).isEmpty())) {
-                        Icon(
-                            imageVector = breadcrumb.icon,
-                            contentDescription = breadcrumb.label.get(context),
-                            tint = if (isLast) {
-                                MaterialTheme.colorScheme.onSurface
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            },
-                            modifier = Modifier.size(20.dp)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                    } else {
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = breadcrumb.label.get(context),
-                            style = if (isLast) {
-                                MaterialTheme.typography.bodyMedium.copy(
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            } else {
-                                MaterialTheme.typography.bodySmall.copy(
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
+                            text = "Loading...",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
+            } else {
+                // Show actual breadcrumbs
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(scrollState),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    breadcrumbs.forEachIndexed { index, breadcrumb ->
+                        val isLast = index == breadcrumbs.lastIndex
 
-                if (!isLast) {
-                    Icon(
-                        imageVector = Icons.Default.ChevronRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        modifier = Modifier.size(16.dp)
-                    )
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .clickable {
+                                    when {
+                                        // Only allow edit mode for actual directory paths, not Home/Device
+                                        isLast && onNavigateToPath != null &&
+                                            breadcrumb.target is ExplorerNavigation.Target.Directory -> {
+                                            // Click on last breadcrumb that is a directory enters edit mode
+                                            isEditMode = true
+                                        }
+                                        !isLast -> {
+                                            // Click on non-last breadcrumbs always navigates
+                                            onBreadcrumbClick(breadcrumb.target)
+                                        }
+                                        // For Home/Device when last, clicking does nothing
+                                        // (could optionally refresh by calling onBreadcrumbClick)
+                                    }
+                                }
+                                .padding(horizontal = 2.dp, vertical = 4.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            // Use icon from breadcrumb data, or show text if no icon or preferIcon is false
+                            if (breadcrumb.icon != null && (breadcrumb.preferIcon || breadcrumb.label.get(context)
+                                    .isEmpty())
+                            ) {
+                                Icon(
+                                    imageVector = breadcrumb.icon,
+                                    contentDescription = breadcrumb.label.get(context),
+                                    tint = if (isLast) {
+                                        MaterialTheme.colorScheme.onSurface
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    },
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            } else {
+                                Text(
+                                    text = breadcrumb.label.get(context),
+                                    style = if (isLast) {
+                                        MaterialTheme.typography.bodyMedium.copy(
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    } else {
+                                        MaterialTheme.typography.bodySmall.copy(
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                )
+                            }
+                        }
+
+                        if (!isLast) {
+                            Icon(
+                                imageVector = Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
                 }
-            }
             }
         }
     }
@@ -203,19 +238,19 @@ fun BreadcrumbBar(
 @Composable
 fun BreadcrumbBarPreview() {
     val breadcrumbs = listOf(
-        ExplorerLocation.Home.CRUMB,
-        ExplorerLocation.Device.CRUMB,
-        ExplorerLocation.Breadcrumb(
+        BreadcrumbGenerator.HOME,
+        BreadcrumbGenerator.DEVICE,
+        ExplorerBreadcrumb(
             label = "storage".toCaString(),
-            target = ExplorerLocation.Breadcrumb.Target.Directory(RawPath.build("/storage"))
+            target = ExplorerNavigation.Target.Directory(RawPath.build("/storage"))
         ),
-        ExplorerLocation.Breadcrumb(
+        ExplorerBreadcrumb(
             label = "emulated".toCaString(),
-            target = ExplorerLocation.Breadcrumb.Target.Directory(RawPath.build("/storage/emulated"))
+            target = ExplorerNavigation.Target.Directory(RawPath.build("/storage/emulated"))
         ),
-        ExplorerLocation.Breadcrumb(
+        ExplorerBreadcrumb(
             label = "0".toCaString(),
-            target = ExplorerLocation.Breadcrumb.Target.Directory(RawPath.build("/storage/emulated/0"))
+            target = ExplorerNavigation.Target.Directory(RawPath.build("/storage/emulated/0"))
         )
     )
 
@@ -230,13 +265,22 @@ fun BreadcrumbBarPreview() {
 @Preview2
 @Composable
 fun BreadcrumbBarHomeOnlyPreview() {
-    val breadcrumbs = listOf(
-        ExplorerLocation.Home.CRUMB
-    )
+    val breadcrumbs = listOf(BreadcrumbGenerator.HOME)
 
     PreviewWrapper {
         BreadcrumbBar(
             breadcrumbs = breadcrumbs,
+            onBreadcrumbClick = {}
+        )
+    }
+}
+
+@Preview2
+@Composable
+fun BreadcrumbBarEmptyPreview() {
+    PreviewWrapper {
+        BreadcrumbBar(
+            breadcrumbs = emptyList(),
             onBreadcrumbClick = {}
         )
     }

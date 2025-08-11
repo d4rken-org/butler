@@ -8,20 +8,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.explorer.core.engine.ExplorerPathItem
+import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
-fun FileItemRow(
-    item: ExplorerPathItem,
+fun PathItemRow(
+    modifier: Modifier = Modifier,
+    item: ExplorerItem.PathItem,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
     showSelection: Boolean = false,
-    modifier: Modifier = Modifier
 ) {
     when (item) {
-        is ExplorerPathItem.Directory -> DirectoryRow(
+        is ExplorerItem.RegularDirectory -> DirectoryRow(
             item = item,
             isSelected = isSelected,
             onToggleSelection = onToggleSelection,
@@ -30,7 +30,7 @@ fun FileItemRow(
             modifier = modifier
         )
 
-        is ExplorerPathItem.ImageFile -> ImageFileRow(
+        is ExplorerItem.SymbolicLink -> SymlinkFileRow(
             item = item,
             isSelected = isSelected,
             onToggleSelection = onToggleSelection,
@@ -39,61 +39,7 @@ fun FileItemRow(
             modifier = modifier
         )
 
-        is ExplorerPathItem.MediaFile -> MediaFileRow(
-            item = item,
-            isSelected = isSelected,
-            onToggleSelection = onToggleSelection,
-            onClick = onClick,
-            showSelection = showSelection,
-            modifier = modifier
-        )
-
-        is ExplorerPathItem.ApkFile -> ApkFileRow(
-            item = item,
-            isSelected = isSelected,
-            onToggleSelection = onToggleSelection,
-            onClick = onClick,
-            showSelection = showSelection,
-            modifier = modifier
-        )
-
-        is ExplorerPathItem.ArchiveFile -> ArchiveFileRow(
-            item = item,
-            isSelected = isSelected,
-            onToggleSelection = onToggleSelection,
-            onClick = onClick,
-            showSelection = showSelection,
-            modifier = modifier
-        )
-
-        is ExplorerPathItem.DocumentFile -> DocumentFileRow(
-            item = item,
-            isSelected = isSelected,
-            onToggleSelection = onToggleSelection,
-            onClick = onClick,
-            showSelection = showSelection,
-            modifier = modifier
-        )
-
-        is ExplorerPathItem.SymbolicLink -> SymlinkFileRow(
-            item = item,
-            isSelected = isSelected,
-            onToggleSelection = onToggleSelection,
-            onClick = onClick,
-            showSelection = showSelection,
-            modifier = modifier
-        )
-
-        is ExplorerPathItem.RegularFile -> RegularFileRow(
-            item = item,
-            isSelected = isSelected,
-            onToggleSelection = onToggleSelection,
-            onClick = onClick,
-            showSelection = showSelection,
-            modifier = modifier
-        )
-
-        is ExplorerPathItem.Shortcut -> ShortcutRow(
+        is ExplorerItem.RegularFile -> RegularFileRow(
             item = item,
             isSelected = isSelected,
             onToggleSelection = onToggleSelection,
@@ -112,7 +58,7 @@ private fun FileItemRowsPreview() {
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(MockDataProvider.createAllFileTypes()) { item ->
-            FileItemRow(
+            PathItemRow(
                 item = item,
                 isSelected = false,
                 onToggleSelection = {},
@@ -131,9 +77,9 @@ private fun FileItemRowsWithSelectionPreview() {
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(MockDataProvider.createAllFileTypes()) { item ->
-            FileItemRow(
+            PathItemRow(
                 item = item,
-                isSelected = item is ExplorerPathItem.Directory,
+                isSelected = item is ExplorerItem.RegularDirectory,
                 onToggleSelection = {},
                 onClick = {},
                 showSelection = true

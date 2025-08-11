@@ -27,7 +27,7 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
     navCtrl: NavigationController,
     private val workspaceRemote: WorkspaceRemote,
     private val upgradeRepo: UpgradeRepo,
-) : ViewModel4(dispatchers, logTag("Workspace", "Templates", id.shortTag), navCtrl) {
+) : ViewModel4(dispatchers, logTag( "Templates","Workspace", id.shortTag), navCtrl) {
 
     private val templates = MutableStateFlow(
         listOf(

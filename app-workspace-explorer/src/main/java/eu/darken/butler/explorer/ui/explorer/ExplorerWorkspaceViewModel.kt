@@ -8,16 +8,13 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.APathLookup
-import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.ui.ViewModel3
+import eu.darken.butler.explorer.core.ExplorerBreadcrumb
+import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
-import eu.darken.butler.explorer.core.NavigationRequest
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.explorer.core.engine.ExplorerPathItem
+import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import kotlinx.coroutines.flow.Flow
@@ -27,16 +24,15 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import java.time.Instant
 
 @HiltViewModel(assistedFactory = ExplorerWorkspaceViewModel.Factory::class)
 class ExplorerWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
     dispatchers: DispatcherProvider,
     private val workspaceProvider: WorkspaceProvider,
-) : ViewModel3(dispatchers, logTag("Workspace", "Explorer", id.shortTag, "Page")) {
+) : ViewModel3(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
 
-    private val selectedItemsFlow = MutableStateFlow<Set<APath>>(emptySet())
+    private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
 
     private val workspace: Flow<ExplorerWorkspace?> = workspaceProvider.retrieve(id).map {
         it as? ExplorerWorkspace
@@ -52,49 +48,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         workspaceState,
         selectedItemsFlow,
     ) { wsState, selectedItems ->
-        val items = when (val location = wsState.currentLocation) {
-            is ExplorerLocation.Home -> {
-                location.items.mapIndexed { index, item ->
-                    ExplorerPathItem.Shortcut(
-                        lookup = createShortcutLookup("home_item_$index"),
-                        icon = item.icon,
-                        label = item.label,
-                        target = item.target,
-                    )
-                }
-            }
-            is ExplorerLocation.Device -> {
-                location.items.mapIndexed { index, item ->
-                    ExplorerPathItem.Shortcut(
-                        lookup = createShortcutLookup("device_item_$index"),
-                        icon = item.icon,
-                        label = item.label,
-                        target = ExplorerLocation.Directory(item.target, parent = location),
-                    )
-                }
-            }
-            is ExplorerLocation.Directory -> {
-                location.items ?: emptyList()
-            }
-            null -> emptyList()
-        }
+        val items = wsState.currentLocation?.items ?: emptyList()
 
         State(
             currentLocation = wsState.currentLocation,
-            breadcrumbs = wsState.currentLocation?.breadcrumbs ?: emptyList(),
-            items = items.map { item ->
-                when (item) {
-                    is ExplorerPathItem.Directory -> item.copy(isSelected = selectedItems.contains(item.lookup.lookedUp))
-                    is ExplorerPathItem.RegularFile -> item.copy(isSelected = selectedItems.contains(item.lookup.lookedUp))
-                    is ExplorerPathItem.SymbolicLink -> item.copy(isSelected = selectedItems.contains(item.lookup.lookedUp))
-                    is ExplorerPathItem.MediaFile -> item.copy(isSelected = selectedItems.contains(item.lookup.lookedUp))
-                    is ExplorerPathItem.ApkFile -> item.copy(isSelected = selectedItems.contains(item.lookup.lookedUp))
-                    is ExplorerPathItem.ArchiveFile -> item.copy(isSelected = selectedItems.contains(item.lookup.lookedUp))
-                    is ExplorerPathItem.ImageFile -> item.copy(isSelected = selectedItems.contains(item.lookup.lookedUp))
-                    is ExplorerPathItem.DocumentFile -> item.copy(isSelected = selectedItems.contains(item.lookup.lookedUp))
-                    is ExplorerPathItem.Shortcut -> item.copy(isSelected = selectedItems.contains(item.lookup.lookedUp))
-                }
-            },
+            breadcrumbs = wsState.currentBreadcrumbs ?: emptyList(),
+            items = items,
             isLoading = wsState.isLoading,
             isLoadingExtended = wsState.isLoadingExtended,
             error = wsState.error,
@@ -104,20 +63,23 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         )
     }.asStateFlow()
 
-    fun navigate(item: ExplorerPathItem) = launch {
+    fun navigate(item: ExplorerItem) = launch {
         log(tag) { "navigate($item)" }
         when (item) {
-            is ExplorerPathItem.Shortcut -> {
-                getWorkspace().navigate(NavigationRequest.ToLocation(item.target))
-                clearSelection()
-            }
-            else -> {
-                if (item.isDirectory) {
-                    getWorkspace().navigate(NavigationRequest.ToPath(item.lookup.lookedUp))
+            is ExplorerItem.PathItem -> when (item) {
+                is ExplorerItem.DirectoryItem -> {
+                    getWorkspace().navigate(ExplorerNavigation.Target.Directory(item.lookup.lookedUp))
                     clearSelection()
                 }
-                // Non-directory items are not navigable, do nothing
+                is ExplorerItem.FileItem -> {
+                    // TODO Open file?
+                }
             }
+            is ExplorerItem.Shortcut -> {
+                getWorkspace().navigate(item.target)
+                clearSelection()
+            }
+
         }
     }
 
@@ -127,11 +89,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
         when {
             normalizedPath.isEmpty() -> {
-                getWorkspace().navigate(NavigationRequest.ToBreadcrumb(ExplorerLocation.Breadcrumb.Target.Home))
+                getWorkspace().navigate(ExplorerNavigation.Target.Home)
             }
             normalizedPath.startsWith("/") -> {
-                val path = LocalPath.build(normalizedPath)
-                getWorkspace().navigate(NavigationRequest.ToPath(path))
+                getWorkspace().navigate(ExplorerNavigation.Target.Directory(LocalPath.build(normalizedPath)))
                 clearSelection()
             }
             else -> {
@@ -141,25 +102,29 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun navigateToBreadcrumb(target: ExplorerLocation.Breadcrumb.Target) = launch {
-        log(tag) { "navigateToBreadcrumb($target)" }
-        getWorkspace().navigate(NavigationRequest.ToBreadcrumb(target))
+    fun navigate(target: ExplorerNavigation) = launch {
+        log(tag) { "navigate($target)" }
+        getWorkspace().navigate(target)
         clearSelection()
     }
 
     fun refresh() = launch {
         log(tag) { "refresh()" }
-        getWorkspace().navigate(NavigationRequest.Refresh)
+        getWorkspace().navigate(ExplorerNavigation.Refresh)
     }
 
-    fun toggleItemSelection(item: ExplorerPathItem) {
-        val path = item.lookup.lookedUp
-        val currentSelection = selectedItemsFlow.value
-        selectedItemsFlow.value = if (currentSelection.contains(path)) {
-            currentSelection - path
-        } else {
-            currentSelection + path
-        }
+    fun toggleItemSelection(item: ExplorerItem) {
+//        if (item !is ExplorerItem.PathItem) {
+//            log(tag, WARN) { "toggleItemSelection($item) is not a path" }
+//            return
+//        }
+//        val path = item.id
+//        val currentSelection = selectedItemsFlow.value
+//        selectedItemsFlow.value = if (currentSelection.contains(path)) {
+//            currentSelection - path
+//        } else {
+//            currentSelection + path
+//        }
     }
 
     fun clearSelection() {
@@ -168,12 +133,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     data class State(
         val currentLocation: ExplorerLocation? = null,
-        val breadcrumbs: List<ExplorerLocation.Breadcrumb> = emptyList(),
-        val items: List<ExplorerPathItem>,
+        val breadcrumbs: List<ExplorerBreadcrumb> = emptyList(),
+        val items: List<ExplorerItem>,
         val isLoading: Boolean,
         val isLoadingExtended: Boolean = false,
         val error: Throwable? = null,
-        val selectedItems: Set<APath>,
+        val selectedItems: Set<String>,
         val canGoBack: Boolean = false,
         val canGoForward: Boolean = false,
     ) {

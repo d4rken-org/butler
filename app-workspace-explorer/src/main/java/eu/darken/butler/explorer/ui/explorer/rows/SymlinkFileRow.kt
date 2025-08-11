@@ -7,21 +7,22 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.core.engine.ExplorerPathItem
+import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
 internal fun SymlinkFileRow(
-    item: ExplorerPathItem.SymbolicLink,
+    modifier: Modifier = Modifier,
+    item: ExplorerItem.SymbolicLink,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
     showSelection: Boolean,
-    modifier: Modifier = Modifier
 ) {
     FileRowBase(
         item = item,
@@ -42,16 +43,16 @@ internal fun SymlinkFileRow(
                 modifier = Modifier.size(32.dp)
             )
         },
-        primaryText = item.displayName,
+        primaryText = item.displayName.get(LocalContext.current),
         secondaryText = buildString {
-            item.targetPath?.let { 
+            item.targetPath?.let {
                 append("→ $it")
                 append(" • ")
             }
             if (item.isBroken) {
                 append(stringResource(R.string.explorer_file_broken_link_label))
             } else {
-                append(item.displayDate)
+                append(formatDate(item.lookup.modifiedAt.toEpochMilli()))
             }
         }
     )

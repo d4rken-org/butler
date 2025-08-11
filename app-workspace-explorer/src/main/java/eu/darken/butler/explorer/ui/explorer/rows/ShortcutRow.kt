@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,16 +23,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.core.engine.ExplorerPathItem
+import eu.darken.butler.explorer.core.engine.ExplorerItem
 
 @Composable
 fun ShortcutRow(
-    item: ExplorerPathItem.Shortcut,
-    isSelected: Boolean,
-    onToggleSelection: () -> Unit,
+    modifier: Modifier = Modifier,
+    item: ExplorerItem.Shortcut,
     onClick: () -> Unit,
-    showSelection: Boolean = false,
-    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
 
@@ -46,14 +42,6 @@ fun ShortcutRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Selection checkbox (if in selection mode)
-        if (showSelection) {
-            Checkbox(
-                checked = isSelected,
-                onCheckedChange = { onToggleSelection() }
-            )
-        }
-
         // Icon with background
         Box(
             modifier = Modifier
@@ -63,7 +51,7 @@ fun ShortcutRow(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = item.icon,
+                imageVector = item.displayIcon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.size(20.dp)
@@ -76,7 +64,7 @@ fun ShortcutRow(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = item.label.get(context),
+                text = item.displayName.get(context),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )

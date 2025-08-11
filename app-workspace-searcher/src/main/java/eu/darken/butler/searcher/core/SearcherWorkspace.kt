@@ -17,7 +17,7 @@ class SearcherWorkspace @AssistedInject constructor(
     @Assisted private val arguments: Arguments?,
 ) : Workspace {
 
-    private val tag = logTag("Workspace", "Searcher", id.shortTag)
+    private val tag = logTag( "Searcher","Workspace", id.shortTag)
 
     override val type: Workspace.Type = Workspace.Type.SEARCHER
 
