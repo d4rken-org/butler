@@ -44,7 +44,6 @@ import eu.darken.butler.common.theming.ThemeStyle
 import eu.darken.butler.common.ui.waitForState
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GeneralSettingsScreen(
     state: GeneralSettingsViewModel.State,

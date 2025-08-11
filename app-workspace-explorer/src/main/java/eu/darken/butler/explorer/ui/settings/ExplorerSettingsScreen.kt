@@ -21,7 +21,6 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.ui.waitForState
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExplorerSettingsScreen(
     state: ExplorerSettingsViewModel.State,

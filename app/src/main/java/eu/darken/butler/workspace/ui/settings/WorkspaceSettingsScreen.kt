@@ -27,7 +27,6 @@ import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsSwitchItem
 import eu.darken.butler.common.ui.waitForState
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkspaceSettingsScreen(
     state: WorkspaceSettingsViewModel.State,

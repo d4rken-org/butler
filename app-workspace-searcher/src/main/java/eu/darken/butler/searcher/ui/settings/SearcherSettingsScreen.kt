@@ -30,7 +30,6 @@ import eu.darken.butler.common.settings.SettingsDivider
 import eu.darken.butler.common.settings.SettingsPreferenceItem
 import eu.darken.butler.common.settings.SettingsSwitchItem
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearcherSettingsScreen(
     state: SearcherSettingsViewModel.State,
