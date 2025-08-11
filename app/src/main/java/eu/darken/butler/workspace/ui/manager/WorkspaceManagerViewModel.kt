@@ -14,6 +14,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
+import eu.darken.butler.workspace.ui.WorkspaceUIManager
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 
@@ -23,6 +24,7 @@ class WorkspaceManagerViewModel @Inject constructor(
     navCtrl: NavigationController,
     private val workspaceRepo: WorkspaceRepo,
     private val workspaceSettings: WorkspaceSettings,
+    private val workspaceUIManager: WorkspaceUIManager,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Manager", "VM"), navCtrl) {
 
     val state = combine(
@@ -68,7 +70,7 @@ class WorkspaceManagerViewModel @Inject constructor(
     fun selectWorkspace(id: Workspace.Id) = launch {
         log(tag) { "selectWorkspace($id)" }
         // Emit selection event to notify the parent screen
-        workspaceRepo.emitSelectionEvent(id)
+        workspaceUIManager.selectWorkspaceFromManager(id)
         navigateBack()
     }
 
