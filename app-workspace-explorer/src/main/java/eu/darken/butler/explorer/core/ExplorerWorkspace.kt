@@ -18,6 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
@@ -173,64 +174,54 @@ class ExplorerWorkspace @AssistedInject constructor(
     }
 
     private suspend fun navigateToLocationInternal(target: ExplorerNavigation.Target, addToHistory: Boolean) {
+
+        log(tag, INFO) { "Navigating to: $target" }
+        current.value = current.value.copy(
+            currentTarget = target,
+            isLoading = true,
+            error = null
+        )
         try {
-            log(tag, INFO) { "Navigating to: $target" }
-            current.value = current.value.copy(
-                currentTarget = target,
-                isLoading = true,
-                error = null
-            )
+            engine.loadLocation(target).collectIndexed { index, location ->
+                if (index == 0) {
+                    val newHistory = if (addToHistory) {
+                        val currentHistory = current.value.navigationHistory
+                        val currentIndex = current.value.historyIndex
 
-            // Load items for Directory locations
-            val location = when (target) {
-                is ExplorerNavigation.Target.Home -> engine.getHomeEntry()
-                is ExplorerNavigation.Target.Device -> engine.getDevice()
-                is ExplorerNavigation.Target.Directory -> {
-                    val items = engine.getContent(target.path)
-
-                    val newLocation = ExplorerLocation.Directory(
-                        path = target.path,
-                        items = items,
-                    )
-
-                    // Load extended data in background
-                    scope.launch {
-                        loadExtendedData(target.path)
+                        // Remove forward history when navigating to new location
+                        val trimmedHistory = currentHistory.take(currentIndex + 1)
+                        trimmedHistory + target
+                    } else {
+                        current.value.navigationHistory
                     }
 
-                    newLocation
+                    val breadcrumbs = breadcrumbGenerator.getBreadcrumbs(location)
+                    log(tag) { "Generated breadcrumbs: $breadcrumbs" }
+
+                    current.value = current.value.copy(
+                        currentLocation = location,
+                        currentBreadcrumbs = breadcrumbs,
+                        isLoading = false,
+                        navigationHistory = newHistory,
+                        historyIndex = if (addToHistory) newHistory.size - 1 else current.value.historyIndex
+                    )
+
+                    val newTitle = location.toString().toCaString()
+                    info.value = info.value.copy(title = newTitle)
+                } else {
+                    current.value = current.value.copy(
+                        currentLocation = location,
+                    )
                 }
             }
-
-            val newHistory = if (addToHistory) {
-                val currentHistory = current.value.navigationHistory
-                val currentIndex = current.value.historyIndex
-
-                // Remove forward history when navigating to new location
-                val trimmedHistory = currentHistory.take(currentIndex + 1)
-                trimmedHistory + target
-            } else {
-                current.value.navigationHistory
-            }
-
-            val breadcrumbs = breadcrumbGenerator.getBreadcrumbs(location)
-            log(tag) { "Generated breadcrumbs: $breadcrumbs" }
-
-            current.value = current.value.copy(
-                currentLocation = location,
-                currentBreadcrumbs = breadcrumbs,
-                isLoading = false,
-                navigationHistory = newHistory,
-                historyIndex = if (addToHistory) newHistory.size - 1 else current.value.historyIndex
-            )
-
-            val newTitle = location.toString().toCaString()
-            info.value = info.value.copy(title = newTitle)
+            current.value = current.value.copy(isLoadingExtended = false)
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to navigate to $target: $e" }
+            current.value = current.value.copy(error = e)
+        } finally {
             current.value = current.value.copy(
                 isLoading = false,
-                error = e
+                isLoadingExtended = false,
             )
         }
     }

@@ -2,10 +2,8 @@ package eu.darken.butler.explorer.ui.explorer
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Sort
 import androidx.compose.material.icons.automirrored.twotone.ViewList
@@ -17,11 +15,10 @@ import androidx.compose.material.icons.twotone.FilterList
 import androidx.compose.material.icons.twotone.GridView
 import androidx.compose.material.icons.twotone.MoreVert
 import androidx.compose.material.icons.twotone.Share
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,7 +31,6 @@ import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 fun ExplorerBottomBar(
     modifier: Modifier = Modifier,
     isSelectionMode: Boolean,
-    selectedCount: Int,
     viewMode: ExplorerWorkspaceViewModel.ViewMode,
     onCreateFolderClick: () -> Unit,
     onCopyClick: () -> Unit,
@@ -46,60 +42,51 @@ fun ExplorerBottomBar(
     onToggleViewMode: () -> Unit,
     onMoreClick: () -> Unit,
 ) {
-    BottomAppBar(
-        modifier = modifier.height(56.dp),
-        windowInsets = WindowInsets(0, 0, 0, 0),
-        tonalElevation = 0.dp,
-        actions = {
-            if (isSelectionMode) {
-                Row(
-                    modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = "$selectedCount selected",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                    )
-                }
-                IconButton(onClick = onCopyClick) {
-                    Icon(
-                        imageVector = Icons.TwoTone.ContentCopy,
-                        contentDescription = "Copy",
-                    )
-                }
-                IconButton(onClick = onCutClick) {
-                    Icon(
-                        imageVector = Icons.TwoTone.ContentCut,
-                        contentDescription = "Cut",
-                    )
-                }
-                IconButton(onClick = onDeleteClick) {
-                    Icon(
-                        imageVector = Icons.TwoTone.Delete,
-                        contentDescription = "Delete",
-                        tint = MaterialTheme.colorScheme.error,
-                    )
-                }
-                IconButton(onClick = onShareClick) {
-                    Icon(
-                        imageVector = Icons.TwoTone.Share,
-                        contentDescription = "Share",
-                    )
-                }
-                IconButton(onClick = onMoreClick) {
-                    Icon(
-                        imageVector = Icons.TwoTone.MoreVert,
-                        contentDescription = "More options",
-                    )
-                }
-            } else {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(48.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        tonalElevation = 3.dp,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = if (isSelectionMode) Arrangement.Start else Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+                if (isSelectionMode) {
+                    IconButton(onClick = onCopyClick) {
+                        Icon(
+                            imageVector = Icons.TwoTone.ContentCopy,
+                            contentDescription = "Copy",
+                        )
+                    }
+                    IconButton(onClick = onCutClick) {
+                        Icon(
+                            imageVector = Icons.TwoTone.ContentCut,
+                            contentDescription = "Cut",
+                        )
+                    }
+                    IconButton(onClick = onDeleteClick) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Delete,
+                            contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                    IconButton(onClick = onShareClick) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Share,
+                            contentDescription = "Share",
+                        )
+                    }
+                    IconButton(onClick = onMoreClick) {
+                        Icon(
+                            imageVector = Icons.TwoTone.MoreVert,
+                            contentDescription = "More options",
+                        )
+                    }
+                } else {
                     IconButton(onClick = onCreateFolderClick) {
                         Icon(
                             imageVector = Icons.TwoTone.CreateNewFolder,
@@ -138,10 +125,9 @@ fun ExplorerBottomBar(
                             contentDescription = "More options",
                         )
                     }
-                }
             }
-        },
-    )
+        }
+    }
 }
 
 @Preview2
@@ -150,7 +136,6 @@ fun ExplorerBottomBarNormalModePreview() {
     PreviewWrapper {
         ExplorerBottomBar(
             isSelectionMode = false,
-            selectedCount = 0,
             viewMode = ExplorerWorkspaceViewModel.ViewMode.LIST,
             onCreateFolderClick = {},
             onCopyClick = {},
@@ -171,7 +156,6 @@ fun ExplorerBottomBarSelectionModePreview() {
     PreviewWrapper {
         ExplorerBottomBar(
             isSelectionMode = true,
-            selectedCount = 3,
             viewMode = ExplorerWorkspaceViewModel.ViewMode.GRID,
             onCreateFolderClick = {},
             onCopyClick = {},

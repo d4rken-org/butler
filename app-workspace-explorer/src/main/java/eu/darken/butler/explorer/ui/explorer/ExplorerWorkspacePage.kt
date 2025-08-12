@@ -190,7 +190,7 @@ fun ExplorerWorkspacePage(
                                 start = 12.dp,
                                 end = 12.dp,
                                 top = 12.dp,
-                                bottom = if (isBottomBarVisible) 68.dp else 12.dp
+                                bottom = if (isBottomBarVisible) 88.dp else 12.dp
                             )
                         ) {
                             items(state.items) { item ->
@@ -229,7 +229,7 @@ fun ExplorerWorkspacePage(
                                 start = 2.dp,
                                 end = 2.dp,
                                 top = 2.dp,
-                                bottom = if (isBottomBarVisible) 58.dp else 2.dp
+                                bottom = if (isBottomBarVisible) 78.dp else 2.dp
                             )
                         ) {
                             items(state.items) { item ->
@@ -280,20 +280,26 @@ fun ExplorerWorkspacePage(
             enter = slideInVertically { it },
             exit = slideOutVertically { it },
         ) {
-            ExplorerBottomBar(
-                isSelectionMode = state.selectedItems.isNotEmpty(),
-                selectedCount = state.selectedItems.size,
-                viewMode = state.viewMode,
-                onCreateFolderClick = { vm?.createNewFolder() },
-                onCopyClick = { vm?.copySelectedItems() },
-                onCutClick = { vm?.cutSelectedItems() },
-                onDeleteClick = { vm?.deleteSelectedItems() },
-                onShareClick = { vm?.shareSelectedItems() },
-                onSortClick = { vm?.showSortOptions() },
-                onFilterClick = { vm?.showFilterOptions() },
-                onToggleViewMode = { vm?.toggleViewMode() },
-                onMoreClick = { vm?.showMoreOptions() },
-            )
+            Column {
+                ExplorerInfoBar(
+                    info = state.currentLocation?.info,
+                    selectedCount = state.selectedItems.size,
+                )
+                ExplorerBottomBar(
+                    isSelectionMode = state.selectedItems.isNotEmpty(),
+                    selectedCount = state.selectedItems.size,
+                    viewMode = state.viewMode,
+                    onCreateFolderClick = { vm?.createNewFolder() },
+                    onCopyClick = { vm?.copySelectedItems() },
+                    onCutClick = { vm?.cutSelectedItems() },
+                    onDeleteClick = { vm?.deleteSelectedItems() },
+                    onShareClick = { vm?.shareSelectedItems() },
+                    onSortClick = { vm?.showSortOptions() },
+                    onFilterClick = { vm?.showFilterOptions() },
+                    onToggleViewMode = { vm?.toggleViewMode() },
+                    onMoreClick = { vm?.showMoreOptions() },
+                )
+            }
         }
     }
 }
@@ -324,7 +330,18 @@ fun ExplorerWorkspacePagePreview() {
         )
     )
     val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(RawPath.build("/storage/emulated/0")),
+        currentLocation = ExplorerLocation.Directory(
+            path = RawPath.build("/storage/emulated/0"),
+            items = MockDataProvider.createAllFileTypes(),
+            info = ExplorerLocation.Directory.Info(
+                fileCount = 15,
+                directoryCount = 5,
+                totalSize = 1024L * 1024L * 250L,
+                volumeFreeSpace = 1024L * 1024L * 1024L * 50L,
+                volumeTotalSpace = 1024L * 1024L * 1024L * 128L,
+                isWritable = true,
+            )
+        ),
         breadcrumbs = mockBreadcrumbs,
         items = MockDataProvider.createAllFileTypes(),
         isLoading = false,
