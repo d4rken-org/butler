@@ -21,7 +21,7 @@ sealed interface ExplorerItem {
         val displayIcon: ImageVector,
         val target: ExplorerNavigation,
     ) : ExplorerItem {
-       override val id: String get() = shortcutId
+        override val id: String get() = shortcutId
     }
 
     sealed interface PathItem : ExplorerItem {

@@ -1,19 +1,13 @@
 package eu.darken.butler.explorer.ui.explorer.actions
 
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.ui.explorer.ExplorerSelectionState
 
 interface ExplorerActionProvider {
-    
+
     fun getActions(
         location: ExplorerLocation,
-        selectionState: SelectionState,
+        selectionState: ExplorerSelectionState,
     ): List<ExplorerAction>
-    
-    data class SelectionState(
-        val selectedItems: Set<String> = emptySet(),
-        val hasClipboard: Boolean = false,
-    ) {
-        val isSelectionMode: Boolean = selectedItems.isNotEmpty()
-        val selectionCount: Int = selectedItems.size
-    }
+
 }

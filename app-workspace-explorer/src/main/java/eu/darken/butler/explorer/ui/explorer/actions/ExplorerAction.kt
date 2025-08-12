@@ -7,6 +7,7 @@ import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.ContentPaste
 import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material.icons.twotone.Deselect
 import androidx.compose.material.icons.twotone.DriveFileRenameOutline
 import androidx.compose.material.icons.twotone.FilterList
 import androidx.compose.material.icons.twotone.GridView
@@ -127,6 +128,11 @@ sealed interface ExplorerAction {
         object SelectAll : Directory {
             override val icon = Icons.TwoTone.SelectAll
             override val label = "Select All"
+        }
+
+        object DeselectAll : Directory {
+            override val icon = Icons.TwoTone.Deselect
+            override val label = "Deselect All"
         }
     }
 

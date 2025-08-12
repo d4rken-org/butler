@@ -1,13 +1,14 @@
 package eu.darken.butler.explorer.ui.explorer.actions
 
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.ui.explorer.ExplorerSelectionState
 import javax.inject.Inject
 
 class HomeActionProvider @Inject constructor() : ExplorerActionProvider {
     
     override fun getActions(
         location: ExplorerLocation,
-        selectionState: ExplorerActionProvider.SelectionState,
+        selectionState: ExplorerSelectionState,
     ): List<ExplorerAction> {
         val actions = mutableListOf<ExplorerAction>()
         

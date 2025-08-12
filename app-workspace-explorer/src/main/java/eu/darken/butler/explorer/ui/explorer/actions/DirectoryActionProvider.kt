@@ -1,13 +1,14 @@
 package eu.darken.butler.explorer.ui.explorer.actions
 
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.ui.explorer.ExplorerSelectionState
 import javax.inject.Inject
 
 class DirectoryActionProvider @Inject constructor() : ExplorerActionProvider {
 
     override fun getActions(
         location: ExplorerLocation,
-        selectionState: ExplorerActionProvider.SelectionState,
+        selectionState: ExplorerSelectionState,
     ): List<ExplorerAction> {
         val actions = mutableListOf<ExplorerAction>()
 
@@ -15,6 +16,12 @@ class DirectoryActionProvider @Inject constructor() : ExplorerActionProvider {
         val isWritable = (directory?.info?.isWritable ?: false)
 
         if (selectionState.isSelectionMode) {
+            actions.add(ExplorerAction.Directory.DeselectAll)
+
+            if (!selectionState.isAllSelected) {
+                actions.add(ExplorerAction.Directory.SelectAll)
+            }
+
             if (selectionState.selectionCount == 1) {
                 actions.add(ExplorerAction.Directory.Rename())
             }

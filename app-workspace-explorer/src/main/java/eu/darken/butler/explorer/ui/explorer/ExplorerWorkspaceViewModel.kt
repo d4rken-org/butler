@@ -9,23 +9,22 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.ui.ViewModel3
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
-import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
+import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
-import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionProvider
 import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemType
 import eu.darken.butler.explorer.ui.explorer.dialogs.DeleteConfirmationResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
-import eu.darken.butler.common.flow.SingleEventFlow
-import eu.darken.butler.explorer.core.engine.ExplorerItem
-import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import kotlinx.coroutines.flow.Flow
@@ -53,7 +52,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val viewModeFlow = MutableStateFlow(ViewMode.LIST)
     private val clipboardFlow = MutableStateFlow<ClipboardState?>(null)
     private val dialogStateFlow = MutableStateFlow<ExplorerDialogState>(ExplorerDialogState.None)
-    
+
     val dialogEvents = SingleEventFlow<ExplorerDialogEvent>()
 
     private val workspace: Flow<ExplorerWorkspace?> = workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
@@ -73,8 +72,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     ) { wsState, selectedItems, viewMode, clipboard, dialogState ->
         val items = wsState.currentLocation?.items ?: emptyList()
 
-        val selectionState = ExplorerActionProvider.SelectionState(
+        val selectionState = ExplorerSelectionState(
             selectedItems = selectedItems,
+            selectableItems = items.filter { it is ExplorerItem.PathItem }.map { it.id }.toSet(),
             hasClipboard = clipboard != null,
         )
 
@@ -86,13 +86,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         } ?: emptyList()
 
         State(
-            currentLocation = wsState.currentLocation,
             breadcrumbs = wsState.currentBreadcrumbs ?: emptyList(),
             items = items,
             isLoading = wsState.isLoading,
             isLoadingExtended = wsState.isLoadingExtended,
             error = wsState.error,
-            selectedItems = selectedItems,
+            selectionState = selectionState,
             viewMode = viewMode,
             canGoBack = wsState.canGoBack,
             canGoForward = wsState.canGoForward,
@@ -174,7 +173,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 dialogEvents.emit(ExplorerDialogEvent.ShowCreateItem)
             }
             is ExplorerAction.Directory.Rename -> {
-                val item = stateSnap.items.find { it.id == stateSnap.selectedItems.single() }
+                val item = stateSnap.items.find { it.id == stateSnap.selectionState.selectedItems.single() }
                 item as ExplorerItem.PathItem
                 val event = ExplorerDialogEvent.ShowRename(
                     item = item.lookup.lookedUp,
@@ -207,7 +206,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 log(tag) { "deleteSelectedItems(): ${selectedItemsFlow.value.size} items" }
                 val selectedPaths = selectedItemsFlow.value
                 if (selectedPaths.isNotEmpty()) {
-                    val currentLocation = state.first().currentLocation
+                    val currentLocation = stateSnap.currentLocation
                     if (currentLocation is ExplorerLocation.Directory) {
                         // Convert string paths to APath objects
                         val pathsToDelete = selectedPaths.mapNotNull { pathString ->
@@ -218,7 +217,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                                 null
                             }
                         }.toSet()
-                        
+
                         if (pathsToDelete.isNotEmpty()) {
                             dialogEvents.emit(ExplorerDialogEvent.ShowDeleteConfirmation(pathsToDelete))
                         }
@@ -233,7 +232,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 log(tag) { "pasteItems()" }
                 val clipboard = clipboardFlow.value
                 if (clipboard != null) {
-                    val currentLocation = state.first().currentLocation
+                    val currentLocation = stateSnap.currentLocation
                     if (currentLocation is ExplorerLocation.Directory) {
                         // Convert string paths to APath objects
                         val sourcePaths = clipboard.items.mapNotNull { pathString ->
@@ -244,7 +243,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                                 null
                             }
                         }.toSet()
-                        
+
                         if (sourcePaths.isNotEmpty()) {
                             val operation = if (clipboard.isCut) {
                                 ExplorerOperation.FileOp.Move(
@@ -257,9 +256,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                                     destination = currentLocation.path
                                 )
                             }
-                            
+
                             getWorkspace().execute(operation)
-                            
+
                             if (clipboard.isCut) {
                                 clipboardFlow.value = null
                             }
@@ -269,12 +268,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerAction.Directory.SelectAll -> {
                 log(tag) { "selectAll()" }
-                val currentState = state.first()
-                val allPaths = currentState.items
-                    .filterIsInstance<ExplorerItem.PathItem>()
-                    .map { it.lookup.path }
-                    .toSet()
-                selectedItemsFlow.value = allPaths
+                selectedItemsFlow.value = stateSnap.selectionState.selectableItems
+            }
+            is ExplorerAction.Directory.DeselectAll -> {
+                log(tag) { "deselectAll()" }
+                selectedItemsFlow.value = emptySet()
             }
             is ExplorerAction.Common.Sort -> {
                 log(tag) { "showSortOptions()" }
@@ -297,7 +295,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
         }
     }
-    
+
     init {
         // Handle dialog events
         launch {
@@ -306,7 +304,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
         }
     }
-    
+
     private suspend fun handleDialogEvent(event: ExplorerDialogEvent) {
         log(tag) { "handleDialogEvent($event)" }
         when (event) {
@@ -324,15 +322,15 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
         }
     }
-    
+
     fun dismissDialog() {
         dialogStateFlow.value = ExplorerDialogState.None
     }
-    
+
     fun onCreateItem(result: CreateItemResult) = launch {
         log(tag) { "onCreateItem($result)" }
         dialogStateFlow.value = ExplorerDialogState.None
-        
+
         val currentLocation = state.first().currentLocation
         if (currentLocation is ExplorerLocation.Directory) {
             val operation = when (result.type) {
@@ -348,11 +346,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             getWorkspace().execute(operation)
         }
     }
-    
+
     fun onDeleteConfirmed(result: DeleteConfirmationResult) = launch {
         log(tag) { "onDeleteConfirmed($result)" }
         dialogStateFlow.value = ExplorerDialogState.None
-        
+
         if (result.items.isNotEmpty()) {
             getWorkspace().execute(
                 ExplorerOperation.FileOp.Delete(
@@ -363,11 +361,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             clearSelection()
         }
     }
-    
+
     fun onRename(result: RenameResult) = launch {
         log(tag) { "onRename($result)" }
         dialogStateFlow.value = ExplorerDialogState.None
-        
+
         getWorkspace().execute(
             ExplorerOperation.FileOp.Rename(
                 path = result.item,
@@ -383,16 +381,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val isLoading: Boolean,
         val isLoadingExtended: Boolean = false,
         val error: Throwable? = null,
-        val selectedItems: Set<String>,
+        val selectionState: ExplorerSelectionState = ExplorerSelectionState(),
         val viewMode: ViewMode = ViewMode.LIST,
         val canGoBack: Boolean = false,
         val canGoForward: Boolean = false,
         val availableActions: List<ExplorerAction> = emptyList(),
         val dialogState: ExplorerDialogState = ExplorerDialogState.None,
-    ) {
-        val hasSelection: Boolean get() = selectedItems.isNotEmpty()
-        val selectionCount: Int get() = selectedItems.size
-    }
+    )
 
     data class ClipboardState(
         val items: Set<String>,

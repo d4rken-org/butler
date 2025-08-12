@@ -1,5 +1,8 @@
 package eu.darken.butler.explorer.ui.explorer
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,16 +11,13 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -43,16 +43,17 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.ui.waitForState
+import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
-import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
-import eu.darken.butler.explorer.ui.explorer.items.row.PathItemRow
-import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
+import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.items.grid.PathItemGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.ShortcutGrid
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
+import eu.darken.butler.explorer.ui.explorer.items.row.PathItemRow
+import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
@@ -100,34 +101,38 @@ fun ExplorerWorkspacePage(
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
     var isBottomBarVisible by remember { mutableStateOf(true) }
-    
+
     LaunchedEffect(listState, gridState, state.viewMode) {
         var previousIndex = 0
         var previousScrollOffset = 0
-        
+
         if (state.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
-            snapshotFlow { 
-                listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset 
+            snapshotFlow {
+                listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset
             }.collect { (currentIndex, currentOffset) ->
-                if (currentIndex > previousIndex || 
-                    (currentIndex == previousIndex && currentOffset > previousScrollOffset)) {
+                if (currentIndex > previousIndex ||
+                    (currentIndex == previousIndex && currentOffset > previousScrollOffset)
+                ) {
                     isBottomBarVisible = false
-                } else if (currentIndex < previousIndex || 
-                          (currentIndex == previousIndex && currentOffset < previousScrollOffset)) {
+                } else if (currentIndex < previousIndex ||
+                    (currentIndex == previousIndex && currentOffset < previousScrollOffset)
+                ) {
                     isBottomBarVisible = true
                 }
                 previousIndex = currentIndex
                 previousScrollOffset = currentOffset
             }
         } else {
-            snapshotFlow { 
-                gridState.firstVisibleItemIndex to gridState.firstVisibleItemScrollOffset 
+            snapshotFlow {
+                gridState.firstVisibleItemIndex to gridState.firstVisibleItemScrollOffset
             }.collect { (currentIndex, currentOffset) ->
-                if (currentIndex > previousIndex || 
-                    (currentIndex == previousIndex && currentOffset > previousScrollOffset)) {
+                if (currentIndex > previousIndex ||
+                    (currentIndex == previousIndex && currentOffset > previousScrollOffset)
+                ) {
                     isBottomBarVisible = false
-                } else if (currentIndex < previousIndex || 
-                          (currentIndex == previousIndex && currentOffset < previousScrollOffset)) {
+                } else if (currentIndex < previousIndex ||
+                    (currentIndex == previousIndex && currentOffset < previousScrollOffset)
+                ) {
                     isBottomBarVisible = true
                 }
                 previousIndex = currentIndex
@@ -135,7 +140,7 @@ fun ExplorerWorkspacePage(
             }
         }
     }
-    
+
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -198,17 +203,17 @@ fun ExplorerWorkspacePage(
                                 when (item) {
                                     is ExplorerItem.PathItem -> PathItemRow(
                                         item = item,
-                                        isSelected = state.selectedItems.contains(item.lookup.path),
+                                        isSelected = state.selectionState.selectedItems.contains(item.id),
                                         onToggleSelection = { vm?.toggleItemSelection(item) },
-                                        onClick = { 
-                                            if (state.selectedItems.isNotEmpty()) {
+                                        onClick = {
+                                            if (state.selectionState.selectedItems.isNotEmpty()) {
                                                 vm?.toggleItemSelection(item)
                                             } else {
                                                 vm?.navigate(item)
                                             }
                                         },
                                         onLongClick = { vm?.toggleItemSelection(item) },
-                                        showSelection = state.selectedItems.isNotEmpty()
+                                        showSelection = state.selectionState.selectedItems.isNotEmpty()
                                     )
                                     is ExplorerItem.Shortcut -> ShortcutRow(
                                         item = item,
@@ -237,17 +242,17 @@ fun ExplorerWorkspacePage(
                                 when (item) {
                                     is ExplorerItem.PathItem -> PathItemGrid(
                                         item = item,
-                                        isSelected = state.selectedItems.contains(item.lookup.path),
+                                        isSelected = state.selectionState.selectedItems.contains(item.lookup.path),
                                         onToggleSelection = { vm?.toggleItemSelection(item) },
-                                        onClick = { 
-                                            if (state.selectedItems.isNotEmpty()) {
+                                        onClick = {
+                                            if (state.selectionState.selectedItems.isNotEmpty()) {
                                                 vm?.toggleItemSelection(item)
                                             } else {
                                                 vm?.navigate(item)
                                             }
                                         },
                                         onLongClick = { vm?.toggleItemSelection(item) },
-                                        showSelection = state.selectedItems.isNotEmpty()
+                                        showSelection = state.selectionState.selectedItems.isNotEmpty()
                                     )
                                     is ExplorerItem.Shortcut -> ShortcutGrid(
                                         item = item,
@@ -274,7 +279,7 @@ fun ExplorerWorkspacePage(
                 }
             }
         }
-        
+
         AnimatedVisibility(
             visible = isBottomBarVisible,
             modifier = Modifier.align(Alignment.BottomCenter),
@@ -284,7 +289,7 @@ fun ExplorerWorkspacePage(
             Column {
                 ExplorerInfoBar(
                     info = state.currentLocation?.info,
-                    selectedCount = state.selectedItems.size,
+                    selectedCount = state.selectionState.selectedItems.size,
                 )
                 if (state.availableActions.isNotEmpty()) {
                     ExplorerActionBar(
@@ -294,7 +299,7 @@ fun ExplorerWorkspacePage(
                 }
             }
         }
-        
+
         ExplorerDialogHost(
             dialogState = state.dialogState,
             vm = vm
@@ -305,28 +310,6 @@ fun ExplorerWorkspacePage(
 @Preview2
 @Composable
 fun ExplorerWorkspacePagePreview() {
-    val mockBreadcrumbs = listOf(
-        ExplorerBreadcrumb(
-            label = "Home".toCaString(),
-            target = ExplorerNavigation.Target.Home
-        ),
-        ExplorerBreadcrumb(
-            label = "Device".toCaString(),
-            target = ExplorerNavigation.Target.Device
-        ),
-        ExplorerBreadcrumb(
-            label = "storage".toCaString(),
-            target = ExplorerNavigation.Target.Directory(RawPath.build("/storage"))
-        ),
-        ExplorerBreadcrumb(
-            label = "emulated".toCaString(),
-            target = ExplorerNavigation.Target.Directory(RawPath.build("/storage/emulated"))
-        ),
-        ExplorerBreadcrumb(
-            label = "0".toCaString(),
-            target = ExplorerNavigation.Target.Directory(RawPath.build("/storage/emulated/0"))
-        )
-    )
     val mockState = ExplorerWorkspaceViewModel.State(
         currentLocation = ExplorerLocation.Directory(
             path = RawPath.build("/storage/emulated/0"),
@@ -340,10 +323,35 @@ fun ExplorerWorkspacePagePreview() {
                 isWritable = true,
             )
         ),
-        breadcrumbs = mockBreadcrumbs,
+        breadcrumbs = listOf(
+            ExplorerBreadcrumb(
+                label = "Home".toCaString(),
+                target = ExplorerNavigation.Target.Home
+            ),
+            ExplorerBreadcrumb(
+                label = "Device".toCaString(),
+                target = ExplorerNavigation.Target.Device
+            ),
+            ExplorerBreadcrumb(
+                label = "storage".toCaString(),
+                target = ExplorerNavigation.Target.Directory(RawPath.build("/storage"))
+            ),
+            ExplorerBreadcrumb(
+                label = "emulated".toCaString(),
+                target = ExplorerNavigation.Target.Directory(RawPath.build("/storage/emulated"))
+            ),
+            ExplorerBreadcrumb(
+                label = "0".toCaString(),
+                target = ExplorerNavigation.Target.Directory(RawPath.build("/storage/emulated/0"))
+            )
+        ),
         items = MockDataProvider.createAllFileTypes(),
+        availableActions = listOf(
+            ExplorerAction.Directory.Create(isEnabled = false),
+            ExplorerAction.Common.Sort(),
+            ExplorerAction.Common.Filter(isEnabled = false),
+        ),
         isLoading = false,
-        selectedItems = emptySet()
     )
     PreviewWrapper {
         ExplorerWorkspacePage(
@@ -364,7 +372,6 @@ fun ExplorerWorkspacePageLoadingPreview() {
         breadcrumbs = emptyList(),
         items = emptyList(),
         isLoading = true,
-        selectedItems = emptySet()
     )
     PreviewWrapper {
         ExplorerWorkspacePage(
@@ -385,7 +392,6 @@ fun ExplorerWorkspacePageEmptyPreview() {
         breadcrumbs = emptyList(),
         items = emptyList(),
         isLoading = false,
-        selectedItems = emptySet()
     )
     PreviewWrapper {
         ExplorerWorkspacePage(
@@ -407,7 +413,14 @@ fun ExplorerWorkspacePageWithSelectionPreview() {
         breadcrumbs = emptyList(),
         items = mockFileItems,
         isLoading = false,
-        selectedItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path)
+        selectionState = ExplorerSelectionState(
+            selectedItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path),
+            selectableItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path),
+        ),
+        availableActions = listOf(
+            ExplorerAction.Common.Sort(),
+            ExplorerAction.Common.Filter(isEnabled = false),
+        ),
     )
     PreviewWrapper {
         ExplorerWorkspacePage(
@@ -438,8 +451,11 @@ fun ExplorerWorkspacePageGridModePreview() {
         breadcrumbs = mockBreadcrumbs,
         items = MockDataProvider.createAllFileTypes(),
         isLoading = false,
-        selectedItems = emptySet(),
-        viewMode = ExplorerWorkspaceViewModel.ViewMode.GRID
+        viewMode = ExplorerWorkspaceViewModel.ViewMode.GRID,
+        availableActions = listOf(
+            ExplorerAction.Common.Sort(),
+            ExplorerAction.Common.Filter(isEnabled = false),
+        ),
     )
     PreviewWrapper {
         ExplorerWorkspacePage(
@@ -470,8 +486,19 @@ fun ExplorerWorkspacePageGridModeWithSelectionPreview() {
         ),
         items = mockFileItems,
         isLoading = false,
-        selectedItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path, mockFileItems[3].lookup.path),
-        viewMode = ExplorerWorkspaceViewModel.ViewMode.GRID
+        selectionState = ExplorerSelectionState(
+            selectedItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path),
+            selectableItems = setOf(
+                mockFileItems[0].lookup.path,
+                mockFileItems[2].lookup.path,
+                mockFileItems[3].lookup.path
+            ),
+        ),
+        viewMode = ExplorerWorkspaceViewModel.ViewMode.GRID,
+        availableActions = listOf(
+            ExplorerAction.Common.Sort(),
+            ExplorerAction.Common.Filter(isEnabled = false),
+        ),
     )
     PreviewWrapper {
         ExplorerWorkspacePage(
