@@ -7,6 +7,9 @@ import androidx.compose.material.icons.twotone.Code
 import androidx.compose.material.icons.twotone.PhoneAndroid
 import androidx.compose.material.icons.twotone.Storage
 import eu.darken.butler.common.ca.caString
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
@@ -20,6 +23,8 @@ import javax.inject.Inject
 class ExplorerEngine @Inject constructor(
     private val gatewaySwitch: GatewaySwitch,
 ) {
+    
+    private val tag = logTag("Explorer", "Engine")
 
     private suspend fun getHomeEntry(): ExplorerLocation = withContext(Dispatchers.IO) {
         val shortcuts = listOf(
@@ -183,6 +188,54 @@ class ExplorerEngine @Inject constructor(
                     firstPass.copy(items = secondPass)
                 )
             }
+        }
+    }
+    
+    suspend fun executeOperation(operation: ExplorerOperation): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            when (operation) {
+                is ExplorerOperation.FileOp.CreateFolder -> {
+                    log(tag, INFO) { "Creating folder: ${operation.name} in ${operation.parentPath}" }
+                    val folderPath = operation.parentPath.child(operation.name)
+                    gatewaySwitch.createDir(folderPath)
+                    Result.success(Unit)
+                }
+                
+                is ExplorerOperation.FileOp.Delete -> {
+                    log(tag, INFO) { "Deleting ${operation.paths.size} items" }
+                    operation.paths.forEach { path ->
+                        gatewaySwitch.delete(path, recursive = operation.recursive)
+                    }
+                    Result.success(Unit)
+                }
+                
+                is ExplorerOperation.FileOp.Copy -> {
+                    log(tag, INFO) { "Copying ${operation.sources.size} items to ${operation.destination}" }
+                    // TODO: Implement copy operation when gateway supports it
+                    // For now, just log
+                    log(tag, WARN) { "Copy operation not yet implemented in gateway" }
+                    Result.failure(UnsupportedOperationException("Copy not yet implemented"))
+                }
+                
+                is ExplorerOperation.FileOp.Move -> {
+                    log(tag, INFO) { "Moving ${operation.sources.size} items to ${operation.destination}" }
+                    // TODO: Implement move operation when gateway supports it
+                    // For now, we could try delete + copy when available
+                    log(tag, WARN) { "Move operation not yet implemented in gateway" }
+                    Result.failure(UnsupportedOperationException("Move not yet implemented"))
+                }
+                
+                is ExplorerOperation.FileOp.Rename -> {
+                    log(tag, INFO) { "Renaming ${operation.path} to ${operation.newName}" }
+                    // TODO: Implement rename when move is available
+                    // For now, just log
+                    log(tag, WARN) { "Rename operation not yet implemented in gateway" }
+                    Result.failure(UnsupportedOperationException("Rename not yet implemented"))
+                }
+            }
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Operation failed: $operation - ${e.message}" }
+            Result.failure(e)
         }
     }
 

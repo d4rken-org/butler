@@ -44,6 +44,7 @@ sealed interface ExplorerLocation {
             val volumeFreeSpace: Long? = null,
             val volumeTotalSpace: Long? = null,
             val isWritable: Boolean = false,
+            val isReadable: Boolean = true,
         ) : LocationInfo
     }
 }

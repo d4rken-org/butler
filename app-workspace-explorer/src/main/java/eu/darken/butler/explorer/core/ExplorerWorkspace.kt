@@ -12,6 +12,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.engine.ExplorerEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -24,6 +25,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.parcelize.Parcelize
 
 
@@ -52,6 +55,8 @@ class ExplorerWorkspace @AssistedInject constructor(
     val current = MutableStateFlow<State>(State())
 
     private val navigationRequests = MutableSharedFlow<ExplorerNavigation>(replay = 1)
+    private val operationRequests = MutableSharedFlow<ExplorerOperation>(replay = 1)
+    private val operationMutex = Mutex()
 
     data class State(
         val currentTarget: ExplorerNavigation.Target? = null,
@@ -93,6 +98,39 @@ class ExplorerWorkspace @AssistedInject constructor(
                             isLoadingExtended = false,
                         )
                         emit(Unit)
+                    }
+                }
+            }
+            .launchIn(scope)
+            
+        // Set up operation flow processing
+        operationRequests
+            .onEach { log(tag, INFO) { "New operation request: $it" } }
+            .onEach { operation ->
+                operationMutex.withLock {
+                    try {
+                        current.value = current.value.copy(isLoading = true)
+                        val result = engine.executeOperation(operation)
+                        
+                        if (result.isSuccess) {
+                            log(tag, INFO) { "Operation successful: $operation" }
+                            // Refresh current location after successful operation
+                            current.value.currentTarget?.let { target ->
+                                processNavigationRequest(ExplorerNavigation.Refresh)
+                            }
+                        } else {
+                            log(tag, ERROR) { "Operation failed: ${result.exceptionOrNull()}" }
+                            current.value = current.value.copy(
+                                error = result.exceptionOrNull(),
+                                isLoading = false
+                            )
+                        }
+                    } catch (e: Exception) {
+                        log(tag, ERROR) { "Operation processing failed: $e" }
+                        current.value = current.value.copy(
+                            error = e,
+                            isLoading = false
+                        )
                     }
                 }
             }
@@ -170,6 +208,15 @@ class ExplorerWorkspace @AssistedInject constructor(
             log(tag) { "navigate(): Launching $request" }
             navigationRequests.emit(request)
             log(tag) { "navigate(): Submitted $request" }
+        }
+    }
+    
+    fun execute(operation: ExplorerOperation) {
+        log(tag) { "execute(): $operation" }
+        scope.launch {
+            log(tag) { "execute(): Launching $operation" }
+            operationRequests.emit(operation)
+            log(tag) { "execute(): Submitted $operation" }
         }
     }
 

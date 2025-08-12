@@ -12,6 +12,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.ui.ViewModel3
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
+import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
@@ -167,8 +168,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         when (action) {
             is ExplorerAction.Directory.CreateFolder -> {
                 log(tag) { "createNewFolder()" }
-                // TODO: Show dialog to get folder name and create it
-                // For now, just log the action
+                // TODO: Show dialog to get folder name
+                // For now, create a test folder with hardcoded name
+                val currentLocation = state.first().currentLocation
+                if (currentLocation is ExplorerLocation.Directory) {
+                    getWorkspace().execute(
+                        ExplorerOperation.FileOp.CreateFolder(
+                            parentPath = currentLocation.path,
+                            name = "New Folder" // TODO: Get from dialog
+                        )
+                    )
+                }
             }
             is ExplorerAction.Directory.Copy -> {
                 log(tag) { "copySelectedItems(): ${selectedItemsFlow.value.size} items" }
@@ -195,7 +205,32 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerAction.Directory.Delete -> {
                 log(tag) { "deleteSelectedItems(): ${selectedItemsFlow.value.size} items" }
                 // TODO: Show confirmation dialog
-                // Delete selected files/folders
+                val selectedPaths = selectedItemsFlow.value
+                if (selectedPaths.isNotEmpty()) {
+                    val currentLocation = state.first().currentLocation
+                    if (currentLocation is ExplorerLocation.Directory) {
+                        // Convert string paths to APath objects
+                        val pathsToDelete = selectedPaths.mapNotNull { pathString ->
+                            try {
+                                // Assuming paths are stored as absolute path strings
+                                LocalPath.build(pathString)
+                            } catch (e: Exception) {
+                                log(tag, WARN) { "Failed to parse path: $pathString" }
+                                null
+                            }
+                        }.toSet()
+                        
+                        if (pathsToDelete.isNotEmpty()) {
+                            getWorkspace().execute(
+                                ExplorerOperation.FileOp.Delete(
+                                    paths = pathsToDelete,
+                                    recursive = true
+                                )
+                            )
+                            clearSelection()
+                        }
+                    }
+                }
             }
             is ExplorerAction.Directory.Share -> {
                 log(tag) { "shareSelectedItems(): ${selectedItemsFlow.value.size} items" }
@@ -205,10 +240,37 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 log(tag) { "pasteItems()" }
                 val clipboard = clipboardFlow.value
                 if (clipboard != null) {
-                    // TODO: Implement actual paste operation
-                    log(tag) { "Pasting ${clipboard.items.size} items, isCut=${clipboard.isCut}" }
-                    if (clipboard.isCut) {
-                        clipboardFlow.value = null
+                    val currentLocation = state.first().currentLocation
+                    if (currentLocation is ExplorerLocation.Directory) {
+                        // Convert string paths to APath objects
+                        val sourcePaths = clipboard.items.mapNotNull { pathString ->
+                            try {
+                                LocalPath.build(pathString)
+                            } catch (e: Exception) {
+                                log(tag, WARN) { "Failed to parse path: $pathString" }
+                                null
+                            }
+                        }.toSet()
+                        
+                        if (sourcePaths.isNotEmpty()) {
+                            val operation = if (clipboard.isCut) {
+                                ExplorerOperation.FileOp.Move(
+                                    sources = sourcePaths,
+                                    destination = currentLocation.path
+                                )
+                            } else {
+                                ExplorerOperation.FileOp.Copy(
+                                    sources = sourcePaths,
+                                    destination = currentLocation.path
+                                )
+                            }
+                            
+                            getWorkspace().execute(operation)
+                            
+                            if (clipboard.isCut) {
+                                clipboardFlow.value = null
+                            }
+                        }
                     }
                 }
             }
