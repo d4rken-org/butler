@@ -9,6 +9,11 @@ sealed interface ExplorerOperation {
             val parentPath: APath,
             val name: String,
         ) : FileOp
+        
+        data class CreateFile(
+            val parentPath: APath,
+            val name: String,
+        ) : FileOp
 
         data class Delete(
             val paths: Set<APath>,

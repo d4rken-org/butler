@@ -13,19 +13,23 @@ import java.util.Locale
 
 sealed interface ExplorerItem {
     val displayName: CaString
+    val id: String
 
     data class Shortcut(
         val shortcutId: String,
         override val displayName: CaString,
         val displayIcon: ImageVector,
         val target: ExplorerNavigation,
-    ) : ExplorerItem
+    ) : ExplorerItem {
+       override val id: String get() = shortcutId
+    }
 
     sealed interface PathItem : ExplorerItem {
         val lookup: APathLookup<*>
         val ownership: Ownership?
         val permissions: Permissions?
 
+        override val id: String get() = lookup.path
         override val displayName: CaString get() = caString { lookup.name }
 
         fun withExtendedData(ownership: Ownership?, permissions: Permissions?): PathItem

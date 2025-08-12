@@ -8,15 +8,12 @@ class HomeActionProvider @Inject constructor() : ExplorerActionProvider {
     override fun getActions(
         location: ExplorerLocation,
         selectionState: ExplorerActionProvider.SelectionState,
-        capabilities: ExplorerActionProvider.LocationCapabilities,
     ): List<ExplorerAction> {
         val actions = mutableListOf<ExplorerAction>()
         
         actions.add(ExplorerAction.Common.Refresh())
         actions.add(ExplorerAction.Common.Sort())
         actions.add(ExplorerAction.Common.ToggleView())
-        actions.add(ExplorerAction.Home.Settings)
-        actions.add(ExplorerAction.Common.More())
         
         return actions
     }

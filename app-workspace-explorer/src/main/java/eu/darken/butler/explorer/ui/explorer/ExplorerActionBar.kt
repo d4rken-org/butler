@@ -31,10 +31,8 @@ fun ExplorerActionBar(
         color = MaterialTheme.colorScheme.surfaceContainer,
         tonalElevation = 3.dp,
     ) {
-        val visibleActions = actions.filter { 
-            it.isVisible && it.group != ExplorerAction.Group.SELECTION_INFO 
-        }
-        
+        val visibleActions = actions.filter { it.isVisible }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -66,13 +64,12 @@ fun ExplorerActionBar(
 @Composable
 fun ExplorerBottomBarNormalModePreview() {
     val mockActions = listOf(
-        ExplorerAction.Directory.CreateFolder(),
+        ExplorerAction.Directory.Create(),
         ExplorerAction.Common.Sort(),
         ExplorerAction.Common.Filter(),
         ExplorerAction.Common.ToggleView(),
-        ExplorerAction.Common.More(),
     )
-    
+
     PreviewWrapper {
         ExplorerActionBar(
             actions = mockActions,
@@ -85,14 +82,12 @@ fun ExplorerBottomBarNormalModePreview() {
 @Composable
 fun ExplorerBottomBarSelectionModePreview() {
     val mockActions = listOf(
-        ExplorerAction.Directory.SelectionInfo(3),
         ExplorerAction.Directory.Copy(),
         ExplorerAction.Directory.Cut(),
         ExplorerAction.Directory.Delete(),
         ExplorerAction.Directory.Share(),
-        ExplorerAction.Common.More(),
     )
-    
+
     PreviewWrapper {
         ExplorerActionBar(
             actions = mockActions,
@@ -105,12 +100,11 @@ fun ExplorerBottomBarSelectionModePreview() {
 @Composable
 fun ExplorerBottomBarDisabledActionsPreview() {
     val mockActions = listOf(
-        ExplorerAction.Directory.CreateFolder(isEnabled = false),
+        ExplorerAction.Directory.Create(isEnabled = false),
         ExplorerAction.Common.Sort(),
         ExplorerAction.Common.Filter(isEnabled = false),
-        ExplorerAction.Common.More(),
     )
-    
+
     PreviewWrapper {
         ExplorerActionBar(
             actions = mockActions,

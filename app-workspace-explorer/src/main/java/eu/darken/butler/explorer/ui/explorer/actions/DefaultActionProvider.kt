@@ -12,7 +12,6 @@ class DefaultActionProvider @Inject constructor(
     override fun getActions(
         location: ExplorerLocation,
         selectionState: ExplorerActionProvider.SelectionState,
-        capabilities: ExplorerActionProvider.LocationCapabilities,
     ): List<ExplorerAction> {
         val provider = when (location) {
             is ExplorerLocation.Home -> homeProvider
@@ -20,6 +19,6 @@ class DefaultActionProvider @Inject constructor(
             is ExplorerLocation.Directory -> directoryProvider
         }
         
-        return provider.getActions(location, selectionState, capabilities)
+        return provider.getActions(location, selectionState)
     }
 }

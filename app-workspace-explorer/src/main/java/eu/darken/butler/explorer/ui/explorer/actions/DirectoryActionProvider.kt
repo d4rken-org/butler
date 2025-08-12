@@ -4,59 +4,56 @@ import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import javax.inject.Inject
 
 class DirectoryActionProvider @Inject constructor() : ExplorerActionProvider {
-    
+
     override fun getActions(
         location: ExplorerLocation,
         selectionState: ExplorerActionProvider.SelectionState,
-        capabilities: ExplorerActionProvider.LocationCapabilities,
     ): List<ExplorerAction> {
         val actions = mutableListOf<ExplorerAction>()
-        
+
         val directory = location as? ExplorerLocation.Directory
-        val isWritable = (directory?.info?.isWritable ?: false) || capabilities.canWrite
-        val canModify = isWritable || capabilities.hasRootAccess || capabilities.hasAdbAccess
-        
+        val isWritable = (directory?.info?.isWritable ?: false)
+
         if (selectionState.isSelectionMode) {
-            actions.add(ExplorerAction.Directory.SelectionInfo(selectionState.selectionCount))
-            
+            if (selectionState.selectionCount == 1) {
+                actions.add(ExplorerAction.Directory.Rename())
+            }
+
             actions.add(ExplorerAction.Directory.Copy())
-            
+
             actions.add(
                 ExplorerAction.Directory.Cut(
-                    isEnabled = canModify,
+                    isEnabled = isWritable,
                 )
             )
-            
+
             actions.add(
                 ExplorerAction.Directory.Delete(
-                    isEnabled = canModify,
+                    isEnabled = isWritable,
                 )
             )
-            
+
             actions.add(ExplorerAction.Directory.Share())
-            
-            actions.add(ExplorerAction.Common.More())
         } else {
             actions.add(
-                ExplorerAction.Directory.CreateFolder(
-                    isEnabled = canModify,
+                ExplorerAction.Directory.Create(
+                    isEnabled = isWritable,
                 )
             )
-            
+
             if (selectionState.hasClipboard) {
                 actions.add(
                     ExplorerAction.Directory.Paste(
-                        isEnabled = canModify,
+                        isEnabled = isWritable,
                     )
                 )
             }
-            
+
             actions.add(ExplorerAction.Common.Sort())
             actions.add(ExplorerAction.Common.Filter())
             actions.add(ExplorerAction.Common.ToggleView())
-            actions.add(ExplorerAction.Common.More())
         }
-        
+
         return actions
     }
 }

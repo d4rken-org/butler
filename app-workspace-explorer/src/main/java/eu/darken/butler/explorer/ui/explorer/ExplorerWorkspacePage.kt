@@ -52,6 +52,7 @@ import eu.darken.butler.explorer.ui.explorer.items.row.PathItemRow
 import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
 import eu.darken.butler.explorer.ui.explorer.items.grid.PathItemGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.ShortcutGrid
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
@@ -293,6 +294,11 @@ fun ExplorerWorkspacePage(
                 }
             }
         }
+        
+        ExplorerDialogHost(
+            dialogState = state.dialogState,
+            vm = vm
+        )
     }
 }
 

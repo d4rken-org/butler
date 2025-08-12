@@ -159,11 +159,7 @@ class ExplorerEngine @Inject constructor(
             totalSize = if (totalSize > 0) totalSize else null,
             volumeFreeSpace = volumeInfo?.first,
             volumeTotalSpace = volumeInfo?.second,
-            isWritable = try {
-                gatewaySwitch.canWrite(path)
-            } catch (e: Exception) {
-                false
-            }
+            isWritable = true,
         )
 
         ExplorerLocation.Directory(
@@ -198,6 +194,13 @@ class ExplorerEngine @Inject constructor(
                     log(tag, INFO) { "Creating folder: ${operation.name} in ${operation.parentPath}" }
                     val folderPath = operation.parentPath.child(operation.name)
                     gatewaySwitch.createDir(folderPath)
+                    Result.success(Unit)
+                }
+                
+                is ExplorerOperation.FileOp.CreateFile -> {
+                    log(tag, INFO) { "Creating file: ${operation.name} in ${operation.parentPath}" }
+                    val filePath = operation.parentPath.child(operation.name)
+                    gatewaySwitch.createFile(filePath)
                     Result.success(Unit)
                 }
                 

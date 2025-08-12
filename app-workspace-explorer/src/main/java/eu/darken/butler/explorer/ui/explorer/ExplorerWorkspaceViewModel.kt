@@ -17,6 +17,13 @@ import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionProvider
+import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemResult
+import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemType
+import eu.darken.butler.explorer.ui.explorer.dialogs.DeleteConfirmationResult
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
+import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
+import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.workspace.core.Workspace
@@ -45,6 +52,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
     private val viewModeFlow = MutableStateFlow(ViewMode.LIST)
     private val clipboardFlow = MutableStateFlow<ClipboardState?>(null)
+    private val dialogStateFlow = MutableStateFlow<ExplorerDialogState>(ExplorerDialogState.None)
+    
+    val dialogEvents = SingleEventFlow<ExplorerDialogEvent>()
 
     private val workspace: Flow<ExplorerWorkspace?> = workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
 
@@ -59,7 +69,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         selectedItemsFlow,
         viewModeFlow,
         clipboardFlow,
-    ) { wsState, selectedItems, viewMode, clipboard ->
+        dialogStateFlow,
+    ) { wsState, selectedItems, viewMode, clipboard, dialogState ->
         val items = wsState.currentLocation?.items ?: emptyList()
 
         val selectionState = ExplorerActionProvider.SelectionState(
@@ -67,20 +78,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             hasClipboard = clipboard != null,
         )
 
-        // TODO: Determine actual capabilities based on gateway type and permissions
-        val capabilities = ExplorerActionProvider.LocationCapabilities(
-            canWrite = wsState.currentLocation?.let {
-                it is ExplorerLocation.Directory && it.info?.isWritable == true
-            } ?: false,
-            hasRootAccess = false, // TODO: Check actual root status
-            hasAdbAccess = false, // TODO: Check actual ADB status
-        )
-
         val availableActions = wsState.currentLocation?.let {
             actionProvider.getActions(
                 location = it,
                 selectionState = selectionState,
-                capabilities = capabilities,
             )
         } ?: emptyList()
 
@@ -96,6 +97,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             canGoBack = wsState.canGoBack,
             canGoForward = wsState.canGoForward,
             availableActions = availableActions,
+            dialogState = dialogState,
         )
     }.asStateFlow()
 
@@ -165,20 +167,19 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun executeAction(action: ExplorerAction) = launch {
         log(tag) { "executeAction(${action::class.simpleName})" }
+        val stateSnap = state.first()
         when (action) {
-            is ExplorerAction.Directory.CreateFolder -> {
-                log(tag) { "createNewFolder()" }
-                // TODO: Show dialog to get folder name
-                // For now, create a test folder with hardcoded name
-                val currentLocation = state.first().currentLocation
-                if (currentLocation is ExplorerLocation.Directory) {
-                    getWorkspace().execute(
-                        ExplorerOperation.FileOp.CreateFolder(
-                            parentPath = currentLocation.path,
-                            name = "New Folder" // TODO: Get from dialog
-                        )
-                    )
-                }
+            is ExplorerAction.Directory.Create -> {
+                log(tag) { "showCreateDialog()" }
+                dialogEvents.emit(ExplorerDialogEvent.ShowCreateItem)
+            }
+            is ExplorerAction.Directory.Rename -> {
+                val item = stateSnap.items.find { it.id == stateSnap.selectedItems.single() }
+                item as ExplorerItem.PathItem
+                val event = ExplorerDialogEvent.ShowRename(
+                    item = item.lookup.lookedUp,
+                )
+                dialogEvents.emit(event)
             }
             is ExplorerAction.Directory.Copy -> {
                 log(tag) { "copySelectedItems(): ${selectedItemsFlow.value.size} items" }
@@ -204,7 +205,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerAction.Directory.Delete -> {
                 log(tag) { "deleteSelectedItems(): ${selectedItemsFlow.value.size} items" }
-                // TODO: Show confirmation dialog
                 val selectedPaths = selectedItemsFlow.value
                 if (selectedPaths.isNotEmpty()) {
                     val currentLocation = state.first().currentLocation
@@ -212,7 +212,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         // Convert string paths to APath objects
                         val pathsToDelete = selectedPaths.mapNotNull { pathString ->
                             try {
-                                // Assuming paths are stored as absolute path strings
                                 LocalPath.build(pathString)
                             } catch (e: Exception) {
                                 log(tag, WARN) { "Failed to parse path: $pathString" }
@@ -221,13 +220,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         }.toSet()
                         
                         if (pathsToDelete.isNotEmpty()) {
-                            getWorkspace().execute(
-                                ExplorerOperation.FileOp.Delete(
-                                    paths = pathsToDelete,
-                                    recursive = true
-                                )
-                            )
-                            clearSelection()
+                            dialogEvents.emit(ExplorerDialogEvent.ShowDeleteConfirmation(pathsToDelete))
                         }
                     }
                 }
@@ -283,9 +276,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     .toSet()
                 selectedItemsFlow.value = allPaths
             }
-            is ExplorerAction.Directory.SelectionInfo -> {
-                // No action needed, this is just info display
-            }
             is ExplorerAction.Common.Sort -> {
                 log(tag) { "showSortOptions()" }
                 // TODO: Show sort options dialog/menu
@@ -305,20 +295,85 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 log(tag) { "refresh()" }
                 getWorkspace().navigate(ExplorerNavigation.Refresh)
             }
-            is ExplorerAction.Common.More -> {
-                log(tag) { "showMoreOptions()" }
-                // TODO: Show more options menu
-                // Could include: Select All, Properties, etc.
-            }
-            is ExplorerAction.Device.StorageInfo -> {
-                log(tag) { "showStorageInfo()" }
-                // TODO: Show storage information
-            }
-            is ExplorerAction.Home.Settings -> {
-                log(tag) { "openSettings()" }
-                // TODO: Open settings
+        }
+    }
+    
+    init {
+        // Handle dialog events
+        launch {
+            dialogEvents.collect { event ->
+                handleDialogEvent(event)
             }
         }
+    }
+    
+    private suspend fun handleDialogEvent(event: ExplorerDialogEvent) {
+        log(tag) { "handleDialogEvent($event)" }
+        when (event) {
+            is ExplorerDialogEvent.ShowCreateItem -> {
+                dialogStateFlow.value = ExplorerDialogState.CreateItem
+            }
+            is ExplorerDialogEvent.ShowDeleteConfirmation -> {
+                dialogStateFlow.value = ExplorerDialogState.DeleteConfirmation(event.items)
+            }
+            is ExplorerDialogEvent.ShowRename -> {
+                dialogStateFlow.value = ExplorerDialogState.Rename(event.item)
+            }
+            is ExplorerDialogEvent.Dismiss -> {
+                dialogStateFlow.value = ExplorerDialogState.None
+            }
+        }
+    }
+    
+    fun dismissDialog() {
+        dialogStateFlow.value = ExplorerDialogState.None
+    }
+    
+    fun onCreateItem(result: CreateItemResult) = launch {
+        log(tag) { "onCreateItem($result)" }
+        dialogStateFlow.value = ExplorerDialogState.None
+        
+        val currentLocation = state.first().currentLocation
+        if (currentLocation is ExplorerLocation.Directory) {
+            val operation = when (result.type) {
+                CreateItemType.FOLDER -> ExplorerOperation.FileOp.CreateFolder(
+                    parentPath = currentLocation.path,
+                    name = result.name
+                )
+                CreateItemType.FILE -> ExplorerOperation.FileOp.CreateFile(
+                    parentPath = currentLocation.path,
+                    name = result.name
+                )
+            }
+            getWorkspace().execute(operation)
+        }
+    }
+    
+    fun onDeleteConfirmed(result: DeleteConfirmationResult) = launch {
+        log(tag) { "onDeleteConfirmed($result)" }
+        dialogStateFlow.value = ExplorerDialogState.None
+        
+        if (result.items.isNotEmpty()) {
+            getWorkspace().execute(
+                ExplorerOperation.FileOp.Delete(
+                    paths = result.items,
+                    recursive = true
+                )
+            )
+            clearSelection()
+        }
+    }
+    
+    fun onRename(result: RenameResult) = launch {
+        log(tag) { "onRename($result)" }
+        dialogStateFlow.value = ExplorerDialogState.None
+        
+        getWorkspace().execute(
+            ExplorerOperation.FileOp.Rename(
+                path = result.item,
+                newName = result.newName
+            )
+        )
     }
 
     data class State(
@@ -333,6 +388,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val canGoBack: Boolean = false,
         val canGoForward: Boolean = false,
         val availableActions: List<ExplorerAction> = emptyList(),
+        val dialogState: ExplorerDialogState = ExplorerDialogState.None,
     ) {
         val hasSelection: Boolean get() = selectedItems.isNotEmpty()
         val selectionCount: Int get() = selectedItems.size
