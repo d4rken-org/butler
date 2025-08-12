@@ -1,10 +1,9 @@
-package eu.darken.butler.explorer.ui.explorer.grid
+package eu.darken.butler.explorer.ui.explorer.items.grid
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -15,11 +14,12 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.explorer.ui.explorer.items.row.formatFileSize
 
 @Composable
-internal fun SymlinkFileGrid(
+internal fun RegularFileGrid(
     modifier: Modifier = Modifier,
-    item: ExplorerItem.SymbolicLink,
+    item: ExplorerItem.RegularFile,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
@@ -36,27 +36,22 @@ internal fun SymlinkFileGrid(
         showSelection = showSelection,
         icon = {
             Icon(
-                imageVector = Icons.Default.Link,
-                contentDescription = stringResource(R.string.explorer_file_symlink_content_desc),
+                imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
+                contentDescription = stringResource(R.string.explorer_file_regular_content_desc),
                 tint = Color.White,
                 modifier = Modifier.size(20.dp)
             )
         },
         primaryText = item.displayName.get(LocalContext.current),
-        secondaryText = null, // Don't show target path in top corner to avoid overlap
-        backgroundColor = if (item.isBroken) {
-            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
-        } else {
-            MaterialTheme.colorScheme.surface
-        }
+        secondaryText = formatFileSize(item.lookup.size)
     )
 }
 
 @Preview2
 @Composable
-private fun SymlinkFileGridPreview() {
-    SymlinkFileGrid(
-        item = MockDataProvider.createMockSymbolicLink(),
+private fun RegularFileGridPreview() {
+    RegularFileGrid(
+        item = MockDataProvider.createMockRegularFile(),
         isSelected = false,
         onToggleSelection = {},
         onClick = {},
@@ -66,9 +61,9 @@ private fun SymlinkFileGridPreview() {
 
 @Preview2
 @Composable
-private fun SymlinkFileGridBrokenPreview() {
-    SymlinkFileGrid(
-        item = MockDataProvider.createMockSymbolicLink("broken_link", "/path/to/missing/file", true),
+private fun RegularFileGridSelectedPreview() {
+    RegularFileGrid(
+        item = MockDataProvider.createMockRegularFile("config.json"),
         isSelected = true,
         onToggleSelection = {},
         onClick = {},

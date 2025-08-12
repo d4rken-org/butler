@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.core.actions
+package eu.darken.butler.explorer.ui.explorer.actions
 
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 

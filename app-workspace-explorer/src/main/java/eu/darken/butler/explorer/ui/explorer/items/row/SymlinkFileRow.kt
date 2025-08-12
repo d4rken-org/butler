@@ -1,13 +1,12 @@
-package eu.darken.butler.explorer.ui.explorer.grid
+package eu.darken.butler.explorer.ui.explorer.items.row
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -17,44 +16,55 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
-internal fun DirectoryGrid(
+internal fun SymlinkFileRow(
     modifier: Modifier = Modifier,
-    item: ExplorerItem.RegularDirectory,
+    item: ExplorerItem.SymbolicLink,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
     onLongClick: () -> Unit = {},
     showSelection: Boolean,
 ) {
-    FileGridBase(
-        modifier = modifier,
+    FileRowBase(
         item = item,
         isSelected = isSelected,
         onToggleSelection = onToggleSelection,
         onClick = onClick,
         onLongClick = onLongClick,
         showSelection = showSelection,
-        icon = {
+        modifier = modifier,
+        leadingContent = {
             Icon(
-                imageVector = Icons.Default.Folder,
-                contentDescription = stringResource(R.string.explorer_file_folder_content_desc),
-                tint = Color.White,
-                modifier = Modifier.size(20.dp)
+                imageVector = Icons.Default.Link,
+                contentDescription = stringResource(R.string.explorer_file_symlink_content_desc),
+                tint = if (item.isBroken) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.primary
+                },
+                modifier = Modifier.size(32.dp)
             )
         },
         primaryText = item.displayName.get(LocalContext.current),
-        secondaryText = item.childCount?.let { count ->
-            stringResource(R.string.explorer_file_items_count, count)
-        },
-        backgroundColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+        secondaryText = buildString {
+            item.targetPath?.let {
+                append("→ $it")
+                append(" • ")
+            }
+            if (item.isBroken) {
+                append(stringResource(R.string.explorer_file_broken_link_label))
+            } else {
+                append(formatDate(item.lookup.modifiedAt.toEpochMilli()))
+            }
+        }
     )
 }
 
 @Preview2
 @Composable
-private fun DirectoryGridPreview() {
-    DirectoryGrid(
-        item = MockDataProvider.createMockDirectory(),
+private fun SymlinkFileRowPreview() {
+    SymlinkFileRow(
+        item = MockDataProvider.createMockSymbolicLink(),
         isSelected = false,
         onToggleSelection = {},
         onClick = {},
@@ -64,9 +74,9 @@ private fun DirectoryGridPreview() {
 
 @Preview2
 @Composable
-private fun DirectoryGridSelectedPreview() {
-    DirectoryGrid(
-        item = MockDataProvider.createMockDirectory("Downloads", 12),
+private fun SymlinkFileRowBrokenPreview() {
+    SymlinkFileRow(
+        item = MockDataProvider.createMockSymbolicLink("broken_link", "/path/to/missing/file", true),
         isSelected = true,
         onToggleSelection = {},
         onClick = {},

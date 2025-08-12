@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer.row
+package eu.darken.butler.explorer.ui.explorer.items.row
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues

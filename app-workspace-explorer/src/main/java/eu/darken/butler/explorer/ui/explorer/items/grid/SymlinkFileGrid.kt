@@ -1,9 +1,10 @@
-package eu.darken.butler.explorer.ui.explorer.grid
+package eu.darken.butler.explorer.ui.explorer.items.grid
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -14,12 +15,11 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
-import eu.darken.butler.explorer.ui.explorer.row.formatFileSize
 
 @Composable
-internal fun RegularFileGrid(
+internal fun SymlinkFileGrid(
     modifier: Modifier = Modifier,
-    item: ExplorerItem.RegularFile,
+    item: ExplorerItem.SymbolicLink,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
@@ -36,22 +36,27 @@ internal fun RegularFileGrid(
         showSelection = showSelection,
         icon = {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
-                contentDescription = stringResource(R.string.explorer_file_regular_content_desc),
+                imageVector = Icons.Default.Link,
+                contentDescription = stringResource(R.string.explorer_file_symlink_content_desc),
                 tint = Color.White,
                 modifier = Modifier.size(20.dp)
             )
         },
         primaryText = item.displayName.get(LocalContext.current),
-        secondaryText = formatFileSize(item.lookup.size)
+        secondaryText = null, // Don't show target path in top corner to avoid overlap
+        backgroundColor = if (item.isBroken) {
+            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+        } else {
+            MaterialTheme.colorScheme.surface
+        }
     )
 }
 
 @Preview2
 @Composable
-private fun RegularFileGridPreview() {
-    RegularFileGrid(
-        item = MockDataProvider.createMockRegularFile(),
+private fun SymlinkFileGridPreview() {
+    SymlinkFileGrid(
+        item = MockDataProvider.createMockSymbolicLink(),
         isSelected = false,
         onToggleSelection = {},
         onClick = {},
@@ -61,9 +66,9 @@ private fun RegularFileGridPreview() {
 
 @Preview2
 @Composable
-private fun RegularFileGridSelectedPreview() {
-    RegularFileGrid(
-        item = MockDataProvider.createMockRegularFile("config.json"),
+private fun SymlinkFileGridBrokenPreview() {
+    SymlinkFileGrid(
+        item = MockDataProvider.createMockSymbolicLink("broken_link", "/path/to/missing/file", true),
         isSelected = true,
         onToggleSelection = {},
         onClick = {},

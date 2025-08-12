@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer.grid
+package eu.darken.butler.explorer.ui.explorer.items.grid
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background

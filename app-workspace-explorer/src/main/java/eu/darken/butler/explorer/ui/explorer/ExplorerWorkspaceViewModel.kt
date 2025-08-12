@@ -13,9 +13,9 @@ import eu.darken.butler.common.ui.ViewModel3
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
-import eu.darken.butler.explorer.core.actions.DefaultActionProvider
-import eu.darken.butler.explorer.core.actions.ExplorerAction
-import eu.darken.butler.explorer.core.actions.ExplorerActionProvider
+import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
+import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
+import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionProvider
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.workspace.core.Workspace
@@ -143,11 +143,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         clearSelection()
     }
 
-    fun refresh() = launch {
-        log(tag) { "refresh()" }
-        getWorkspace().navigate(ExplorerNavigation.Refresh)
-    }
-
     fun toggleItemSelection(item: ExplorerItem) {
         log(tag) { "toggleItemSelection($item)" }
         if (item !is ExplorerItem.PathItem) {
@@ -167,109 +162,100 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         selectedItemsFlow.value = emptySet()
     }
 
-    fun createNewFolder() = launch {
-        log(tag) { "createNewFolder()" }
-        // TODO: Show dialog to get folder name and create it
-        // For now, just log the action
-    }
-
-    fun copySelectedItems() = launch {
-        log(tag) { "copySelectedItems(): ${selectedItemsFlow.value.size} items" }
-        val selected = selectedItemsFlow.value
-        if (selected.isNotEmpty()) {
-            clipboardFlow.value = ClipboardState(
-                items = selected,
-                isCut = false,
-            )
-            clearSelection()
-        }
-    }
-
-    fun cutSelectedItems() = launch {
-        log(tag) { "cutSelectedItems(): ${selectedItemsFlow.value.size} items" }
-        val selected = selectedItemsFlow.value
-        if (selected.isNotEmpty()) {
-            clipboardFlow.value = ClipboardState(
-                items = selected,
-                isCut = true,
-            )
-            clearSelection()
-        }
-    }
-
-    fun deleteSelectedItems() = launch {
-        log(tag) { "deleteSelectedItems(): ${selectedItemsFlow.value.size} items" }
-        // TODO: Show confirmation dialog
-        // Delete selected files/folders
-    }
-
-    fun shareSelectedItems() = launch {
-        log(tag) { "shareSelectedItems(): ${selectedItemsFlow.value.size} items" }
-        // TODO: Implement share via Android share sheet
-    }
-
-    fun showSortOptions() = launch {
-        log(tag) { "showSortOptions()" }
-        // TODO: Show sort options dialog/menu
-    }
-
-    fun showFilterOptions() = launch {
-        log(tag) { "showFilterOptions()" }
-        // TODO: Show filter options dialog/menu
-    }
-
-    fun showMoreOptions() = launch {
-        log(tag) { "showMoreOptions()" }
-        // TODO: Show more options menu
-        // Could include: Select All, Properties, etc.
-    }
-
-    fun toggleViewMode() {
-        log(tag) { "toggleViewMode()" }
-        viewModeFlow.value = when (viewModeFlow.value) {
-            ViewMode.LIST -> ViewMode.GRID
-            ViewMode.GRID -> ViewMode.LIST
-        }
-    }
-
-    fun pasteItems() = launch {
-        log(tag) { "pasteItems()" }
-        val clipboard = clipboardFlow.value
-        if (clipboard != null) {
-            // TODO: Implement actual paste operation
-            log(tag) { "Pasting ${clipboard.items.size} items, isCut=${clipboard.isCut}" }
-            if (clipboard.isCut) {
-                clipboardFlow.value = null
-            }
-        }
-    }
-
-    fun selectAll() = launch {
-        log(tag) { "selectAll()" }
-        val currentState = state.first()
-        val allPaths = currentState.items
-            .filterIsInstance<ExplorerItem.PathItem>()
-            .map { it.lookup.path }
-            .toSet()
-        selectedItemsFlow.value = allPaths
-    }
-
     fun executeAction(action: ExplorerAction) = launch {
-        log(tag) { "executeAction(${action.id})" }
-        when (action.id) {
-            "create_folder" -> createNewFolder()
-            "copy" -> copySelectedItems()
-            "cut" -> cutSelectedItems()
-            "delete" -> deleteSelectedItems()
-            "share" -> shareSelectedItems()
-            "paste" -> pasteItems()
-            "select_all" -> selectAll()
-            "sort" -> showSortOptions()
-            "filter" -> showFilterOptions()
-            "toggle_view" -> toggleViewMode()
-            "refresh" -> refresh()
-            "more" -> showMoreOptions()
-            else -> log(tag, WARN) { "Unknown action: ${action.id}" }
+        log(tag) { "executeAction(${action::class.simpleName})" }
+        when (action) {
+            is ExplorerAction.Directory.CreateFolder -> {
+                log(tag) { "createNewFolder()" }
+                // TODO: Show dialog to get folder name and create it
+                // For now, just log the action
+            }
+            is ExplorerAction.Directory.Copy -> {
+                log(tag) { "copySelectedItems(): ${selectedItemsFlow.value.size} items" }
+                val selected = selectedItemsFlow.value
+                if (selected.isNotEmpty()) {
+                    clipboardFlow.value = ClipboardState(
+                        items = selected,
+                        isCut = false,
+                    )
+                    clearSelection()
+                }
+            }
+            is ExplorerAction.Directory.Cut -> {
+                log(tag) { "cutSelectedItems(): ${selectedItemsFlow.value.size} items" }
+                val selected = selectedItemsFlow.value
+                if (selected.isNotEmpty()) {
+                    clipboardFlow.value = ClipboardState(
+                        items = selected,
+                        isCut = true,
+                    )
+                    clearSelection()
+                }
+            }
+            is ExplorerAction.Directory.Delete -> {
+                log(tag) { "deleteSelectedItems(): ${selectedItemsFlow.value.size} items" }
+                // TODO: Show confirmation dialog
+                // Delete selected files/folders
+            }
+            is ExplorerAction.Directory.Share -> {
+                log(tag) { "shareSelectedItems(): ${selectedItemsFlow.value.size} items" }
+                // TODO: Implement share via Android share sheet
+            }
+            is ExplorerAction.Directory.Paste -> {
+                log(tag) { "pasteItems()" }
+                val clipboard = clipboardFlow.value
+                if (clipboard != null) {
+                    // TODO: Implement actual paste operation
+                    log(tag) { "Pasting ${clipboard.items.size} items, isCut=${clipboard.isCut}" }
+                    if (clipboard.isCut) {
+                        clipboardFlow.value = null
+                    }
+                }
+            }
+            is ExplorerAction.Directory.SelectAll -> {
+                log(tag) { "selectAll()" }
+                val currentState = state.first()
+                val allPaths = currentState.items
+                    .filterIsInstance<ExplorerItem.PathItem>()
+                    .map { it.lookup.path }
+                    .toSet()
+                selectedItemsFlow.value = allPaths
+            }
+            is ExplorerAction.Directory.SelectionInfo -> {
+                // No action needed, this is just info display
+            }
+            is ExplorerAction.Common.Sort -> {
+                log(tag) { "showSortOptions()" }
+                // TODO: Show sort options dialog/menu
+            }
+            is ExplorerAction.Common.Filter -> {
+                log(tag) { "showFilterOptions()" }
+                // TODO: Show filter options dialog/menu
+            }
+            is ExplorerAction.Common.ToggleView -> {
+                log(tag) { "toggleViewMode()" }
+                viewModeFlow.value = when (viewModeFlow.value) {
+                    ViewMode.LIST -> ViewMode.GRID
+                    ViewMode.GRID -> ViewMode.LIST
+                }
+            }
+            is ExplorerAction.Common.Refresh -> {
+                log(tag) { "refresh()" }
+                getWorkspace().navigate(ExplorerNavigation.Refresh)
+            }
+            is ExplorerAction.Common.More -> {
+                log(tag) { "showMoreOptions()" }
+                // TODO: Show more options menu
+                // Could include: Select All, Properties, etc.
+            }
+            is ExplorerAction.Device.StorageInfo -> {
+                log(tag) { "showStorageInfo()" }
+                // TODO: Show storage information
+            }
+            is ExplorerAction.Home.Settings -> {
+                log(tag) { "openSettings()" }
+                // TODO: Open settings
+            }
         }
     }
 

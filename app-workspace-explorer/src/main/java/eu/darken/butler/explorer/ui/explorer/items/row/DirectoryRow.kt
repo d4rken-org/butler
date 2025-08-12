@@ -1,8 +1,8 @@
-package eu.darken.butler.explorer.ui.explorer.row
+package eu.darken.butler.explorer.ui.explorer.items.row
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -16,9 +16,9 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
-internal fun RegularFileRow(
+internal fun DirectoryRow(
     modifier: Modifier = Modifier,
-    item: ExplorerItem.RegularFile,
+    item: ExplorerItem.RegularDirectory,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
@@ -35,16 +35,18 @@ internal fun RegularFileRow(
         modifier = modifier,
         leadingContent = {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
-                contentDescription = stringResource(R.string.explorer_file_regular_content_desc),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                imageVector = Icons.Default.Folder,
+                contentDescription = stringResource(R.string.explorer_file_folder_content_desc),
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp)
             )
         },
         primaryText = item.displayName.get(LocalContext.current),
         secondaryText = buildString {
-            append(formatFileSize(item.lookup.size))
-            append(" • ")
+            item.childCount?.let { count ->
+                append(stringResource(R.string.explorer_file_items_count, count))
+                append(" • ")
+            }
             append(formatDate(item.lookup.modifiedAt.toEpochMilli()))
             item.permissions?.let { perms ->
                 append(" • ")
@@ -60,9 +62,9 @@ internal fun RegularFileRow(
 
 @Preview2
 @Composable
-private fun RegularFileRowPreview() {
-    RegularFileRow(
-        item = MockDataProvider.createMockRegularFile(),
+private fun DirectoryRowPreview() {
+    DirectoryRow(
+        item = MockDataProvider.createMockDirectory(),
         isSelected = false,
         onToggleSelection = {},
         onClick = {},
@@ -72,9 +74,9 @@ private fun RegularFileRowPreview() {
 
 @Preview2
 @Composable
-private fun RegularFileRowSelectedPreview() {
-    RegularFileRow(
-        item = MockDataProvider.createMockRegularFile("config.json"),
+private fun DirectoryRowSelectedPreview() {
+    DirectoryRow(
+        item = MockDataProvider.createMockDirectory("Downloads", 12),
         isSelected = true,
         onToggleSelection = {},
         onClick = {},

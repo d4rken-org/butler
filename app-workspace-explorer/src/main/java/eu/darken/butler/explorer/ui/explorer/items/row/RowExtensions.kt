@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer.row
+package eu.darken.butler.explorer.ui.explorer.items.row
 
 import java.text.SimpleDateFormat
 import java.util.Date

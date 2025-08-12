@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer.grid
+package eu.darken.butler.explorer.ui.explorer.items.grid
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
