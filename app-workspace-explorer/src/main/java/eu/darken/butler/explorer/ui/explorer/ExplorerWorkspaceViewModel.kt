@@ -13,6 +13,9 @@ import eu.darken.butler.common.ui.ViewModel3
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
+import eu.darken.butler.explorer.core.actions.DefaultActionProvider
+import eu.darken.butler.explorer.core.actions.ExplorerAction
+import eu.darken.butler.explorer.core.actions.ExplorerActionProvider
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.workspace.core.Workspace
@@ -30,6 +33,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
     dispatchers: DispatcherProvider,
     private val workspaceProvider: WorkspaceProvider,
+    private val actionProvider: DefaultActionProvider,
 ) : ViewModel3(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
 
     enum class ViewMode {
@@ -39,6 +43,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
     private val viewModeFlow = MutableStateFlow(ViewMode.LIST)
+    private val clipboardFlow = MutableStateFlow<ClipboardState?>(null)
 
     private val workspace: Flow<ExplorerWorkspace?> = workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
 
@@ -52,8 +57,31 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         workspaceState,
         selectedItemsFlow,
         viewModeFlow,
-    ) { wsState, selectedItems, viewMode ->
+        clipboardFlow,
+    ) { wsState, selectedItems, viewMode, clipboard ->
         val items = wsState.currentLocation?.items ?: emptyList()
+
+        val selectionState = ExplorerActionProvider.SelectionState(
+            selectedItems = selectedItems,
+            hasClipboard = clipboard != null,
+        )
+
+        // TODO: Determine actual capabilities based on gateway type and permissions
+        val capabilities = ExplorerActionProvider.LocationCapabilities(
+            canWrite = wsState.currentLocation?.let {
+                it is ExplorerLocation.Directory && it.info?.isWritable == true
+            } ?: false,
+            hasRootAccess = false, // TODO: Check actual root status
+            hasAdbAccess = false, // TODO: Check actual ADB status
+        )
+
+        val availableActions = wsState.currentLocation?.let {
+            actionProvider.getActions(
+                location = it,
+                selectionState = selectionState,
+                capabilities = capabilities,
+            )
+        } ?: emptyList()
 
         State(
             currentLocation = wsState.currentLocation,
@@ -66,6 +94,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             viewMode = viewMode,
             canGoBack = wsState.canGoBack,
             canGoForward = wsState.canGoForward,
+            availableActions = availableActions,
         )
     }.asStateFlow()
 
@@ -146,14 +175,26 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun copySelectedItems() = launch {
         log(tag) { "copySelectedItems(): ${selectedItemsFlow.value.size} items" }
-        // TODO: Implement copy to clipboard
-        // Store selected paths for paste operation
+        val selected = selectedItemsFlow.value
+        if (selected.isNotEmpty()) {
+            clipboardFlow.value = ClipboardState(
+                items = selected,
+                isCut = false,
+            )
+            clearSelection()
+        }
     }
 
     fun cutSelectedItems() = launch {
         log(tag) { "cutSelectedItems(): ${selectedItemsFlow.value.size} items" }
-        // TODO: Implement cut to clipboard
-        // Store selected paths for move operation
+        val selected = selectedItemsFlow.value
+        if (selected.isNotEmpty()) {
+            clipboardFlow.value = ClipboardState(
+                items = selected,
+                isCut = true,
+            )
+            clearSelection()
+        }
     }
 
     fun deleteSelectedItems() = launch {
@@ -191,6 +232,47 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
+    fun pasteItems() = launch {
+        log(tag) { "pasteItems()" }
+        val clipboard = clipboardFlow.value
+        if (clipboard != null) {
+            // TODO: Implement actual paste operation
+            log(tag) { "Pasting ${clipboard.items.size} items, isCut=${clipboard.isCut}" }
+            if (clipboard.isCut) {
+                clipboardFlow.value = null
+            }
+        }
+    }
+
+    fun selectAll() = launch {
+        log(tag) { "selectAll()" }
+        val currentState = state.first()
+        val allPaths = currentState.items
+            .filterIsInstance<ExplorerItem.PathItem>()
+            .map { it.lookup.path }
+            .toSet()
+        selectedItemsFlow.value = allPaths
+    }
+
+    fun executeAction(action: ExplorerAction) = launch {
+        log(tag) { "executeAction(${action.id})" }
+        when (action.id) {
+            "create_folder" -> createNewFolder()
+            "copy" -> copySelectedItems()
+            "cut" -> cutSelectedItems()
+            "delete" -> deleteSelectedItems()
+            "share" -> shareSelectedItems()
+            "paste" -> pasteItems()
+            "select_all" -> selectAll()
+            "sort" -> showSortOptions()
+            "filter" -> showFilterOptions()
+            "toggle_view" -> toggleViewMode()
+            "refresh" -> refresh()
+            "more" -> showMoreOptions()
+            else -> log(tag, WARN) { "Unknown action: ${action.id}" }
+        }
+    }
+
     data class State(
         val currentLocation: ExplorerLocation? = null,
         val breadcrumbs: List<ExplorerBreadcrumb> = emptyList(),
@@ -202,10 +284,16 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val viewMode: ViewMode = ViewMode.LIST,
         val canGoBack: Boolean = false,
         val canGoForward: Boolean = false,
+        val availableActions: List<ExplorerAction> = emptyList(),
     ) {
         val hasSelection: Boolean get() = selectedItems.isNotEmpty()
         val selectionCount: Int get() = selectedItems.size
     }
+
+    data class ClipboardState(
+        val items: Set<String>,
+        val isCut: Boolean,
+    )
 
     @AssistedFactory
     interface Factory {

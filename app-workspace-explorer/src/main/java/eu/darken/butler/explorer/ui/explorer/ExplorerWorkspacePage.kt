@@ -285,20 +285,12 @@ fun ExplorerWorkspacePage(
                     info = state.currentLocation?.info,
                     selectedCount = state.selectedItems.size,
                 )
-                ExplorerBottomBar(
-                    isSelectionMode = state.selectedItems.isNotEmpty(),
-                    selectedCount = state.selectedItems.size,
-                    viewMode = state.viewMode,
-                    onCreateFolderClick = { vm?.createNewFolder() },
-                    onCopyClick = { vm?.copySelectedItems() },
-                    onCutClick = { vm?.cutSelectedItems() },
-                    onDeleteClick = { vm?.deleteSelectedItems() },
-                    onShareClick = { vm?.shareSelectedItems() },
-                    onSortClick = { vm?.showSortOptions() },
-                    onFilterClick = { vm?.showFilterOptions() },
-                    onToggleViewMode = { vm?.toggleViewMode() },
-                    onMoreClick = { vm?.showMoreOptions() },
-                )
+                if (state.availableActions.isNotEmpty()) {
+                    ExplorerActionBar(
+                        actions = state.availableActions,
+                        onActionClick = { action -> vm?.executeAction(action) },
+                    )
+                }
             }
         }
     }
