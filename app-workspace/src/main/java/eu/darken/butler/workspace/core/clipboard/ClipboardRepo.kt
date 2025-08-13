@@ -22,7 +22,7 @@ class ClipboardRepo @Inject constructor() {
     suspend fun add(clip: ClipboardClip) = lock.withLock {
         log(TAG, INFO) { "Adding entry $clip" }
         _state.value = _state.value.copy(
-            entries = _state.value.entries + clip
+            entries = (listOf(clip) + _state.value.entries.toMutableList()).take(3)
         )
     }
 

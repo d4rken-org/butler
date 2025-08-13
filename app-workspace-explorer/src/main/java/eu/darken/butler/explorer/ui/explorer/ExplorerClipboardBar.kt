@@ -1,7 +1,14 @@
 package eu.darken.butler.explorer.ui.explorer
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -61,63 +68,80 @@ fun ExplorerClipboardBar(
     onEntryClick: (ClipboardClip) -> Unit = {},
     onClearAll: () -> Unit = {},
 ) {
-    if (clipboardEntries.isEmpty()) return
-
-    var isExpanded by remember { mutableStateOf(initialExpanded) }
+    // Preserve expansion state across clipboard changes
+    var isExpanded by remember(clipboardEntries.size > 1) { 
+        mutableStateOf(initialExpanded) 
+    }
+    
     val maxEntries = 4
-    val latestEntry = clipboardEntries.first()
+    val latestEntry = clipboardEntries.firstOrNull()
     val additionalEntries = if (isExpanded && clipboardEntries.size > 1) {
         clipboardEntries.drop(1).take(maxEntries - 1)
     } else emptyList()
 
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+    AnimatedVisibility(
+        visible = clipboardEntries.isNotEmpty(),
+        modifier = modifier,
+        enter = slideInVertically { it } + fadeIn(animationSpec = tween(300)),
+        exit = slideOutVertically { it } + fadeOut(animationSpec = tween(300))
     ) {
-        Column(
-            modifier = Modifier.animateContentSize(
-                animationSpec = tween(durationMillis = 300)
-            )
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         ) {
-            // Expand/Collapse header row (when multiple entries)
-            if (clipboardEntries.size > 1) {
-                ClipboardHeaderRow(
-                    isExpanded = isExpanded,
-                    entryCount = clipboardEntries.size,
-                    onExpandClick = { isExpanded = !isExpanded },
-                    onClearAllClick = onClearAll,
+            Column(
+                modifier = Modifier.animateContentSize(
+                    animationSpec = tween(durationMillis = 300)
                 )
-                HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                )
-            }
+            ) {
+                // Expand/Collapse header row (when multiple entries)
+                AnimatedVisibility(
+                    visible = clipboardEntries.size > 1,
+                    enter = expandVertically(expandFrom = Alignment.Bottom) + fadeIn(animationSpec = tween(300)),
+                    exit = shrinkVertically(shrinkTowards = Alignment.Bottom) + fadeOut(animationSpec = tween(300))
+                ) {
+                    Column {
+                        ClipboardHeaderRow(
+                            isExpanded = isExpanded,
+                            entryCount = clipboardEntries.size,
+                            onExpandClick = { isExpanded = !isExpanded },
+                            onClearAllClick = onClearAll,
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        )
+                    }
+                }
 
-            // Additional entries (when expanded) - reversed order for upward expansion
-            additionalEntries.reversed().forEach { entry ->
-                ClipboardEntry(
-                    entry = entry,
-                    onPasteClick = { onPasteClick(entry) },
-                    onEntryClick = { onEntryClick(entry) },
-                    showOrigin = true, // Show origin for expanded entries
-                )
-                HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 32.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                )
-            }
+                // Additional entries (when expanded) - already in correct order (oldest first)
+                additionalEntries.forEach { entry ->
+                    ClipboardEntry(
+                        entry = entry,
+                        onPasteClick = { onPasteClick(entry) },
+                        onEntryClick = { onEntryClick(entry) },
+                        showOrigin = true, // Show origin for expanded entries
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 32.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    )
+                }
 
-            // Latest entry (always at bottom)
-            ClipboardEntry(
-                entry = latestEntry,
-                onPasteClick = { onPasteClick(latestEntry) },
-                onEntryClick = { onEntryClick(latestEntry) },
-                showOrigin = isExpanded,
-            )
+                // Latest entry (always at bottom)
+                latestEntry?.let { entry ->
+                    ClipboardEntry(
+                        entry = entry,
+                        onPasteClick = { onPasteClick(entry) },
+                        onEntryClick = { onEntryClick(entry) },
+                        showOrigin = isExpanded,
+                    )
+                }
+            }
         }
     }
 }
@@ -130,36 +154,41 @@ private fun ClipboardHeaderRow(
     onExpandClick: () -> Unit,
     onClearAllClick: () -> Unit = {},
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 8.dp),
-        horizontalArrangement = if (isExpanded) Arrangement.SpaceBetween else Arrangement.Start,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        // Collapse/Expand button with conditional width
-        TextButton(
-            onClick = onExpandClick,
-            modifier = Modifier
-                .height(32.dp)
-                .then(if (isExpanded) Modifier else Modifier.fillMaxWidth()),
-            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+    if (isExpanded) {
+        // Expanded mode: Two buttons spanning full width
+        Row(
+            modifier = modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(
-                imageVector = if (isExpanded) Icons.TwoTone.ExpandLess else Icons.TwoTone.ExpandMore,
-                contentDescription = if (isExpanded) "Hide clipboard" else "Show more",
-                modifier = Modifier.size(14.dp),
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = if (isExpanded) "Hide clipboard" else "Show more ($entryCount items)",
-                style = MaterialTheme.typography.labelSmall,
-            )
-        }
+            // Collapse button (extends to meet clear all button)
+            TextButton(
+                onClick = onExpandClick,
+                modifier = Modifier
+                    .height(32.dp)
+                    .weight(1f),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.TwoTone.ExpandLess,
+                    contentDescription = "Hide clipboard",
+                    modifier = Modifier.size(14.dp),
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Hide clipboard",
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
 
-        // Clear All button (only when expanded)
-        if (isExpanded) {
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // Clear All button
             TextButton(
                 onClick = onClearAllClick,
-                modifier = Modifier.height(32.dp),
+                modifier = Modifier
+                    .height(32.dp)
+                    .weight(1f),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
             ) {
                 Icon(
@@ -170,6 +199,32 @@ private fun ClipboardHeaderRow(
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "Clear All",
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
+        }
+    } else {
+        // Collapsed mode: Single expand button fills full width
+        Row(
+            modifier = modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TextButton(
+                onClick = onExpandClick,
+                modifier = Modifier
+                    .height(32.dp)
+                    .fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.TwoTone.ExpandMore,
+                    contentDescription = "Show more",
+                    modifier = Modifier.size(14.dp),
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Show more ($entryCount items)",
                     style = MaterialTheme.typography.labelSmall,
                 )
             }
