@@ -1,3 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Clipboard -->
+    <string name="clipboard_hide">Hide clipboard</string>
+    <string name="clipboard_clear_all">Clear All</string>
+    <string name="clipboard_show_more">Show more</string>
+    <string name="clipboard_show_more_items">Show more (%d items)</string>
+    <string name="clipboard_paste">Paste</string>
+    <string name="clipboard_copy">Copy</string>
+    <string name="clipboard_cut">Cut</string>
+    <string name="clipboard_items_count">%d items</string>
+    <string name="clipboard_from">from %s</string>
+    <string name="clipboard_origin">Origin: Workspace %s</string>
 </resources>

@@ -58,6 +58,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.clipboard.ClipboardBar
 
 @Composable
 fun ExplorerWorkspacePageHost(
@@ -301,7 +302,7 @@ fun ExplorerWorkspacePage(
             enter = slideInVertically { it },
             exit = slideOutVertically { it },
         ) {
-            ExplorerClipboardBar(
+            ClipboardBar(
                 clipboardEntries = state.clipboardEntries,
                 onPasteClick = { clip -> vm?.pasteClipboard(clip) },
                 onRemoveClick = { clip -> vm?.removeClipboardEntry(clip) },

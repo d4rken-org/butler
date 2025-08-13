@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer
+package eu.darken.butler.workspace.ui.clipboard
 
 import android.icu.text.RelativeDateTimeFormatter
 import androidx.compose.animation.AnimatedVisibility
@@ -58,18 +58,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import eu.darken.butler.workspace.R
+import eu.darken.butler.common.R as CommonR
 import java.util.Locale
 import java.util.UUID
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 
 @Composable
-fun ExplorerClipboardBar(
+fun ClipboardBar(
     modifier: Modifier = Modifier,
     initialExpanded: Boolean = false,
     clipboardEntries: List<ClipboardClip>,
@@ -204,12 +207,12 @@ private fun ClipboardHeaderRow(
             ) {
                 Icon(
                     imageVector = Icons.TwoTone.ExpandLess,
-                    contentDescription = "Hide clipboard",
+                    contentDescription = stringResource(R.string.clipboard_hide),
                     modifier = Modifier.size(14.dp),
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "Hide clipboard",
+                    text = stringResource(R.string.clipboard_hide),
                     style = MaterialTheme.typography.labelSmall,
                 )
             }
@@ -231,7 +234,7 @@ private fun ClipboardHeaderRow(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "Clear All",
+                    text = stringResource(R.string.clipboard_clear_all),
                     style = MaterialTheme.typography.labelSmall,
                 )
             }
@@ -252,12 +255,12 @@ private fun ClipboardHeaderRow(
             ) {
                 Icon(
                     imageVector = Icons.TwoTone.ExpandMore,
-                    contentDescription = "Show more",
+                    contentDescription = stringResource(R.string.clipboard_show_more),
                     modifier = Modifier.size(14.dp),
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "Show more ($entryCount items)",
+                    text = stringResource(R.string.clipboard_show_more_items, entryCount),
                     style = MaterialTheme.typography.labelSmall,
                 )
             }
@@ -314,13 +317,13 @@ private fun SwipeToDismissEntry(
                 ) {
                     Icon(
                         imageVector = Icons.TwoTone.Close,
-                        contentDescription = "Dismiss",
+                        contentDescription = stringResource(CommonR.string.general_dismiss_action),
                         tint = MaterialTheme.colorScheme.onErrorContainer,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Dismiss",
+                        text = stringResource(CommonR.string.general_dismiss_action),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onErrorContainer
                     )
@@ -440,7 +443,7 @@ private fun ClipboardEntry(
                             Spacer(modifier = Modifier.width(6.dp))
 
                             Text(
-                                text = "Origin: Workspace ${entry.origin.shortTag}",
+                                text = stringResource(R.string.clipboard_origin, entry.origin.shortTag),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                                 maxLines = 1,
@@ -507,7 +510,7 @@ private fun ClipboardEntry(
                 ) {
                     Icon(
                         imageVector = Icons.TwoTone.ContentPaste,
-                        contentDescription = "Paste",
+                        contentDescription = stringResource(R.string.clipboard_paste),
                         modifier = Modifier.size(20.dp),
                         tint = MaterialTheme.colorScheme.primary,
                     )
@@ -518,20 +521,22 @@ private fun ClipboardEntry(
 }
 
 
+@Composable
 private fun formatClipboardTitle(entry: ClipboardClip.Paths): String {
     val action = when (entry.mode) {
-        ClipboardClip.Paths.Mode.COPY -> "Copy"
-        ClipboardClip.Paths.Mode.CUT -> "Cut"
+        ClipboardClip.Paths.Mode.COPY -> stringResource(R.string.clipboard_copy)
+        ClipboardClip.Paths.Mode.CUT -> stringResource(R.string.clipboard_cut)
     }
 
     val count = entry.paths.size
     return when {
         count == 1 -> "$action ${entry.paths.first().name}"
-        count > 1 -> "$action $count items"
+        count > 1 -> stringResource(R.string.clipboard_items_count, count).let { "$action $it" }
         else -> action
     }
 }
 
+@Composable
 private fun formatClipboardSubtitle(entry: ClipboardClip.Paths): String {
     if (entry.paths.isEmpty()) return ""
 
@@ -542,7 +547,7 @@ private fun formatClipboardSubtitle(entry: ClipboardClip.Paths): String {
         "/"
     }
 
-    return "from $parentName"
+    return stringResource(R.string.clipboard_from, parentName)
 }
 
 private fun formatTimestamp(instant: kotlin.time.Instant): String {
@@ -575,7 +580,7 @@ private fun formatTimestamp(instant: kotlin.time.Instant): String {
 
 @Preview2
 @Composable
-fun ExplorerClipboardBarPreview() {
+fun ClipboardBarPreview() {
     val mockEntries = listOf(
         ClipboardClip.Paths(
             origin = Workspace.Id(UUID.randomUUID()),
@@ -598,7 +603,7 @@ fun ExplorerClipboardBarPreview() {
     )
 
     PreviewWrapper {
-        ExplorerClipboardBar(
+        ClipboardBar(
             clipboardEntries = mockEntries,
             onPasteClick = {},
             onRemoveClick = {},
@@ -608,7 +613,7 @@ fun ExplorerClipboardBarPreview() {
 
 @Preview2
 @Composable
-fun ExplorerClipboardBarExpandedPreview() {
+fun ClipboardBarExpandedPreview() {
     val mockEntries = listOf(
         ClipboardClip.Paths(
             origin = Workspace.Id(UUID.randomUUID()),
@@ -644,7 +649,7 @@ fun ExplorerClipboardBarExpandedPreview() {
                 .background(MaterialTheme.colorScheme.background)
                 .padding(16.dp)
         ) {
-            ExplorerClipboardBar(
+            ClipboardBar(
                 initialExpanded = true,
                 clipboardEntries = mockEntries,
                 onPasteClick = {},
