@@ -88,24 +88,25 @@ fastlane android production
 ## Coding Standards
 
 - Package by feature, not by layer.
-- Extract user-facing text to `strings.xml`.
+- All user facing strings should be extract to `values/strings.xml` and translated for all other languages too.
 - Prefer adding to existing files unless creating new logical components.
 - Write tests for web APIs and serialized data.
 - No UI tests required.
 - Use FOSS debug flavor for local testing.
 - Place compose previews below the item being previewed.
 - Don't add code comments for obvious code.
+- Write minimalistic and concise code (omit comments).
+- Prefer flow based solutions.
+- Prefer reactive programming.
 - When using `if` that is not single-line, always use brackets.
 - Always add trailing commas.
 - In `@Composable` functions, the parameter `modifier: Modifier = Modifier,` should be the first parameter.
-- We don't need `@OptIn(ExperimentalMaterial3Api:class)` as we have this enabled project wide via `freeCompilerArgs`.
 
 ## Agent instructions
 
 - Reminder: Our core principle is to maintain focused contexts for both yourself (the orchestrator/main agent) and each sub-agent. Therefore, please use the Task tool to delegate suitable tasks to sub-agents to improve task efficiency and optimize token usage.
 - Be critical.
 - Challenge suggestions.
-- Do not add comments.
 
 ## Development Guidelines
 
@@ -122,6 +123,7 @@ fastlane android production
 - Coil for image loading.
 - Room for database operations.
 - Use `FlowCombineExtensions` instead of nesting multiple combine statements.
+- We don't need `@OptIn(ExperimentalMaterial3Api:class)` as we have this enabled project wide via `freeCompilerArgs`.
 
 #### Dependency Injection
 
