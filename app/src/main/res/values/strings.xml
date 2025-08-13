@@ -13,7 +13,7 @@
     <string name="onboarding_workspaces_title">Work in Tabs</string>
     <string name="onboarding_workspaces_message">Open multiple tabs and switch between them - just like your web browser</string>
     <string name="onboarding_workspaces_action">Continue</string>
-    <string name="onboarding_workspaces_hint">← Swipe to switch tabs →</string>
+    <string name="onboarding_workspaces_hint">Keep multiple workspaces open simultaneously</string>
     <string name="onboarding_workspaces_explorer_title">Explorer</string>
     <string name="onboarding_workspaces_explorer_description">Browse your files</string>
     <string name="onboarding_workspaces_searcher_title">Searcher</string>
