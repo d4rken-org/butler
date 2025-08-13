@@ -23,6 +23,8 @@ import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.ContentPaste
 import androidx.compose.material.icons.twotone.ExpandLess
 import androidx.compose.material.icons.twotone.ExpandMore
+import androidx.compose.material.icons.twotone.FolderOpen
+import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -130,13 +132,15 @@ private fun ClipboardHeaderRow(
 ) {
     Row(
         modifier = modifier.fillMaxWidth().padding(horizontal = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = if (isExpanded) Arrangement.SpaceBetween else Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Collapse/Expand button with forced height
+        // Collapse/Expand button with conditional width
         TextButton(
             onClick = onExpandClick,
-            modifier = Modifier.height(40.dp),
+            modifier = Modifier
+                .height(32.dp)
+                .then(if (isExpanded) Modifier else Modifier.fillMaxWidth()),
             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
         ) {
             Icon(
@@ -155,8 +159,8 @@ private fun ClipboardHeaderRow(
         if (isExpanded) {
             TextButton(
                 onClick = onClearAllClick,
-                modifier = Modifier.height(40.dp),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+                modifier = Modifier.height(32.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
             ) {
                 Icon(
                     imageVector = Icons.TwoTone.ClearAll,
@@ -190,74 +194,158 @@ private fun ClipboardEntry(
     ) {
         when (entry) {
             is ClipboardClip.Paths -> {
-                // Copy/Cut Icon at very left
-                Icon(
-                    imageVector = when (entry.mode) {
-                        ClipboardClip.Paths.Mode.COPY -> Icons.TwoTone.ContentCopy
-                        ClipboardClip.Paths.Mode.CUT -> Icons.TwoTone.ContentCut
-                    },
-                    contentDescription = entry.mode.name,
-                    modifier = Modifier.size(20.dp),
-                    tint = when (entry.mode) {
-                        ClipboardClip.Paths.Mode.COPY -> MaterialTheme.colorScheme.primary
-                        ClipboardClip.Paths.Mode.CUT -> MaterialTheme.colorScheme.tertiary
-                    }
-                )
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                // Vertical column for all text content
-                Column(
-                    modifier = Modifier.weight(1f),
-                ) {
-                    // First text row: Title + Timestamp
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
+                if (showOrigin) {
+                    // EXPANDED MODE: Detailed design with icons for each row
+                    Column(
+                        modifier = Modifier.weight(1f),
                     ) {
-                        // Title text (takes most space)
-                        Text(
-                            text = formatClipboardTitle(entry),
-                            style = MaterialTheme.typography.bodyMedium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f),
-                        )
+                        // First text row: Copy/Cut icon + Title + Timestamp
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            // Copy/Cut Icon (smaller)
+                            Icon(
+                                imageVector = when (entry.mode) {
+                                    ClipboardClip.Paths.Mode.COPY -> Icons.TwoTone.ContentCopy
+                                    ClipboardClip.Paths.Mode.CUT -> Icons.TwoTone.ContentCut
+                                },
+                                contentDescription = entry.mode.name,
+                                modifier = Modifier.size(12.dp),
+                                tint = when (entry.mode) {
+                                    ClipboardClip.Paths.Mode.COPY -> MaterialTheme.colorScheme.primary
+                                    ClipboardClip.Paths.Mode.CUT -> MaterialTheme.colorScheme.tertiary
+                                }
+                            )
 
-                        // Timestamp
-                        Text(
-                            text = formatTimestamp(entry.clippedAt),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 8.dp, end = 8.dp),
-                        )
+                            Spacer(modifier = Modifier.width(6.dp))
+
+                            // Title text (takes most space)
+                            Text(
+                                text = formatClipboardTitle(entry),
+                                style = MaterialTheme.typography.bodyMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f),
+                            )
+
+                            // Timestamp
+                            Text(
+                                text = formatTimestamp(entry.clippedAt),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(start = 8.dp, end = 8.dp),
+                            )
+                        }
+
+                        // Second text row: Folder icon + Subtitle
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            // Source/From Icon
+                            Icon(
+                                imageVector = Icons.TwoTone.FolderOpen,
+                                contentDescription = null,
+                                modifier = Modifier.size(12.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+
+                            Spacer(modifier = Modifier.width(6.dp))
+
+                            Text(
+                                text = formatClipboardSubtitle(entry),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+
+                        // Third text row: Workspace icon + Origin
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            // Workspace Icon
+                            Icon(
+                                imageVector = Icons.TwoTone.Workspaces,
+                                contentDescription = null,
+                                modifier = Modifier.size(12.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            )
+
+                            Spacer(modifier = Modifier.width(6.dp))
+
+                            Text(
+                                text = "Origin: Workspace ${entry.origin.shortTag}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
                     }
-
-                    // Second text row: Subtitle
-                    Text(
-                        text = formatClipboardSubtitle(entry),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                } else {
+                    // COLLAPSED MODE: Simple design without individual icons
+                    Icon(
+                        imageVector = when (entry.mode) {
+                            ClipboardClip.Paths.Mode.COPY -> Icons.TwoTone.ContentCopy
+                            ClipboardClip.Paths.Mode.CUT -> Icons.TwoTone.ContentCut
+                        },
+                        contentDescription = entry.mode.name,
+                        modifier = Modifier.size(20.dp),
+                        tint = when (entry.mode) {
+                            ClipboardClip.Paths.Mode.COPY -> MaterialTheme.colorScheme.primary
+                            ClipboardClip.Paths.Mode.CUT -> MaterialTheme.colorScheme.tertiary
+                        }
                     )
 
-                    // Third text row: Origin (only in expanded mode)
-                    if (showOrigin) {
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column(
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        // Title + Timestamp row
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = formatClipboardTitle(entry),
+                                style = MaterialTheme.typography.bodyMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f),
+                            )
+
+                            Text(
+                                text = formatTimestamp(entry.clippedAt),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(start = 8.dp, end = 8.dp),
+                            )
+                        }
+
+                        // Simple subtitle
                         Text(
-                            text = "Origin: Workspace ${entry.origin.shortTag}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            text = formatClipboardSubtitle(entry),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
                 }
 
-                // Paste button (vertically centered with entire content)
-                IconButton(
-                    onClick = onPasteClick,
-                    modifier = Modifier.size(32.dp),
+                // Paste button matching text content height
+                Box(
+                    modifier = Modifier
+                        .width(32.dp)
+                        .clickable { onPasteClick() },
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = Icons.TwoTone.ContentPaste,
