@@ -27,6 +27,8 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
+import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -41,6 +43,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     dispatchers: DispatcherProvider,
     private val workspaceProvider: WorkspaceProvider,
     private val actionProvider: DefaultActionProvider,
+    private val clipboardRepo: ClipboardRepo,
 ) : ViewModel3(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
 
     enum class ViewMode {
@@ -50,7 +53,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
     private val viewModeFlow = MutableStateFlow(ViewMode.LIST)
-    private val clipboardFlow = MutableStateFlow<ClipboardState?>(null)
     private val dialogStateFlow = MutableStateFlow<ExplorerDialogState>(ExplorerDialogState.None)
 
     val dialogEvents = SingleEventFlow<ExplorerDialogEvent>()
@@ -67,7 +69,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         workspaceState,
         selectedItemsFlow,
         viewModeFlow,
-        clipboardFlow,
+        clipboardRepo.state,
         dialogStateFlow,
     ) { wsState, selectedItems, viewMode, clipboard, dialogState ->
         val items = wsState.currentLocation?.items ?: emptyList()
@@ -75,7 +77,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val selectionState = ExplorerSelectionState(
             selectedItems = selectedItems,
             selectableItems = items.filter { it is ExplorerItem.PathItem }.map { it.id }.toSet(),
-            hasClipboard = clipboard != null,
         )
 
         val availableActions = wsState.currentLocation?.let {
@@ -97,6 +98,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             canGoForward = wsState.canGoForward,
             availableActions = availableActions,
             dialogState = dialogState,
+            clipboardEntries = clipboard.entries,
         )
     }.asStateFlow()
 
@@ -183,24 +185,32 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerAction.Directory.Copy -> {
                 log(tag) { "copySelectedItems(): ${selectedItemsFlow.value.size} items" }
                 val selected = selectedItemsFlow.value
-                if (selected.isNotEmpty()) {
-                    clipboardFlow.value = ClipboardState(
-                        items = selected,
-                        isCut = false,
-                    )
-                    clearSelection()
-                }
+                if (selected.isEmpty()) return@launch
+                val clip = ClipboardClip.Paths(
+                    mode = ClipboardClip.Paths.Mode.COPY,
+                    origin = getWorkspace().id,
+                    paths = stateSnap.items
+                        .filter { it.id in selected }
+                        .filterIsInstance<ExplorerItem.PathItem>()
+                        .map { it.lookup.lookedUp },
+                )
+                clipboardRepo.add(clip)
+                clearSelection()
             }
             is ExplorerAction.Directory.Cut -> {
                 log(tag) { "cutSelectedItems(): ${selectedItemsFlow.value.size} items" }
                 val selected = selectedItemsFlow.value
-                if (selected.isNotEmpty()) {
-                    clipboardFlow.value = ClipboardState(
-                        items = selected,
-                        isCut = true,
-                    )
-                    clearSelection()
-                }
+                if (selected.isEmpty()) return@launch
+                val clip = ClipboardClip.Paths(
+                    mode = ClipboardClip.Paths.Mode.CUT,
+                    origin = getWorkspace().id,
+                    paths = stateSnap.items
+                        .filter { it.id in selected }
+                        .filterIsInstance<ExplorerItem.PathItem>()
+                        .map { it.lookup.lookedUp },
+                )
+                clipboardRepo.add(clip)
+                clearSelection()
             }
             is ExplorerAction.Directory.Delete -> {
                 log(tag) { "deleteSelectedItems(): ${selectedItemsFlow.value.size} items" }
@@ -230,41 +240,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerAction.Directory.Paste -> {
                 log(tag) { "pasteItems()" }
-                val clipboard = clipboardFlow.value
-                if (clipboard != null) {
-                    val currentLocation = stateSnap.currentLocation
-                    if (currentLocation is ExplorerLocation.Directory) {
-                        // Convert string paths to APath objects
-                        val sourcePaths = clipboard.items.mapNotNull { pathString ->
-                            try {
-                                LocalPath.build(pathString)
-                            } catch (e: Exception) {
-                                log(tag, WARN) { "Failed to parse path: $pathString" }
-                                null
-                            }
-                        }.toSet()
-
-                        if (sourcePaths.isNotEmpty()) {
-                            val operation = if (clipboard.isCut) {
-                                ExplorerOperation.FileOp.Move(
-                                    sources = sourcePaths,
-                                    destination = currentLocation.path
-                                )
-                            } else {
-                                ExplorerOperation.FileOp.Copy(
-                                    sources = sourcePaths,
-                                    destination = currentLocation.path
-                                )
-                            }
-
-                            getWorkspace().execute(operation)
-
-                            if (clipboard.isCut) {
-                                clipboardFlow.value = null
-                            }
-                        }
-                    }
-                }
+                // TODO: Implement paste operation
             }
             is ExplorerAction.Directory.SelectAll -> {
                 log(tag) { "selectAll()" }
@@ -374,6 +350,42 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         )
     }
 
+    fun pasteClipboard(clip: ClipboardClip) = launch {
+        log(tag) { "pasteClipboard($clip)" }
+        when (clip) {
+            is ClipboardClip.Paths -> {
+                val currentLocation = state.first().currentLocation
+                if (currentLocation is ExplorerLocation.Directory) {
+                    val operation = when (clip.mode) {
+                        ClipboardClip.Paths.Mode.COPY -> ExplorerOperation.FileOp.Copy(
+                            sources = clip.paths.toSet(),
+                            destination = currentLocation.path,
+                        )
+                        ClipboardClip.Paths.Mode.CUT -> ExplorerOperation.FileOp.Move(
+                            sources = clip.paths.toSet(),
+                            destination = currentLocation.path,
+                        )
+                    }
+                    getWorkspace().execute(operation)
+                    
+                    if (clip.mode == ClipboardClip.Paths.Mode.CUT) {
+                        clipboardRepo.remove(clip.id)
+                    }
+                }
+            }
+        }
+    }
+
+    fun removeClipboardEntry(clip: ClipboardClip) = launch {
+        log(tag) { "removeClipboardEntry($clip)" }
+        clipboardRepo.remove(clip.id)
+    }
+
+    fun clearAllClipboard() = launch {
+        log(tag) { "clearAllClipboard()" }
+        clipboardRepo.clear()
+    }
+
     data class State(
         val currentLocation: ExplorerLocation? = null,
         val breadcrumbs: List<ExplorerBreadcrumb> = emptyList(),
@@ -387,6 +399,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val canGoForward: Boolean = false,
         val availableActions: List<ExplorerAction> = emptyList(),
         val dialogState: ExplorerDialogState = ExplorerDialogState.None,
+        val clipboardEntries: List<ClipboardClip> = emptyList(),
     )
 
     data class ClipboardState(

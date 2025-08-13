@@ -48,14 +48,6 @@ class DirectoryActionProvider @Inject constructor() : ExplorerActionProvider {
                 )
             )
 
-            if (selectionState.hasClipboard) {
-                actions.add(
-                    ExplorerAction.Directory.Paste(
-                        isEnabled = isWritable,
-                    )
-                )
-            }
-
             actions.add(ExplorerAction.Common.Sort())
             actions.add(ExplorerAction.Common.Filter())
             actions.add(ExplorerAction.Common.ToggleView())

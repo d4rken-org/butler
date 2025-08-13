@@ -94,7 +94,7 @@ fastlane android production
 - No UI tests required.
 - Use FOSS debug flavor for local testing.
 - Place compose previews below the item being previewed.
-- Don't code comments for obvious code.
+- Don't add code comments for obvious code.
 - When using `if` that is not single-line, always use brackets.
 - Always add trailing commas.
 - In `@Composable` functions, the parameter `modifier: Modifier = Modifier,` should be the first parameter.

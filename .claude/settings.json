@@ -8,6 +8,7 @@
 	  "Bash(./gradlew:*)",
 	  "Bash(rg:*)",
 	  "Bash(done)",
+	  "Bash(sed:*)",
 	  "Bash(rm:*)",
 	  "Bash(cp:*)",
 	  "Bash(mkdir:*)",

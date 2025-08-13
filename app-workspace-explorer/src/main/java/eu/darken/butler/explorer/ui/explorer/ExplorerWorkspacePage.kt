@@ -158,33 +158,38 @@ fun ExplorerWorkspacePage(
                 )
             },
         ) { paddingValues ->
-            if (state.isLoading) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    CircularProgressIndicator()
-                    Text(
-                        text = "Loading...",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(top = 16.dp)
-                    )
-                }
-            } else if (state.items.isEmpty()) {
-                EmptyFolderState(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = paddingValues.calculateTopPadding())
+            ) {
+                // InfoBar moved to top
+                ExplorerInfoBar(
+                    info = state.currentLocation?.info,
+                    selectedCount = state.selectionState.selectedItems.size,
                 )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = paddingValues.calculateTopPadding())
-                ) {
+                
+                if (state.isLoading) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator()
+                        Text(
+                            text = "Loading...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(top = 16.dp)
+                        )
+                    }
+                } else if (state.items.isEmpty()) {
+                    EmptyFolderState(
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
                     if (state.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
                         LazyColumn(
                             state = listState,
@@ -196,7 +201,10 @@ fun ExplorerWorkspacePage(
                                 start = 12.dp,
                                 end = 12.dp,
                                 top = 12.dp,
-                                bottom = if (isBottomBarVisible) 88.dp else 12.dp
+                                bottom = if (isBottomBarVisible) {
+                                    val clipboardHeight = if (state.clipboardEntries.isNotEmpty()) 80.dp else 0.dp
+                                    48.dp + clipboardHeight
+                                } else 12.dp
                             )
                         ) {
                             items(state.items) { item ->
@@ -235,7 +243,10 @@ fun ExplorerWorkspacePage(
                                 start = 2.dp,
                                 end = 2.dp,
                                 top = 2.dp,
-                                bottom = if (isBottomBarVisible) 78.dp else 2.dp
+                                bottom = if (isBottomBarVisible) {
+                                    val clipboardHeight = if (state.clipboardEntries.isNotEmpty()) 80.dp else 0.dp
+                                    48.dp + clipboardHeight
+                                } else 2.dp
                             )
                         ) {
                             items(state.items) { item ->
@@ -277,27 +288,41 @@ fun ExplorerWorkspacePage(
                         }
                     }
                 }
+                }
             }
         }
 
+        // Floating ClipboardBar
         AnimatedVisibility(
-            visible = isBottomBarVisible,
+            visible = state.clipboardEntries.isNotEmpty(),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = 8.dp, vertical = if (isBottomBarVisible && state.availableActions.isNotEmpty()) 56.dp else 8.dp),
+            enter = slideInVertically { it },
+            exit = slideOutVertically { it },
+        ) {
+            ExplorerClipboardBar(
+                clipboardEntries = state.clipboardEntries,
+                onPasteClick = { clip -> vm?.pasteClipboard(clip) },
+                onRemoveClick = { clip -> vm?.removeClipboardEntry(clip) },
+                onEntryClick = { clip ->
+                    // TODO: Show detailed clipboard dialog
+                },
+                onClearAll = { vm?.clearAllClipboard() },
+            )
+        }
+
+        // Bottom ActionBar
+        AnimatedVisibility(
+            visible = isBottomBarVisible && state.availableActions.isNotEmpty(),
             modifier = Modifier.align(Alignment.BottomCenter),
             enter = slideInVertically { it },
             exit = slideOutVertically { it },
         ) {
-            Column {
-                ExplorerInfoBar(
-                    info = state.currentLocation?.info,
-                    selectedCount = state.selectionState.selectedItems.size,
-                )
-                if (state.availableActions.isNotEmpty()) {
-                    ExplorerActionBar(
-                        actions = state.availableActions,
-                        onActionClick = { action -> vm?.executeAction(action) },
-                    )
-                }
-            }
+            ExplorerActionBar(
+                actions = state.availableActions,
+                onActionClick = { action -> vm?.executeAction(action) },
+            )
         }
 
         ExplorerDialogHost(
