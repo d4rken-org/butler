@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -56,10 +57,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import android.icu.text.RelativeDateTimeFormatter
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.workspace.core.Workspace
+import java.util.Locale
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import java.util.UUID
 import kotlin.time.Clock
@@ -132,8 +135,8 @@ fun ExplorerClipboardBar(
                             onClearAllClick = { clearAllAnimationTrigger = System.currentTimeMillis() },
                         )
                         HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                            modifier = Modifier.padding(horizontal = 32.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                         )
                     }
                 }
@@ -498,17 +501,14 @@ private fun ClipboardEntry(
                     }
                 }
 
-                // Paste button matching text content height
-                Box(
-                    modifier = Modifier
-                        .width(32.dp)
-                        .clickable { onPasteClick() },
-                    contentAlignment = Alignment.Center,
+                // Paste button
+                IconButton(
+                    onClick = onPasteClick
                 ) {
                     Icon(
                         imageVector = Icons.TwoTone.ContentPaste,
                         contentDescription = "Paste",
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(24.dp),
                         tint = MaterialTheme.colorScheme.primary,
                     )
                 }
@@ -536,9 +536,8 @@ private fun formatClipboardSubtitle(entry: ClipboardClip.Paths): String {
     if (entry.paths.isEmpty()) return ""
 
     val firstPath = entry.paths.first()
-    val pathSegments = firstPath.path.split("/").filter { it.isNotEmpty() }
-    val parentName = if (pathSegments.size > 1) {
-        pathSegments[pathSegments.size - 2]
+    val parentName = if (firstPath.segments.size > 1) {
+        firstPath.segments[firstPath.segments.size - 2]
     } else {
         "/"
     }
@@ -547,13 +546,30 @@ private fun formatClipboardSubtitle(entry: ClipboardClip.Paths): String {
 }
 
 private fun formatTimestamp(instant: kotlin.time.Instant): String {
+    val formatter = RelativeDateTimeFormatter.getInstance(Locale.getDefault())
     val duration = Clock.System.now() - instant
-
+    
     return when {
-        duration.inWholeMinutes < 1 -> "just now"
-        duration.inWholeMinutes < 60 -> "${duration.inWholeMinutes}m ago"
-        duration.inWholeHours < 24 -> "${duration.inWholeHours}h ago"
-        else -> "${duration.inWholeDays}d ago"
+        duration.inWholeMinutes < 1 -> formatter.format(
+            0.0,
+            RelativeDateTimeFormatter.Direction.LAST,
+            RelativeDateTimeFormatter.RelativeUnit.MINUTES
+        )
+        duration.inWholeMinutes < 60 -> formatter.format(
+            duration.inWholeMinutes.toDouble(),
+            RelativeDateTimeFormatter.Direction.LAST,
+            RelativeDateTimeFormatter.RelativeUnit.MINUTES
+        )
+        duration.inWholeHours < 24 -> formatter.format(
+            duration.inWholeHours.toDouble(),
+            RelativeDateTimeFormatter.Direction.LAST,
+            RelativeDateTimeFormatter.RelativeUnit.HOURS
+        )
+        else -> formatter.format(
+            duration.inWholeDays.toDouble(),
+            RelativeDateTimeFormatter.Direction.LAST,
+            RelativeDateTimeFormatter.RelativeUnit.DAYS
+        )
     }
 }
 

@@ -151,5 +151,6 @@ fastlane android production
 #### General
 
 - Abstract path system (`APath`, `RawPath`).
+  - `APath` offers path segment infos via `segments`. Use that instead of path splitting.
 - Gateway pattern for different file access methods.
 - Support for root, ADB, and shell operations.
