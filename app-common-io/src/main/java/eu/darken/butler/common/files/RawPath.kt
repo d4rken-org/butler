@@ -18,7 +18,7 @@ data class RawPath(
         get() = path.substringAfterLast(File.separatorChar)
 
     override val segments: List<String>
-        get() = throw NotImplementedError()
+        get() = LocalPath.build(path).segments
 
     override fun child(vararg segments: String): APath {
         throw NotImplementedError()

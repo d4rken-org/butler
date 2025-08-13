@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer
 
+import android.icu.text.RelativeDateTimeFormatter
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
@@ -17,7 +18,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,13 +27,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ClearAll
+import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.ContentPaste
 import androidx.compose.material.icons.twotone.ExpandLess
 import androidx.compose.material.icons.twotone.ExpandMore
 import androidx.compose.material.icons.twotone.FolderOpen
-import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -50,6 +50,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -57,13 +58,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import android.icu.text.RelativeDateTimeFormatter
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.workspace.core.Workspace
-import java.util.Locale
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import java.util.Locale
 import java.util.UUID
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
@@ -84,7 +84,7 @@ fun ExplorerClipboardBar(
     }
     
     // State for cascading clear all animation
-    var clearAllAnimationTrigger by remember { mutableStateOf(0L) }
+    var clearAllAnimationTrigger by remember { mutableLongStateOf(0L) }
     
     // Handle cascading clear all animation
     LaunchedEffect(clearAllAnimationTrigger) {
@@ -508,7 +508,7 @@ private fun ClipboardEntry(
                     Icon(
                         imageVector = Icons.TwoTone.ContentPaste,
                         contentDescription = "Paste",
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(20.dp),
                         tint = MaterialTheme.colorScheme.primary,
                     )
                 }
