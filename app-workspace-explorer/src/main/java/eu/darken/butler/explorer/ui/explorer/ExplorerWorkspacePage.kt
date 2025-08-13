@@ -306,7 +306,7 @@ fun ExplorerWorkspacePage(
                 onPasteClick = { clip -> vm?.pasteClipboard(clip) },
                 onRemoveClick = { clip -> vm?.removeClipboardEntry(clip) },
                 onEntryClick = { clip ->
-                    // TODO: Show detailed clipboard dialog
+                    // TODO: Show detailed clipboard info dialog with file details, navigation options, and preview
                 },
                 onClearAll = { vm?.clearAllClipboard() },
             )

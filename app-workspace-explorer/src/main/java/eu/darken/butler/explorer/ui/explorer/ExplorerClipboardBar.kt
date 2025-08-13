@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -31,6 +32,7 @@ import androidx.compose.material.icons.twotone.ContentPaste
 import androidx.compose.material.icons.twotone.ExpandLess
 import androidx.compose.material.icons.twotone.ExpandMore
 import androidx.compose.material.icons.twotone.FolderOpen
+import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -38,10 +40,15 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -71,6 +78,19 @@ fun ExplorerClipboardBar(
     // Preserve expansion state across clipboard changes
     var isExpanded by remember(clipboardEntries.size > 1) { 
         mutableStateOf(initialExpanded) 
+    }
+    
+    // State for cascading clear all animation
+    var clearAllAnimationTrigger by remember { mutableStateOf(0L) }
+    
+    // Handle cascading clear all animation
+    LaunchedEffect(clearAllAnimationTrigger) {
+        if (clearAllAnimationTrigger > 0L) {
+            // Wait for all swipe animations to complete before clearing
+            val totalAnimationTime = (clipboardEntries.size * 300L) + 800L
+            kotlinx.coroutines.delay(totalAnimationTime)
+            onClearAll()
+        }
     }
     
     val maxEntries = 4
@@ -109,7 +129,7 @@ fun ExplorerClipboardBar(
                             isExpanded = isExpanded,
                             entryCount = clipboardEntries.size,
                             onExpandClick = { isExpanded = !isExpanded },
-                            onClearAllClick = onClearAll,
+                            onClearAllClick = { clearAllAnimationTrigger = System.currentTimeMillis() },
                         )
                         HorizontalDivider(
                             modifier = Modifier.padding(horizontal = 16.dp),
@@ -119,27 +139,37 @@ fun ExplorerClipboardBar(
                 }
 
                 // Additional entries (when expanded) - already in correct order (oldest first)
-                additionalEntries.forEach { entry ->
-                    ClipboardEntry(
-                        entry = entry,
-                        onPasteClick = { onPasteClick(entry) },
-                        onEntryClick = { onEntryClick(entry) },
-                        showOrigin = true, // Show origin for expanded entries
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 32.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                    )
+                additionalEntries.forEachIndexed { index, entry ->
+                    key(entry.id) {
+                        SwipeToDismissEntry(
+                            entry = entry,
+                            onPasteClick = { onPasteClick(entry) },
+                            onEntryClick = { onEntryClick(entry) },
+                            onRemoveClick = { onRemoveClick(entry) },
+                            showOrigin = true, // Show origin for expanded entries
+                            triggerDismiss = clearAllAnimationTrigger,
+                            dismissDelay = index * 300L, // Cascade delay
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 32.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        )
+                    }
                 }
 
                 // Latest entry (always at bottom)
                 latestEntry?.let { entry ->
-                    ClipboardEntry(
-                        entry = entry,
-                        onPasteClick = { onPasteClick(entry) },
-                        onEntryClick = { onEntryClick(entry) },
-                        showOrigin = isExpanded,
-                    )
+                    key(entry.id) {
+                        SwipeToDismissEntry(
+                            entry = entry,
+                            onPasteClick = { onPasteClick(entry) },
+                            onEntryClick = { onEntryClick(entry) },
+                            onRemoveClick = { onRemoveClick(entry) },
+                            showOrigin = isExpanded,
+                            triggerDismiss = clearAllAnimationTrigger,
+                            dismissDelay = additionalEntries.size * 300L, // Latest entry has longest delay
+                        )
+                    }
                 }
             }
         }
@@ -157,7 +187,7 @@ private fun ClipboardHeaderRow(
     if (isExpanded) {
         // Expanded mode: Two buttons spanning full width
         Row(
-            modifier = modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            modifier = modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -206,7 +236,7 @@ private fun ClipboardHeaderRow(
     } else {
         // Collapsed mode: Single expand button fills full width
         Row(
-            modifier = modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            modifier = modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -233,6 +263,78 @@ private fun ClipboardHeaderRow(
 }
 
 @Composable
+private fun SwipeToDismissEntry(
+    modifier: Modifier = Modifier,
+    entry: ClipboardClip,
+    onPasteClick: () -> Unit,
+    onEntryClick: () -> Unit,
+    onRemoveClick: () -> Unit,
+    showOrigin: Boolean = false,
+    triggerDismiss: Long = 0L,
+    dismissDelay: Long = 0L,
+) {
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { dismissValue ->
+            when (dismissValue) {
+                SwipeToDismissBoxValue.EndToStart -> {
+                    onRemoveClick()
+                    true
+                }
+                else -> false
+            }
+        }
+    )
+    
+    // Handle programmatic dismiss trigger for clear all animation
+    LaunchedEffect(triggerDismiss) {
+        if (triggerDismiss > 0L) {
+            kotlinx.coroutines.delay(dismissDelay)
+            dismissState.dismiss(SwipeToDismissBoxValue.EndToStart)
+        }
+    }
+
+    SwipeToDismissBox(
+        state = dismissState,
+        modifier = modifier,
+        enableDismissFromStartToEnd = false,
+        backgroundContent = {
+            // Red background with close icon and text when swiping
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.errorContainer)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Close,
+                        contentDescription = "Dismiss",
+                        tint = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Dismiss",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                }
+            }
+        }
+    ) {
+        ClipboardEntry(
+            entry = entry,
+            onPasteClick = onPasteClick,
+            onEntryClick = onEntryClick,
+            showOrigin = showOrigin,
+        )
+    }
+}
+
+@Composable
 private fun ClipboardEntry(
     modifier: Modifier = Modifier,
     entry: ClipboardClip,
@@ -243,6 +345,7 @@ private fun ClipboardEntry(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
             .clickable { onEntryClick() }
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
