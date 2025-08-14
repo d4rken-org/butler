@@ -19,15 +19,18 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import eu.darken.butler.explorer.R
 import kotlin.random.Random
 
 @Composable
 fun EmptyFolderState(
     modifier: Modifier = Modifier,
     icon: ImageVector = Icons.TwoTone.FolderOpen,
-    title: String = "This folder is empty",
+    title: String? = null,
     caption: String? = null
 ) {
+    val defaultTitle = stringResource(R.string.explorer_empty_folder_title)
     val randomCaption = remember {
         caption ?: funnyEmptyFolderCaptions.random()
     }
@@ -49,7 +52,7 @@ fun EmptyFolderState(
             )
             
             Text(
-                text = title,
+                text = title ?: defaultTitle,
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
@@ -98,8 +101,8 @@ fun EmptyFolderStatePreview() {
 fun EmptyFolderStateCustomPreview() {
     MaterialTheme {
         EmptyFolderState(
-            title = "No search results",
-            caption = "Try a different search term"
+            title = stringResource(R.string.explorer_empty_search_title),
+            caption = stringResource(R.string.explorer_empty_search_caption)
         )
     }
 }

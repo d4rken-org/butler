@@ -28,9 +28,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.R
 
 @Composable
 fun ExplorerInfoBar(
@@ -77,7 +79,7 @@ fun ExplorerInfoBar(
                         if (info.directoryCount == 0 && info.fileCount == 0) {
                             InfoChip(
                                 icon = Icons.TwoTone.Folder,
-                                label = "Empty folder",
+                                label = stringResource(R.string.explorer_empty_folder_label),
                             )
                         }
                     }

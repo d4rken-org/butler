@@ -18,10 +18,13 @@ import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.ui.graphics.vector.ImageVector
+import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.explorer.R
 
 sealed interface ExplorerAction {
     val icon: ImageVector
-    val label: String
+    val label: CaString
     val isVisible: Boolean get() = true
     val isEnabled: Boolean get() = true
     val isDestructive: Boolean get() = false
@@ -40,7 +43,7 @@ sealed interface ExplorerAction {
             override val group: Group = Group.PRIMARY,
         ) : Common {
             override val icon = Icons.TwoTone.Refresh
-            override val label = "Refresh"
+            override val label = R.string.explorer_action_refresh.toCaString()
         }
 
         data class Sort(
@@ -48,7 +51,7 @@ sealed interface ExplorerAction {
             override val group: Group = Group.SECONDARY,
         ) : Common {
             override val icon = Icons.AutoMirrored.TwoTone.Sort
-            override val label = "Sort"
+            override val label = R.string.explorer_action_sort.toCaString()
         }
 
         data class Filter(
@@ -56,7 +59,7 @@ sealed interface ExplorerAction {
             override val group: Group = Group.SECONDARY,
         ) : Common {
             override val icon = Icons.TwoTone.FilterList
-            override val label = "Filter"
+            override val label = R.string.explorer_action_filter.toCaString()
         }
 
         data class ToggleView(
@@ -64,7 +67,7 @@ sealed interface ExplorerAction {
             override val group: Group = Group.SECONDARY,
         ) : Common {
             override val icon = Icons.TwoTone.GridView
-            override val label = "View"
+            override val label = R.string.explorer_action_view.toCaString()
         }
     }
 
@@ -75,7 +78,7 @@ sealed interface ExplorerAction {
             override val group: Group = Group.PRIMARY,
         ) : Directory {
             override val icon = Icons.TwoTone.Add
-            override val label = "Create"
+            override val label = R.string.explorer_action_create.toCaString()
         }
 
         data class Rename(
@@ -83,14 +86,14 @@ sealed interface ExplorerAction {
             override val group: Group = Group.PRIMARY,
         ) : Directory {
             override val icon = Icons.TwoTone.DriveFileRenameOutline
-            override val label = "Rename"
+            override val label = R.string.explorer_action_rename.toCaString()
         }
 
         data class Copy(
             override val group: Group = Group.PRIMARY,
         ) : Directory {
             override val icon = Icons.TwoTone.ContentCopy
-            override val label = "Copy"
+            override val label = R.string.explorer_action_copy.toCaString()
         }
 
         data class Cut(
@@ -98,7 +101,7 @@ sealed interface ExplorerAction {
             override val group: Group = Group.PRIMARY,
         ) : Directory {
             override val icon = Icons.TwoTone.ContentCut
-            override val label = "Cut"
+            override val label = R.string.explorer_action_cut.toCaString()
         }
 
         data class Delete(
@@ -106,7 +109,7 @@ sealed interface ExplorerAction {
             override val group: Group = Group.PRIMARY,
         ) : Directory {
             override val icon = Icons.TwoTone.Delete
-            override val label = "Delete"
+            override val label = R.string.explorer_action_delete.toCaString()
             override val isDestructive = true
         }
 
@@ -114,7 +117,7 @@ sealed interface ExplorerAction {
             override val group: Group = Group.PRIMARY,
         ) : Directory {
             override val icon = Icons.TwoTone.Share
-            override val label = "Share"
+            override val label = R.string.explorer_action_share.toCaString()
         }
 
         data class Paste(
@@ -122,17 +125,17 @@ sealed interface ExplorerAction {
             override val group: Group = Group.PRIMARY,
         ) : Directory {
             override val icon = Icons.TwoTone.ContentPaste
-            override val label = "Paste"
+            override val label = R.string.explorer_action_paste.toCaString()
         }
 
         object SelectAll : Directory {
             override val icon = Icons.TwoTone.SelectAll
-            override val label = "Select All"
+            override val label = R.string.explorer_action_select_all.toCaString()
         }
 
         object DeselectAll : Directory {
             override val icon = Icons.TwoTone.Deselect
-            override val label = "Deselect All"
+            override val label = R.string.explorer_action_deselect_all.toCaString()
         }
     }
 
