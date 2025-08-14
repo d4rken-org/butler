@@ -44,7 +44,9 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.explorer.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.RawPath
@@ -152,7 +154,7 @@ fun BreadcrumbBar(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Loading...",
+                            text = stringResource(R.string.explorer_loading),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

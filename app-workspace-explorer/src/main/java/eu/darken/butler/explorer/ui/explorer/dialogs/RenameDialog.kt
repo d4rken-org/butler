@@ -18,9 +18,12 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.res.stringResource
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.explorer.R
+import eu.darken.butler.common.R as CommonR
 
 data class RenameResult(
     val item: APath,
@@ -55,7 +58,7 @@ fun RenameDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Rename",
+                text = stringResource(R.string.explorer_dialog_rename_title),
                 style = MaterialTheme.typography.headlineSmall
             )
         },
@@ -66,7 +69,7 @@ fun RenameDialog(
                 OutlinedTextField(
                     value = textFieldValue,
                     onValueChange = { textFieldValue = it },
-                    label = { Text("Name") },
+                    label = { Text(stringResource(R.string.explorer_dialog_name_label)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .focusRequester(focusRequester),
@@ -85,12 +88,12 @@ fun RenameDialog(
                 enabled = textFieldValue.text.trim().isNotBlank() && 
                          textFieldValue.text.trim() != currentName
             ) {
-                Text("Rename")
+                Text(stringResource(CommonR.string.general_rename_action))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(CommonR.string.general_cancel_action))
             }
         }
     )

@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
@@ -47,7 +48,7 @@ fun ExplorerActionBar(
                 ) {
                     Icon(
                         imageVector = action.icon,
-                        contentDescription = action.label,
+                        contentDescription = action.label.get(LocalContext.current),
                         tint = when {
                             !action.isEnabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                             action.isDestructive -> MaterialTheme.colorScheme.error

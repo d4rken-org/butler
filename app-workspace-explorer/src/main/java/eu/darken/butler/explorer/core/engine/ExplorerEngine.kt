@@ -7,6 +7,8 @@ import androidx.compose.material.icons.twotone.Code
 import androidx.compose.material.icons.twotone.PhoneAndroid
 import androidx.compose.material.icons.twotone.Storage
 import eu.darken.butler.common.ca.caString
+import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.explorer.R
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -31,7 +33,7 @@ class ExplorerEngine @Inject constructor(
             ExplorerItem.Shortcut(
                 shortcutId = "device",
                 displayIcon = Icons.TwoTone.PhoneAndroid,
-                displayName = caString { "Device" }, // TODO localize
+                displayName = R.string.explorer_nav_device.toCaString(),
                 target = ExplorerNavigation.Target.Device,
             ),
         )
@@ -60,7 +62,7 @@ class ExplorerEngine @Inject constructor(
             ExplorerItem.Shortcut(
                 shortcutId = "device-root",
                 displayIcon = Icons.TwoTone.Code,
-                displayName = caString { "Root" }, // TODO localize
+                displayName = R.string.explorer_nav_root.toCaString(),
                 target = ExplorerNavigation.Target.Directory(
                     LocalPath.Companion.build(Environment.getRootDirectory())
                 ),
@@ -68,7 +70,7 @@ class ExplorerEngine @Inject constructor(
             ExplorerItem.Shortcut(
                 shortcutId = "device-internal-public",
                 displayIcon = Icons.TwoTone.Storage,
-                displayName = caString { "Internal public storage" }, // TODO localize
+                displayName = R.string.explorer_nav_internal_storage.toCaString(),
                 target = ExplorerNavigation.Target.Directory(
                     LocalPath.Companion.build(Environment.getExternalStorageDirectory())
                 ),

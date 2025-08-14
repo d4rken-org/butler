@@ -22,4 +22,57 @@
     <string name="explorer_file_broken_link_label">Broken link</string>
     <string name="explorer_file_items_count">%1$d items</string>
     <string name="explorer_file_pages_count">%1$d pages</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">Refresh</string>
+    <string name="explorer_action_sort">Sort</string>
+    <string name="explorer_action_filter">Filter</string>
+    <string name="explorer_action_view">View</string>
+    <string name="explorer_action_create">Create</string>
+    <string name="explorer_action_rename">Rename</string>
+    <string name="explorer_action_copy">Copy</string>
+    <string name="explorer_action_cut">Cut</string>
+    <string name="explorer_action_delete">Delete</string>
+    <string name="explorer_action_share">Share</string>
+    <string name="explorer_action_paste">Paste</string>
+    <string name="explorer_action_select_all">Select All</string>
+    <string name="explorer_action_deselect_all">Deselect All</string>
+
+    <!-- Navigation -->
+    <string name="explorer_nav_device">Device</string>
+    <string name="explorer_nav_home">Home</string>
+    <string name="explorer_nav_root">Root</string>
+    <string name="explorer_nav_internal_storage">Internal public storage</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_delete_title_single">Delete item?</string>
+    <plurals name="explorer_dialog_delete_title_multiple">
+        <item quantity="one">Delete %1$d item?</item>
+        <item quantity="other">Delete %1$d items?</item>
+    </plurals>
+    <string name="explorer_dialog_delete_message_single">This item will be permanently deleted:</string>
+    <string name="explorer_dialog_delete_message_multiple">These items will be permanently deleted:</string>
+    <string name="explorer_dialog_delete_more_items">… and %1$d more</string>
+    <string name="explorer_dialog_delete_warning">This action cannot be undone.</string>
+    <string name="explorer_dialog_create_title">Create new item</string>
+    <string name="explorer_dialog_rename_title">Rename</string>
+    <string name="explorer_dialog_name_label">Name</string>
+    <string name="explorer_dialog_type_label">Type</string>
+    <string name="explorer_dialog_type_folder">Folder</string>
+    <string name="explorer_dialog_type_file">File</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">This folder is empty</string>
+    <string name="explorer_empty_search_title">No search results</string>
+    <string name="explorer_empty_search_caption">Try a different search term</string>
+    <string name="explorer_empty_folder_label">Empty folder</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">Loading…</string>
+    <string name="explorer_navigation_cancelled">Navigation cancelled</string>
+
+    <!-- Error Messages -->
+    <string name="explorer_error_copy_not_implemented">Copy operation not yet implemented</string>
+    <string name="explorer_error_move_not_implemented">Move operation not yet implemented</string>
+    <string name="explorer_error_rename_not_implemented">Rename operation not yet implemented</string>
 </resources>

@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.explorer.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.RawPath
@@ -66,7 +67,7 @@ fun ExplorerTopBar(
 fun ExplorerTopBarPreview() {
     val mockBreadcrumbs = listOf(
         ExplorerBreadcrumb(
-            label = "Home".toCaString(),
+            label = R.string.explorer_nav_home.toCaString(),
             icon = Icons.TwoTone.Home,
             target = ExplorerNavigation.Target.Home,
             preferIcon = true,

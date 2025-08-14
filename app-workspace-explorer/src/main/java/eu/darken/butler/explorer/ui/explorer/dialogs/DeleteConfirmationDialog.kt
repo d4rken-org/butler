@@ -13,10 +13,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.explorer.R
+import eu.darken.butler.common.R as CommonR
 
 data class DeleteConfirmationResult(
     val items: Set<APath>,
@@ -36,7 +40,11 @@ fun DeleteConfirmationDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = if (itemCount == 1) "Delete item?" else "Delete $itemCount items?",
+                text = if (itemCount == 1) {
+                    stringResource(R.string.explorer_dialog_delete_title_single)
+                } else {
+                    pluralStringResource(R.plurals.explorer_dialog_delete_title_multiple, itemCount, itemCount)
+                },
                 style = MaterialTheme.typography.headlineSmall
             )
         },
@@ -46,9 +54,9 @@ fun DeleteConfirmationDialog(
             ) {
                 Text(
                     text = if (itemCount == 1) {
-                        "This item will be permanently deleted:"
+                        stringResource(R.string.explorer_dialog_delete_message_single)
                     } else {
-                        "These items will be permanently deleted:"
+                        stringResource(R.string.explorer_dialog_delete_message_multiple)
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -69,7 +77,7 @@ fun DeleteConfirmationDialog(
                     
                     if (hasMore) {
                         Text(
-                            text = "... and ${items.size - 5} more",
+                            text = stringResource(R.string.explorer_dialog_delete_more_items, items.size - 5),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(vertical = 2.dp)
@@ -80,7 +88,7 @@ fun DeleteConfirmationDialog(
                 Spacer(modifier = Modifier.height(12.dp))
                 
                 Text(
-                    text = "This action cannot be undone.",
+                    text = stringResource(R.string.explorer_dialog_delete_warning),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                     fontWeight = FontWeight.Medium
@@ -94,14 +102,14 @@ fun DeleteConfirmationDialog(
                 }
             ) {
                 Text(
-                    "Delete",
+                    stringResource(CommonR.string.general_delete_action),
                     color = MaterialTheme.colorScheme.error
                 )
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(CommonR.string.general_cancel_action))
             }
         }
     )

@@ -121,6 +121,8 @@
     <string name="general_grant_access_action">Grant access</string>
     <string name="general_enable_service_action">Enable service</string>
     <string name="general_undo_action">Undo</string>
+    <string name="general_create_action">Create</string>
+    <string name="general_rename_action">Rename</string>
 
     <string name="general_list_select_all_action">Select all</string>
 

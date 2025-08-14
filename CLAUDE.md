@@ -134,7 +134,7 @@ fastlane android production
 
 ### User Interface
 
-- Full Jetpack Compose with Material 3.
+- Full Jetpack Compose with Material 3.****
 - Custom theming system (`ButlerTheme`, `ButlerColors`).
 - Edge-to-edge display support.
 - Use icons out of the `androidx.compose.material.icons.twotone` package where possible.
@@ -154,6 +154,9 @@ fastlane android production
 - General texts that are used through-out multiple modules should be placed in the `strings.xml` file of the `app-common` module.
 - Before creating a new entry, check if `strings.xml` file in the `app-common` module already contains a general version.
 - String IDs should be prefixed with their respective module name. Re-used strings should be prefixed with `general` or `common`.
+- Where possible string IDs should not contain implementation details.
+  - Postfix with `_action` instead of prefixing with `button_`.
+  - Instead of `module_screen_button_open` it should be `module_screen_open_action`
 
 #### MVVM with Custom ViewModel Hierarchy
 

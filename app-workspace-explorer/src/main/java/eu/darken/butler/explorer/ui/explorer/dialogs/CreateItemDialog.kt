@@ -25,8 +25,11 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.explorer.R
+import eu.darken.butler.common.R as CommonR
 
 enum class CreateItemType {
     FILE,
@@ -55,7 +58,7 @@ fun CreateItemDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Create new item",
+                text = stringResource(R.string.explorer_dialog_create_title),
                 style = MaterialTheme.typography.headlineSmall
             )
         },
@@ -67,7 +70,7 @@ fun CreateItemDialog(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Name") },
+                    label = { Text(stringResource(R.string.explorer_dialog_name_label)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .focusRequester(focusRequester),
@@ -79,7 +82,7 @@ fun CreateItemDialog(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "Type",
+                        text = stringResource(R.string.explorer_dialog_type_label),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -100,7 +103,7 @@ fun CreateItemDialog(
                             onClick = null
                         )
                         Text(
-                            text = "Folder",
+                            text = stringResource(R.string.explorer_dialog_type_folder),
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier.padding(start = 8.dp)
                         )
@@ -122,7 +125,7 @@ fun CreateItemDialog(
                             onClick = null
                         )
                         Text(
-                            text = "File",
+                            text = stringResource(R.string.explorer_dialog_type_file),
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier.padding(start = 8.dp)
                         )
@@ -139,12 +142,12 @@ fun CreateItemDialog(
                 },
                 enabled = name.isNotBlank()
             ) {
-                Text("Create")
+                Text(stringResource(CommonR.string.general_create_action))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(CommonR.string.general_cancel_action))
             }
         }
     )
