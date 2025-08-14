@@ -1,0 +1,131 @@
+package eu.darken.butler.explorer.ui.explorer.items.grid
+
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import eu.darken.butler.explorer.core.engine.ExplorerItem
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+internal fun FileGridBase(
+    modifier: Modifier = Modifier,
+    item: ExplorerItem,
+    isSelected: Boolean,
+    onToggleSelection: () -> Unit,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit = {},
+    showSelection: Boolean,
+    icon: @Composable () -> Unit,
+    primaryText: String,
+    secondaryText: String? = null,
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    previewContent: @Composable (() -> Unit)? = null,
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .aspectRatio(1f)
+            .border(
+                width = if (isSelected) 2.dp else 0.5.dp,
+                color = if (isSelected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                },
+                shape = RoundedCornerShape(4.dp)
+            )
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            ),
+        shape = RoundedCornerShape(4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor
+        )
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Preview/placeholder background
+            if (previewContent != null) {
+                previewContent()
+            }
+            
+            // Top bar with icon and size
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .background(Color.Black.copy(alpha = 0.6f))
+                    .padding(horizontal = 6.dp, vertical = 4.dp)
+            ) {
+                // Icon or checkbox in top-left
+                Box(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .align(Alignment.CenterStart)
+                ) {
+                    if (showSelection) {
+                        Checkbox(
+                            checked = isSelected,
+                            onCheckedChange = { onToggleSelection() },
+                            modifier = Modifier.size(20.dp)
+                        )
+                    } else {
+                        icon()
+                    }
+                }
+                
+                // File size in top-right
+                secondaryText?.let { text ->
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.align(Alignment.CenterEnd)
+                    )
+                }
+            }
+            
+            // Bottom bar with filename
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .background(Color.Black.copy(alpha = 0.6f))
+                    .padding(horizontal = 6.dp, vertical = 4.dp)
+            ) {
+                Text(
+                    text = primaryText,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+}

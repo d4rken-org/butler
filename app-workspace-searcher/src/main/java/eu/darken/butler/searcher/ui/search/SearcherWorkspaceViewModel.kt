@@ -5,7 +5,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
@@ -23,9 +23,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import java.io.File
 
 @HiltViewModel(assistedFactory = SearcherWorkspaceViewModel.Factory::class)
 class SearcherWorkspaceViewModel @AssistedInject constructor(
@@ -34,12 +32,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     navCtrl: NavigationController,
     private val searchRepository: SearchRepository,
     private val searcherSettings: SearcherSettings,
-) : ViewModel4(dispatchers, logTag("Workspace", "Searcher", id.shortTag, "Page"), navCtrl) {
-    
+) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page"), navCtrl) {
+
     private val searchQuery = MutableStateFlow("")
     private val currentFilter = MutableStateFlow(SearchFilter.EMPTY)
-    private val searchPath = MutableStateFlow<APath>(LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler"))
-    
+    private val searchPath =
+        MutableStateFlow<APath>(LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler"))
+
     init {
         combine(
             searcherSettings.caseSensitive.flow,
@@ -53,7 +52,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             )
         }.launchIn(vmScope)
     }
-    
+
     private var activeSearchJob: Job? = null
 
     val state = combine(
@@ -68,7 +67,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val history = values[2] as List<SearchRepository.SearchHistoryItem>
         val filter = values[3] as SearchFilter
         val path = values[4] as APath
-        
+
         State(
             id = id,
             searchQuery = query,
@@ -81,18 +80,18 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             useRegex = filter.useRegex,
         )
     }.asStateFlow()
-    
+
     fun updateSearchQuery(query: String) {
         log(TAG, INFO) { "Updating search query: $query" }
         searchQuery.value = query
     }
-    
+
     fun performSearch() {
         val query = searchQuery.value
         if (query.isBlank()) return
-        
+
         log(TAG, INFO) { "Performing search: $query" }
-        
+
         activeSearchJob?.cancel()
         activeSearchJob = searchRepository.startSearch(
             query = query,
@@ -102,52 +101,52 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             log(TAG) { "Search result: ${result.path}" }
         }.launchIn(vmScope)
     }
-    
+
     fun cancelSearch() {
         log(TAG) { "Cancelling search" }
         searchRepository.cancelSearch()
         activeSearchJob?.cancel()
     }
-    
+
     fun updateFilter(filter: SearchFilter) {
         log(TAG) { "Updating filter: $filter" }
         currentFilter.value = filter
     }
-    
+
     fun toggleCaseSensitive() {
         vmScope.launch {
             val current = searcherSettings.caseSensitive.flow.first()
             searcherSettings.caseSensitive.update { !current }
         }
     }
-    
+
     fun toggleWholeWord() {
         vmScope.launch {
             val current = searcherSettings.wholeWord.flow.first()
             searcherSettings.wholeWord.update { !current }
         }
     }
-    
+
     fun toggleRegex() {
         vmScope.launch {
             val current = searcherSettings.useRegex.flow.first()
             searcherSettings.useRegex.update { !current }
         }
     }
-    
+
     fun updateSearchPath(path: APath) {
         log(TAG) { "Updating search path: $path" }
         searchPath.value = path
     }
-    
+
     fun clearSearchHistory() {
         searchRepository.clearHistory()
     }
-    
+
     fun removeHistoryItem(item: SearchRepository.SearchHistoryItem) {
         searchRepository.removeFromHistory(item)
     }
-    
+
     fun onSearchResultClick(result: SearchResult) {
         log(TAG) { "Search result clicked: ${result.path}" }
         // TODO: Navigate to explorer with the selected file
@@ -166,7 +165,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     ) {
         val isSearching: Boolean
             get() = searchState.status == SearchRepository.SearchState.Status.SEARCHING
-            
+
         val hasResults: Boolean
             get() = searchState.results.isNotEmpty()
     }
@@ -175,8 +174,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     interface Factory {
         fun create(id: Workspace.Id): SearcherWorkspaceViewModel
     }
-    
+
     companion object {
-        private val TAG = logTag("Workspace", "Searcher", "ViewModel")
+        private val TAG = logTag("Searcher", "Workspace", "ViewModel")
     }
 }

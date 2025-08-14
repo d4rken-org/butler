@@ -1,0 +1,25 @@
+package eu.darken.butler.explorer.ui.explorer.actions
+
+import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.ui.explorer.ExplorerSelectionState
+import javax.inject.Inject
+
+class DefaultActionProvider @Inject constructor(
+    private val homeProvider: HomeActionProvider,
+    private val deviceProvider: DeviceActionProvider,
+    private val directoryProvider: DirectoryActionProvider,
+) : ExplorerActionProvider {
+    
+    override fun getActions(
+        location: ExplorerLocation,
+        selectionState: ExplorerSelectionState,
+    ): List<ExplorerAction> {
+        val provider = when (location) {
+            is ExplorerLocation.Home -> homeProvider
+            is ExplorerLocation.Device -> deviceProvider
+            is ExplorerLocation.Directory -> directoryProvider
+        }
+        
+        return provider.getActions(location, selectionState)
+    }
+}

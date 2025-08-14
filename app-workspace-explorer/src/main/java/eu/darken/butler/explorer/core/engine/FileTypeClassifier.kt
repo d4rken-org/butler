@@ -6,51 +6,30 @@ import java.util.Locale
 
 class FileTypeClassifier {
 
-    fun classify(lookup: APathLookup<*>): ExplorerPathItem {
+    fun classify(lookup: APathLookup<*>): ExplorerItem.PathItem {
         return when (lookup.fileType) {
-            FileType.DIRECTORY -> ExplorerPathItem.Directory(
+            FileType.DIRECTORY -> ExplorerItem.RegularDirectory(
                 lookup = lookup,
-                mimeType = "inode/directory"
             )
-            FileType.SYMBOLIC_LINK -> ExplorerPathItem.SymbolicLink(
+            FileType.SYMBOLIC_LINK -> ExplorerItem.SymbolicLink(
                 lookup = lookup,
                 mimeType = getMimeType(lookup.name),
                 targetPath = lookup.target?.path,
                 isBroken = lookup.target == null
             )
             FileType.FILE -> classifyFile(lookup)
-            else -> ExplorerPathItem.RegularFile(
+            else -> ExplorerItem.RegularFile(
                 lookup = lookup,
                 mimeType = getMimeType(lookup.name)
             )
         }
     }
 
-    private fun classifyFile(lookup: APathLookup<*>): ExplorerPathItem {
+    private fun classifyFile(lookup: APathLookup<*>): ExplorerItem.PathItem {
         val mimeType = getMimeType(lookup.name)
 
         return when {
-            mimeType.startsWith("image/") -> ExplorerPathItem.ImageFile(
-                lookup = lookup,
-                mimeType = mimeType
-            )
-            mimeType.startsWith("video/") || mimeType.startsWith("audio/") -> ExplorerPathItem.MediaFile(
-                lookup = lookup,
-                mimeType = mimeType
-            )
-            mimeType == "application/vnd.android.package-archive" -> ExplorerPathItem.ApkFile(
-                lookup = lookup,
-                mimeType = mimeType
-            )
-            isArchiveType(mimeType) -> ExplorerPathItem.ArchiveFile(
-                lookup = lookup,
-                mimeType = mimeType
-            )
-            isDocumentType(mimeType) -> ExplorerPathItem.DocumentFile(
-                lookup = lookup,
-                mimeType = mimeType
-            )
-            else -> ExplorerPathItem.RegularFile(
+            else -> ExplorerItem.RegularFile(
                 lookup = lookup,
                 mimeType = mimeType
             )

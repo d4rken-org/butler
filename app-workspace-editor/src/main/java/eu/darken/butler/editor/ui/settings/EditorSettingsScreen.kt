@@ -31,7 +31,6 @@ import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.common.settings.SettingsDivider
 import eu.darken.butler.common.settings.SettingsSwitchItem
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditorSettingsScreen(
     state: EditorSettingsViewModel.State,

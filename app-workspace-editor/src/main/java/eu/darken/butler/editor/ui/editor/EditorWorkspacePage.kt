@@ -120,7 +120,6 @@ fun EditorWorkspacePageHost(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditorWorkspacePage(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
@@ -564,7 +563,6 @@ private fun SearchResultsBar(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GoToLineDialog(
     totalLines: Int,
@@ -606,7 +604,6 @@ private fun GoToLineDialog(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SearchDialog(
     onSearch: (String) -> Unit,

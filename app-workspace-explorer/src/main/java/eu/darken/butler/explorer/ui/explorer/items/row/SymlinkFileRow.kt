@@ -1,64 +1,70 @@
-package eu.darken.butler.explorer.ui.explorer.rows
+package eu.darken.butler.explorer.ui.explorer.items.row
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Android
+import androidx.compose.material.icons.twotone.Link
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.core.engine.ExplorerPathItem
+import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
-internal fun ApkFileRow(
-    item: ExplorerPathItem.ApkFile,
+internal fun SymlinkFileRow(
+    modifier: Modifier = Modifier,
+    item: ExplorerItem.SymbolicLink,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
+    onLongClick: () -> Unit = {},
     showSelection: Boolean,
-    modifier: Modifier = Modifier
 ) {
     FileRowBase(
         item = item,
         isSelected = isSelected,
         onToggleSelection = onToggleSelection,
         onClick = onClick,
+        onLongClick = onLongClick,
         showSelection = showSelection,
         modifier = modifier,
         leadingContent = {
-            // TODO: Replace with AsyncImage when Coil integration is complete
             Icon(
-                imageVector = Icons.TwoTone.Android,
-                contentDescription = stringResource(R.string.explorer_file_apk_content_desc),
-                tint = MaterialTheme.colorScheme.tertiary,
+                imageVector = Icons.TwoTone.Link,
+                contentDescription = stringResource(R.string.explorer_file_symlink_content_desc),
+                tint = if (item.isBroken) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.primary
+                },
                 modifier = Modifier.size(32.dp)
             )
         },
-        primaryText = item.displayName,
+        primaryText = item.displayName.get(LocalContext.current),
         secondaryText = buildString {
-            item.packageName?.let { 
-                append(it)
+            item.targetPath?.let {
+                append("→ $it")
                 append(" • ")
             }
-            item.versionName?.let { 
-                append("v$it")
-                append(" • ")
+            if (item.isBroken) {
+                append(stringResource(R.string.explorer_file_broken_link_label))
+            } else {
+                append(formatDate(item.lookup.modifiedAt.toEpochMilli()))
             }
-            append(item.displaySize)
         }
     )
 }
 
 @Preview2
 @Composable
-private fun ApkFileRowPreview() {
-    ApkFileRow(
-        item = MockDataProvider.createMockApkFile(),
+private fun SymlinkFileRowPreview() {
+    SymlinkFileRow(
+        item = MockDataProvider.createMockSymbolicLink(),
         isSelected = false,
         onToggleSelection = {},
         onClick = {},
@@ -68,9 +74,9 @@ private fun ApkFileRowPreview() {
 
 @Preview2
 @Composable
-private fun ApkFileRowSelectedPreview() {
-    ApkFileRow(
-        item = MockDataProvider.createMockApkFile("butler.apk", "eu.darken.butler", "2.1.4", "Butler File Manager"),
+private fun SymlinkFileRowBrokenPreview() {
+    SymlinkFileRow(
+        item = MockDataProvider.createMockSymbolicLink("broken_link", "/path/to/missing/file", true),
         isSelected = true,
         onToggleSelection = {},
         onClick = {},

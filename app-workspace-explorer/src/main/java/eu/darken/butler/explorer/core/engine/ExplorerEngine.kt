@@ -1,52 +1,100 @@
 package eu.darken.butler.explorer.core.engine
 
 import android.os.Environment
+import android.os.StatFs
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Code
 import androidx.compose.material.icons.twotone.PhoneAndroid
 import androidx.compose.material.icons.twotone.Storage
 import eu.darken.butler.common.ca.caString
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.explorer.core.ExplorerNavigation
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class ExplorerEngine @Inject constructor(
     private val gatewaySwitch: GatewaySwitch,
 ) {
+    
+    private val tag = logTag("Explorer", "Engine")
 
-    suspend fun getHomeEntry(): ExplorerLocation = withContext(Dispatchers.IO) {
+    private suspend fun getHomeEntry(): ExplorerLocation = withContext(Dispatchers.IO) {
+        val shortcuts = listOf(
+            ExplorerItem.Shortcut(
+                shortcutId = "device",
+                displayIcon = Icons.TwoTone.PhoneAndroid,
+                displayName = caString { "Device" }, // TODO localize
+                target = ExplorerNavigation.Target.Device,
+            ),
+        )
+
+        // Calculate device storage info
+        val stat = try {
+            StatFs(Environment.getDataDirectory().path)
+        } catch (e: Exception) {
+            null
+        }
+
+        val info = ExplorerLocation.Home.Info(
+            shortcutCount = shortcuts.size,
+            totalDeviceStorage = stat?.let { it.totalBytes },
+            usedStorage = stat?.let { it.totalBytes - it.availableBytes },
+        )
+
         ExplorerLocation.Home(
-            items = listOf(
-                ExplorerLocation.Home.Item(
-                    icon = Icons.TwoTone.PhoneAndroid,
-                    label = caString { "Device" },
-                    target = getDevice()
-                ),
-            )
+            items = shortcuts,
+            info = info,
         )
     }
 
-    suspend fun getDevice(): ExplorerLocation = withContext(Dispatchers.IO) {
+    private suspend fun getDevice(): ExplorerLocation = withContext(Dispatchers.IO) {
+        val storageLocations = listOf(
+            ExplorerItem.Shortcut(
+                shortcutId = "device-root",
+                displayIcon = Icons.TwoTone.Code,
+                displayName = caString { "Root" }, // TODO localize
+                target = ExplorerNavigation.Target.Directory(
+                    LocalPath.Companion.build(Environment.getRootDirectory())
+                ),
+            ),
+            ExplorerItem.Shortcut(
+                shortcutId = "device-internal-public",
+                displayIcon = Icons.TwoTone.Storage,
+                displayName = caString { "Internal public storage" }, // TODO localize
+                target = ExplorerNavigation.Target.Directory(
+                    LocalPath.Companion.build(Environment.getExternalStorageDirectory())
+                ),
+            ),
+        )
+
+        // Calculate combined storage info
+        val stat = try {
+            StatFs(Environment.getDataDirectory().path)
+        } catch (e: Exception) {
+            null
+        }
+
+        val info = ExplorerLocation.Device.Info(
+            storageCount = storageLocations.size,
+            totalCapacity = stat?.let { it.totalBytes },
+            usedSpace = stat?.let { it.totalBytes - it.availableBytes },
+        )
+
         ExplorerLocation.Device(
-            items = listOf(
-                ExplorerLocation.Device.Item(
-                    icon = Icons.TwoTone.Code,
-                    label = caString { "Root" },
-                    target = LocalPath.Companion.build(Environment.getRootDirectory()),
-                ),
-                ExplorerLocation.Device.Item(
-                    icon = Icons.TwoTone.Storage,
-                    label = caString { "Internal public storage" },
-                    target = LocalPath.Companion.build(Environment.getExternalStorageDirectory()),
-                ),
-            )
+            items = storageLocations,
+            info = info,
         )
     }
 
-    suspend fun getContent(path: APath): List<ExplorerPathItem> = withContext(Dispatchers.IO) {
+    private suspend fun getContent(path: APath): List<ExplorerItem.PathItem> = withContext(Dispatchers.IO) {
         // First stage: Load basic file info quickly
         val basicLookups = gatewaySwitch.lookupFiles(path)
         val fileClassifier = FileTypeClassifier()
@@ -57,7 +105,7 @@ class ExplorerEngine @Inject constructor(
         }
     }
 
-    suspend fun getContentExtended(path: APath): List<ExplorerPathItem> = withContext(Dispatchers.IO) {
+    private suspend fun getContentExtended(path: APath): List<ExplorerItem.PathItem> = withContext(Dispatchers.IO) {
         // Second stage: Load extended info with permissions/ownership
         val extendedLookups = gatewaySwitch.lookupFilesExtended(path)
         val fileClassifier = FileTypeClassifier()
@@ -72,5 +120,126 @@ class ExplorerEngine @Inject constructor(
         }
     }
 
+    private suspend fun getDirectory(
+        path: APath,
+        parent: ExplorerNavigation.Target? = null
+    ): ExplorerLocation.Directory = withContext(Dispatchers.IO) {
+        val items = getContent(path)
+
+        // Calculate directory info
+        var fileCount = 0
+        var directoryCount = 0
+        var totalSize = 0L
+
+        items.forEach { item ->
+            when (item) {
+                is ExplorerItem.DirectoryItem -> directoryCount++
+                is ExplorerItem.FileItem -> {
+                    fileCount++
+                    totalSize += item.lookup.size ?: 0L
+                }
+            }
+        }
+
+        // Get volume info if path is LocalPath
+        val volumeInfo = if (path is LocalPath) {
+            try {
+                val stat = StatFs(path.path)
+                Pair(stat.availableBytes, stat.totalBytes)
+            } catch (e: Exception) {
+                null
+            }
+        } else {
+            null
+        }
+
+        val info = ExplorerLocation.Directory.Info(
+            fileCount = fileCount,
+            directoryCount = directoryCount,
+            totalSize = if (totalSize > 0) totalSize else null,
+            volumeFreeSpace = volumeInfo?.first,
+            volumeTotalSpace = volumeInfo?.second,
+            isWritable = true,
+        )
+
+        ExplorerLocation.Directory(
+            path = path,
+            parent = parent,
+            items = items,
+            info = info,
+        )
+    }
+
+    suspend fun loadLocation(
+        target: ExplorerNavigation.Target
+    ): Flow<ExplorerLocation> = flow {
+        when (target) {
+            is ExplorerNavigation.Target.Home -> emit(getHomeEntry())
+            is ExplorerNavigation.Target.Device -> emit(getDevice())
+            is ExplorerNavigation.Target.Directory -> {
+                val firstPass = getDirectory(target.path)
+                emit(firstPass)
+                val secondPass = getContentExtended(target.path)
+                emit(
+                    firstPass.copy(items = secondPass)
+                )
+            }
+        }
+    }
+    
+    suspend fun executeOperation(operation: ExplorerOperation): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            when (operation) {
+                is ExplorerOperation.FileOp.CreateFolder -> {
+                    log(tag, INFO) { "Creating folder: ${operation.name} in ${operation.parentPath}" }
+                    val folderPath = operation.parentPath.child(operation.name)
+                    gatewaySwitch.createDir(folderPath)
+                    Result.success(Unit)
+                }
+                
+                is ExplorerOperation.FileOp.CreateFile -> {
+                    log(tag, INFO) { "Creating file: ${operation.name} in ${operation.parentPath}" }
+                    val filePath = operation.parentPath.child(operation.name)
+                    gatewaySwitch.createFile(filePath)
+                    Result.success(Unit)
+                }
+                
+                is ExplorerOperation.FileOp.Delete -> {
+                    log(tag, INFO) { "Deleting ${operation.paths.size} items" }
+                    operation.paths.forEach { path ->
+                        gatewaySwitch.delete(path, recursive = operation.recursive)
+                    }
+                    Result.success(Unit)
+                }
+                
+                is ExplorerOperation.FileOp.Copy -> {
+                    log(tag, INFO) { "Copying ${operation.sources.size} items to ${operation.destination}" }
+                    // TODO: Implement copy operation when gateway supports it
+                    // For now, just log
+                    log(tag, WARN) { "Copy operation not yet implemented in gateway" }
+                    Result.failure(UnsupportedOperationException("Copy not yet implemented"))
+                }
+                
+                is ExplorerOperation.FileOp.Move -> {
+                    log(tag, INFO) { "Moving ${operation.sources.size} items to ${operation.destination}" }
+                    // TODO: Implement move operation when gateway supports it
+                    // For now, we could try delete + copy when available
+                    log(tag, WARN) { "Move operation not yet implemented in gateway" }
+                    Result.failure(UnsupportedOperationException("Move not yet implemented"))
+                }
+                
+                is ExplorerOperation.FileOp.Rename -> {
+                    log(tag, INFO) { "Renaming ${operation.path} to ${operation.newName}" }
+                    // TODO: Implement rename when move is available
+                    // For now, just log
+                    log(tag, WARN) { "Rename operation not yet implemented in gateway" }
+                    Result.failure(UnsupportedOperationException("Rename not yet implemented"))
+                }
+            }
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Operation failed: $operation - ${e.message}" }
+            Result.failure(e)
+        }
+    }
 
 }

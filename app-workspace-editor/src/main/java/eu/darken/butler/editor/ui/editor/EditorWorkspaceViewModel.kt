@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onEach
-import kotlin.text.get
 
 @HiltViewModel(assistedFactory = EditorWorkspaceViewModel.Factory::class)
 class EditorWorkspaceViewModel @AssistedInject constructor(
@@ -35,7 +34,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     dispatchers: DispatcherProvider,
     navCtrl: NavigationController,
     private val workspaceProvider: WorkspaceProvider,
-) : ViewModel4(dispatchers, logTag("Workspace", "Editor", id.shortTag, "Page"), navCtrl) {
+) : ViewModel4(dispatchers, logTag("Editor", "Workspace", id.shortTag, "Page"), navCtrl) {
 
     private val workspaceFlow = flow {
         emit(workspaceProvider.retrieve(id))

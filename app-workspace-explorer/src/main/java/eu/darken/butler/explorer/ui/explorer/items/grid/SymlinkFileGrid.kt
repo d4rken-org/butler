@@ -1,66 +1,61 @@
-package eu.darken.butler.explorer.ui.explorer.rows
+package eu.darken.butler.explorer.ui.explorer.items.grid
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Link
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.core.engine.ExplorerPathItem
+import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
-internal fun SymlinkFileRow(
-    item: ExplorerPathItem.SymbolicLink,
+internal fun SymlinkFileGrid(
+    modifier: Modifier = Modifier,
+    item: ExplorerItem.SymbolicLink,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
+    onLongClick: () -> Unit = {},
     showSelection: Boolean,
-    modifier: Modifier = Modifier
 ) {
-    FileRowBase(
+    FileGridBase(
+        modifier = modifier,
         item = item,
         isSelected = isSelected,
         onToggleSelection = onToggleSelection,
         onClick = onClick,
+        onLongClick = onLongClick,
         showSelection = showSelection,
-        modifier = modifier,
-        leadingContent = {
+        icon = {
             Icon(
-                imageVector = Icons.TwoTone.Link,
+                imageVector = Icons.Default.Link,
                 contentDescription = stringResource(R.string.explorer_file_symlink_content_desc),
-                tint = if (item.isBroken) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    MaterialTheme.colorScheme.primary
-                },
-                modifier = Modifier.size(32.dp)
+                tint = Color.White,
+                modifier = Modifier.size(20.dp)
             )
         },
-        primaryText = item.displayName,
-        secondaryText = buildString {
-            item.targetPath?.let { 
-                append("→ $it")
-                append(" • ")
-            }
-            if (item.isBroken) {
-                append(stringResource(R.string.explorer_file_broken_link_label))
-            } else {
-                append(item.displayDate)
-            }
+        primaryText = item.displayName.get(LocalContext.current),
+        secondaryText = null, // Don't show target path in top corner to avoid overlap
+        backgroundColor = if (item.isBroken) {
+            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+        } else {
+            MaterialTheme.colorScheme.surface
         }
     )
 }
 
 @Preview2
 @Composable
-private fun SymlinkFileRowPreview() {
-    SymlinkFileRow(
+private fun SymlinkFileGridPreview() {
+    SymlinkFileGrid(
         item = MockDataProvider.createMockSymbolicLink(),
         isSelected = false,
         onToggleSelection = {},
@@ -71,8 +66,8 @@ private fun SymlinkFileRowPreview() {
 
 @Preview2
 @Composable
-private fun SymlinkFileRowBrokenPreview() {
-    SymlinkFileRow(
+private fun SymlinkFileGridBrokenPreview() {
+    SymlinkFileGrid(
         item = MockDataProvider.createMockSymbolicLink("broken_link", "/path/to/missing/file", true),
         isSelected = true,
         onToggleSelection = {},

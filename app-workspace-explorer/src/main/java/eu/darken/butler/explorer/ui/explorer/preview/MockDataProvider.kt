@@ -3,7 +3,7 @@ package eu.darken.butler.explorer.ui.explorer.preview
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.RawPath
-import eu.darken.butler.explorer.core.engine.ExplorerPathItem
+import eu.darken.butler.explorer.core.engine.ExplorerItem
 import java.time.Instant
 
 object MockDataProvider {
@@ -26,86 +26,10 @@ object MockDataProvider {
         }
     }
 
-    fun createMockDirectory(name: String = "Documents", childCount: Int? = 5): ExplorerPathItem.Directory {
-        return ExplorerPathItem.Directory(
+    fun createMockDirectory(name: String = "Documents", childCount: Int? = 5): ExplorerItem.RegularDirectory {
+        return ExplorerItem.RegularDirectory(
             lookup = createMockLookup(name, "/home/user/$name", 0L, FileType.DIRECTORY),
-            mimeType = "inode/directory",
-            isSelected = false,
             childCount = childCount
-        )
-    }
-
-    fun createMockImageFile(
-        name: String = "vacation.jpg",
-        dimensions: String? = "1920x1080"
-    ): ExplorerPathItem.ImageFile {
-        return ExplorerPathItem.ImageFile(
-            lookup = createMockLookup(name, "/home/user/Pictures/$name", 2_048_576L),
-            mimeType = "image/jpeg",
-            isSelected = false,
-            dimensions = dimensions
-        )
-    }
-    
-    fun createMockMediaFile(
-        name: String = "song.mp3", 
-        isVideo: Boolean = false,
-        duration: String? = "3:45",
-        resolution: String? = null
-    ): ExplorerPathItem.MediaFile {
-        val mimeType = if (isVideo) "video/mp4" else "audio/mpeg"
-        val actualResolution = if (isVideo) resolution ?: "1920x1080" else null
-
-        return ExplorerPathItem.MediaFile(
-            lookup = createMockLookup(name, "/home/user/Media/$name", 5_242_880L),
-            mimeType = mimeType,
-            isSelected = false,
-            duration = duration,
-            resolution = actualResolution
-        )
-    }
-    
-    fun createMockApkFile(
-        name: String = "app.apk",
-        packageName: String? = "com.example.app",
-        versionName: String? = "1.2.3",
-        appName: String? = "Example App"
-    ): ExplorerPathItem.ApkFile {
-        return ExplorerPathItem.ApkFile(
-            lookup = createMockLookup(name, "/home/user/Downloads/$name", 15_728_640L),
-            mimeType = "application/vnd.android.package-archive",
-            isSelected = false,
-            packageName = packageName,
-            versionName = versionName,
-            appName = appName
-        )
-    }
-    
-    fun createMockArchiveFile(
-        name: String = "archive.zip",
-        entryCount: Int? = 25,
-        compressionRatio: Float? = 0.65f
-    ): ExplorerPathItem.ArchiveFile {
-        return ExplorerPathItem.ArchiveFile(
-            lookup = createMockLookup(name, "/home/user/Downloads/$name", 10_485_760L),
-            mimeType = "application/zip",
-            isSelected = false,
-            compressionRatio = compressionRatio,
-            entryCount = entryCount
-        )
-    }
-    
-    fun createMockDocumentFile(
-        name: String = "document.pdf",
-        pageCount: Int? = 42,
-        author: String? = "John Doe"
-    ): ExplorerPathItem.DocumentFile {
-        return ExplorerPathItem.DocumentFile(
-            lookup = createMockLookup(name, "/home/user/Documents/$name", 1_048_576L),
-            mimeType = "application/pdf",
-            isSelected = false,
-            pageCount = pageCount,
-            author = author
         )
     }
     
@@ -113,34 +37,26 @@ object MockDataProvider {
         name: String = "shortcut",
         targetPath: String? = "/home/user/target/file.txt",
         isBroken: Boolean = false
-    ): ExplorerPathItem.SymbolicLink {
+    ): ExplorerItem.SymbolicLink {
         val target = targetPath?.let { RawPath.build(it) }
-        return ExplorerPathItem.SymbolicLink(
+        return ExplorerItem.SymbolicLink(
             lookup = createMockLookup(name, "/home/user/$name", 0L, FileType.SYMBOLIC_LINK, target = target),
             mimeType = "inode/symlink",
-            isSelected = false,
             targetPath = targetPath,
             isBroken = isBroken
         )
     }
 
-    fun createMockRegularFile(name: String = "readme.txt"): ExplorerPathItem.RegularFile {
-        return ExplorerPathItem.RegularFile(
+    fun createMockRegularFile(name: String = "readme.txt"): ExplorerItem.RegularFile {
+        return ExplorerItem.RegularFile(
             lookup = createMockLookup(name, "/home/user/$name", 4_096L),
             mimeType = "text/plain",
-            isSelected = false
         )
     }
 
-    fun createAllFileTypes(): List<ExplorerPathItem> {
+    fun createAllFileTypes(): List<ExplorerItem.PathItem> {
         return listOf(
             createMockDirectory(),
-            createMockImageFile(),
-            createMockMediaFile(isVideo = false),
-            createMockMediaFile("video.mp4", isVideo = true),
-            createMockApkFile(),
-            createMockArchiveFile(),
-            createMockDocumentFile(),
             createMockSymbolicLink(),
             createMockSymbolicLink("broken_link", isBroken = true),
             createMockRegularFile()

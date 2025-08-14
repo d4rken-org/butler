@@ -1,64 +1,56 @@
-package eu.darken.butler.explorer.ui.explorer.rows
+package eu.darken.butler.explorer.ui.explorer.items.grid
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.core.engine.ExplorerPathItem
+import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.explorer.ui.explorer.items.row.formatFileSize
 
 @Composable
-internal fun RegularFileRow(
-    item: ExplorerPathItem.RegularFile,
+internal fun RegularFileGrid(
+    modifier: Modifier = Modifier,
+    item: ExplorerItem.RegularFile,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
+    onLongClick: () -> Unit = {},
     showSelection: Boolean,
-    modifier: Modifier = Modifier
 ) {
-    FileRowBase(
+    FileGridBase(
+        modifier = modifier,
         item = item,
         isSelected = isSelected,
         onToggleSelection = onToggleSelection,
         onClick = onClick,
+        onLongClick = onLongClick,
         showSelection = showSelection,
-        modifier = modifier,
-        leadingContent = {
+        icon = {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
                 contentDescription = stringResource(R.string.explorer_file_regular_content_desc),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(32.dp)
+                tint = Color.White,
+                modifier = Modifier.size(20.dp)
             )
         },
-        primaryText = item.displayName,
-        secondaryText = buildString {
-            append(item.displaySize)
-            append(" • ")
-            append(item.displayDate)
-            item.permissions?.let { perms ->
-                append(" • ")
-                append(perms.mode)
-            }
-            item.ownership?.let { owner ->
-                append(" • ")
-                append(owner.userName ?: owner.userId)
-            }
-        }
+        primaryText = item.displayName.get(LocalContext.current),
+        secondaryText = formatFileSize(item.lookup.size)
     )
 }
 
 @Preview2
 @Composable
-private fun RegularFileRowPreview() {
-    RegularFileRow(
+private fun RegularFileGridPreview() {
+    RegularFileGrid(
         item = MockDataProvider.createMockRegularFile(),
         isSelected = false,
         onToggleSelection = {},
@@ -69,8 +61,8 @@ private fun RegularFileRowPreview() {
 
 @Preview2
 @Composable
-private fun RegularFileRowSelectedPreview() {
-    RegularFileRow(
+private fun RegularFileGridSelectedPreview() {
+    RegularFileGrid(
         item = MockDataProvider.createMockRegularFile("config.json"),
         isSelected = true,
         onToggleSelection = {},

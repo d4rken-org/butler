@@ -69,6 +69,7 @@ fun Project.setupKotlinOptions() {
                 "-Xjvm-default=all",
                 "-Xcontext-parameters",
                 "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
+                "-opt-in=kotlin.uuid.ExperimentalUuidApi",
             )
         }
     }

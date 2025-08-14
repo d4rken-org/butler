@@ -8,36 +8,58 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.APathLookup
-import eu.darken.butler.common.files.FileType
-import eu.darken.butler.common.files.RawPath
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.ui.ViewModel3
+import eu.darken.butler.explorer.core.ExplorerBreadcrumb
+import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
+import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.explorer.core.engine.ExplorerPathItem
+import eu.darken.butler.explorer.core.engine.ExplorerOperation
+import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
+import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
+import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemResult
+import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemType
+import eu.darken.butler.explorer.ui.explorer.dialogs.DeleteConfirmationResult
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
+import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
+import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import java.time.Instant
 
 @HiltViewModel(assistedFactory = ExplorerWorkspaceViewModel.Factory::class)
 class ExplorerWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
     dispatchers: DispatcherProvider,
     private val workspaceProvider: WorkspaceProvider,
-) : ViewModel3(dispatchers, logTag("Workspace", "Explorer", id.shortTag, "Page")) {
+    private val actionProvider: DefaultActionProvider,
+    private val clipboardRepo: ClipboardRepo,
+) : ViewModel3(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
 
-    private val selectedItemsFlow = MutableStateFlow<Set<APath>>(emptySet())
-
-    private val workspace: Flow<ExplorerWorkspace?> = workspaceProvider.retrieve(id).map {
-        it as? ExplorerWorkspace
+    enum class ViewMode {
+        LIST,
+        GRID
     }
+
+    private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
+    private val viewModeFlow = MutableStateFlow(ViewMode.LIST)
+    private val dialogStateFlow = MutableStateFlow<ExplorerDialogState>(ExplorerDialogState.None)
+
+    val dialogEvents = SingleEventFlow<ExplorerDialogEvent>()
+
+    private val workspace: Flow<ExplorerWorkspace?> = workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
+
+    private suspend fun getWorkspace() = workspace.filterNotNull().first()
 
     private val workspaceState: Flow<ExplorerWorkspace.State> = workspace.flatMapLatest { ws ->
         ws?.current ?: MutableStateFlow(ExplorerWorkspace.State())
@@ -46,98 +68,92 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     val state = combine(
         workspaceState,
         selectedItemsFlow,
-    ) { wsState, selectedItems ->
-        val items = when (val location = wsState.currentLocation) {
-            is ExplorerLocation.Home -> {
-                location.items.mapIndexed { index, item ->
-                    ExplorerPathItem.Shortcut(
-                        lookup = createShortcutLookup("home_item_$index"),
-                        icon = item.icon,
-                        label = item.label,
-                        target = item.target,
-                    )
-                }
-            }
-            is ExplorerLocation.Device -> {
-                location.items.mapIndexed { index, item ->
-                    ExplorerPathItem.Shortcut(
-                        lookup = createShortcutLookup("device_item_$index"),
-                        icon = item.icon,
-                        label = item.label,
-                        target = ExplorerLocation.Directory(item.target, parent = location),
-                    )
-                }
-            }
-            is ExplorerLocation.Directory -> {
-                location.items ?: emptyList()
-            }
-            null -> emptyList()
-        }
+        viewModeFlow,
+        clipboardRepo.state,
+        dialogStateFlow,
+    ) { wsState, selectedItems, viewMode, clipboard, dialogState ->
+        val items = wsState.currentLocation?.items ?: emptyList()
+
+        val selectionState = ExplorerSelectionState(
+            selectedItems = selectedItems,
+            selectableItems = items.filter { it is ExplorerItem.PathItem }.map { it.id }.toSet(),
+        )
+
+        val availableActions = wsState.currentLocation?.let {
+            actionProvider.getActions(
+                location = it,
+                selectionState = selectionState,
+            )
+        } ?: emptyList()
 
         State(
-            currentLocation = wsState.currentLocation,
-            breadcrumbs = wsState.currentLocation?.breadcrumbs ?: emptyList(),
-            items = items.map { item ->
-                when (item) {
-                    is ExplorerPathItem.Directory -> item.copy(isSelected = selectedItems.contains(item.lookup.lookedUp))
-                    is ExplorerPathItem.RegularFile -> item.copy(isSelected = selectedItems.contains(item.lookup.lookedUp))
-                    is ExplorerPathItem.SymbolicLink -> item.copy(isSelected = selectedItems.contains(item.lookup.lookedUp))
-                    is ExplorerPathItem.MediaFile -> item.copy(isSelected = selectedItems.contains(item.lookup.lookedUp))
-                    is ExplorerPathItem.ApkFile -> item.copy(isSelected = selectedItems.contains(item.lookup.lookedUp))
-                    is ExplorerPathItem.ArchiveFile -> item.copy(isSelected = selectedItems.contains(item.lookup.lookedUp))
-                    is ExplorerPathItem.ImageFile -> item.copy(isSelected = selectedItems.contains(item.lookup.lookedUp))
-                    is ExplorerPathItem.DocumentFile -> item.copy(isSelected = selectedItems.contains(item.lookup.lookedUp))
-                    is ExplorerPathItem.Shortcut -> item.copy(isSelected = selectedItems.contains(item.lookup.lookedUp))
-                }
-            },
+            breadcrumbs = wsState.currentBreadcrumbs ?: emptyList(),
+            items = items,
             isLoading = wsState.isLoading,
             isLoadingExtended = wsState.isLoadingExtended,
             error = wsState.error,
-            selectedItems = selectedItems,
+            selectionState = selectionState,
+            viewMode = viewMode,
             canGoBack = wsState.canGoBack,
             canGoForward = wsState.canGoForward,
+            availableActions = availableActions,
+            dialogState = dialogState,
+            clipboardEntries = clipboard.entries,
         )
     }.asStateFlow()
 
-    fun navigateToPath(path: APath) = launch {
-        log(tag) { "navigateToPath($path)" }
-        workspace.first()?.navigateTo(path)
-        clearSelection()
-    }
+    fun navigate(item: ExplorerItem) = launch {
+        log(tag) { "navigate($item)" }
+        when (item) {
+            is ExplorerItem.PathItem -> when (item) {
+                is ExplorerItem.DirectoryItem -> {
+                    getWorkspace().navigate(ExplorerNavigation.Target.Directory(item.lookup.lookedUp))
+                    clearSelection()
+                }
+                is ExplorerItem.FileItem -> {
+                    // TODO Open file?
+                }
+            }
+            is ExplorerItem.Shortcut -> {
+                getWorkspace().navigate(item.target)
+                clearSelection()
+            }
 
-    fun navigateToItem(item: ExplorerPathItem) = launch {
-        log(tag) { "navigateToItem($item)" }
-        if (item.isDirectory) {
-            workspace.first()?.navigateTo(item.lookup.lookedUp)
-            clearSelection()
         }
     }
 
-    fun navigateBack() = launch {
-        log(tag) { "navigateBack()" }
-        workspace.first()?.navigateBack()
+    fun navigateToPathString(pathString: String) = launch {
+        log(tag) { "navigateToPathString($pathString)" }
+        val normalizedPath = pathString.trim()
+
+        when {
+            normalizedPath.isEmpty() -> {
+                getWorkspace().navigate(ExplorerNavigation.Target.Home)
+            }
+            normalizedPath.startsWith("/") -> {
+                getWorkspace().navigate(ExplorerNavigation.Target.Directory(LocalPath.build(normalizedPath)))
+                clearSelection()
+            }
+            else -> {
+                // Invalid path - could show error
+                log(tag, WARN) { "Invalid path: $pathString" }
+            }
+        }
+    }
+
+    fun navigate(target: ExplorerNavigation) = launch {
+        log(tag) { "navigate($target)" }
+        getWorkspace().navigate(target)
         clearSelection()
     }
 
-    fun navigateForward() = launch {
-        log(tag) { "navigateForward()" }
-        workspace.first()?.navigateForward()
-        clearSelection()
-    }
-
-    fun refresh() = launch {
-        log(tag) { "refresh()" }
-        workspace.first()?.refresh()
-    }
-
-    fun navigateToBreadcrumb(target: ExplorerLocation.Breadcrumb.Target) = launch {
-        log(tag) { "navigateToBreadcrumb($target)" }
-        workspace.first()?.navigateToBreadcrumb(target)
-        clearSelection()
-    }
-
-    fun toggleItemSelection(item: ExplorerPathItem) {
-        val path = item.lookup.lookedUp
+    fun toggleItemSelection(item: ExplorerItem) {
+        log(tag) { "toggleItemSelection($item)" }
+        if (item !is ExplorerItem.PathItem) {
+            log(tag, WARN) { "toggleItemSelection($item) is not a path" }
+            return
+        }
+        val path = item.lookup.path
         val currentSelection = selectedItemsFlow.value
         selectedItemsFlow.value = if (currentSelection.contains(path)) {
             currentSelection - path
@@ -150,63 +166,246 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         selectedItemsFlow.value = emptySet()
     }
 
-    fun validatePath(path: String): Boolean {
-        return path.isNotEmpty() && (path.startsWith("/") || path == "HOME")
-    }
-
-    fun navigateToPathString(pathString: String) = launch {
-        log(tag) { "navigateToPathString($pathString)" }
-        val normalizedPath = pathString.trim()
-
-        when {
-            normalizedPath.isEmpty() || normalizedPath.equals("HOME", ignoreCase = true) -> {
-                // Navigate to home
-                workspace.first()?.navigateToBreadcrumb(ExplorerLocation.Breadcrumb.Target.Home)
+    fun executeAction(action: ExplorerAction) = launch {
+        log(tag) { "executeAction(${action::class.simpleName})" }
+        val stateSnap = state.first()
+        when (action) {
+            is ExplorerAction.Directory.Create -> {
+                log(tag) { "showCreateDialog()" }
+                dialogEvents.emit(ExplorerDialogEvent.ShowCreateItem)
             }
-            normalizedPath.startsWith("/") -> {
-                // Valid absolute path
-                val path = RawPath.build(normalizedPath)
-                workspace.first()?.navigateTo(path)
+            is ExplorerAction.Directory.Rename -> {
+                val item = stateSnap.items.find { it.id == stateSnap.selectionState.selectedItems.single() }
+                item as ExplorerItem.PathItem
+                val event = ExplorerDialogEvent.ShowRename(
+                    item = item.lookup.lookedUp,
+                )
+                dialogEvents.emit(event)
+            }
+            is ExplorerAction.Directory.Copy -> {
+                log(tag) { "copySelectedItems(): ${selectedItemsFlow.value.size} items" }
+                val selected = selectedItemsFlow.value
+                if (selected.isEmpty()) return@launch
+                val clip = ClipboardClip.Paths(
+                    mode = ClipboardClip.Paths.Mode.COPY,
+                    origin = getWorkspace().id,
+                    paths = stateSnap.items
+                        .filter { it.id in selected }
+                        .filterIsInstance<ExplorerItem.PathItem>()
+                        .map { it.lookup.lookedUp },
+                )
+                clipboardRepo.add(clip)
                 clearSelection()
             }
-            else -> {
-                // Invalid path - could show error
-                log(tag, WARN) { "Invalid path: $pathString" }
+            is ExplorerAction.Directory.Cut -> {
+                log(tag) { "cutSelectedItems(): ${selectedItemsFlow.value.size} items" }
+                val selected = selectedItemsFlow.value
+                if (selected.isEmpty()) return@launch
+                val clip = ClipboardClip.Paths(
+                    mode = ClipboardClip.Paths.Mode.CUT,
+                    origin = getWorkspace().id,
+                    paths = stateSnap.items
+                        .filter { it.id in selected }
+                        .filterIsInstance<ExplorerItem.PathItem>()
+                        .map { it.lookup.lookedUp },
+                )
+                clipboardRepo.add(clip)
+                clearSelection()
+            }
+            is ExplorerAction.Directory.Delete -> {
+                log(tag) { "deleteSelectedItems(): ${selectedItemsFlow.value.size} items" }
+                val selectedPaths = selectedItemsFlow.value
+                if (selectedPaths.isNotEmpty()) {
+                    val currentLocation = stateSnap.currentLocation
+                    if (currentLocation is ExplorerLocation.Directory) {
+                        // Convert string paths to APath objects
+                        val pathsToDelete = selectedPaths.mapNotNull { pathString ->
+                            try {
+                                LocalPath.build(pathString)
+                            } catch (e: Exception) {
+                                log(tag, WARN) { "Failed to parse path: $pathString" }
+                                null
+                            }
+                        }.toSet()
+
+                        if (pathsToDelete.isNotEmpty()) {
+                            dialogEvents.emit(ExplorerDialogEvent.ShowDeleteConfirmation(pathsToDelete))
+                        }
+                    }
+                }
+            }
+            is ExplorerAction.Directory.Share -> {
+                log(tag) { "shareSelectedItems(): ${selectedItemsFlow.value.size} items" }
+                // TODO: Implement share via Android share sheet
+            }
+            is ExplorerAction.Directory.Paste -> {
+                log(tag) { "pasteItems()" }
+                // TODO: Implement paste operation
+            }
+            is ExplorerAction.Directory.SelectAll -> {
+                log(tag) { "selectAll()" }
+                selectedItemsFlow.value = stateSnap.selectionState.selectableItems
+            }
+            is ExplorerAction.Directory.DeselectAll -> {
+                log(tag) { "deselectAll()" }
+                selectedItemsFlow.value = emptySet()
+            }
+            is ExplorerAction.Common.Sort -> {
+                log(tag) { "showSortOptions()" }
+                // TODO: Show sort options dialog/menu
+            }
+            is ExplorerAction.Common.Filter -> {
+                log(tag) { "showFilterOptions()" }
+                // TODO: Show filter options dialog/menu
+            }
+            is ExplorerAction.Common.ToggleView -> {
+                log(tag) { "toggleViewMode()" }
+                viewModeFlow.value = when (viewModeFlow.value) {
+                    ViewMode.LIST -> ViewMode.GRID
+                    ViewMode.GRID -> ViewMode.LIST
+                }
+            }
+            is ExplorerAction.Common.Refresh -> {
+                log(tag) { "refresh()" }
+                getWorkspace().navigate(ExplorerNavigation.Refresh)
             }
         }
     }
 
-    fun navigateToShortcut(shortcut: ExplorerPathItem.Shortcut) = launch {
-        log(tag) { "navigateToShortcut($shortcut)" }
-        workspace.first()?.navigateToLocation(shortcut.target)
-        clearSelection()
+    init {
+        // Handle dialog events
+        launch {
+            dialogEvents.collect { event ->
+                handleDialogEvent(event)
+            }
+        }
     }
 
-    private fun createShortcutLookup(id: String): APathLookup<RawPath> {
-        val path = RawPath.build("/virtual/$id")
-        return object : APathLookup<RawPath> {
-            override val lookedUp: RawPath = path
-            override val fileType: FileType = FileType.DIRECTORY
-            override val size: Long = 0
-            override val modifiedAt: Instant = Instant.now()
-            override val target: APath? = null
+    private suspend fun handleDialogEvent(event: ExplorerDialogEvent) {
+        log(tag) { "handleDialogEvent($event)" }
+        when (event) {
+            is ExplorerDialogEvent.ShowCreateItem -> {
+                dialogStateFlow.value = ExplorerDialogState.CreateItem
+            }
+            is ExplorerDialogEvent.ShowDeleteConfirmation -> {
+                dialogStateFlow.value = ExplorerDialogState.DeleteConfirmation(event.items)
+            }
+            is ExplorerDialogEvent.ShowRename -> {
+                dialogStateFlow.value = ExplorerDialogState.Rename(event.item)
+            }
+            is ExplorerDialogEvent.Dismiss -> {
+                dialogStateFlow.value = ExplorerDialogState.None
+            }
         }
+    }
+
+    fun dismissDialog() {
+        dialogStateFlow.value = ExplorerDialogState.None
+    }
+
+    fun onCreateItem(result: CreateItemResult) = launch {
+        log(tag) { "onCreateItem($result)" }
+        dialogStateFlow.value = ExplorerDialogState.None
+
+        val currentLocation = state.first().currentLocation
+        if (currentLocation is ExplorerLocation.Directory) {
+            val operation = when (result.type) {
+                CreateItemType.FOLDER -> ExplorerOperation.FileOp.CreateFolder(
+                    parentPath = currentLocation.path,
+                    name = result.name
+                )
+                CreateItemType.FILE -> ExplorerOperation.FileOp.CreateFile(
+                    parentPath = currentLocation.path,
+                    name = result.name
+                )
+            }
+            getWorkspace().execute(operation)
+        }
+    }
+
+    fun onDeleteConfirmed(result: DeleteConfirmationResult) = launch {
+        log(tag) { "onDeleteConfirmed($result)" }
+        dialogStateFlow.value = ExplorerDialogState.None
+
+        if (result.items.isNotEmpty()) {
+            getWorkspace().execute(
+                ExplorerOperation.FileOp.Delete(
+                    paths = result.items,
+                    recursive = true
+                )
+            )
+            clearSelection()
+        }
+    }
+
+    fun onRename(result: RenameResult) = launch {
+        log(tag) { "onRename($result)" }
+        dialogStateFlow.value = ExplorerDialogState.None
+
+        getWorkspace().execute(
+            ExplorerOperation.FileOp.Rename(
+                path = result.item,
+                newName = result.newName
+            )
+        )
+    }
+
+    fun pasteClipboard(clip: ClipboardClip) = launch {
+        log(tag) { "pasteClipboard($clip)" }
+        when (clip) {
+            is ClipboardClip.Paths -> {
+                val currentLocation = state.first().currentLocation
+                if (currentLocation is ExplorerLocation.Directory) {
+                    val operation = when (clip.mode) {
+                        ClipboardClip.Paths.Mode.COPY -> ExplorerOperation.FileOp.Copy(
+                            sources = clip.paths.toSet(),
+                            destination = currentLocation.path,
+                        )
+                        ClipboardClip.Paths.Mode.CUT -> ExplorerOperation.FileOp.Move(
+                            sources = clip.paths.toSet(),
+                            destination = currentLocation.path,
+                        )
+                    }
+                    getWorkspace().execute(operation)
+                    
+                    if (clip.mode == ClipboardClip.Paths.Mode.CUT) {
+                        clipboardRepo.remove(clip.id)
+                    }
+                }
+            }
+        }
+    }
+
+    fun removeClipboardEntry(clip: ClipboardClip) = launch {
+        log(tag) { "removeClipboardEntry($clip)" }
+        clipboardRepo.remove(clip.id)
+    }
+
+    fun clearAllClipboard() = launch {
+        log(tag) { "clearAllClipboard()" }
+        clipboardRepo.clear()
     }
 
     data class State(
         val currentLocation: ExplorerLocation? = null,
-        val breadcrumbs: List<ExplorerLocation.Breadcrumb> = emptyList(),
-        val items: List<ExplorerPathItem>,
+        val breadcrumbs: List<ExplorerBreadcrumb> = emptyList(),
+        val items: List<ExplorerItem>,
         val isLoading: Boolean,
         val isLoadingExtended: Boolean = false,
         val error: Throwable? = null,
-        val selectedItems: Set<APath>,
+        val selectionState: ExplorerSelectionState = ExplorerSelectionState(),
+        val viewMode: ViewMode = ViewMode.LIST,
         val canGoBack: Boolean = false,
         val canGoForward: Boolean = false,
-    ) {
-        val hasSelection: Boolean get() = selectedItems.isNotEmpty()
-        val selectionCount: Int get() = selectedItems.size
-    }
+        val availableActions: List<ExplorerAction> = emptyList(),
+        val dialogState: ExplorerDialogState = ExplorerDialogState.None,
+        val clipboardEntries: List<ClipboardClip> = emptyList(),
+    )
+
+    data class ClipboardState(
+        val items: Set<String>,
+        val isCut: Boolean,
+    )
 
     @AssistedFactory
     interface Factory {

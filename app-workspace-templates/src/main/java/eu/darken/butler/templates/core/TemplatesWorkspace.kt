@@ -19,7 +19,7 @@ class TemplatesWorkspace @AssistedInject constructor(
     @Assisted private val arguments: Arguments?,
 ) : Workspace {
 
-    private val tag = logTag("Workspace", "Templates", id.shortTag)
+    private val tag = logTag("Templates", "Workspace", id.shortTag)
 
     override val type: Workspace.Type = Workspace.Type.TEMPLATES
 

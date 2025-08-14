@@ -1,61 +1,68 @@
-package eu.darken.butler.explorer.ui.explorer.rows
+package eu.darken.butler.explorer.ui.explorer.items.row
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Description
+import androidx.compose.material.icons.TwoTone.InsertDriveFile
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.core.engine.ExplorerPathItem
+import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
-internal fun DocumentFileRow(
-    item: ExplorerPathItem.DocumentFile,
+internal fun RegularFileRow(
+    modifier: Modifier = Modifier,
+    item: ExplorerItem.RegularFile,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
+    onLongClick: () -> Unit = {},
     showSelection: Boolean,
-    modifier: Modifier = Modifier
 ) {
     FileRowBase(
         item = item,
         isSelected = isSelected,
         onToggleSelection = onToggleSelection,
         onClick = onClick,
+        onLongClick = onLongClick,
         showSelection = showSelection,
         modifier = modifier,
         leadingContent = {
             Icon(
-                imageVector = Icons.TwoTone.Description,
-                contentDescription = stringResource(R.string.explorer_file_document_content_desc),
-                tint = MaterialTheme.colorScheme.outline,
+                imageVector = Icons.AutoMirrored.TwoTone.InsertDriveFile,
+                contentDescription = stringResource(R.string.explorer_file_regular_content_desc),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(32.dp)
             )
         },
-        primaryText = item.displayName,
+        primaryText = item.displayName.get(LocalContext.current),
         secondaryText = buildString {
-            item.pageCount?.let {
-                append(stringResource(R.string.explorer_file_pages_count, it))
-                append(" • ")
-            }
-            append(item.displaySize)
+            append(formatFileSize(item.lookup.size))
             append(" • ")
-            append(item.displayDate)
+            append(formatDate(item.lookup.modifiedAt.toEpochMilli()))
+            item.permissions?.let { perms ->
+                append(" • ")
+                append(perms.mode)
+            }
+            item.ownership?.let { owner ->
+                append(" • ")
+                append(owner.userName ?: owner.userId)
+            }
         }
     )
 }
 
 @Preview2
 @Composable
-private fun DocumentFileRowPreview() {
-    DocumentFileRow(
-        item = MockDataProvider.createMockDocumentFile(),
+private fun RegularFileRowPreview() {
+    RegularFileRow(
+        item = MockDataProvider.createMockRegularFile(),
         isSelected = false,
         onToggleSelection = {},
         onClick = {},
@@ -65,9 +72,9 @@ private fun DocumentFileRowPreview() {
 
 @Preview2
 @Composable
-private fun DocumentFileRowSelectedPreview() {
-    DocumentFileRow(
-        item = MockDataProvider.createMockDocumentFile("manual.pdf", 128, "Butler Team"),
+private fun RegularFileRowSelectedPreview() {
+    RegularFileRow(
+        item = MockDataProvider.createMockRegularFile("config.json"),
         isSelected = true,
         onToggleSelection = {},
         onClick = {},

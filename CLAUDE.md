@@ -18,8 +18,15 @@ Butler uses a workspace concept similar to browser tabs with 4 main workspace ty
 ### Building the Project
 
 ```bash
-# Build debug version (FOSS flavor)
+# Build debug version (FOSS flavor) - main app
 ./gradlew :app:compileFossDebugKotlin --no-daemon
+
+# Build specific modules (use compileDebugKotlin, not compileFossDebugKotlin for modules)
+./gradlew :app-workspace:compileDebugKotlin --no-daemon
+./gradlew :app-workspace-explorer:compileDebugKotlin --no-daemon
+./gradlew :app-workspace-searcher:compileDebugKotlin --no-daemon
+./gradlew :app-workspace-editor:compileDebugKotlin --no-daemon
+./gradlew :app-workspace-templates:compileDebugKotlin --no-daemon
 
 # Build release version
 ./gradlew :app:bundleFossRelease
@@ -81,15 +88,19 @@ fastlane android production
 ## Coding Standards
 
 - Package by feature, not by layer.
-- Extract user-facing text to `strings.xml`.
+- All user facing strings should be extract to `values/strings.xml` and translated for all other languages too.
 - Prefer adding to existing files unless creating new logical components.
 - Write tests for web APIs and serialized data.
 - No UI tests required.
 - Use FOSS debug flavor for local testing.
 - Place compose previews below the item being previewed.
-- Don't code comments for obvious code.
+- Don't add code comments for obvious code.
+- Write minimalistic and concise code (omit comments).
+- Prefer flow based solutions.
+- Prefer reactive programming.
 - When using `if` that is not single-line, always use brackets.
 - Always add trailing commas.
+- In `@Composable` functions, the parameter `modifier: Modifier = Modifier,` should be the first parameter.
 
 ## Agent instructions
 
@@ -112,6 +123,7 @@ fastlane android production
 - Coil for image loading.
 - Room for database operations.
 - Use `FlowCombineExtensions` instead of nesting multiple combine statements.
+- We don't need `@OptIn(ExperimentalMaterial3Api:class)` as we have this enabled project wide via `freeCompilerArgs`.
 
 #### Dependency Injection
 
@@ -139,5 +151,6 @@ fastlane android production
 #### General
 
 - Abstract path system (`APath`, `RawPath`).
+  - `APath` offers path segment infos via `segments`. Use that instead of path splitting.
 - Gateway pattern for different file access methods.
 - Support for root, ADB, and shell operations.

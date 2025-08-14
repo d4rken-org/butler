@@ -42,7 +42,6 @@ import eu.darken.butler.setup.core.SetupAction
 import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.setup.ui.items.SetupCard
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SetupScreen(
     state: SetupViewModel.State,
