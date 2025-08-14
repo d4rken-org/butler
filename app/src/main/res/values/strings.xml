@@ -148,6 +148,33 @@
     <string name="settings_acks_crowdin_desc">For supporting translation of open-source projects</string>
     <string name="settings_licenses_label">Licenses</string>
 
+    <!-- Workspace Status Card -->
+    <string name="workspace_status_tab_singular">Tab</string>
+    <string name="workspace_status_tab_plural">Tabs</string>
+    <string name="workspace_status_operation_singular">Operation</string>
+    <string name="workspace_status_operation_plural">Operations</string>
+    <string name="workspace_status_attention_label">Attention</string>
+
+    <!-- Acknowledgements -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">The Kotlin Programming Language. (APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">A fast dependency injector for Android and Java. (APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">Run Java (and Kotlin) code as root! (APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">Run rooted Kotlin JVM code made easy with coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">Using system APIs directly with adb/root privileges from normal apps through a Java process started with app_process. (APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Airbnb\'s Lottie for Android. (APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">The Android robot is reproduced or modified from work created and shared by Google and used according to terms described in the Creative Commons 3.0 Attribution License.</string>
+
     <string name="settings_sponsor_development_title">Sponsor development</string>
     <string name="settings_sponsor_development_summary">Become a patron and make continued development possible.</string>
 
@@ -223,8 +250,10 @@
     <string name="workspace_fab_close_all">Close All Tabs</string>
 
     <!-- Workspace Navigation Rail -->
-    <string name="workspace_pane_label">Pane %1$d</string>
-    <string name="workspace_pane_close">Close</string>
+    <string name="workspace_pane_assign_action">Assign to pane %1$d</string>
+    <string name="workspace_pane_close_action">Close</string>
+    <string name="workspace_dragging_description">Dragging</string>
+    <string name="workspace_add_tab_description">Add tab</string>
 
     <!-- Workspace Manager Row -->
     <string name="workspace_row_reorder_content_desc">Reorder</string>

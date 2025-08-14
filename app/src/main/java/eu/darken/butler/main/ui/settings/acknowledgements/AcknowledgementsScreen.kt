@@ -22,10 +22,10 @@ import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
-import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.common.settings.SettingsBaseItem
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
+import eu.darken.butler.common.ui.waitForState
 
 @Composable
 fun AcknowledgementsScreen(
@@ -99,8 +99,8 @@ fun AcknowledgementsScreen(
 
             item {
                 SettingsBaseItem(
-                    title = "Android",
-                    subtitle = "Android Open Source Project (APACHE 2.0)",
+                    title = stringResource(R.string.acknowledgement_android_title),
+                    subtitle = stringResource(R.string.acknowledgement_android_subtitle),
                     onClick = { onOpenUrl("https://source.android.com/source/licenses.html") }
                 )
                 SettingsDivider()
@@ -108,8 +108,8 @@ fun AcknowledgementsScreen(
 
             item {
                 SettingsBaseItem(
-                    title = "Kotlin",
-                    subtitle = "The Kotlin Programming Language. (APACHE 2.0)",
+                    title = stringResource(R.string.acknowledgement_kotlin_title),
+                    subtitle = stringResource(R.string.acknowledgement_kotlin_subtitle),
                     onClick = { onOpenUrl("https://github.com/JetBrains/kotlin") }
                 )
                 SettingsDivider()
@@ -117,8 +117,8 @@ fun AcknowledgementsScreen(
 
             item {
                 SettingsBaseItem(
-                    title = "Dagger",
-                    subtitle = "A fast dependency injector for Android and Java. (APACHE 2.0)",
+                    title = stringResource(R.string.acknowledgement_dagger_title),
+                    subtitle = stringResource(R.string.acknowledgement_dagger_subtitle),
                     onClick = { onOpenUrl("https://github.com/google/dagger") }
                 )
                 SettingsDivider()
@@ -126,8 +126,8 @@ fun AcknowledgementsScreen(
 
             item {
                 SettingsBaseItem(
-                    title = "libRootJava",
-                    subtitle = "Run Java (and Kotlin) code as root! (APACHE 2.0)",
+                    title = stringResource(R.string.acknowledgement_librootjava_title),
+                    subtitle = stringResource(R.string.acknowledgement_librootjava_subtitle),
                     onClick = { onOpenUrl("https://github.com/Chainfire/librootjava") }
                 )
                 SettingsDivider()
@@ -135,9 +135,8 @@ fun AcknowledgementsScreen(
 
             item {
                 SettingsBaseItem(
-                    title = "librootkotlinx",
-                    subtitle =
-                        "Run rooted Kotlin JVM code made easy with coroutines. (APACHE 2.0)",
+                    title = stringResource(R.string.acknowledgement_librootkotlinx_title),
+                    subtitle = stringResource(R.string.acknowledgement_librootkotlinx_subtitle),
                     onClick = { onOpenUrl("https://github.com/Mygod/librootkotlinx") }
                 )
                 SettingsDivider()
@@ -145,9 +144,8 @@ fun AcknowledgementsScreen(
 
             item {
                 SettingsBaseItem(
-                    title = "Shizuku",
-                    subtitle =
-                        "Using system APIs directly with adb/root privileges from normal apps through a Java process started with app_process. (APACHE 2.0)",
+                    title = stringResource(R.string.acknowledgement_shizuku_title),
+                    subtitle = stringResource(R.string.acknowledgement_shizuku_subtitle),
                     onClick = { onOpenUrl("https://github.com/RikkaApps/Shizuku") }
                 )
                 SettingsDivider()
@@ -155,9 +153,8 @@ fun AcknowledgementsScreen(
 
             item {
                 SettingsBaseItem(
-                    title = "Material Design Icons",
-                    subtitle =
-                        "materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)",
+                    title = stringResource(R.string.acknowledgement_material_design_icons_title),
+                    subtitle = stringResource(R.string.acknowledgement_material_design_icons_subtitle),
                     onClick = { onOpenUrl("https://github.com/Templarian/MaterialDesign") }
                 )
                 SettingsDivider()
@@ -165,8 +162,8 @@ fun AcknowledgementsScreen(
 
             item {
                 SettingsBaseItem(
-                    title = "Lottie",
-                    subtitle = "Airbnb's Lottie for Android. (APACHE 2.0)",
+                    title = stringResource(R.string.acknowledgement_lottie_title),
+                    subtitle = stringResource(R.string.acknowledgement_lottie_subtitle),
                     onClick = { onOpenUrl("https://github.com/airbnb/lottie-android") }
                 )
                 SettingsDivider()
@@ -174,9 +171,8 @@ fun AcknowledgementsScreen(
 
             item {
                 SettingsBaseItem(
-                    title = "Android",
-                    subtitle =
-                        "The Android robot is reproduced or modified from work created and shared by Google and used according to terms described in the Creative Commons 3.0 Attribution License.",
+                    title = stringResource(R.string.acknowledgement_android_robot_title),
+                    subtitle = stringResource(R.string.acknowledgement_android_robot_subtitle),
                     onClick = {
                         onOpenUrl(
                             "https://developer.android.com/distribute/tools/promote/brand.html"

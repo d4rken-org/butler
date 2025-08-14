@@ -17,7 +17,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
@@ -48,7 +50,9 @@ fun WorkspaceStatusCard(
             // Workspace count
             StatusItem(
                 count = workspaceCount,
-                label = if (workspaceCount == 1) "Workspace" else "Workspaces",
+                label = if (workspaceCount == 1) stringResource(R.string.workspace_status_tab_singular) else stringResource(
+                    R.string.workspace_status_tab_plural
+                ),
                 isActive = true,
                 isPrimary = true
             )
@@ -56,7 +60,9 @@ fun WorkspaceStatusCard(
             // Operations count
             StatusItem(
                 count = operationsCount,
-                label = if (operationsCount == 1) "Operation" else "Operations",
+                label = if (operationsCount == 1) stringResource(R.string.workspace_status_operation_singular) else stringResource(
+                    R.string.workspace_status_operation_plural
+                ),
                 isActive = operationsCount > 0,
                 isPrimary = true
             )
@@ -64,7 +70,7 @@ fun WorkspaceStatusCard(
             // Attention count
             StatusItem(
                 count = attentionCount,
-                label = "Attention",
+                label = stringResource(R.string.workspace_status_attention_label),
                 isActive = attentionCount > 0,
                 isPrimary = false
             )

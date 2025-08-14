@@ -252,7 +252,7 @@ private fun DraggableWorkspaceRailItem(
                             // Show drag indicator when dragging
                             Icon(
                                 imageVector = Icons.TwoTone.DragIndicator,
-                                contentDescription = "Dragging",
+                                contentDescription = stringResource(R.string.workspace_dragging_description),
                                 tint = MaterialTheme.colorScheme.primary,
                             )
                         } else {
@@ -302,7 +302,7 @@ private fun DraggableWorkspaceRailItem(
         ) {
             repeat(maxPanes) { paneIndex ->
                 DropdownMenuItem(
-                    text = { Text("Pane ${paneIndex + 1}") },
+                    text = { Text(stringResource(R.string.workspace_pane_assign_action, paneIndex + 1)) },
                     leadingIcon = {
                         Icon(
                             imageVector = when (paneIndex) {
@@ -323,7 +323,7 @@ private fun DraggableWorkspaceRailItem(
             }
             HorizontalDivider()
             DropdownMenuItem(
-                text = { Text("Close") },
+                text = { Text(stringResource(R.string.workspace_pane_close_action)) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.TwoTone.Close,
@@ -419,7 +419,7 @@ private fun WorkspaceRailItem(
         ) {
             repeat(maxPanes) { paneIndex ->
                 DropdownMenuItem(
-                    text = { Text(stringResource(R.string.workspace_pane_label, paneIndex + 1)) },
+                    text = { Text(stringResource(R.string.workspace_pane_assign_action, paneIndex + 1)) },
                     leadingIcon = {
                         Icon(
                             imageVector = when (paneIndex) {
@@ -440,7 +440,7 @@ private fun WorkspaceRailItem(
             }
             HorizontalDivider()
             DropdownMenuItem(
-                text = { Text(stringResource(R.string.workspace_pane_close)) },
+                text = { Text(stringResource(R.string.workspace_pane_close_action)) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.TwoTone.Close,
@@ -468,7 +468,7 @@ private fun AddWorkspaceButton(
     ) {
         Icon(
             imageVector = Icons.TwoTone.Add,
-            contentDescription = "Add Workspace",
+            contentDescription = stringResource(R.string.workspace_add_tab_description),
         )
     }
 }
@@ -522,7 +522,7 @@ private fun PaneMenuPreview() {
                 onDismissRequest = {},
             ) {
                 DropdownMenuItem(
-                    text = { Text(stringResource(R.string.workspace_pane_label, 1)) },
+                    text = { Text(stringResource(R.string.workspace_pane_assign_action, 1)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.TwoTone.LooksOne,
@@ -532,7 +532,7 @@ private fun PaneMenuPreview() {
                     onClick = {},
                 )
                 DropdownMenuItem(
-                    text = { Text(stringResource(R.string.workspace_pane_label, 2)) },
+                    text = { Text(stringResource(R.string.workspace_pane_assign_action, 2)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.TwoTone.LooksTwo,
@@ -542,7 +542,7 @@ private fun PaneMenuPreview() {
                     onClick = {},
                 )
                 DropdownMenuItem(
-                    text = { Text(stringResource(R.string.workspace_pane_label, 3)) },
+                    text = { Text(stringResource(R.string.workspace_pane_assign_action, 3)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.TwoTone.Looks3,
@@ -553,7 +553,7 @@ private fun PaneMenuPreview() {
                 )
                 HorizontalDivider()
                 DropdownMenuItem(
-                    text = { Text(stringResource(R.string.workspace_pane_close)) },
+                    text = { Text(stringResource(R.string.workspace_pane_close_action)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.TwoTone.Close,
