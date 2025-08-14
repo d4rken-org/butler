@@ -5,6 +5,7 @@ import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material.icons.twotone.PhoneAndroid
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.R
@@ -46,7 +47,7 @@ class BreadcrumbGenerator @Inject constructor() {
                     ExplorerBreadcrumb(
                         label = segment.ifEmpty { "/" }.toCaString(),
                         icon = Icons.TwoTone.FolderOpen,
-                        target = ExplorerNavigation.Target.Directory(RawPath.build(newPath))
+                        target = ExplorerNavigation.Target.Directory(LocalPath.build(newPath))
                     )
                 )
 

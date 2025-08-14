@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.CheckBox
 import androidx.compose.material.icons.twotone.Description
@@ -39,18 +41,14 @@ fun ExplorerInfoBar(
     info: ExplorerLocation.LocationInfo?,
     selectedCount: Int = 0,
 ) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 6.dp)
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
             // Selection chip (always first when present)
             if (selectedCount > 0) {
                 InfoChip(
@@ -133,7 +131,6 @@ fun ExplorerInfoBar(
                 null -> {
                     // No info available, just show spacer
                 }
-            }
         }
     }
 }
@@ -171,7 +168,7 @@ private fun InfoChip(
             )
         } else {
             AssistChipDefaults.assistChipColors(
-                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                 labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 leadingIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             )

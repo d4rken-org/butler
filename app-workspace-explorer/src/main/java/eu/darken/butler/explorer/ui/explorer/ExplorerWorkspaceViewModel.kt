@@ -87,6 +87,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         } ?: emptyList()
 
         State(
+            currentLocation = wsState.currentLocation,
             breadcrumbs = wsState.currentBreadcrumbs ?: emptyList(),
             items = items,
             isLoading = wsState.isLoading,
@@ -356,7 +357,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         )
                     }
                     getWorkspace().execute(operation)
-                    
+
                     if (clip.mode == ClipboardClip.Paths.Mode.CUT) {
                         clipboardRepo.remove(clip.id)
                     }

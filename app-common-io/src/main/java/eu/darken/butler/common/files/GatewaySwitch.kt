@@ -48,7 +48,7 @@ class GatewaySwitch @Inject constructor(
                 localGateway.also { adoptChildResource(it) }
             }
 
-            else -> throw NotImplementedError()
+            else -> throw IllegalArgumentException("Can't map $path to gateway")
         }
         return gateway
     }

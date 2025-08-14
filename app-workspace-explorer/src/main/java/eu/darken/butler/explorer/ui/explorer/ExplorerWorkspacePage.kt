@@ -44,6 +44,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
@@ -345,7 +346,7 @@ fun ExplorerWorkspacePage(
 fun ExplorerWorkspacePagePreview() {
     val mockState = ExplorerWorkspaceViewModel.State(
         currentLocation = ExplorerLocation.Directory(
-            path = RawPath.build("/storage/emulated/0"),
+            path = LocalPath.build("/storage/emulated/0"),
             items = MockDataProvider.createAllFileTypes(),
             info = ExplorerLocation.Directory.Info(
                 fileCount = 15,
@@ -367,15 +368,15 @@ fun ExplorerWorkspacePagePreview() {
             ),
             ExplorerBreadcrumb(
                 label = "storage".toCaString(),
-                target = ExplorerNavigation.Target.Directory(RawPath.build("/storage"))
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage"))
             ),
             ExplorerBreadcrumb(
                 label = "emulated".toCaString(),
-                target = ExplorerNavigation.Target.Directory(RawPath.build("/storage/emulated"))
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated"))
             ),
             ExplorerBreadcrumb(
                 label = "0".toCaString(),
-                target = ExplorerNavigation.Target.Directory(RawPath.build("/storage/emulated/0"))
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0"))
             )
         ),
         items = MockDataProvider.createAllFileTypes(),
@@ -401,7 +402,7 @@ fun ExplorerWorkspacePagePreview() {
 @Composable
 fun ExplorerWorkspacePageLoadingPreview() {
     val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(RawPath.build("/storage/emulated/0")),
+        currentLocation = ExplorerLocation.Directory(LocalPath.build("/storage/emulated/0")),
         breadcrumbs = emptyList(),
         items = emptyList(),
         isLoading = true,
@@ -421,7 +422,7 @@ fun ExplorerWorkspacePageLoadingPreview() {
 @Composable
 fun ExplorerWorkspacePageEmptyPreview() {
     val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(RawPath.build("/empty/folder")),
+        currentLocation = ExplorerLocation.Directory(LocalPath.build("/empty/folder")),
         breadcrumbs = emptyList(),
         items = emptyList(),
         isLoading = false,
@@ -442,7 +443,7 @@ fun ExplorerWorkspacePageEmptyPreview() {
 fun ExplorerWorkspacePageWithSelectionPreview() {
     val mockFileItems = MockDataProvider.createAllFileTypes()
     val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(RawPath.build("/storage/emulated/0")),
+        currentLocation = ExplorerLocation.Directory(LocalPath.build("/storage/emulated/0")),
         breadcrumbs = emptyList(),
         items = mockFileItems,
         isLoading = false,
@@ -476,11 +477,11 @@ fun ExplorerWorkspacePageGridModePreview() {
         ),
         ExplorerBreadcrumb(
             label = "Pictures".toCaString(),
-            target = ExplorerNavigation.Target.Directory(RawPath.build("/storage/emulated/0/Pictures"))
+            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0/Pictures"))
         )
     )
     val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(RawPath.build("/storage/emulated/0/Pictures")),
+        currentLocation = ExplorerLocation.Directory(LocalPath.build("/storage/emulated/0/Pictures")),
         breadcrumbs = mockBreadcrumbs,
         items = MockDataProvider.createAllFileTypes(),
         isLoading = false,
@@ -506,7 +507,7 @@ fun ExplorerWorkspacePageGridModePreview() {
 fun ExplorerWorkspacePageGridModeWithSelectionPreview() {
     val mockFileItems = MockDataProvider.createAllFileTypes()
     val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(RawPath.build("/storage/emulated/0/Downloads")),
+        currentLocation = ExplorerLocation.Directory(LocalPath.build("/storage/emulated/0/Downloads")),
         breadcrumbs = listOf(
             ExplorerBreadcrumb(
                 label = R.string.explorer_nav_device.toCaString(),
@@ -514,7 +515,7 @@ fun ExplorerWorkspacePageGridModeWithSelectionPreview() {
             ),
             ExplorerBreadcrumb(
                 label = "Downloads".toCaString(),
-                target = ExplorerNavigation.Target.Directory(RawPath.build("/storage/emulated/0/Downloads"))
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0/Downloads"))
             )
         ),
         items = mockFileItems,
