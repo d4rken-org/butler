@@ -171,7 +171,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val stateSnap = state.first()
         when (action) {
             is ExplorerAction.Directory.Create -> {
-                log(tag) { "showCreateDialog()" }
                 dialogEvents.emit(ExplorerDialogEvent.ShowCreateItem)
             }
             is ExplorerAction.Directory.Rename -> {
@@ -238,35 +237,25 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 log(tag) { "shareSelectedItems(): ${selectedItemsFlow.value.size} items" }
                 // TODO: Implement share via Android share sheet
             }
-            is ExplorerAction.Directory.Paste -> {
-                log(tag) { "pasteItems()" }
-                // TODO: Implement paste operation
-            }
             is ExplorerAction.Directory.SelectAll -> {
-                log(tag) { "selectAll()" }
                 selectedItemsFlow.value = stateSnap.selectionState.selectableItems
             }
             is ExplorerAction.Directory.DeselectAll -> {
-                log(tag) { "deselectAll()" }
                 selectedItemsFlow.value = emptySet()
             }
             is ExplorerAction.Common.Sort -> {
-                log(tag) { "showSortOptions()" }
                 // TODO: Show sort options dialog/menu
             }
             is ExplorerAction.Common.Filter -> {
-                log(tag) { "showFilterOptions()" }
                 // TODO: Show filter options dialog/menu
             }
             is ExplorerAction.Common.ToggleView -> {
-                log(tag) { "toggleViewMode()" }
                 viewModeFlow.value = when (viewModeFlow.value) {
                     ViewMode.LIST -> ViewMode.GRID
                     ViewMode.GRID -> ViewMode.LIST
                 }
             }
             is ExplorerAction.Common.Refresh -> {
-                log(tag) { "refresh()" }
                 getWorkspace().navigate(ExplorerNavigation.Refresh)
             }
         }

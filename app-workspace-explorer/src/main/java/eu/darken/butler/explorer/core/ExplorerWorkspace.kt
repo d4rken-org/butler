@@ -163,7 +163,7 @@ class ExplorerWorkspace @AssistedInject constructor(
 
         when (target) {
             is ExplorerNavigation.Target -> {
-                navigateToLocationInternal(target, addToHistory = true)
+                loadTarget(target, addToHistory = true)
             }
 
             is ExplorerNavigation.Back -> {
@@ -172,7 +172,7 @@ class ExplorerWorkspace @AssistedInject constructor(
 
                 if (currentIndex > 0) {
                     val targetLocation = currentHistory[currentIndex - 1]
-                    navigateToLocationInternal(targetLocation, addToHistory = false)
+                    loadTarget(targetLocation, addToHistory = false)
                     current.value = current.value.copy(historyIndex = currentIndex - 1)
                 }
             }
@@ -182,13 +182,13 @@ class ExplorerWorkspace @AssistedInject constructor(
 
                 if (currentIndex < currentHistory.size - 1) {
                     val targetLocation = currentHistory[currentIndex + 1]
-                    navigateToLocationInternal(targetLocation, addToHistory = false)
+                    loadTarget(targetLocation, addToHistory = false)
                     current.value = current.value.copy(historyIndex = currentIndex + 1)
                 }
             }
             is ExplorerNavigation.Refresh -> {
                 current.value.currentTarget?.let { target ->
-                    navigateToLocationInternal(target, addToHistory = false)
+                    loadTarget(target, addToHistory = false)
                 }
             }
             is ExplorerNavigation.Cancel -> {
@@ -220,8 +220,8 @@ class ExplorerWorkspace @AssistedInject constructor(
         }
     }
 
-    private suspend fun navigateToLocationInternal(target: ExplorerNavigation.Target, addToHistory: Boolean) {
-        log(tag, INFO) { "Navigating to: $target" }
+    private suspend fun loadTarget(target: ExplorerNavigation.Target, addToHistory: Boolean) {
+        log(tag, INFO) { "loadTarget($target, $addToHistory)" }
         current.value = current.value.copy(
             currentTarget = target,
             isLoading = true,
@@ -242,7 +242,7 @@ class ExplorerWorkspace @AssistedInject constructor(
                     }
 
                     val breadcrumbs = breadcrumbGenerator.getBreadcrumbs(location)
-                    log(tag) { "Generated breadcrumbs: $breadcrumbs" }
+                    log(tag) { "loadTarget(): Generated breadcrumbs: $breadcrumbs" }
 
                     current.value = current.value.copy(
                         currentLocation = location,
@@ -262,7 +262,7 @@ class ExplorerWorkspace @AssistedInject constructor(
             }
             current.value = current.value.copy(isLoadingExtended = false)
         } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to navigate to $target: $e" }
+            log(tag, ERROR) { "loadTarget(): Failed to navigate to $target: $e" }
             current.value = current.value.copy(error = e)
         } finally {
             current.value = current.value.copy(
