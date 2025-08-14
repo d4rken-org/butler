@@ -11,6 +11,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,20 +57,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.res.stringResource
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.RawPath
+import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
-import eu.darken.butler.workspace.R
-import eu.darken.butler.common.R as CommonR
 import java.util.Locale
 import java.util.UUID
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
+import eu.darken.butler.common.R as CommonR
 
 @Composable
 fun ClipboardBar(
@@ -82,13 +83,13 @@ fun ClipboardBar(
     onClearAll: () -> Unit = {},
 ) {
     // Preserve expansion state across clipboard changes
-    var isExpanded by remember(clipboardEntries.size > 1) { 
-        mutableStateOf(initialExpanded) 
+    var isExpanded by remember(clipboardEntries.size > 1) {
+        mutableStateOf(initialExpanded)
     }
-    
+
     // State for cascading clear all animation
     var clearAllAnimationTrigger by remember { mutableLongStateOf(0L) }
-    
+
     // Handle cascading clear all animation
     LaunchedEffect(clearAllAnimationTrigger) {
         if (clearAllAnimationTrigger > 0L) {
@@ -98,7 +99,7 @@ fun ClipboardBar(
             onClearAll()
         }
     }
-    
+
     val maxEntries = 4
     val latestEntry = clipboardEntries.firstOrNull()
     val additionalEntries = if (isExpanded && clipboardEntries.size > 1) {
@@ -112,12 +113,18 @@ fun ClipboardBar(
         exit = slideOutVertically { it } + fadeOut(animationSpec = tween(300))
     ) {
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                    shape = RoundedCornerShape(16.dp)
+                ),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
             ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         ) {
             Column(
                 modifier = Modifier.animateContentSize(
@@ -193,7 +200,10 @@ private fun ClipboardHeaderRow(
     if (isExpanded) {
         // Expanded mode: Two buttons spanning full width
         Row(
-            modifier = modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(horizontal = 8.dp),
+            modifier = modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -242,7 +252,10 @@ private fun ClipboardHeaderRow(
     } else {
         // Collapsed mode: Single expand button fills full width
         Row(
-            modifier = modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(horizontal = 8.dp),
+            modifier = modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -290,7 +303,7 @@ private fun SwipeToDismissEntry(
             }
         }
     )
-    
+
     // Handle programmatic dismiss trigger for clear all animation
     LaunchedEffect(triggerDismiss) {
         if (triggerDismiss > 0L) {
@@ -351,9 +364,9 @@ private fun ClipboardEntry(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
             .clickable { onEntryClick() }
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = if (showOrigin) 8.dp else 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         when (entry) {
@@ -553,7 +566,7 @@ private fun formatClipboardSubtitle(entry: ClipboardClip.Paths): String {
 private fun formatTimestamp(instant: kotlin.time.Instant): String {
     val formatter = RelativeDateTimeFormatter.getInstance(Locale.getDefault())
     val duration = Clock.System.now() - instant
-    
+
     return when {
         duration.inWholeMinutes < 1 -> formatter.format(
             0.0,
@@ -608,6 +621,33 @@ fun ClipboardBarPreview() {
             onPasteClick = {},
             onRemoveClick = {},
         )
+    }
+}
+
+@Preview2
+@Composable
+fun ClipboardBarSingleItemPreview() {
+    val singleEntry = ClipboardClip.Paths(
+        origin = Workspace.Id(UUID.randomUUID()),
+        mode = ClipboardClip.Paths.Mode.COPY,
+        paths = listOf(
+            RawPath.build("/storage/emulated/0/Documents/important_document.pdf"),
+        ),
+        clippedAt = Clock.System.now() - 2.minutes,
+    )
+
+    PreviewWrapper {
+        Box(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+                .padding(16.dp)
+        ) {
+            ClipboardBar(
+                clipboardEntries = listOf(singleEntry),
+                onPasteClick = {},
+                onRemoveClick = {},
+            )
+        }
     }
 }
 

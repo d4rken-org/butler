@@ -221,7 +221,6 @@ class ExplorerWorkspace @AssistedInject constructor(
     }
 
     private suspend fun navigateToLocationInternal(target: ExplorerNavigation.Target, addToHistory: Boolean) {
-
         log(tag, INFO) { "Navigating to: $target" }
         current.value = current.value.copy(
             currentTarget = target,
@@ -270,32 +269,6 @@ class ExplorerWorkspace @AssistedInject constructor(
                 isLoading = false,
                 isLoadingExtended = false,
             )
-        }
-    }
-
-    private suspend fun loadExtendedData(path: APath) {
-        try {
-            log(tag, INFO) { "Loading extended data for: $path" }
-            current.value = current.value.copy(isLoadingExtended = true)
-
-//            val extendedItems = engine.getContentExtended(path)
-//
-//            // Update the current location with extended items
-//            val currentLoc = current.value.currentLocation
-//            if (currentLoc is ExplorerLocation.Directory && currentLoc.path == path) {
-//                val updatedLocation = currentLoc.copy(items = extendedItems)
-//
-//                current.value = current.value.copy(
-//                    currentLocation = updatedLocation,
-//                    isLoadingExtended = false
-//                )
-//            } else {
-//                // Location changed, extended data no longer relevant
-//                current.value = current.value.copy(isLoadingExtended = false)
-//            }
-        } catch (e: Exception) {
-            log(tag, WARN) { "Failed to load extended data: $e" }
-            current.value = current.value.copy(isLoadingExtended = false)
         }
     }
 

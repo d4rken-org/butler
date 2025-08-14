@@ -25,14 +25,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.res.stringResource
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.engine.ExplorerLocation
 
 @Composable
 fun ExplorerInfoBar(
@@ -42,12 +41,12 @@ fun ExplorerInfoBar(
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 6.dp)
+                .padding(horizontal = 16.dp, vertical = 6.dp)
                 .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -83,16 +82,16 @@ fun ExplorerInfoBar(
                             )
                         }
                     }
-                    
+
                     Spacer(modifier = Modifier.weight(1f))
-                    
+
                     if (info.totalSize != null && selectedCount == 0) {
                         InfoChip(
                             icon = Icons.TwoTone.Storage,
                             label = formatFileSize(info.totalSize),
                         )
                     }
-                    
+
                     if (info.volumeFreeSpace != null) {
                         InfoChip(
                             icon = Icons.TwoTone.Storage,
@@ -100,7 +99,7 @@ fun ExplorerInfoBar(
                         )
                     }
                 }
-                
+
                 is ExplorerLocation.Home.Info -> {
                     InfoChip(
                         icon = Icons.TwoTone.Home,
@@ -115,7 +114,7 @@ fun ExplorerInfoBar(
                         )
                     }
                 }
-                
+
                 is ExplorerLocation.Device.Info -> {
                     InfoChip(
                         icon = Icons.TwoTone.Storage,
@@ -130,7 +129,7 @@ fun ExplorerInfoBar(
                         )
                     }
                 }
-                
+
                 null -> {
                     // No info available, just show spacer
                 }
@@ -148,7 +147,7 @@ private fun InfoChip(
 ) {
     AssistChip(
         onClick = { /* Could be expandable in future */ },
-        label = { 
+        label = {
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,

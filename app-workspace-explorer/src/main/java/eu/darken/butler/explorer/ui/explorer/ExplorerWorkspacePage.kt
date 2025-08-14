@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
@@ -205,8 +206,9 @@ fun ExplorerWorkspacePage(
                                 end = 12.dp,
                                 top = 12.dp,
                                 bottom = if (isBottomBarVisible) {
-                                    val clipboardHeight = if (state.clipboardEntries.isNotEmpty()) 80.dp else 0.dp
-                                    48.dp + clipboardHeight
+                                    val actionBarHeight = if (state.availableActions.isNotEmpty()) 64.dp else 0.dp // 48dp + 16dp padding
+                                    val clipboardHeight = if (state.clipboardEntries.isNotEmpty()) 88.dp else 0.dp // ~80dp + 8dp padding
+                                    actionBarHeight + clipboardHeight + 12.dp // Extra space
                                 } else 12.dp
                             )
                         ) {
@@ -247,8 +249,9 @@ fun ExplorerWorkspacePage(
                                 end = 2.dp,
                                 top = 2.dp,
                                 bottom = if (isBottomBarVisible) {
-                                    val clipboardHeight = if (state.clipboardEntries.isNotEmpty()) 80.dp else 0.dp
-                                    48.dp + clipboardHeight
+                                    val actionBarHeight = if (state.availableActions.isNotEmpty()) 64.dp else 0.dp // 48dp + 16dp padding
+                                    val clipboardHeight = if (state.clipboardEntries.isNotEmpty()) 88.dp else 0.dp // ~80dp + 8dp padding
+                                    actionBarHeight + clipboardHeight + 12.dp // Extra space
                                 } else 2.dp
                             )
                         ) {
@@ -300,9 +303,9 @@ fun ExplorerWorkspacePage(
             visible = state.clipboardEntries.isNotEmpty(),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(horizontal = 8.dp, vertical = if (isBottomBarVisible && state.availableActions.isNotEmpty()) 56.dp else 8.dp),
-            enter = slideInVertically { it },
-            exit = slideOutVertically { it },
+                .padding(horizontal = 8.dp, vertical = if (isBottomBarVisible && state.availableActions.isNotEmpty()) 64.dp else 8.dp),
+            enter = slideInVertically(animationSpec = tween(150)) { it },
+            exit = slideOutVertically(animationSpec = tween(150)) { it },
         ) {
             ClipboardBar(
                 clipboardEntries = state.clipboardEntries,
@@ -315,12 +318,14 @@ fun ExplorerWorkspacePage(
             )
         }
 
-        // Bottom ActionBar
+        // Floating Bottom ActionBar
         AnimatedVisibility(
             visible = isBottomBarVisible && state.availableActions.isNotEmpty(),
-            modifier = Modifier.align(Alignment.BottomCenter),
-            enter = slideInVertically { it },
-            exit = slideOutVertically { it },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = 8.dp, vertical = 8.dp),
+            enter = slideInVertically(animationSpec = tween(150)) { it },
+            exit = slideOutVertically(animationSpec = tween(150)) { it },
         ) {
             ExplorerActionBar(
                 actions = state.availableActions,
