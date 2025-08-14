@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="workspace_templates_tab_title">New</string>
-    <string name="workspace_templates_choose_title">New workspace</string>
-    <string name="workspace_templates_choose_subtitle">Select a workspace type. How can I help?</string>
+    <string name="workspace_templates_choose_title">New tab</string>
+    <string name="workspace_templates_choose_subtitle">Select a tab type. How can I help?</string>
 </resources>

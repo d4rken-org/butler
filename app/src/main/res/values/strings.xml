@@ -13,7 +13,7 @@
     <string name="onboarding_workspaces_title">Work in Tabs</string>
     <string name="onboarding_workspaces_message">Open multiple tabs and switch between them - just like your web browser</string>
     <string name="onboarding_workspaces_action">Continue</string>
-    <string name="onboarding_workspaces_hint">Keep multiple workspaces open simultaneously</string>
+    <string name="onboarding_workspaces_hint">Keep multiple tabs open simultaneously</string>
     <string name="onboarding_workspaces_explorer_title">Explorer</string>
     <string name="onboarding_workspaces_explorer_description">Browse your files</string>
     <string name="onboarding_workspaces_searcher_title">Searcher</string>
@@ -175,52 +175,52 @@
 
     <!-- Workspace -->
     <!-- Workspace > Manager -->
-    <string name="workspace_manager_title">Workspace Manager</string>
-    <string name="workspace_manager_add_action">Add workspace</string>
-    <string name="workspace_manager_status_count">Active workspaces: %1$d</string>
-    <string name="workspace_manager_empty_title">No workspaces</string>
-    <string name="workspace_manager_empty_subtitle">Create your first workspace to get started</string>
+    <string name="workspace_manager_title">Tab Manager</string>
+    <string name="workspace_manager_add_action">Add tab</string>
+    <string name="workspace_manager_status_count">Active tabs: %1$d</string>
+    <string name="workspace_manager_empty_title">No tabs</string>
+    <string name="workspace_manager_empty_subtitle">Create your first tab to get started</string>
     <string name="workspace_tab_close_action">Close tab</string>
 
     <!-- Workspace > Empty Content-->
-    <string name="workspace_empty_create_action">Create workspace</string>
-    <string name="workspace_empty_create_hint">Work in parallel: Create a workspace and turn it into a tool of your choice.</string>
+    <string name="workspace_empty_create_action">Create tab</string>
+    <string name="workspace_empty_create_hint">Work in parallel: Create a tab and turn it into a tool of your choice.</string>
     <string name="workspace_empty_settings_action">Open settings</string>
     <string name="workspace_empty_settings_hint">Customize Butler to your liking. Adjust how the tools behave.</string>
-    <string name="workspace_empty_manager_action">Manage workspaces</string>
-    <string name="workspace_empty_manager_hint">View and organize all your open workspaces in one place.</string>
+    <string name="workspace_empty_manager_action">Manage tabs</string>
+    <string name="workspace_empty_manager_hint">View and organize all your open tabs in one place.</string>
 
     <!-- Workspace > Settings-->
-    <string name="workspace_settings_title">Workspace Settings</string>
+    <string name="workspace_settings_title">Tab Settings</string>
     <string name="workspace_settings_button_behavior">Button Behavior</string>
     <string name="workspace_settings_flip_button_actions_title">Flip Button Actions</string>
-    <string name="workspace_settings_flip_button_actions_desc">Normal click creates new workspace, long click opens manager</string>
+    <string name="workspace_settings_flip_button_actions_desc">Normal click creates new tab, long click opens manager</string>
     <string name="workspace_settings_navigation">Navigation</string>
     <string name="workspace_settings_swipe_gestures_title">Swipe Gestures</string>
-    <string name="workspace_settings_swipe_gestures_desc">Swipe left or right to switch between workspaces</string>
-    
-    <string name="workspace_badge_tip_title">Tip: Workspace Button Indicators</string>
-    <string name="workspace_badge_open_workspaces">Number of open workspaces</string>
+    <string name="workspace_settings_swipe_gestures_desc">Swipe left or right to switch between tabs</string>
+
+    <string name="workspace_badge_tip_title">Tip: Tab Button Indicators</string>
+    <string name="workspace_badge_open_workspaces">Number of open tabs</string>
     <string name="workspace_badge_active_operations">Active operations (file copies, searches, etc.)</string>
     <string name="workspace_badge_attention_items">Items needing attention (errors, unsaved changes)</string>
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_settings_content_desc">Settings</string>
     <string name="workspace_manager_dismiss_content_desc">Dismiss</string>
-    <string name="workspace_manager_close_all_title">Close All Workspaces?</string>
+    <string name="workspace_manager_close_all_title">Close All Tabs?</string>
     <string name="workspace_manager_close_all_message">This will close all %1$d open %2$s. This action cannot be undone.</string>
-    <string name="workspace_manager_close_all_message_singular">workspace</string>
-    <string name="workspace_manager_close_all_message_plural">workspaces</string>
+    <string name="workspace_manager_close_all_message_singular">tab</string>
+    <string name="workspace_manager_close_all_message_plural">tabs</string>
     <string name="workspace_manager_close_all_action">Close All</string>
     <string name="general_cancel_action">Cancel</string>
 
     <!-- Workspace Manager FAB -->
-    <string name="workspace_fab_add_workspace">Add Workspace</string>
+    <string name="workspace_fab_add_workspace">Add Tab</string>
     <string name="workspace_fab_explorer">Explorer</string>
     <string name="workspace_fab_search">Search</string>
     <string name="workspace_fab_editor">Editor</string>
     <string name="workspace_fab_templates">Templates</string>
-    <string name="workspace_fab_close_all">Close All Workspaces</string>
+    <string name="workspace_fab_close_all">Close All Tabs</string>
 
     <!-- Workspace Navigation Rail -->
     <string name="workspace_pane_label">Pane %1$d</string>
@@ -228,10 +228,10 @@
 
     <!-- Workspace Manager Row -->
     <string name="workspace_row_reorder_content_desc">Reorder</string>
-    <string name="workspace_row_close_content_desc">Close workspace</string>
+    <string name="workspace_row_close_content_desc">Close tab</string>
 
     <!-- Settings Index -->
-    <string name="workspace_settings_subtitle">Configure workspace behavior</string>
+    <string name="workspace_settings_subtitle">Configure tab behavior</string>
     <string name="explorer_settings_subtitle">Configure file explorer behavior</string>
     <string name="searcher_settings_subtitle">Configure search behavior</string>
     <string name="editor_settings_subtitle">Configure text editor behavior</string>

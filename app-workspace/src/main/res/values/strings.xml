@@ -10,5 +10,5 @@
     <string name="clipboard_cut">Cut</string>
     <string name="clipboard_items_count">%d items</string>
     <string name="clipboard_from">from %s</string>
-    <string name="clipboard_origin">Origin: Workspace %s</string>
+    <string name="clipboard_origin">Origin: Tab %s</string>
 </resources>
