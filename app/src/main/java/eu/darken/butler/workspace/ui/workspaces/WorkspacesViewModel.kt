@@ -19,8 +19,8 @@ import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
+import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.WorkspacePanelMode
-import eu.darken.butler.workspace.ui.WorkspaceUIManager
 import eu.darken.butler.workspace.ui.manager.workspaceManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.onEach
@@ -37,7 +37,7 @@ class WorkspacesViewModel @Inject constructor(
     private val workspaceRepo: WorkspaceRepo,
     workspaceSettings: WorkspaceSettings,
     private val savedStateHandle: SavedStateHandle,
-    private val workspaceUIManager: WorkspaceUIManager,
+    private val workspacePageManager: WorkspacePageManager,
     private val motdRepo: MotdRepo,
     private val webpageTool: WebpageTool,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Screen", "VM"), navCtrl) {
@@ -46,24 +46,12 @@ class WorkspacesViewModel @Inject constructor(
 
     init {
         // Initialize the WorkspaceUIManager with saved state
-        workspaceUIManager.initializeFromSavedState(savedStateHandle)
+        workspacePageManager.initializeFromSavedState(savedStateHandle)
 
-        // Persist state changes back to SavedStateHandle
-        workspaceUIManager.focusedWorkspaceId
-            .onEach {
-                savedStateHandle["focusedWorkspaceId"] = it?.id?.toString()
-            }
-            .launchInViewModel()
-
-        workspaceUIManager.selectedWorkspaces
-            .onEach {
-                savedStateHandle["selectedWorkspaces"] = it.mapValues { (_, wsId) -> wsId.id.toString() }
-            }
-            .launchInViewModel()
-
-        workspaceUIManager.currentPaneCount
-            .onEach {
-                savedStateHandle["currentPaneCount"] = it
+        // Persist the entire state object when it changes
+        workspacePageManager.state
+            .onEach { state ->
+                savedStateHandle["workspaceUIState"] = state
             }
             .launchInViewModel()
     }
@@ -73,16 +61,15 @@ class WorkspacesViewModel @Inject constructor(
         upgradeRepo.upgradeInfo,
         workspaceSettings.isButtonActionsFlipped.flow,
         workspaceSettings.swipeGesturesEnabled.flow,
-        workspaceUIManager.focusedWorkspaceId,
-        workspaceUIManager.selectedWorkspaces,
+        workspacePageManager.state,
         kotlinx.coroutines.flow.combine(motdRepo.motd, hiddenMotdIds) { motd, hiddenIds ->
             motd?.takeIf { it.id !in hiddenIds }
         },
-    ) { repoState, upgradeInfo, isButtonFlipped, swipeGesturesEnabled, focusedId, selectedIds, visibleMotd ->
+    ) { repoState, upgradeInfo, isButtonFlipped, swipeGesturesEnabled, uiState, visibleMotd ->
         State(
             state = repoState,
-            focusedWorkspace = focusedId,
-            selectedWorkspaces = selectedIds,
+            focusedWorkspace = uiState.focusedWorkspaceId,
+            selectedWorkspaces = uiState.selectedWorkspaces,
             isUpgraded = upgradeInfo.isUpgraded,
             isButtonActionsFlipped = isButtonFlipped,
             swipeGesturesEnabled = swipeGesturesEnabled,
@@ -121,21 +108,21 @@ class WorkspacesViewModel @Inject constructor(
 
         when (action) {
             is WorkspaceScreenAction.Select -> {
-                workspaceUIManager.setFocusedWorkspace(action.id)
-                workspaceUIManager.setSelectedWorkspaces(mapOf(0 to action.id))
+                workspacePageManager.setFocusedWorkspace(action.id)
+                workspacePageManager.setSelectedWorkspaces(mapOf(0 to action.id))
             }
             is WorkspaceScreenAction.SelectMultiple -> {
-                workspaceUIManager.setSelectedWorkspaces(action.positions)
+                workspacePageManager.setSelectedWorkspaces(action.positions)
             }
             is WorkspaceScreenAction.Focus -> {
-                workspaceUIManager.setFocusedWorkspace(action.id)
+                workspacePageManager.setFocusedWorkspace(action.id)
             }
             is WorkspaceScreenAction.ToggleSelection -> {
-                workspaceUIManager.toggleWorkspaceSelection(action.id, action.position)
+                workspacePageManager.toggleWorkspaceSelection(action.id, action.position)
             }
             is WorkspaceScreenAction.SetPaneCount -> {
                 log(tag) { "Setting pane count to ${action.count}" }
-                workspaceUIManager.setPaneCount(action.count)
+                workspacePageManager.setPaneCount(action.count)
             }
         }
     }

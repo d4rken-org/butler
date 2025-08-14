@@ -26,7 +26,8 @@ import eu.darken.butler.common.debug.logging.logTag
 
 private val TAG = logTag("Workspace", "Container", "Adaptive", "Divider")
 
-private const val DIVIDER_WIDTH = 12
+private const val DIVIDER_WIDTH = 16  // Increased for better touch target
+private const val DIVIDER_VISIBLE_WIDTH = 2  // Actual visible divider line
 private const val DIVIDER_HANDLE_SIZE = 32
 private const val DIVIDER_HANDLE_WIDTH = 4
 private const val MIN_POSITION = 0.2f
@@ -60,9 +61,15 @@ internal fun ResizingDivider(
     }
 
     val dividerColor = if (isDragging) {
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+    } else {
+        MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+    }
+
+    val handleColor = if (isDragging) {
         MaterialTheme.colorScheme.primary
     } else {
-        MaterialTheme.colorScheme.surfaceVariant
+        MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
     }
 
     Box(
@@ -72,12 +79,10 @@ internal fun ResizingDivider(
                     Modifier
                         .width(DIVIDER_WIDTH.dp)
                         .fillMaxHeight()
-                        .padding(vertical = 32.dp)
                 } else {
                     Modifier
                         .height(DIVIDER_WIDTH.dp)
                         .fillMaxWidth()
-                        .padding(horizontal = 32.dp)
                 }
             )
             .pointerInput(Unit) {
@@ -100,11 +105,28 @@ internal fun ResizingDivider(
                         }
                     }
                 )
-            }
-            .clip(RoundedCornerShape(6.dp))
-            .background(dividerColor),
+            },
         contentAlignment = Alignment.Center,
     ) {
+        // Thin visible divider line with padding
+        Box(
+            modifier = Modifier
+                .then(
+                    if (isVertical) {
+                        Modifier
+                            .width(DIVIDER_VISIBLE_WIDTH.dp)
+                            .fillMaxHeight()
+                            .padding(vertical = 8.dp)  // Add spacing from edges
+                    } else {
+                        Modifier
+                            .height(DIVIDER_VISIBLE_WIDTH.dp)
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp)  // Add spacing from edges
+                    }
+                )
+                .clip(RoundedCornerShape(1.dp))
+                .background(dividerColor)
+        )
         // Divider handle indicator
         Box(
             modifier = Modifier
@@ -120,13 +142,7 @@ internal fun ResizingDivider(
                     }
                 )
                 .clip(RoundedCornerShape(2.dp))
-                .background(
-                    if (isDragging) {
-                        MaterialTheme.colorScheme.onPrimary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                    }
-                ),
+                .background(handleColor),
         )
     }
 }
