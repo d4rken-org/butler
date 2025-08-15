@@ -16,6 +16,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.explorer.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -74,15 +75,15 @@ fun ExplorerTopBarPreview() {
         ),
         ExplorerBreadcrumb(
             label = "storage".toCaString(),
-            target = ExplorerNavigation.Target.Directory(RawPath.build("/storage"))
+            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage"))
         ),
         ExplorerBreadcrumb(
             label = "emulated".toCaString(),
-            target = ExplorerNavigation.Target.Directory(RawPath.build("/storage/emulated"))
+            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated"))
         ),
         ExplorerBreadcrumb(
             label = "0".toCaString(),
-            target = ExplorerNavigation.Target.Directory(RawPath.build("/storage/emulated/0"))
+            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0"))
         )
     )
     

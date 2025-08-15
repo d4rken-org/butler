@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.CheckBox
 import androidx.compose.material.icons.twotone.Description
@@ -25,14 +27,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.res.stringResource
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.engine.ExplorerLocation
 
 @Composable
 fun ExplorerInfoBar(
@@ -40,18 +41,14 @@ fun ExplorerInfoBar(
     info: ExplorerLocation.LocationInfo?,
     selectedCount: Int = 0,
 ) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 6.dp)
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
             // Selection chip (always first when present)
             if (selectedCount > 0) {
                 InfoChip(
@@ -83,16 +80,16 @@ fun ExplorerInfoBar(
                             )
                         }
                     }
-                    
+
                     Spacer(modifier = Modifier.weight(1f))
-                    
+
                     if (info.totalSize != null && selectedCount == 0) {
                         InfoChip(
                             icon = Icons.TwoTone.Storage,
                             label = formatFileSize(info.totalSize),
                         )
                     }
-                    
+
                     if (info.volumeFreeSpace != null) {
                         InfoChip(
                             icon = Icons.TwoTone.Storage,
@@ -100,7 +97,7 @@ fun ExplorerInfoBar(
                         )
                     }
                 }
-                
+
                 is ExplorerLocation.Home.Info -> {
                     InfoChip(
                         icon = Icons.TwoTone.Home,
@@ -115,7 +112,7 @@ fun ExplorerInfoBar(
                         )
                     }
                 }
-                
+
                 is ExplorerLocation.Device.Info -> {
                     InfoChip(
                         icon = Icons.TwoTone.Storage,
@@ -130,11 +127,10 @@ fun ExplorerInfoBar(
                         )
                     }
                 }
-                
+
                 null -> {
                     // No info available, just show spacer
                 }
-            }
         }
     }
 }
@@ -148,7 +144,7 @@ private fun InfoChip(
 ) {
     AssistChip(
         onClick = { /* Could be expandable in future */ },
-        label = { 
+        label = {
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
@@ -172,7 +168,7 @@ private fun InfoChip(
             )
         } else {
             AssistChipDefaults.assistChipColors(
-                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                 labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 leadingIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             )

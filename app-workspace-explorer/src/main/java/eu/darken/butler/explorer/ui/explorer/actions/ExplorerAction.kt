@@ -120,14 +120,6 @@ sealed interface ExplorerAction {
             override val label = R.string.explorer_action_share.toCaString()
         }
 
-        data class Paste(
-            override val isEnabled: Boolean = true,
-            override val group: Group = Group.PRIMARY,
-        ) : Directory {
-            override val icon = Icons.TwoTone.ContentPaste
-            override val label = R.string.explorer_action_paste.toCaString()
-        }
-
         object SelectAll : Directory {
             override val icon = Icons.TwoTone.SelectAll
             override val label = R.string.explorer_action_select_all.toCaString()

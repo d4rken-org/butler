@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
@@ -43,6 +44,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
@@ -205,8 +207,9 @@ fun ExplorerWorkspacePage(
                                 end = 12.dp,
                                 top = 12.dp,
                                 bottom = if (isBottomBarVisible) {
-                                    val clipboardHeight = if (state.clipboardEntries.isNotEmpty()) 80.dp else 0.dp
-                                    48.dp + clipboardHeight
+                                    val actionBarHeight = if (state.availableActions.isNotEmpty()) 64.dp else 0.dp // 48dp + 16dp padding
+                                    val clipboardHeight = if (state.clipboardEntries.isNotEmpty()) 88.dp else 0.dp // ~80dp + 8dp padding
+                                    actionBarHeight + clipboardHeight + 12.dp // Extra space
                                 } else 12.dp
                             )
                         ) {
@@ -247,8 +250,9 @@ fun ExplorerWorkspacePage(
                                 end = 2.dp,
                                 top = 2.dp,
                                 bottom = if (isBottomBarVisible) {
-                                    val clipboardHeight = if (state.clipboardEntries.isNotEmpty()) 80.dp else 0.dp
-                                    48.dp + clipboardHeight
+                                    val actionBarHeight = if (state.availableActions.isNotEmpty()) 64.dp else 0.dp // 48dp + 16dp padding
+                                    val clipboardHeight = if (state.clipboardEntries.isNotEmpty()) 88.dp else 0.dp // ~80dp + 8dp padding
+                                    actionBarHeight + clipboardHeight + 12.dp // Extra space
                                 } else 2.dp
                             )
                         ) {
@@ -300,9 +304,9 @@ fun ExplorerWorkspacePage(
             visible = state.clipboardEntries.isNotEmpty(),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(horizontal = 8.dp, vertical = if (isBottomBarVisible && state.availableActions.isNotEmpty()) 56.dp else 8.dp),
-            enter = slideInVertically { it },
-            exit = slideOutVertically { it },
+                .padding(horizontal = 8.dp, vertical = if (isBottomBarVisible && state.availableActions.isNotEmpty()) 64.dp else 8.dp),
+            enter = slideInVertically(animationSpec = tween(150)) { it },
+            exit = slideOutVertically(animationSpec = tween(150)) { it },
         ) {
             ClipboardBar(
                 clipboardEntries = state.clipboardEntries,
@@ -315,12 +319,14 @@ fun ExplorerWorkspacePage(
             )
         }
 
-        // Bottom ActionBar
+        // Floating Bottom ActionBar
         AnimatedVisibility(
             visible = isBottomBarVisible && state.availableActions.isNotEmpty(),
-            modifier = Modifier.align(Alignment.BottomCenter),
-            enter = slideInVertically { it },
-            exit = slideOutVertically { it },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = 8.dp, vertical = 8.dp),
+            enter = slideInVertically(animationSpec = tween(150)) { it },
+            exit = slideOutVertically(animationSpec = tween(150)) { it },
         ) {
             ExplorerActionBar(
                 actions = state.availableActions,
@@ -340,7 +346,7 @@ fun ExplorerWorkspacePage(
 fun ExplorerWorkspacePagePreview() {
     val mockState = ExplorerWorkspaceViewModel.State(
         currentLocation = ExplorerLocation.Directory(
-            path = RawPath.build("/storage/emulated/0"),
+            path = LocalPath.build("/storage/emulated/0"),
             items = MockDataProvider.createAllFileTypes(),
             info = ExplorerLocation.Directory.Info(
                 fileCount = 15,
@@ -362,15 +368,15 @@ fun ExplorerWorkspacePagePreview() {
             ),
             ExplorerBreadcrumb(
                 label = "storage".toCaString(),
-                target = ExplorerNavigation.Target.Directory(RawPath.build("/storage"))
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage"))
             ),
             ExplorerBreadcrumb(
                 label = "emulated".toCaString(),
-                target = ExplorerNavigation.Target.Directory(RawPath.build("/storage/emulated"))
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated"))
             ),
             ExplorerBreadcrumb(
                 label = "0".toCaString(),
-                target = ExplorerNavigation.Target.Directory(RawPath.build("/storage/emulated/0"))
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0"))
             )
         ),
         items = MockDataProvider.createAllFileTypes(),
@@ -396,7 +402,7 @@ fun ExplorerWorkspacePagePreview() {
 @Composable
 fun ExplorerWorkspacePageLoadingPreview() {
     val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(RawPath.build("/storage/emulated/0")),
+        currentLocation = ExplorerLocation.Directory(LocalPath.build("/storage/emulated/0")),
         breadcrumbs = emptyList(),
         items = emptyList(),
         isLoading = true,
@@ -416,7 +422,7 @@ fun ExplorerWorkspacePageLoadingPreview() {
 @Composable
 fun ExplorerWorkspacePageEmptyPreview() {
     val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(RawPath.build("/empty/folder")),
+        currentLocation = ExplorerLocation.Directory(LocalPath.build("/empty/folder")),
         breadcrumbs = emptyList(),
         items = emptyList(),
         isLoading = false,
@@ -437,7 +443,7 @@ fun ExplorerWorkspacePageEmptyPreview() {
 fun ExplorerWorkspacePageWithSelectionPreview() {
     val mockFileItems = MockDataProvider.createAllFileTypes()
     val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(RawPath.build("/storage/emulated/0")),
+        currentLocation = ExplorerLocation.Directory(LocalPath.build("/storage/emulated/0")),
         breadcrumbs = emptyList(),
         items = mockFileItems,
         isLoading = false,
@@ -471,11 +477,11 @@ fun ExplorerWorkspacePageGridModePreview() {
         ),
         ExplorerBreadcrumb(
             label = "Pictures".toCaString(),
-            target = ExplorerNavigation.Target.Directory(RawPath.build("/storage/emulated/0/Pictures"))
+            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0/Pictures"))
         )
     )
     val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(RawPath.build("/storage/emulated/0/Pictures")),
+        currentLocation = ExplorerLocation.Directory(LocalPath.build("/storage/emulated/0/Pictures")),
         breadcrumbs = mockBreadcrumbs,
         items = MockDataProvider.createAllFileTypes(),
         isLoading = false,
@@ -501,7 +507,7 @@ fun ExplorerWorkspacePageGridModePreview() {
 fun ExplorerWorkspacePageGridModeWithSelectionPreview() {
     val mockFileItems = MockDataProvider.createAllFileTypes()
     val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(RawPath.build("/storage/emulated/0/Downloads")),
+        currentLocation = ExplorerLocation.Directory(LocalPath.build("/storage/emulated/0/Downloads")),
         breadcrumbs = listOf(
             ExplorerBreadcrumb(
                 label = R.string.explorer_nav_device.toCaString(),
@@ -509,7 +515,7 @@ fun ExplorerWorkspacePageGridModeWithSelectionPreview() {
             ),
             ExplorerBreadcrumb(
                 label = "Downloads".toCaString(),
-                target = ExplorerNavigation.Target.Directory(RawPath.build("/storage/emulated/0/Downloads"))
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0/Downloads"))
             )
         ),
         items = mockFileItems,
