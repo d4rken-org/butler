@@ -4,6 +4,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
@@ -61,6 +62,7 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
             selectedTabId = id,
             isUpgraded = upgradeInfo.isUpgraded,
             panelMode = panelMode,
+            versionDescription = BuildConfigWrap.VERSION_DESCRIPTION_SHORT,
         )
     }.asStateFlow()
 
@@ -71,6 +73,7 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
         val workspaceTabs: List<WorkspaceTab>,
         val selectedTabId: Workspace.Id,
         val panelMode: WorkspacePanelMode,
+        val versionDescription: String,
     )
 
     @AssistedFactory

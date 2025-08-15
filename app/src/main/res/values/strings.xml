@@ -217,6 +217,23 @@
     <string name="workspace_empty_manager_action">Manage tabs</string>
     <string name="workspace_empty_manager_hint">View and organize all your open tabs in one place.</string>
 
+    <!-- Classic Workspace Tips -->
+    <string name="workspace_classic_tip_create_multiple">Create workspaces to work with multiple folders simultaneously</string>
+    <string name="workspace_classic_tip_search_workspace">Use the search workspace to quickly find files across your device</string>
+    <string name="workspace_classic_tip_editor_workspace">The editor workspace lets you view and edit text files</string>
+    <string name="workspace_classic_tip_customize_settings">Customize Butler\'s behavior in the settings</string>
+    <string name="workspace_classic_tip_root_access">Butler supports root access for advanced file operations</string>
+    <string name="workspace_classic_tip_swipe_between">Swipe between workspaces like browser tabs</string>
+    <string name="workspace_classic_tip_bookmark_folders">Bookmark frequently used folders for quick access</string>
+    <string name="workspace_classic_tip_keyboard_shortcuts">Use keyboard shortcuts for faster navigation</string>
+
+    <!-- Adaptive Workspace Tips -->
+    <string name="workspace_adaptive_tip_multiple_panes">Use multiple panes to compare files side by side</string>
+    <string name="workspace_adaptive_tip_different_folders">Open different folders in each pane for easy file management</string>
+    <string name="workspace_adaptive_tip_switch_layouts">Switch between pane layouts in the workspace manager</string>
+    <string name="workspace_adaptive_tip_copy_between_panes">Copy files between panes with drag and drop</string>
+    <string name="workspace_adaptive_tip_preview_files">Preview files in one pane while browsing in another</string>
+
     <!-- Workspace > Settings-->
     <string name="workspace_settings_title">Tab Settings</string>
     <string name="workspace_settings_button_behavior">Button Behavior</string>

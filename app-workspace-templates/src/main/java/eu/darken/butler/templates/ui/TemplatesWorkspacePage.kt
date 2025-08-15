@@ -47,7 +47,6 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.Slogans
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
@@ -173,7 +172,6 @@ fun TemplatesWorkspacePage(
                     )
 
                     LazyColumn(
-                        modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         horizontalAlignment = Alignment.Start
                     ) {
@@ -236,7 +234,7 @@ fun TemplatesWorkspacePage(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = BuildConfigWrap.VERSION_DESCRIPTION_SHORT,
+                                text = state.versionDescription,
                                 style = MaterialTheme.typography.labelSmall,
                                 modifier = Modifier.padding(top = 2.dp),
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
@@ -576,6 +574,7 @@ private fun TemplatesWorkspacePagePreview() {
                 selectedTabId = workspaceId,
                 isUpgraded = true,
                 panelMode = WorkspacePanelMode.AUTO,
+                versionDescription = "1.0.0-preview",
             ),
             onNavToSettings = {},
             workspaceButtonState = null,
