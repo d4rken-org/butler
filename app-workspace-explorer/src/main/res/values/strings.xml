@@ -22,4 +22,21 @@
     <string name="explorer_file_broken_link_label">Broken link</string>
     <string name="explorer_file_items_count">%1$d items</string>
     <string name="explorer_file_pages_count">%1$d pages</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">Nothing to see here… move along 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">This folder is on a diet</string>
+    <string name="explorer_empty_folder_caption_3">Even the files went home early today</string>
+    <string name="explorer_empty_folder_caption_4">Folder.exe has stopped working</string>
+    <string name="explorer_empty_folder_caption_5">The files are playing hide and seek</string>
+    <string name="explorer_empty_folder_caption_6">404: Files not found</string>
+    <string name="explorer_empty_folder_caption_7">This folder has trust issues</string>
+    <string name="explorer_empty_folder_caption_8">Files went on vacation without notice</string>
+    <string name="explorer_empty_folder_caption_9">Empty like my soul… but more organized</string>
+    <string name="explorer_empty_folder_caption_10">The digital equivalent of tumbleweeds</string>
+    <string name="explorer_empty_folder_caption_11">Files are socially distancing</string>
+    <string name="explorer_empty_folder_caption_12">This folder practices minimalism</string>
+    <string name="explorer_empty_folder_caption_13">Someone forgot to feed the files</string>
+    <string name="explorer_empty_folder_caption_14">The files have left the building</string>
+    <string name="explorer_empty_folder_caption_15">Emptier than a promise from a politician</string>
 </resources>
