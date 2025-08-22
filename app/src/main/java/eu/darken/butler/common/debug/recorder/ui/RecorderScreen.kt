@@ -27,9 +27,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
-import androidx.compose.material.icons.twotone.BugReport
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.twotone.BugReport
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -67,7 +67,6 @@ import java.io.File
 @Composable
 fun RecorderScreenHost(
     viewModel: RecorderViewModel,
-    onCancelClick: () -> Unit
 ) {
     val state by viewModel.state.collectAsState(null)
     val context = LocalContext.current
@@ -81,7 +80,7 @@ fun RecorderScreenHost(
     state?.let { currentState ->
         RecorderScreen(
             state = currentState,
-            onCancelClick = onCancelClick,
+            onCancelClick = { viewModel.discard() },
             onShareClick = { viewModel.share() },
             onPrivacyPolicyClick = { viewModel.goPrivacyPolicy() }
         )
@@ -119,7 +118,7 @@ private fun RecorderScreen(
                     shadowElevation = 8.dp
                 ) {
                     ActionButtons(
-                        loading = state.loading,
+                        loading = state.isWorking,
                         onCancelClick = onCancelClick,
                         onShareClick = onShareClick,
                         modifier = Modifier.padding(16.dp)
@@ -161,7 +160,7 @@ private fun RecorderScreen(
 
             item {
                 AnimatedVisibility(
-                    visible = !state.loading,
+                    visible = !state.isWorking,
                     enter = fadeIn(animationSpec = tween(300)),
                     exit = fadeOut(animationSpec = tween(300))
                 ) {
@@ -310,7 +309,7 @@ private fun WarningCard(onPrivacyPolicyClick: () -> Unit) {
 }
 
 @Composable
-private fun SessionInfoCard(logDir: File) {
+private fun SessionInfoCard(logDir: File?) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.elevatedCardColors(
@@ -351,7 +350,7 @@ private fun SessionInfoCard(logDir: File) {
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
-                        text = "${logDir.path}/",
+                        text = logDir?.let { "${it.path}/" } ?: "?",
                         style = MaterialTheme.typography.bodySmall.copy(
                             fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
                         ),

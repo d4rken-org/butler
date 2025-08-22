@@ -15,6 +15,7 @@ import eu.darken.butler.common.compression.Zipper
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.core.local.deleteAll
 import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.navigation.NavigationController
@@ -27,31 +28,29 @@ import javax.inject.Inject
 class RecorderViewModel @Inject constructor(
     navCtrl: NavigationController,
     dispatchers: DispatcherProvider,
-    savedStateHandle: SavedStateHandle,
+    handle: SavedStateHandle,
     @param:ApplicationContext private val context: Context,
     private val webpageTool: WebpageTool,
-) : ViewModel4(dispatchers, logTag("Debug", "Recorder","Screen","VM"), navCtrl) {
+) : ViewModel4(dispatchers, logTag("Debug", "Recorder", "Screen", "VM"), navCtrl) {
 
-    private val recordedPath: File
+    private val sessionPath = handle.get<String>(RecorderActivity.RECORD_PATH)?.let { File(it) }
+    private val zipPath = sessionPath?.let { File(it.parentFile, "${it.name}.zip") }
 
-    private val stater: DynamicStateFlow<State>
-    val state: Flow<State>
+    private val stater = DynamicStateFlow(TAG, vmScope) {
+        State(logDir = sessionPath)
+    }
+
+    val state: Flow<State> = stater.flow
 
     val shareEvent = SingleEventFlow<Intent>()
 
     init {
-        val path = savedStateHandle.get<String>(RecorderActivity.RECORD_PATH)
-            ?: throw IllegalStateException("No path provided")
-        recordedPath = File(path)
-
-        stater = DynamicStateFlow(TAG, vmScope) {
-            State(logDir = recordedPath)
-        }
-        state = stater.flow
-
         launch {
-            log(TAG) { "Getting log files in dir: $recordedPath" }
-            val logFiles = recordedPath.listFiles() ?: emptyArray()
+            if (sessionPath == null) throw IllegalStateException("No recorded path found")
+
+            log(TAG) { "Getting log files in dir: $sessionPath" }
+            val logFiles = sessionPath.listFiles() ?: throw IllegalStateException("No log files found")
+
             log(TAG) { "Found ${logFiles.size} logfiles: $logFiles" }
             var entries = logFiles.map { LogFileItem(path = it) }
             stater.updateBlocking { copy(logEntries = entries) }
@@ -61,7 +60,7 @@ class RecorderViewModel @Inject constructor(
             stater.updateBlocking { copy(logEntries = entries) }
 
             log(TAG) { "Compressing log files..." }
-            val zipFile = File(recordedPath.parentFile, "${recordedPath.name}.zip")
+            val zipFile = zipPath ?: throw IllegalStateException("No zip path found")
             log(TAG) { "Writing zip file to $zipFile" }
             Zipper().zip(
                 entries.map { it.path.path },
@@ -69,7 +68,7 @@ class RecorderViewModel @Inject constructor(
             )
             val zippedSize = zipFile.length()
             log(TAG) { "Zip file created ${zippedSize}B at $zipFile" }
-            stater.updateBlocking { copy(compressedFile = zipFile, compressedSize = zippedSize) }
+            stater.updateBlocking { copy(compressedFile = zipFile, compressedSize = zippedSize, isWorking = false) }
         }
     }
 
@@ -105,14 +104,19 @@ class RecorderViewModel @Inject constructor(
         webpageTool.open(ButlerLinks.PRIVACY_POLICY)
     }
 
+    fun discard() = launch {
+        stater.updateBlocking { copy(isWorking = true) }
+        sessionPath?.deleteAll()
+        navUp()
+    }
+
     data class State(
-        val logDir: File,
+        val logDir: File?,
         val logEntries: List<LogFileItem> = emptyList(),
         val compressedFile: File? = null,
-        val compressedSize: Long? = null
+        val compressedSize: Long? = null,
+        val isWorking: Boolean = true,
     ) {
-        val loading: Boolean
-            get() = compressedSize == null
 
         fun getFormattedCompressedSize(context: Context): String? {
             return compressedSize?.let { Formatter.formatShortFileSize(context, it) }
