@@ -107,8 +107,8 @@ fun ExplorerWorkspacePage(
     val gridState = rememberLazyGridState()
     var isBottomBarVisible by remember { mutableStateOf(true) }
 
-    LaunchedEffect(vm) {
-        vm?.scrollResetEvents?.collect {
+    LaunchedEffect(state.locationId) {
+        if (state.locationId != null) {
             if (state.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
                 listState.animateScrollToItem(0)
             } else {

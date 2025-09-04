@@ -17,6 +17,7 @@ import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
+import eu.darken.butler.explorer.core.engine.locationId
 import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemResult
@@ -56,7 +57,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val dialogStateFlow = MutableStateFlow<ExplorerDialogState>(ExplorerDialogState.None)
 
     val dialogEvents = SingleEventFlow<ExplorerDialogEvent>()
-    val scrollResetEvents = SingleEventFlow<Unit>()
 
     private val workspace: Flow<ExplorerWorkspace?> = workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
 
@@ -89,6 +89,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
         State(
             currentLocation = wsState.currentLocation,
+            locationId = wsState.currentLocation?.locationId,
             breadcrumbs = wsState.currentBreadcrumbs ?: emptyList(),
             items = items,
             isLoading = wsState.isLoading,
@@ -111,7 +112,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 is ExplorerItem.DirectoryItem -> {
                     getWorkspace().navigate(ExplorerNavigation.Target.Directory(item.lookup.lookedUp))
                     clearSelection()
-                    scrollResetEvents.emit(Unit)
                 }
                 is ExplorerItem.FileItem -> {
                     // TODO Open file?
@@ -120,7 +120,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerItem.Shortcut -> {
                 getWorkspace().navigate(item.target)
                 clearSelection()
-                scrollResetEvents.emit(Unit)
             }
 
         }
@@ -133,12 +132,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         when {
             normalizedPath.isEmpty() -> {
                 getWorkspace().navigate(ExplorerNavigation.Target.Home)
-                scrollResetEvents.emit(Unit)
             }
             normalizedPath.startsWith("/") -> {
                 getWorkspace().navigate(ExplorerNavigation.Target.Directory(LocalPath.build(normalizedPath)))
                 clearSelection()
-                scrollResetEvents.emit(Unit)
             }
             else -> {
                 // Invalid path - could show error
@@ -151,7 +148,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "navigate($target)" }
         getWorkspace().navigate(target)
         clearSelection()
-        scrollResetEvents.emit(Unit)
     }
 
     fun toggleItemSelection(item: ExplorerItem) {
@@ -384,6 +380,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     data class State(
         val currentLocation: ExplorerLocation? = null,
+        val locationId: String? = null,
         val breadcrumbs: List<ExplorerBreadcrumb> = emptyList(),
         val items: List<ExplorerItem>,
         val isLoading: Boolean,
