@@ -1,14 +1,15 @@
 package eu.darken.butler.editor.core
 
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.APath
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import eu.darken.butler.common.files.APath
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedInject
+import kotlin.time.Instant
 
 class ChunkRepository @AssistedInject constructor(
     @Assisted val dataSource: EditorDataSource
@@ -126,7 +127,7 @@ class ChunkRepository @AssistedInject constructor(
 data class FileInfo(
     val path: APath,
     val size: Long,
-    val lastModified: java.time.Instant,
+    val lastModified: Instant,
     val canWrite: Boolean
 )
 

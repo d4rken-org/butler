@@ -3,7 +3,7 @@ package eu.darken.butler.searcher.core
 import android.os.Parcelable
 import eu.darken.butler.common.files.FileType
 import kotlinx.parcelize.Parcelize
-import java.time.Instant
+import kotlin.time.Instant
 
 @Parcelize
 data class SearchFilter(

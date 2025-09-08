@@ -2,10 +2,10 @@ package eu.darken.butler.searcher.ui.search.rows
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import java.time.Instant
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun SmartFileRow(
@@ -30,41 +30,41 @@ private fun SmartFileRowPreview() {
                     path = "/storage/emulated/0/Pictures/photo.jpg",
                     fileType = FileType.FILE,
                     size = 1024 * 1024 * 2,
-                    modifiedAt = Instant.now().minusSeconds(3600),
+                    modifiedAt = Clock.System.now() - 3600.seconds,
                     metadata = mapOf("Resolution" to "4032x3024")
                 )
             )
-            
+
             SmartFileRow(
                 data = FileRowData(
                     name = "app.apk",
                     path = "/storage/emulated/0/Download/app.apk",
                     fileType = FileType.FILE,
                     size = 1024 * 1024 * 35,
-                    modifiedAt = Instant.now().minusSeconds(1800),
+                    modifiedAt = Clock.System.now() - 1800.seconds,
                     metadata = mapOf(
                         "Package" to "com.example.app",
                         "Version" to "2.1.0"
                     )
                 )
             )
-            
+
             SmartFileRow(
                 data = FileRowData(
                     name = "document.txt",
                     path = "/storage/emulated/0/Documents/document.txt",
                     fileType = FileType.FILE,
                     size = 1024 * 5,
-                    modifiedAt = Instant.now().minusSeconds(900)
+                    modifiedAt = Clock.System.now() - 900.seconds,
                 )
             )
-            
+
             SmartFileRow(
                 data = FileRowData(
                     name = "Downloads",
                     path = "/storage/emulated/0/Downloads",
                     fileType = FileType.DIRECTORY,
-                    modifiedAt = Instant.now().minusSeconds(7200)
+                    modifiedAt = Clock.System.now() - 7200.seconds,
                 )
             )
         }

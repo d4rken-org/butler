@@ -14,7 +14,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
-import java.time.Instant
+import kotlin.time.Instant
 
 class LocalPathExtensionsTest : BaseTest() {
 

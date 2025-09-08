@@ -6,7 +6,7 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileType
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.RawValue
-import java.time.Instant
+import kotlin.time.Instant
 
 @Parcelize
 data class SearchResult(

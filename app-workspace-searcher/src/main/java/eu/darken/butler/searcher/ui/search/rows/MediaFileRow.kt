@@ -6,13 +6,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import java.time.Instant
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun MediaFileRow(
@@ -35,7 +35,7 @@ fun MediaFileRow(
 @Composable
 fun MediaFileIcon(data: FileRowData) {
     val (iconVector, tint) = getFileIconAndTint(data)
-    
+
     Icon(
         imageVector = iconVector,
         contentDescription = data.fileType.name,
@@ -55,35 +55,35 @@ private fun MediaFileRowPreview() {
                     path = "/storage/emulated/0/Pictures/vacation_photo.jpg",
                     fileType = FileType.FILE,
                     size = 1024 * 1024 * 3,
-                    modifiedAt = Instant.now().minusSeconds(7200),
+                    modifiedAt = Clock.System.now() - 7200.seconds,
                     metadata = mapOf(
                         "Resolution" to "1920x1080",
                         "Camera" to "Pixel 8"
                     )
                 )
             )
-            
+
             MediaFileRow(
                 data = FileRowData(
                     name = "summer_video.mp4",
                     path = "/storage/emulated/0/Movies/summer_video.mp4",
                     fileType = FileType.FILE,
                     size = 1024 * 1024 * 25,
-                    modifiedAt = Instant.now().minusSeconds(3600 * 5),
+                    modifiedAt = Clock.System.now() - (3600 * 5).seconds,
                     metadata = mapOf(
                         "Duration" to "2:34",
                         "Quality" to "1080p"
                     )
                 )
             )
-            
+
             MediaFileRow(
                 data = FileRowData(
                     name = "favorite_song.mp3",
                     path = "/storage/emulated/0/Music/favorite_song.mp3",
                     fileType = FileType.FILE,
                     size = 1024 * 1024 * 4,
-                    modifiedAt = Instant.now().minusSeconds(86400 * 2),
+                    modifiedAt = Clock.System.now() - (86400 * 2).seconds,
                     metadata = mapOf(
                         "Duration" to "3:45",
                         "Artist" to "Unknown"

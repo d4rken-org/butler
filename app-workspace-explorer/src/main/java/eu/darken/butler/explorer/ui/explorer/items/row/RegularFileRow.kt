@@ -45,7 +45,7 @@ internal fun RegularFileRow(
         secondaryText = buildString {
             append(formatFileSize(item.lookup.size))
             append(" • ")
-            append(formatDate(item.lookup.modifiedAt.toEpochMilli()))
+            append(formatDate(item.lookup.modifiedAt))
             item.permissions?.let { perms ->
                 append(" • ")
                 append(perms.mode)

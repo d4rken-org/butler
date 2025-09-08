@@ -12,9 +12,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 @Singleton
@@ -47,7 +48,7 @@ class UpgradeRepoFoss @Inject constructor(
     fun launchGithubSponsorsUpgrade() = appScope.launch {
         log(TAG) { "launchGithubSponsorsUpgrade()" }
         fossCache.upgrade.valueBlocking = FossUpgrade(
-            upgradedAt = Instant.now(),
+            upgradedAt = Clock.System.now(),
             upgradeType = FossUpgrade.Type.GITHUB_SPONSORS
         )
         webpageTool.open(mainWebsite)

@@ -5,7 +5,7 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.LocalPath
 import kotlinx.parcelize.Parcelize
-import java.time.Instant
+import kotlin.time.Instant
 
 @Parcelize
 data class LocalPathLookup(

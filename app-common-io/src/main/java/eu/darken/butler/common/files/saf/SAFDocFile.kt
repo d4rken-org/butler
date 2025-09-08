@@ -23,7 +23,7 @@ import eu.darken.butler.common.files.io.useQuietly
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
-import java.time.Instant
+import kotlin.time.Instant
 
 
 data class SAFDocFile(
@@ -86,7 +86,7 @@ data class SAFDocFile(
         }
 
     val lastModified: Instant
-        get() = Instant.ofEpochMilli(queryForLong(DocumentsContract.Document.COLUMN_LAST_MODIFIED) ?: 0)
+        get() = Instant.fromEpochMilliseconds(queryForLong(DocumentsContract.Document.COLUMN_LAST_MODIFIED) ?: 0)
 
     val length: Long
         get() = queryForLong(DocumentsContract.Document.COLUMN_SIZE) ?: 0
@@ -157,7 +157,7 @@ data class SAFDocFile(
 
     fun setLastModified(lastModified: Instant): Boolean = try {
         val updateValues = ContentValues()
-        updateValues.put(DocumentsContract.Document.COLUMN_LAST_MODIFIED, lastModified.toEpochMilli())
+        updateValues.put(DocumentsContract.Document.COLUMN_LAST_MODIFIED, lastModified.toEpochMilliseconds())
         val updated: Int = resolver.update(uri, updateValues, null, null)
         updated == 1
     } catch (e: Exception) {
