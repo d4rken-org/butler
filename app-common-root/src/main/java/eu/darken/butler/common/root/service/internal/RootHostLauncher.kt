@@ -21,9 +21,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
-import java.util.UUID
 import javax.inject.Inject
 import kotlin.reflect.KClass
+import kotlin.uuid.Uuid
 
 /**
  * Based on https://github.com/Chainfire/librootjava
@@ -43,10 +43,10 @@ class RootHostLauncher @Inject constructor(
         useMountMaster: Boolean = false,
         options: RootHostOptions,
     ): Flow<ConnectionWrapper<Service>> = callbackFlow {
-        val iTag = "$TAG:${UUID.randomUUID().toString().takeLast(4)}"
+        val iTag = "$TAG:${Uuid.random().toString().takeLast(4)}"
         log(iTag, INFO) { "createConnection($serviceClass, $hostClass, $useMountMaster, $options)" }
 
-        val pairingCode = UUID.randomUUID().toString()
+        val pairingCode = Uuid.random().toString()
 
         val ipcReceiver = object : RootConnectionReceiver(pairingCode) {
             override fun onConnect(connection: RootConnection) {

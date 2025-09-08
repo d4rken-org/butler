@@ -25,8 +25,8 @@ import eu.darken.butler.workspace.ui.manager.workspaceManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
-import java.util.UUID
 import javax.inject.Inject
+import kotlin.uuid.Uuid
 
 
 @HiltViewModel
@@ -42,7 +42,7 @@ class WorkspacesViewModel @Inject constructor(
     private val webpageTool: WebpageTool,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Screen", "VM"), navCtrl) {
 
-    private val hiddenMotdIds = MutableStateFlow<Set<UUID>>(emptySet())
+    private val hiddenMotdIds = MutableStateFlow<Set<Uuid>>(emptySet())
 
     init {
         // Initialize the WorkspaceUIManager with saved state
@@ -137,12 +137,12 @@ class WorkspacesViewModel @Inject constructor(
         navCtrl.goTo(Nav.Main.upgrade())
     }
 
-    fun hideMotd(id: UUID) = launch {
+    fun hideMotd(id: Uuid) = launch {
         log(tag) { "hideMotd($id)" }
         hiddenMotdIds.update { it + id }
     }
 
-    fun dismissMotd(id: UUID) = launch {
+    fun dismissMotd(id: Uuid) = launch {
         log(tag) { "dismissMotd($id)" }
         motdRepo.dismiss(id)
     }

@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import java.time.Duration
 import java.time.Instant
-import java.util.UUID
+import kotlin.uuid.Uuid
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.system.measureTimeMillis
@@ -40,7 +40,7 @@ class GplayReviewTool @Inject constructor(
     upgradeRepo: UpgradeRepo,
 ) : ReviewTool {
     private val manager by lazy { ReviewManagerFactory.create(context) }
-    private val reviewRefresh = MutableStateFlow(UUID.randomUUID())
+    private val reviewRefresh = MutableStateFlow(Uuid.random())
     private val gplayReviewState = reviewRefresh
         .map {
             try {
@@ -107,7 +107,7 @@ class GplayReviewTool @Inject constructor(
             manager.launchReview(activity, reviewInfo)
         }
         log(TAG) { "Review completed after ${reviewTime}ms" }
-        reviewRefresh.value = UUID.randomUUID()
+        reviewRefresh.value = Uuid.random()
 
         if (Duration.ofMillis(reviewTime) >= Duration.ofSeconds(2)) {
             log(TAG, INFO) { "Marking review as completed" }

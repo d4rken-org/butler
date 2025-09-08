@@ -29,7 +29,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import java.time.Duration
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 /**
  * A utility class to create child/parent dependencies for expensive resources.
@@ -63,7 +63,7 @@ open class SharedResource<T : Any>(
         get() = sourceJob == null
 
     suspend fun get(): Resource<T> {
-        val lId = "L:${UUID.randomUUID().toString().takeLast(4)}"
+        val lId = "L:${Uuid.random().toString().takeLast(4)}"
         if (Bugs.isTrace) {
             val call = traceCall()
             log(iTag, VERBOSE) { "[$sId|$lId]-get() ... via $call" }
@@ -102,7 +102,7 @@ open class SharedResource<T : Any>(
                 }
 
                 if (Bugs.isTrace) log(iTag, DEBUG) { "[$sId|$lId]-get() Launching source job..." }
-                sId = "S:${UUID.randomUUID().toString().takeLast(4)}"
+                sId = "S:${Uuid.random().toString().takeLast(4)}"
                 sourceError = null
                 sourceJob = source
                     .onStart {

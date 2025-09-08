@@ -13,9 +13,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.time.Instant
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.uuid.Uuid
 
 @Singleton
 class UpgradeRepoFoss @Inject constructor(
@@ -26,7 +26,7 @@ class UpgradeRepoFoss @Inject constructor(
 
     override val mainWebsite: String = SITE
 
-    private val refreshTrigger = MutableStateFlow(UUID.randomUUID())
+    private val refreshTrigger = MutableStateFlow(Uuid.random())
 
     override val upgradeInfo: Flow<UpgradeRepo.Info> = combine(
         fossCache.upgrade.flow,
@@ -55,7 +55,7 @@ class UpgradeRepoFoss @Inject constructor(
 
     override suspend fun refresh() {
         log(TAG) { "refresh()" }
-        refreshTrigger.value = UUID.randomUUID()
+        refreshTrigger.value = Uuid.random()
     }
 
     data class Info(

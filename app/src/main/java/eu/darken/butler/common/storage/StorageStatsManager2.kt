@@ -7,6 +7,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.funnel.IPCFunnel
 import eu.darken.butler.common.pkgs.features.Installed
 import javax.inject.Inject
+import kotlin.uuid.toJavaUuid
 
 @Reusable
 class StorageStatsManager2 @Inject constructor(
@@ -17,23 +18,27 @@ class StorageStatsManager2 @Inject constructor(
 
     suspend fun queryStatsForAppUid(storageId: StorageId, pkg: Installed): StorageStats = ipcFunnel.use {
         val appUid = pkg.applicationInfo?.uid ?: throw IllegalStateException("${pkg.id} is missing an UID")
-        osStatManager.queryStatsForUid(storageId.externalId, appUid)
+        osStatManager.queryStatsForUid(storageId.externalId.toJavaUuid(), appUid)
     }
 
     suspend fun queryStatsForPkg(storageId: StorageId, pkg: Installed): StorageStats = ipcFunnel.use {
-        osStatManager.queryStatsForPackage(storageId.externalId, pkg.packageName, pkg.userHandle.asUserHandle())
+        osStatManager.queryStatsForPackage(
+            storageId.externalId.toJavaUuid(),
+            pkg.packageName,
+            pkg.userHandle.asUserHandle()
+        )
     }
 
     @Throws(IllegalStateException::class)
     suspend fun getTotalBytes(id: StorageId): Long {
-        val value = osStatManager.getTotalBytes(id.externalId)
+        val value = osStatManager.getTotalBytes(id.externalId.toJavaUuid())
         if (value == ERRROR_MIN || value == ERROR_MAX) throw IllegalStateException("Total bytes is $value")
         return value
     }
 
     @Throws(IllegalStateException::class)
     suspend fun getFreeBytes(id: StorageId): Long {
-        val value = osStatManager.getFreeBytes(id.externalId)
+        val value = osStatManager.getFreeBytes(id.externalId.toJavaUuid())
         if (value == ERRROR_MIN || value == ERROR_MAX) throw IllegalStateException("Total bytes is $value")
         return value
     }
