@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import java.time.Duration
+import kotlin.time.Duration
 import java.time.Instant
 import kotlin.uuid.Uuid
 import javax.inject.Inject

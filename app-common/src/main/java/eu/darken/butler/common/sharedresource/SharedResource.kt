@@ -28,7 +28,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
-import java.time.Duration
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 
 /**
@@ -39,7 +40,7 @@ open class SharedResource<T : Any>(
     tag: String,
     parentScope: CoroutineScope,
     private val source: Flow<T>,
-    private val stopTimeout: Duration = Duration.ofSeconds(3),
+    private val stopTimeout: Duration = 3.seconds,
 ) : KeepAlive {
     private val iTag = "$tag:SR"
     override val resourceId: String = iTag
@@ -204,7 +205,7 @@ open class SharedResource<T : Any>(
                 if (Bugs.isTrace) {
                     log(iTag, DEBUG) { "[$sId|_]-leaseCheck()-$tag waiting for expiration ($stopTimeout)" }
                 }
-                delay(stopTimeout.toMillis())
+                delay(stopTimeout)
                 doLeaseCheck(tag)
             }
         }
@@ -391,7 +392,7 @@ open class SharedResource<T : Any>(
         fun createKeepAlive(
             tag: String,
             scope: CoroutineScope,
-            stopTimeout: Duration = Duration.ofSeconds(3),
+            stopTimeout: Duration = 3.seconds,
         ): SharedResource<Any> = SharedResource(
             tag = tag,
             parentScope = scope,
