@@ -25,6 +25,23 @@ import eu.darken.butler.main.ui.onboarding.pages.WorkspacesPage
 import kotlinx.coroutines.launch
 
 @Composable
+fun OnboardingScreenHost(vm: OnboardingViewModel = hiltViewModel()) {
+    ErrorEventHandler(vm)
+
+    val state by waitForState(vm.state)
+
+    state?.let { state ->
+        OnboardingScreen(
+            state = state,
+            onUpdateCheckChange = { vm.setUpdateCheckEnabled(it) },
+            onMotdCheckChange = { vm.setMotdCheckEnabled(it) },
+            onReadPrivacyPolicy = { vm.readPrivacyPolicy() },
+            onFinishOnboarding = vm::completeOnboarding,
+        )
+    }
+}
+
+@Composable
 private fun OnboardingScreen(
     state: OnboardingViewModel.State,
     onUpdateCheckChange: (Boolean) -> Unit,
@@ -113,23 +130,6 @@ private fun OnboardingScreenPreview() {
             onMotdCheckChange = {},
             onReadPrivacyPolicy = {},
             onFinishOnboarding = {},
-        )
-    }
-}
-
-@Composable
-fun OnboardingScreenHost(vm: OnboardingViewModel = hiltViewModel()) {
-    ErrorEventHandler(vm)
-
-    val state by waitForState(vm.state)
-
-    state?.let { state ->
-        OnboardingScreen(
-            state = state,
-            onUpdateCheckChange = { vm.setUpdateCheckEnabled(it) },
-            onMotdCheckChange = { vm.setMotdCheckEnabled(it) },
-            onReadPrivacyPolicy = { vm.readPrivacyPolicy() },
-            onFinishOnboarding = vm::completeOnboarding,
         )
     }
 }
