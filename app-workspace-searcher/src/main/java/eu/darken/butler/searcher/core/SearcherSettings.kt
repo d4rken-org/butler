@@ -29,14 +29,9 @@ class SearcherSettings @Inject constructor(
     val caseSensitive = dataStore.createValue("searcher.case_sensitive", false)
     val wholeWord = dataStore.createValue("searcher.whole_word", false)
     val useRegex = dataStore.createValue("searcher.use_regex", false)
-    val maxHistoryItems = dataStore.createValue("searcher.max_history_items", 10)
+    val maxHistoryItems = dataStore.createValue("searcher.max_history_items", 50)
     val saveHistory = dataStore.createValue("searcher.save_history", true)
     val maxSearchResults = dataStore.createValue("searcher.max_search_results", 1000)
-    val searchHistory = dataStore.createValue(
-        key = "searcher.search_history",
-        defaultValue = emptyList<SearchRepository.SearchHistoryItem>(),
-        json = json
-    )
 
     override val mapper = PreferenceStoreMapper(
         debugSettings.isDebugMode,

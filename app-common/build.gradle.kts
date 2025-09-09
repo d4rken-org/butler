@@ -67,6 +67,7 @@ dependencies {
     addNavigation3()
     addCoil()
     addLottie()
+    addRoomDb()
 
     "gplayImplementation"("com.android.billingclient:billing:7.1.1")
     "gplayImplementation"("com.android.billingclient:billing-ktx:7.1.1")

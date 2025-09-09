@@ -39,6 +39,10 @@ import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.Search
+import androidx.compose.material.icons.twotone.TextFormat
+import androidx.compose.material.icons.twotone.FormatQuote
+import androidx.compose.material.icons.automirrored.twotone.WrapText
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -65,7 +69,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
@@ -77,7 +80,7 @@ import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.searcher.R
-import eu.darken.butler.searcher.core.SearchRepository
+import eu.darken.butler.searcher.core.SearchHistory
 import eu.darken.butler.searcher.core.SearchResult
 import eu.darken.butler.searcher.ui.search.rows.FileRowData
 import eu.darken.butler.searcher.ui.search.rows.SmartFileRow
@@ -118,8 +121,16 @@ fun SearcherWorkspacePageHost(
             onResultClick = vm::onSearchResultClick,
             onClearHistory = vm::clearSearchHistory,
             onHistoryItemClick = { item ->
-                vm.updateSearchQuery(TextFieldValue(item.query))
-                vm.performSearch()
+                item.searchQuery?.let { query ->
+                    vm.updateSearchQuery(TextFieldValue(query.query))
+                    vm.updateSearchPath(query.path)
+                    vm.updateFilter(query.filter)
+                    vm.performSearch()
+                } ?: run {
+                    // Fallback to just the base query if full query unavailable
+                    vm.updateSearchQuery(TextFieldValue(item.baseQuery))
+                    vm.performSearch()
+                }
             },
             onToggleCaseSensitive = vm::toggleCaseSensitive,
             onToggleWholeWord = vm::toggleWholeWord,
@@ -141,7 +152,7 @@ fun SearcherWorkspacePage(
     onCancelSearch: () -> Unit = {},
     onResultClick: (SearchResult) -> Unit = {},
     onClearHistory: () -> Unit = {},
-    onHistoryItemClick: (SearchRepository.SearchHistoryItem) -> Unit = {},
+    onHistoryItemClick: (SearchHistory.SearchHistoryItem) -> Unit = {},
     onToggleCaseSensitive: () -> Unit = {},
     onToggleWholeWord: () -> Unit = {},
     onToggleRegex: () -> Unit = {},
@@ -209,11 +220,38 @@ fun SearcherWorkspacePage(
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = historyItem.query,
-                                    style = MaterialTheme.typography.bodyMedium,
+                                Column(
                                     modifier = Modifier.weight(1f)
-                                )
+                                ) {
+                                    Text(
+                                        text = historyItem.baseQuery,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Row(
+                                        modifier = Modifier.padding(top = 2.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        historyItem.searchQuery?.path?.let { path ->
+                                            Text(
+                                                text = path.path.takeLast(30).let { 
+                                                    if (it.length < path.path.length) "...$it" else it 
+                                                },
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                maxLines = 1
+                                            )
+                                        }
+                                        historyItem.resultCount?.let { count ->
+                                            Text(
+                                                text = if (count == 0) "No results" else "$count results",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

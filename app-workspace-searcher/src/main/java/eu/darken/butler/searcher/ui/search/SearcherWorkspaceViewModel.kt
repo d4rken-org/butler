@@ -13,8 +13,9 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.searcher.core.SearchFilter
-import eu.darken.butler.searcher.core.SearchRepository
+import eu.darken.butler.searcher.core.SearchEngine
+import eu.darken.butler.searcher.core.SearchHistory
+import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchResult
 import eu.darken.butler.searcher.core.SearcherSettings
 import eu.darken.butler.workspace.core.Workspace
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel(assistedFactory = SearcherWorkspaceViewModel.Factory::class)
@@ -31,12 +33,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
     dispatchers: DispatcherProvider,
     navCtrl: NavigationController,
-    private val searchRepository: SearchRepository,
+    private val searchEngine: SearchEngine,
+    private val searchHistory: SearchHistory,
     private val searcherSettings: SearcherSettings,
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page"), navCtrl) {
 
     private val searchQuery = MutableStateFlow(TextFieldValue(""))
-    private val currentFilter = MutableStateFlow(SearchFilter.EMPTY)
+    private val currentFilter = MutableStateFlow(SearchQuery.Filter.DEFAULT)
     private val searchPath =
         MutableStateFlow<APath>(LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler"))
 
@@ -55,18 +58,32 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     }
 
     private var activeSearchJob: Job? = null
+    private var currentSearchId: String? = null
+    
+    data class SearchState(
+        val status: Status = Status.IDLE,
+        val results: List<SearchResult> = emptyList(),
+        val progress: SearchEngine.SearchProgress? = null,
+        val error: Exception? = null
+    ) {
+        enum class Status {
+            IDLE, SEARCHING, COMPLETED, ERROR, CANCELLED
+        }
+    }
+    
+    private val searchState = MutableStateFlow(SearchState())
 
     val state = combine(
         searchQuery,
-        searchRepository.state,
-        searchRepository.searchHistory,
+        searchState,
+        searchHistory.getRecentSearches(20),
         currentFilter,
         searchPath,
     ) { values ->
         val query = values[0] as TextFieldValue
-        val searchState = values[1] as SearchRepository.SearchState
-        val history = values[2] as List<SearchRepository.SearchHistoryItem>
-        val filter = values[3] as SearchFilter
+        val searchState = values[1] as SearchState
+        val history = values[2] as List<SearchHistory.SearchHistoryItem>
+        val filter = values[3] as SearchQuery.Filter
         val path = values[4] as APath
 
         State(
@@ -94,22 +111,64 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         log(TAG, INFO) { "Performing search: $query" }
 
         activeSearchJob?.cancel()
-        activeSearchJob = searchRepository.startSearch(
+        
+        val searchRequest = SearchQuery(
             query = query,
-            startPath = searchPath.value,
+            path = searchPath.value,
+            options = SearchQuery.Options(),
             filter = currentFilter.value
-        ).onEach { result ->
-            log(TAG) { "Search result: ${result.path}" }
-        }.launchIn(vmScope)
+        )
+        
+        // Record search in history
+        vmScope.launch {
+            currentSearchId = searchHistory.addSearch(searchRequest)
+        }
+        
+        // Clear previous results and set searching state
+        searchState.update { 
+            it.copy(status = SearchState.Status.SEARCHING, results = emptyList(), error = null) 
+        }
+        
+        // Start the search
+        activeSearchJob = vmScope.launch {
+            try {
+                val results = mutableListOf<SearchResult>()
+                searchEngine.search(
+                    searchQuery = searchRequest,
+                    onProgress = { progress ->
+                        searchState.update { it.copy(progress = progress) }
+                    }
+                ).collect { result ->
+                    results.add(result)
+                    searchState.update { state ->
+                        state.copy(results = state.results + result)
+                    }
+                    log(TAG) { "Search result: ${result.path}" }
+                }
+                
+                // Update history with result count
+                currentSearchId?.let { id ->
+                    searchHistory.updateResultCount(id, results.size)
+                }
+                
+                searchState.update { it.copy(status = SearchState.Status.COMPLETED) }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                searchState.update { it.copy(status = SearchState.Status.CANCELLED) }
+                throw e
+            } catch (e: Exception) {
+                log(TAG) { "Search error: $e" }
+                searchState.update { it.copy(status = SearchState.Status.ERROR, error = e) }
+            }
+        }
     }
 
     fun cancelSearch() {
         log(TAG) { "Cancelling search" }
-        searchRepository.cancelSearch()
         activeSearchJob?.cancel()
+        searchState.update { it.copy(status = SearchState.Status.CANCELLED) }
     }
 
-    fun updateFilter(filter: SearchFilter) {
+    fun updateFilter(filter: SearchQuery.Filter) {
         log(TAG) { "Updating filter: $filter" }
         currentFilter.value = filter
     }
@@ -141,11 +200,15 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun clearSearchHistory() {
-        searchRepository.clearHistory()
+        vmScope.launch {
+            searchHistory.clearHistory()
+        }
     }
 
-    fun removeHistoryItem(item: SearchRepository.SearchHistoryItem) {
-        searchRepository.removeFromHistory(item)
+    fun removeHistoryItem(item: SearchHistory.SearchHistoryItem) {
+        vmScope.launch {
+            searchHistory.removeItem(item.id)
+        }
     }
 
     fun onSearchResultClick(result: SearchResult) {
@@ -156,16 +219,16 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     data class State(
         val id: Workspace.Id,
         val searchQuery: TextFieldValue = TextFieldValue(""),
-        val searchState: SearchRepository.SearchState = SearchRepository.SearchState(),
-        val searchHistory: List<SearchRepository.SearchHistoryItem> = emptyList(),
-        val currentFilter: SearchFilter = SearchFilter.EMPTY,
+        val searchState: SearchState = SearchState(),
+        val searchHistory: List<SearchHistory.SearchHistoryItem> = emptyList(),
+        val currentFilter: SearchQuery.Filter = SearchQuery.Filter.DEFAULT,
         val searchPath: APath,
         val caseSensitive: Boolean = false,
         val wholeWord: Boolean = false,
         val useRegex: Boolean = false,
     ) {
         val isSearching: Boolean
-            get() = searchState.status == SearchRepository.SearchState.Status.SEARCHING
+            get() = searchState.status == SearchState.Status.SEARCHING
 
         val hasResults: Boolean
             get() = searchState.results.isNotEmpty()
