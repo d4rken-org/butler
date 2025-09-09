@@ -90,10 +90,16 @@ fastlane android production
 - Package by feature, not by layer.
 - All user facing strings should be extract to `values/strings.xml` and translated for all other languages too.
 - Prefer adding to existing files unless creating new logical components.
+- **Composable organization**:
+  - Reusable composables should be in their own files (e.g., `ButlerIcon.kt`, `ColoredTitleText.kt`)
+  - Screen-specific composables can remain in the screen file unless the file grows too large
+  - Extract screen-specific composables to separate files when the main file exceeds ~200 lines
+  - Always add `@Preview2` functions for standalone composables
+  - Place compose previews below the composable being previewed
+  - Preview function naming: `ComponentNamePreview()` and mark as `private`
 - Write tests for web APIs and serialized data.
 - No UI tests required.
 - Use FOSS debug flavor for local testing.
-- Place compose previews below the item being previewed.
 - Don't add code comments for obvious code.
 - Write minimalistic and concise code (omit comments).
 - Prefer flow based solutions.
