@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -57,6 +58,7 @@ import eu.darken.butler.explorer.ui.explorer.items.grid.PathItemGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.ShortcutGrid
 import eu.darken.butler.explorer.ui.explorer.items.row.PathItemRow
 import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
+import androidx.compose.ui.graphics.graphicsLayer
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
@@ -93,6 +95,7 @@ fun ExplorerWorkspacePageHost(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExplorerWorkspacePage(
     design: WorkspaceDesign = WorkspaceDesign(),
@@ -103,9 +106,9 @@ fun ExplorerWorkspacePage(
     onNavToWorkspaceManager: () -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
-    var isBottomBarVisible by remember { mutableStateOf(true) }
 
     LaunchedEffect(state.locationId) {
         if (state.locationId != null) {
@@ -114,49 +117,13 @@ fun ExplorerWorkspacePage(
             } else {
                 gridState.animateScrollToItem(0)
             }
-            isBottomBarVisible = true
             scrollBehavior.state.heightOffset = 0f
+            bottomBarScrollBehavior.state.heightOffset = 0f
         }
     }
 
-    LaunchedEffect(listState, gridState, state.viewMode) {
-        var previousIndex = 0
-        var previousScrollOffset = 0
-
-        if (state.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
-            snapshotFlow {
-                listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset
-            }.collect { (currentIndex, currentOffset) ->
-                if (currentIndex > previousIndex ||
-                    (currentIndex == previousIndex && currentOffset > previousScrollOffset)
-                ) {
-                    isBottomBarVisible = false
-                } else if (currentIndex < previousIndex ||
-                    (currentIndex == previousIndex && currentOffset < previousScrollOffset)
-                ) {
-                    isBottomBarVisible = true
-                }
-                previousIndex = currentIndex
-                previousScrollOffset = currentOffset
-            }
-        } else {
-            snapshotFlow {
-                gridState.firstVisibleItemIndex to gridState.firstVisibleItemScrollOffset
-            }.collect { (currentIndex, currentOffset) ->
-                if (currentIndex > previousIndex ||
-                    (currentIndex == previousIndex && currentOffset > previousScrollOffset)
-                ) {
-                    isBottomBarVisible = false
-                } else if (currentIndex < previousIndex ||
-                    (currentIndex == previousIndex && currentOffset < previousScrollOffset)
-                ) {
-                    isBottomBarVisible = true
-                }
-                previousIndex = currentIndex
-                previousScrollOffset = currentOffset
-            }
-        }
-    }
+    // Set the bottom bar height for scroll behavior
+    bottomBarScrollBehavior.state.setHeight(64.dp)
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -204,6 +171,7 @@ fun ExplorerWorkspacePage(
                         modifier = Modifier
                             .fillMaxSize()
                             .nestedScroll(scrollBehavior.nestedScrollConnection)
+                            .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection)
                     ) {
                         item {
                             EmptyFolderState(
@@ -220,17 +188,18 @@ fun ExplorerWorkspacePage(
                             state = listState,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .nestedScroll(scrollBehavior.nestedScrollConnection),
+                                .nestedScroll(scrollBehavior.nestedScrollConnection)
+                                .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
                             verticalArrangement = Arrangement.spacedBy(4.dp),
                             contentPadding = PaddingValues(
                                 start = 12.dp,
                                 end = 12.dp,
                                 top = 12.dp,
-                                bottom = if (isBottomBarVisible) {
+                                bottom = run {
                                     val actionBarHeight = if (state.availableActions.isNotEmpty()) 64.dp else 0.dp // 48dp + 16dp padding
                                     val clipboardHeight = if (state.clipboardEntries.isNotEmpty()) 88.dp else 0.dp // ~80dp + 8dp padding
                                     actionBarHeight + clipboardHeight + 12.dp // Extra space
-                                } else 12.dp
+                                }
                             )
                         ) {
                             items(state.items) { item ->
@@ -262,18 +231,19 @@ fun ExplorerWorkspacePage(
                             columns = GridCells.Adaptive(minSize = 120.dp),
                             modifier = Modifier
                                 .fillMaxSize()
-                                .nestedScroll(scrollBehavior.nestedScrollConnection),
+                                .nestedScroll(scrollBehavior.nestedScrollConnection)
+                                .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
                             verticalArrangement = Arrangement.spacedBy(2.dp),
                             horizontalArrangement = Arrangement.spacedBy(2.dp),
                             contentPadding = PaddingValues(
                                 start = 2.dp,
                                 end = 2.dp,
                                 top = 2.dp,
-                                bottom = if (isBottomBarVisible) {
+                                bottom = run {
                                     val actionBarHeight = if (state.availableActions.isNotEmpty()) 64.dp else 0.dp // 48dp + 16dp padding
                                     val clipboardHeight = if (state.clipboardEntries.isNotEmpty()) 88.dp else 0.dp // ~80dp + 8dp padding
-                                    actionBarHeight + clipboardHeight + 12.dp // Extra space
-                                } else 2.dp
+                                    actionBarHeight + clipboardHeight + 2.dp // Extra space
+                                }
                             )
                         ) {
                             items(state.items) { item ->
@@ -324,7 +294,10 @@ fun ExplorerWorkspacePage(
             visible = state.clipboardEntries.isNotEmpty(),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(horizontal = 8.dp, vertical = if (isBottomBarVisible && state.availableActions.isNotEmpty()) 64.dp else 8.dp),
+                .padding(horizontal = 8.dp, vertical = if (state.availableActions.isNotEmpty()) 64.dp else 8.dp)
+                .graphicsLayer {
+                    translationY = -bottomBarScrollBehavior.state.heightOffset
+                },
             enter = slideInVertically(animationSpec = tween(150)) { it },
             exit = slideOutVertically(animationSpec = tween(150)) { it },
         ) {
@@ -340,15 +313,14 @@ fun ExplorerWorkspacePage(
         }
 
         // Floating Bottom ActionBar
-        AnimatedVisibility(
-            visible = isBottomBarVisible && state.availableActions.isNotEmpty(),
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(horizontal = 8.dp, vertical = 8.dp),
-            enter = slideInVertically(animationSpec = tween(150)) { it },
-            exit = slideOutVertically(animationSpec = tween(150)) { it },
-        ) {
+        if (state.availableActions.isNotEmpty()) {
             ExplorerActionBar(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 8.dp, vertical = 8.dp)
+                    .graphicsLayer {
+                        translationY = -bottomBarScrollBehavior.state.heightOffset
+                    },
                 actions = state.availableActions,
                 onActionClick = { action -> vm?.executeAction(action) },
             )
