@@ -235,7 +235,7 @@
     <string name="workspace_adaptive_tip_preview_files">Preview files in one pane while browsing in another</string>
 
     <!-- Workspace > Settings-->
-    <string name="workspace_settings_title">Tab Settings</string>
+    <string name="workspace_settings_title">Tabs</string>
     <string name="workspace_settings_button_behavior">Button Behavior</string>
     <string name="workspace_settings_flip_button_actions_title">Flip Button Actions</string>
     <string name="workspace_settings_flip_button_actions_desc">Normal click creates new tab, long click opens manager</string>
