@@ -34,6 +34,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.settings.EnumSelectorDialog
+import eu.darken.butler.common.settings.ThemeColorSelectorDialog
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
 import eu.darken.butler.common.settings.SettingsPreferenceItem
@@ -266,9 +267,8 @@ fun GeneralSettingsScreen(
     }
 
     if (showThemeColorDialog) {
-        EnumSelectorDialog(
+        ThemeColorSelectorDialog(
             title = stringResource(R.string.ui_theme_color_setting_label),
-            options = ThemeColor.entries,
             selectedOption = state.themeState.color,
             onOptionSelected = { color ->
                 onThemeColorSelected(color)

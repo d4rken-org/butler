@@ -181,4 +181,5 @@
     <string name="ui_theme_color_purple_label">Purple &amp; Amber</string>
     <string name="ui_theme_color_green_label">Green &amp; Gold</string>
     <string name="ui_theme_color_blue_label">Blue &amp; Orange</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
 </resources>

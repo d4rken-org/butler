@@ -28,6 +28,11 @@ object ThemeColorProvider {
                 ThemeStyle.MEDIUM_CONTRAST -> getBlueMediumContrastLightScheme()
                 ThemeStyle.HIGH_CONTRAST -> getBlueHighContrastLightScheme()
             }
+            ThemeColor.AMOLED -> when (style) {
+                ThemeStyle.DEFAULT, ThemeStyle.MATERIAL_YOU -> getAmoledLightScheme()
+                ThemeStyle.MEDIUM_CONTRAST -> getAmoledMediumContrastLightScheme()
+                ThemeStyle.HIGH_CONTRAST -> getAmoledHighContrastLightScheme()
+            }
         }
     }
     
@@ -52,6 +57,11 @@ object ThemeColorProvider {
                 ThemeStyle.DEFAULT, ThemeStyle.MATERIAL_YOU -> getBlueDarkScheme()
                 ThemeStyle.MEDIUM_CONTRAST -> getBlueMediumContrastDarkScheme()
                 ThemeStyle.HIGH_CONTRAST -> getBlueHighContrastDarkScheme()
+            }
+            ThemeColor.AMOLED -> when (style) {
+                ThemeStyle.DEFAULT, ThemeStyle.MATERIAL_YOU -> getAmoledDarkScheme()
+                ThemeStyle.MEDIUM_CONTRAST -> getAmoledMediumContrastDarkScheme()
+                ThemeStyle.HIGH_CONTRAST -> getAmoledHighContrastDarkScheme()
             }
         }
     }
@@ -802,5 +812,192 @@ object ThemeColorProvider {
         inverseSurface = ButlerColorsBlue.inverseSurfaceDarkHighContrast,
         inverseOnSurface = ButlerColorsBlue.inverseOnSurfaceDarkHighContrast,
         inversePrimary = ButlerColorsBlue.inversePrimaryDarkHighContrast,
+    )
+    
+    // AMOLED color schemes
+    private fun getAmoledLightScheme() = lightColorScheme(
+        primary = ButlerColorsAmoled.primaryLight,
+        onPrimary = ButlerColorsAmoled.onPrimaryLight,
+        primaryContainer = ButlerColorsAmoled.primaryContainerLight,
+        onPrimaryContainer = ButlerColorsAmoled.onPrimaryContainerLight,
+        secondary = ButlerColorsAmoled.secondaryLight,
+        onSecondary = ButlerColorsAmoled.onSecondaryLight,
+        secondaryContainer = ButlerColorsAmoled.secondaryContainerLight,
+        onSecondaryContainer = ButlerColorsAmoled.onSecondaryContainerLight,
+        tertiary = ButlerColorsAmoled.tertiaryLight,
+        onTertiary = ButlerColorsAmoled.onTertiaryLight,
+        tertiaryContainer = ButlerColorsAmoled.tertiaryContainerLight,
+        onTertiaryContainer = ButlerColorsAmoled.onTertiaryContainerLight,
+        error = ButlerColorsAmoled.errorLight,
+        onError = ButlerColorsAmoled.onErrorLight,
+        errorContainer = ButlerColorsAmoled.errorContainerLight,
+        onErrorContainer = ButlerColorsAmoled.onErrorContainerLight,
+        background = ButlerColorsAmoled.backgroundLight,
+        onBackground = ButlerColorsAmoled.onBackgroundLight,
+        surface = ButlerColorsAmoled.surfaceLight,
+        onSurface = ButlerColorsAmoled.onSurfaceLight,
+        surfaceVariant = ButlerColorsAmoled.surfaceVariantLight,
+        onSurfaceVariant = ButlerColorsAmoled.onSurfaceVariantLight,
+        outline = ButlerColorsAmoled.outlineLight,
+        outlineVariant = ButlerColorsAmoled.outlineVariantLight,
+        scrim = ButlerColorsAmoled.scrimLight,
+        inverseSurface = ButlerColorsAmoled.inverseSurfaceLight,
+        inverseOnSurface = ButlerColorsAmoled.inverseOnSurfaceLight,
+        inversePrimary = ButlerColorsAmoled.inversePrimaryLight,
+    )
+    
+    private fun getAmoledDarkScheme() = darkColorScheme(
+        primary = ButlerColorsAmoled.primaryDark,
+        onPrimary = ButlerColorsAmoled.onPrimaryDark,
+        primaryContainer = ButlerColorsAmoled.primaryContainerDark,
+        onPrimaryContainer = ButlerColorsAmoled.onPrimaryContainerDark,
+        secondary = ButlerColorsAmoled.secondaryDark,
+        onSecondary = ButlerColorsAmoled.onSecondaryDark,
+        secondaryContainer = ButlerColorsAmoled.secondaryContainerDark,
+        onSecondaryContainer = ButlerColorsAmoled.onSecondaryContainerDark,
+        tertiary = ButlerColorsAmoled.tertiaryDark,
+        onTertiary = ButlerColorsAmoled.onTertiaryDark,
+        tertiaryContainer = ButlerColorsAmoled.tertiaryContainerDark,
+        onTertiaryContainer = ButlerColorsAmoled.onTertiaryContainerDark,
+        error = ButlerColorsAmoled.errorDark,
+        onError = ButlerColorsAmoled.onErrorDark,
+        errorContainer = ButlerColorsAmoled.errorContainerDark,
+        onErrorContainer = ButlerColorsAmoled.onErrorContainerDark,
+        background = ButlerColorsAmoled.backgroundDark,
+        onBackground = ButlerColorsAmoled.onBackgroundDark,
+        surface = ButlerColorsAmoled.surfaceDark,
+        onSurface = ButlerColorsAmoled.onSurfaceDark,
+        surfaceVariant = ButlerColorsAmoled.surfaceVariantDark,
+        onSurfaceVariant = ButlerColorsAmoled.onSurfaceVariantDark,
+        outline = ButlerColorsAmoled.outlineDark,
+        outlineVariant = ButlerColorsAmoled.outlineVariantDark,
+        scrim = ButlerColorsAmoled.scrimDark,
+        inverseSurface = ButlerColorsAmoled.inverseSurfaceDark,
+        inverseOnSurface = ButlerColorsAmoled.inverseOnSurfaceDark,
+        inversePrimary = ButlerColorsAmoled.inversePrimaryDark,
+    )
+    
+    private fun getAmoledMediumContrastLightScheme() = lightColorScheme(
+        primary = ButlerColorsAmoled.primaryLightMediumContrast,
+        onPrimary = ButlerColorsAmoled.onPrimaryLightMediumContrast,
+        primaryContainer = ButlerColorsAmoled.primaryContainerLightMediumContrast,
+        onPrimaryContainer = ButlerColorsAmoled.onPrimaryContainerLightMediumContrast,
+        secondary = ButlerColorsAmoled.secondaryLightMediumContrast,
+        onSecondary = ButlerColorsAmoled.onSecondaryLightMediumContrast,
+        secondaryContainer = ButlerColorsAmoled.secondaryContainerLightMediumContrast,
+        onSecondaryContainer = ButlerColorsAmoled.onSecondaryContainerLightMediumContrast,
+        tertiary = ButlerColorsAmoled.tertiaryLightMediumContrast,
+        onTertiary = ButlerColorsAmoled.onTertiaryLightMediumContrast,
+        tertiaryContainer = ButlerColorsAmoled.tertiaryContainerLightMediumContrast,
+        onTertiaryContainer = ButlerColorsAmoled.onTertiaryContainerLightMediumContrast,
+        error = ButlerColorsAmoled.errorLightMediumContrast,
+        onError = ButlerColorsAmoled.onErrorLightMediumContrast,
+        errorContainer = ButlerColorsAmoled.errorContainerLightMediumContrast,
+        onErrorContainer = ButlerColorsAmoled.onErrorContainerLightMediumContrast,
+        background = ButlerColorsAmoled.backgroundLightMediumContrast,
+        onBackground = ButlerColorsAmoled.onBackgroundLightMediumContrast,
+        surface = ButlerColorsAmoled.surfaceLightMediumContrast,
+        onSurface = ButlerColorsAmoled.onSurfaceLightMediumContrast,
+        surfaceVariant = ButlerColorsAmoled.surfaceVariantLightMediumContrast,
+        onSurfaceVariant = ButlerColorsAmoled.onSurfaceVariantLightMediumContrast,
+        outline = ButlerColorsAmoled.outlineLightMediumContrast,
+        outlineVariant = ButlerColorsAmoled.outlineVariantLightMediumContrast,
+        scrim = ButlerColorsAmoled.scrimLightMediumContrast,
+        inverseSurface = ButlerColorsAmoled.inverseSurfaceLightMediumContrast,
+        inverseOnSurface = ButlerColorsAmoled.inverseOnSurfaceLightMediumContrast,
+        inversePrimary = ButlerColorsAmoled.inversePrimaryLightMediumContrast,
+    )
+    
+    private fun getAmoledMediumContrastDarkScheme() = darkColorScheme(
+        primary = ButlerColorsAmoled.primaryDarkMediumContrast,
+        onPrimary = ButlerColorsAmoled.onPrimaryDarkMediumContrast,
+        primaryContainer = ButlerColorsAmoled.primaryContainerDarkMediumContrast,
+        onPrimaryContainer = ButlerColorsAmoled.onPrimaryContainerDarkMediumContrast,
+        secondary = ButlerColorsAmoled.secondaryDarkMediumContrast,
+        onSecondary = ButlerColorsAmoled.onSecondaryDarkMediumContrast,
+        secondaryContainer = ButlerColorsAmoled.secondaryContainerDarkMediumContrast,
+        onSecondaryContainer = ButlerColorsAmoled.onSecondaryContainerDarkMediumContrast,
+        tertiary = ButlerColorsAmoled.tertiaryDarkMediumContrast,
+        onTertiary = ButlerColorsAmoled.onTertiaryDarkMediumContrast,
+        tertiaryContainer = ButlerColorsAmoled.tertiaryContainerDarkMediumContrast,
+        onTertiaryContainer = ButlerColorsAmoled.onTertiaryContainerDarkMediumContrast,
+        error = ButlerColorsAmoled.errorDarkMediumContrast,
+        onError = ButlerColorsAmoled.onErrorDarkMediumContrast,
+        errorContainer = ButlerColorsAmoled.errorContainerDarkMediumContrast,
+        onErrorContainer = ButlerColorsAmoled.onErrorContainerDarkMediumContrast,
+        background = ButlerColorsAmoled.backgroundDarkMediumContrast,
+        onBackground = ButlerColorsAmoled.onBackgroundDarkMediumContrast,
+        surface = ButlerColorsAmoled.surfaceDarkMediumContrast,
+        onSurface = ButlerColorsAmoled.onSurfaceDarkMediumContrast,
+        surfaceVariant = ButlerColorsAmoled.surfaceVariantDarkMediumContrast,
+        onSurfaceVariant = ButlerColorsAmoled.onSurfaceVariantDarkMediumContrast,
+        outline = ButlerColorsAmoled.outlineDarkMediumContrast,
+        outlineVariant = ButlerColorsAmoled.outlineVariantDarkMediumContrast,
+        scrim = ButlerColorsAmoled.scrimDarkMediumContrast,
+        inverseSurface = ButlerColorsAmoled.inverseSurfaceDarkMediumContrast,
+        inverseOnSurface = ButlerColorsAmoled.inverseOnSurfaceDarkMediumContrast,
+        inversePrimary = ButlerColorsAmoled.inversePrimaryDarkMediumContrast,
+    )
+    
+    private fun getAmoledHighContrastLightScheme() = lightColorScheme(
+        primary = ButlerColorsAmoled.primaryLightHighContrast,
+        onPrimary = ButlerColorsAmoled.onPrimaryLightHighContrast,
+        primaryContainer = ButlerColorsAmoled.primaryContainerLightHighContrast,
+        onPrimaryContainer = ButlerColorsAmoled.onPrimaryContainerLightHighContrast,
+        secondary = ButlerColorsAmoled.secondaryLightHighContrast,
+        onSecondary = ButlerColorsAmoled.onSecondaryLightHighContrast,
+        secondaryContainer = ButlerColorsAmoled.secondaryContainerLightHighContrast,
+        onSecondaryContainer = ButlerColorsAmoled.onSecondaryContainerLightHighContrast,
+        tertiary = ButlerColorsAmoled.tertiaryLightHighContrast,
+        onTertiary = ButlerColorsAmoled.onTertiaryLightHighContrast,
+        tertiaryContainer = ButlerColorsAmoled.tertiaryContainerLightHighContrast,
+        onTertiaryContainer = ButlerColorsAmoled.onTertiaryContainerLightHighContrast,
+        error = ButlerColorsAmoled.errorLightHighContrast,
+        onError = ButlerColorsAmoled.onErrorLightHighContrast,
+        errorContainer = ButlerColorsAmoled.errorContainerLightHighContrast,
+        onErrorContainer = ButlerColorsAmoled.onErrorContainerLightHighContrast,
+        background = ButlerColorsAmoled.backgroundLightHighContrast,
+        onBackground = ButlerColorsAmoled.onBackgroundLightHighContrast,
+        surface = ButlerColorsAmoled.surfaceLightHighContrast,
+        onSurface = ButlerColorsAmoled.onSurfaceLightHighContrast,
+        surfaceVariant = ButlerColorsAmoled.surfaceVariantLightHighContrast,
+        onSurfaceVariant = ButlerColorsAmoled.onSurfaceVariantLightHighContrast,
+        outline = ButlerColorsAmoled.outlineLightHighContrast,
+        outlineVariant = ButlerColorsAmoled.outlineVariantLightHighContrast,
+        scrim = ButlerColorsAmoled.scrimLightHighContrast,
+        inverseSurface = ButlerColorsAmoled.inverseSurfaceLightHighContrast,
+        inverseOnSurface = ButlerColorsAmoled.inverseOnSurfaceLightHighContrast,
+        inversePrimary = ButlerColorsAmoled.inversePrimaryLightHighContrast,
+    )
+    
+    private fun getAmoledHighContrastDarkScheme() = darkColorScheme(
+        primary = ButlerColorsAmoled.primaryDarkHighContrast,
+        onPrimary = ButlerColorsAmoled.onPrimaryDarkHighContrast,
+        primaryContainer = ButlerColorsAmoled.primaryContainerDarkHighContrast,
+        onPrimaryContainer = ButlerColorsAmoled.onPrimaryContainerDarkHighContrast,
+        secondary = ButlerColorsAmoled.secondaryDarkHighContrast,
+        onSecondary = ButlerColorsAmoled.onSecondaryDarkHighContrast,
+        secondaryContainer = ButlerColorsAmoled.secondaryContainerDarkHighContrast,
+        onSecondaryContainer = ButlerColorsAmoled.onSecondaryContainerDarkHighContrast,
+        tertiary = ButlerColorsAmoled.tertiaryDarkHighContrast,
+        onTertiary = ButlerColorsAmoled.onTertiaryDarkHighContrast,
+        tertiaryContainer = ButlerColorsAmoled.tertiaryContainerDarkHighContrast,
+        onTertiaryContainer = ButlerColorsAmoled.onTertiaryContainerDarkHighContrast,
+        error = ButlerColorsAmoled.errorDarkHighContrast,
+        onError = ButlerColorsAmoled.onErrorDarkHighContrast,
+        errorContainer = ButlerColorsAmoled.errorContainerDarkHighContrast,
+        onErrorContainer = ButlerColorsAmoled.onErrorContainerDarkHighContrast,
+        background = ButlerColorsAmoled.backgroundDarkHighContrast,
+        onBackground = ButlerColorsAmoled.onBackgroundDarkHighContrast,
+        surface = ButlerColorsAmoled.surfaceDarkHighContrast,
+        onSurface = ButlerColorsAmoled.onSurfaceDarkHighContrast,
+        surfaceVariant = ButlerColorsAmoled.surfaceVariantDarkHighContrast,
+        onSurfaceVariant = ButlerColorsAmoled.onSurfaceVariantDarkHighContrast,
+        outline = ButlerColorsAmoled.outlineDarkHighContrast,
+        outlineVariant = ButlerColorsAmoled.outlineVariantDarkHighContrast,
+        scrim = ButlerColorsAmoled.scrimDarkHighContrast,
+        inverseSurface = ButlerColorsAmoled.inverseSurfaceDarkHighContrast,
+        inverseOnSurface = ButlerColorsAmoled.inverseOnSurfaceDarkHighContrast,
+        inversePrimary = ButlerColorsAmoled.inversePrimaryDarkHighContrast,
     )
 }

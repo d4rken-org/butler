@@ -97,3 +97,13 @@ fun HighContrastLightPreview() =
 @Composable
 fun HighContrastDarkPreview() =
     MyAppTheme(ThemeState(ThemeMode.DARK, ThemeStyle.HIGH_CONTRAST, ThemeColor.TEAL)) { SampleContent() }
+
+@Preview(showBackground = true, name = "AMOLED Light")
+@Composable
+fun AmoledLightPreview() =
+    MyAppTheme(ThemeState(ThemeMode.LIGHT, ThemeStyle.DEFAULT, ThemeColor.AMOLED)) { SampleContent() }
+
+@Preview(showBackground = true, name = "AMOLED Dark")
+@Composable
+fun AmoledDarkPreview() =
+    MyAppTheme(ThemeState(ThemeMode.DARK, ThemeStyle.DEFAULT, ThemeColor.AMOLED)) { SampleContent() }
