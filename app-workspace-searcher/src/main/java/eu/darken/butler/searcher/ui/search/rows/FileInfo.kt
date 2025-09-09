@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.ByteFormatter
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import kotlin.time.Clock
@@ -45,7 +46,7 @@ fun FileInfo(
         val isDirectory = data.fileType == FileType.DIRECTORY
         val details = buildString {
             if (!isDirectory && data.size != null) {
-                append(formatFileSize(data.size))
+                append(ByteFormatter.formatFileSize(data.size))
             }
             if (data.modifiedAt != null) {
                 if (isNotEmpty()) append(" • ")

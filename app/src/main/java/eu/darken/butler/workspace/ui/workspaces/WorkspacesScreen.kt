@@ -84,6 +84,7 @@ fun WorkspaceScreen(
     var dividerPositions by rememberSaveable {
         mutableStateOf(DividerPositions())
     }
+    
 
 
     val effectivePaneLayout = when (state.displayMode) {

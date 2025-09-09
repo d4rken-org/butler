@@ -31,10 +31,15 @@ internal fun DualHorizontalLayout(
     showPaneNumbers: Boolean,
     showPaneOverlay: Boolean,
     onTabFocus: (Workspace.Id) -> Unit,
-    createDividerCallback: (DividerPositions.(Float) -> DividerPositions) -> (Float) -> Unit,
+    onDividerPositionsChange: (DividerPositions) -> Unit,
     paneContent: @Composable (Workspace.Info?, Int) -> Unit,
 ) {
     val showFocusBorder = selected.size > 1
+    
+    val onDividerPositionChange = { newPos: Float ->
+        val updated = dividerPositions.withDualHorizontal(newPos)
+        onDividerPositionsChange(updated)
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         val ws1 = selected[0]
@@ -56,7 +61,7 @@ internal fun DualHorizontalLayout(
             isVertical = false,
             position = dividerPositions.dualHorizontal,
             containerSize = containerSize,
-            onPositionChange = createDividerCallback(DividerPositions::withDualHorizontal),
+            onPositionChange = onDividerPositionChange,
         )
 
         val ws2 = selected[1]
@@ -98,7 +103,7 @@ private fun DualHorizontalLayoutPreview() {
             showPaneNumbers = true,
             showPaneOverlay = false,
             onTabFocus = {},
-            createDividerCallback = { { _ -> DividerPositions() } },
+            onDividerPositionsChange = { },
         ) { ws, paneIdx ->
             // Preview content placeholder
             Surface(

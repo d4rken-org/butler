@@ -38,6 +38,7 @@ fun AdaptiveWorkspaceLayout(
     onScreenAction: (WorkspaceScreenAction) -> Unit,
 ) {
     val dragDropState = remember { DragDropState() }
+    
 
     CompositionLocalProvider(LocalDragDropState provides dragDropState) {
         Row(
@@ -104,7 +105,6 @@ fun AdaptiveWorkspaceLayout(
                 focusedTabId = focusedId,
                 dividerPositions = dividerPositions,
                 onDividerPositionsChange = onDividerPositionsChange,
-                getCurrentDividerPositions = { dividerPositions },
                 onTabFocus = { id ->
                     onScreenAction(WorkspaceScreenAction.Focus(id))
                 },

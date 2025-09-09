@@ -112,6 +112,7 @@ fun WorkspaceManagerScreenHost(
             onNavigateToSettings = vm::navigateToSettings,
             onDismissBadgeExplanation = vm::dismissBadgeExplanation,
             onDismissButtonBehaviorExplanation = vm::dismissButtonBehaviorExplanation,
+            onToggleButtonActions = vm::toggleButtonActions,
             onCloseAllWorkspaces = vm::closeAllWorkspaces,
         )
     }
@@ -129,6 +130,7 @@ fun WorkspaceManagerScreen(
     onNavigateToSettings: () -> Unit,
     onDismissBadgeExplanation: () -> Unit,
     onDismissButtonBehaviorExplanation: () -> Unit,
+    onToggleButtonActions: () -> Unit,
     onCloseAllWorkspaces: () -> Unit,
 ) {
     // Local state for drag reordering
@@ -273,8 +275,8 @@ fun WorkspaceManagerScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .fillParentMaxHeight()
-                            .padding(32.dp),
+                            .padding(32.dp)
+                            .padding(vertical = 48.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
@@ -334,6 +336,8 @@ fun WorkspaceManagerScreen(
                         modifier = Modifier.padding(horizontal = 16.dp)
                     ) {
                         WorkspaceButtonBehaviorCard(
+                            isButtonFlipped = state.isButtonActionsFlipped,
+                            onToggleFlipped = { onToggleButtonActions() },
                             onDismiss = onDismissButtonBehaviorExplanation
                         )
                     }
@@ -434,6 +438,31 @@ private fun WorkspaceManagerScreenPreview() {
             onNavigateToSettings = {},
             onDismissBadgeExplanation = {},
             onDismissButtonBehaviorExplanation = {},
+            onToggleButtonActions = {},
+            onCloseAllWorkspaces = {}
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun WorkspaceManagerScreenEmptyPreview() {
+    PreviewWrapper {
+        WorkspaceManagerScreen(
+            state = WorkspaceManagerViewModel.State(
+                workspaces = emptyList(),
+                operationsCount = 0,
+                attentionCount = 0
+            ),
+            onCloseWorkspace = {},
+            onReorderWorkspaces = {},
+            onSelectWorkspace = {},
+            onCreateWorkspace = {},
+            onNavigateBack = {},
+            onNavigateToSettings = {},
+            onDismissBadgeExplanation = {},
+            onDismissButtonBehaviorExplanation = {},
+            onToggleButtonActions = {},
             onCloseAllWorkspaces = {}
         )
     }
