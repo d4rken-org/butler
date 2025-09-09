@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.workspaces.adaptive.layouts
 
+import android.util.Log
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,10 +31,17 @@ internal fun DualVerticalLayout(
     showPaneNumbers: Boolean,
     showPaneOverlay: Boolean,
     onTabFocus: (Workspace.Id) -> Unit,
-    createDividerCallback: (DividerPositions.(Float) -> DividerPositions) -> (Float) -> Unit,
+    onDividerPositionsChange: (DividerPositions) -> Unit,
     paneContent: @Composable (Workspace.Info?, Int) -> Unit,
 ) {
     val showFocusBorder = selected.size > 1
+    
+    // Create callback that uses the current dividerPositions prop
+    val onDividerPositionChange = { newPos: Float ->
+        val updated = dividerPositions.withDualVertical(newPos)
+        Log.d("WorkspaceDivider", "onDualVerticalChange - current: $dividerPositions, newPos: $newPos, updated: $updated")
+        onDividerPositionsChange(updated)
+    }
 
     Row(modifier = Modifier.fillMaxSize()) {
         val ws1 = selected[0]
@@ -55,7 +63,7 @@ internal fun DualVerticalLayout(
             isVertical = true,
             position = dividerPositions.dualVertical,
             containerSize = containerSize,
-            onPositionChange = createDividerCallback(DividerPositions::withDualVertical),
+            onPositionChange = onDividerPositionChange,
         )
 
         val ws2 = selected[1]
@@ -97,7 +105,7 @@ private fun DualVerticalLayoutPreview() {
             showPaneNumbers = true,
             showPaneOverlay = false,
             onTabFocus = {},
-            createDividerCallback = { { _ -> DividerPositions() } },
+            onDividerPositionsChange = { },
         ) { ws, paneIdx ->
             // Preview content placeholder
             Surface(

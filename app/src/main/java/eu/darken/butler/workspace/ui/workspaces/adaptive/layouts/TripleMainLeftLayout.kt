@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.workspaces.adaptive.layouts
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -32,10 +33,25 @@ internal fun TripleMainLeftLayout(
     showPaneNumbers: Boolean,
     showPaneOverlay: Boolean,
     onTabFocus: (Workspace.Id) -> Unit,
-    createDividerCallback: (DividerPositions.(Float) -> DividerPositions) -> (Float) -> Unit,
+    onDividerPositionsChange: (DividerPositions) -> Unit,
     paneContent: @Composable (Workspace.Info?, Int) -> Unit,
 ) {
     val showFocusBorder = selected.size > 1
+    
+    // Create callbacks that use the current dividerPositions prop
+    val onTripleMainChange = { newPos: Float ->
+        val updated = dividerPositions.withTripleMain(newPos)
+        Log.d("WorkspaceDivider", "onTripleMainChange - current: $dividerPositions, newPos: $newPos, updated: $updated")
+        onDividerPositionsChange(updated)
+    }
+    
+    val onTripleSecondaryChange = { newPos: Float ->
+        val updated = dividerPositions.withTripleSecondary(newPos)
+        Log.d("WorkspaceDivider", "onTripleSecondaryChange - current: $dividerPositions, newPos: $newPos, updated: $updated")
+        onDividerPositionsChange(updated)
+    }
+    
+    Log.d("WorkspaceDivider", "TripleMainLeftLayout.compose - dividerPositions: $dividerPositions")
 
     Row(modifier = Modifier.fillMaxSize()) {
         val ws1 = selected[0]
@@ -57,7 +73,10 @@ internal fun TripleMainLeftLayout(
             isVertical = true,
             position = dividerPositions.tripleMain,
             containerSize = containerSize,
-            onPositionChange = createDividerCallback(DividerPositions::withTripleMain),
+            onPositionChange = { newPos ->
+                Log.d("WorkspaceDivider", "TripleMainLeftLayout.tripleMainDivider - position change from ${dividerPositions.tripleMain} to $newPos")
+                onTripleMainChange(newPos)
+            },
         )
 
         // Calculate column size based on container size and divider position
@@ -88,7 +107,10 @@ internal fun TripleMainLeftLayout(
                 isVertical = false,
                 position = dividerPositions.tripleSecondary,
                 containerSize = columnSize,
-                onPositionChange = createDividerCallback(DividerPositions::withTripleSecondary),
+                onPositionChange = { newPos ->
+                    Log.d("WorkspaceDivider", "TripleMainLeftLayout.tripleSecondaryDivider - position change from ${dividerPositions.tripleSecondary} to $newPos")
+                    onTripleSecondaryChange(newPos)
+                },
             )
 
             val ws3 = selected[2]
@@ -136,7 +158,7 @@ private fun TripleMainLeftLayoutPreview() {
             showPaneNumbers = true,
             showPaneOverlay = false,
             onTabFocus = {},
-            createDividerCallback = { { _ -> DividerPositions() } },
+            onDividerPositionsChange = { },
         ) { ws, paneIdx ->
             // Preview content placeholder
             Surface(

@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,6 +60,9 @@ internal fun ResizingDivider(
     if (!isDragging && currentPosition != position) {
         currentPosition = position
     }
+    
+    // Use rememberUpdatedState to capture the current callback without recreating pointerInput
+    val currentOnPositionChange by rememberUpdatedState(onPositionChange)
 
     val dividerColor = if (isDragging) {
         MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
@@ -101,7 +105,7 @@ internal fun ResizingDivider(
                             val newPosition = currentPosition + (delta / currentParentSize)
                             val clampedPosition = newPosition.coerceIn(MIN_POSITION, MAX_POSITION)
                             currentPosition = clampedPosition
-                            onPositionChange(clampedPosition)
+                            currentOnPositionChange(clampedPosition)
                         }
                     }
                 )

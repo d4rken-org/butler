@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.workspaces
 
+import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -84,6 +85,8 @@ fun WorkspaceScreen(
     var dividerPositions by rememberSaveable {
         mutableStateOf(DividerPositions())
     }
+    
+    Log.d("WorkspaceDivider", "WorkspacesScreen.compose - dividerPositions: $dividerPositions")
 
 
     val effectivePaneLayout = when (state.displayMode) {
@@ -115,7 +118,9 @@ fun WorkspaceScreen(
             focusedId = state.focused,
             dividerPositions = dividerPositions,
             onDividerPositionsChange = { newPositions ->
+                Log.d("WorkspaceDivider", "WorkspacesScreen.onDividerPositionsChange - old: $dividerPositions, new: $newPositions")
                 dividerPositions = newPositions
+                Log.d("WorkspaceDivider", "WorkspacesScreen.onDividerPositionsChange - after update: $dividerPositions")
             },
             showPaneNumbers = showPaneNumbers,
             showPaneOverlay = showPaneOverlay,

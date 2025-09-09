@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.workspaces
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,6 +39,8 @@ fun AdaptiveWorkspaceLayout(
     onScreenAction: (WorkspaceScreenAction) -> Unit,
 ) {
     val dragDropState = remember { DragDropState() }
+    
+    Log.d("WorkspaceDivider", "AdaptiveWorkspaceLayout.compose - dividerPositions: $dividerPositions")
 
     CompositionLocalProvider(LocalDragDropState provides dragDropState) {
         Row(
@@ -104,7 +107,6 @@ fun AdaptiveWorkspaceLayout(
                 focusedTabId = focusedId,
                 dividerPositions = dividerPositions,
                 onDividerPositionsChange = onDividerPositionsChange,
-                getCurrentDividerPositions = { dividerPositions },
                 onTabFocus = { id ->
                     onScreenAction(WorkspaceScreenAction.Focus(id))
                 },
