@@ -115,6 +115,7 @@ fun ExplorerWorkspacePage(
                 gridState.animateScrollToItem(0)
             }
             isBottomBarVisible = true
+            scrollBehavior.state.heightOffset = 0f
         }
     }
 
@@ -199,9 +200,17 @@ fun ExplorerWorkspacePage(
                         )
                     }
                 } else if (state.items.isEmpty()) {
-                    EmptyFolderState(
-                        modifier = Modifier.fillMaxSize()
-                    )
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .nestedScroll(scrollBehavior.nestedScrollConnection)
+                    ) {
+                        item {
+                            EmptyFolderState(
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                    }
                 } else {
                     Box(
                         modifier = Modifier.fillMaxSize()
