@@ -403,6 +403,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                                 return
                             }
                         }
+                        is ConflictResolution.Merge -> {
+                            if (strategy.applyToAll) {
+                                // Merge this conflict automatically
+                                return
+                            }
+                        }
                         else -> {}
                     }
                 }
@@ -433,6 +439,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 }
                 // Continue operation, overwriting this file
                 // TODO: Implement overwrite logic in engine
+            }
+            is ConflictResolution.Merge -> {
+                if (resolution.applyToAll) {
+                    batchConflictStrategy = resolution
+                }
+                // Continue operation, merging folder contents
+                // TODO: Implement merge logic in engine for directories
             }
             is ConflictResolution.Rename -> {
                 // Rename and continue

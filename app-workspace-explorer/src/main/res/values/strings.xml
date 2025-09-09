@@ -81,11 +81,15 @@
     <string name="explorer_error_storage_full">Not enough storage space</string>
     
     <!-- Conflict Messages -->
-    <string name="explorer_conflict_title">File already exists</string>
-    <string name="explorer_conflict_existing_file">Existing</string>
-    <string name="explorer_conflict_new_file">New</string>
+    <string name="explorer_conflict_title_file">File already exists</string>
+    <string name="explorer_conflict_title_folder">Folder already exists</string>
+    <string name="explorer_conflict_existing_file">Existing file</string>
+    <string name="explorer_conflict_existing_folder">Existing folder</string>
+    <string name="explorer_conflict_new_file">New file</string>
+    <string name="explorer_conflict_new_folder">New folder</string>
     <string name="explorer_conflict_skip">Skip</string>
-    <string name="explorer_conflict_overwrite">Overwrite</string>
+    <string name="explorer_conflict_overwrite">Replace</string>
+    <string name="explorer_conflict_merge">Merge</string>
     <string name="explorer_conflict_rename">Rename</string>
     <string name="explorer_conflict_cancel">Cancel</string>
     <string name="explorer_conflict_apply_all">Apply to all remaining conflicts</string>

@@ -1,9 +1,11 @@
 package eu.darken.butler.explorer.ui.common
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -12,20 +14,23 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Folder
+import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,7 +38,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -51,7 +55,6 @@ import java.text.DateFormat
 import java.time.Instant
 import java.util.Date
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConflictBottomSheet(
     conflict: ExplorerError.FileConflict,
@@ -61,6 +64,7 @@ fun ConflictBottomSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var applyToAll by remember { mutableStateOf(false) }
     var showRenameDialog by remember { mutableStateOf(false) }
+    val isDirectory = conflict.source.fileType == FileType.DIRECTORY
 
     ModalBottomSheet(
         sheetState = sheetState,
@@ -69,26 +73,42 @@ fun ConflictBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(horizontal = 16.dp)
+                .padding(top = 8.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                text = stringResource(R.string.explorer_conflict_title),
+                text = stringResource(
+                    if (isDirectory) R.string.explorer_conflict_title_folder 
+                    else R.string.explorer_conflict_title_file
+                ),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
             )
 
             HorizontalDivider()
 
-            FileComparisonCard(
-                label = stringResource(R.string.explorer_conflict_existing_file),
-                lookup = conflict.destination,
+            // Existing file section
+            Text(
+                text = stringResource(
+                    if (isDirectory) R.string.explorer_conflict_existing_folder 
+                    else R.string.explorer_conflict_existing_file
+                ),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            FileComparisonCard(lookup = conflict.destination)
 
-            FileComparisonCard(
-                label = stringResource(R.string.explorer_conflict_new_file),
-                lookup = conflict.source,
+            // New file section
+            Text(
+                text = stringResource(
+                    if (isDirectory) R.string.explorer_conflict_new_folder 
+                    else R.string.explorer_conflict_new_file
+                ),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            FileComparisonCard(lookup = conflict.source)
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -104,38 +124,95 @@ fun ConflictBottomSheet(
                 )
             }
 
-            Row(
+            // Button grid layout
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                OutlinedButton(
-                    onClick = { 
-                        onResolution(ConflictResolution.Skip(applyToAll))
-                    },
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text(stringResource(R.string.explorer_conflict_skip))
+                    OutlinedButton(
+                        onClick = { 
+                            onResolution(ConflictResolution.Skip(applyToAll))
+                        },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(stringResource(R.string.explorer_conflict_skip))
+                    }
+                    
+                    if (isDirectory) {
+                        Button(
+                            onClick = { 
+                                onResolution(ConflictResolution.Merge(applyToAll))
+                            },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(stringResource(R.string.explorer_conflict_merge))
+                        }
+                    } else {
+                        Button(
+                            onClick = { 
+                                onResolution(ConflictResolution.Overwrite(applyToAll))
+                            },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(stringResource(R.string.explorer_conflict_overwrite))
+                        }
+                    }
                 }
                 
-                Button(
-                    onClick = { 
-                        onResolution(ConflictResolution.Overwrite(applyToAll))
-                    },
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text(stringResource(R.string.explorer_conflict_overwrite))
+                    if (isDirectory) {
+                        OutlinedButton(
+                            onClick = { 
+                                onResolution(ConflictResolution.Overwrite(applyToAll))
+                            },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(stringResource(R.string.explorer_conflict_overwrite))
+                        }
+                    } else {
+                        OutlinedButton(
+                            onClick = { showRenameDialog = true },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(stringResource(R.string.explorer_conflict_rename))
+                        }
+                    }
+                    
+                    if (isDirectory) {
+                        OutlinedButton(
+                            onClick = { showRenameDialog = true },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(stringResource(R.string.explorer_conflict_rename))
+                        }
+                    } else {
+                        TextButton(
+                            onClick = { 
+                                onResolution(ConflictResolution.Cancel)
+                            },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(stringResource(R.string.explorer_conflict_cancel))
+                        }
+                    }
                 }
                 
-                OutlinedButton(
-                    onClick = { showRenameDialog = true },
-                ) {
-                    Text(stringResource(R.string.explorer_conflict_rename))
-                }
-                
-                TextButton(
-                    onClick = { 
-                        onResolution(ConflictResolution.Cancel)
-                    },
-                ) {
-                    Text(stringResource(R.string.explorer_conflict_cancel))
+                if (isDirectory) {
+                    TextButton(
+                        onClick = { 
+                            onResolution(ConflictResolution.Cancel)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(R.string.explorer_conflict_cancel))
+                    }
                 }
             }
         }
@@ -155,11 +232,9 @@ fun ConflictBottomSheet(
 
 @Composable
 private fun FileComparisonCard(
-    label: String,
-    lookup: APathLookup<out APath>,
+    lookup: APathLookup<APath>,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
     val dateFormat = remember { DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT) }
     
     Card(
@@ -168,60 +243,47 @@ private fun FileComparisonCard(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
     ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            Icon(
+                imageVector = when (lookup.fileType) {
+                    FileType.DIRECTORY -> Icons.TwoTone.Folder
+                    else -> Icons.TwoTone.Description
+                },
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            
             Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
+                text = lookup.name,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            
+            Text(
+                text = when (lookup.fileType) {
+                    FileType.FILE -> formatFileSize(lookup.size)
+                    FileType.DIRECTORY -> stringResource(R.string.explorer_type_folder)
+                    else -> "-"
+                },
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    imageVector = when (lookup.fileType) {
-                        FileType.DIRECTORY -> Icons.TwoTone.Folder
-                        else -> Icons.TwoTone.Description
-                    },
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                
-                Spacer(modifier = Modifier.width(8.dp))
-                
-                Text(
-                    text = lookup.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    text = when (lookup.fileType) {
-                        FileType.FILE -> formatFileSize(lookup.size)
-                        FileType.DIRECTORY -> stringResource(R.string.explorer_type_folder)
-                        else -> "-"
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                
-                Text(
-                    text = dateFormat.format(Date(lookup.modifiedAt.toEpochMilli())),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            Text(
+                text = dateFormat.format(Date(lookup.modifiedAt.toEpochMilli())),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -304,11 +366,131 @@ fun ConflictBottomSheetPreview() {
             destination = mockDestLookup
         )
         
-        ConflictBottomSheet(
-            conflict = mockConflict,
-            onResolution = {},
-            onDismiss = {}
+        var applyToAll by remember { mutableStateOf(false) }
+        var showRenameDialog by remember { mutableStateOf(false) }
+        
+        val bottomSheetState = rememberStandardBottomSheetState(
+            initialValue = SheetValue.Expanded,
+            skipHiddenState = false
         )
+        val scaffoldState = rememberBottomSheetScaffoldState(
+            bottomSheetState = bottomSheetState
+        )
+        
+        BottomSheetScaffold(
+            scaffoldState = scaffoldState,
+            sheetContent = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 8.dp, bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.explorer_conflict_title_file),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+
+                    HorizontalDivider()
+
+                    Text(
+                        text = stringResource(R.string.explorer_conflict_existing_file),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    FileComparisonCard(lookup = mockConflict.destination)
+
+                    Text(
+                        text = stringResource(R.string.explorer_conflict_new_file),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    FileComparisonCard(lookup = mockConflict.source)
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Checkbox(
+                            checked = applyToAll,
+                            onCheckedChange = { applyToAll = it },
+                        )
+                        Text(
+                            text = stringResource(R.string.explorer_conflict_apply_all),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            OutlinedButton(
+                                onClick = {},
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Text(stringResource(R.string.explorer_conflict_skip))
+                            }
+                            
+                            Button(
+                                onClick = {},
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Text(stringResource(R.string.explorer_conflict_overwrite))
+                            }
+                        }
+                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            OutlinedButton(
+                                onClick = { showRenameDialog = true },
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Text(stringResource(R.string.explorer_conflict_rename))
+                            }
+                            
+                            TextButton(
+                                onClick = {},
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Text(stringResource(R.string.explorer_conflict_cancel))
+                            }
+                        }
+                    }
+                }
+            },
+            sheetPeekHeight = 0.dp,
+        ) { paddingValues ->
+            // Background content
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Background Content",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        
+        if (showRenameDialog) {
+            RenameDialog(
+                currentName = mockConflict.source.name,
+                onConfirm = { showRenameDialog = false },
+                onDismiss = { showRenameDialog = false },
+            )
+        }
     }
 }
 
@@ -342,10 +524,138 @@ fun ConflictBottomSheetFolderPreview() {
             destination = mockDestLookup
         )
         
-        ConflictBottomSheet(
-            conflict = mockConflict,
-            onResolution = {},
-            onDismiss = {}
+        var applyToAll by remember { mutableStateOf(false) }
+        var showRenameDialog by remember { mutableStateOf(false) }
+        val isDirectory = true // This is a folder preview
+        
+        val bottomSheetState = rememberStandardBottomSheetState(
+            initialValue = SheetValue.Expanded,
+            skipHiddenState = false
         )
+        val scaffoldState = rememberBottomSheetScaffoldState(
+            bottomSheetState = bottomSheetState
+        )
+        
+        BottomSheetScaffold(
+            scaffoldState = scaffoldState,
+            sheetContent = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 8.dp, bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.explorer_conflict_title_folder),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+
+                    HorizontalDivider()
+
+                    Text(
+                        text = stringResource(R.string.explorer_conflict_existing_folder),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    FileComparisonCard(lookup = mockConflict.destination)
+
+                    Text(
+                        text = stringResource(R.string.explorer_conflict_new_folder),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    FileComparisonCard(lookup = mockConflict.source)
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Checkbox(
+                            checked = applyToAll,
+                            onCheckedChange = { applyToAll = it },
+                        )
+                        Text(
+                            text = stringResource(R.string.explorer_conflict_apply_all),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            OutlinedButton(
+                                onClick = {},
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Text(stringResource(R.string.explorer_conflict_skip))
+                            }
+                            
+                            Button(
+                                onClick = {},
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Text(stringResource(R.string.explorer_conflict_merge))
+                            }
+                        }
+                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            OutlinedButton(
+                                onClick = {},
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Text(stringResource(R.string.explorer_conflict_overwrite))
+                            }
+                            
+                            OutlinedButton(
+                                onClick = { showRenameDialog = true },
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Text(stringResource(R.string.explorer_conflict_rename))
+                            }
+                        }
+                        
+                        TextButton(
+                            onClick = {},
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(R.string.explorer_conflict_cancel))
+                        }
+                    }
+                }
+            },
+            sheetPeekHeight = 0.dp,
+        ) { paddingValues ->
+            // Background content  
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Background Content",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        
+        if (showRenameDialog) {
+            RenameDialog(
+                currentName = mockConflict.source.name,
+                onConfirm = { showRenameDialog = false },
+                onDismiss = { showRenameDialog = false },
+            )
+        }
     }
 }
