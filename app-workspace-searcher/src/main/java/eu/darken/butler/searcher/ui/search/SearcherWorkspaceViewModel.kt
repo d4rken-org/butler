@@ -1,5 +1,6 @@
 package eu.darken.butler.searcher.ui.search
 
+import androidx.compose.ui.text.input.TextFieldValue
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -34,7 +35,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val searcherSettings: SearcherSettings,
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page"), navCtrl) {
 
-    private val searchQuery = MutableStateFlow("")
+    private val searchQuery = MutableStateFlow(TextFieldValue(""))
     private val currentFilter = MutableStateFlow(SearchFilter.EMPTY)
     private val searchPath =
         MutableStateFlow<APath>(LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler"))
@@ -62,7 +63,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         currentFilter,
         searchPath,
     ) { values ->
-        val query = values[0] as String
+        val query = values[0] as TextFieldValue
         val searchState = values[1] as SearchRepository.SearchState
         val history = values[2] as List<SearchRepository.SearchHistoryItem>
         val filter = values[3] as SearchFilter
@@ -81,13 +82,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         )
     }.asStateFlow()
 
-    fun updateSearchQuery(query: String) {
-        log(TAG, INFO) { "Updating search query: $query" }
+    fun updateSearchQuery(query: TextFieldValue) {
+        log(TAG, INFO) { "Updating search query: ${query.text}" }
         searchQuery.value = query
     }
 
     fun performSearch() {
-        val query = searchQuery.value
+        val query = searchQuery.value.text
         if (query.isBlank()) return
 
         log(TAG, INFO) { "Performing search: $query" }
@@ -154,7 +155,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     data class State(
         val id: Workspace.Id,
-        val searchQuery: String = "",
+        val searchQuery: TextFieldValue = TextFieldValue(""),
         val searchState: SearchRepository.SearchState = SearchRepository.SearchState(),
         val searchHistory: List<SearchRepository.SearchHistoryItem> = emptyList(),
         val currentFilter: SearchFilter = SearchFilter.EMPTY,

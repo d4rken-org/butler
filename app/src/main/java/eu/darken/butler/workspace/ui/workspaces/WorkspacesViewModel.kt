@@ -23,6 +23,7 @@ import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.manager.workspaceManager
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import java.util.UUID
@@ -54,6 +55,15 @@ class WorkspacesViewModel @Inject constructor(
                 savedStateHandle["workspaceUIState"] = state
             }
             .launchInViewModel()
+
+        // AUTO-CREATE SEARCHER WORKSPACE FOR TESTING - REMOVE BEFORE MERGE
+        launch {
+            val currentWorkspaces = workspaceRepo.state.first()
+            if (currentWorkspaces.infos.isEmpty()) {
+                log(tag) { "No workspaces found, auto-creating Searcher workspace for testing" }
+                executeAction(WorkspaceAction.Create(type = Workspace.Type.SEARCHER))
+            }
+        }
     }
 
     val state = combine(

@@ -7,6 +7,9 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,6 +56,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -114,7 +118,7 @@ fun SearcherWorkspacePageHost(
             onResultClick = vm::onSearchResultClick,
             onClearHistory = vm::clearSearchHistory,
             onHistoryItemClick = { item ->
-                vm.updateSearchQuery(item.query)
+                vm.updateSearchQuery(TextFieldValue(item.query))
                 vm.performSearch()
             },
             onToggleCaseSensitive = vm::toggleCaseSensitive,
@@ -131,7 +135,7 @@ fun SearcherWorkspacePageHost(
 fun SearcherWorkspacePage(
     design: WorkspaceDesign = WorkspaceDesign(),
     state: SearcherWorkspaceViewModel.State,
-    onUpdateQuery: (String) -> Unit = {},
+    onUpdateQuery: (TextFieldValue) -> Unit = {},
     onUpdateSearchPath: (APath) -> Unit = {},
     onPerformSearch: () -> Unit = {},
     onCancelSearch: () -> Unit = {},
@@ -148,8 +152,8 @@ fun SearcherWorkspacePage(
     var searchDebounce by remember { mutableStateOf(false) }
 
     // Debounce search input
-    LaunchedEffect(state.searchQuery) {
-        if (state.searchQuery.isNotBlank()) {
+    LaunchedEffect(state.searchQuery.text) {
+        if (state.searchQuery.text.isNotBlank()) {
             searchDebounce = true
             delay(500) // Wait 500ms after user stops typing
             searchDebounce = false
@@ -167,7 +171,7 @@ fun SearcherWorkspacePage(
     Box(modifier = Modifier.fillMaxSize()) {
         // Main content
         when {
-            state.searchQuery.isBlank() && state.searchHistory.isNotEmpty() -> {
+            state.searchQuery.text.isBlank() && state.searchHistory.isNotEmpty() -> {
                 LazyColumn(
                     state = listState,
                     modifier = Modifier.fillMaxSize(),
@@ -216,7 +220,7 @@ fun SearcherWorkspacePage(
                 }
             }
 
-            state.searchQuery.isBlank() -> {
+            state.searchQuery.text.isBlank() -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -358,6 +362,7 @@ fun SearcherWorkspacePage(
                     SearchPathBar(
                         path = state.searchPath,
                         onPathChange = onUpdateSearchPath,
+                        onPerformSearch = onPerformSearch,
                         isSearching = state.isSearching
                     )
 
@@ -402,8 +407,8 @@ fun SearcherWorkspacePage(
 
 @Composable
 fun SearchInputCard(
-    query: String,
-    onQueryChange: (String) -> Unit,
+    query: TextFieldValue,
+    onQueryChange: (TextFieldValue) -> Unit,
     onSearch: () -> Unit,
     path: APath,
     onPathChange: (APath) -> Unit,
@@ -441,8 +446,8 @@ fun SearchInputCard(
 
 @Composable
 fun CustomSearchField(
-    value: String,
-    onValueChange: (String) -> Unit,
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
     placeholder: String,
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
@@ -450,11 +455,11 @@ fun CustomSearchField(
     isError: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
 ) {
     val colors = MaterialTheme.colorScheme
     val focusRequester = remember { FocusRequester() }
-    val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
 
     Surface(
@@ -498,7 +503,7 @@ fun CustomSearchField(
                 interactionSource = interactionSource,
                 decorationBox = { innerTextField ->
                     Box {
-                        if (value.isEmpty()) {
+                        if (value.text.isEmpty()) {
                             Text(
                                 text = placeholder,
                                 style = MaterialTheme.typography.bodyMedium,
@@ -521,8 +526,8 @@ fun CustomSearchField(
 
 @Composable
 fun SearchBar(
-    query: String,
-    onQueryChange: (String) -> Unit,
+    query: TextFieldValue,
+    onQueryChange: (TextFieldValue) -> Unit,
     onSearch: () -> Unit,
     isSearching: Boolean,
     onCancel: (() -> Unit)? = null,
@@ -552,12 +557,12 @@ fun SearchBar(
                     )
                 }
 
-                query.isNotEmpty() -> {
+                query.text.isNotEmpty() -> {
                     Icon(
                         imageVector = Icons.TwoTone.Clear,
                         contentDescription = "Clear",
                         modifier = Modifier
-                            .clickable { onQueryChange("") }
+                            .clickable { onQueryChange(TextFieldValue("")) }
                             .size(24.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -576,21 +581,43 @@ fun SearchBar(
 fun SearchPathBar(
     path: APath,
     onPathChange: (APath) -> Unit,
+    onPerformSearch: () -> Unit = {},
     isSearching: Boolean,
     modifier: Modifier = Modifier
 ) {
-    var pathText by remember(path) { mutableStateOf(path.path) }
+    var pathText by remember { mutableStateOf(TextFieldValue(path.path)) }
     var showPathPicker by remember { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    // Update pathText only when path changes from external source and field is not focused
+    LaunchedEffect(path, isFocused) {
+        if (!isFocused && pathText.text != path.path) {
+            pathText = TextFieldValue(path.path)
+        }
+    }
+
+    // Validate and update path when user finishes editing (loses focus)
+    LaunchedEffect(isFocused) {
+        if (!isFocused) {
+            try {
+                val newPath = LocalPath.build(pathText.text)
+                onPathChange(newPath)
+            } catch (e: Exception) {
+                // Invalid path, revert to current valid path
+                pathText = TextFieldValue(path.path)
+            }
+        }
+    }
 
     CustomSearchField(
         value = pathText,
         onValueChange = { newPath ->
             pathText = newPath
-            try {
-                onPathChange(LocalPath.build(newPath))
-            } catch (e: Exception) {
-                // Invalid path, don't update
-            }
+            // Don't validate path on every keystroke - wait for focus loss or Done action
         },
         placeholder = stringResource(R.string.searcher_placeholder_path),
         leadingIcon = {
@@ -611,14 +638,26 @@ fun SearchPathBar(
             )
         },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = {
+            try {
+                val newPath = LocalPath.build(pathText.text)
+                onPathChange(newPath)
+                keyboardController?.hide() // Dismiss soft keyboard (no-op for external keyboards)
+                onPerformSearch() // Trigger search with new path
+            } catch (e: Exception) {
+                // Invalid path, revert to current valid path
+                pathText = TextFieldValue(path.path)
+            }
+        }),
         enabled = !isSearching,
-        modifier = modifier
+        modifier = modifier.focusRequester(focusRequester),
+        interactionSource = interactionSource
     )
 
     if (showPathPicker) {
         PathPickerDialog(
             onPathSelected = { selectedPath ->
-                pathText = selectedPath.path
+                pathText = TextFieldValue(selectedPath.path)
                 onPathChange(selectedPath)
                 showPathPicker = false
             },
@@ -754,7 +793,7 @@ private fun SearchPagePreview() {
 private fun SearchInputCardPreview() {
     PreviewWrapper {
         SearchInputCard(
-            query = "test search",
+            query = TextFieldValue("test search"),
             onQueryChange = {},
             onSearch = {},
             path = LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler"),
