@@ -27,7 +27,7 @@ import eu.darken.butler.common.debug.logging.logTag
 
 private val TAG = logTag("Workspace", "Container", "Adaptive", "Divider")
 
-private const val DIVIDER_WIDTH = 16  // Increased for better touch target
+private const val DIVIDER_WIDTH = 8  // Touch target size for dragging
 private const val DIVIDER_VISIBLE_WIDTH = 2  // Actual visible divider line
 private const val DIVIDER_HANDLE_SIZE = 32
 private const val DIVIDER_HANDLE_WIDTH = 4
