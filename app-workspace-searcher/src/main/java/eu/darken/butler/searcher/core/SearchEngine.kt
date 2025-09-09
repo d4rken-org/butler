@@ -26,7 +26,7 @@ class SearchEngine @Inject constructor(
     private val gatewaySwitch: GatewaySwitch,
     private val dispatcherProvider: DispatcherProvider
 ) {
-    
+
     data class SearchOptions(
         val query: String,
         val startPath: APath,
@@ -34,33 +34,33 @@ class SearchEngine @Inject constructor(
         val searchContent: Boolean = false,
         val maxResults: Int? = null
     )
-    
+
     data class SearchProgress(
         val currentPath: APath,
         val itemsScanned: Int,
         val resultsFound: Int
     )
-    
+
     suspend fun search(
         options: SearchOptions,
         onProgress: ((SearchProgress) -> Unit)? = null
     ): Flow<SearchResult> = flow {
         log(TAG) { "Starting search with options: $options" }
-        
+
         var itemsScanned = 0
         var resultsFound = 0
-        
+
         when (val gateway = gatewaySwitch.getGateway(options.startPath)) {
             is APathGateway<*, *, *> -> {
                 @Suppress("UNCHECKED_CAST")
                 val typedGateway = gateway as APathGateway<APath, APathLookup<APath>, *>
-                
+
                 val walkOptions = APathGateway.WalkOptions<APath, APathLookup<APath>>(
                     onFilter = { lookup ->
                         if (!currentCoroutineContext().isActive) throw CancellationException()
-                        
+
                         itemsScanned++
-                        
+
                         if (itemsScanned % 100 == 0) {
                             onProgress?.invoke(
                                 SearchProgress(
@@ -70,7 +70,7 @@ class SearchEngine @Inject constructor(
                                 )
                             )
                         }
-                        
+
                         filterLookup(lookup, options.filter)
                     },
                     onError = { lookup, error ->
@@ -78,73 +78,73 @@ class SearchEngine @Inject constructor(
                         true // Continue walking
                     }
                 )
-                
+
                 typedGateway.walk(options.startPath, walkOptions)
-            .cancellable()
-            .mapNotNull { lookup ->
-                if (matchesSearch(lookup, options)) {
-                    resultsFound++
-                    SearchResult.fromLookup(lookup, options.query)
-                } else {
-                    null
-                }
-            }
-            .onEach { result ->
-                if (options.maxResults != null && resultsFound >= options.maxResults) {
-                    throw CancellationException("Max results reached")
-                }
-            }
-            .collect { emit(it) }
+                    .cancellable()
+                    .mapNotNull { lookup ->
+                        if (matchesSearch(lookup, options)) {
+                            resultsFound++
+                            SearchResult.fromLookup(lookup, options.query)
+                        } else {
+                            null
+                        }
+                    }
+                    .onEach { result ->
+                        if (options.maxResults != null && resultsFound >= options.maxResults) {
+                            throw CancellationException("Max results reached")
+                        }
+                    }
+                    .collect { emit(it) }
             }
         }
-            
+
         log(TAG) { "Search completed. Scanned: $itemsScanned, Found: $resultsFound" }
     }.flowOn(dispatcherProvider.IO)
-    
+
     private fun filterLookup(lookup: APathLookup<*>, filter: SearchFilter): Boolean {
         // File type filter
         if (filter.fileTypes != null && lookup.fileType !in filter.fileTypes) {
             return false
         }
-        
+
         // Size filter
         lookup.size?.let { size ->
             if (filter.minSize != null && size < filter.minSize) return false
             if (filter.maxSize != null && size > filter.maxSize) return false
         }
-        
+
         // Modified date filter
         lookup.modifiedAt?.let { modifiedAt ->
-            if (filter.modifiedAfter != null && modifiedAt.isBefore(filter.modifiedAfter)) return false
-            if (filter.modifiedBefore != null && modifiedAt.isAfter(filter.modifiedBefore)) return false
+            if (filter.modifiedAfter != null && modifiedAt < filter.modifiedAfter) return false
+            if (filter.modifiedBefore != null && modifiedAt > filter.modifiedBefore) return false
         }
-        
+
         // Path filters
         val pathStr = lookup.path
-        
+
         if (filter.excludePaths != null) {
             if (filter.excludePaths.any { pathStr.contains(it) }) return false
         }
-        
+
         if (filter.includePaths != null) {
             if (filter.includePaths.none { pathStr.contains(it) }) return false
         }
-        
+
         // Hidden files filter
         if (!filter.searchHidden && lookup.name.startsWith(".")) {
             return false
         }
-        
+
         return true
     }
-    
+
     private suspend fun matchesSearch(
         lookup: APathLookup<*>,
         options: SearchOptions
     ): Boolean = withContext(dispatcherProvider.Default) {
         val query = options.query
         val filter = options.filter
-        
+
         // Name matching
         val name = lookup.name
         val matches = when {
@@ -174,10 +174,10 @@ class SearchEngine @Inject constructor(
                 name.contains(query, ignoreCase = !filter.caseSensitive)
             }
         }
-        
+
         matches
     }
-    
+
     companion object {
         private val TAG = logTag("Searcher", "Engine")
     }

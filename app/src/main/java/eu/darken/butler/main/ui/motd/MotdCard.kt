@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material3.Card
@@ -43,13 +41,13 @@ import eu.darken.butler.main.core.motd.MotdApi
 import eu.darken.butler.main.core.motd.MotdState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 @Composable
 fun MotdCard(
     motd: MotdState,
     onHide: () -> Unit,
-    onMarkAsRead: (UUID) -> Unit,
+    onMarkAsRead: (Uuid) -> Unit,
     onLinkClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -178,7 +176,7 @@ private fun MotdCardPreview() {
         MotdCard(
             motd = MotdState(
                 motd = MotdApi.Motd(
-                    id = UUID.randomUUID(),
+                    id = Uuid.random(),
                     message = "This is a message of the day. It can contain important information about updates, new features, or announcements.",
                     primaryLink = "https://example.com",
                     minimumVersion = null,
@@ -200,7 +198,7 @@ private fun MotdCardNoLinkPreview() {
         MotdCard(
             motd = MotdState(
                 motd = MotdApi.Motd(
-                    id = UUID.randomUUID(),
+                    id = Uuid.random(),
                     message = "This is a shorter MOTD without a link.",
                     primaryLink = null,
                     minimumVersion = null,

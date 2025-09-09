@@ -15,7 +15,7 @@ import eu.darken.butler.common.files.extensions.asFile
 import eu.darken.butler.common.funnel.IPCFunnel
 import eu.darken.butler.common.pkgs.pkgops.LibcoreTool
 import java.io.File
-import java.time.Instant
+import kotlin.time.Instant
 
 
 fun LocalPath.crumbsTo(child: LocalPath): Array<String> {
@@ -45,7 +45,7 @@ fun LocalPath.performLookup(): LocalPathLookup {
         fileType = type,
         lookedUp = this,
         size = file.length(),
-        modifiedAt = Instant.ofEpochMilli(file.lastModified()),
+        modifiedAt = Instant.fromEpochMilliseconds(file.lastModified()),
         target = file.readLink()?.let { LocalPath.build(it) }
     )
 }

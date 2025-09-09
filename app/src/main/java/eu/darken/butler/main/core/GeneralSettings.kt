@@ -10,6 +10,7 @@ import eu.darken.butler.common.datastore.PreferenceStoreMapper
 import eu.darken.butler.common.datastore.createValue
 import eu.darken.butler.common.debug.DebugSettings
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemeMode
 import eu.darken.butler.common.theming.ThemeStyle
 import eu.darken.butler.common.updater.UpdateChecker
@@ -34,8 +35,7 @@ class GeneralSettings @Inject constructor(
 
     val themeMode = dataStore.createValue("core.ui.theme.mode", ThemeMode.SYSTEM, json)
     val themeStyle = dataStore.createValue("core.ui.theme.style", ThemeStyle.DEFAULT, json)
-
-    val usePreviews = dataStore.createValue("core.ui.previews.enabled", true)
+    val themeColor = dataStore.createValue("core.ui.theme.color", ThemeColor.TEAL, json)
 
     val isOnboardingCompleted = dataStore.createValue("core.onboarding.completed", false)
 
@@ -47,7 +47,7 @@ class GeneralSettings @Inject constructor(
         debugSettings.isDebugMode,
         themeMode,
         themeStyle,
-        usePreviews,
+        themeColor,
         motdSettings.isMotdEnabled,
         isUpdateCheckEnabled,
         isConfirmExitEnabled,

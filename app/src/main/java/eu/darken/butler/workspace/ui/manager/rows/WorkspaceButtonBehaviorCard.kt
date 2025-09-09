@@ -19,10 +19,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.R
 
 @Composable
 fun WorkspaceButtonBehaviorCard(
@@ -57,7 +59,7 @@ fun WorkspaceButtonBehaviorCard(
                         modifier = Modifier.size(20.dp)
                     )
                     Text(
-                        text = "Tip: Workspace Button Behavior",
+                        text = stringResource(id = R.string.workspace_tab_button_behavior_tip),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
@@ -76,9 +78,9 @@ fun WorkspaceButtonBehaviorCard(
 
             Text(
                 text = if (isButtonFlipped) {
-                    "• Click: Add new workspace\n• Long click: Open workspace manager"
+                    stringResource(id = R.string.workspace_tab_button_behavior_flipped_description)
                 } else {
-                    "• Click: Open workspace manager\n• Long click: Add new workspace"
+                    stringResource(id = R.string.workspace_tab_button_behavior_normal_description)
                 },
                 style = MaterialTheme.typography.bodyMedium
             )
@@ -89,7 +91,7 @@ fun WorkspaceButtonBehaviorCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Flip button actions",
+                    text = stringResource(id = R.string.workspace_tab_button_behavior_flip_action),
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Switch(

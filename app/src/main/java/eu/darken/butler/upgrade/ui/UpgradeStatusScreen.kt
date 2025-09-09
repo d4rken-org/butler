@@ -33,7 +33,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.upgrade.UpgradeRepo
-import java.time.Instant
+import kotlin.time.Clock
 
 @Composable
 fun UpgradeStatusScreenHost(vm: UpgradeStatusViewModel = hiltViewModel()) {
@@ -209,7 +209,7 @@ private fun UpgradeStatusScreenUpgradedPreview() {
             state = UpgradeStatusViewModel.State(
                 isUpgraded = true,
                 upgradeType = UpgradeRepo.Type.GPLAY,
-                upgradedAt = Instant.now(),
+                upgradedAt = Clock.System.now(),
                 upgradedAtFormatted = "January 15, 2024"
             ),
             onNavigateUp = {},

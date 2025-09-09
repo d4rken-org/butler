@@ -2,7 +2,6 @@ package eu.darken.butler.explorer.ui.explorer.items.row
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -48,7 +47,7 @@ internal fun DirectoryRow(
                 append(stringResource(R.string.explorer_file_items_count, count))
                 append(" • ")
             }
-            append(formatDate(item.lookup.modifiedAt.toEpochMilli()))
+            append(formatDate(item.lookup.modifiedAt))
             item.permissions?.let { perms ->
                 append(" • ")
                 append(perms.mode)

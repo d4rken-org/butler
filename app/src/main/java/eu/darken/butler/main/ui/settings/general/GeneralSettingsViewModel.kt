@@ -12,6 +12,7 @@ import eu.darken.butler.common.locale.LocaleManager
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.upgrade
+import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemeMode
 import eu.darken.butler.common.theming.ThemeState
 import eu.darken.butler.common.theming.ThemeStyle
@@ -38,15 +39,13 @@ constructor(
     val state = combine(
         generalSettings.themeState,
         flowOf(hasApiLevel(33)),
-        generalSettings.usePreviews.flow,
         generalSettings.isUpdateCheckEnabled.flow,
         motdSettings.isMotdEnabled.flow,
         generalSettings.isConfirmExitEnabled.flow,
         upgradeRepo.upgradeInfo,
-    ) { themeState, languageSwitcher, usePreviews, updateCheckEnabled, motdEnabled, confirmExitEnabled, upgradeInfo ->
+    ) { themeState, languageSwitcher, updateCheckEnabled, motdEnabled, confirmExitEnabled, upgradeInfo ->
         State(
             themeState = themeState,
-            filePreviews = usePreviews,
             showLanguageSwitcher = languageSwitcher,
             updateCheckEnabled = updateCheckEnabled,
             motdEnabled = motdEnabled,
@@ -66,11 +65,6 @@ constructor(
         }
     }
 
-    fun updateFilePreviews(enabled: Boolean) = launch {
-        log(tag) { "updateFilePreviews($enabled)" }
-        generalSettings.usePreviews.value(enabled)
-    }
-
     fun updateThemeMode(mode: ThemeMode) = launch {
         log(tag) { "updateThemeMode($mode)" }
         generalSettings.themeMode.value(mode)
@@ -79,6 +73,11 @@ constructor(
     fun updateThemeStyle(style: ThemeStyle) = launch {
         log(tag) { "updateThemeStyle($style)" }
         generalSettings.themeStyle.value(style)
+    }
+
+    fun updateThemeColor(color: ThemeColor) = launch {
+        log(tag) { "updateThemeColor($color)" }
+        generalSettings.themeColor.value(color)
     }
 
     fun updateUpdateCheckEnabled(enabled: Boolean) = launch {
@@ -103,7 +102,6 @@ constructor(
 
     data class State(
         val themeState: ThemeState = ThemeState(),
-        val filePreviews: Boolean = false,
         val showLanguageSwitcher: Boolean = false,
         val updateCheckEnabled: Boolean = false,
         val motdEnabled: Boolean = false,

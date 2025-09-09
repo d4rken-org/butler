@@ -29,10 +29,10 @@ class WorkspaceManagerViewModel @Inject constructor(
 
     val state = combine(
         workspaceRepo.state,
-        workspaceSettings.isButtonActionsFlipped.flow,
         workspaceSettings.showBadgeExplanation.flow,
         workspaceSettings.showButtonBehaviorExplanation.flow,
-    ) { repoState, isFlipped, showBadge, showBehavior ->
+        workspaceSettings.isButtonActionsFlipped.flow,
+    ) { repoState, showBadge, showBehavior, isButtonFlipped ->
         State(
             workspaces = repoState.infos.map { info ->
                 WorkspaceItem(
@@ -42,11 +42,11 @@ class WorkspaceManagerViewModel @Inject constructor(
                     subtitle = getSubtitleForWorkspace(info.type),
                 )
             },
-            isButtonFlipped = isFlipped,
             showBadgeExplanation = showBadge,
             showButtonBehaviorExplanation = showBehavior,
             operationsCount = repoState.operationCount,
             attentionCount = repoState.attentionCount,
+            isButtonActionsFlipped = isButtonFlipped,
         )
     }.asStateFlow()
 
@@ -89,10 +89,6 @@ class WorkspaceManagerViewModel @Inject constructor(
         navTo(Nav.Main.settings())
     }
 
-    fun toggleButtonFlipped() = launch {
-        val current = workspaceSettings.isButtonActionsFlipped.value()
-        workspaceSettings.isButtonActionsFlipped.update { !current }
-    }
 
     fun dismissBadgeExplanation() = launch {
         workspaceSettings.showBadgeExplanation.update { false }
@@ -109,13 +105,18 @@ class WorkspaceManagerViewModel @Inject constructor(
 
     data class State(
         val workspaces: List<WorkspaceItem> = emptyList(),
-        val isButtonFlipped: Boolean = false,
         val showBadgeExplanation: Boolean = true,
         val showButtonBehaviorExplanation: Boolean = true,
         val operationsCount: Int = 0,
         val attentionCount: Int = 0,
+        val isButtonActionsFlipped: Boolean = false,
     ) {
         val workspaceCount: Int = workspaces.size
+    }
+
+    fun toggleButtonActions() = launch {
+        val current = workspaceSettings.isButtonActionsFlipped.value()
+        workspaceSettings.isButtonActionsFlipped.value(!current)
     }
 
     data class WorkspaceItem(

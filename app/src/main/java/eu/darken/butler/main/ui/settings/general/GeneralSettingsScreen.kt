@@ -8,7 +8,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.twotone.Notifications
 import androidx.compose.material.icons.twotone.Palette
-import androidx.compose.material.icons.twotone.Preview
 import androidx.compose.material.icons.twotone.Translate
 import androidx.compose.material.icons.twotone.Update
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,10 +34,13 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.settings.EnumSelectorDialog
+import eu.darken.butler.common.settings.ThemeColorSelectorDialog
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
 import eu.darken.butler.common.settings.SettingsPreferenceItem
 import eu.darken.butler.common.settings.SettingsSwitchItem
+import eu.darken.butler.common.theming.ThemeColor
+import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.theming.ThemeMode
 import eu.darken.butler.common.theming.ThemeStyle
 import eu.darken.butler.common.ui.waitForState
@@ -49,9 +51,9 @@ fun GeneralSettingsScreen(
     state: GeneralSettingsViewModel.State,
     onNavigateUp: () -> Unit,
     onLanguageSwitcher: (() -> Unit)?,
-    onFilePreviewsChange: (Boolean) -> Unit,
     onThemeModeSelected: (ThemeMode) -> Unit,
     onThemeStyleSelected: (ThemeStyle) -> Unit,
+    onThemeColorSelected: (ThemeColor) -> Unit,
     onUpgradeButler: () -> Unit,
     onUpdateCheckEnabledChange: (Boolean) -> Unit,
     onMotdEnabledChange: (Boolean) -> Unit,
@@ -62,6 +64,7 @@ fun GeneralSettingsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var showThemeModeDialog by remember { mutableStateOf(false) }
     var showThemeStyleDialog by remember { mutableStateOf(false) }
+    var showThemeColorDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -147,6 +150,42 @@ fun GeneralSettingsScreen(
                 SettingsDivider()
             }
 
+            item {
+                val isMaterialYouActive = state.themeState.style == ThemeStyle.MATERIAL_YOU && hasApiLevel(31)
+                
+                SettingsPreferenceItem(
+                    icon = Icons.TwoTone.Palette,
+                    title = stringResource(R.string.ui_theme_color_setting_label),
+                    subtitle = if (isMaterialYouActive) {
+                        stringResource(R.string.ui_theme_color_setting_disabled_materialyou)
+                    } else {
+                        stringResource(R.string.ui_theme_color_setting_explanation)
+                    },
+                    value = if (isMaterialYouActive) {
+                        stringResource(R.string.ui_theme_color_value_system)
+                    } else {
+                        state.themeState.color.label.get(context)
+                    },
+                    enabled = !isMaterialYouActive,
+                    onClick = {
+                        if (state.isUpgraded) {
+                            showThemeColorDialog = true
+                        } else {
+                            scope.launch {
+                                val result = snackbarHostState.showSnackbar(
+                                    message = context.getString(R.string.upgrade_feature_requires_pro),
+                                    actionLabel = context.getString(R.string.upgrade_prompt_upgrade_action)
+                                )
+                                if (result == SnackbarResult.ActionPerformed) {
+                                    onUpgradeButler()
+                                }
+                            }
+                        }
+                    }
+                )
+                SettingsDivider()
+            }
+
             onLanguageSwitcher?.let { action ->
                 item {
                     SettingsPreferenceItem(
@@ -170,15 +209,6 @@ fun GeneralSettingsScreen(
                 SettingsDivider()
             }
 
-            item {
-                SettingsSwitchItem(
-                    icon = Icons.TwoTone.Preview,
-                    title = stringResource(R.string.ui_previews_title),
-                    subtitle = stringResource(R.string.ui_previews_summary),
-                    checked = state.filePreviews,
-                    onCheckedChange = onFilePreviewsChange
-                )
-            }
 
             item {
                 SettingsCategoryHeader(
@@ -235,6 +265,18 @@ fun GeneralSettingsScreen(
             onDismiss = { showThemeStyleDialog = false }
         )
     }
+
+    if (showThemeColorDialog) {
+        ThemeColorSelectorDialog(
+            title = stringResource(R.string.ui_theme_color_setting_label),
+            selectedOption = state.themeState.color,
+            onOptionSelected = { color ->
+                onThemeColorSelected(color)
+                showThemeColorDialog = false
+            },
+            onDismiss = { showThemeColorDialog = false }
+        )
+    }
 }
 
 @Preview2
@@ -242,12 +284,12 @@ fun GeneralSettingsScreen(
 private fun GeneralSettingsScreenPreview() {
     PreviewWrapper {
         GeneralSettingsScreen(
-            state = GeneralSettingsViewModel.State(filePreviews = true),
+            state = GeneralSettingsViewModel.State(),
             onNavigateUp = {},
             onLanguageSwitcher = {},
-            onFilePreviewsChange = {},
             onThemeModeSelected = {},
             onThemeStyleSelected = {},
+            onThemeColorSelected = {},
             onUpdateCheckEnabledChange = {},
             onMotdEnabledChange = {},
             onConfirmExitEnabledChange = {},
@@ -267,9 +309,9 @@ fun GeneralSettingsScreenHost(vm: GeneralSettingsViewModel = hiltViewModel()) {
             state = vmState,
             onNavigateUp = { vm.navUp() },
             onLanguageSwitcher = { vm.showLanguagePicker() },
-            onFilePreviewsChange = { vm.updateFilePreviews(it) },
             onThemeModeSelected = { vm.updateThemeMode(it) },
             onThemeStyleSelected = { vm.updateThemeStyle(it) },
+            onThemeColorSelected = { vm.updateThemeColor(it) },
             onUpdateCheckEnabledChange = { vm.updateUpdateCheckEnabled(it) },
             onMotdEnabledChange = { vm.updateMotdEnabled(it) },
             onConfirmExitEnabledChange = { vm.updateConfirmExitEnabled(it) },

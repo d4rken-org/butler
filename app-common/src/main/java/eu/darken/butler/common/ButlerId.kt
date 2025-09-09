@@ -5,9 +5,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import java.io.File
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.uuid.Uuid
 
 @Singleton
 class ButlerId @Inject constructor(
@@ -23,7 +23,7 @@ class ButlerId @Inject constructor(
             null
         }
 
-        return@lazy existing ?: UUID.randomUUID().toString().also {
+        return@lazy existing ?: Uuid.random().toString().also {
             log(TAG) { "New install ID created: $it" }
             installIDFile.writeText(it)
         }

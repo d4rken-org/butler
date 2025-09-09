@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import eu.darken.butler.common.ByteFormatter
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.R
@@ -86,14 +87,14 @@ fun ExplorerInfoBar(
                     if (info.totalSize != null && selectedCount == 0) {
                         InfoChip(
                             icon = Icons.TwoTone.Storage,
-                            label = formatFileSize(info.totalSize),
+                            label = ByteFormatter.formatFileSize(info.totalSize),
                         )
                     }
 
                     if (info.volumeFreeSpace != null) {
                         InfoChip(
                             icon = Icons.TwoTone.Storage,
-                            label = "${formatFileSize(info.volumeFreeSpace)} free",
+                            label = "${ByteFormatter.formatFileSize(info.volumeFreeSpace)} free",
                         )
                     }
                 }
@@ -108,7 +109,7 @@ fun ExplorerInfoBar(
                         val freeSpace = info.totalDeviceStorage - info.usedStorage
                         InfoChip(
                             icon = Icons.TwoTone.Storage,
-                            label = "${formatFileSize(freeSpace)} free",
+                            label = "${ByteFormatter.formatFileSize(freeSpace)} free",
                         )
                     }
                 }
@@ -123,7 +124,7 @@ fun ExplorerInfoBar(
                         val freeSpace = info.totalCapacity - info.usedSpace
                         InfoChip(
                             icon = Icons.TwoTone.Storage,
-                            label = "${formatFileSize(freeSpace)} free",
+                            label = "${ByteFormatter.formatFileSize(freeSpace)} free",
                         )
                     }
                 }
@@ -176,17 +177,6 @@ private fun InfoChip(
     )
 }
 
-private fun formatFileSize(bytes: Long): String {
-    if (bytes < 1024) return "$bytes B"
-    val kb = bytes / 1024.0
-    if (kb < 1024) return "%.1f KB".format(kb)
-    val mb = kb / 1024.0
-    if (mb < 1024) return "%.1f MB".format(mb)
-    val gb = mb / 1024.0
-    if (gb < 1024) return "%.1f GB".format(gb)
-    val tb = gb / 1024.0
-    return "%.1f TB".format(tb)
-}
 
 @Preview2
 @Composable

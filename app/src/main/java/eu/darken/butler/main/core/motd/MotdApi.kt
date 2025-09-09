@@ -7,7 +7,7 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 import retrofit2.http.Url
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 interface MotdApi {
 
@@ -26,7 +26,7 @@ interface MotdApi {
 
     @Serializable
     data class Motd(
-        @SerialName("id") @Contextual val id: UUID,
+        @SerialName("id") @Contextual val id: Uuid,
         @SerialName("message") val message: String,
         @SerialName("primaryLink") val primaryLink: String?,
         @SerialName("versionMinimum") val minimumVersion: Long?,

@@ -22,12 +22,10 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.extensions.asFile
 import eu.darken.butler.common.files.extensions.extension
 import eu.darken.butler.common.files.iconRes
-import eu.darken.butler.main.core.GeneralSettings
 import javax.inject.Inject
 
 class PathPreviewFetcher @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val generalSettings: GeneralSettings,
     private val gatewaySwitch: GatewaySwitch,
     private val mimeTypeTool: MimeTypeTool,
     private val data: APathLookup<*>,
@@ -47,8 +45,6 @@ class PathPreviewFetcher @Inject constructor(
 
     override suspend fun fetch(): FetchResult {
         if (data.fileType != FileType.FILE || data.size == 0L) return fallbackIcon
-
-        if (!generalSettings.usePreviews.value()) return fallbackIcon
 
         val mimeType = mimeTypeTool.determineMimeType(data)
 
@@ -92,7 +88,6 @@ class PathPreviewFetcher @Inject constructor(
 
     class Factory @Inject constructor(
         @param:ApplicationContext private val context: Context,
-        private val generalSettings: GeneralSettings,
         private val gatewaySwitch: GatewaySwitch,
         private val mimeTypeTool: MimeTypeTool,
     ) : Fetcher.Factory<APathLookup<*>> {
@@ -103,7 +98,6 @@ class PathPreviewFetcher @Inject constructor(
             imageLoader: ImageLoader
         ): Fetcher = PathPreviewFetcher(
             context,
-            generalSettings,
             gatewaySwitch,
             mimeTypeTool,
             data,

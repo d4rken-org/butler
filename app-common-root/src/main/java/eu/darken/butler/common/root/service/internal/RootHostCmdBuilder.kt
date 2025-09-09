@@ -16,8 +16,8 @@ import eu.darken.flowshell.core.cmd.FlowCmd
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
-import java.util.UUID
 import kotlin.reflect.KClass
+import kotlin.uuid.Uuid
 
 /**
  * Based on https://github.com/Chainfire/librootjava
@@ -142,7 +142,7 @@ class RootHostCmdBuilder<Host : BaseRootHost>(
             persistence.readText()
         } catch (_: FileNotFoundException) {
             log(TAG) { "No relocation id found, creating." }
-            UUID.randomUUID().toString().also { persistence.writeText(it) }
+            Uuid.random().toString().also { persistence.writeText(it) }
         }
 
         val script = StringBuilder()
