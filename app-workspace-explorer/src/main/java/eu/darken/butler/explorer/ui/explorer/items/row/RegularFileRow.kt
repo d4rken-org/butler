@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.ByteFormatter
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -43,7 +44,7 @@ internal fun RegularFileRow(
         },
         primaryText = item.displayName.get(LocalContext.current),
         secondaryText = buildString {
-            append(formatFileSize(item.lookup.size))
+            append(ByteFormatter.formatFileSize(item.lookup.size))
             append(" • ")
             append(formatDate(item.lookup.modifiedAt))
             item.permissions?.let { perms ->
