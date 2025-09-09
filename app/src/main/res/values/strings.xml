@@ -114,8 +114,8 @@
 
     <string name="confirm_exit_setting_title">Confirm exit</string>
     <string name="confirm_exit_setting_description">Show a confirmation dialog when exiting the app</string>
-    <string name="confirm_exit_dialog_title">Exit Butler?</string>
-    <string name="confirm_exit_dialog_message">Are you sure you want to exit the app?</string>
+    <string name="confirm_exit_dialog_title">Exit Butler</string>
+    <string name="confirm_exit_dialog_message">This will close the app and return to your home screen.</string>
     <string name="confirm_exit_dialog_exit">Exit</string>
     <string name="confirm_exit_dialog_cancel">Cancel</string>
     <string name="confirm_exit_dialog_dont_ask_again">Don\'t ask again</string>
