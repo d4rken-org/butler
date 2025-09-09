@@ -29,7 +29,7 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContainer
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 private val TAG = logTag("Workspace", "Screen")
 
@@ -73,8 +73,8 @@ fun WorkspaceScreen(
     onWorkspaceTabAction: (WorkspaceAction) -> Unit,
     onScreenAction: (WorkspaceScreenAction) -> Unit,
     onUpgradeButler: () -> Unit,
-    onHideMotd: (UUID) -> Unit,
-    onDismissMotd: (UUID) -> Unit,
+    onHideMotd: (Uuid) -> Unit,
+    onDismissMotd: (Uuid) -> Unit,
     onMotdLinkClick: (String) -> Unit,
 ) {
     val windowSizeInfo = rememberWindowSizeInfo()

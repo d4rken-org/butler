@@ -10,7 +10,7 @@ import eu.darken.butler.common.datastore.PreferenceScreenData
 import eu.darken.butler.common.datastore.PreferenceStoreMapper
 import eu.darken.butler.common.datastore.createValue
 import eu.darken.butler.common.debug.logging.logTag
-import java.time.Instant
+import kotlin.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 

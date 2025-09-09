@@ -15,6 +15,7 @@
 	  "Bash(mv:*)",
 	  "Bash(for module in app-common-pkgs app-common-root app-common-shell app-workspace app-workspace-editor app-workspace-searcher app-workspace-templates)",
 	  "Bash(do echo \"=== $module ===\")",
+	  "Bash(git add:*)",
 	  "WebFetch(domain:coil-kt.github.io)",
 	  "WebFetch(domain:github.com)",
 	  "WebFetch(domain:raw.githubusercontent.com)",

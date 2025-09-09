@@ -25,8 +25,8 @@ import kotlinx.coroutines.flow.Flow
 import okio.FileHandle
 import java.io.File
 import java.io.IOException
-import java.time.Instant
 import java.util.Collections
+import kotlin.time.Instant
 import eu.darken.butler.common.files.local.removePrefix as removePrefixLocalPath
 import eu.darken.butler.common.files.saf.removePrefix as removePrefixSafPath
 

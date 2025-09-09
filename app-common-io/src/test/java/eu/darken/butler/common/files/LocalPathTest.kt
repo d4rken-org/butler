@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.json.toComparableJson
 import java.io.File
-import java.time.Instant
+import kotlin.time.Instant
 
 class LocalPathTest : BaseTest() {
     private val testFile = File("./testfile")

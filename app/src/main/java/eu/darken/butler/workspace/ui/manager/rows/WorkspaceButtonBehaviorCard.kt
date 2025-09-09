@@ -14,7 +14,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,8 +25,6 @@ import eu.darken.butler.common.compose.PreviewWrapper
 
 @Composable
 fun WorkspaceButtonBehaviorCard(
-    isButtonFlipped: Boolean,
-    onToggleFlipped: (Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
     Card(
@@ -75,28 +72,10 @@ fun WorkspaceButtonBehaviorCard(
             }
 
             Text(
-                text = if (isButtonFlipped) {
-                    "• Click: Add new workspace\n• Long click: Open workspace manager"
-                } else {
-                    "• Click: Open workspace manager\n• Long click: Add new workspace"
-                },
+                text = "• Click: Open workspace manager\n• Long click: Add new workspace",
                 style = MaterialTheme.typography.bodyMedium
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Flip button actions",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Switch(
-                    checked = isButtonFlipped,
-                    onCheckedChange = onToggleFlipped
-                )
-            }
         }
     }
 }
@@ -110,13 +89,6 @@ private fun WorkspaceButtonBehaviorCardPreview() {
             modifier = Modifier.padding(16.dp)
         ) {
             WorkspaceButtonBehaviorCard(
-                isButtonFlipped = false,
-                onToggleFlipped = {},
-                onDismiss = {}
-            )
-            WorkspaceButtonBehaviorCard(
-                isButtonFlipped = true,
-                onToggleFlipped = {},
                 onDismiss = {}
             )
         }

@@ -31,9 +31,10 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withTimeoutOrNull
-import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 @Singleton
 class ShizukuSetupModule @Inject constructor(
@@ -124,7 +125,7 @@ class ShizukuSetupModule @Inject constructor(
     }
 
     data class Loading(
-        override val startAt: Instant = Instant.now(),
+        override val startAt: Instant = Clock.System.now(),
     ) : SetupModule.State.Loading {
         override val type: SetupModule.Type = SetupModule.Type.SHIZUKU
     }

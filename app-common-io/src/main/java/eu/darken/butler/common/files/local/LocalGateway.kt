@@ -46,9 +46,9 @@ import kotlinx.coroutines.withContext
 import okio.FileHandle
 import java.io.File
 import java.io.IOException
-import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Instant
 
 @Suppress("BlockingMethodInNonBlockingContext")
 @Singleton
@@ -879,7 +879,7 @@ class LocalGateway @Inject constructor(
             when {
                 mode == Mode.NORMAL || mode == Mode.AUTO && canNormalWrite -> {
                     log(TAG, VERBOSE) { "setModifiedAt($mode->NORMAL): $path" }
-                    path.file.setLastModified(modifiedAt.toEpochMilli())
+                    path.file.setLastModified(modifiedAt.toEpochMilliseconds())
                 }
 
                 hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {

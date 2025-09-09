@@ -24,7 +24,7 @@ class SerializationCommonModule {
         serializersModule = SerializersModule {
             contextual(InstantSerializer)
             contextual(DurationSerializer)
-            contextual(UUIDSerializer)
+            contextual(UuidSerializer)
             contextual(ByteStringSerializer)
             contextual(FileSerializer)
             contextual(UriSerializer)

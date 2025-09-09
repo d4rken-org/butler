@@ -17,7 +17,7 @@ import eu.darken.butler.common.ipc.IpcClientModule
 import eu.darken.butler.common.ipc.fileHandle
 import kotlinx.coroutines.flow.Flow
 import okio.FileHandle
-import java.time.Instant
+import kotlin.time.Instant
 
 class FileOpsClient @AssistedInject constructor(
     @Assisted private val fileOpsConnection: FileOpsConnection
@@ -142,7 +142,7 @@ class FileOpsClient @AssistedInject constructor(
     }
 
     fun setModifiedAt(path: LocalPath, modifiedAt: Instant): Boolean = try {
-        fileOpsConnection.setModifiedAt(path, modifiedAt.toEpochMilli())
+        fileOpsConnection.setModifiedAt(path, modifiedAt.toEpochMilliseconds())
     } catch (e: Exception) {
         throw e.refineException()
     }

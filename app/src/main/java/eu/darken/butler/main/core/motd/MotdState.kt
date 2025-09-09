@@ -5,14 +5,14 @@ import eu.darken.butler.common.serialization.LocaleSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.util.Locale
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 @Serializable
 data class MotdState(
     @SerialName("motd") val motd: MotdApi.Motd,
     @SerialName("locale") val locale: @Serializable(with = LocaleSerializer::class) Locale,
 ) {
-    val id: UUID
+    val id: Uuid
         get() = motd.id
 
     val allowTranslation: Boolean

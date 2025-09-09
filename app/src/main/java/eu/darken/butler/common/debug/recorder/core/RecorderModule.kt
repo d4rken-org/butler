@@ -33,11 +33,12 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.plus
 import java.io.File
-import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Clock
+import kotlin.time.toJavaInstant
 
 @Singleton
 class RecorderModule @Inject constructor(
@@ -126,7 +127,7 @@ class RecorderModule @Inject constructor(
         val timestamp = DateTimeFormatter
             .ofPattern("yyyy-MM-dd_HH-mm-ss-SSS")
             .withZone(ZoneId.systemDefault())
-            .format(Instant.now())
+            .format(Clock.System.now().toJavaInstant())
         @Suppress("SetWorldWritable", "SetWorldReadable")
         return File(File(context.externalCacheDir, "debug/logs"), "${pkg}_${version}_${timestamp}").apply {
             mkdirs()

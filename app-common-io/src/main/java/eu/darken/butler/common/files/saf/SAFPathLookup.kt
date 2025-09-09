@@ -4,7 +4,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.SAFPath
-import java.time.Instant
+import kotlin.time.Instant
 
 data class SAFPathLookup(
     override val lookedUp: SAFPath,

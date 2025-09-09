@@ -3,7 +3,7 @@ package eu.darken.butler.common.files
 import eu.darken.butler.common.sharedresource.HasSharedResource
 import kotlinx.coroutines.flow.Flow
 import okio.FileHandle
-import java.time.Instant
+import kotlin.time.Instant
 
 interface APathGateway<
         P : APath,

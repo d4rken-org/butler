@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.runTest2
 import java.util.Base64
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 class FlowShellTest : BaseTest() {
     @BeforeEach
@@ -105,7 +105,7 @@ class FlowShellTest : BaseTest() {
         val session = sharedSession.first()
 
         (1..loop).forEach {
-            val data = "$it# ${UUID.randomUUID()}"
+            val data = "$it# ${Uuid.random()}"
             session.write("echo $data")
             expected.add(data)
         }

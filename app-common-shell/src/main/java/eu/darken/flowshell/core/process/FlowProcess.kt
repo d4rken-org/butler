@@ -19,8 +19,8 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import java.util.UUID
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.uuid.Uuid
 
 class FlowProcess(
     launch: suspend () -> Process,
@@ -28,7 +28,7 @@ class FlowProcess(
 ) {
 
     private val processCreator = callbackFlow {
-        val shortId = UUID.randomUUID().toString().takeLast(4)
+        val shortId = Uuid.random().toString().takeLast(4)
         val _tag = "$TAG:$shortId"
         if (isDebug) log(_tag, VERBOSE) { "Launching..." }
         val process = launch()

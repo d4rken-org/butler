@@ -2,7 +2,7 @@ package eu.darken.butler.common.debug.recorder.core
 
 import eu.darken.butler.common.debug.logging.FileLogger
 import eu.darken.butler.common.debug.logging.Logging
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import kotlinx.coroutines.sync.Mutex
@@ -38,7 +38,7 @@ class Recorder @Inject constructor() {
     }
 
     companion object {
-        internal val TAG = logTag("Debug", "Log", "eu.darken.butler.common.debug.recording.core.Recorder")
+        internal val TAG = logTag("Debug", "Log", "Recorder")
     }
 
 }

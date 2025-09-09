@@ -30,8 +30,8 @@ import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import java.util.UUID
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.uuid.Uuid
 
 class FlowCmdShell(
     flowShell: FlowShell
@@ -91,7 +91,7 @@ class FlowCmdShell(
         suspend fun execute(cmd: FlowCmd): FlowCmd.Result = withContext(Dispatchers.IO) {
             mutex.withLock {
                 cmdCount++
-                val id = UUID.randomUUID().toString()
+                val id = Uuid.random().toString()
                 val idStart = "$id-start"
                 val idEnd = "$id-end"
                 log(_tag, VERBOSE) { "submit($cmdCount): $cmd" }

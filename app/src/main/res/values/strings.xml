@@ -104,8 +104,6 @@
     <string name="ui_theme_mode_setting_explanation">The mode used when theming the app (e.g. night or day).</string>
     <string name="ui_theme_style_setting_label">Theme style</string>
     <string name="ui_theme_style_setting_explanation">The color style used when theming the app.</string>
-    <string name="ui_previews_title">File previews</string>
-    <string name="ui_previews_summary">Display file previews in all tools (e.g. image and video thumbnails).</string>
     <string name="ui_language_override_label">App language</string>
     <string name="ui_language_override_desc">Select a different language for Butler, independent of your system\'s default language.</string>
 
@@ -116,8 +114,8 @@
 
     <string name="confirm_exit_setting_title">Confirm exit</string>
     <string name="confirm_exit_setting_description">Show a confirmation dialog when exiting the app</string>
-    <string name="confirm_exit_dialog_title">Exit Butler?</string>
-    <string name="confirm_exit_dialog_message">Are you sure you want to exit the app?</string>
+    <string name="confirm_exit_dialog_title">Exit Butler</string>
+    <string name="confirm_exit_dialog_message">This will close the app and return to your home screen.</string>
     <string name="confirm_exit_dialog_exit">Exit</string>
     <string name="confirm_exit_dialog_cancel">Cancel</string>
     <string name="confirm_exit_dialog_dont_ask_again">Don\'t ask again</string>
@@ -218,24 +216,23 @@
     <string name="workspace_empty_manager_hint">View and organize all your open tabs in one place.</string>
 
     <!-- Classic Workspace Tips -->
-    <string name="workspace_classic_tip_create_multiple">Create workspaces to work with multiple folders simultaneously</string>
-    <string name="workspace_classic_tip_search_workspace">Use the search workspace to quickly find files across your device</string>
-    <string name="workspace_classic_tip_editor_workspace">The editor workspace lets you view and edit text files</string>
+    <string name="workspace_classic_tip_create_multiple">You can create multiple tabs to work with folders simultaneously</string>
+    <string name="workspace_classic_tip_search_workspace">Use the search to quickly find files across your device</string>
+    <string name="workspace_classic_tip_editor_workspace">The editor lets you view and edit text files</string>
     <string name="workspace_classic_tip_customize_settings">Customize Butler\'s behavior in the settings</string>
     <string name="workspace_classic_tip_root_access">Butler supports root access for advanced file operations</string>
-    <string name="workspace_classic_tip_swipe_between">Swipe between workspaces like browser tabs</string>
+    <string name="workspace_classic_tip_swipe_between">Swipe to change tabs, like in a browser</string>
     <string name="workspace_classic_tip_bookmark_folders">Bookmark frequently used folders for quick access</string>
     <string name="workspace_classic_tip_keyboard_shortcuts">Use keyboard shortcuts for faster navigation</string>
 
     <!-- Adaptive Workspace Tips -->
     <string name="workspace_adaptive_tip_multiple_panes">Use multiple panes to compare files side by side</string>
     <string name="workspace_adaptive_tip_different_folders">Open different folders in each pane for easy file management</string>
-    <string name="workspace_adaptive_tip_switch_layouts">Switch between pane layouts in the workspace manager</string>
+    <string name="workspace_adaptive_tip_switch_layouts">Switch between pane layouts in the tab manager</string>
     <string name="workspace_adaptive_tip_copy_between_panes">Copy files between panes with drag and drop</string>
-    <string name="workspace_adaptive_tip_preview_files">Preview files in one pane while browsing in another</string>
 
     <!-- Workspace > Settings-->
-    <string name="workspace_settings_title">Tab Settings</string>
+    <string name="workspace_settings_title">Tabs</string>
     <string name="workspace_settings_button_behavior">Button Behavior</string>
     <string name="workspace_settings_flip_button_actions_title">Flip Button Actions</string>
     <string name="workspace_settings_flip_button_actions_desc">Normal click creates new tab, long click opens manager</string>

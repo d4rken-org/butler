@@ -110,7 +110,6 @@ fun WorkspaceManagerScreenHost(
             onCreateWorkspace = vm::createWorkspace,
             onNavigateBack = vm::navigateBack,
             onNavigateToSettings = vm::navigateToSettings,
-            onToggleButtonFlipped = { vm.toggleButtonFlipped() },
             onDismissBadgeExplanation = vm::dismissBadgeExplanation,
             onDismissButtonBehaviorExplanation = vm::dismissButtonBehaviorExplanation,
             onCloseAllWorkspaces = vm::closeAllWorkspaces,
@@ -128,7 +127,6 @@ fun WorkspaceManagerScreen(
     onCreateWorkspace: (Workspace.Type) -> Unit,
     onNavigateBack: () -> Unit,
     onNavigateToSettings: () -> Unit,
-    onToggleButtonFlipped: () -> Unit,
     onDismissBadgeExplanation: () -> Unit,
     onDismissButtonBehaviorExplanation: () -> Unit,
     onCloseAllWorkspaces: () -> Unit,
@@ -336,8 +334,6 @@ fun WorkspaceManagerScreen(
                         modifier = Modifier.padding(horizontal = 16.dp)
                     ) {
                         WorkspaceButtonBehaviorCard(
-                            isButtonFlipped = state.isButtonFlipped,
-                            onToggleFlipped = { onToggleButtonFlipped() },
                             onDismiss = onDismissButtonBehaviorExplanation
                         )
                     }
@@ -436,7 +432,6 @@ private fun WorkspaceManagerScreenPreview() {
             onCreateWorkspace = {},
             onNavigateBack = {},
             onNavigateToSettings = {},
-            onToggleButtonFlipped = {},
             onDismissBadgeExplanation = {},
             onDismissButtonBehaviorExplanation = {},
             onCloseAllWorkspaces = {}

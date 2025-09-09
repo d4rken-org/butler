@@ -21,9 +21,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onStart
-import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 @Singleton
 class NotificationSetupModule @Inject constructor(
@@ -75,7 +76,7 @@ class NotificationSetupModule @Inject constructor(
     }
 
     data class Loading(
-        override val startAt: Instant = Instant.now(),
+        override val startAt: Instant = Clock.System.now(),
     ) : SetupModule.State.Loading {
         override val type: SetupModule.Type = SetupModule.Type.NOTIFICATION
     }

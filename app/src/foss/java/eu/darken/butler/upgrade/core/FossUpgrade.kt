@@ -3,7 +3,7 @@ package eu.darken.butler.upgrade.core
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import java.time.Instant
+import kotlin.time.Instant
 
 @Serializable
 data class FossUpgrade(

@@ -23,7 +23,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.runTest2
-import java.time.Duration
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class SharedResourceTest : BaseTest() {
     @BeforeEach
@@ -337,12 +338,12 @@ class SharedResourceTest : BaseTest() {
         sr.isClosed shouldBe false
     }
 
-    @Test fun `lease check is NOT pre-empted by global close`() = runBlocking {
+    @Test fun `lease check is NOT pre-empted by global close`(): Unit = runBlocking {
         var counter = 0
         val sr = SharedResource(
             tag = "parent",
             parentScope = this + Dispatchers.Default,
-            stopTimeout = Duration.ofMillis(1000),
+            stopTimeout = 1.seconds,
             source = flow {
                 counter++
                 emit(counter)
@@ -382,12 +383,12 @@ class SharedResourceTest : BaseTest() {
         sr.isClosed shouldBe true
     }
 
-    @Test fun `lease check is cancelled by adding new leases`() = runBlocking {
+    @Test fun `lease check is cancelled by adding new leases`(): Unit = runBlocking {
         var counter = 0
         val sr = SharedResource(
             tag = "parent",
             parentScope = this + Dispatchers.Default,
-            stopTimeout = Duration.ofMillis(1000),
+            stopTimeout = 1.seconds,
             source = flow {
                 counter++
                 emit(counter)

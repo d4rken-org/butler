@@ -30,10 +30,10 @@ import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import okio.FileHandle
 import java.io.IOException
-import java.time.Instant
 import java.util.LinkedList
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Instant
 
 @Singleton
 class SAFGateway @Inject constructor(

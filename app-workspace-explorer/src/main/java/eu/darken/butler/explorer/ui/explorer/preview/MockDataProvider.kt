@@ -4,7 +4,7 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.explorer.core.engine.ExplorerItem
-import java.time.Instant
+import kotlin.time.Instant
 
 object MockDataProvider {
     

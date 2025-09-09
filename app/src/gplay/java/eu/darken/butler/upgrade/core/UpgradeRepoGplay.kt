@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import java.time.Instant
+import kotlin.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 

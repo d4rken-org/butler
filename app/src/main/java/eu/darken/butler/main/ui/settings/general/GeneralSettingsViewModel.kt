@@ -38,15 +38,13 @@ constructor(
     val state = combine(
         generalSettings.themeState,
         flowOf(hasApiLevel(33)),
-        generalSettings.usePreviews.flow,
         generalSettings.isUpdateCheckEnabled.flow,
         motdSettings.isMotdEnabled.flow,
         generalSettings.isConfirmExitEnabled.flow,
         upgradeRepo.upgradeInfo,
-    ) { themeState, languageSwitcher, usePreviews, updateCheckEnabled, motdEnabled, confirmExitEnabled, upgradeInfo ->
+    ) { themeState, languageSwitcher, updateCheckEnabled, motdEnabled, confirmExitEnabled, upgradeInfo ->
         State(
             themeState = themeState,
-            filePreviews = usePreviews,
             showLanguageSwitcher = languageSwitcher,
             updateCheckEnabled = updateCheckEnabled,
             motdEnabled = motdEnabled,
@@ -64,11 +62,6 @@ constructor(
         } else {
             throw IllegalStateException("This should not be clickable below API 33...")
         }
-    }
-
-    fun updateFilePreviews(enabled: Boolean) = launch {
-        log(tag) { "updateFilePreviews($enabled)" }
-        generalSettings.usePreviews.value(enabled)
     }
 
     fun updateThemeMode(mode: ThemeMode) = launch {
@@ -103,7 +96,6 @@ constructor(
 
     data class State(
         val themeState: ThemeState = ThemeState(),
-        val filePreviews: Boolean = false,
         val showLanguageSwitcher: Boolean = false,
         val updateCheckEnabled: Boolean = false,
         val motdEnabled: Boolean = false,

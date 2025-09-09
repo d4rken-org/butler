@@ -8,9 +8,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.datastore.createValue
 import eu.darken.butler.common.debug.logging.logTag
 import kotlinx.serialization.json.Json
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.uuid.Uuid
 
 @Singleton
 class MotdSettings @Inject constructor(
@@ -24,7 +24,7 @@ class MotdSettings @Inject constructor(
         get() = context.dataStore
 
     val lastMotd = dataStore.createValue<MotdState?>("motd.state.cache", null, json)
-    val lastDismissedMotd = dataStore.createValue<UUID?>("motd.last.dismissed", null, json)
+    val lastDismissedMotd = dataStore.createValue<Uuid?>("motd.last.dismissed", null, json)
     val isMotdEnabled = dataStore.createValue("motd.enabled", true)
 
 
