@@ -112,6 +112,7 @@ fun WorkspaceManagerScreenHost(
             onNavigateToSettings = vm::navigateToSettings,
             onDismissBadgeExplanation = vm::dismissBadgeExplanation,
             onDismissButtonBehaviorExplanation = vm::dismissButtonBehaviorExplanation,
+            onToggleButtonActions = vm::toggleButtonActions,
             onCloseAllWorkspaces = vm::closeAllWorkspaces,
         )
     }
@@ -129,6 +130,7 @@ fun WorkspaceManagerScreen(
     onNavigateToSettings: () -> Unit,
     onDismissBadgeExplanation: () -> Unit,
     onDismissButtonBehaviorExplanation: () -> Unit,
+    onToggleButtonActions: () -> Unit,
     onCloseAllWorkspaces: () -> Unit,
 ) {
     // Local state for drag reordering
@@ -334,6 +336,8 @@ fun WorkspaceManagerScreen(
                         modifier = Modifier.padding(horizontal = 16.dp)
                     ) {
                         WorkspaceButtonBehaviorCard(
+                            isButtonFlipped = state.isButtonActionsFlipped,
+                            onToggleFlipped = { onToggleButtonActions() },
                             onDismiss = onDismissButtonBehaviorExplanation
                         )
                     }
@@ -434,6 +438,7 @@ private fun WorkspaceManagerScreenPreview() {
             onNavigateToSettings = {},
             onDismissBadgeExplanation = {},
             onDismissButtonBehaviorExplanation = {},
+            onToggleButtonActions = {},
             onCloseAllWorkspaces = {}
         )
     }
