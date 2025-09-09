@@ -207,200 +207,205 @@ internal fun WorkspacePaneWrapper(
 
 @Preview2
 @Composable
-private fun WorkspacePaneWrapperPreview() {
+private fun WorkspacePaneWrapperPreviewBorders() {
     PreviewWrapper {
-        val mockDragDropState = remember {
-            DragDropState()
-        }
+        val mockDragDropState = remember { DragDropState() }
         
         CompositionLocalProvider(LocalDragDropState provides mockDragDropState) {
-            Column(
+            Row(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Text(
-                    text = "WorkspacePaneWrapper States",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                // Normal state
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    // Normal state
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    Text("Normal", style = MaterialTheme.typography.labelMedium)
+                    WorkspacePaneWrapper(
+                        modifier = Modifier
+                            .width(250.dp)
+                            .height(180.dp),
+                        isFocused = false,
+                        showFocusBorder = false,
+                        onFocus = {},
+                        paneNumber = null,
+                        showOverlay = false,
                     ) {
-                        Text("Normal", style = MaterialTheme.typography.labelMedium)
-                        WorkspacePaneWrapper(
+                        Box(
                             modifier = Modifier
-                                .width(200.dp)
-                                .height(150.dp),
-                            isFocused = false,
-                            showFocusBorder = false,
-                            onFocus = {},
-                            paneNumber = null,
-                            showOverlay = false,
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentAlignment = Alignment.Center,
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text("Content")
-                            }
-                        }
-                    }
-                    
-                    // With border (unfocused)
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Text("With Border", style = MaterialTheme.typography.labelMedium)
-                        WorkspacePaneWrapper(
-                            modifier = Modifier
-                                .width(200.dp)
-                                .height(150.dp),
-                            isFocused = false,
-                            showFocusBorder = true,
-                            onFocus = {},
-                            paneNumber = null,
-                            showOverlay = false,
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text("Content")
-                            }
-                        }
-                    }
-                    
-                    // Focused
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Text("Focused", style = MaterialTheme.typography.labelMedium)
-                        WorkspacePaneWrapper(
-                            modifier = Modifier
-                                .width(200.dp)
-                                .height(150.dp),
-                            isFocused = true,
-                            showFocusBorder = true,
-                            onFocus = {},
-                            paneNumber = null,
-                            showOverlay = false,
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text("Content")
-                            }
+                            Text("Content")
                         }
                     }
                 }
                 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                // With border (unfocused)
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    // With pane number
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    Text("With Border", style = MaterialTheme.typography.labelMedium)
+                    WorkspacePaneWrapper(
+                        modifier = Modifier
+                            .width(250.dp)
+                            .height(180.dp),
+                        isFocused = false,
+                        showFocusBorder = true,
+                        onFocus = {},
+                        paneNumber = null,
+                        showOverlay = false,
                     ) {
-                        Text("Pane Number", style = MaterialTheme.typography.labelMedium)
-                        WorkspacePaneWrapper(
+                        Box(
                             modifier = Modifier
-                                .width(200.dp)
-                                .height(150.dp),
-                            isFocused = false,
-                            showFocusBorder = false,
-                            onFocus = {},
-                            paneNumber = 1,
-                            showOverlay = false,
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentAlignment = Alignment.Center,
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text("Content")
-                            }
+                            Text("Content")
                         }
                     }
-                    
-                    // With overlay
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                }
+                
+                // Focused
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text("Focused", style = MaterialTheme.typography.labelMedium)
+                    WorkspacePaneWrapper(
+                        modifier = Modifier
+                            .width(250.dp)
+                            .height(180.dp),
+                        isFocused = true,
+                        showFocusBorder = true,
+                        onFocus = {},
+                        paneNumber = null,
+                        showOverlay = false,
                     ) {
-                        Text("With Overlay", style = MaterialTheme.typography.labelMedium)
-                        WorkspacePaneWrapper(
+                        Box(
                             modifier = Modifier
-                                .width(200.dp)
-                                .height(150.dp),
-                            isFocused = false,
-                            showFocusBorder = false,
-                            onFocus = {},
-                            paneNumber = 2,
-                            showOverlay = true,
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentAlignment = Alignment.Center,
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text("Content")
-                            }
+                            Text("Content")
                         }
                     }
-                    
-                    // Drop target (simulated)
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                }
+            }
+        }
+    }
+}
+
+@Preview2
+@Composable
+private fun WorkspacePaneWrapperPreviewPaneNumbers() {
+    PreviewWrapper {
+        val mockDragDropState = remember { DragDropState() }
+        
+        CompositionLocalProvider(LocalDragDropState provides mockDragDropState) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                // With pane number
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text("Pane Number", style = MaterialTheme.typography.labelMedium)
+                    WorkspacePaneWrapper(
+                        modifier = Modifier
+                            .width(250.dp)
+                            .height(180.dp),
+                        isFocused = false,
+                        showFocusBorder = false,
+                        onFocus = {},
+                        paneNumber = 1,
+                        showOverlay = false,
                     ) {
-                        Text("Drop Target", style = MaterialTheme.typography.labelMedium)
-                        val dropTargetState = remember {
-                            DragDropState().apply {
-                                // Simulate a drag in progress
-                                startDrag(
-                                    Workspace.Info(
-                                        id = Workspace.Id(),
-                                        type = Workspace.Type.EXPLORER,
-                                        title = "Dragged Tab".toCaString(),
-                                    )
-                                )
-                                hoveredPaneIndex = 0  // This wrapper has paneNumber = 1
-                            }
-                        }
-                        CompositionLocalProvider(
-                            LocalDragDropState provides dropTargetState
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentAlignment = Alignment.Center,
                         ) {
-                            WorkspacePaneWrapper(
-                                modifier = Modifier
-                                    .width(200.dp)
-                                    .height(150.dp),
-                                isFocused = false,
-                                showFocusBorder = true,
-                                onFocus = {},
-                                paneNumber = 1,
-                                showOverlay = false,
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Text("Drop Here")
-                                }
-                            }
+                            Text("Content")
                         }
+                    }
+                }
+                
+                // With overlay
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text("With Overlay", style = MaterialTheme.typography.labelMedium)
+                    WorkspacePaneWrapper(
+                        modifier = Modifier
+                            .width(250.dp)
+                            .height(180.dp),
+                        isFocused = false,
+                        showFocusBorder = false,
+                        onFocus = {},
+                        paneNumber = 2,
+                        showOverlay = true,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text("Content")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Preview2
+@Composable
+private fun WorkspacePaneWrapperPreviewDropTarget() {
+    PreviewWrapper {
+        val dropTargetState = remember {
+            DragDropState().apply {
+                // Simulate a drag in progress
+                startDrag(
+                    Workspace.Info(
+                        id = Workspace.Id(),
+                        type = Workspace.Type.EXPLORER,
+                        title = "Dragged Tab".toCaString(),
+                    )
+                )
+                hoveredPaneIndex = 0  // This wrapper has paneNumber = 1
+            }
+        }
+        
+        CompositionLocalProvider(LocalDragDropState provides dropTargetState) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text("Drop Target Highlight", style = MaterialTheme.typography.labelMedium)
+                WorkspacePaneWrapper(
+                    modifier = Modifier
+                        .width(400.dp)
+                        .height(250.dp),
+                    isFocused = false,
+                    showFocusBorder = true,
+                    onFocus = {},
+                    paneNumber = 1,
+                    showOverlay = false,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("Drop workspace here")
                     }
                 }
             }
