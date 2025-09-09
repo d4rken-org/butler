@@ -123,7 +123,14 @@ fastlane android production
 - Coil for image loading.
 - Room for database operations.
 - Use `FlowCombineExtensions` instead of nesting multiple combine statements.
-- We don't need `@OptIn(ExperimentalMaterial3Api:class)` as we have this enabled project wide via `freeCompilerArgs`.
+- Prefer Kotlin standard library types over Java equivalents:
+  - Use `kotlin.Uuid` instead of `java.util.UUID`
+  - Use `kotlin.time.Instant` instead of `java.time.Instant`  
+  - Use `kotlin.time.Duration` instead of `java.time.Duration`
+  - Use Kotlin collections and their extension functions
+- Check if `@OptIn` annotations are actually necessary before adding them:
+  - Many experimental APIs (like `ExperimentalMaterial3Api`) are already enabled project-wide via gradle compile flags (`freeCompilerArgs`)
+  - Only add `@OptIn` if you get a compilation error without it
 
 #### Dependency Injection
 
@@ -172,6 +179,13 @@ fastlane android production
   - `APath` offers path segment infos via `segments`. Use that instead of path splitting.
 - Gateway pattern for different file access methods.
 - Support for root, ADB, and shell operations.
+
+#### Type Converters and Serialization
+
+- When creating type converters or serialization tools, consider the scope:
+  - **Global types** (e.g., `Instant`, `Duration`, `Uuid`): Place converters in the `app-common` module for reuse across the entire application
+  - **Workspace-specific types**: Place converters in the respective workspace module (e.g., editor-specific converters in `app-workspace-editor`)
+  - This ensures proper code organization and prevents duplication
 
 ### Logging
 
