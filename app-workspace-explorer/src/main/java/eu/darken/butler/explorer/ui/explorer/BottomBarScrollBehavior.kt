@@ -42,17 +42,26 @@ class BottomBarScrollBehavior(
     val nestedScrollConnection = object : NestedScrollConnection {
         
         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-            // Don't consume scroll if we're already at the limits
-            if (!state.canScroll) return Offset.Zero
-            
-            val prevHeightOffsetLimit = state.heightOffsetLimit
             state.heightOffsetLimit = -state.height
             
-            return if (prevHeightOffsetLimit != state.heightOffsetLimit) {
-                // Height offset limit changed, consume the scroll
-                Offset(0f, available.y.coerceIn(prevHeightOffsetLimit - state.heightOffsetLimit, 0f))
+            // Immediate response to scroll direction
+            val delta = available.y
+            return if (abs(delta) > 5f) { // Small sensitivity threshold
+                when {
+                    delta < 0 -> {
+                        // Scrolling down -> immediately hide
+                        state.heightOffset = state.heightOffsetLimit
+                        Offset(0f, 0f)
+                    }
+                    delta > 0 -> {
+                        // Scrolling up -> immediately show
+                        state.heightOffset = 0f
+                        Offset(0f, 0f)
+                    }
+                    else -> Offset.Zero
+                }
             } else {
-                Offset(0f, state.dispatchRawDelta(available.y))
+                Offset.Zero
             }
         }
 
@@ -67,12 +76,14 @@ class BottomBarScrollBehavior(
         override suspend fun onPreFling(available: Velocity): Velocity {
             val toFling = available.y
             val consumed = when {
-                toFling < 0 && state.collapsedFraction > 0.5f -> {
-                    state.animateToCollapsed(flingAnimationSpec)
+                toFling < 0 -> {
+                    // Any downward fling -> immediately hide
+                    state.heightOffset = state.heightOffsetLimit
                     available.y
                 }
-                toFling > 0 && state.collapsedFraction < 0.5f -> {
-                    state.animateToExpanded(flingAnimationSpec)
+                toFling > 0 -> {
+                    // Any upward fling -> immediately show
+                    state.heightOffset = 0f
                     available.y
                 }
                 else -> 0f

@@ -33,6 +33,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -124,6 +128,33 @@ fun ExplorerWorkspacePage(
 
     // Set the bottom bar height for scroll behavior
     bottomBarScrollBehavior.state.setHeight(64.dp)
+
+    // Track action bar visibility for clipboard animations
+    val isActionBarHidden by remember {
+        derivedStateOf { 
+            bottomBarScrollBehavior.state.collapsedFraction > 0.1f || state.availableActions.isEmpty()
+        }
+    }
+
+    // Animate clipboard bar position playfully based on action bar state
+    val clipboardVerticalOffset by animateFloatAsState(
+        targetValue = if (isActionBarHidden) 8f else 64f, // Drop to bottom when action bar hidden or no actions
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "clipboardOffset"
+    )
+
+    // Add slight scale animation for extra playfulness
+    val clipboardScale by animateFloatAsState(
+        targetValue = if (isActionBarHidden) 1.02f else 1f, // Slightly bigger when expanded
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "clipboardScale"
+    )
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -294,9 +325,14 @@ fun ExplorerWorkspacePage(
             visible = state.clipboardEntries.isNotEmpty(),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(horizontal = 8.dp, vertical = if (state.availableActions.isNotEmpty()) 64.dp else 8.dp)
+                .padding(
+                    start = 8.dp,
+                    end = 8.dp,
+                    bottom = clipboardVerticalOffset.coerceAtLeast(0f).dp
+                )
                 .graphicsLayer {
-                    translationY = -bottomBarScrollBehavior.state.heightOffset
+                    scaleX = clipboardScale
+                    scaleY = clipboardScale
                 },
             enter = slideInVertically(animationSpec = tween(150)) { it },
             exit = slideOutVertically(animationSpec = tween(150)) { it },
@@ -319,7 +355,9 @@ fun ExplorerWorkspacePage(
                     .align(Alignment.BottomCenter)
                     .padding(horizontal = 8.dp, vertical = 8.dp)
                     .graphicsLayer {
-                        translationY = -bottomBarScrollBehavior.state.heightOffset
+                        // Immediate snap behavior: fully visible or fully hidden
+                        alpha = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 0f else 1f
+                        translationY = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 64.dp.toPx() else 0f
                     },
                 actions = state.availableActions,
                 onActionClick = { action -> vm?.executeAction(action) },
