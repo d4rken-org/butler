@@ -275,8 +275,8 @@ fun WorkspaceManagerScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .fillParentMaxHeight()
-                            .padding(32.dp),
+                            .padding(32.dp)
+                            .padding(vertical = 48.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
@@ -429,6 +429,30 @@ private fun WorkspaceManagerScreenPreview() {
                 ),
                 operationsCount = 3,
                 attentionCount = 2
+            ),
+            onCloseWorkspace = {},
+            onReorderWorkspaces = {},
+            onSelectWorkspace = {},
+            onCreateWorkspace = {},
+            onNavigateBack = {},
+            onNavigateToSettings = {},
+            onDismissBadgeExplanation = {},
+            onDismissButtonBehaviorExplanation = {},
+            onToggleButtonActions = {},
+            onCloseAllWorkspaces = {}
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun WorkspaceManagerScreenEmptyPreview() {
+    PreviewWrapper {
+        WorkspaceManagerScreen(
+            state = WorkspaceManagerViewModel.State(
+                workspaces = emptyList(),
+                operationsCount = 0,
+                attentionCount = 0
             ),
             onCloseWorkspace = {},
             onReorderWorkspaces = {},
