@@ -19,7 +19,6 @@ internal fun EmptyAdaptiveWorkspaceContent(
         stringResource(R.string.workspace_adaptive_tip_different_folders),
         stringResource(R.string.workspace_adaptive_tip_switch_layouts),
         stringResource(R.string.workspace_adaptive_tip_copy_between_panes),
-        stringResource(R.string.workspace_adaptive_tip_preview_files)
     )
 
     EnhancedEmptyWorkspaceState(

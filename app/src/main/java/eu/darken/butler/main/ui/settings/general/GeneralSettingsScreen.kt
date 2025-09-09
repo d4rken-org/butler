@@ -8,7 +8,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.twotone.Notifications
 import androidx.compose.material.icons.twotone.Palette
-import androidx.compose.material.icons.twotone.Preview
 import androidx.compose.material.icons.twotone.Translate
 import androidx.compose.material.icons.twotone.Update
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -49,7 +48,6 @@ fun GeneralSettingsScreen(
     state: GeneralSettingsViewModel.State,
     onNavigateUp: () -> Unit,
     onLanguageSwitcher: (() -> Unit)?,
-    onFilePreviewsChange: (Boolean) -> Unit,
     onThemeModeSelected: (ThemeMode) -> Unit,
     onThemeStyleSelected: (ThemeStyle) -> Unit,
     onUpgradeButler: () -> Unit,
@@ -170,15 +168,6 @@ fun GeneralSettingsScreen(
                 SettingsDivider()
             }
 
-            item {
-                SettingsSwitchItem(
-                    icon = Icons.TwoTone.Preview,
-                    title = stringResource(R.string.ui_previews_title),
-                    subtitle = stringResource(R.string.ui_previews_summary),
-                    checked = state.filePreviews,
-                    onCheckedChange = onFilePreviewsChange
-                )
-            }
 
             item {
                 SettingsCategoryHeader(
@@ -242,10 +231,9 @@ fun GeneralSettingsScreen(
 private fun GeneralSettingsScreenPreview() {
     PreviewWrapper {
         GeneralSettingsScreen(
-            state = GeneralSettingsViewModel.State(filePreviews = true),
+            state = GeneralSettingsViewModel.State(),
             onNavigateUp = {},
             onLanguageSwitcher = {},
-            onFilePreviewsChange = {},
             onThemeModeSelected = {},
             onThemeStyleSelected = {},
             onUpdateCheckEnabledChange = {},
@@ -267,7 +255,6 @@ fun GeneralSettingsScreenHost(vm: GeneralSettingsViewModel = hiltViewModel()) {
             state = vmState,
             onNavigateUp = { vm.navUp() },
             onLanguageSwitcher = { vm.showLanguagePicker() },
-            onFilePreviewsChange = { vm.updateFilePreviews(it) },
             onThemeModeSelected = { vm.updateThemeMode(it) },
             onThemeStyleSelected = { vm.updateThemeStyle(it) },
             onUpdateCheckEnabledChange = { vm.updateUpdateCheckEnabled(it) },

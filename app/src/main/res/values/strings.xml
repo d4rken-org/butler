@@ -104,8 +104,6 @@
     <string name="ui_theme_mode_setting_explanation">The mode used when theming the app (e.g. night or day).</string>
     <string name="ui_theme_style_setting_label">Theme style</string>
     <string name="ui_theme_style_setting_explanation">The color style used when theming the app.</string>
-    <string name="ui_previews_title">File previews</string>
-    <string name="ui_previews_summary">Display file previews in all tools (e.g. image and video thumbnails).</string>
     <string name="ui_language_override_label">App language</string>
     <string name="ui_language_override_desc">Select a different language for Butler, independent of your system\'s default language.</string>
 
@@ -232,7 +230,6 @@
     <string name="workspace_adaptive_tip_different_folders">Open different folders in each pane for easy file management</string>
     <string name="workspace_adaptive_tip_switch_layouts">Switch between pane layouts in the tab manager</string>
     <string name="workspace_adaptive_tip_copy_between_panes">Copy files between panes with drag and drop</string>
-    <string name="workspace_adaptive_tip_preview_files">Preview files in one pane while browsing in another</string>
 
     <!-- Workspace > Settings-->
     <string name="workspace_settings_title">Tabs</string>
