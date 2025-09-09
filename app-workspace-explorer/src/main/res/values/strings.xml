@@ -75,6 +75,22 @@
     <string name="explorer_error_copy_not_implemented">Copy operation not yet implemented</string>
     <string name="explorer_error_move_not_implemented">Move operation not yet implemented</string>
     <string name="explorer_error_rename_not_implemented">Rename operation not yet implemented</string>
+    <string name="explorer_error_read_failed">Cannot read %1$s</string>
+    <string name="explorer_error_write_failed">Cannot write to %1$s</string>
+    <string name="explorer_error_permission_denied">Permission denied</string>
+    <string name="explorer_error_storage_full">Not enough storage space</string>
+    
+    <!-- Conflict Messages -->
+    <string name="explorer_conflict_title">File already exists</string>
+    <string name="explorer_conflict_existing_file">Existing</string>
+    <string name="explorer_conflict_new_file">New</string>
+    <string name="explorer_conflict_skip">Skip</string>
+    <string name="explorer_conflict_overwrite">Overwrite</string>
+    <string name="explorer_conflict_rename">Rename</string>
+    <string name="explorer_conflict_cancel">Cancel</string>
+    <string name="explorer_conflict_apply_all">Apply to all remaining conflicts</string>
+    <string name="explorer_rename_new_name">New name</string>
+    <string name="explorer_type_folder">Folder</string>
 
     <!-- Empty Folder Captions -->
     <string name="explorer_empty_folder_caption_1">Nothing to see here… move along 🕵️</string>

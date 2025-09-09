@@ -26,6 +26,8 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.DeleteConfirmationResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
+import eu.darken.butler.explorer.core.errors.ExplorerError
+import eu.darken.butler.explorer.core.errors.ConflictResolution
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
@@ -55,8 +57,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
     private val viewModeFlow = MutableStateFlow(ViewMode.LIST)
     private val dialogStateFlow = MutableStateFlow<ExplorerDialogState>(ExplorerDialogState.None)
+    private val conflictStateFlow = MutableStateFlow<ExplorerError.FileConflict?>(null)
+    private var batchConflictStrategy: ConflictResolution? = null
 
     val dialogEvents = SingleEventFlow<ExplorerDialogEvent>()
+    val explorerErrorEvents = SingleEventFlow<ExplorerError>()
+    val conflictState = conflictStateFlow
 
     private val workspace: Flow<ExplorerWorkspace?> = workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
 
@@ -376,6 +382,69 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun clearAllClipboard() = launch {
         log(tag) { "clearAllClipboard()" }
         clipboardRepo.clear()
+    }
+
+    fun handleError(error: ExplorerError) {
+        log(tag) { "handleError($error)" }
+        when (error) {
+            is ExplorerError.FileConflict -> {
+                // Check if we have a batch strategy
+                batchConflictStrategy?.let { strategy ->
+                    when (strategy) {
+                        is ConflictResolution.Skip -> {
+                            if (strategy.applyToAll) {
+                                // Skip this conflict automatically
+                                return
+                            }
+                        }
+                        is ConflictResolution.Overwrite -> {
+                            if (strategy.applyToAll) {
+                                // Overwrite this conflict automatically
+                                return
+                            }
+                        }
+                        else -> {}
+                    }
+                }
+                // Show conflict dialog
+                conflictStateFlow.value = error
+            }
+            is ExplorerError.ReadError,
+            is ExplorerError.WriteError -> {
+                // Show error snackbar
+                explorerErrorEvents.tryEmit(error)
+            }
+        }
+    }
+
+    fun resolveConflict(resolution: ConflictResolution) = launch {
+        log(tag) { "resolveConflict($resolution)" }
+        when (resolution) {
+            is ConflictResolution.Skip -> {
+                if (resolution.applyToAll) {
+                    batchConflictStrategy = resolution
+                }
+                // Continue operation, skipping this file
+                // TODO: Implement skip logic in engine
+            }
+            is ConflictResolution.Overwrite -> {
+                if (resolution.applyToAll) {
+                    batchConflictStrategy = resolution
+                }
+                // Continue operation, overwriting this file
+                // TODO: Implement overwrite logic in engine
+            }
+            is ConflictResolution.Rename -> {
+                // Rename and continue
+                // TODO: Implement rename logic in engine
+            }
+            is ConflictResolution.Cancel -> {
+                // Cancel entire operation
+                batchConflictStrategy = null
+                // TODO: Cancel ongoing operation in engine
+            }
+        }
+        conflictStateFlow.value = null
     }
 
     data class State(

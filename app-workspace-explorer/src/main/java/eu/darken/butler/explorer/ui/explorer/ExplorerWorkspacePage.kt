@@ -25,6 +25,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -62,6 +65,10 @@ import eu.darken.butler.explorer.ui.explorer.items.grid.PathItemGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.ShortcutGrid
 import eu.darken.butler.explorer.ui.explorer.items.row.PathItemRow
 import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
+import eu.darken.butler.explorer.ui.common.ErrorSnackbar
+import eu.darken.butler.explorer.ui.common.ConflictBottomSheet
+import eu.darken.butler.explorer.core.errors.ExplorerError
+import eu.darken.butler.explorer.core.errors.ConflictResolution
 import androidx.compose.ui.graphics.graphicsLayer
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.core.Workspace
@@ -113,6 +120,28 @@ fun ExplorerWorkspacePage(
     val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    
+    // Observe conflict state
+    val conflictState by (vm?.conflictState?.collectAsState() ?: remember { mutableStateOf(null) })
+    
+    // Observe error events for snackbar
+    vm?.let { viewModel ->
+        LaunchedEffect(viewModel.explorerErrorEvents) {
+            viewModel.explorerErrorEvents.collect { error ->
+                val message = when (error) {
+                    is ExplorerError.ReadError -> "Cannot read: ${error.path.name}"
+                    is ExplorerError.WriteError -> "Cannot write to: ${error.path.name}"
+                    else -> "Operation failed"
+                }
+                snackbarHostState.showSnackbar(
+                    message = message,
+                    actionLabel = "Dismiss",
+                    duration = SnackbarDuration.Short
+                )
+            }
+        }
+    }
 
     LaunchedEffect(state.locationId) {
         if (state.locationId != null) {
@@ -160,6 +189,14 @@ fun ExplorerWorkspacePage(
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            snackbarHost = { 
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    modifier = Modifier,
+                ) { data ->
+                    ErrorSnackbar(snackbarData = data)
+                }
+            },
             topBar = {
                 ExplorerTopBar(
                     breadcrumbs = state.breadcrumbs,
@@ -366,6 +403,19 @@ fun ExplorerWorkspacePage(
         ExplorerDialogHost(
             dialogState = state.dialogState,
             vm = vm
+        )
+    }
+    
+    // Show conflict bottom sheet when needed
+    conflictState?.let { conflict ->
+        ConflictBottomSheet(
+            conflict = conflict,
+            onResolution = { resolution -> 
+                vm?.resolveConflict(resolution) 
+            },
+            onDismiss = { 
+                vm?.resolveConflict(ConflictResolution.Cancel) 
+            }
         )
     }
 }
