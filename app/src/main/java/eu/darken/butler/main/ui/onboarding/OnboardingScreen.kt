@@ -3,6 +3,7 @@ package eu.darken.butler.main.ui.onboarding
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -46,7 +47,8 @@ private fun OnboardingScreen(
 
     Column(modifier = Modifier
         .fillMaxSize()
-        .padding(16.dp)) {
+        .padding(16.dp)
+        .navigationBarsPadding()) {
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.weight(1f),
