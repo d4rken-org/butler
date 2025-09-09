@@ -14,17 +14,22 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.R
 
 @Composable
 fun WorkspaceButtonBehaviorCard(
+    isButtonFlipped: Boolean,
+    onToggleFlipped: (Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
     Card(
@@ -54,7 +59,7 @@ fun WorkspaceButtonBehaviorCard(
                         modifier = Modifier.size(20.dp)
                     )
                     Text(
-                        text = "Tip: Workspace Button Behavior",
+                        text = stringResource(id = R.string.workspace_tab_button_behavior_tip),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
@@ -72,10 +77,28 @@ fun WorkspaceButtonBehaviorCard(
             }
 
             Text(
-                text = "• Click: Open workspace manager\n• Long click: Add new workspace",
+                text = if (isButtonFlipped) {
+                    stringResource(id = R.string.workspace_tab_button_behavior_flipped_description)
+                } else {
+                    stringResource(id = R.string.workspace_tab_button_behavior_normal_description)
+                },
                 style = MaterialTheme.typography.bodyMedium
             )
 
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(id = R.string.workspace_tab_button_behavior_flip_action),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Switch(
+                    checked = isButtonFlipped,
+                    onCheckedChange = onToggleFlipped
+                )
+            }
         }
     }
 }
@@ -89,6 +112,13 @@ private fun WorkspaceButtonBehaviorCardPreview() {
             modifier = Modifier.padding(16.dp)
         ) {
             WorkspaceButtonBehaviorCard(
+                isButtonFlipped = false,
+                onToggleFlipped = {},
+                onDismiss = {}
+            )
+            WorkspaceButtonBehaviorCard(
+                isButtonFlipped = true,
+                onToggleFlipped = {},
                 onDismiss = {}
             )
         }

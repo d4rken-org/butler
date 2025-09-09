@@ -32,10 +32,20 @@ internal fun TripleMainLeftLayout(
     showPaneNumbers: Boolean,
     showPaneOverlay: Boolean,
     onTabFocus: (Workspace.Id) -> Unit,
-    createDividerCallback: (DividerPositions.(Float) -> DividerPositions) -> (Float) -> Unit,
+    onDividerPositionsChange: (DividerPositions) -> Unit,
     paneContent: @Composable (Workspace.Info?, Int) -> Unit,
 ) {
     val showFocusBorder = selected.size > 1
+    
+    val onTripleMainChange = { newPos: Float ->
+        val updated = dividerPositions.withTripleMain(newPos)
+        onDividerPositionsChange(updated)
+    }
+    
+    val onTripleSecondaryChange = { newPos: Float ->
+        val updated = dividerPositions.withTripleSecondary(newPos)
+        onDividerPositionsChange(updated)
+    }
 
     Row(modifier = Modifier.fillMaxSize()) {
         val ws1 = selected[0]
@@ -57,7 +67,7 @@ internal fun TripleMainLeftLayout(
             isVertical = true,
             position = dividerPositions.tripleMain,
             containerSize = containerSize,
-            onPositionChange = createDividerCallback(DividerPositions::withTripleMain),
+            onPositionChange = onTripleMainChange,
         )
 
         // Calculate column size based on container size and divider position
@@ -88,7 +98,7 @@ internal fun TripleMainLeftLayout(
                 isVertical = false,
                 position = dividerPositions.tripleSecondary,
                 containerSize = columnSize,
-                onPositionChange = createDividerCallback(DividerPositions::withTripleSecondary),
+                onPositionChange = onTripleSecondaryChange,
             )
 
             val ws3 = selected[2]
@@ -136,7 +146,7 @@ private fun TripleMainLeftLayoutPreview() {
             showPaneNumbers = true,
             showPaneOverlay = false,
             onTabFocus = {},
-            createDividerCallback = { { _ -> DividerPositions() } },
+            onDividerPositionsChange = { },
         ) { ws, paneIdx ->
             // Preview content placeholder
             Surface(

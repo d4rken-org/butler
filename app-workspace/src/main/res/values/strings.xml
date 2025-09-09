@@ -11,4 +11,10 @@
     <string name="clipboard_items_count">%d items</string>
     <string name="clipboard_from">from %s</string>
     <string name="clipboard_origin">Origin: Tab %s</string>
+    
+    <!-- Tab Button Behavior -->
+    <string name="workspace_tab_button_behavior_tip">Tip: Tab Button Behavior</string>
+    <string name="workspace_tab_button_behavior_flipped_description">• Click: Add new tab\n• Long click: Open tab manager</string>
+    <string name="workspace_tab_button_behavior_normal_description">• Click: Open tab manager\n• Long click: Add new tab</string>
+    <string name="workspace_tab_button_behavior_flip_action">Flip button actions</string>
 </resources>
