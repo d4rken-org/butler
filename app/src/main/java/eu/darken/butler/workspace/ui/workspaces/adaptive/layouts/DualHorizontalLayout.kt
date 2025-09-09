@@ -1,6 +1,5 @@
 package eu.darken.butler.workspace.ui.workspaces.adaptive.layouts
 
-import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,10 +36,8 @@ internal fun DualHorizontalLayout(
 ) {
     val showFocusBorder = selected.size > 1
     
-    // Create callback that uses the current dividerPositions prop
     val onDividerPositionChange = { newPos: Float ->
         val updated = dividerPositions.withDualHorizontal(newPos)
-        Log.d("WorkspaceDivider", "onDualHorizontalChange - current: $dividerPositions, newPos: $newPos, updated: $updated")
         onDividerPositionsChange(updated)
     }
 

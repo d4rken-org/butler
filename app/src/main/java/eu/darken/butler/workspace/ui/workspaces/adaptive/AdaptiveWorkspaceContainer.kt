@@ -1,7 +1,6 @@
 package eu.darken.butler.workspace.ui.workspaces.adaptive
 
 import android.os.Parcelable
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -75,8 +74,6 @@ fun AdaptiveWorkspaceContainer(
     paneContent: @Composable (Workspace.Info?, Int) -> Unit,
 ) {
     var containerSize by remember { mutableStateOf(IntSize.Zero) }
-    
-    Log.d("WorkspaceDivider", "AdaptiveWorkspaceContainer.compose - dividerPositions: $dividerPositions")
 
     Box(
         modifier = modifier
@@ -86,9 +83,6 @@ fun AdaptiveWorkspaceContainer(
                 containerSize = coordinates.size
             }
     ) {
-        
-        Log.d("WorkspaceDivider", "AdaptiveWorkspaceContainer.compose - dividerPositions: $dividerPositions")
-        
         when (design.layout) {
             WorkspaceDesign.Layout.SINGLE -> {
                 SinglePaneLayout(
