@@ -1,0 +1,16 @@
+package eu.darken.butler.common.theming
+
+import eu.darken.butler.common.R
+import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.preferences.EnumPreference
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
+enum class ThemeColor(override val label: CaString) : EnumPreference<ThemeColor> {
+    @SerialName("TEAL") TEAL(R.string.ui_theme_color_teal_label.toCaString()),
+    @SerialName("PURPLE") PURPLE(R.string.ui_theme_color_purple_label.toCaString()),
+    @SerialName("GREEN") GREEN(R.string.ui_theme_color_green_label.toCaString()),
+    @SerialName("BLUE") BLUE(R.string.ui_theme_color_blue_label.toCaString()),
+}

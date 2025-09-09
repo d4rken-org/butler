@@ -38,6 +38,8 @@ import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
 import eu.darken.butler.common.settings.SettingsPreferenceItem
 import eu.darken.butler.common.settings.SettingsSwitchItem
+import eu.darken.butler.common.theming.ThemeColor
+import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.theming.ThemeMode
 import eu.darken.butler.common.theming.ThemeStyle
 import eu.darken.butler.common.ui.waitForState
@@ -50,6 +52,7 @@ fun GeneralSettingsScreen(
     onLanguageSwitcher: (() -> Unit)?,
     onThemeModeSelected: (ThemeMode) -> Unit,
     onThemeStyleSelected: (ThemeStyle) -> Unit,
+    onThemeColorSelected: (ThemeColor) -> Unit,
     onUpgradeButler: () -> Unit,
     onUpdateCheckEnabledChange: (Boolean) -> Unit,
     onMotdEnabledChange: (Boolean) -> Unit,
@@ -60,6 +63,7 @@ fun GeneralSettingsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var showThemeModeDialog by remember { mutableStateOf(false) }
     var showThemeStyleDialog by remember { mutableStateOf(false) }
+    var showThemeColorDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -129,6 +133,42 @@ fun GeneralSettingsScreen(
                     onClick = {
                         if (state.isUpgraded) {
                             showThemeStyleDialog = true
+                        } else {
+                            scope.launch {
+                                val result = snackbarHostState.showSnackbar(
+                                    message = context.getString(R.string.upgrade_feature_requires_pro),
+                                    actionLabel = context.getString(R.string.upgrade_prompt_upgrade_action)
+                                )
+                                if (result == SnackbarResult.ActionPerformed) {
+                                    onUpgradeButler()
+                                }
+                            }
+                        }
+                    }
+                )
+                SettingsDivider()
+            }
+
+            item {
+                val isMaterialYouActive = state.themeState.style == ThemeStyle.MATERIAL_YOU && hasApiLevel(31)
+                
+                SettingsPreferenceItem(
+                    icon = Icons.TwoTone.Palette,
+                    title = stringResource(R.string.ui_theme_color_setting_label),
+                    subtitle = if (isMaterialYouActive) {
+                        stringResource(R.string.ui_theme_color_setting_disabled_materialyou)
+                    } else {
+                        stringResource(R.string.ui_theme_color_setting_explanation)
+                    },
+                    value = if (isMaterialYouActive) {
+                        stringResource(R.string.ui_theme_color_value_system)
+                    } else {
+                        state.themeState.color.label.get(context)
+                    },
+                    enabled = !isMaterialYouActive,
+                    onClick = {
+                        if (state.isUpgraded) {
+                            showThemeColorDialog = true
                         } else {
                             scope.launch {
                                 val result = snackbarHostState.showSnackbar(
@@ -224,6 +264,19 @@ fun GeneralSettingsScreen(
             onDismiss = { showThemeStyleDialog = false }
         )
     }
+
+    if (showThemeColorDialog) {
+        EnumSelectorDialog(
+            title = stringResource(R.string.ui_theme_color_setting_label),
+            options = ThemeColor.entries,
+            selectedOption = state.themeState.color,
+            onOptionSelected = { color ->
+                onThemeColorSelected(color)
+                showThemeColorDialog = false
+            },
+            onDismiss = { showThemeColorDialog = false }
+        )
+    }
 }
 
 @Preview2
@@ -236,6 +289,7 @@ private fun GeneralSettingsScreenPreview() {
             onLanguageSwitcher = {},
             onThemeModeSelected = {},
             onThemeStyleSelected = {},
+            onThemeColorSelected = {},
             onUpdateCheckEnabledChange = {},
             onMotdEnabledChange = {},
             onConfirmExitEnabledChange = {},
@@ -257,6 +311,7 @@ fun GeneralSettingsScreenHost(vm: GeneralSettingsViewModel = hiltViewModel()) {
             onLanguageSwitcher = { vm.showLanguagePicker() },
             onThemeModeSelected = { vm.updateThemeMode(it) },
             onThemeStyleSelected = { vm.updateThemeStyle(it) },
+            onThemeColorSelected = { vm.updateThemeColor(it) },
             onUpdateCheckEnabledChange = { vm.updateUpdateCheckEnabled(it) },
             onMotdEnabledChange = { vm.updateMotdEnabled(it) },
             onConfirmExitEnabledChange = { vm.updateConfirmExitEnabled(it) },

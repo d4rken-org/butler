@@ -12,6 +12,7 @@ import eu.darken.butler.common.locale.LocaleManager
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.upgrade
+import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemeMode
 import eu.darken.butler.common.theming.ThemeState
 import eu.darken.butler.common.theming.ThemeStyle
@@ -72,6 +73,11 @@ constructor(
     fun updateThemeStyle(style: ThemeStyle) = launch {
         log(tag) { "updateThemeStyle($style)" }
         generalSettings.themeStyle.value(style)
+    }
+
+    fun updateThemeColor(color: ThemeColor) = launch {
+        log(tag) { "updateThemeColor($color)" }
+        generalSettings.themeColor.value(color)
     }
 
     fun updateUpdateCheckEnabled(enabled: Boolean) = launch {

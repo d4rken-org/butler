@@ -2,7 +2,7 @@ package eu.darken.butler.common.theming
 
 import androidx.compose.ui.graphics.Color
 
-object ButlerColors {
+object ButlerColorsTeal {
     val primaryLight = Color(0xFF006A63)
     val onPrimaryLight = Color(0xFFFFFFFF)
     val primaryContainerLight = Color(0xFF9DF2E7)

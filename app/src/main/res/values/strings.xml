@@ -104,6 +104,10 @@
     <string name="ui_theme_mode_setting_explanation">The mode used when theming the app (e.g. night or day).</string>
     <string name="ui_theme_style_setting_label">Theme style</string>
     <string name="ui_theme_style_setting_explanation">The color style used when theming the app.</string>
+    <string name="ui_theme_color_setting_label">Theme color</string>
+    <string name="ui_theme_color_setting_explanation">The color palette used for theming the app.</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">Colors are provided by Material You from your wallpaper</string>
+    <string name="ui_theme_color_value_system">System colors</string>
     <string name="ui_language_override_label">App language</string>
     <string name="ui_language_override_desc">Select a different language for Butler, independent of your system\'s default language.</string>
 
