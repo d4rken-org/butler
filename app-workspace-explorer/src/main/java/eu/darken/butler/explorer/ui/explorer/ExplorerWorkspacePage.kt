@@ -331,7 +331,6 @@ fun ExplorerWorkspacePage(
                     bottom = clipboardVerticalOffset.coerceAtLeast(0f).dp
                 )
                 .graphicsLayer {
-                    scaleX = clipboardScale
                     scaleY = clipboardScale
                 },
             enter = slideInVertically(animationSpec = tween(150)) { it },
