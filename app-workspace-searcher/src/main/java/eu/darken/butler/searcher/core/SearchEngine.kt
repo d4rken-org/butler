@@ -10,6 +10,7 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.flow
@@ -71,7 +72,8 @@ class SearchEngine @Inject constructor(
                         true // Continue walking
                     }
                 )
-                
+
+                delay(3000)
                 typedGateway.walk(searchQuery.path, walkOptions)
             .cancellable()
             .mapNotNull { lookup ->

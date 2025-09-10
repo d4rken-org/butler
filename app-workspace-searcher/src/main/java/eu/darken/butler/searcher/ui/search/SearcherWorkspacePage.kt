@@ -179,166 +179,162 @@ fun SearcherWorkspacePage(
 
     val listState = rememberLazyListState()
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Main content
-        when {
-            state.searchQuery.text.isBlank() && state.searchHistory.isNotEmpty() -> {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(
-                        horizontal = 16.dp,
-                        vertical = 8.dp
-                    )
+    LazyColumn(
+        state = listState,
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        contentPadding = PaddingValues(
+            horizontal = 16.dp,
+            vertical = 8.dp
+        )
+    ) {
+        // Search toolbar - always shown
+        item {
+            SearchToolbarCard(
+                state = state,
+                design = design,
+                onUpdateQuery = onUpdateQuery,
+                onUpdateSearchPath = onUpdateSearchPath,
+                onPerformSearch = onPerformSearch,
+                onCancelSearch = onCancelSearch,
+                onToggleCaseSensitive = onToggleCaseSensitive,
+                onToggleWholeWord = onToggleWholeWord,
+                onToggleRegex = onToggleRegex,
+                workspaceButtonState = workspaceButtonState,
+                onWorkspaceAction = onWorkspaceAction,
+                onNavToWorkspaceManager = onNavToWorkspaceManager
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // Show search history when no search query
+        if (state.searchQuery.text.isBlank() && state.searchHistory.isNotEmpty()) {
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Search toolbar as first item
-                    item {
-                        SearchToolbarCard(
-                            state = state,
-                            design = design,
-                            onUpdateQuery = onUpdateQuery,
-                            onUpdateSearchPath = onUpdateSearchPath,
-                            onPerformSearch = onPerformSearch,
-                            onCancelSearch = onCancelSearch,
-                            onToggleCaseSensitive = onToggleCaseSensitive,
-                            onToggleWholeWord = onToggleWholeWord,
-                            onToggleRegex = onToggleRegex,
-                            workspaceButtonState = workspaceButtonState,
-                            onWorkspaceAction = onWorkspaceAction,
-                            onNavToWorkspaceManager = onNavToWorkspaceManager
+                    Text(
+                        text = stringResource(R.string.searcher_recent_searches),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    TextButton(
+                        onClick = { showClearHistoryDialog = true }
+                    ) {
+                        Text(
+                            text = stringResource(R.string.searcher_history_clear_all_action),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.labelMedium
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
                     }
-                    
-                    item {
-                        Row(
+                }
+            }
+            items(state.searchHistory, key = { it.id }) { historyItem ->
+                SwipeToDismissItem(
+                    modifier = Modifier.fillMaxWidth(),
+                    onDismiss = { onHistoryItemRemove(historyItem) },
+                    dismissThreshold = 0.5f,
+                    backgroundShape = RoundedCornerShape(12.dp),
+                    dismissContent = {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.searcher_history_remove_action),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onError
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.TwoTone.ClearAll,
+                            contentDescription = stringResource(R.string.searcher_history_remove_action),
+                            tint = MaterialTheme.colorScheme.onError
+                        )
+                    }
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onHistoryItemClick(historyItem) }
+                    ) {
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                                .padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Text(
-                                text = stringResource(R.string.searcher_recent_searches),
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            TextButton(
-                                onClick = { showClearHistoryDialog = true }
+                            // Line 1: Search query with icon
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = stringResource(R.string.searcher_history_clear_all_action),
-                                    color = MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.labelMedium
-                                )
-                            }
-                        }
-                    }
-                    items(state.searchHistory, key = { it.id }) { historyItem ->
-                        SwipeToDismissItem(
-                            modifier = Modifier.fillMaxWidth(),
-                            onDismiss = { onHistoryItemRemove(historyItem) },
-                            dismissThreshold = 0.5f,
-                            backgroundShape = RoundedCornerShape(12.dp),
-                            dismissContent = {
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = stringResource(R.string.searcher_history_remove_action),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onError
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
                                 Icon(
-                                    imageVector = Icons.TwoTone.ClearAll,
-                                    contentDescription = stringResource(R.string.searcher_history_remove_action),
-                                    tint = MaterialTheme.colorScheme.onError
+                                    imageVector = Icons.TwoTone.Search,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = historyItem.baseQuery,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f)
                                 )
                             }
-                        ) {
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { onHistoryItemClick(historyItem) }
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(12.dp),
-                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                            
+                            // Line 2: Path with icon
+                            historyItem.searchQuery?.path?.let { path ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    // Line 1: Search query with icon
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.TwoTone.Search,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(16.dp),
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
+                                    Icon(
+                                        imageVector = Icons.TwoTone.Folder,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = path.path,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.StartEllipsis,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            }
+                            
+                            // Line 3: Results and time with icon
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.TwoTone.Schedule,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text(
+                                        text = formatRelativeTime(historyItem.searchedAt),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    historyItem.resultCount?.let { count ->
                                         Text(
-                                            text = historyItem.baseQuery,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            modifier = Modifier.weight(1f)
+                                            text = "• ${if (count == 0) "No results" else "$count results"}",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
-                                    }
-                                    
-                                    // Line 2: Path with icon
-                                    historyItem.searchQuery?.path?.let { path ->
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.TwoTone.Folder,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(16.dp),
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                            Text(
-                                                text = path.path,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.StartEllipsis,
-                                                modifier = Modifier.weight(1f)
-                                            )
-                                        }
-                                    }
-                                    
-                                    // Line 3: Results and time with icon
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.TwoTone.Schedule,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(16.dp),
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Row(
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                        ) {
-                                            Text(
-                                                text = formatRelativeTime(historyItem.searchedAt),
-                                                style = MaterialTheme.typography.labelSmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                            historyItem.resultCount?.let { count ->
-                                                Text(
-                                                    text = "• ${if (count == 0) "No results" else "$count results"}",
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                            }
-                                        }
                                     }
                                 }
                             }
@@ -346,206 +342,45 @@ fun SearcherWorkspacePage(
                     }
                 }
             }
+        }
 
-            state.searchQuery.text.isBlank() -> {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(
-                        horizontal = 16.dp,
-                        vertical = 8.dp
-                    )
-                ) {
-                    // Search toolbar as first item
-                    item {
-                        SearchToolbarCard(
-                            state = state,
-                            design = design,
-                            onUpdateQuery = onUpdateQuery,
-                            onUpdateSearchPath = onUpdateSearchPath,
-                            onPerformSearch = onPerformSearch,
-                            onCancelSearch = onCancelSearch,
-                            onToggleCaseSensitive = onToggleCaseSensitive,
-                            onToggleWholeWord = onToggleWholeWord,
-                            onToggleRegex = onToggleRegex,
-                            workspaceButtonState = workspaceButtonState,
-                            onWorkspaceAction = onWorkspaceAction,
-                            onNavToWorkspaceManager = onNavToWorkspaceManager
-                        )
-                    }
-                    
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 100.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(R.string.searcher_placeholder_search),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(32.dp)
-                            )
-                        }
-                    }
-                }
+        // Status card - always visible when there's a query or search activity
+        if (state.searchQuery.text.isNotBlank() || state.isSearching || state.searchState.results.isNotEmpty() || state.searchState.error != null) {
+            item {
+                SearchStatusCard(
+                    state = state,
+                    onCancel = onCancelSearch
+                )
+                Spacer(modifier = Modifier.height(8.dp))
             }
+        }
 
-            state.searchState.error != null -> {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(
-                        horizontal = 16.dp,
-                        vertical = 8.dp
-                    )
-                ) {
-                    item {
-                        SearchToolbarCard(
-                            state = state,
-                            design = design,
-                            onUpdateQuery = onUpdateQuery,
-                            onUpdateSearchPath = onUpdateSearchPath,
-                            onPerformSearch = onPerformSearch,
-                            onCancelSearch = onCancelSearch,
-                            onToggleCaseSensitive = onToggleCaseSensitive,
-                            onToggleWholeWord = onToggleWholeWord,
-                            onToggleRegex = onToggleRegex,
-                            workspaceButtonState = workspaceButtonState,
-                            onWorkspaceAction = onWorkspaceAction,
-                            onNavToWorkspaceManager = onNavToWorkspaceManager
-                        )
-                    }
-                    
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 100.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(32.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.searcher_search_error),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                                Text(
-                                    text = state.searchState.error.message ?: "Unknown error",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.padding(top = 8.dp)
-                                )
-                            }
-                        }
-                    }
-                }
+        // Search results
+        if (state.searchState.results.isNotEmpty()) {
+            items(state.searchState.results) { result ->
+                SearchResultRow(
+                    result = result,
+                    onClick = { onResultClick(result) }
+                )
             }
+        }
 
-            !state.isSearching && state.searchState.results.isEmpty() -> {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(
-                        horizontal = 16.dp,
-                        vertical = 8.dp
-                    )
+        // Empty state placeholder when no query and no history
+        if (state.searchQuery.text.isBlank() && state.searchHistory.isEmpty()) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 100.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    item {
-                        SearchToolbarCard(
-                            state = state,
-                            design = design,
-                            onUpdateQuery = onUpdateQuery,
-                            onUpdateSearchPath = onUpdateSearchPath,
-                            onPerformSearch = onPerformSearch,
-                            onCancelSearch = onCancelSearch,
-                            onToggleCaseSensitive = onToggleCaseSensitive,
-                            onToggleWholeWord = onToggleWholeWord,
-                            onToggleRegex = onToggleRegex,
-                            workspaceButtonState = workspaceButtonState,
-                            onWorkspaceAction = onWorkspaceAction,
-                            onNavToWorkspaceManager = onNavToWorkspaceManager
-                        )
-                    }
-                    
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 100.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(R.string.searcher_no_results),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(32.dp)
-                            )
-                        }
-                    }
-                }
-            }
-
-            else -> {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                    contentPadding = PaddingValues(
-                        horizontal = 16.dp,
-                        vertical = 8.dp
+                    Text(
+                        text = stringResource(R.string.searcher_placeholder_search),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(32.dp)
                     )
-                ) {
-                    item {
-                        SearchToolbarCard(
-                            state = state,
-                            design = design,
-                            onUpdateQuery = onUpdateQuery,
-                            onUpdateSearchPath = onUpdateSearchPath,
-                            onPerformSearch = onPerformSearch,
-                            onCancelSearch = onCancelSearch,
-                            onToggleCaseSensitive = onToggleCaseSensitive,
-                            onToggleWholeWord = onToggleWholeWord,
-                            onToggleRegex = onToggleRegex,
-                            workspaceButtonState = workspaceButtonState,
-                            onWorkspaceAction = onWorkspaceAction,
-                            onNavToWorkspaceManager = onNavToWorkspaceManager
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-                    
-                    // Progress card when searching
-                    if (state.isSearching || searchDebounce) {
-                        item {
-                            SearchProgressCard(
-                                progress = state.searchState.progress,
-                                onCancel = onCancelSearch
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-                    }
-                    
-                    item {
-                        Text(
-                            text = "${state.searchState.results.size} results",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                    }
-                    items(state.searchState.results) { result ->
-                        SearchResultRow(
-                            result = result,
-                            onClick = { onResultClick(result) }
-                        )
-                    }
                 }
             }
         }
@@ -1028,8 +863,8 @@ private fun extractFileMetadata(result: SearchResult): Map<String, String> {
 }
 
 @Composable
-fun SearchProgressCard(
-    progress: SearchEngine.SearchProgress?,
+fun SearchStatusCard(
+    state: SearcherWorkspaceViewModel.State,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -1048,11 +883,21 @@ fun SearchProgressCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(24.dp),
-                strokeWidth = 2.dp,
-                color = MaterialTheme.colorScheme.primary
-            )
+            // Icon/Progress indicator
+            if (state.isSearching) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.TwoTone.Search,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
             
             Column(
                 modifier = Modifier.weight(1f),
@@ -1060,42 +905,67 @@ fun SearchProgressCard(
             ) {
                 // Primary message
                 Text(
-                    text = progress?.let { 
-                        val folderName = when (val path = it.currentPath) {
-                            is LocalPath -> path.parent()?.name ?: path.name
-                            else -> path.name
+                    text = if (state.isSearching) {
+                        state.searchState.progress?.let { progress ->
+                            val folderName = when (val path = progress.currentPath) {
+                                is LocalPath -> path.parent()?.name ?: path.name
+                                else -> path.name
+                            }
+                            stringResource(R.string.searcher_progress_searching_in, folderName)
+                        } ?: stringResource(R.string.searcher_progress_searching)
+                    } else {
+                        when {
+                            state.searchState.error != null -> stringResource(R.string.searcher_search_error)
+                            state.searchState.results.isNotEmpty() -> stringResource(R.string.searcher_status_results_found, state.searchState.results.size)
+                            else -> stringResource(R.string.searcher_status_no_results)
                         }
-                        stringResource(R.string.searcher_progress_searching_in, folderName)
-                    } ?: stringResource(R.string.searcher_progress_searching),
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 
-                // Secondary message  
-                progress?.let {
-                    Text(
-                        text = stringResource(
-                            R.string.searcher_progress_stats,
-                            it.itemsScanned,
-                            it.resultsFound
-                        ),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                    )
-                }
+                // Secondary message - always present to maintain card height
+                Text(
+                    text = when {
+                        state.isSearching -> {
+                            state.searchState.progress?.let { progress ->
+                                stringResource(
+                                    R.string.searcher_progress_stats,
+                                    progress.itemsScanned,
+                                    progress.resultsFound
+                                )
+                            } ?: ""
+                        }
+                        state.searchState.results.isNotEmpty() -> {
+                            stringResource(R.string.searcher_status_search_completed)
+                        }
+                        else -> "" // Empty string maintains space
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    minLines = 1 // Ensure minimum height even when empty
+                )
             }
             
-            TextButton(
-                onClick = onCancel,
-                colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
-                )
-            ) {
-                Text(
-                    text = stringResource(R.string.general_cancel_action),
-                    style = MaterialTheme.typography.labelMedium
+            // Cancel button when searching, or placeholder to maintain width
+            if (state.isSearching) {
+                TextButton(
+                    onClick = onCancel,
+                    colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text(
+                        text = stringResource(R.string.general_cancel_action),
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
+            } else {
+                // Invisible placeholder to maintain consistent card width
+                Box(
+                    modifier = Modifier.width(72.dp) // Approximate width of cancel button
                 )
             }
         }
@@ -1136,13 +1006,17 @@ private fun SearchInputCardPreview() {
 
 @Preview2
 @Composable
-private fun SearchProgressCardPreview() {
+private fun SearchStatusCardPreview() {
     PreviewWrapper {
-        SearchProgressCard(
-            progress = SearchEngine.SearchProgress(
-                currentPath = LocalPath.build("/storage/emulated/0/Documents/Photos/vacation.jpg"),
-                itemsScanned = 1247,
-                resultsFound = 15
+        SearchStatusCard(
+            state = SearcherWorkspaceViewModel.State(
+                id = Workspace.Id(),
+                searchPath = LocalPath.build("/storage/emulated/0/Documents"),
+                searchState = SearcherWorkspaceViewModel.SearchState(
+                    status = SearcherWorkspaceViewModel.SearchState.Status.COMPLETED,
+                    results = listOf(), // Empty for "no results" state
+                    progress = null
+                )
             ),
             onCancel = {},
             modifier = Modifier.padding(16.dp)

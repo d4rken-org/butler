@@ -56,4 +56,9 @@
     <string name="searcher_progress_searching_in">Searching in %1$s</string>
     <string name="searcher_progress_searching">Searching…</string>
     <string name="searcher_progress_stats">%1$d items scanned • %2$d results found</string>
+    
+    <!-- Search status -->
+    <string name="searcher_status_results_found">%1$d results found</string>
+    <string name="searcher_status_no_results">No results found</string>
+    <string name="searcher_status_search_completed">Search completed</string>
 </resources>
