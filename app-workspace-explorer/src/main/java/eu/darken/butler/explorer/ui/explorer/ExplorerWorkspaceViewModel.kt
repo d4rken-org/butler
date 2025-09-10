@@ -30,7 +30,7 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
 import eu.darken.butler.explorer.core.errors.ExplorerError
 import eu.darken.butler.explorer.core.errors.ConflictResolution
-import eu.darken.butler.explorer.core.permissions.LocationPermissions
+import eu.darken.butler.workspace.core.permissions.WorkspacePermissions
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
@@ -112,7 +112,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             availableActions = availableActions,
             dialogState = dialogState,
             clipboardEntries = clipboard.entries,
-            permissionState = wsState.currentLocation?.permissionState ?: LocationPermissions(),
+            permissionState = wsState.currentLocation?.permissionState ?: WorkspacePermissions(),
         )
     }.asStateFlow()
 
@@ -480,7 +480,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val availableActions: List<ExplorerAction> = emptyList(),
         val dialogState: ExplorerDialogState = ExplorerDialogState.None,
         val clipboardEntries: List<ClipboardClip> = emptyList(),
-        val permissionState: LocationPermissions = LocationPermissions(),
+        val permissionState: WorkspacePermissions = WorkspacePermissions(),
     )
 
     data class ClipboardState(

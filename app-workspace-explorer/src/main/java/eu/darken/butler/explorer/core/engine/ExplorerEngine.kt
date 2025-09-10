@@ -20,8 +20,8 @@ import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.permissions.Permission
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
-import eu.darken.butler.explorer.core.permissions.LocationPermissions
-import eu.darken.butler.explorer.core.permissions.PermissionRequirement
+import eu.darken.butler.workspace.core.permissions.WorkspacePermissions
+import eu.darken.butler.workspace.core.permissions.PermissionRequirement
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -36,14 +36,14 @@ class ExplorerEngine @Inject constructor(
     internal var subTag: String = ""
     private val tag by lazy { logTag("Explorer", "Engine", subTag) }
 
-    private fun checkLocationPermissions(target: ExplorerNavigation.Target): LocationPermissions {
+    private fun checkLocationPermissions(target: ExplorerNavigation.Target): WorkspacePermissions {
         log(tag) { "checkLocationPermissions(): Checking permissions for $target" }
         
         return when (target) {
             is ExplorerNavigation.Target.Home,
             is ExplorerNavigation.Target.Device -> {
                 // Home and Device views don't require permissions
-                LocationPermissions(
+                WorkspacePermissions(
                     requirements = emptyList(),
                     hasSufficientPermissions = true,
                     missingCritical = emptyList(),
@@ -55,7 +55,7 @@ class ExplorerEngine @Inject constructor(
         }
     }
 
-    private fun checkDirectoryPermissions(path: APath): LocationPermissions {
+    private fun checkDirectoryPermissions(path: APath): WorkspacePermissions {
         val pathString = when (path) {
             is LocalPath -> path.path
             else -> path.path
@@ -69,7 +69,7 @@ class ExplorerEngine @Inject constructor(
 
         if (!requiresStoragePermission) {
             // App-specific directories or other paths that don't need special permissions
-            return LocationPermissions(
+            return WorkspacePermissions(
                 requirements = emptyList(),
                 hasSufficientPermissions = true,
                 missingCritical = emptyList(),
@@ -92,7 +92,7 @@ class ExplorerEngine @Inject constructor(
             alternativeAccess = null,
         )
 
-        return LocationPermissions(
+        return WorkspacePermissions(
             requirements = listOf(requirement),
             hasSufficientPermissions = isGranted,
             missingCritical = if (!isGranted) listOf(requiredPermission) else emptyList(),
