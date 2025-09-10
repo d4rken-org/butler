@@ -52,7 +52,7 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.errors.ConflictResolution
 import eu.darken.butler.explorer.core.errors.ExplorerError
 import java.text.DateFormat
-import java.time.Instant
+import kotlin.time.Duration.Companion.seconds
 import java.util.Date
 
 @Composable
@@ -280,7 +280,7 @@ private fun FileComparisonCard(
             )
             
             Text(
-                text = dateFormat.format(Date(lookup.modifiedAt.toEpochMilli())),
+                text = dateFormat.format(Date(lookup.modifiedAt.toEpochMilliseconds())),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -346,7 +346,7 @@ fun ConflictBottomSheetPreview() {
                 override val lookedUp = LocalPath.build("/storage/emulated/0/Download/document.pdf")
                 override val fileType = FileType.FILE
                 override val size = 2_500_000L
-                override val modifiedAt = Instant.now().minusSeconds(3600)
+                override val modifiedAt = kotlin.time.Clock.System.now() - 3600.seconds
                 override val target: APath? = null
             }
         }
@@ -356,7 +356,7 @@ fun ConflictBottomSheetPreview() {
                 override val lookedUp = LocalPath.build("/storage/emulated/0/Documents/document.pdf")
                 override val fileType = FileType.FILE
                 override val size = 1_800_000L
-                override val modifiedAt = Instant.now().minusSeconds(86400)
+                override val modifiedAt = kotlin.time.Clock.System.now() - 86400.seconds
                 override val target: APath? = null
             }
         }
@@ -504,7 +504,7 @@ fun ConflictBottomSheetFolderPreview() {
                 override val lookedUp = LocalPath.build("/storage/emulated/0/Download/Photos")
                 override val fileType = FileType.DIRECTORY
                 override val size = 0L
-                override val modifiedAt = Instant.now().minusSeconds(7200)
+                override val modifiedAt = kotlin.time.Clock.System.now() - 7200.seconds
                 override val target: APath? = null
             }
         }
@@ -514,7 +514,7 @@ fun ConflictBottomSheetFolderPreview() {
                 override val lookedUp = LocalPath.build("/storage/emulated/0/Pictures/Photos")
                 override val fileType = FileType.DIRECTORY
                 override val size = 0L
-                override val modifiedAt = Instant.now().minusSeconds(172800)
+                override val modifiedAt = kotlin.time.Clock.System.now() - 172800.seconds
                 override val target: APath? = null
             }
         }
