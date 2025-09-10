@@ -112,4 +112,11 @@
     <string name="explorer_empty_folder_caption_13">Someone forgot to feed the files</string>
     <string name="explorer_empty_folder_caption_14">The files have left the building</string>
     <string name="explorer_empty_folder_caption_15">Emptier than a promise from a politician</string>
+    
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">Permission Needed</string>
+    <string name="explorer_permission_storage_manage_description">Butler needs additional permission to browse this location.</string>
+    <string name="explorer_permission_storage_write_description">Butler needs additional permission to browse this location.</string>
+    <string name="explorer_permission_generic_description">Butler needs additional permission to browse this location.</string>
+    <string name="explorer_permission_setup_action">Open Setup</string>
 </resources>

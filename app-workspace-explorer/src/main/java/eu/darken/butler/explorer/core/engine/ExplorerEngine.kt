@@ -1,11 +1,13 @@
 package eu.darken.butler.explorer.core.engine
 
+import android.content.Context
 import android.os.Environment
 import android.os.StatFs
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Code
 import androidx.compose.material.icons.twotone.PhoneAndroid
 import androidx.compose.material.icons.twotone.Storage
+import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -14,8 +16,12 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.hasApiLevel
+import eu.darken.butler.common.permissions.Permission
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
+import eu.darken.butler.explorer.core.permissions.LocationPermissions
+import eu.darken.butler.explorer.core.permissions.PermissionRequirement
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -23,11 +29,75 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class ExplorerEngine @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val gatewaySwitch: GatewaySwitch,
 ) {
 
     internal var subTag: String = ""
     private val tag by lazy { logTag("Explorer", "Engine", subTag) }
+
+    private fun checkLocationPermissions(target: ExplorerNavigation.Target): LocationPermissions {
+        log(tag) { "checkLocationPermissions(): Checking permissions for $target" }
+        
+        return when (target) {
+            is ExplorerNavigation.Target.Home,
+            is ExplorerNavigation.Target.Device -> {
+                // Home and Device views don't require permissions
+                LocationPermissions(
+                    requirements = emptyList(),
+                    hasSufficientPermissions = true,
+                    missingCritical = emptyList(),
+                )
+            }
+            is ExplorerNavigation.Target.Directory -> {
+                checkDirectoryPermissions(target.path)
+            }
+        }
+    }
+
+    private fun checkDirectoryPermissions(path: APath): LocationPermissions {
+        val pathString = when (path) {
+            is LocalPath -> path.path
+            else -> path.path
+        }
+
+        // Check if this is internal storage that requires permissions
+        val internalStoragePath = Environment.getExternalStorageDirectory().absolutePath
+        val requiresStoragePermission = pathString.startsWith(internalStoragePath) || 
+                                       pathString.startsWith("/storage/emulated/") ||
+                                       pathString.startsWith("/sdcard")
+
+        if (!requiresStoragePermission) {
+            // App-specific directories or other paths that don't need special permissions
+            return LocationPermissions(
+                requirements = emptyList(),
+                hasSufficientPermissions = true,
+                missingCritical = emptyList(),
+            )
+        }
+
+        // Determine which storage permission is needed based on API level
+        val requiredPermission = when {
+            hasApiLevel(30) -> Permission.MANAGE_EXTERNAL_STORAGE
+            else -> Permission.WRITE_EXTERNAL_STORAGE
+        }
+
+        val isGranted = requiredPermission.isGranted(context)
+        log(tag) { "checkDirectoryPermissions(): $requiredPermission isGranted=$isGranted for path=$pathString" }
+
+        val requirement = PermissionRequirement(
+            permission = requiredPermission,
+            isRequired = true,
+            reason = R.string.explorer_permission_generic_description.toCaString(),
+            alternativeAccess = null,
+        )
+
+        return LocationPermissions(
+            requirements = listOf(requirement),
+            hasSufficientPermissions = isGranted,
+            missingCritical = if (!isGranted) listOf(requiredPermission) else emptyList(),
+        )
+    }
 
     private suspend fun getHomeEntry(): ExplorerLocation = withContext(Dispatchers.IO) {
         val shortcuts = listOf(
@@ -55,6 +125,7 @@ class ExplorerEngine @Inject constructor(
         ExplorerLocation.Home(
             items = shortcuts,
             info = info,
+            permissionState = checkLocationPermissions(ExplorerNavigation.Target.Home),
         )
     }
 
@@ -94,6 +165,7 @@ class ExplorerEngine @Inject constructor(
         ExplorerLocation.Device(
             items = storageLocations,
             info = info,
+            permissionState = checkLocationPermissions(ExplorerNavigation.Target.Device),
         )
     }
 
@@ -177,6 +249,7 @@ class ExplorerEngine @Inject constructor(
             parent = parent,
             items = items,
             info = info,
+            permissionState = checkLocationPermissions(ExplorerNavigation.Target.Directory(path)),
         )
     }
 

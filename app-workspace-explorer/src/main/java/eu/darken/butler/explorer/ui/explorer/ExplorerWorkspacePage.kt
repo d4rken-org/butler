@@ -65,6 +65,7 @@ import eu.darken.butler.explorer.ui.explorer.items.grid.PathItemGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.ShortcutGrid
 import eu.darken.butler.explorer.ui.explorer.items.row.PathItemRow
 import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
+import eu.darken.butler.explorer.ui.explorer.permissions.PermissionRequestCard
 import eu.darken.butler.explorer.ui.common.ErrorSnackbar
 import eu.darken.butler.explorer.ui.common.ConflictBottomSheet
 import eu.darken.butler.explorer.core.errors.ExplorerError
@@ -221,7 +222,16 @@ fun ExplorerWorkspacePage(
                     selectedCount = state.selectionState.selectedItems.size,
                 )
                 
-                if (state.isLoading) {
+                if (state.permissionState.needsPermissions) {
+                    // Show permission request card when permissions are missing
+                    PermissionRequestCard(
+                        permissionState = state.permissionState,
+                        onNavigateToSetup = {
+                            vm?.navigateToSetup()
+                        },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                } else if (state.isLoading) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,

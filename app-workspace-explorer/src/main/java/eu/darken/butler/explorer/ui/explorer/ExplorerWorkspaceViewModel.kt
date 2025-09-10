@@ -10,7 +10,9 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.flow.SingleEventFlow
-import eu.darken.butler.common.ui.ViewModel3
+import eu.darken.butler.common.navigation.NavigationController
+import eu.darken.butler.common.navigation.DestinationSetup
+import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
@@ -28,6 +30,7 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
 import eu.darken.butler.explorer.core.errors.ExplorerError
 import eu.darken.butler.explorer.core.errors.ConflictResolution
+import eu.darken.butler.explorer.core.permissions.LocationPermissions
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
@@ -44,10 +47,11 @@ import kotlinx.coroutines.flow.map
 class ExplorerWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
     dispatchers: DispatcherProvider,
+    navController: NavigationController,
     private val workspaceProvider: WorkspaceProvider,
     private val actionProvider: DefaultActionProvider,
     private val clipboardRepo: ClipboardRepo,
-) : ViewModel3(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
+) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
 
     enum class ViewMode {
         LIST,
@@ -108,6 +112,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             availableActions = availableActions,
             dialogState = dialogState,
             clipboardEntries = clipboard.entries,
+            permissionState = wsState.currentLocation?.permissionState ?: LocationPermissions(),
         )
     }.asStateFlow()
 
@@ -475,12 +480,22 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val availableActions: List<ExplorerAction> = emptyList(),
         val dialogState: ExplorerDialogState = ExplorerDialogState.None,
         val clipboardEntries: List<ClipboardClip> = emptyList(),
+        val permissionState: LocationPermissions = LocationPermissions(),
     )
 
     data class ClipboardState(
         val items: Set<String>,
         val isCut: Boolean,
     )
+
+    fun navigateToSetup() = launch {
+        log(tag) { "navigateToSetup(): Opening setup for storage permissions" }
+        navTo(
+            DestinationSetup(
+                typeFilter = setOf("STORAGE")
+            )
+        )
+    }
 
     @AssistedFactory
     interface Factory {

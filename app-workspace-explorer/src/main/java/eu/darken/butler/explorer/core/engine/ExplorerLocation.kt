@@ -2,16 +2,19 @@ package eu.darken.butler.explorer.core.engine
 
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.explorer.core.ExplorerNavigation
+import eu.darken.butler.explorer.core.permissions.LocationPermissions
 
 sealed interface ExplorerLocation {
     val items: List<ExplorerItem>
     val info: LocationInfo?
+    val permissionState: LocationPermissions
 
     sealed interface LocationInfo
 
     data class Home(
         override val items: List<ExplorerItem>,
         override val info: Info? = null,
+        override val permissionState: LocationPermissions = LocationPermissions(),
     ) : ExplorerLocation {
         data class Info(
             val shortcutCount: Int,
@@ -23,6 +26,7 @@ sealed interface ExplorerLocation {
     data class Device(
         override val items: List<ExplorerItem>,
         override val info: Info? = null,
+        override val permissionState: LocationPermissions = LocationPermissions(),
     ) : ExplorerLocation {
         data class Info(
             val storageCount: Int,
@@ -36,6 +40,7 @@ sealed interface ExplorerLocation {
         val parent: ExplorerNavigation.Target? = null,
         override val items: List<ExplorerItem.PathItem> = emptyList(),
         override val info: Info? = null,
+        override val permissionState: LocationPermissions = LocationPermissions(),
     ) : ExplorerLocation {
         data class Info(
             val fileCount: Int,
