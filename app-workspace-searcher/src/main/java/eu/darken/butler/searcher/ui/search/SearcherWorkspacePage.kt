@@ -521,6 +521,17 @@ fun SearcherWorkspacePage(
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                     
+                    // Progress card when searching
+                    if (state.isSearching || searchDebounce) {
+                        item {
+                            SearchProgressCard(
+                                progress = state.searchState.progress,
+                                onCancel = onCancelSearch
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
+                    
                     item {
                         Text(
                             text = "${state.searchState.results.size} results",
@@ -537,17 +548,6 @@ fun SearcherWorkspacePage(
                     }
                 }
             }
-        }
-
-        // Progress card - positioned at top
-        if (state.isSearching || searchDebounce) {
-            SearchProgressCard(
-                progress = state.searchState.progress,
-                onCancel = onCancelSearch,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            )
         }
     }
     
