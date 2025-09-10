@@ -2,8 +2,10 @@ package eu.darken.butler.workspace.ui.manager
 
 import android.os.Parcelable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
@@ -39,6 +41,7 @@ import eu.darken.butler.R
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.ScrollPop
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
@@ -120,20 +123,20 @@ fun WorkspaceManagerScreen(
     onCloseAllWorkspaces: () -> Unit,
 ) {
     var showCloseAllDialog by remember { mutableStateOf(false) }
+    var isFabVisible by remember { mutableStateOf(true) }
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-
-    // FAB scroll offset
-    var fabOffsetY by remember { mutableFloatStateOf(0f) }
-    val fabNestedScrollConnection = remember {
+    
+    // FAB visibility scroll connection
+    val fabScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                if (available.y < 0) {
-                    // Scrolling up - hide FAB
-                    fabOffsetY = (fabOffsetY + available.y).coerceAtLeast(-200f)
-                } else if (available.y > 0) {
-                    // Scrolling down - show FAB
-                    fabOffsetY = (fabOffsetY + available.y).coerceAtMost(0f)
+                val delta = available.y
+                if (kotlin.math.abs(delta) > 5f) { // Threshold to avoid jitter
+                    when {
+                        delta < 0 -> isFabVisible = false // Scrolling down - hide FAB
+                        delta > 0 -> isFabVisible = true  // Scrolling up - show FAB
+                    }
                 }
                 return Offset.Zero
             }
@@ -144,7 +147,7 @@ fun WorkspaceManagerScreen(
         modifier = Modifier
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection)
-            .nestedScroll(fabNestedScrollConnection),
+            .nestedScroll(fabScrollConnection),
         topBar = {
             TopAppBar(
                 title = {
@@ -182,12 +185,15 @@ fun WorkspaceManagerScreen(
             )
         },
         floatingActionButton = {
-            WorkspaceManagerFAB(
-                workspaceCount = state.workspaceCount,
-                fabOffsetY = fabOffsetY,
-                onCreateWorkspace = onCreateWorkspace,
-                onShowCloseAllDialog = { showCloseAllDialog = true }
-            )
+            Box(modifier = Modifier.padding(16.dp)) {
+                ScrollPop(isVisible = isFabVisible) {
+                    WorkspaceManagerFAB(
+                        workspaceCount = state.workspaceCount,
+                        onCreateWorkspace = onCreateWorkspace,
+                        onShowCloseAllDialog = { showCloseAllDialog = true }
+                    )
+                }
+            }
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->

@@ -21,7 +21,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
@@ -31,18 +30,13 @@ import eu.darken.butler.workspace.core.Workspace
 @Composable
 fun WorkspaceManagerFAB(
     workspaceCount: Int,
-    fabOffsetY: Float,
     onCreateWorkspace: (Workspace.Type) -> Unit,
     onShowCloseAllDialog: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showDropdown by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = modifier.graphicsLayer {
-            translationY = fabOffsetY
-        }
-    ) {
+    Box(modifier = modifier) {
         ExtendedFloatingActionButton(
             onClick = { showDropdown = true },
             icon = {
@@ -130,7 +124,6 @@ private fun WorkspaceManagerFABPreview() {
     PreviewWrapper {
         WorkspaceManagerFAB(
             workspaceCount = 3,
-            fabOffsetY = 0f,
             onCreateWorkspace = {},
             onShowCloseAllDialog = {}
         )

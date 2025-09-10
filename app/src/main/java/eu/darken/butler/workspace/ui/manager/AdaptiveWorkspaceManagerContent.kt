@@ -354,8 +354,8 @@ private fun GridLayout(
         contentPadding = PaddingValues(
             top = paddingValues.calculateTopPadding(),
             bottom = paddingValues.calculateBottomPadding(),
-            start = 16.dp,
-            end = 16.dp
+            start = 24.dp,
+            end = 24.dp
         ),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
