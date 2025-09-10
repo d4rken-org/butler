@@ -46,6 +46,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -80,6 +81,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.ui.SwipeToDismissItem
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.searcher.R
+import eu.darken.butler.searcher.core.SearchEngine
 import eu.darken.butler.searcher.core.SearchHistory
 import eu.darken.butler.searcher.core.SearchResult
 import eu.darken.butler.searcher.ui.search.rows.FileRowData
@@ -537,27 +539,15 @@ fun SearcherWorkspacePage(
             }
         }
 
-        // Progress indicator
+        // Progress card - positioned at top
         if (state.isSearching || searchDebounce) {
-            Column(
+            SearchProgressCard(
+                progress = state.searchState.progress,
+                onCancel = onCancelSearch,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-            ) {
-                LinearProgressIndicator(
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                state.searchState.progress?.let { progress ->
-                    Text(
-                        text = "Searching: ${progress.currentPath.name} (${progress.itemsScanned} scanned, ${progress.resultsFound} found)",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            )
         }
     }
     
@@ -1037,6 +1027,81 @@ private fun extractFileMetadata(result: SearchResult): Map<String, String> {
     return emptyMap()
 }
 
+@Composable
+fun SearchProgressCard(
+    progress: SearchEngine.SearchProgress?,
+    onCancel: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                strokeWidth = 2.dp,
+                color = MaterialTheme.colorScheme.primary
+            )
+            
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                // Primary message
+                Text(
+                    text = progress?.let { 
+                        val folderName = when (val path = it.currentPath) {
+                            is LocalPath -> path.parent()?.name ?: path.name
+                            else -> path.name
+                        }
+                        stringResource(R.string.searcher_progress_searching_in, folderName)
+                    } ?: stringResource(R.string.searcher_progress_searching),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                
+                // Secondary message  
+                progress?.let {
+                    Text(
+                        text = stringResource(
+                            R.string.searcher_progress_stats,
+                            it.itemsScanned,
+                            it.resultsFound
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                }
+            }
+            
+            TextButton(
+                onClick = onCancel,
+                colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text(
+                    text = stringResource(R.string.general_cancel_action),
+                    style = MaterialTheme.typography.labelMedium
+                )
+            }
+        }
+    }
+}
+
 @Preview2
 @Composable
 private fun SearchPagePreview() {
@@ -1064,6 +1129,22 @@ private fun SearchInputCardPreview() {
             path = LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler"),
             onPathChange = {},
             isSearching = false,
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun SearchProgressCardPreview() {
+    PreviewWrapper {
+        SearchProgressCard(
+            progress = SearchEngine.SearchProgress(
+                currentPath = LocalPath.build("/storage/emulated/0/Documents/Photos/vacation.jpg"),
+                itemsScanned = 1247,
+                resultsFound = 15
+            ),
+            onCancel = {},
             modifier = Modifier.padding(16.dp)
         )
     }

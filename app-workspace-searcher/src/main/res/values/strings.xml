@@ -51,4 +51,9 @@
     <string name="searcher_history_clear_dialog_title">Clear search history</string>
     <string name="searcher_history_clear_dialog_message">This will remove all saved search history. This action cannot be undone.</string>
     <string name="searcher_history_clear_confirm_action">Clear</string>
+    
+    <!-- Search progress -->
+    <string name="searcher_progress_searching_in">Searching in %1$s</string>
+    <string name="searcher_progress_searching">Searching…</string>
+    <string name="searcher_progress_stats">%1$d items scanned • %2$d results found</string>
 </resources>
