@@ -44,4 +44,21 @@
     <string name="searcher_option_whole_word_desc">Whole word search</string>
     <string name="searcher_option_regex_label">.*</string>
     <string name="searcher_option_regex_desc">Regular expression search</string>
+    
+    <!-- Search history actions -->
+    <string name="searcher_history_remove_action">Remove from history</string>
+    <string name="searcher_history_clear_all_action">Clear all</string>
+    <string name="searcher_history_clear_dialog_title">Clear search history</string>
+    <string name="searcher_history_clear_dialog_message">This will remove all saved search history. This action cannot be undone.</string>
+    <string name="searcher_history_clear_confirm_action">Clear</string>
+    
+    <!-- Search progress -->
+    <string name="searcher_progress_searching_in">Searching in %1$s</string>
+    <string name="searcher_progress_searching">Searching…</string>
+    <string name="searcher_progress_stats">%1$d items scanned • %2$d results found</string>
+    
+    <!-- Search status -->
+    <string name="searcher_status_results_found">%1$d results found</string>
+    <string name="searcher_status_no_results">No results found</string>
+    <string name="searcher_status_search_completed">Search completed</string>
 </resources>

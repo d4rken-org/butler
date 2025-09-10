@@ -64,6 +64,15 @@ class WorkspacesViewModel @Inject constructor(
                 savedStateHandle["workspaceUIState"] = state
             }
             .launchInViewModel()
+
+        // AUTO-CREATE SEARCHER WORKSPACE FOR TESTING - REMOVE BEFORE MERGE
+        launch {
+            val currentWorkspaces = workspaceRepo.state.first()
+            if (currentWorkspaces.infos.isEmpty()) {
+                log(tag) { "No workspaces found, auto-creating Searcher workspace for testing" }
+                executeAction(WorkspaceAction.Create(type = Workspace.Type.SEARCHER))
+            }
+        }
     }
 
     val state = combine(
