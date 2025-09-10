@@ -1,6 +1,7 @@
 package eu.darken.butler.common.navigation
 
 import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import javax.inject.Inject
@@ -8,12 +9,12 @@ import javax.inject.Singleton
 
 @Singleton
 class NavigationController @Inject constructor() {
-    private var _backStack: NavBackStack? = null
+    private var _backStack: NavBackStack<NavKey>? = null
 
-    private val backStack: NavBackStack
+    private val backStack: NavBackStack<NavKey>
         get() = _backStack ?: error("NavigationController not initialized")
 
-    fun setup(backStack: NavBackStack) {
+    fun setup(backStack: NavBackStack<NavKey>) {
         log(TAG) { "setup()" }
         _backStack = backStack
     }
