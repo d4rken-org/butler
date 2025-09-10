@@ -23,6 +23,7 @@ import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.manager.workspaceManager
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
@@ -45,6 +46,15 @@ class WorkspacesViewModel @Inject constructor(
     private val hiddenMotdIds = MutableStateFlow<Set<Uuid>>(emptySet())
 
     init {
+        // AUTO-CREATE EXPLORER WORKSPACE FOR TESTING - REMOVE BEFORE MERGE
+        launch {
+            val currentWorkspaces = workspaceRepo.state.first()
+            if (currentWorkspaces.infos.isEmpty()) {
+                log(tag) { "No workspaces found, auto-creating Explorer workspace for testing" }
+                executeAction(WorkspaceAction.Create(type = Workspace.Type.EXPLORER))
+            }
+        }
+
         // Initialize the WorkspaceUIManager with saved state
         workspacePageManager.initializeFromSavedState(savedStateHandle)
 

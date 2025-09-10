@@ -1,21 +1,27 @@
 package eu.darken.butler.explorer.core.engine
 
+import android.content.Context
 import android.os.Environment
 import android.os.StatFs
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Code
 import androidx.compose.material.icons.twotone.PhoneAndroid
 import androidx.compose.material.icons.twotone.Storage
-import eu.darken.butler.common.ca.caString
+import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.explorer.R
+import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.hasApiLevel
+import eu.darken.butler.common.permissions.Permission
+import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
+import eu.darken.butler.workspace.core.permissions.WorkspacePermissions
+import eu.darken.butler.workspace.core.permissions.PermissionRequirement
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -23,10 +29,75 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class ExplorerEngine @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val gatewaySwitch: GatewaySwitch,
 ) {
-    
-    private val tag = logTag("Explorer", "Engine")
+
+    internal var subTag: String = ""
+    private val tag by lazy { logTag("Explorer", "Engine", subTag) }
+
+    private fun checkLocationPermissions(target: ExplorerNavigation.Target): WorkspacePermissions {
+        log(tag) { "checkLocationPermissions(): Checking permissions for $target" }
+        
+        return when (target) {
+            is ExplorerNavigation.Target.Home,
+            is ExplorerNavigation.Target.Device -> {
+                // Home and Device views don't require permissions
+                WorkspacePermissions(
+                    requirements = emptyList(),
+                    hasSufficientPermissions = true,
+                    missingCritical = emptyList(),
+                )
+            }
+            is ExplorerNavigation.Target.Directory -> {
+                checkDirectoryPermissions(target.path)
+            }
+        }
+    }
+
+    private fun checkDirectoryPermissions(path: APath): WorkspacePermissions {
+        val pathString = when (path) {
+            is LocalPath -> path.path
+            else -> path.path
+        }
+
+        // Check if this is internal storage that requires permissions
+        val internalStoragePath = Environment.getExternalStorageDirectory().absolutePath
+        val requiresStoragePermission = pathString.startsWith(internalStoragePath) || 
+                                       pathString.startsWith("/storage/emulated/") ||
+                                       pathString.startsWith("/sdcard")
+
+        if (!requiresStoragePermission) {
+            // App-specific directories or other paths that don't need special permissions
+            return WorkspacePermissions(
+                requirements = emptyList(),
+                hasSufficientPermissions = true,
+                missingCritical = emptyList(),
+            )
+        }
+
+        // Determine which storage permission is needed based on API level
+        val requiredPermission = when {
+            hasApiLevel(30) -> Permission.MANAGE_EXTERNAL_STORAGE
+            else -> Permission.WRITE_EXTERNAL_STORAGE
+        }
+
+        val isGranted = requiredPermission.isGranted(context)
+        log(tag) { "checkDirectoryPermissions(): $requiredPermission isGranted=$isGranted for path=$pathString" }
+
+        val requirement = PermissionRequirement(
+            permission = requiredPermission,
+            isRequired = true,
+            reason = R.string.explorer_permission_generic_description.toCaString(),
+            alternativeAccess = null,
+        )
+
+        return WorkspacePermissions(
+            requirements = listOf(requirement),
+            hasSufficientPermissions = isGranted,
+            missingCritical = if (!isGranted) listOf(requiredPermission) else emptyList(),
+        )
+    }
 
     private suspend fun getHomeEntry(): ExplorerLocation = withContext(Dispatchers.IO) {
         val shortcuts = listOf(
@@ -54,6 +125,7 @@ class ExplorerEngine @Inject constructor(
         ExplorerLocation.Home(
             items = shortcuts,
             info = info,
+            permissionState = checkLocationPermissions(ExplorerNavigation.Target.Home),
         )
     }
 
@@ -86,24 +158,31 @@ class ExplorerEngine @Inject constructor(
 
         val info = ExplorerLocation.Device.Info(
             storageCount = storageLocations.size,
-            totalCapacity = stat?.let { it.totalBytes },
+            totalCapacity = stat?.totalBytes,
             usedSpace = stat?.let { it.totalBytes - it.availableBytes },
         )
 
         ExplorerLocation.Device(
             items = storageLocations,
             info = info,
+            permissionState = checkLocationPermissions(ExplorerNavigation.Target.Device),
         )
     }
 
     private suspend fun getContent(path: APath): List<ExplorerItem.PathItem> = withContext(Dispatchers.IO) {
+        log(tag) { "getContent(): Loading content: $path" }
+
         // First stage: Load basic file info quickly
         val basicLookups = gatewaySwitch.lookupFiles(path)
+        log(tag) { "getContent(): ${basicLookups.size} lookups" }
+
         val fileClassifier = FileTypeClassifier()
 
         // Convert to ExplorerPathItem with basic info
         basicLookups.map { lookup ->
-            fileClassifier.classify(lookup)
+            fileClassifier.classify(lookup).also {
+                if (Bugs.isDebug) log(tag, VERBOSE) { "${lookup.path} -> $it" }
+            }
         }
     }
 
@@ -126,6 +205,7 @@ class ExplorerEngine @Inject constructor(
         path: APath,
         parent: ExplorerNavigation.Target? = null
     ): ExplorerLocation.Directory = withContext(Dispatchers.IO) {
+        log(tag) { "getDirectory(): Loading directory: $path - $parent" }
         val items = getContent(path)
 
         // Calculate directory info
@@ -138,11 +218,11 @@ class ExplorerEngine @Inject constructor(
                 is ExplorerItem.DirectoryItem -> directoryCount++
                 is ExplorerItem.FileItem -> {
                     fileCount++
-                    totalSize += item.lookup.size ?: 0L
+                    totalSize += item.lookup.size
                 }
             }
         }
-
+        log(tag) { "getDirectory(): Directory info: $fileCount files, $directoryCount directories, $totalSize bytes" }
         // Get volume info if path is LocalPath
         val volumeInfo = if (path is LocalPath) {
             try {
@@ -169,12 +249,14 @@ class ExplorerEngine @Inject constructor(
             parent = parent,
             items = items,
             info = info,
+            permissionState = checkLocationPermissions(ExplorerNavigation.Target.Directory(path)),
         )
     }
 
     suspend fun loadLocation(
         target: ExplorerNavigation.Target
     ): Flow<ExplorerLocation> = flow {
+        log(tag, INFO) { "loadLocation(): Loading location: $target" }
         when (target) {
             is ExplorerNavigation.Target.Home -> emit(getHomeEntry())
             is ExplorerNavigation.Target.Device -> emit(getDevice())
@@ -188,7 +270,7 @@ class ExplorerEngine @Inject constructor(
             }
         }
     }
-    
+
     suspend fun executeOperation(operation: ExplorerOperation): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             when (operation) {
@@ -198,14 +280,14 @@ class ExplorerEngine @Inject constructor(
                     gatewaySwitch.createDir(folderPath)
                     Result.success(Unit)
                 }
-                
+
                 is ExplorerOperation.FileOp.CreateFile -> {
                     log(tag, INFO) { "Creating file: ${operation.name} in ${operation.parentPath}" }
                     val filePath = operation.parentPath.child(operation.name)
                     gatewaySwitch.createFile(filePath)
                     Result.success(Unit)
                 }
-                
+
                 is ExplorerOperation.FileOp.Delete -> {
                     log(tag, INFO) { "Deleting ${operation.paths.size} items" }
                     operation.paths.forEach { path ->
@@ -213,7 +295,7 @@ class ExplorerEngine @Inject constructor(
                     }
                     Result.success(Unit)
                 }
-                
+
                 is ExplorerOperation.FileOp.Copy -> {
                     log(tag, INFO) { "Copying ${operation.sources.size} items to ${operation.destination}" }
                     // TODO: Implement copy operation when gateway supports it
@@ -221,7 +303,7 @@ class ExplorerEngine @Inject constructor(
                     log(tag, WARN) { "Copy operation not yet implemented in gateway" }
                     Result.failure(UnsupportedOperationException("Copy not yet implemented"))
                 }
-                
+
                 is ExplorerOperation.FileOp.Move -> {
                     log(tag, INFO) { "Moving ${operation.sources.size} items to ${operation.destination}" }
                     // TODO: Implement move operation when gateway supports it
@@ -229,7 +311,7 @@ class ExplorerEngine @Inject constructor(
                     log(tag, WARN) { "Move operation not yet implemented in gateway" }
                     Result.failure(UnsupportedOperationException("Move not yet implemented"))
                 }
-                
+
                 is ExplorerOperation.FileOp.Rename -> {
                     log(tag, INFO) { "Renaming ${operation.path} to ${operation.newName}" }
                     // TODO: Implement rename when move is available

@@ -75,6 +75,26 @@
     <string name="explorer_error_copy_not_implemented">Copy operation not yet implemented</string>
     <string name="explorer_error_move_not_implemented">Move operation not yet implemented</string>
     <string name="explorer_error_rename_not_implemented">Rename operation not yet implemented</string>
+    <string name="explorer_error_read_failed">Cannot read %1$s</string>
+    <string name="explorer_error_write_failed">Cannot write to %1$s</string>
+    <string name="explorer_error_permission_denied">Permission denied</string>
+    <string name="explorer_error_storage_full">Not enough storage space</string>
+    
+    <!-- Conflict Messages -->
+    <string name="explorer_conflict_title_file">File already exists</string>
+    <string name="explorer_conflict_title_folder">Folder already exists</string>
+    <string name="explorer_conflict_existing_file">Existing file</string>
+    <string name="explorer_conflict_existing_folder">Existing folder</string>
+    <string name="explorer_conflict_new_file">New file</string>
+    <string name="explorer_conflict_new_folder">New folder</string>
+    <string name="explorer_conflict_skip">Skip</string>
+    <string name="explorer_conflict_overwrite">Replace</string>
+    <string name="explorer_conflict_merge">Merge</string>
+    <string name="explorer_conflict_rename">Rename</string>
+    <string name="explorer_conflict_cancel">Cancel</string>
+    <string name="explorer_conflict_apply_all">Apply to all remaining conflicts</string>
+    <string name="explorer_rename_new_name">New name</string>
+    <string name="explorer_type_folder">Folder</string>
 
     <!-- Empty Folder Captions -->
     <string name="explorer_empty_folder_caption_1">Nothing to see here… move along 🕵️</string>
@@ -92,4 +112,11 @@
     <string name="explorer_empty_folder_caption_13">Someone forgot to feed the files</string>
     <string name="explorer_empty_folder_caption_14">The files have left the building</string>
     <string name="explorer_empty_folder_caption_15">Emptier than a promise from a politician</string>
+    
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">Permission Needed</string>
+    <string name="explorer_permission_storage_manage_description">Butler needs additional permission to browse this location.</string>
+    <string name="explorer_permission_storage_write_description">Butler needs additional permission to browse this location.</string>
+    <string name="explorer_permission_generic_description">Butler needs additional permission to browse this location.</string>
+    <string name="explorer_permission_setup_action">Open Setup</string>
 </resources>

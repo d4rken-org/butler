@@ -2,27 +2,19 @@
   "permissions": {
 	"allow": [
 	  "mcp__ide__getDiagnostics",
+	  "Bash(./gradlew tasks:*)",
+	  "Bash(./gradlew:*)",
 	  "Bash(find:*)",
 	  "Bash(ls:*)",
 	  "Bash(grep:*)",
-	  "Bash(./gradlew:*)",
 	  "Bash(rg:*)",
-	  "Bash(done)",
-	  "Bash(sed:*)",
-	  "Bash(rm:*)",
-	  "Bash(cp:*)",
-	  "Bash(mkdir:*)",
-	  "Bash(mv:*)",
-	  "Bash(for module in app-common-pkgs app-common-root app-common-shell app-workspace app-workspace-editor app-workspace-searcher app-workspace-templates)",
-	  "Bash(do echo \"=== $module ===\")",
-	  "Bash(git add:*)",
-	  "WebFetch(domain:coil-kt.github.io)",
+	  "WebSearch",
+	  "WebFetch(domain:support.google.com)",
 	  "WebFetch(domain:github.com)",
-	  "WebFetch(domain:raw.githubusercontent.com)",
-	  "WebFetch(domain:dev.to)",
-	  "WebFetch(domain:medium.com)",
+	  "WebFetch(domain:mvnrepository.com)",
+	  "WebFetch(domain:kotlinlang.org)",
 	  "WebFetch(domain:developer.android.com)",
-	  "WebFetch(domain:mvnrepository.com)"
+	  "WebFetch(domain:issuetracker.google.com)"
 	],
 	"deny": []
   }

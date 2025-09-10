@@ -10,13 +10,16 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.flow.SingleEventFlow
-import eu.darken.butler.common.ui.ViewModel3
+import eu.darken.butler.common.navigation.NavigationController
+import eu.darken.butler.common.navigation.DestinationSetup
+import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
+import eu.darken.butler.explorer.core.engine.locationId
 import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemResult
@@ -25,6 +28,9 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.DeleteConfirmationResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
+import eu.darken.butler.explorer.core.errors.ExplorerError
+import eu.darken.butler.explorer.core.errors.ConflictResolution
+import eu.darken.butler.workspace.core.permissions.WorkspacePermissions
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
@@ -41,10 +47,11 @@ import kotlinx.coroutines.flow.map
 class ExplorerWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
     dispatchers: DispatcherProvider,
+    navController: NavigationController,
     private val workspaceProvider: WorkspaceProvider,
     private val actionProvider: DefaultActionProvider,
     private val clipboardRepo: ClipboardRepo,
-) : ViewModel3(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
+) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
 
     enum class ViewMode {
         LIST,
@@ -54,8 +61,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
     private val viewModeFlow = MutableStateFlow(ViewMode.LIST)
     private val dialogStateFlow = MutableStateFlow<ExplorerDialogState>(ExplorerDialogState.None)
+    private val conflictStateFlow = MutableStateFlow<ExplorerError.FileConflict?>(null)
+    private var batchConflictStrategy: ConflictResolution? = null
 
     val dialogEvents = SingleEventFlow<ExplorerDialogEvent>()
+    val explorerErrorEvents = SingleEventFlow<ExplorerError>()
+    val conflictState = conflictStateFlow
 
     private val workspace: Flow<ExplorerWorkspace?> = workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
 
@@ -88,6 +99,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
         State(
             currentLocation = wsState.currentLocation,
+            locationId = wsState.currentLocation?.locationId,
             breadcrumbs = wsState.currentBreadcrumbs ?: emptyList(),
             items = items,
             isLoading = wsState.isLoading,
@@ -100,6 +112,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             availableActions = availableActions,
             dialogState = dialogState,
             clipboardEntries = clipboard.entries,
+            permissionState = wsState.currentLocation?.permissionState ?: WorkspacePermissions(),
         )
     }.asStateFlow()
 
@@ -376,8 +389,85 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         clipboardRepo.clear()
     }
 
+    fun handleError(error: ExplorerError) {
+        log(tag) { "handleError($error)" }
+        when (error) {
+            is ExplorerError.FileConflict -> {
+                // Check if we have a batch strategy
+                batchConflictStrategy?.let { strategy ->
+                    when (strategy) {
+                        is ConflictResolution.Skip -> {
+                            if (strategy.applyToAll) {
+                                // Skip this conflict automatically
+                                return
+                            }
+                        }
+                        is ConflictResolution.Overwrite -> {
+                            if (strategy.applyToAll) {
+                                // Overwrite this conflict automatically
+                                return
+                            }
+                        }
+                        is ConflictResolution.Merge -> {
+                            if (strategy.applyToAll) {
+                                // Merge this conflict automatically
+                                return
+                            }
+                        }
+                        else -> {}
+                    }
+                }
+                // Show conflict dialog
+                conflictStateFlow.value = error
+            }
+            is ExplorerError.ReadError,
+            is ExplorerError.WriteError -> {
+                // Show error snackbar
+                explorerErrorEvents.tryEmit(error)
+            }
+        }
+    }
+
+    fun resolveConflict(resolution: ConflictResolution) = launch {
+        log(tag) { "resolveConflict($resolution)" }
+        when (resolution) {
+            is ConflictResolution.Skip -> {
+                if (resolution.applyToAll) {
+                    batchConflictStrategy = resolution
+                }
+                // Continue operation, skipping this file
+                // TODO: Implement skip logic in engine
+            }
+            is ConflictResolution.Overwrite -> {
+                if (resolution.applyToAll) {
+                    batchConflictStrategy = resolution
+                }
+                // Continue operation, overwriting this file
+                // TODO: Implement overwrite logic in engine
+            }
+            is ConflictResolution.Merge -> {
+                if (resolution.applyToAll) {
+                    batchConflictStrategy = resolution
+                }
+                // Continue operation, merging folder contents
+                // TODO: Implement merge logic in engine for directories
+            }
+            is ConflictResolution.Rename -> {
+                // Rename and continue
+                // TODO: Implement rename logic in engine
+            }
+            is ConflictResolution.Cancel -> {
+                // Cancel entire operation
+                batchConflictStrategy = null
+                // TODO: Cancel ongoing operation in engine
+            }
+        }
+        conflictStateFlow.value = null
+    }
+
     data class State(
         val currentLocation: ExplorerLocation? = null,
+        val locationId: String? = null,
         val breadcrumbs: List<ExplorerBreadcrumb> = emptyList(),
         val items: List<ExplorerItem>,
         val isLoading: Boolean,
@@ -390,12 +480,22 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val availableActions: List<ExplorerAction> = emptyList(),
         val dialogState: ExplorerDialogState = ExplorerDialogState.None,
         val clipboardEntries: List<ClipboardClip> = emptyList(),
+        val permissionState: WorkspacePermissions = WorkspacePermissions(),
     )
 
     data class ClipboardState(
         val items: Set<String>,
         val isCut: Boolean,
     )
+
+    fun navigateToSetup() = launch {
+        log(tag) { "navigateToSetup(): Opening setup for storage permissions" }
+        navTo(
+            DestinationSetup(
+                typeFilter = setOf("STORAGE")
+            )
+        )
+    }
 
     @AssistedFactory
     interface Factory {

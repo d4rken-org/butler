@@ -74,6 +74,8 @@ class ExplorerWorkspace @AssistedInject constructor(
     }
 
     init {
+        engine.subTag = id.shortTag
+
         // Set up navigation flow processing
         navigationRequests
             .onEach { log(tag, INFO) { "New navigation request: $it" } }
@@ -102,7 +104,7 @@ class ExplorerWorkspace @AssistedInject constructor(
                 }
             }
             .launchIn(scope)
-            
+
         // Set up operation flow processing
         operationRequests
             .onEach { log(tag, INFO) { "New operation request: $it" } }
@@ -111,7 +113,7 @@ class ExplorerWorkspace @AssistedInject constructor(
                     try {
                         current.value = current.value.copy(isLoading = true)
                         val result = engine.executeOperation(operation)
-                        
+
                         if (result.isSuccess) {
                             log(tag, INFO) { "Operation successful: $operation" }
                             // Refresh current location after successful operation
@@ -210,7 +212,7 @@ class ExplorerWorkspace @AssistedInject constructor(
             log(tag) { "navigate(): Submitted $request" }
         }
     }
-    
+
     fun execute(operation: ExplorerOperation) {
         log(tag) { "execute(): $operation" }
         scope.launch {
