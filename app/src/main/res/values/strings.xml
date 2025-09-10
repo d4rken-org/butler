@@ -12,6 +12,15 @@
     <string name="onboarding_beta_feature_feedback_title">Community Driven</string>
     <string name="onboarding_beta_feature_feedback_description">Join a community of power users improving Butler</string>
     <string name="onboarding_beta_report_action">Report an Issue</string>
+    <string name="onboarding_sustainability_title">Free &amp; Sustainable</string>
+    <string name="onboarding_sustainability_message">Core features are free. Some advanced features require Butler Pro - it keeps me coding and the app evolving.</string>
+    <string name="onboarding_sustainability_free_title">Core Features</string>
+    <string name="onboarding_sustainability_free_description">File browsing, search, and editing.</string>
+    <string name="onboarding_sustainability_pro_title">Pro Features</string>
+    <string name="onboarding_sustainability_pro_description">Improved multi-tasking and tools for power users.</string>
+    <string name="onboarding_sustainability_support_title">Ethical Funding</string>
+    <string name="onboarding_sustainability_support_description">No ads, no data selling - just direct support from users.</string>
+    <string name="onboarding_sustainability_action">Continue</string>
     <string name="onboarding_privacy_title">Privacy &amp; Data</string>
     <string name="onboarding_privacy_message">Butler has no advertisements and does not sell user data. Your privacy is important to me.</string>
     <string name="onboarding_privacy_read_action">Read Privacy Policy</string>

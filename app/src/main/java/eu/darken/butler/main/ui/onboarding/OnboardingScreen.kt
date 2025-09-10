@@ -21,6 +21,7 @@ import eu.darken.butler.main.ui.onboarding.OnboardingViewModel.State.*
 import eu.darken.butler.main.ui.onboarding.pages.AdaptiveLayoutPage
 import eu.darken.butler.main.ui.onboarding.pages.BetaPage
 import eu.darken.butler.main.ui.onboarding.pages.PrivacyPage
+import eu.darken.butler.main.ui.onboarding.pages.SustainabilityPage
 import eu.darken.butler.main.ui.onboarding.pages.WelcomePage
 import eu.darken.butler.main.ui.onboarding.pages.WorkspacesPage
 import kotlinx.coroutines.launch
@@ -101,6 +102,15 @@ private fun OnboardingScreen(
 
                 Page.ADAPTIVE_LAYOUT ->
                     AdaptiveLayoutPage(
+                        onContinue = {
+                            scope.launch {
+                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                            }
+                        }
+                    )
+
+                Page.SUSTAINABILITY ->
+                    SustainabilityPage(
                         onContinue = {
                             scope.launch {
                                 pagerState.animateScrollToPage(pagerState.currentPage + 1)
