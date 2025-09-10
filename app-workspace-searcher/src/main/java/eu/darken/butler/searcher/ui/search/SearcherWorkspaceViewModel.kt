@@ -23,8 +23,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -59,7 +59,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     private var activeSearchJob: Job? = null
     private var currentSearchId: String? = null
-    
+
     data class SearchState(
         val status: Status = Status.IDLE,
         val results: List<SearchResult> = emptyList(),
@@ -70,13 +70,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             IDLE, SEARCHING, COMPLETED, ERROR, CANCELLED
         }
     }
-    
+
     private val searchState = MutableStateFlow(SearchState())
 
     val state = combine(
         searchQuery,
         searchState,
-        searchHistory.getRecentSearches(20),
+        searcherSettings.maxHistoryItems.flow.flatMapLatest { searchHistory.getSearches(it) },
         currentFilter,
         searchPath,
     ) { values ->
@@ -111,24 +111,24 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         log(TAG, INFO) { "Performing search: $query" }
 
         activeSearchJob?.cancel()
-        
+
         val searchRequest = SearchQuery(
             query = query,
             path = searchPath.value,
             options = SearchQuery.Options(),
             filter = currentFilter.value
         )
-        
+
         // Record search in history
         vmScope.launch {
             currentSearchId = searchHistory.addSearch(searchRequest)
         }
-        
+
         // Clear previous results and set searching state
-        searchState.update { 
-            it.copy(status = SearchState.Status.SEARCHING, results = emptyList(), error = null) 
+        searchState.update {
+            it.copy(status = SearchState.Status.SEARCHING, results = emptyList(), error = null)
         }
-        
+
         // Start the search
         activeSearchJob = vmScope.launch {
             try {
@@ -145,12 +145,12 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     }
                     log(TAG) { "Search result: ${result.path}" }
                 }
-                
+
                 // Update history with result count
                 currentSearchId?.let { id ->
                     searchHistory.updateResultCount(id, results.size)
                 }
-                
+
                 searchState.update { it.copy(status = SearchState.Status.COMPLETED) }
             } catch (e: kotlinx.coroutines.CancellationException) {
                 searchState.update { it.copy(status = SearchState.Status.CANCELLED) }

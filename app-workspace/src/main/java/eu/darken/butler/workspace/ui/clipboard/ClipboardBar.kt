@@ -42,11 +42,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -63,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.ui.SwipeToDismissItem
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
@@ -292,56 +290,28 @@ private fun SwipeToDismissEntry(
     triggerDismiss: Long = 0L,
     dismissDelay: Long = 0L,
 ) {
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { dismissValue ->
-            when (dismissValue) {
-                SwipeToDismissBoxValue.EndToStart -> {
-                    onRemoveClick()
-                    true
-                }
-                else -> false
-            }
-        }
-    )
-
-    // Handle programmatic dismiss trigger for clear all animation
-    LaunchedEffect(triggerDismiss) {
-        if (triggerDismiss > 0L) {
-            kotlinx.coroutines.delay(dismissDelay)
-            dismissState.dismiss(SwipeToDismissBoxValue.EndToStart)
-        }
-    }
-
-    SwipeToDismissBox(
-        state = dismissState,
+    SwipeToDismissItem(
         modifier = modifier,
-        enableDismissFromStartToEnd = false,
-        backgroundContent = {
-            // Red background with close icon and text when swiping
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.errorContainer)
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.Close,
-                        contentDescription = stringResource(CommonR.string.general_dismiss_action),
-                        tint = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = stringResource(CommonR.string.general_dismiss_action),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onErrorContainer
-                    )
-                }
-            }
+        onDismiss = onRemoveClick,
+        dismissThreshold = 0.5f,
+        backgroundColor = MaterialTheme.colorScheme.errorContainer,
+        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        verticalPadding = 8,
+        programmaticDismissTrigger = triggerDismiss,
+        programmaticDismissDelay = dismissDelay,
+        dismissContent = {
+            Icon(
+                imageVector = Icons.TwoTone.Close,
+                contentDescription = stringResource(CommonR.string.general_dismiss_action),
+                tint = MaterialTheme.colorScheme.onErrorContainer,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = stringResource(CommonR.string.general_dismiss_action),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer
+            )
         }
     ) {
         ClipboardEntry(

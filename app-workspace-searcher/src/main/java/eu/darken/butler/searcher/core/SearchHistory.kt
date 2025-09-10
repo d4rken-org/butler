@@ -64,22 +64,13 @@ class SearchHistory @Inject constructor(
         searchHistoryDao.updateResultCount(id, resultCount)
     }
     
-    fun getRecentSearches(limit: Int = 50): Flow<List<SearchHistoryItem>> {
-        return searchHistoryDao.getRecentSearches(limit).map { entities ->
-            entities.map { entity ->
-                SearchHistoryItem(
-                    id = entity.id,
-                    baseQuery = entity.baseQuery,
-                    searchQuery = converter.toSearchQuery(entity.rawQuery),
-                    searchedAt = entity.searchedAt,
-                    resultCount = entity.resultCount
-                )
-            }
+    fun getSearches(limit: Int? = 50): Flow<List<SearchHistoryItem>> {
+        val searches = if(limit != null) {
+            searchHistoryDao.getRecentSearches(limit)
+        } else {
+            searchHistoryDao.getAllSearches()
         }
-    }
-    
-    fun getAllSearches(): Flow<List<SearchHistoryItem>> {
-        return searchHistoryDao.getAllSearches().map { entities ->
+        return searches.map { entities ->
             entities.map { entity ->
                 SearchHistoryItem(
                     id = entity.id,

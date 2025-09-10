@@ -33,9 +33,11 @@ import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.twotone.Clear
+import androidx.compose.material.icons.twotone.ClearAll
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.FolderOpen
+import androidx.compose.material.icons.twotone.Schedule
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material.icons.twotone.TextFormat
 import androidx.compose.material.icons.twotone.FormatQuote
@@ -75,6 +77,7 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.ui.SwipeToDismissItem
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchHistory
@@ -117,6 +120,7 @@ fun SearcherWorkspacePageHost(
             onCancelSearch = vm::cancelSearch,
             onResultClick = vm::onSearchResultClick,
             onClearHistory = vm::clearSearchHistory,
+            onHistoryItemRemove = vm::removeHistoryItem,
             onHistoryItemClick = { item ->
                 item.searchQuery?.let { query ->
                     vm.updateSearchQuery(TextFieldValue(query.query))
@@ -149,6 +153,7 @@ fun SearcherWorkspacePage(
     onCancelSearch: () -> Unit = {},
     onResultClick: (SearchResult) -> Unit = {},
     onClearHistory: () -> Unit = {},
+    onHistoryItemRemove: (SearchHistory.SearchHistoryItem) -> Unit = {},
     onHistoryItemClick: (SearchHistory.SearchHistoryItem) -> Unit = {},
     onToggleCaseSensitive: () -> Unit = {},
     onToggleWholeWord: () -> Unit = {},
@@ -158,6 +163,7 @@ fun SearcherWorkspacePage(
     onNavToWorkspaceManager: () -> Unit,
 ) {
     var searchDebounce by remember { mutableStateOf(false) }
+    var showClearHistoryDialog by remember { mutableStateOf(false) }
 
     // Debounce search input
     LaunchedEffect(state.searchQuery.text) {
@@ -204,71 +210,133 @@ fun SearcherWorkspacePage(
                     }
                     
                     item {
-                        Text(
-                            text = stringResource(R.string.searcher_recent_searches),
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                    }
-                    items(state.searchHistory) { historyItem ->
-                        Card(
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { onHistoryItemClick(historyItem) }
+                                .padding(bottom = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
+                            Text(
+                                text = stringResource(R.string.searcher_recent_searches),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            TextButton(
+                                onClick = { showClearHistoryDialog = true }
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.searcher_history_clear_all_action),
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            }
+                        }
+                    }
+                    items(state.searchHistory, key = { it.id }) { historyItem ->
+                        SwipeToDismissItem(
+                            modifier = Modifier.fillMaxWidth(),
+                            onDismiss = { onHistoryItemRemove(historyItem) },
+                            dismissThreshold = 0.5f,
+                            backgroundShape = RoundedCornerShape(12.dp),
+                            dismissContent = {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = stringResource(R.string.searcher_history_remove_action),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onError
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    imageVector = Icons.TwoTone.ClearAll,
+                                    contentDescription = stringResource(R.string.searcher_history_remove_action),
+                                    tint = MaterialTheme.colorScheme.onError
+                                )
+                            }
+                        ) {
+                            Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                    .clickable { onHistoryItemClick(historyItem) }
                             ) {
-                                Icon(
-                                    imageVector = Icons.TwoTone.Search,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(20.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
                                 Column(
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
-                                    // Line 1: Search query
-                                    Text(
-                                        text = historyItem.baseQuery,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    
-                                    // Line 2: Path
-                                    historyItem.searchQuery?.path?.let { path ->
+                                    // Line 1: Search query with icon
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.TwoTone.Search,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
                                         Text(
-                                            text = path.path,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            text = historyItem.baseQuery,
+                                            style = MaterialTheme.typography.bodyMedium,
                                             maxLines = 1,
-                                            overflow = TextOverflow.StartEllipsis,
-                                            modifier = Modifier.padding(top = 2.dp)
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.weight(1f)
                                         )
                                     }
                                     
-                                    // Line 3: Results and time
-                                    Row(
-                                        modifier = Modifier.padding(top = 2.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        historyItem.resultCount?.let { count ->
+                                    // Line 2: Path with icon
+                                    historyItem.searchQuery?.path?.let { path ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.TwoTone.Folder,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(16.dp),
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
                                             Text(
-                                                text = if (count == 0) "No results" else "$count results",
+                                                text = path.path,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.StartEllipsis,
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                        }
+                                    }
+                                    
+                                    // Line 3: Results and time with icon
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.TwoTone.Schedule,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Text(
+                                                text = formatRelativeTime(historyItem.searchedAt),
                                                 style = MaterialTheme.typography.labelSmall,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
+                                            historyItem.resultCount?.let { count ->
+                                                Text(
+                                                    text = "• ${if (count == 0) "No results" else "$count results"}",
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
                                         }
-                                        Text(
-                                            text = "• ${formatRelativeTime(historyItem.searchedAt)}",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
                                     }
                                 }
                             }
@@ -491,6 +559,39 @@ fun SearcherWorkspacePage(
                 }
             }
         }
+    }
+    
+    // Clear history confirmation dialog
+    if (showClearHistoryDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearHistoryDialog = false },
+            title = {
+                Text(text = stringResource(R.string.searcher_history_clear_dialog_title))
+            },
+            text = {
+                Text(text = stringResource(R.string.searcher_history_clear_dialog_message))
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onClearHistory()
+                        showClearHistoryDialog = false
+                    }
+                ) {
+                    Text(
+                        text = stringResource(R.string.searcher_history_clear_confirm_action),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showClearHistoryDialog = false }
+                ) {
+                    Text(text = stringResource(R.string.general_cancel_action))
+                }
+            }
+        )
     }
 }
 
