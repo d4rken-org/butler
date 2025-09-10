@@ -12,10 +12,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.DragIndicator
-import androidx.compose.material.icons.twotone.Edit
-import androidx.compose.material.icons.twotone.Folder
-import androidx.compose.material.icons.twotone.Search
-import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -25,7 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -37,6 +32,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
 
 @Composable
@@ -96,7 +92,7 @@ fun WorkspaceListItem(
             }
 
             Icon(
-                imageVector = getIconForWorkspaceType(workspace.type),
+                imageVector = workspace.type.icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp)
@@ -133,15 +129,6 @@ fun WorkspaceListItem(
                 )
             }
         }
-    }
-}
-
-private fun getIconForWorkspaceType(type: Workspace.Type): ImageVector {
-    return when (type) {
-        Workspace.Type.TEMPLATES -> Icons.TwoTone.Workspaces
-        Workspace.Type.EXPLORER -> Icons.TwoTone.Folder
-        Workspace.Type.SEARCHER -> Icons.TwoTone.Search
-        Workspace.Type.EDITOR -> Icons.TwoTone.Edit
     }
 }
 

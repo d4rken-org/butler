@@ -17,4 +17,9 @@
     <string name="workspace_tab_button_behavior_flipped_description">• Click: Add new tab\n• Long click: Open tab manager</string>
     <string name="workspace_tab_button_behavior_normal_description">• Click: Open tab manager\n• Long click: Add new tab</string>
     <string name="workspace_tab_button_behavior_flip_action">Flip button actions</string>
+
+    <string name="workspace_explorer_label">Explorer</string>
+    <string name="workspace_searcher_label">Searcher</string>
+    <string name="workspace_editor_label">Editor</string>
+    <string name="workspace_templates_label">Templates</string>
 </resources>

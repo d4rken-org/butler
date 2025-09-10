@@ -1,18 +1,10 @@
 package eu.darken.butler.workspace.ui.manager
 
 import android.os.Parcelable
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Settings
@@ -51,13 +43,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.manager.rows.WorkspaceBadgeExplanationCard
-import eu.darken.butler.workspace.ui.manager.rows.WorkspaceButtonBehaviorCard
-import eu.darken.butler.workspace.ui.manager.rows.WorkspaceListItem
-import eu.darken.butler.workspace.ui.manager.rows.WorkspaceStatusCard
 import kotlinx.parcelize.Parcelize
-import sh.calvin.reorderable.ReorderableItem
-import sh.calvin.reorderable.rememberReorderableLazyListState
 
 sealed class LazyColumnItemKey : Parcelable {
     @Parcelize
@@ -118,7 +104,7 @@ fun WorkspaceManagerScreenHost(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkspaceManagerScreen(
     state: WorkspaceManagerViewModel.State,
@@ -133,52 +119,6 @@ fun WorkspaceManagerScreen(
     onToggleButtonActions: () -> Unit,
     onCloseAllWorkspaces: () -> Unit,
 ) {
-    // Local state for drag reordering
-    var localWorkspaceItems by remember { mutableStateOf(state.workspaces) }
-    var isDragging by remember { mutableStateOf(false) }
-
-    // Update local items when state changes and we're not dragging
-    if (!isDragging) {
-        log("WorkspaceManager") { "Updating local workspace items: ${state.workspaces}" }
-        localWorkspaceItems = state.workspaces
-    }
-
-    val lazyListState = rememberLazyListState()
-    val reorderableLazyListState = rememberReorderableLazyListState(
-        lazyListState = lazyListState
-    ) { from, to ->
-        log("WorkspaceManager") { "Reorder from ${from.index} to ${to.index}, fromKey=${from.key}, toKey=${to.key}" }
-
-        val fromKey = from.key as? LazyColumnItemKey
-        val toKey = to.key as? LazyColumnItemKey
-
-        when {
-            fromKey is LazyColumnItemKey.Workspace && toKey is LazyColumnItemKey.Workspace -> {
-                log("WorkspaceManager") { "Reordering workspaces: ${fromKey.id} -> ${toKey.id}" }
-
-                // Find indices in our local workspace list
-                val fromWorkspaceIndex = localWorkspaceItems.indexOfFirst { it.id == fromKey.id }
-                val toWorkspaceIndex = localWorkspaceItems.indexOfFirst { it.id == toKey.id }
-
-                if (fromWorkspaceIndex == -1 || toWorkspaceIndex == -1) {
-                    log("WorkspaceManager") { "Could not find workspace indices: from=$fromWorkspaceIndex, to=$toWorkspaceIndex" }
-                    return@rememberReorderableLazyListState
-                }
-
-                // Perform the reorder on the workspace list
-                val newList = localWorkspaceItems.toMutableList()
-                val movedItem = newList.removeAt(fromWorkspaceIndex)
-                newList.add(toWorkspaceIndex, movedItem)
-
-                localWorkspaceItems = newList
-                log("WorkspaceManager") { "Reordered workspace from $fromWorkspaceIndex to $toWorkspaceIndex" }
-            }
-            else -> {
-                log("WorkspaceManager") { "Ignoring reorder: incompatible item types (from=${fromKey?.javaClass?.simpleName}, to=${toKey?.javaClass?.simpleName})" }
-            }
-        }
-    }
-
     var showCloseAllDialog by remember { mutableStateOf(false) }
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
@@ -251,112 +191,16 @@ fun WorkspaceManagerScreen(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize(),
-            state = lazyListState,
-            contentPadding = paddingValues,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            // Status card (show when there are workspaces)
-            if (state.workspaceCount > 0) {
-                item(key = LazyColumnItemKey.StatusCard) {
-                    WorkspaceStatusCard(
-                        workspaceCount = state.workspaceCount,
-                        operationsCount = state.operationsCount,
-                        attentionCount = state.attentionCount
-                    )
-                }
-            }
-
-            if (state.workspaces.isEmpty()) {
-                // Empty state as a single item
-                item(key = LazyColumnItemKey.Custom("empty_state", "")) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(32.dp)
-                            .padding(vertical = 48.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.TwoTone.Workspaces,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.outline,
-                            modifier = Modifier.size(64.dp)
-                        )
-                        Text(
-                            text = stringResource(R.string.workspace_manager_empty_title),
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.padding(top = 16.dp)
-                        )
-                        Text(
-                            text = stringResource(R.string.workspace_manager_empty_subtitle),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                    }
-                }
-            } else {
-                items(
-                    items = localWorkspaceItems,
-                    key = { workspace -> LazyColumnItemKey.Workspace.Standard(workspace.id) }
-                ) { workspace ->
-                    ReorderableItem(
-                        reorderableLazyListState,
-                        key = LazyColumnItemKey.Workspace.Standard(workspace.id)
-                    ) { itemIsDragging ->
-                        WorkspaceListItem(
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp)
-                                .animateItem(),
-                            reorderableScope = this@ReorderableItem,
-                            workspace = workspace,
-                            onClose = { onCloseWorkspace(workspace.id) },
-                            onSelect = { onSelectWorkspace(workspace.id) },
-                            isDragging = itemIsDragging,
-                            onDragStarted = { isDragging = true },
-                            onDragStopped = {
-                                isDragging = false
-                                // Commit the reordered list
-                                onReorderWorkspaces(localWorkspaceItems.map { it.id })
-                            }
-                        )
-                    }
-                }
-            }
-
-            // Button behavior explanation card (show regardless of workspace state)
-            if (state.showButtonBehaviorExplanation) {
-                item(key = LazyColumnItemKey.Explanation.ButtonBehaviorExplanation) {
-                    Box(
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    ) {
-                        WorkspaceButtonBehaviorCard(
-                            isButtonFlipped = state.isButtonActionsFlipped,
-                            onToggleFlipped = { onToggleButtonActions() },
-                            onDismiss = onDismissButtonBehaviorExplanation
-                        )
-                    }
-                }
-            }
-
-            // Badge explanation card (show regardless of workspace state)
-            if (state.showBadgeExplanation) {
-                item(key = LazyColumnItemKey.Explanation.BadgeExplanation) {
-                    Box(
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    ) {
-                        WorkspaceBadgeExplanationCard(
-                            onDismiss = onDismissBadgeExplanation
-                        )
-                    }
-                }
-            }
-        }
+        AdaptiveWorkspaceManagerContent(
+            state = state,
+            paddingValues = paddingValues,
+            onCloseWorkspace = onCloseWorkspace,
+            onReorderWorkspaces = onReorderWorkspaces,
+            onSelectWorkspace = onSelectWorkspace,
+            onDismissBadgeExplanation = onDismissBadgeExplanation,
+            onDismissButtonBehaviorExplanation = onDismissButtonBehaviorExplanation,
+            onToggleButtonActions = onToggleButtonActions,
+        )
     }
 
     // Close all confirmation dialog
