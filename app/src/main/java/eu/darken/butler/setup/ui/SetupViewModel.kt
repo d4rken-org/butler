@@ -46,17 +46,6 @@ class SetupViewModel @AssistedInject constructor(
     )
     val runtimePermissionEvents = _runtimePermissionEvents.asSharedFlow()
 
-    init {
-        log(tag) { "init with options: $options" }
-
-        launch {
-            while (currentCoroutineContext().isActive) {
-                setupManager.refresh()
-                delay(5.seconds)
-            }
-        }
-    }
-
     val state = setupManager.moduleStates
         .map { moduleStates ->
             val items = SetupModule.Type.entries.mapNotNull { type ->
@@ -94,6 +83,37 @@ class SetupViewModel @AssistedInject constructor(
             State(items = items)
         }
         .asStateFlow()
+
+    init {
+        log(tag) { "init with options: $options" }
+
+        launch {
+            while (currentCoroutineContext().isActive) {
+                setupManager.refresh()
+                delay(5.seconds)
+            }
+        }
+
+        // Auto-close when all required permissions are granted
+        if (options.autoCloseWhenComplete && !options.isOnboarding) {
+            launch {
+                setupManager.moduleStates.collect { moduleStates ->
+                    val requiredTypes = options.requiredTypes
+                    if (requiredTypes?.isNotEmpty() == true) {
+                        val allRequiredComplete = requiredTypes.all { type ->
+                            val moduleState = moduleStates[type]
+                            (moduleState as? SetupModule.State.Current)?.isComplete == true
+                        }
+                        
+                        if (allRequiredComplete) {
+                            log(tag) { "All required permissions granted, auto-closing setup screen" }
+                            navUp()
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     fun refresh() = launch {
         log(tag) { "refresh()" }

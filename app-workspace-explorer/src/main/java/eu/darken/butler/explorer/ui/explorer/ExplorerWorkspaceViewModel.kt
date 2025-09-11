@@ -12,8 +12,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
-import eu.darken.butler.common.navigation.destSetupTyped
-import eu.darken.butler.setup.core.SetupModule
+import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -22,6 +21,8 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.explorer.core.engine.locationId
+import eu.darken.butler.explorer.core.errors.ConflictResolution
+import eu.darken.butler.explorer.core.errors.ExplorerError
 import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemResult
@@ -30,13 +31,12 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.DeleteConfirmationResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
-import eu.darken.butler.explorer.core.errors.ExplorerError
-import eu.darken.butler.explorer.core.errors.ConflictResolution
-import eu.darken.butler.workspace.core.permissions.WorkspacePermissions
+import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
+import eu.darken.butler.workspace.core.permissions.WorkspacePermissions
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -493,9 +493,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun navigateToSetup() = launch {
         log(tag) { "navigateToSetup(): Opening setup for storage permissions" }
         navTo(
-            Nav.Main.destSetupTyped(
+            Nav.Main.destSetup(
                 typeFilter = setOf(SetupModule.Type.STORAGE),
-                requiredTypes = setOf(SetupModule.Type.STORAGE)
+                requiredTypes = setOf(SetupModule.Type.STORAGE),
+                autoCloseWhenComplete = true,
             )
         )
     }

@@ -3,6 +3,7 @@ package eu.darken.butler.setup.core
 import androidx.annotation.StringRes
 import eu.darken.butler.common.R
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.Serializable
 import kotlin.time.Instant
 
 interface SetupModule {
@@ -22,6 +23,7 @@ interface SetupModule {
         }
     }
 
+    @Serializable
     enum class Type(@param:StringRes val labelRes: Int) {
         USAGE_STATS(R.string.setup_usagestats_title),
         SHIZUKU(R.string.setup_shizuku_card_title),
