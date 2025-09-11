@@ -10,6 +10,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.preview.EditorPreviewData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -38,6 +39,7 @@ class EditorWorkspace @AssistedInject constructor(
             id = id,
             type = type,
             title = generateTitle(),
+            previewData = EditorPreviewData(fileName = filePath?.name),
         )
     )
     override val info: MutableStateFlow<Workspace.Info> = _info

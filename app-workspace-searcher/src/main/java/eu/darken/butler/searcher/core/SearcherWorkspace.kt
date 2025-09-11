@@ -8,6 +8,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.preview.SearcherPreviewData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.parcelize.Parcelize
 
@@ -26,6 +27,7 @@ class SearcherWorkspace @AssistedInject constructor(
             id = id,
             type = type,
             title = "Searcher ${id.shortTag}".toCaString(),
+            previewData = SearcherPreviewData(),
         )
     )
 

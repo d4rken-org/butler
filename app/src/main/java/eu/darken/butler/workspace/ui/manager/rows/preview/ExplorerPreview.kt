@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
+import eu.darken.butler.workspace.core.preview.ExplorerPreviewItem
 
 @Composable
 fun ExplorerPreview(

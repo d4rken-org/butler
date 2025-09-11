@@ -14,6 +14,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -49,6 +50,7 @@ class ExplorerWorkspace @AssistedInject constructor(
             id = id,
             type = type,
             title = "Explorer ${id.shortTag}".toCaString(),
+            previewData = ExplorerPreviewData(),
         )
     )
 

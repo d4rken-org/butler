@@ -14,13 +14,8 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
+import eu.darken.butler.workspace.core.preview.PreviewData
 import eu.darken.butler.workspace.ui.WorkspacePageManager
-import eu.darken.butler.workspace.ui.manager.rows.preview.PreviewData
-import eu.darken.butler.workspace.ui.manager.rows.preview.ExplorerPreviewData
-import eu.darken.butler.workspace.ui.manager.rows.preview.ExplorerPreviewItem
-import eu.darken.butler.workspace.ui.manager.rows.preview.SearcherPreviewData
-import eu.darken.butler.workspace.ui.manager.rows.preview.EditorPreviewData
-import eu.darken.butler.workspace.ui.manager.rows.preview.TemplatesPreviewData
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 
@@ -46,12 +41,7 @@ class WorkspaceManagerViewModel @Inject constructor(
                     type = info.type,
                     title = info.title,
                     subtitle = info.subtitle,
-                    previewData = when (info.type) {
-                        Workspace.Type.EXPLORER -> ExplorerPreviewData()
-                        Workspace.Type.SEARCHER -> SearcherPreviewData()
-                        Workspace.Type.EDITOR -> EditorPreviewData()
-                        Workspace.Type.TEMPLATES -> TemplatesPreviewData()
-                    },
+                    previewData = info.previewData,
                 )
             },
             showBadgeExplanation = showBadge,

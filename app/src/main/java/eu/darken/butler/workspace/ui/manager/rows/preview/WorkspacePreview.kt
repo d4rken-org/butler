@@ -13,6 +13,12 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.preview.EditorPreviewData
+import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
+import eu.darken.butler.workspace.core.preview.ExplorerPreviewItem
+import eu.darken.butler.workspace.core.preview.PreviewData
+import eu.darken.butler.workspace.core.preview.SearcherPreviewData
+import eu.darken.butler.workspace.core.preview.TemplatesPreviewData
 
 @Composable
 fun WorkspacePreview(
