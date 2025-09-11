@@ -33,8 +33,13 @@ import kotlin.time.Instant
 import kotlin.time.TimeSource
 import kotlin.uuid.Uuid
 
+/**
+ * Executes file system operations with support for progress tracking,
+ * conflict resolution, and cancellation. Operations are executed asynchronously
+ * and can be suspended while awaiting user input for conflict resolution.
+ */
 @Singleton
-class OperationExecutor @Inject constructor(
+class OperationEngine @Inject constructor(
     private val gatewaySwitch: GatewaySwitch,
     private val dispatcherProvider: DispatcherProvider,
 ) {
@@ -413,6 +418,6 @@ class OperationExecutor @Inject constructor(
     }
     
     companion object {
-        private val TAG = logTag("Explorer", "OperationExecutor")
+        private val TAG = logTag("Explorer", "OperationEngine")
     }
 }

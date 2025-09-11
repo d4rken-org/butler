@@ -15,7 +15,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.explorer.core.errors.ConflictResolution
 import eu.darken.butler.explorer.core.operations.ConflictStrategy
-import eu.darken.butler.explorer.core.operations.OperationExecutor
+import eu.darken.butler.explorer.core.operations.OperationEngine
 import eu.darken.butler.explorer.core.operations.OperationId
 import eu.darken.butler.explorer.core.operations.OperationResult
 import eu.darken.butler.explorer.core.operations.OperationState
@@ -44,7 +44,7 @@ class ExplorerWorkspace @AssistedInject constructor(
     dispatcherProvider: DispatcherProvider,
     private val engine: BrowsingEngine,
     private val breadcrumbGenerator: BreadcrumbGenerator,
-    private val operationExecutor: OperationExecutor,
+    private val operationEngine: OperationEngine,
 ) : Workspace {
 
     private val tag = logTag("Explorer", "Workspace", id.shortTag)
@@ -124,7 +124,7 @@ class ExplorerWorkspace @AssistedInject constructor(
             .onEach { log(tag, INFO) { "New operation request: $it" } }
             .onEach { operation ->
                 scope.launch {
-                    operationExecutor.execute(
+                    operationEngine.execute(
                         operation = operation,
                         scope = scope,
                         conflictStrategy = ConflictStrategy.ASK,
@@ -314,13 +314,13 @@ class ExplorerWorkspace @AssistedInject constructor(
     fun resolveConflict(operationId: OperationId, resolution: ConflictResolution) {
         log(tag, INFO) { "Resolving conflict for operation $operationId: $resolution" }
         scope.launch {
-            operationExecutor.resolveConflict(operationId, resolution)
+            operationEngine.resolveConflict(operationId, resolution)
         }
     }
     
     fun cancelOperation(operationId: OperationId) {
         log(tag, INFO) { "Cancelling operation: $operationId" }
-        operationExecutor.cancelOperation(operationId)
+        operationEngine.cancelOperation(operationId)
     }
 
     override suspend fun release() {
