@@ -10,6 +10,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.engine.CopyOptions
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
@@ -20,6 +21,9 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.sync.Mutex
@@ -47,6 +51,16 @@ class OperationEngine @Inject constructor(
     private val activeOperations = ConcurrentHashMap<OperationId, Job>()
     private val conflictStrategies = ConcurrentHashMap<OperationId, ConflictStrategy>()
     private val mutex = Mutex()
+    
+    private val _operationHints = MutableSharedFlow<OperationHint>(
+        replay = 0,
+        extraBufferCapacity = 100
+    )
+    
+    /**
+     * Stream of operation hints for optimistic UI updates.
+     */
+    val operationHints: SharedFlow<OperationHint> = _operationHints.asSharedFlow()
     
     fun execute(
         operation: ExplorerOperation,
@@ -229,6 +243,13 @@ class OperationEngine @Inject constructor(
         val totalFiles = operation.sources.size
         var processedCount = 0
         
+        // Emit hint that files will be added to destination
+        _operationHints.emit(OperationHint.FilesAdded(
+            targetPath = operation.destination,
+            files = operation.sources.map { operation.destination.child(it.name) },
+            operationId = operationId,
+        ))
+        
         for (source in operation.sources) {
             // TODO: Implement actual copy logic with proper gateway handling
             // For now, simulate copy operations
@@ -305,6 +326,20 @@ class OperationEngine @Inject constructor(
         strategy: ConflictStrategy,
         emitState: suspend (OperationState) -> Unit,
     ): OperationMetrics {
+        // Emit hint for move operation
+        val sourcePath = when (val first = operation.sources.firstOrNull()) {
+            is LocalPath -> first.parent() ?: operation.destination
+            else -> operation.destination
+        }
+        val hint = OperationHint.FilesMoved(
+            targetPath = operation.destination,
+            sourcePath = sourcePath,
+            files = operation.sources.toList(),
+            operationId = operationId,
+        )
+        _operationHints.emit(hint.asAdditionHint())
+        _operationHints.emit(hint.asRemovalHint())
+        
         // Move is copy + delete
         val metrics = executeCopy(
             ExplorerOperation.FileOp.Copy(
@@ -339,6 +374,19 @@ class OperationEngine @Inject constructor(
         var metrics = OperationMetrics()
         val totalFiles = operation.paths.size
         var processedCount = 0
+        
+        // Emit hint that files will be removed
+        val parentPath = when (val first = operation.paths.firstOrNull()) {
+            is LocalPath -> first.parent()
+            else -> null
+        }
+        if (parentPath != null) {
+            _operationHints.emit(OperationHint.FilesRemoved(
+                targetPath = parentPath,
+                files = operation.paths.toList(),
+                operationId = operationId,
+            ))
+        }
         
         for (path in operation.paths) {
             try {

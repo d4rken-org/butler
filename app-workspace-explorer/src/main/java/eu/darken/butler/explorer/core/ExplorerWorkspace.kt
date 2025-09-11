@@ -90,6 +90,14 @@ class ExplorerWorkspace @AssistedInject constructor(
     init {
         engine.subTag = id.shortTag
 
+        // Connect operation hints to browsing engine for optimistic updates
+        operationEngine.operationHints
+            .onEach { hint ->
+                log(tag, INFO) { "Received operation hint: $hint" }
+                engine.acceptOperationHint(hint)
+            }
+            .launchIn(scope)
+
         // Set up navigation flow processing
         navigationRequests
             .onEach { log(tag, INFO) { "New navigation request: $it" } }
