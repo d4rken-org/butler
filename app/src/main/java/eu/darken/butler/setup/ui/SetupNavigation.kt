@@ -18,6 +18,7 @@ class SetupNavigation @Inject constructor() : NavigationEntry {
         entry<DestinationSetup> { destination ->
             val options = SetupScreenOptions(
                 typeFilter = destination.typeFilter?.map { SetupModule.Type.valueOf(it) }?.toSet(),
+                requiredTypes = destination.requiredTypes?.map { SetupModule.Type.valueOf(it) }?.toSet(),
                 isOnboarding = destination.isOnboarding,
                 showCompleted = destination.showCompleted
             )

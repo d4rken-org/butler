@@ -52,7 +52,7 @@ class SetupViewModel @AssistedInject constructor(
         launch {
             while (currentCoroutineContext().isActive) {
                 setupManager.refresh()
-                delay(3.seconds)
+                delay(5.seconds)
             }
         }
     }
@@ -76,7 +76,7 @@ class SetupViewModel @AssistedInject constructor(
                         type = type,
                         state = state,
                         isRequired = isRequired(type),
-                        priority = getPriority(type),
+                        priority = type.priority,
                     )
                 } else {
                     log(tag) { "No state found for setup type: $type" }
@@ -122,27 +122,7 @@ class SetupViewModel @AssistedInject constructor(
     }
 
     private fun isRequired(type: SetupModule.Type): Boolean {
-        // If requiredTypes is specified, use that
-        if (options.requiredTypes != null) {
-            return type in options.requiredTypes
-        }
-        
-        // Otherwise use defaults
-        return when (type) {
-            SetupModule.Type.STORAGE -> true
-            SetupModule.Type.SAF -> true
-            else -> false
-        }
-    }
-
-    private fun getPriority(type: SetupModule.Type): Int = when (type) {
-        SetupModule.Type.STORAGE -> 1
-        SetupModule.Type.SAF -> 2
-        SetupModule.Type.NOTIFICATION -> 3
-        SetupModule.Type.USAGE_STATS -> 4
-        SetupModule.Type.ROOT -> 5
-        SetupModule.Type.SHIZUKU -> 6
-        SetupModule.Type.INVENTORY -> 7
+        return options.requiredTypes?.contains(type) ?: false
     }
 
     private fun getHelpUrl(type: SetupModule.Type): String {
@@ -167,3 +147,14 @@ class SetupViewModel @AssistedInject constructor(
         fun create(options: SetupScreenOptions): SetupViewModel
     }
 }
+
+private val SetupModule.Type.priority: Int
+    get() = when (this) {
+        SetupModule.Type.STORAGE -> 1
+        SetupModule.Type.SAF -> 2
+        SetupModule.Type.NOTIFICATION -> 3
+        SetupModule.Type.USAGE_STATS -> 4
+        SetupModule.Type.ROOT -> 5
+        SetupModule.Type.SHIZUKU -> 6
+        SetupModule.Type.INVENTORY -> 7
+    }

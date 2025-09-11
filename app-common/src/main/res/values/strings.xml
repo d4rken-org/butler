@@ -183,4 +183,13 @@
     <string name="ui_theme_color_green_label">Green &amp; Gold</string>
     <string name="ui_theme_color_blue_label">Blue &amp; Orange</string>
     <string name="ui_theme_color_amoled_label">AMOLED</string>
+    
+    <!-- Setup module types -->
+    <string name="setup_usagestats_title">Usage stats</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Notification access</string>
+    <string name="setup_saf_card_title">Storage Access Framework</string>
+    <string name="setup_manage_storage_card_title">Manage external storage</string>
+    <string name="setup_inventory_card_title">App inventory</string>
 </resources>

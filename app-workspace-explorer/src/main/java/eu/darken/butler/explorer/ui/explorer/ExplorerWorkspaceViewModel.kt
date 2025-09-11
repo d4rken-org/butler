@@ -10,8 +10,10 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.flow.SingleEventFlow
+import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
-import eu.darken.butler.common.navigation.DestinationSetup
+import eu.darken.butler.common.navigation.destSetupTyped
+import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -491,8 +493,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun navigateToSetup() = launch {
         log(tag) { "navigateToSetup(): Opening setup for storage permissions" }
         navTo(
-            DestinationSetup(
-                typeFilter = setOf("STORAGE")
+            Nav.Main.destSetupTyped(
+                typeFilter = setOf(SetupModule.Type.STORAGE),
+                requiredTypes = setOf(SetupModule.Type.STORAGE)
             )
         )
     }

@@ -11,7 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.twotone.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -46,6 +46,7 @@ import eu.darken.butler.setup.ui.items.SetupCard
 fun SetupScreen(
     state: SetupViewModel.State,
     onNavigateUp: () -> Unit,
+    onRefresh: () -> Unit,
     onExecuteAction: (SetupModule.Type, SetupAction) -> Unit,
     onOpenHelp: (SetupModule.Type) -> Unit,
 ) {
@@ -59,6 +60,16 @@ fun SetupScreen(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(
                                 eu.darken.butler.common.R.string.general_back_action
+                            )
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onRefresh) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Refresh,
+                            contentDescription = stringResource(
+                                eu.darken.butler.common.R.string.general_refresh_action
                             )
                         )
                     }
@@ -162,6 +173,7 @@ fun SetupScreenHost(
         SetupScreen(
             state = vmState,
             onNavigateUp = { vm.navUp() },
+            onRefresh = { vm.refresh() },
             onExecuteAction = { type, action -> vm.executeAction(type, action) },
             onOpenHelp = { type -> vm.openHelp(type) }
         )

@@ -1,7 +1,7 @@
 package eu.darken.butler.setup.core
 
 import androidx.annotation.StringRes
-import eu.darken.butler.R
+import eu.darken.butler.common.R
 import kotlinx.coroutines.flow.Flow
 import kotlin.time.Instant
 
