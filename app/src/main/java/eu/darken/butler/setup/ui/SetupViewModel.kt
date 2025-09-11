@@ -15,9 +15,13 @@ import eu.darken.butler.setup.core.SetupItem
 import eu.darken.butler.setup.core.SetupManager
 import eu.darken.butler.setup.core.SetupModule
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.isActive
+import kotlin.time.Duration.Companion.seconds
 
 @HiltViewModel(assistedFactory = SetupViewModel.Factory::class)
 class SetupViewModel @AssistedInject constructor(
@@ -44,11 +48,49 @@ class SetupViewModel @AssistedInject constructor(
 
     init {
         log(tag) { "init with options: $options" }
-        setupManager.setOptions(options)
+
+        launch {
+            while (currentCoroutineContext().isActive) {
+                setupManager.refresh()
+                delay(3.seconds)
+            }
+        }
     }
 
-    val state = setupManager.setupItems
-        .map { items ->
+    val state = setupManager.moduleStates
+        .map { moduleStates ->
+            val items = SetupModule.Type.entries.mapNotNull { type ->
+                // Filter by typeFilter if provided
+                if (options.typeFilter != null && type !in options.typeFilter) {
+                    return@mapNotNull null
+                }
+
+                val state = moduleStates[type]
+                if (state != null) {
+                    // Filter by showCompleted if set to false
+                    if (!options.showCompleted && state is SetupModule.State.Current && state.isComplete) {
+                        return@mapNotNull null
+                    }
+
+                    SetupItem(
+                        type = type,
+                        state = state,
+                        isRequired = isRequired(type),
+                        priority = getPriority(type),
+                    )
+                } else {
+                    log(tag) { "No state found for setup type: $type" }
+                    null
+                }
+            }.sortedWith(
+                compareBy(
+                    // First sort by completion status (incomplete first)
+                    { (it.state as? SetupModule.State.Current)?.isComplete == true },
+                    // Then by priority within each group
+                    { it.priority }
+                )
+            )
+
             State(items = items)
         }
         .asStateFlow()
@@ -77,6 +119,30 @@ class SetupViewModel @AssistedInject constructor(
         log(tag) { "openHelp(type=$type)" }
         val helpUrl = getHelpUrl(type)
         webpageTool.open(helpUrl)
+    }
+
+    private fun isRequired(type: SetupModule.Type): Boolean {
+        // If requiredTypes is specified, use that
+        if (options.requiredTypes != null) {
+            return type in options.requiredTypes
+        }
+        
+        // Otherwise use defaults
+        return when (type) {
+            SetupModule.Type.STORAGE -> true
+            SetupModule.Type.SAF -> true
+            else -> false
+        }
+    }
+
+    private fun getPriority(type: SetupModule.Type): Int = when (type) {
+        SetupModule.Type.STORAGE -> 1
+        SetupModule.Type.SAF -> 2
+        SetupModule.Type.NOTIFICATION -> 3
+        SetupModule.Type.USAGE_STATS -> 4
+        SetupModule.Type.ROOT -> 5
+        SetupModule.Type.SHIZUKU -> 6
+        SetupModule.Type.INVENTORY -> 7
     }
 
     private fun getHelpUrl(type: SetupModule.Type): String {
