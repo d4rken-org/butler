@@ -423,7 +423,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 conflictStateFlow.value = error
             }
             is ExplorerError.ReadError,
-            is ExplorerError.WriteError -> {
+            is ExplorerError.WriteError,
+            is ExplorerError.Unknown -> {
                 // Show error snackbar
                 explorerErrorEvents.tryEmit(error)
             }

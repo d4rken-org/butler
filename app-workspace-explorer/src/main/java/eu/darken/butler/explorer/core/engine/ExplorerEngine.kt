@@ -319,6 +319,20 @@ class ExplorerEngine @Inject constructor(
                     log(tag, WARN) { "Rename operation not yet implemented in gateway" }
                     Result.failure(UnsupportedOperationException("Rename not yet implemented"))
                 }
+                
+                is ExplorerOperation.FileOp.Compress -> {
+                    log(tag, INFO) { "Compressing ${operation.sources.size} items to ${operation.destination}" }
+                    // TODO: Implement compress operation
+                    log(tag, WARN) { "Compress operation not yet implemented" }
+                    Result.failure(UnsupportedOperationException("Compress not yet implemented"))
+                }
+                
+                is ExplorerOperation.FileOp.Extract -> {
+                    log(tag, INFO) { "Extracting ${operation.archive} to ${operation.destination}" }
+                    // TODO: Implement extract operation
+                    log(tag, WARN) { "Extract operation not yet implemented" }
+                    Result.failure(UnsupportedOperationException("Extract not yet implemented"))
+                }
             }
         } catch (e: Exception) {
             log(tag, ERROR) { "Operation failed: $operation - ${e.message}" }

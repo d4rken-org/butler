@@ -13,6 +13,12 @@ import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.engine.ExplorerEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
+import eu.darken.butler.explorer.core.errors.ConflictResolution
+import eu.darken.butler.explorer.core.operations.ConflictStrategy
+import eu.darken.butler.explorer.core.operations.OperationExecutor
+import eu.darken.butler.explorer.core.operations.OperationId
+import eu.darken.butler.explorer.core.operations.OperationResult
+import eu.darken.butler.explorer.core.operations.OperationState
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
 import kotlinx.coroutines.CancellationException
@@ -29,6 +35,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.parcelize.Parcelize
+import kotlin.uuid.Uuid
 
 
 class ExplorerWorkspace @AssistedInject constructor(
@@ -37,6 +44,7 @@ class ExplorerWorkspace @AssistedInject constructor(
     dispatcherProvider: DispatcherProvider,
     private val engine: ExplorerEngine,
     private val breadcrumbGenerator: BreadcrumbGenerator,
+    private val operationExecutor: OperationExecutor,
 ) : Workspace {
 
     private val tag = logTag("Explorer", "Workspace", id.shortTag)
@@ -70,9 +78,13 @@ class ExplorerWorkspace @AssistedInject constructor(
         val isLoadingExtended: Boolean = false,
         val error: Throwable? = null,
         val progress: Progress.Data? = null,
+        val activeOperations: Map<OperationId, OperationState> = emptyMap(),
+        val operationHistory: List<OperationResult> = emptyList(),
+        val pendingConflicts: Map<OperationId, OperationState.AwaitingInput> = emptyMap(),
     ) {
         val canGoBack: Boolean get() = historyIndex > 0
         val canGoForward: Boolean get() = historyIndex < navigationHistory.size - 1
+        val hasActiveOperations: Boolean get() = activeOperations.isNotEmpty()
     }
 
     init {
@@ -111,30 +123,46 @@ class ExplorerWorkspace @AssistedInject constructor(
         operationRequests
             .onEach { log(tag, INFO) { "New operation request: $it" } }
             .onEach { operation ->
-                operationMutex.withLock {
-                    try {
-                        current.value = current.value.copy(isLoading = true)
-                        val result = engine.executeOperation(operation)
-
-                        if (result.isSuccess) {
-                            log(tag, INFO) { "Operation successful: $operation" }
-                            // Refresh current location after successful operation
-                            current.value.currentTarget?.let { target ->
-                                processNavigationRequest(ExplorerNavigation.Refresh)
-                            }
-                        } else {
-                            log(tag, ERROR) { "Operation failed: ${result.exceptionOrNull()}" }
-                            current.value = current.value.copy(
-                                error = result.exceptionOrNull(),
-                                isLoading = false
-                            )
-                        }
-                    } catch (e: Exception) {
-                        log(tag, ERROR) { "Operation processing failed: $e" }
+                scope.launch {
+                    operationExecutor.execute(
+                        operation = operation,
+                        scope = scope,
+                        conflictStrategy = ConflictStrategy.ASK,
+                    ).collect { state ->
+                        // Update active operations map
                         current.value = current.value.copy(
-                            error = e,
-                            isLoading = false
+                            activeOperations = if (state is OperationState.Completed) {
+                                current.value.activeOperations - operation.operationId
+                            } else {
+                                current.value.activeOperations + (operation.operationId to state)
+                            },
+                            pendingConflicts = if (state is OperationState.AwaitingInput) {
+                                current.value.pendingConflicts + (operation.operationId to state)
+                            } else {
+                                current.value.pendingConflicts - operation.operationId
+                            },
                         )
+                        
+                        // Handle completed operations
+                        if (state is OperationState.Completed) {
+                            // Add to history
+                            current.value = current.value.copy(
+                                operationHistory = current.value.operationHistory + state.result
+                            )
+                            
+                            // Refresh on success
+                            if (state.result is OperationResult.Success) {
+                                log(tag, INFO) { "Operation successful: $operation" }
+                                current.value.currentTarget?.let {
+                                    processNavigationRequest(ExplorerNavigation.Refresh)
+                                }
+                            } else if (state.result is OperationResult.Failure) {
+                                log(tag, ERROR) { "Operation failed: ${state.result.error}" }
+                                current.value = current.value.copy(
+                                    error = state.result.exception
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -274,6 +302,25 @@ class ExplorerWorkspace @AssistedInject constructor(
                 isLoadingExtended = false,
             )
         }
+    }
+
+    fun submitOperation(operation: ExplorerOperation) {
+        log(tag, INFO) { "Submitting operation: $operation" }
+        scope.launch {
+            operationRequests.emit(operation)
+        }
+    }
+    
+    fun resolveConflict(operationId: OperationId, resolution: ConflictResolution) {
+        log(tag, INFO) { "Resolving conflict for operation $operationId: $resolution" }
+        scope.launch {
+            operationExecutor.resolveConflict(operationId, resolution)
+        }
+    }
+    
+    fun cancelOperation(operationId: OperationId) {
+        log(tag, INFO) { "Cancelling operation: $operationId" }
+        operationExecutor.cancelOperation(operationId)
     }
 
     override suspend fun release() {
