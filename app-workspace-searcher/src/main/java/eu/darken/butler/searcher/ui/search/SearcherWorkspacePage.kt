@@ -120,6 +120,7 @@ fun SearcherWorkspacePageHost(
             onUpdateSearchPath = vm::updateSearchPath,
             onPerformSearch = vm::performSearch,
             onCancelSearch = vm::cancelSearch,
+            onClearResults = vm::clearResults,
             onResultClick = vm::onSearchResultClick,
             onClearHistory = vm::clearSearchHistory,
             onHistoryItemRemove = vm::removeHistoryItem,
@@ -153,6 +154,7 @@ fun SearcherWorkspacePage(
     onUpdateSearchPath: (APath) -> Unit = {},
     onPerformSearch: () -> Unit = {},
     onCancelSearch: () -> Unit = {},
+    onClearResults: () -> Unit = {},
     onResultClick: (SearchResult) -> Unit = {},
     onClearHistory: () -> Unit = {},
     onHistoryItemRemove: (SearchHistory.SearchHistoryItem) -> Unit = {},
@@ -349,7 +351,8 @@ fun SearcherWorkspacePage(
             item {
                 SearchStatusCard(
                     state = state,
-                    onCancel = onCancelSearch
+                    onCancel = onCancelSearch,
+                    onClear = onClearResults
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -866,6 +869,7 @@ private fun extractFileMetadata(result: SearchResult): Map<String, String> {
 fun SearchStatusCard(
     state: SearcherWorkspaceViewModel.State,
     onCancel: () -> Unit,
+    onClear: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -879,7 +883,7 @@ fun SearchStatusCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -936,37 +940,56 @@ fun SearchStatusCard(
                                     progress.itemsScanned,
                                     progress.resultsFound
                                 )
-                            } ?: ""
+                            } ?: stringResource(R.string.searcher_progress_searching)
                         }
                         state.searchState.results.isNotEmpty() -> {
                             stringResource(R.string.searcher_status_search_completed)
                         }
-                        else -> "" // Empty string maintains space
+                        else -> {
+                            // No results - provide helpful text
+                            stringResource(R.string.searcher_placeholder_search)
+                        }
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    minLines = 1 // Ensure minimum height even when empty
+                    minLines = 1, // Ensure minimum height even when empty
+                    maxLines = 1 // Keep it single line for consistency
                 )
             }
             
-            // Cancel button when searching, or placeholder to maintain width
-            if (state.isSearching) {
-                TextButton(
-                    onClick = onCancel,
-                    colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text(
-                        text = stringResource(R.string.general_cancel_action),
-                        style = MaterialTheme.typography.labelMedium
-                    )
+            // Fixed-width container for action area to prevent width changes
+            Box(
+                modifier = Modifier.width(72.dp), // Fixed width for consistent layout
+                contentAlignment = Alignment.Center
+            ) {
+                // Always show an action button to maintain consistent UI
+                if (state.isSearching) {
+                    // Cancel button when searching
+                    TextButton(
+                        onClick = onCancel,
+                        colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text(
+                            text = stringResource(R.string.general_cancel_action),
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                } else {
+                    // Clear button when showing results or no results
+                    TextButton(
+                        onClick = onClear,
+                        colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text(
+                            text = stringResource(R.string.searcher_history_clear_confirm_action),
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
                 }
-            } else {
-                // Invisible placeholder to maintain consistent card width
-                Box(
-                    modifier = Modifier.width(72.dp) // Approximate width of cancel button
-                )
             }
         }
     }
