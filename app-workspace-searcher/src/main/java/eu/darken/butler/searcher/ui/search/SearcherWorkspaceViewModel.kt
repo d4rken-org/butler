@@ -168,6 +168,12 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         searchState.update { it.copy(status = SearchState.Status.CANCELLED) }
     }
 
+    fun clearResults() {
+        log(TAG) { "Clearing search results" }
+        searchState.update { it.copy(status = SearchState.Status.IDLE, results = emptyList(), progress = null, error = null) }
+        searchQuery.value = TextFieldValue("")
+    }
+
     fun updateFilter(filter: SearchQuery.Filter) {
         log(TAG) { "Updating filter: $filter" }
         currentFilter.value = filter

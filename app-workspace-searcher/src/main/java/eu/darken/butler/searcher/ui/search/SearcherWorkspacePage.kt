@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
@@ -94,57 +95,6 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import kotlinx.coroutines.delay
 import eu.darken.butler.searcher.ui.search.rows.FileType as UIFileType
 
-
-@Composable
-fun SearcherWorkspacePageHost(
-    id: Workspace.Id,
-    design: WorkspaceDesign,
-    vm: SearcherWorkspaceViewModel = hiltViewModel(
-        key = id.longTag,
-        creationCallback = { factory: SearcherWorkspaceViewModel.Factory -> factory.create(id = id) }
-    ),
-    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
-) {
-    ErrorEventHandler(vm)
-
-    val workspaceButtonState by workspaceButtonVm.state.collectAsState(null)
-
-    val state by waitForState(vm.state)
-    log(vm.tag) { "Compose state: $state" }
-
-    state?.let { state ->
-        SearcherWorkspacePage(
-            design = design,
-            state = state,
-            onUpdateQuery = vm::updateSearchQuery,
-            onUpdateSearchPath = vm::updateSearchPath,
-            onPerformSearch = vm::performSearch,
-            onCancelSearch = vm::cancelSearch,
-            onResultClick = vm::onSearchResultClick,
-            onClearHistory = vm::clearSearchHistory,
-            onHistoryItemRemove = vm::removeHistoryItem,
-            onHistoryItemClick = { item ->
-                item.searchQuery?.let { query ->
-                    vm.updateSearchQuery(TextFieldValue(query.query))
-                    vm.updateSearchPath(query.path)
-                    vm.updateFilter(query.filter)
-                    vm.performSearch()
-                } ?: run {
-                    // Fallback to just the base query if full query unavailable
-                    vm.updateSearchQuery(TextFieldValue(item.baseQuery))
-                    vm.performSearch()
-                }
-            },
-            onToggleCaseSensitive = vm::toggleCaseSensitive,
-            onToggleWholeWord = vm::toggleWholeWord,
-            onToggleRegex = vm::toggleRegex,
-            workspaceButtonState = workspaceButtonState,
-            onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
-            onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
-        )
-    }
-}
-
 @Composable
 fun SearcherWorkspacePage(
     design: WorkspaceDesign = WorkspaceDesign(),
@@ -153,6 +103,7 @@ fun SearcherWorkspacePage(
     onUpdateSearchPath: (APath) -> Unit = {},
     onPerformSearch: () -> Unit = {},
     onCancelSearch: () -> Unit = {},
+    onClearResults: () -> Unit = {},
     onResultClick: (SearchResult) -> Unit = {},
     onClearHistory: () -> Unit = {},
     onHistoryItemRemove: (SearchHistory.SearchHistoryItem) -> Unit = {},
@@ -182,7 +133,7 @@ fun SearcherWorkspacePage(
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(
             horizontal = 16.dp,
             vertical = 8.dp
@@ -204,7 +155,6 @@ fun SearcherWorkspacePage(
                 onWorkspaceAction = onWorkspaceAction,
                 onNavToWorkspaceManager = onNavToWorkspaceManager
             )
-            Spacer(modifier = Modifier.height(16.dp))
         }
 
         // Show search history when no search query
@@ -213,21 +163,24 @@ fun SearcherWorkspacePage(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 8.dp),
+                        .padding(top = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = stringResource(R.string.searcher_recent_searches),
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.titleMedium
                     )
-                    TextButton(
-                        onClick = { showClearHistoryDialog = true }
+                    Surface(
+                        modifier = Modifier.clickable { showClearHistoryDialog = true },
+                        shape = RoundedCornerShape(6.dp),
+                        color = Color.Transparent
                     ) {
                         Text(
                             text = stringResource(R.string.searcher_history_clear_all_action),
                             color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.labelMedium
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
                     }
                 }
@@ -349,9 +302,9 @@ fun SearcherWorkspacePage(
             item {
                 SearchStatusCard(
                     state = state,
-                    onCancel = onCancelSearch
+                    onCancel = onCancelSearch,
+                    onClear = onClearResults
                 )
-                Spacer(modifier = Modifier.height(8.dp))
             }
         }
 
@@ -421,405 +374,60 @@ fun SearcherWorkspacePage(
 }
 
 @Composable
-fun SearchToolbarCard(
-    state: SearcherWorkspaceViewModel.State,
+fun SearcherWorkspacePageHost(
+    id: Workspace.Id,
     design: WorkspaceDesign,
-    onUpdateQuery: (TextFieldValue) -> Unit,
-    onUpdateSearchPath: (APath) -> Unit,
-    onPerformSearch: () -> Unit,
-    onCancelSearch: () -> Unit,
-    onToggleCaseSensitive: () -> Unit,
-    onToggleWholeWord: () -> Unit,
-    onToggleRegex: () -> Unit,
-    workspaceButtonState: WorkspaceButtonViewModel.State?,
-    onWorkspaceAction: (WorkspaceAction) -> Unit,
-    onNavToWorkspaceManager: () -> Unit,
-    modifier: Modifier = Modifier
+    vm: SearcherWorkspaceViewModel = hiltViewModel(
+        key = id.longTag,
+        creationCallback = { factory: SearcherWorkspaceViewModel.Factory -> factory.create(id = id) }
+    ),
+    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                SearchBar(
-                    query = state.searchQuery,
-                    onQueryChange = onUpdateQuery,
-                    onSearch = onPerformSearch,
-                    isSearching = state.isSearching,
-                    onCancel = if (state.isSearching) onCancelSearch else null,
-                    modifier = Modifier.weight(1f)
-                )
+    ErrorEventHandler(vm)
 
-                if (design.isSingle) {
-                    Spacer(modifier = Modifier.width(8.dp))
+    val workspaceButtonState by workspaceButtonVm.state.collectAsState(null)
 
-                    WorkspaceButton(
-                        state = workspaceButtonState,
-                        onAction = onWorkspaceAction,
-                        onNavToWorkspaceManager = onNavToWorkspaceManager,
-                    )
+    val state by waitForState(vm.state)
+    log(vm.tag) { "Compose state: $state" }
+
+    state?.let { state ->
+        SearcherWorkspacePage(
+            design = design,
+            state = state,
+            onUpdateQuery = vm::updateSearchQuery,
+            onUpdateSearchPath = vm::updateSearchPath,
+            onPerformSearch = vm::performSearch,
+            onCancelSearch = vm::cancelSearch,
+            onClearResults = vm::clearResults,
+            onResultClick = vm::onSearchResultClick,
+            onClearHistory = vm::clearSearchHistory,
+            onHistoryItemRemove = vm::removeHistoryItem,
+            onHistoryItemClick = { item ->
+                item.searchQuery?.let { query ->
+                    vm.updateSearchQuery(TextFieldValue(query.query))
+                    vm.updateSearchPath(query.path)
+                    vm.updateFilter(query.filter)
+                    vm.performSearch()
+                } ?: run {
+                    // Fallback to just the base query if full query unavailable
+                    vm.updateSearchQuery(TextFieldValue(item.baseQuery))
+                    vm.performSearch()
                 }
-            }
-
-            SearchPathBar(
-                path = state.searchPath,
-                onPathChange = onUpdateSearchPath,
-                onPerformSearch = onPerformSearch,
-                isSearching = state.isSearching
-            )
-
-            SearchOptionsRow(
-                caseSensitive = state.caseSensitive,
-                wholeWord = state.wholeWord,
-                useRegex = state.useRegex,
-                onToggleCaseSensitive = onToggleCaseSensitive,
-                onToggleWholeWord = onToggleWholeWord,
-                onToggleRegex = onToggleRegex,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-    }
-}
-
-@Composable
-fun SearchInputCard(
-    query: TextFieldValue,
-    onQueryChange: (TextFieldValue) -> Unit,
-    onSearch: () -> Unit,
-    path: APath,
-    onPathChange: (APath) -> Unit,
-    isSearching: Boolean,
-    onCancel: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            SearchBar(
-                query = query,
-                onQueryChange = onQueryChange,
-                onSearch = onSearch,
-                isSearching = isSearching,
-                onCancel = onCancel
-            )
-
-            SearchPathBar(
-                path = path,
-                onPathChange = onPathChange,
-                isSearching = isSearching
-            )
-        }
-    }
-}
-
-@Composable
-fun CustomSearchField(
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
-    placeholder: String,
-    leadingIcon: @Composable (() -> Unit)? = null,
-    trailingIcon: @Composable (() -> Unit)? = null,
-    enabled: Boolean = true,
-    isError: Boolean = false,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    keyboardActions: KeyboardActions = KeyboardActions.Default,
-    modifier: Modifier = Modifier,
-    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
-) {
-    val colors = MaterialTheme.colorScheme
-    val focusRequester = remember { FocusRequester() }
-    val isFocused by interactionSource.collectIsFocusedAsState()
-
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
-        color = colors.surfaceVariant.copy(alpha = if (isFocused) 0.9f else 0.7f),
-        border = BorderStroke(
-            width = if (isFocused) 2.dp else 0.dp,
-            color = when {
-                isError -> colors.error
-                isFocused -> colors.primary
-                else -> Color.Transparent
-            }
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            leadingIcon?.let {
-                Box(modifier = Modifier.padding(end = 8.dp)) {
-                    it()
-                }
-            }
-
-            BasicTextField(
-                value = value,
-                onValueChange = onValueChange,
-                modifier = Modifier
-                    .weight(1f)
-                    .focusRequester(focusRequester),
-                enabled = enabled,
-                textStyle = MaterialTheme.typography.bodyMedium.copy(
-                    color = colors.onSurface
-                ),
-                keyboardOptions = keyboardOptions,
-                keyboardActions = keyboardActions,
-                singleLine = true,
-                interactionSource = interactionSource,
-                decorationBox = { innerTextField ->
-                    Box {
-                        if (value.text.isEmpty()) {
-                            Text(
-                                text = placeholder,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = colors.onSurfaceVariant.copy(alpha = 0.6f)
-                            )
-                        }
-                        innerTextField()
-                    }
-                }
-            )
-
-            trailingIcon?.let {
-                Box(modifier = Modifier.padding(start = 8.dp)) {
-                    it()
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun SearchBar(
-    query: TextFieldValue,
-    onQueryChange: (TextFieldValue) -> Unit,
-    onSearch: () -> Unit,
-    isSearching: Boolean,
-    onCancel: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
-) {
-    CustomSearchField(
-        value = query,
-        onValueChange = onQueryChange,
-        placeholder = stringResource(R.string.searcher_placeholder_search),
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.TwoTone.Search,
-                contentDescription = "Search",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        },
-        trailingIcon = {
-            when {
-                isSearching && onCancel != null -> {
-                    Icon(
-                        imageVector = Icons.TwoTone.Close,
-                        contentDescription = stringResource(R.string.general_cancel_action),
-                        modifier = Modifier
-                            .clickable { onCancel() }
-                            .size(24.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                query.text.isNotEmpty() -> {
-                    Icon(
-                        imageVector = Icons.TwoTone.Clear,
-                        contentDescription = "Clear",
-                        modifier = Modifier
-                            .clickable { onQueryChange(TextFieldValue("")) }
-                            .size(24.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                else -> null
-            }
-        },
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-        keyboardActions = KeyboardActions(onSearch = { onSearch() }),
-        modifier = modifier
-    )
-}
-
-@Composable
-fun SearchPathBar(
-    path: APath,
-    onPathChange: (APath) -> Unit,
-    onPerformSearch: () -> Unit = {},
-    isSearching: Boolean,
-    modifier: Modifier = Modifier
-) {
-    var pathText by remember { mutableStateOf(TextFieldValue(path.path)) }
-    var showPathPicker by remember { mutableStateOf(false) }
-    val focusRequester = remember { FocusRequester() }
-    val interactionSource = remember { MutableInteractionSource() }
-    val isFocused by interactionSource.collectIsFocusedAsState()
-    val focusManager = LocalFocusManager.current
-    val keyboardController = LocalSoftwareKeyboardController.current
-
-    // Update pathText only when path changes from external source and field is not focused
-    LaunchedEffect(path, isFocused) {
-        if (!isFocused && pathText.text != path.path) {
-            pathText = TextFieldValue(path.path)
-        }
-    }
-
-    // Validate and update path when user finishes editing (loses focus)
-    LaunchedEffect(isFocused) {
-        if (!isFocused) {
-            try {
-                val newPath = LocalPath.build(pathText.text)
-                onPathChange(newPath)
-            } catch (e: Exception) {
-                // Invalid path, revert to current valid path
-                pathText = TextFieldValue(path.path)
-            }
-        }
-    }
-
-    CustomSearchField(
-        value = pathText,
-        onValueChange = { newPath ->
-            pathText = newPath
-            // Don't validate path on every keystroke - wait for focus loss or Done action
-        },
-        placeholder = stringResource(R.string.searcher_placeholder_path),
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.TwoTone.Folder,
-                contentDescription = "Search Path",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        },
-        trailingIcon = {
-            Icon(
-                imageVector = Icons.TwoTone.FolderOpen,
-                contentDescription = "Browse",
-                modifier = Modifier
-                    .clickable { showPathPicker = true }
-                    .size(24.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        },
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(onDone = {
-            try {
-                val newPath = LocalPath.build(pathText.text)
-                onPathChange(newPath)
-                keyboardController?.hide() // Dismiss soft keyboard (no-op for external keyboards)
-                onPerformSearch() // Trigger search with new path
-            } catch (e: Exception) {
-                // Invalid path, revert to current valid path
-                pathText = TextFieldValue(path.path)
-            }
-        }),
-        enabled = !isSearching,
-        modifier = modifier.focusRequester(focusRequester),
-        interactionSource = interactionSource
-    )
-
-    if (showPathPicker) {
-        PathPickerDialog(
-            onPathSelected = { selectedPath ->
-                pathText = TextFieldValue(selectedPath.path)
-                onPathChange(selectedPath)
-                showPathPicker = false
             },
-            onDismiss = { showPathPicker = false }
+            onToggleCaseSensitive = vm::toggleCaseSensitive,
+            onToggleWholeWord = vm::toggleWholeWord,
+            onToggleRegex = vm::toggleRegex,
+            workspaceButtonState = workspaceButtonState,
+            onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
+            onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
         )
     }
 }
 
-@Composable
-fun PathPickerDialog(
-    onPathSelected: (APath) -> Unit,
-    onDismiss: () -> Unit
-) {
-    val commonPaths = listOf(
-        "/storage/emulated/0/Android/data/eu.darken.butler" to "Butler App Data (Default)",
-        "/" to "Root",
-        "/sdcard" to "Internal Storage",
-        "/storage/emulated/0" to "Internal Storage (Alt)",
-        "/storage/emulated/0/Download" to "Downloads",
-        "/storage/emulated/0/Pictures" to "Pictures",
-        "/storage/emulated/0/Documents" to "Documents",
-        "/storage/emulated/0/Music" to "Music",
-        "/storage/emulated/0/Movies" to "Movies",
-        "/system" to "System",
-        "/data" to "Data",
-        "/cache" to "Cache"
-    )
+// SearchToolbarCard moved to SearchToolbarCard.kt
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.searcher_select_path_title)) },
-        text = {
-            LazyColumn {
-                items(commonPaths) { (path, name) ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                onPathSelected(LocalPath.build(path))
-                            }
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.TwoTone.Folder,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column {
-                            Text(
-                                text = name,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Text(
-                                text = path,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.general_cancel_action))
-            }
-        }
-    )
-}
+
+// Input components moved to SearchInputComponents.kt
 
 @Composable
 fun SearchResultRow(result: SearchResult, onClick: () -> Unit) {
@@ -862,115 +470,6 @@ private fun extractFileMetadata(result: SearchResult): Map<String, String> {
     return emptyMap()
 }
 
-@Composable
-fun SearchStatusCard(
-    state: SearcherWorkspaceViewModel.State,
-    onCancel: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Icon/Progress indicator
-            if (state.isSearching) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.TwoTone.Search,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-            
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                // Primary message
-                Text(
-                    text = if (state.isSearching) {
-                        state.searchState.progress?.let { progress ->
-                            val folderName = when (val path = progress.currentPath) {
-                                is LocalPath -> path.parent()?.name ?: path.name
-                                else -> path.name
-                            }
-                            stringResource(R.string.searcher_progress_searching_in, folderName)
-                        } ?: stringResource(R.string.searcher_progress_searching)
-                    } else {
-                        when {
-                            state.searchState.error != null -> stringResource(R.string.searcher_search_error)
-                            state.searchState.results.isNotEmpty() -> stringResource(R.string.searcher_status_results_found, state.searchState.results.size)
-                            else -> stringResource(R.string.searcher_status_no_results)
-                        }
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                
-                // Secondary message - always present to maintain card height
-                Text(
-                    text = when {
-                        state.isSearching -> {
-                            state.searchState.progress?.let { progress ->
-                                stringResource(
-                                    R.string.searcher_progress_stats,
-                                    progress.itemsScanned,
-                                    progress.resultsFound
-                                )
-                            } ?: ""
-                        }
-                        state.searchState.results.isNotEmpty() -> {
-                            stringResource(R.string.searcher_status_search_completed)
-                        }
-                        else -> "" // Empty string maintains space
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    minLines = 1 // Ensure minimum height even when empty
-                )
-            }
-            
-            // Cancel button when searching, or placeholder to maintain width
-            if (state.isSearching) {
-                TextButton(
-                    onClick = onCancel,
-                    colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text(
-                        text = stringResource(R.string.general_cancel_action),
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                }
-            } else {
-                // Invisible placeholder to maintain consistent card width
-                Box(
-                    modifier = Modifier.width(72.dp) // Approximate width of cancel button
-                )
-            }
-        }
-    }
-}
 
 @Preview2
 @Composable
@@ -988,38 +487,4 @@ private fun SearchPagePreview() {
     }
 }
 
-@Preview2
-@Composable
-private fun SearchInputCardPreview() {
-    PreviewWrapper {
-        SearchInputCard(
-            query = TextFieldValue("test search"),
-            onQueryChange = {},
-            onSearch = {},
-            path = LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler"),
-            onPathChange = {},
-            isSearching = false,
-            modifier = Modifier.padding(16.dp)
-        )
-    }
-}
 
-@Preview2
-@Composable
-private fun SearchStatusCardPreview() {
-    PreviewWrapper {
-        SearchStatusCard(
-            state = SearcherWorkspaceViewModel.State(
-                id = Workspace.Id(),
-                searchPath = LocalPath.build("/storage/emulated/0/Documents"),
-                searchState = SearcherWorkspaceViewModel.SearchState(
-                    status = SearcherWorkspaceViewModel.SearchState.Status.COMPLETED,
-                    results = listOf(), // Empty for "no results" state
-                    progress = null
-                )
-            ),
-            onCancel = {},
-            modifier = Modifier.padding(16.dp)
-        )
-    }
-}
