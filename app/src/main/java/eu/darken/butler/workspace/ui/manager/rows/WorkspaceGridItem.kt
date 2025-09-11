@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,7 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
@@ -30,7 +30,12 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
+import eu.darken.butler.workspace.core.preview.EditorPreviewData
+import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
+import eu.darken.butler.workspace.core.preview.ExplorerPreviewItem
+import eu.darken.butler.workspace.core.preview.SearcherPreviewData
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
+import eu.darken.butler.workspace.ui.manager.rows.preview.WorkspacePreview
 
 @Composable
 fun WorkspaceGridItem(
@@ -38,6 +43,7 @@ fun WorkspaceGridItem(
     workspace: WorkspaceManagerViewModel.WorkspaceItem,
     onClose: () -> Unit,
     onSelect: () -> Unit,
+    showPreview: Boolean = true,
 ) {
     Card(
         modifier = modifier
@@ -70,42 +76,59 @@ fun WorkspaceGridItem(
                     modifier = Modifier.size(18.dp)
                 )
             }
-            
+
             // Main content
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 24.dp, bottom = 16.dp, start = 16.dp, end = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                    .padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(
-                    imageVector = workspace.type.icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(48.dp)
-                )
-                
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                // Header section with icon, title and subtitle
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 28.dp), // Add padding to avoid close button overlap
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = workspace.title.asComposable(),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center
+                    Icon(
+                        imageVector = workspace.type.icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
                     )
-                    Text(
-                        text = workspace.subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 8.dp)
+
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        Text(
+                            text = workspace.title.asComposable(),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        if (workspace.subtitle != null) {
+
+                            Text(
+                                text = workspace.subtitle.asComposable(),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+
+                // Preview section
+                if (showPreview) {
+                    WorkspacePreview(
+                        modifier = Modifier.fillMaxWidth(),
+                        type = workspace.type,
+                        previewData = workspace.previewData
                     )
                 }
             }
@@ -123,7 +146,8 @@ private fun WorkspaceGridItemPreview() {
                 id = Workspace.Id(),
                 type = Workspace.Type.EXPLORER,
                 title = "Explorer".toCaString(),
-                subtitle = "File explorer for browsing and managing files"
+                subtitle = "File explorer for browsing and managing files".toCaString(),
+                previewData = ExplorerPreviewData(),
             ),
             onClose = {},
             onSelect = {}
@@ -141,7 +165,27 @@ private fun WorkspaceGridItemSearcherPreview() {
                 id = Workspace.Id(),
                 type = Workspace.Type.SEARCHER,
                 title = "Search".toCaString(),
-                subtitle = "Search for files and folders"
+                subtitle = "Search for files and folders".toCaString(),
+                previewData = SearcherPreviewData(),
+            ),
+            onClose = {},
+            onSelect = {}
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun WorkspaceGridItemEditorPreview() {
+    PreviewWrapper {
+        WorkspaceGridItem(
+            modifier = Modifier.padding(16.dp),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = Workspace.Id(),
+                type = Workspace.Type.EDITOR,
+                title = "Editor".toCaString(),
+                subtitle = "Text editor".toCaString(),
+                previewData = EditorPreviewData(),
             ),
             onClose = {},
             onSelect = {}

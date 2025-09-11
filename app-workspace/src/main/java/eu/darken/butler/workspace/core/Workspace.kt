@@ -3,6 +3,7 @@ package eu.darken.butler.workspace.core
 import android.os.Parcelable
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.parcel.UuidParceler
+import eu.darken.butler.workspace.core.preview.PreviewData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.TypeParceler
@@ -47,5 +48,6 @@ interface Workspace {
         val subtitle: CaString? = null,
         val operationCount: Int = 0,
         val attentionCount: Int = 0,
+        val previewData: PreviewData? = null,
     )
 }

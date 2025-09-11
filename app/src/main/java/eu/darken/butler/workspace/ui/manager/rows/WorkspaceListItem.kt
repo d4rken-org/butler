@@ -109,7 +109,7 @@ fun WorkspaceListItem(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = workspace.subtitle,
+                    text = workspace.subtitle?.asComposable() ?: "",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -158,7 +158,7 @@ private fun WorkspaceListItemPreview() {
                 id = Workspace.Id(),
                 type = Workspace.Type.EXPLORER,
                 title = "Explorer".toCaString(),
-                subtitle = "File explorer"
+                subtitle = "File explorer".toCaString()
             ),
             onClose = {},
             onSelect = {},
@@ -193,7 +193,7 @@ private fun WorkspaceListItemDraggingPreview() {
                 id = Workspace.Id(),
                 type = Workspace.Type.SEARCHER,
                 title = "Search".toCaString(),
-                subtitle = "File search"
+                subtitle = "File search".toCaString()
             ),
             onClose = {},
             onSelect = {},

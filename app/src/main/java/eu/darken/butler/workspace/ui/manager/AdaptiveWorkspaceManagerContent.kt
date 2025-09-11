@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -132,19 +131,19 @@ private fun AdaptiveWorkspaceManagerContentListPreview() {
                             id = Workspace.Id(),
                             type = Workspace.Type.TEMPLATES,
                             title = "Templates".toCaString(),
-                            subtitle = "Workspace templates"
+                            subtitle = "Workspace templates".toCaString()
                         ),
                         WorkspaceManagerViewModel.WorkspaceItem(
                             id = Workspace.Id(),
                             type = Workspace.Type.EXPLORER,
                             title = "Explorer".toCaString(),
-                            subtitle = "File explorer"
+                            subtitle = "File explorer".toCaString()
                         ),
                         WorkspaceManagerViewModel.WorkspaceItem(
                             id = Workspace.Id(),
                             type = Workspace.Type.SEARCHER,
                             title = "Search".toCaString(),
-                            subtitle = "File search"
+                            subtitle = "File search".toCaString()
                         )
                     ),
                     operationsCount = 3,
@@ -174,25 +173,25 @@ private fun AdaptiveWorkspaceManagerContentGridPreview() {
                             id = Workspace.Id(),
                             type = Workspace.Type.TEMPLATES,
                             title = "Templates".toCaString(),
-                            subtitle = "Workspace templates"
+                            subtitle = "Workspace templates".toCaString()
                         ),
                         WorkspaceManagerViewModel.WorkspaceItem(
                             id = Workspace.Id(),
                             type = Workspace.Type.EXPLORER,
                             title = "Explorer".toCaString(),
-                            subtitle = "File explorer for browsing"
+                            subtitle = "File explorer for browsing".toCaString()
                         ),
                         WorkspaceManagerViewModel.WorkspaceItem(
                             id = Workspace.Id(),
                             type = Workspace.Type.SEARCHER,
                             title = "Search".toCaString(),
-                            subtitle = "Search for files and folders"
+                            subtitle = "Search for files and folders".toCaString()
                         ),
                         WorkspaceManagerViewModel.WorkspaceItem(
                             id = Workspace.Id(),
                             type = Workspace.Type.EDITOR,
                             title = "Editor".toCaString(),
-                            subtitle = "Text editor"
+                            subtitle = "Text editor".toCaString()
                         )
                     ),
                     operationsCount = 2,

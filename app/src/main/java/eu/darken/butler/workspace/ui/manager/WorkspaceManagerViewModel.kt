@@ -14,6 +14,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
+import eu.darken.butler.workspace.core.preview.PreviewData
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
@@ -39,7 +40,8 @@ class WorkspaceManagerViewModel @Inject constructor(
                     id = info.id,
                     type = info.type,
                     title = info.title,
-                    subtitle = getSubtitleForWorkspace(info.type),
+                    subtitle = info.subtitle,
+                    previewData = info.previewData,
                 )
             },
             showBadgeExplanation = showBadge,
@@ -49,15 +51,6 @@ class WorkspaceManagerViewModel @Inject constructor(
             isButtonActionsFlipped = isButtonFlipped,
         )
     }.asStateFlow()
-
-    private fun getSubtitleForWorkspace(type: Workspace.Type): String {
-        return when (type) {
-            Workspace.Type.TEMPLATES -> "Workspace templates"
-            Workspace.Type.EXPLORER -> "File explorer"
-            Workspace.Type.SEARCHER -> "File search"
-            Workspace.Type.EDITOR -> "Text editor"
-        }
-    }
 
     fun closeWorkspace(id: Workspace.Id) = launch {
         workspaceRepo.execute(WorkspaceAction.Close(id))
@@ -123,6 +116,7 @@ class WorkspaceManagerViewModel @Inject constructor(
         val id: Workspace.Id,
         val type: Workspace.Type,
         val title: CaString,
-        val subtitle: String,
+        val subtitle: CaString?,
+        val previewData: PreviewData? = null,
     )
 }
