@@ -18,4 +18,8 @@ sealed class ExplorerError : Throwable() {
         val source: APathLookup<out APath>,
         val destination: APathLookup<out APath>,
     ) : ExplorerError()
+    
+    data class Unknown(
+        override val cause: Throwable,
+    ) : ExplorerError()
 }
