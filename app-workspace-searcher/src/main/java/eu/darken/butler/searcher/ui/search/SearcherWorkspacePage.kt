@@ -95,58 +95,6 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import kotlinx.coroutines.delay
 import eu.darken.butler.searcher.ui.search.rows.FileType as UIFileType
 
-
-@Composable
-fun SearcherWorkspacePageHost(
-    id: Workspace.Id,
-    design: WorkspaceDesign,
-    vm: SearcherWorkspaceViewModel = hiltViewModel(
-        key = id.longTag,
-        creationCallback = { factory: SearcherWorkspaceViewModel.Factory -> factory.create(id = id) }
-    ),
-    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
-) {
-    ErrorEventHandler(vm)
-
-    val workspaceButtonState by workspaceButtonVm.state.collectAsState(null)
-
-    val state by waitForState(vm.state)
-    log(vm.tag) { "Compose state: $state" }
-
-    state?.let { state ->
-        SearcherWorkspacePage(
-            design = design,
-            state = state,
-            onUpdateQuery = vm::updateSearchQuery,
-            onUpdateSearchPath = vm::updateSearchPath,
-            onPerformSearch = vm::performSearch,
-            onCancelSearch = vm::cancelSearch,
-            onClearResults = vm::clearResults,
-            onResultClick = vm::onSearchResultClick,
-            onClearHistory = vm::clearSearchHistory,
-            onHistoryItemRemove = vm::removeHistoryItem,
-            onHistoryItemClick = { item ->
-                item.searchQuery?.let { query ->
-                    vm.updateSearchQuery(TextFieldValue(query.query))
-                    vm.updateSearchPath(query.path)
-                    vm.updateFilter(query.filter)
-                    vm.performSearch()
-                } ?: run {
-                    // Fallback to just the base query if full query unavailable
-                    vm.updateSearchQuery(TextFieldValue(item.baseQuery))
-                    vm.performSearch()
-                }
-            },
-            onToggleCaseSensitive = vm::toggleCaseSensitive,
-            onToggleWholeWord = vm::toggleWholeWord,
-            onToggleRegex = vm::toggleRegex,
-            workspaceButtonState = workspaceButtonState,
-            onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
-            onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
-        )
-    }
-}
-
 @Composable
 fun SearcherWorkspacePage(
     design: WorkspaceDesign = WorkspaceDesign(),
@@ -425,79 +373,57 @@ fun SearcherWorkspacePage(
 }
 
 @Composable
-fun SearchToolbarCard(
-    state: SearcherWorkspaceViewModel.State,
+fun SearcherWorkspacePageHost(
+    id: Workspace.Id,
     design: WorkspaceDesign,
-    onUpdateQuery: (TextFieldValue) -> Unit,
-    onUpdateSearchPath: (APath) -> Unit,
-    onPerformSearch: () -> Unit,
-    onCancelSearch: () -> Unit,
-    onToggleCaseSensitive: () -> Unit,
-    onToggleWholeWord: () -> Unit,
-    onToggleRegex: () -> Unit,
-    workspaceButtonState: WorkspaceButtonViewModel.State?,
-    onWorkspaceAction: (WorkspaceAction) -> Unit,
-    onNavToWorkspaceManager: () -> Unit,
-    modifier: Modifier = Modifier
+    vm: SearcherWorkspaceViewModel = hiltViewModel(
+        key = id.longTag,
+        creationCallback = { factory: SearcherWorkspaceViewModel.Factory -> factory.create(id = id) }
+    ),
+    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                SearchBar(
-                    query = state.searchQuery,
-                    onQueryChange = onUpdateQuery,
-                    onSearch = onPerformSearch,
-                    isSearching = state.isSearching,
-                    onCancel = if (state.isSearching) onCancelSearch else null,
-                    modifier = Modifier.weight(1f)
-                )
+    ErrorEventHandler(vm)
 
-                if (design.isSingle) {
-                    Spacer(modifier = Modifier.width(8.dp))
+    val workspaceButtonState by workspaceButtonVm.state.collectAsState(null)
 
-                    WorkspaceButton(
-                        state = workspaceButtonState,
-                        onAction = onWorkspaceAction,
-                        onNavToWorkspaceManager = onNavToWorkspaceManager,
-                    )
+    val state by waitForState(vm.state)
+    log(vm.tag) { "Compose state: $state" }
+
+    state?.let { state ->
+        SearcherWorkspacePage(
+            design = design,
+            state = state,
+            onUpdateQuery = vm::updateSearchQuery,
+            onUpdateSearchPath = vm::updateSearchPath,
+            onPerformSearch = vm::performSearch,
+            onCancelSearch = vm::cancelSearch,
+            onClearResults = vm::clearResults,
+            onResultClick = vm::onSearchResultClick,
+            onClearHistory = vm::clearSearchHistory,
+            onHistoryItemRemove = vm::removeHistoryItem,
+            onHistoryItemClick = { item ->
+                item.searchQuery?.let { query ->
+                    vm.updateSearchQuery(TextFieldValue(query.query))
+                    vm.updateSearchPath(query.path)
+                    vm.updateFilter(query.filter)
+                    vm.performSearch()
+                } ?: run {
+                    // Fallback to just the base query if full query unavailable
+                    vm.updateSearchQuery(TextFieldValue(item.baseQuery))
+                    vm.performSearch()
                 }
-            }
-
-            SearchPathBar(
-                path = state.searchPath,
-                onPathChange = onUpdateSearchPath,
-                onPerformSearch = onPerformSearch,
-                isSearching = state.isSearching
-            )
-
-            SearchOptionsRow(
-                caseSensitive = state.caseSensitive,
-                wholeWord = state.wholeWord,
-                useRegex = state.useRegex,
-                onToggleCaseSensitive = onToggleCaseSensitive,
-                onToggleWholeWord = onToggleWholeWord,
-                onToggleRegex = onToggleRegex,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
+            },
+            onToggleCaseSensitive = vm::toggleCaseSensitive,
+            onToggleWholeWord = vm::toggleWholeWord,
+            onToggleRegex = vm::toggleRegex,
+            workspaceButtonState = workspaceButtonState,
+            onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
+            onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
+        )
     }
 }
+
+// SearchToolbarCard moved to SearchToolbarCard.kt
 
 
 // Input components moved to SearchInputComponents.kt
