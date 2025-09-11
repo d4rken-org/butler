@@ -133,7 +133,7 @@ fun SearcherWorkspacePage(
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(
             horizontal = 16.dp,
             vertical = 8.dp
@@ -155,7 +155,6 @@ fun SearcherWorkspacePage(
                 onWorkspaceAction = onWorkspaceAction,
                 onNavToWorkspaceManager = onNavToWorkspaceManager
             )
-            Spacer(modifier = Modifier.height(16.dp))
         }
 
         // Show search history when no search query
@@ -164,21 +163,24 @@ fun SearcherWorkspacePage(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 8.dp),
+                        .padding(top = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = stringResource(R.string.searcher_recent_searches),
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.titleMedium
                     )
-                    TextButton(
-                        onClick = { showClearHistoryDialog = true }
+                    Surface(
+                        modifier = Modifier.clickable { showClearHistoryDialog = true },
+                        shape = RoundedCornerShape(6.dp),
+                        color = Color.Transparent
                     ) {
                         Text(
                             text = stringResource(R.string.searcher_history_clear_all_action),
                             color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.labelMedium
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
                     }
                 }
@@ -303,7 +305,6 @@ fun SearcherWorkspacePage(
                     onCancel = onCancelSearch,
                     onClear = onClearResults
                 )
-                Spacer(modifier = Modifier.height(8.dp))
             }
         }
 
