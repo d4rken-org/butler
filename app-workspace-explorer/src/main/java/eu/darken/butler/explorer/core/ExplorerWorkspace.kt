@@ -10,7 +10,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.progress.Progress
-import eu.darken.butler.explorer.core.engine.ExplorerEngine
+import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.explorer.core.errors.ConflictResolution
@@ -42,7 +42,7 @@ class ExplorerWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
     @Assisted private val arguments: Arguments?,
     dispatcherProvider: DispatcherProvider,
-    private val engine: ExplorerEngine,
+    private val engine: BrowsingEngine,
     private val breadcrumbGenerator: BreadcrumbGenerator,
     private val operationExecutor: OperationExecutor,
 ) : Workspace {

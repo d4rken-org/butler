@@ -28,7 +28,12 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class ExplorerEngine @Inject constructor(
+/**
+ * Handles directory browsing, navigation, and file listing operations.
+ * Maintains a cache of directory states and provides real-time updates
+ * through file system watching (to be implemented).
+ */
+class BrowsingEngine @Inject constructor(
     @ApplicationContext private val context: Context,
     private val gatewaySwitch: GatewaySwitch,
 ) {
