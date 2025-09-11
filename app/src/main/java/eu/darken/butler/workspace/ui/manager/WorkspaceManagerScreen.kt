@@ -24,7 +24,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -262,19 +261,19 @@ private fun WorkspaceManagerScreenPreview() {
                         id = Workspace.Id(),
                         type = Workspace.Type.TEMPLATES,
                         title = "Templates".toCaString(),
-                        subtitle = "Workspace templates"
+                        subtitle = "Workspace templates".toCaString()
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
                         id = Workspace.Id(),
                         type = Workspace.Type.EXPLORER,
                         title = "Explorer".toCaString(),
-                        subtitle = "File explorer"
+                        subtitle = "File explorer".toCaString()
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
                         id = Workspace.Id(),
                         type = Workspace.Type.SEARCHER,
                         title = "Search".toCaString(),
-                        subtitle = "File search"
+                        subtitle = "File search".toCaString()
                     )
                 ),
                 operationsCount = 3,
