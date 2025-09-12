@@ -36,14 +36,14 @@ class APathExtensionTest : BaseTest() {
             lookedUp = LocalPath.build("test", "file1"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("test", "file2"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         file1.matches(file1) shouldBe true
@@ -88,7 +88,7 @@ class APathExtensionTest : BaseTest() {
             lookedUp = LocalPath.build("test", "file1"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2: APathLookup<*> = SAFPathLookup(
@@ -111,14 +111,14 @@ class APathExtensionTest : BaseTest() {
             lookedUp = LocalPath.build("parent"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("parent", "child", "niece"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
 
@@ -185,7 +185,7 @@ class APathExtensionTest : BaseTest() {
             lookedUp = LocalPath.build("parent"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2: APathLookup<*> = SAFPathLookup(
@@ -208,14 +208,14 @@ class APathExtensionTest : BaseTest() {
             lookedUp = LocalPath.build("parent"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("parent", "child", "niece"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
 
@@ -282,7 +282,7 @@ class APathExtensionTest : BaseTest() {
             lookedUp = LocalPath.build("parent"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2: APathLookup<*> = SAFPathLookup(
@@ -307,14 +307,14 @@ class APathExtensionTest : BaseTest() {
             lookedUp = LocalPath.build("parent"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("parent", "child"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
 
@@ -381,7 +381,7 @@ class APathExtensionTest : BaseTest() {
             lookedUp = LocalPath.build("parent"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2: APathLookup<*> = SAFPathLookup(
@@ -404,14 +404,14 @@ class APathExtensionTest : BaseTest() {
             lookedUp = LocalPath.build("parent"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("parent", "child"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
 
@@ -478,7 +478,7 @@ class APathExtensionTest : BaseTest() {
             lookedUp = LocalPath.build("parent"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2: APathLookup<*> = SAFPathLookup(
@@ -502,14 +502,14 @@ class APathExtensionTest : BaseTest() {
             lookedUp = LocalPath.build("parent", "chi"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("parent", "child"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
 
@@ -576,7 +576,7 @@ class APathExtensionTest : BaseTest() {
             lookedUp = LocalPath.build("parent", "chi"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2: APathLookup<*> = SAFPathLookup(
@@ -599,14 +599,14 @@ class APathExtensionTest : BaseTest() {
             lookedUp = LocalPath.build("pre", "fix"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val preLookup: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("pre"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
 
@@ -681,14 +681,14 @@ class APathExtensionTest : BaseTest() {
             lookedUp = LocalPath.build("prefix", "overlap", "folder"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val preLookup: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("prefix", "overlap"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
 

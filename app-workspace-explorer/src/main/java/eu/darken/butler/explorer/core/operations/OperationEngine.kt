@@ -11,11 +11,27 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.extensions.delete
+import eu.darken.butler.common.files.extensions.deleteWalk
+import eu.darken.butler.common.files.extensions.exists
+import eu.darken.butler.common.files.extensions.lookup
+import eu.darken.butler.common.files.extensions.createFile
+import eu.darken.butler.common.files.extensions.createDirIfNecessary
+import eu.darken.butler.common.files.extensions.createFileIfNecessary
+import eu.darken.butler.common.files.extensions.copyOperation
+import eu.darken.butler.common.files.extensions.CopyOperation
+import eu.darken.butler.common.files.extensions.isDirectory
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.last
+import eu.darken.butler.common.files.extensions.du
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.engine.CopyOptions
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.explorer.core.errors.ConflictResolution
 import eu.darken.butler.explorer.core.errors.ExplorerError
+import eu.darken.butler.explorer.core.operations.ConflictInfo
+import eu.darken.butler.explorer.core.operations.ConflictType
+import eu.darken.butler.explorer.core.operations.ConflictStrategy
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -29,6 +45,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
+import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -242,6 +259,19 @@ class OperationEngine @Inject constructor(
         var metrics = OperationMetrics()
         val totalFiles = operation.sources.size
         var processedCount = 0
+        var totalBytesToCopy = 0L
+        var totalBytesCopied = 0L
+        
+        // Calculate total size for progress
+        for (source in operation.sources) {
+            if (source.exists(gatewaySwitch)) {
+                totalBytesToCopy += if (gatewaySwitch.lookup(source).isDirectory) {
+                    source.du(gatewaySwitch)
+                } else {
+                    gatewaySwitch.lookup(source).size
+                }
+            }
+        }
         
         // Emit hint that files will be added to destination
         _operationHints.emit(OperationHint.FilesAdded(
@@ -251,16 +281,16 @@ class OperationEngine @Inject constructor(
         ))
         
         for (source in operation.sources) {
-            // TODO: Implement actual copy logic with proper gateway handling
-            // For now, simulate copy operations
             val targetPath = operation.destination.child(source.name)
             
-            // Simulate conflict check (placeholder)
-            val hasConflict = false
-            
-            if (hasConflict) {
+            // Check for conflicts
+            if (targetPath.exists(gatewaySwitch)) {
                 val conflict = ConflictInfo(
-                    type = ConflictType.FILE_EXISTS,
+                    type = if (gatewaySwitch.lookup(targetPath).isDirectory) {
+                        ConflictType.DIRECTORY_EXISTS
+                    } else {
+                        ConflictType.FILE_EXISTS
+                    },
                     sourcePath = source,
                     targetPath = targetPath,
                 )
@@ -270,54 +300,118 @@ class OperationEngine @Inject constructor(
                 when (resolution) {
                     is ConflictResolution.Skip -> {
                         metrics = metrics.withSkippedFile()
+                        processedCount++
                         continue
                     }
                     is ConflictResolution.Overwrite -> {
-                        // Delete target (placeholder)
-                        log(TAG) { "Overwrite target: $targetPath" }
+                        // Delete target before copy
+                        targetPath.deleteWalk(gatewaySwitch)
                     }
                     is ConflictResolution.Rename -> {
                         val renamedTarget = operation.destination.child(resolution.newName)
-                        copyFile(source, renamedTarget)
+                        
+                        // Copy with progress tracking
+                        val copyResult = source.copyOperation(
+                            gateway = gatewaySwitch,
+                            target = renamedTarget,
+                            overwrite = false
+                        )
+                        .onEach { copyOp ->
+                            when (copyOp.state) {
+                                CopyOperation.State.COPYING -> {
+                                    emitState(OperationState.OnGoing(
+                                        operationId = operationId,
+                                        startTime = startTime,
+                                        progress = Progress.Data(
+                                            count = Progress.Count.Size(
+                                                totalBytesCopied + copyOp.bytesCopied,
+                                                totalBytesToCopy
+                                            )
+                                        ),
+                                        currentItem = copyOp.currentPath ?: source,
+                                        processedCount = processedCount,
+                                        totalCount = totalFiles,
+                                        bytesProcessed = totalBytesCopied + copyOp.bytesCopied,
+                                        totalBytes = totalBytesToCopy,
+                                    ))
+                                }
+                                CopyOperation.State.FAILED -> {
+                                    throw copyOp.error ?: IOException("Copy failed")
+                                }
+                                else -> {} // Ignore other states
+                            }
+                        }
+                        .last() // Wait for completion and get final result
+                        
+                        // Check the result
+                        if (copyResult.state != CopyOperation.State.COMPLETED) {
+                            throw IOException("Copy operation did not complete successfully")
+                        }
+                        
+                        val sourceSize = copyResult.totalBytes
+                        totalBytesCopied += sourceSize
+                        metrics = metrics.withAddedFile(sourceSize)
+                        processedCount++
+                        continue
                     }
                     is ConflictResolution.Cancel -> {
                         throw CancellationException("Operation cancelled by user")
                     }
                     else -> {
                         metrics = metrics.withSkippedFile()
+                        processedCount++
                         continue
                     }
                 }
-            } else {
-                // No conflict, proceed with copy
-                copyFile(source, targetPath)
+            }
+            
+            // No conflict or overwrite resolved, proceed with copy
+            // Copy with progress tracking
+            val copyResult = source.copyOperation(
+                gateway = gatewaySwitch,
+                target = targetPath,
+                overwrite = targetPath.exists(gatewaySwitch) // true if we deleted for overwrite
+            )
+            .onEach { copyOp ->
+                when (copyOp.state) {
+                    CopyOperation.State.COPYING -> {
+                        emitState(OperationState.OnGoing(
+                            operationId = operationId,
+                            startTime = startTime,
+                            progress = Progress.Data(
+                                count = Progress.Count.Size(
+                                    totalBytesCopied + copyOp.bytesCopied,
+                                    totalBytesToCopy
+                                )
+                            ),
+                            currentItem = copyOp.currentPath ?: source,
+                            processedCount = processedCount,
+                            totalCount = totalFiles,
+                            bytesProcessed = totalBytesCopied + copyOp.bytesCopied,
+                            totalBytes = totalBytesToCopy,
+                        ))
+                    }
+                    CopyOperation.State.FAILED -> {
+                        throw copyOp.error ?: IOException("Copy failed")
+                    }
+                    else -> {} // Ignore other states
+                }
+            }
+            .last() // Wait for completion and get final result
+            
+            // Check the result
+            if (copyResult.state != CopyOperation.State.COMPLETED) {
+                throw IOException("Copy operation did not complete successfully")
             }
             
             processedCount++
-            // Placeholder metrics - assume file with 1KB size
-            metrics = metrics.withAddedFile(1024)
-            
-            // Emit progress
-            emitState(OperationState.OnGoing(
-                operationId = operationId,
-                startTime = startTime,
-                progress = Progress.Data(count = Progress.Count.Counter(processedCount, totalFiles)),
-                currentItem = source,
-                processedCount = processedCount,
-                totalCount = totalFiles,
-                bytesProcessed = metrics.bytesProcessed,
-            ))
+            totalBytesCopied += copyResult.totalBytes
+            metrics = metrics.withAddedFile(copyResult.totalBytes)
         }
         
         return metrics
     }
     
-    private suspend fun copyFile(source: APath, target: APath) {
-        // TODO: Implement actual copy logic with gateway
-        // For now, this is a placeholder that will be replaced with proper implementation
-        // The gateway system needs to be refactored to avoid star projections
-        log(TAG) { "Copy file: $source -> $target" }
-    }
     
     private suspend fun executeMove(
         operation: ExplorerOperation.FileOp.Move,
@@ -358,8 +452,7 @@ class OperationEngine @Inject constructor(
         
         // Delete sources after successful copy
         for (source in operation.sources) {
-            // TODO: Implement actual delete with gateway
-            log(TAG) { "Delete source after move: $source" }
+            source.deleteWalk(gatewaySwitch)
         }
         
         return metrics
@@ -390,12 +483,20 @@ class OperationEngine @Inject constructor(
         
         for (path in operation.paths) {
             try {
-                // TODO: Implement actual delete with gateway
-                log(TAG) { "Delete path: $path (recursive: ${operation.recursive})" }
-                processedCount++
+                // Get size before deletion for metrics
+                val size = if (path.exists(gatewaySwitch)) {
+                    gatewaySwitch.lookup(path).size
+                } else 0L
                 
-                // Placeholder - assume file
-                metrics = metrics.withAddedFile()
+                // Perform deletion
+                if (operation.recursive) {
+                    path.deleteWalk(gatewaySwitch)
+                } else {
+                    path.delete(gatewaySwitch)
+                }
+                
+                processedCount++
+                metrics = metrics.withRemovedFile(size)
                 
                 emitState(OperationState.OnGoing(
                     operationId = operationId,
@@ -404,10 +505,12 @@ class OperationEngine @Inject constructor(
                     currentItem = path,
                     processedCount = processedCount,
                     totalCount = totalFiles,
+                    bytesProcessed = metrics.bytesProcessed,
                 ))
             } catch (e: Exception) {
                 if (operation.options.skipOnError) {
                     metrics = metrics.withFailedFile()
+                    log(TAG, WARN) { "Failed to delete $path: ${e.asLog()}" }
                     continue
                 } else {
                     throw e
@@ -424,10 +527,45 @@ class OperationEngine @Inject constructor(
         startTime: Instant,
         emitState: suspend (OperationState) -> Unit,
     ): OperationMetrics {
-        // TODO: Implement actual directory creation with gateway
-        // Note: suspend is needed once gateway operations are implemented
-        val newPath = operation.parentPath.child(operation.name)
-        log(TAG) { "Create directory: $newPath" }
+        val folderPath = operation.parentPath.child(operation.name)
+        
+        // Check for conflicts
+        if (folderPath.exists(gatewaySwitch)) {
+            val conflict = ConflictInfo(
+                type = ConflictType.DIRECTORY_EXISTS,
+                sourcePath = folderPath,
+                targetPath = folderPath,
+            )
+            
+            val resolution = handleConflict(operationId, conflict, ConflictStrategy.ASK, emitState)
+            when (resolution) {
+                is ConflictResolution.Skip -> return OperationMetrics().withSkippedFile()
+                is ConflictResolution.Rename -> {
+                    val newPath = operation.parentPath.child(resolution.newName)
+                    gatewaySwitch.createDir(newPath)
+                    
+                    // Emit hint for the created folder
+                    _operationHints.emit(OperationHint.FilesAdded(
+                        targetPath = operation.parentPath,
+                        files = listOf(newPath),
+                        operationId = operationId,
+                    ))
+                    
+                    return OperationMetrics().withAddedDirectory()
+                }
+                is ConflictResolution.Cancel -> throw CancellationException("Operation cancelled")
+                else -> throw CancellationException("Operation cancelled")
+            }
+        }
+        
+        gatewaySwitch.createDir(folderPath)
+        
+        // Emit hint for the created folder
+        _operationHints.emit(OperationHint.FilesAdded(
+            targetPath = operation.parentPath,
+            files = listOf(folderPath),
+            operationId = operationId,
+        ))
         
         return OperationMetrics().withAddedDirectory()
     }
@@ -438,12 +576,18 @@ class OperationEngine @Inject constructor(
         startTime: Instant,
         emitState: suspend (OperationState) -> Unit,
     ): OperationMetrics {
-        // TODO: Implement actual file creation with gateway
-        // Note: suspend is needed once gateway operations are implemented
-        val newPath = operation.parentPath.child(operation.name)
-        log(TAG) { "Create file: $newPath" }
+        val filePath = operation.parentPath.child(operation.name)
         
-        return OperationMetrics().withAddedFile()
+        filePath.createFileIfNecessary(gatewaySwitch)
+        
+        // Emit hint for the created file
+        _operationHints.emit(OperationHint.FilesAdded(
+            targetPath = operation.parentPath,
+            files = listOf(filePath),
+            operationId = operationId,
+        ))
+        
+        return OperationMetrics().withAddedFile(0)
     }
     
     private suspend fun executeRename(

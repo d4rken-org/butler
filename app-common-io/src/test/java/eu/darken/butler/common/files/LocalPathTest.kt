@@ -148,28 +148,28 @@ class LocalPathTest : BaseTest() {
             lookedUp = LocalPath.build("test", "file1"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup1b = LocalPathLookup(
             lookedUp = LocalPath.build("test", "file1"),
             fileType = FileType.FILE,
             size = 8,
-            modifiedAt = Instant.ofEpochMilli(123),
+            modifiedAt = Instant.fromEpochMilliseconds(123),
             target = null,
         )
         val lookup1c = LocalPathLookup(
             LocalPath.build("test", "file1"),
             fileType = FileType.DIRECTORY,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2 = LocalPathLookup(
             lookedUp = LocalPath.build("test", "file2"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         lookup1a shouldNotBe lookup1b
