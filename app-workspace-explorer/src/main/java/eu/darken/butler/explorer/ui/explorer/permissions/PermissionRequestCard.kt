@@ -31,12 +31,12 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.permissions.Permission
 import eu.darken.butler.explorer.R
-import eu.darken.butler.workspace.core.permissions.WorkspacePermissions
+import eu.darken.butler.workspace.core.permissions.PermissionState
 import eu.darken.butler.workspace.core.permissions.PermissionRequirement
 
 @Composable
 fun PermissionRequestCard(
-    permissionState: WorkspacePermissions,
+    permissionState: PermissionState,
     onNavigateToSetup: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -127,7 +127,7 @@ fun PermissionRequestCard(
 private fun PermissionRequestCardPreview() {
     PreviewWrapper {
         PermissionRequestCard(
-            permissionState = WorkspacePermissions(
+            permissionState = PermissionState(
                 requirements = listOf(
                     PermissionRequirement(
                         permission = Permission.MANAGE_EXTERNAL_STORAGE,

@@ -36,7 +36,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
-import eu.darken.butler.workspace.core.permissions.WorkspacePermissions
+import eu.darken.butler.workspace.core.permissions.PermissionState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -114,7 +114,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             availableActions = availableActions,
             dialogState = dialogState,
             clipboardEntries = clipboard.entries,
-            permissionState = wsState.currentLocation?.permissionState ?: WorkspacePermissions(),
+            permissionState = wsState.currentLocation?.permissionState ?: PermissionState(),
         )
     }.asStateFlow()
 
@@ -483,7 +483,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val availableActions: List<ExplorerAction> = emptyList(),
         val dialogState: ExplorerDialogState = ExplorerDialogState.None,
         val clipboardEntries: List<ClipboardClip> = emptyList(),
-        val permissionState: WorkspacePermissions = WorkspacePermissions(),
+        val permissionState: PermissionState = PermissionState(),
     )
 
     data class ClipboardState(

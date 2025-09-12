@@ -9,6 +9,12 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.workspace.core.permissions.PathPermissionChecker
+import eu.darken.butler.common.navigation.Nav
+import eu.darken.butler.common.navigation.destSetup
+import eu.darken.butler.setup.core.SetupModule
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.navigation.NavigationController
@@ -31,11 +37,13 @@ import kotlinx.coroutines.launch
 @HiltViewModel(assistedFactory = SearcherWorkspaceViewModel.Factory::class)
 class SearcherWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
+    @ApplicationContext private val appContext: Context,
     dispatchers: DispatcherProvider,
     navCtrl: NavigationController,
     private val searchEngine: SearchEngine,
     private val searchHistory: SearchHistory,
     private val searcherSettings: SearcherSettings,
+    private val pathPermissionChecker: PathPermissionChecker,
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page"), navCtrl) {
 
     private val searchQuery = MutableStateFlow(TextFieldValue(""))
@@ -59,6 +67,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     private var activeSearchJob: Job? = null
     private var currentSearchId: String? = null
+    
 
     data class SearchState(
         val status: Status = Status.IDLE,
@@ -96,6 +105,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             caseSensitive = filter.caseSensitive,
             wholeWord = filter.wholeWord,
             useRegex = filter.useRegex,
+            needsPermissions = pathPermissionChecker.check(path).needsPermissions,
         )
     }.asStateFlow()
 
@@ -232,12 +242,24 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val caseSensitive: Boolean = false,
         val wholeWord: Boolean = false,
         val useRegex: Boolean = false,
+        val needsPermissions: Boolean = false,
     ) {
         val isSearching: Boolean
             get() = searchState.status == SearchState.Status.SEARCHING
 
         val hasResults: Boolean
             get() = searchState.results.isNotEmpty()
+    }
+
+    fun navigateToSetup() = launch {
+        log(tag) { "navigateToSetup(): Opening setup for storage permissions" }
+        navTo(
+            Nav.Main.destSetup(
+                typeFilter = setOf(SetupModule.Type.STORAGE),
+                requiredTypes = setOf(SetupModule.Type.STORAGE),
+                autoCloseWhenComplete = true,
+            )
+        )
     }
 
     @AssistedFactory

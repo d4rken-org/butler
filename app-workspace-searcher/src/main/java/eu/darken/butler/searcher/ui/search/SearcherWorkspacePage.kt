@@ -42,11 +42,15 @@ import androidx.compose.material.icons.twotone.Schedule
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material.icons.twotone.TextFormat
 import androidx.compose.material.icons.twotone.FormatQuote
+import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material.icons.automirrored.twotone.WrapText
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -114,6 +118,7 @@ fun SearcherWorkspacePage(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
+    onOpenSetup: () -> Unit = {},
 ) {
     var searchDebounce by remember { mutableStateOf(false) }
     var showClearHistoryDialog by remember { mutableStateOf(false) }
@@ -155,6 +160,69 @@ fun SearcherWorkspacePage(
                 onWorkspaceAction = onWorkspaceAction,
                 onNavToWorkspaceManager = onNavToWorkspaceManager
             )
+        }
+        
+        // Show permission card if needed
+        if (state.needsPermissions) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Storage,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                        
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = stringResource(eu.darken.butler.common.R.string.common_permission_required_title),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                            
+                            Text(
+                                text = stringResource(R.string.searcher_permission_search_description),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                            )
+                            
+                            Text(
+                                text = state.searchPath.path,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontFamily = FontFamily.Monospace,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        }
+                        
+                        Button(
+                            onClick = onOpenSetup,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Text(
+                                text = stringResource(eu.darken.butler.common.R.string.common_permission_open_setup_action),
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         // Show search history when no search query
@@ -420,6 +488,7 @@ fun SearcherWorkspacePageHost(
             workspaceButtonState = workspaceButtonState,
             onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
             onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
+            onOpenSetup = vm::navigateToSetup,
         )
     }
 }

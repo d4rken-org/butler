@@ -61,4 +61,7 @@
     <string name="searcher_status_results_found">%1$d results found</string>
     <string name="searcher_status_no_results">No results found</string>
     <string name="searcher_status_search_completed">Search completed</string>
+
+    <!-- Permission strings -->
+    <string name="searcher_permission_search_description">Grant permissions to search this location.</string>
 </resources>
