@@ -16,6 +16,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,23 +29,34 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.picker.core.FilePickerConfig
 import eu.darken.butler.common.picker.core.FilePickerResult
+import eu.darken.butler.common.picker.core.FilePickerState
 import eu.darken.butler.common.picker.core.FilePickerViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilePickerBottomSheet(
     config: FilePickerConfig,
+    resultKey: String = "file_picker_result",
     onResult: (FilePickerResult) -> Unit,
     onDismiss: () -> Unit,
+    viewModel: FilePickerViewModel = hiltViewModel(
+        creationCallback = { factory: FilePickerViewModel.Factory ->
+            factory.create(config, resultKey)
+        }
+    ),
 ) {
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
     )
     var showCreateFolderDialog by remember { mutableStateOf(false) }
     
-    // Create a local view model for the bottom sheet
-    val viewModel: FilePickerViewModel = hiltViewModel()
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsState(initial = FilePickerState())
+    
+    // Monitor for results
+    LaunchedEffect(resultKey) {
+        // In a real implementation, we'd monitor SavedStateHandle for results
+        // For now, we'll handle results directly through the viewModel
+    }
     
     ModalBottomSheet(
         onDismissRequest = {
@@ -79,8 +91,10 @@ fun FilePickerBottomSheet(
                 onItemLongClick = viewModel::onItemLongClick,
                 onConfirm = {
                     val selected = state.selectedItems.toList()
-                    onResult(FilePickerResult.Selected(selected))
-                    onDismiss()
+                    if (selected.isNotEmpty()) {
+                        onResult(FilePickerResult.Selected(selected))
+                        onDismiss()
+                    }
                 },
                 onCancel = {
                     onResult(FilePickerResult.Cancelled)

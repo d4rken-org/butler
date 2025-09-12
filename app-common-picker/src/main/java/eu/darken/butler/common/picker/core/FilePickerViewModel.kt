@@ -1,14 +1,20 @@
 package eu.darken.butler.common.picker.core
 
 import androidx.lifecycle.SavedStateHandle
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
 import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.RawPath
@@ -17,21 +23,17 @@ import eu.darken.butler.common.ui.ViewModel3
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
-@HiltViewModel
-class FilePickerViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = FilePickerViewModel.Factory::class)
+class FilePickerViewModel @AssistedInject constructor(
+    @Assisted private val config: FilePickerConfig,
+    @Assisted private val resultKey: String,
     private val dispatchers: DispatcherProvider,
     private val savedStateHandle: SavedStateHandle,
     private val gatewaySwitch: GatewaySwitch,
     private val navController: NavigationController,
 ) : ViewModel3(dispatchers, logTag("FilePicker", "ViewModel")) {
-
-    private val config: FilePickerConfig = savedStateHandle["config"] 
-        ?: FilePickerConfig()
-    
-    private val resultKey: String = savedStateHandle["resultKey"] 
-        ?: "file_picker_result"
 
     private val _state = MutableStateFlow(
         FilePickerState(
@@ -42,7 +44,9 @@ class FilePickerViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
-        log(tag) { "Initializing with config: $config" }
+        log(tag, INFO) { "Initializing with config: $config, resultKey: $resultKey" }
+        savedStateHandle[SAVED_CONFIG_KEY] = config
+        savedStateHandle[SAVED_RESULT_KEY] = resultKey
         loadCurrentPath()
     }
 
@@ -56,26 +60,60 @@ class FilePickerViewModel @Inject constructor(
         _state.update { it.copy(isLoading = true, error = null) }
         
         try {
-            // For now, use a simplified approach
-            // In a real implementation, we'd properly use the gateway
-            val items = listOf(
-                FilePickerState.FileItem(
-                    path = LocalPath.build("/storage/emulated/0/Download"),
-                    name = "Download",
-                    isDirectory = true
-                ),
-                FilePickerState.FileItem(
-                    path = LocalPath.build("/storage/emulated/0/Documents"),
-                    name = "Documents", 
-                    isDirectory = true
-                ),
-                FilePickerState.FileItem(
-                    path = LocalPath.build("/storage/emulated/0/test.txt"),
-                    name = "test.txt",
-                    isDirectory = false,
-                    size = 1024
+            val lookup = gatewaySwitch.lookup(currentPath)
+            
+            if (lookup.fileType != FileType.DIRECTORY) {
+                log(tag, WARN) { "Path is not a directory: $currentPath" }
+                _state.update { 
+                    it.copy(
+                        isLoading = false, 
+                        error = "Not a directory"
+                    ) 
+                }
+                return@launch
+            }
+            
+            val children = gatewaySwitch.listFiles(currentPath)
+            val items = children
+                .map { child ->
+                    try {
+                        val childLookup = gatewaySwitch.lookup(child)
+                        FilePickerState.FileItem(
+                            path = child,
+                            name = childLookup.name,
+                            isDirectory = childLookup.fileType == FileType.DIRECTORY,
+                            size = childLookup.size,
+                            lastModified = childLookup.modifiedAt?.toEpochMilliseconds(),
+                            isHidden = childLookup.name.startsWith(".")
+                        )
+                    } catch (e: Exception) {
+                        log(tag, WARN) { "Failed to lookup $child: ${e.asLog()}" }
+                        null
+                    }
+                }
+                .filterNotNull()
+                .filter { item ->
+                    _state.value.showHiddenFiles || !item.isHidden
+                }
+                .sortedWith(
+                    compareBy(
+                        { !it.isDirectory },
+                        { it.name.lowercase() }
+                    )
                 )
-            )
+                .let { items ->
+                    // Apply filters if in file mode
+                    if (config.mode in listOf(SelectionMode.SingleFile, SelectionMode.MultipleFiles) && config.filters.isNotEmpty()) {
+                        items.filter { item ->
+                            item.isDirectory || config.filters.any { filter ->
+                                val regex = filter.replace("*", ".*").toRegex(RegexOption.IGNORE_CASE)
+                                item.name.matches(regex)
+                            }
+                        }
+                    } else {
+                        items
+                    }
+                }
             
             _state.update { 
                 it.copy(
@@ -84,6 +122,8 @@ class FilePickerViewModel @Inject constructor(
                     error = null
                 ) 
             }
+            
+            log(tag, INFO) { "Loaded ${items.size} items for path: $currentPath" }
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to load path: ${e.asLog()}" }
             _state.update { 
@@ -97,20 +137,29 @@ class FilePickerViewModel @Inject constructor(
 
     fun navigateTo(path: APath) {
         log(tag) { "Navigating to: $path" }
-        _state.update { it.copy(currentPath = path) }
+        _state.update { it.copy(currentPath = path, selectedItems = emptySet()) }
         loadCurrentPath()
     }
 
     fun navigateUp() {
         val currentPath = _state.value.currentPath ?: return
         
-        // Simplified parent navigation
         val parentPath = when (currentPath) {
             is LocalPath -> {
                 val pathStr = currentPath.path
                 val parentStr = pathStr.substringBeforeLast('/', "")
                 if (parentStr.isNotEmpty()) {
                     LocalPath.build(parentStr)
+                } else {
+                    null
+                }
+            }
+            is RawPath -> {
+                // RawPath doesn't have a direct parent method, use path string
+                val pathStr = currentPath.path
+                val parentStr = pathStr.substringBeforeLast('/', "")
+                if (parentStr.isNotEmpty()) {
+                    RawPath(parentStr)
                 } else {
                     null
                 }
@@ -170,20 +219,31 @@ class FilePickerViewModel @Inject constructor(
             return
         }
         
-        log(tag) { "Confirming selection: $selected" }
+        log(tag, INFO) { "Confirming selection: $selected" }
         savedStateHandle[resultKey] = FilePickerResult.Selected(selected)
         navController.up()
     }
 
     fun cancel() {
-        log(tag) { "Cancelling picker" }
+        log(tag, INFO) { "Cancelling picker" }
         savedStateHandle[resultKey] = FilePickerResult.Cancelled
         navController.up()
     }
 
     fun setSearchQuery(query: String) {
         _state.update { it.copy(searchQuery = query) }
-        // TODO: Implement search filtering
+        // Apply search filter
+        if (query.isNotEmpty()) {
+            launch {
+                // Debounce search
+                kotlinx.coroutines.delay(300.milliseconds)
+                if (_state.value.searchQuery == query) {
+                    loadCurrentPath() // This will apply the search filter
+                }
+            }
+        } else {
+            loadCurrentPath()
+        }
     }
 
     fun toggleHiddenFiles() {
@@ -195,8 +255,17 @@ class FilePickerViewModel @Inject constructor(
         val currentPath = _state.value.currentPath ?: return@launch
         
         try {
-            // Simplified folder creation
-            log(tag) { "Would create folder: $name in $currentPath" }
+            val newPath = when (currentPath) {
+                is LocalPath -> LocalPath.build(currentPath.path, name)
+                is RawPath -> RawPath(currentPath.path + "/" + name)
+                else -> {
+                    log(tag, WARN) { "Cannot create folder for path type: ${currentPath::class}" }
+                    return@launch
+                }
+            }
+            
+            gatewaySwitch.createDir(newPath)
+            log(tag, INFO) { "Created folder: $newPath" }
             loadCurrentPath()
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to create folder: ${e.asLog()}" }
@@ -204,5 +273,18 @@ class FilePickerViewModel @Inject constructor(
                 it.copy(error = "Failed to create folder: ${e.message}")
             }
         }
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(
+            config: FilePickerConfig,
+            resultKey: String = "file_picker_result"
+        ): FilePickerViewModel
+    }
+
+    companion object {
+        private const val SAVED_CONFIG_KEY = "file_picker_config"
+        private const val SAVED_RESULT_KEY = "file_picker_result_key"
     }
 }

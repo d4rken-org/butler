@@ -19,7 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.InsertDriveFile
+import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -162,7 +162,7 @@ private fun FilePickerItem(
                 imageVector = if (item.isDirectory) {
                     Icons.Default.Folder
                 } else {
-                    Icons.Default.InsertDriveFile
+                    Icons.AutoMirrored.Default.InsertDriveFile
                 },
                 contentDescription = null,
                 modifier = Modifier.size(24.dp),

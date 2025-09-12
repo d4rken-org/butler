@@ -1,28 +1,22 @@
 package eu.darken.butler.common.picker.ui
 
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import eu.darken.butler.common.picker.core.FilePickerConfig
 import eu.darken.butler.common.picker.core.FilePickerResult
 
-enum class FilePickerMode {
-    FULLSCREEN,
-    BOTTOM_SHEET,
-    ADAPTIVE
-}
+// Already defined in FilePickerSimple.kt, so commented out here
+// enum class FilePickerMode {
+//     FULLSCREEN,
+//     BOTTOM_SHEET,
+//     ADAPTIVE
+// }
 
 @Composable
 fun AdaptiveFilePicker(
     mode: FilePickerMode = FilePickerMode.ADAPTIVE,
     config: FilePickerConfig,
+    resultKey: String = "file_picker_result",
     onResult: (FilePickerResult) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -42,48 +36,29 @@ fun AdaptiveFilePicker(
     
     when (actualMode) {
         FilePickerMode.FULLSCREEN -> {
-            // For fullscreen, we'd typically use navigation
-            // But for standalone use, we can use a dialog
-            FilePickerFullScreen(config = config)
+            FilePickerFullScreen(
+                config = config,
+                resultKey = resultKey,
+                onResult = onResult,
+                onBack = onDismiss
+            )
         }
         FilePickerMode.BOTTOM_SHEET -> {
             FilePickerBottomSheet(
                 config = config,
+                resultKey = resultKey,
                 onResult = onResult,
                 onDismiss = onDismiss
             )
         }
         FilePickerMode.ADAPTIVE -> {
-            // This shouldn't happen, but handle it anyway
+            // This shouldn't happen as ADAPTIVE is resolved above
             FilePickerBottomSheet(
                 config = config,
+                resultKey = resultKey,
                 onResult = onResult,
                 onDismiss = onDismiss
             )
-        }
-    }
-}
-
-@Composable
-fun FilePickerDialog(
-    config: FilePickerConfig,
-    onResult: (FilePickerResult) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    Dialog(
-        onDismissRequest = {
-            onResult(FilePickerResult.Cancelled)
-            onDismiss()
-        },
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .fillMaxHeight(0.9f),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            FilePickerFullScreen(config = config)
         }
     }
 }

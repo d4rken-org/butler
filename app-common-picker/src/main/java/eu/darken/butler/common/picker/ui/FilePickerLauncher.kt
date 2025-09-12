@@ -50,8 +50,7 @@ fun FilePickerHost(
     mode: FilePickerMode = FilePickerMode.ADAPTIVE,
 ) {
     if (launcher.isShowing) {
-        // Use the simplified version for now
-        FilePickerSimple(
+        AdaptiveFilePicker(
             mode = mode,
             config = launcher.config,
             onResult = launcher::handleResult,

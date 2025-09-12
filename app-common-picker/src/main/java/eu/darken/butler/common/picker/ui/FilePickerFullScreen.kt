@@ -2,7 +2,7 @@ package eu.darken.butler.common.picker.ui
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -23,15 +23,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.picker.core.FilePickerConfig
+import eu.darken.butler.common.picker.core.FilePickerResult
+import eu.darken.butler.common.picker.core.FilePickerState
 import eu.darken.butler.common.picker.core.FilePickerViewModel
 
 @Composable
 fun FilePickerFullScreen(
     config: FilePickerConfig,
+    resultKey: String = "file_picker_result",
+    onResult: (FilePickerResult) -> Unit,
+    onBack: () -> Unit,
+    viewModel: FilePickerViewModel = hiltViewModel(
+        creationCallback = { factory: FilePickerViewModel.Factory ->
+            factory.create(config, resultKey)
+        }
+    ),
 ) {
-    // For now, create a simple state instead of using ViewModel
-    // This would need proper integration with navigation and SavedStateHandle
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsState(initial = FilePickerState())
     var showMenu by remember { mutableStateOf(false) }
     var showCreateFolderDialog by remember { mutableStateOf(false) }
     
@@ -41,7 +49,14 @@ fun FilePickerFullScreen(
                 title = config.title ?: "Select Files",
                 subtitle = config.subtitle,
                 showHiddenFiles = state.showHiddenFiles,
-                onNavigateUp = viewModel::navigateUp,
+                onNavigateUp = {
+                    // Try to navigate up in the file hierarchy first
+                    if (state.currentPath != null) {
+                        viewModel.navigateUp()
+                    } else {
+                        onBack()
+                    }
+                },
                 onToggleHiddenFiles = viewModel::toggleHiddenFiles,
                 showMenu = showMenu,
                 onMenuToggle = { showMenu = it }
@@ -55,8 +70,17 @@ fun FilePickerFullScreen(
             onNavigate = viewModel::navigateTo,
             onItemClick = viewModel::onItemClick,
             onItemLongClick = viewModel::onItemLongClick,
-            onConfirm = viewModel::confirmSelection,
-            onCancel = viewModel::cancel,
+            onConfirm = {
+                val selected = state.selectedItems.toList()
+                if (selected.isNotEmpty()) {
+                    onResult(FilePickerResult.Selected(selected))
+                    onBack()
+                }
+            },
+            onCancel = {
+                onResult(FilePickerResult.Cancelled)
+                onBack()
+            },
             onCreateFolder = if (config.allowCreateFolder) {
                 { showCreateFolderDialog = true }
             } else null
@@ -93,7 +117,7 @@ private fun FilePickerTopBar(
         navigationIcon = {
             IconButton(onClick = onNavigateUp) {
                 Icon(
-                    imageVector = Icons.Default.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
                     contentDescription = "Navigate up"
                 )
             }
