@@ -17,11 +17,10 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.hasApiLevel
-import eu.darken.butler.common.permissions.Permission
+import eu.darken.butler.workspace.core.permissions.PathPermissionChecker
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
-import eu.darken.butler.workspace.core.permissions.WorkspacePermissions
-import eu.darken.butler.workspace.core.permissions.PermissionRequirement
+import eu.darken.butler.workspace.core.permissions.PermissionState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -31,73 +30,31 @@ import javax.inject.Inject
 class ExplorerEngine @Inject constructor(
     @ApplicationContext private val context: Context,
     private val gatewaySwitch: GatewaySwitch,
+    private val pathPermissionChecker: PathPermissionChecker,
 ) {
 
     internal var subTag: String = ""
     private val tag by lazy { logTag("Explorer", "Engine", subTag) }
 
-    private fun checkLocationPermissions(target: ExplorerNavigation.Target): WorkspacePermissions {
+    private fun checkLocationPermissions(target: ExplorerNavigation.Target): PermissionState {
         log(tag) { "checkLocationPermissions(): Checking permissions for $target" }
         
         return when (target) {
             is ExplorerNavigation.Target.Home,
             is ExplorerNavigation.Target.Device -> {
                 // Home and Device views don't require permissions
-                WorkspacePermissions(
+                PermissionState(
                     requirements = emptyList(),
                     hasSufficientPermissions = true,
                     missingCritical = emptyList(),
                 )
             }
             is ExplorerNavigation.Target.Directory -> {
-                checkDirectoryPermissions(target.path)
+                pathPermissionChecker.check(target.path)
             }
         }
     }
 
-    private fun checkDirectoryPermissions(path: APath): WorkspacePermissions {
-        val pathString = when (path) {
-            is LocalPath -> path.path
-            else -> path.path
-        }
-
-        // Check if this is internal storage that requires permissions
-        val internalStoragePath = Environment.getExternalStorageDirectory().absolutePath
-        val requiresStoragePermission = pathString.startsWith(internalStoragePath) || 
-                                       pathString.startsWith("/storage/emulated/") ||
-                                       pathString.startsWith("/sdcard")
-
-        if (!requiresStoragePermission) {
-            // App-specific directories or other paths that don't need special permissions
-            return WorkspacePermissions(
-                requirements = emptyList(),
-                hasSufficientPermissions = true,
-                missingCritical = emptyList(),
-            )
-        }
-
-        // Determine which storage permission is needed based on API level
-        val requiredPermission = when {
-            hasApiLevel(30) -> Permission.MANAGE_EXTERNAL_STORAGE
-            else -> Permission.WRITE_EXTERNAL_STORAGE
-        }
-
-        val isGranted = requiredPermission.isGranted(context)
-        log(tag) { "checkDirectoryPermissions(): $requiredPermission isGranted=$isGranted for path=$pathString" }
-
-        val requirement = PermissionRequirement(
-            permission = requiredPermission,
-            isRequired = true,
-            reason = R.string.explorer_permission_generic_description.toCaString(),
-            alternativeAccess = null,
-        )
-
-        return WorkspacePermissions(
-            requirements = listOf(requirement),
-            hasSufficientPermissions = isGranted,
-            missingCritical = if (!isGranted) listOf(requiredPermission) else emptyList(),
-        )
-    }
 
     private suspend fun getHomeEntry(): ExplorerLocation = withContext(Dispatchers.IO) {
         val shortcuts = listOf(

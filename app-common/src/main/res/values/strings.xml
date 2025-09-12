@@ -192,4 +192,11 @@
     <string name="setup_saf_card_title">Storage Access Framework</string>
     <string name="setup_manage_storage_card_title">Manage external storage</string>
     <string name="setup_inventory_card_title">App inventory</string>
+
+    <!-- Common permission strings -->
+    <string name="common_permission_required_title">Permission Required</string>
+    <string name="common_permission_additional_required">Additional permissions are required to access: %1$s</string>
+    <string name="common_permission_open_setup_action">Open Setup</string>
+    <string name="common_permission_storage_manage_description">Grant storage access to manage all files.</string>
+    <string name="common_permission_saf_required_description">Folder access permission required.</string>
 </resources>
