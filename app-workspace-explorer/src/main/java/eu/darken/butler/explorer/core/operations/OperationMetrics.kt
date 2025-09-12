@@ -36,6 +36,15 @@ data class OperationMetrics(
         filesFailed = filesFailed + 1,
     )
     
+    fun withRemovedFile(bytes: Long = 0L): OperationMetrics = copy(
+        filesProcessed = filesProcessed + 1,
+        bytesProcessed = bytesProcessed + bytes,
+    )
+    
+    fun withError(): OperationMetrics = copy(
+        filesFailed = filesFailed + 1,
+    )
+    
     fun withUpdatedSpeed(currentSpeed: Long): OperationMetrics = copy(
         averageSpeed = if (averageSpeed == null) {
             currentSpeed

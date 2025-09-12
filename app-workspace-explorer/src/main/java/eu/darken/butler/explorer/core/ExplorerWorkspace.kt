@@ -10,12 +10,12 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.progress.Progress
-import eu.darken.butler.explorer.core.engine.ExplorerEngine
+import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.explorer.core.errors.ConflictResolution
 import eu.darken.butler.explorer.core.operations.ConflictStrategy
-import eu.darken.butler.explorer.core.operations.OperationExecutor
+import eu.darken.butler.explorer.core.operations.OperationEngine
 import eu.darken.butler.explorer.core.operations.OperationId
 import eu.darken.butler.explorer.core.operations.OperationResult
 import eu.darken.butler.explorer.core.operations.OperationState
@@ -42,9 +42,9 @@ class ExplorerWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
     @Assisted private val arguments: Arguments?,
     dispatcherProvider: DispatcherProvider,
-    private val engine: ExplorerEngine,
+    private val engine: BrowsingEngine,
     private val breadcrumbGenerator: BreadcrumbGenerator,
-    private val operationExecutor: OperationExecutor,
+    private val operationEngine: OperationEngine,
 ) : Workspace {
 
     private val tag = logTag("Explorer", "Workspace", id.shortTag)
@@ -90,6 +90,14 @@ class ExplorerWorkspace @AssistedInject constructor(
     init {
         engine.subTag = id.shortTag
 
+        // Connect operation hints to browsing engine for optimistic updates
+        operationEngine.operationHints
+            .onEach { hint ->
+                log(tag, INFO) { "Received operation hint: $hint" }
+                engine.acceptOperationHint(hint)
+            }
+            .launchIn(scope)
+
         // Set up navigation flow processing
         navigationRequests
             .onEach { log(tag, INFO) { "New navigation request: $it" } }
@@ -124,7 +132,7 @@ class ExplorerWorkspace @AssistedInject constructor(
             .onEach { log(tag, INFO) { "New operation request: $it" } }
             .onEach { operation ->
                 scope.launch {
-                    operationExecutor.execute(
+                    operationEngine.execute(
                         operation = operation,
                         scope = scope,
                         conflictStrategy = ConflictStrategy.ASK,
@@ -314,13 +322,13 @@ class ExplorerWorkspace @AssistedInject constructor(
     fun resolveConflict(operationId: OperationId, resolution: ConflictResolution) {
         log(tag, INFO) { "Resolving conflict for operation $operationId: $resolution" }
         scope.launch {
-            operationExecutor.resolveConflict(operationId, resolution)
+            operationEngine.resolveConflict(operationId, resolution)
         }
     }
     
     fun cancelOperation(operationId: OperationId) {
         log(tag, INFO) { "Cancelling operation: $operationId" }
-        operationExecutor.cancelOperation(operationId)
+        operationEngine.cancelOperation(operationId)
     }
 
     override suspend fun release() {
