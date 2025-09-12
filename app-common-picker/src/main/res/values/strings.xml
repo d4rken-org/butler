@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="picker_select_files_title">Select Files</string>
+    <string name="picker_select_folders_title">Select Folders</string>
+    <string name="picker_select_action">Select</string>
+    <string name="picker_select_count_action">Select (%1$d)</string>
+    <string name="picker_cancel_action">Cancel</string>
+    <string name="picker_new_folder_action">New Folder</string>
+    <string name="picker_create_folder_title">Create New Folder</string>
+    <string name="picker_create_action">Create</string>
+    <string name="picker_folder_name_label">Folder name</string>
+    <string name="picker_show_hidden_files_action">Show hidden files</string>
+    <string name="picker_hide_hidden_files_action">Hide hidden files</string>
+    <string name="picker_navigate_up_action">Navigate up</string>
+    <string name="picker_more_options_action">More options</string>
+    <string name="picker_no_items_message">No items</string>
+    <string name="picker_not_directory_error">Not a directory</string>
+    <string name="picker_failed_load_error">Failed to load directory</string>
+    <string name="picker_failed_create_folder_error">Failed to create folder: %1$s</string>
+</resources>

@@ -13,7 +13,7 @@ plugins {
 apply(plugin = "dagger.hilt.android.plugin")
 
 android {
-    namespace = "${projectConfig.packageName}.editor"
+    namespace = "${projectConfig.packageName}.common.picker"
 
     setupLibraryDefaults(projectConfig)
 
@@ -45,8 +45,6 @@ dependencies {
 
     implementation(project(":app-common"))
     implementation(project(":app-common-io"))
-    implementation(project(":app-workspace"))
-    implementation(project(":app-common-picker"))
 
     addAndroidCore()
     addAndroidUI()
@@ -56,6 +54,4 @@ dependencies {
     addSerialization()
     addIO()
     addTesting()
-
-    addCoil()
 }
