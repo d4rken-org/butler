@@ -15,13 +15,9 @@ import eu.darken.butler.setup.core.SetupItem
 import eu.darken.butler.setup.core.SetupManager
 import eu.darken.butler.setup.core.SetupModule
 import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.isActive
-import kotlin.time.Duration.Companion.seconds
 
 @HiltViewModel(assistedFactory = SetupViewModel.Factory::class)
 class SetupViewModel @AssistedInject constructor(
@@ -80,39 +76,22 @@ class SetupViewModel @AssistedInject constructor(
                 )
             )
 
-            State(items = items)
+            val allRequiredComplete = options.requiredTypes?.let { requiredTypes ->
+                requiredTypes.isNotEmpty() && requiredTypes.all { type ->
+                    val moduleState = moduleStates[type]
+                    (moduleState as? SetupModule.State.Current)?.isComplete == true
+                }
+            } ?: false
+
+            State(
+                items = items,
+                allRequiredComplete = allRequiredComplete
+            )
         }
         .asStateFlow()
 
     init {
         log(tag) { "init with options: $options" }
-
-        launch {
-            while (currentCoroutineContext().isActive) {
-                setupManager.refresh()
-                delay(5.seconds)
-            }
-        }
-
-        // Auto-close when all required permissions are granted
-        if (options.autoCloseWhenComplete && !options.isOnboarding) {
-            launch {
-                setupManager.moduleStates.collect { moduleStates ->
-                    val requiredTypes = options.requiredTypes
-                    if (requiredTypes?.isNotEmpty() == true) {
-                        val allRequiredComplete = requiredTypes.all { type ->
-                            val moduleState = moduleStates[type]
-                            (moduleState as? SetupModule.State.Current)?.isComplete == true
-                        }
-                        
-                        if (allRequiredComplete) {
-                            log(tag) { "All required permissions granted, auto-closing setup screen" }
-                            navUp()
-                        }
-                    }
-                }
-            }
-        }
     }
 
     fun refresh() = launch {
@@ -160,6 +139,7 @@ class SetupViewModel @AssistedInject constructor(
 
     data class State(
         val items: List<SetupItem> = emptyList(),
+        val allRequiredComplete: Boolean = false,
     )
 
     @AssistedFactory
