@@ -321,6 +321,26 @@ fun UpgradeScreen(
                 }
             }
 
+            // Show message when no upgrade options are available
+            if (!state.iapState.available && !state.subState.available && !state.trialState.available) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+                    )
+                ) {
+                    Text(
+                        text = stringResource(R.string.upgrades_gplay_unavailable_error_description),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(16.dp),
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                }
+            }
+
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 16.dp),
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
