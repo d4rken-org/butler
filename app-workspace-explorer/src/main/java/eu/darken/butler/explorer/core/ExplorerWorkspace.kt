@@ -49,7 +49,7 @@ class ExplorerWorkspace @AssistedInject constructor(
     private val engine: BrowsingEngine,
     private val breadcrumbGenerator: BreadcrumbGenerator,
     private val operationEngine: OperationEngine,
-    private val pathAccessTracker: PathAccessTracker?,
+    private val pathAccessTracker: PathAccessTracker,
 ) : Workspace {
 
     private val tag = logTag("Explorer", "Workspace", id.shortTag)
@@ -351,12 +351,6 @@ class ExplorerWorkspace @AssistedInject constructor(
     }
 
     private suspend fun trackPathIfNeeded(path: APath) {
-        // Skip if no tracker is available
-        if (pathAccessTracker == null) {
-            log(tag, DEBUG) { "No path tracker available, skipping tracking" }
-            return
-        }
-
         val now = Clock.System.now()
         val shouldTrack = when {
             // Different path than last tracked
