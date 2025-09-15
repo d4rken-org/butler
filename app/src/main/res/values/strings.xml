@@ -6,11 +6,11 @@
     <string name="onboarding_beta_message">This is a beta (testing) build. Proceed with a sense of humor and a backup plan. Please report issues you encounter.</string>
     <string name="onboarding_beta_action">I fear nothing</string>
     <string name="onboarding_beta_feature_early_access_title">Early Access</string>
-    <string name="onboarding_beta_feature_early_access_description">Try cutting-edge features before anyone else</string>
+    <string name="onboarding_beta_feature_early_access_description">Try cutting-edge features before anyone else.</string>
     <string name="onboarding_beta_feature_influence_title">Direct Impact</string>
-    <string name="onboarding_beta_feature_influence_description">Your feedback shapes Butler\'s development</string>
+    <string name="onboarding_beta_feature_influence_description">Your feedback shapes Butler\'s development.</string>
     <string name="onboarding_beta_feature_feedback_title">Community Driven</string>
-    <string name="onboarding_beta_feature_feedback_description">Join a community of power users improving Butler</string>
+    <string name="onboarding_beta_feature_feedback_description">Join a community of power users improving Butler.</string>
     <string name="onboarding_beta_report_action">Report an Issue</string>
     <string name="onboarding_sustainability_title">Free &amp; Sustainable</string>
     <string name="onboarding_sustainability_message">Core features are free. Some advanced features require Butler Pro - it keeps me coding and the app evolving.</string>
@@ -27,27 +27,27 @@
     <string name="onboarding_privacy_action">Accept</string>
 
     <string name="onboarding_workspaces_title">Work in Tabs</string>
-    <string name="onboarding_workspaces_message">Open multiple tabs and switch between them - just like your web browser</string>
+    <string name="onboarding_workspaces_message">Open multiple tabs and switch between them - just like your web browser.</string>
     <string name="onboarding_workspaces_action">Continue</string>
-    <string name="onboarding_workspaces_hint">Keep multiple tabs open simultaneously</string>
+    <string name="onboarding_workspaces_hint">Keep multiple tabs open simultaneously.</string>
     <string name="onboarding_workspaces_explorer_title">Explorer</string>
-    <string name="onboarding_workspaces_explorer_description">Browse your files</string>
+    <string name="onboarding_workspaces_explorer_description">Browse your files.</string>
     <string name="onboarding_workspaces_searcher_title">Searcher</string>
-    <string name="onboarding_workspaces_searcher_description">Find stuff</string>
+    <string name="onboarding_workspaces_searcher_description">Find stuff.</string>
     <string name="onboarding_workspaces_editor_title">Editor</string>
-    <string name="onboarding_workspaces_editor_description">Edit files</string>
+    <string name="onboarding_workspaces_editor_description">Edit files.</string>
     <string name="onboarding_workspaces_templates_title">Templates</string>
-    <string name="onboarding_workspaces_templates_description">Save your setup</string>
+    <string name="onboarding_workspaces_templates_description">Save your setup.</string>
 
     <string name="onboarding_adaptive_title">Fits Any Screen</string>
-    <string name="onboarding_adaptive_message">Butler adapts to your device for the best experience</string>
+    <string name="onboarding_adaptive_message">Butler adapts to your device for the best experience.</string>
     <string name="onboarding_adaptive_action">Continue</string>
     <string name="onboarding_adaptive_phone_title">Phone</string>
-    <string name="onboarding_adaptive_phone_description">Full-screen tabs on your phone</string>
+    <string name="onboarding_adaptive_phone_description">Full-screen tabs on your phone.</string>
     <string name="onboarding_adaptive_landscape_title">Landscape</string>
-    <string name="onboarding_adaptive_landscape_description">See more content when you rotate</string>
+    <string name="onboarding_adaptive_landscape_description">See more content when you rotate.</string>
     <string name="onboarding_adaptive_tablet_title">Tablet</string>
-    <string name="onboarding_adaptive_tablet_description">Multiple panels side by side</string>
+    <string name="onboarding_adaptive_tablet_description">Multiple panels side by side.</string>
 
     <string name="setup_usagestats_title">Usage stats</string>
     <string name="setup_shizuku_card_title">Shizuku</string>
@@ -58,7 +58,7 @@
     <string name="setup_inventory_card_title">App inventory</string>
 
     <string name="setup_title">App Setup</string>
-    <string name="setup_settings_description">Configure app permissions and features</string>
+    <string name="setup_settings_description">Configure app permissions and features.</string>
     <string name="setup_help_description">Help</string>
     <string name="setup_refresh_label">Refresh</string>
     <string name="setup_configure_label">Configure</string>
@@ -88,12 +88,12 @@
     <string name="setup_status_connecting">Connecting…</string>
     <string name="setup_status_unavailable">Unavailable</string>
 
-    <string name="setup_hint_root">Requires device to be rooted</string>
-    <string name="setup_hint_shizuku">Requires Shizuku app to be installed and running</string>
-    <string name="setup_hint_notification">Allows Butler to display notifications</string>
-    <string name="setup_hint_usagestats">Grants access to app usage statistics</string>
-    <string name="setup_hint_saf">Enables file access through Storage Access Framework</string>
-    <string name="setup_hint_storage">Grants access to manage external storage</string>
+    <string name="setup_hint_root">Requires device to be rooted.</string>
+    <string name="setup_hint_shizuku">Requires Shizuku app to be installed and running.</string>
+    <string name="setup_hint_notification">Allows Butler to display notifications.</string>
+    <string name="setup_hint_usagestats">Grants access to app usage statistics.</string>
+    <string name="setup_hint_saf">Enables file access through Storage Access Framework.</string>
+    <string name="setup_hint_storage">Grants access to manage external storage.</string>
 
     <!-- Debug Log -->
     <string name="debug_notification_channel_label">Debug notifications</string>
@@ -133,7 +133,7 @@
     <string name="motd_check_enabled_setting_description">Allow Butler to fetch important messages from the developer.</string>
 
     <string name="confirm_exit_setting_title">Confirm exit</string>
-    <string name="confirm_exit_setting_description">Show a confirmation dialog when exiting the app</string>
+    <string name="confirm_exit_setting_description">Show a confirmation dialog when exiting the app.</string>
     <string name="confirm_exit_dialog_title">Exit Butler</string>
     <string name="confirm_exit_dialog_message">This will close the app and return to your home screen.</string>
     <string name="confirm_exit_dialog_exit">Exit</string>
@@ -143,7 +143,7 @@
     <string name="settings_support_label">Support</string>
     <string name="settings_support_description">Read documentation, report issues, chat with others or record debug logs.</string>
     <string name="settings_support_wiki_label">Documentation</string>
-    <string name="settings_support_wiki_description">Learn how to use Butler effectively</string>
+    <string name="settings_support_wiki_description">Learn how to use Butler effectively.</string>
     <string name="settings_support_issue_tracker_description">A public issue tracker for bug reports and feature requests.</string>
     <string name="settings_support_issue_tracker_label">Issue tracker</string>
     <string name="settings_support_debuglog_label">Debug log</string>
@@ -154,16 +154,16 @@
     <string name="settings_support_discord_description">A place to hang out in and ask questions.</string>
 
     <string name="settings_acknowledgements_label">Acknowledgements</string>
-    <string name="settings_acknowledgements_description">Credits, licenses, and special thanks</string>
+    <string name="settings_acknowledgements_description">Credits, licenses, and special thanks.</string>
     <string name="settings_acks_translation_header">Translation</string>
     <string name="settings_acks_translators_title">Translators</string>
     <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
     <string name="settings_acks_translate_title">Translate Butler</string>
-    <string name="settings_acks_translate_desc">Help translate Butler into your language</string>
+    <string name="settings_acks_translate_desc">Help translate Butler into your language.</string>
 
     <string name="settings_acks_thanks_header">Thanks</string>
     <string name="settings_acks_crowdin_title">crowdin.com</string>
-    <string name="settings_acks_crowdin_desc">For supporting translation of open-source projects</string>
+    <string name="settings_acks_crowdin_desc">For supporting translation of open-source projects.</string>
     <string name="settings_licenses_label">Licenses</string>
 
     <!-- Workspace Status Card -->
@@ -203,7 +203,7 @@
 
     <!-- Upgrade Status -->
     <string name="settings_upgrade_status_label">Butler upgrade status</string>
-    <string name="settings_upgrade_status_description">View upgrade status and benefits</string>
+    <string name="settings_upgrade_status_description">View upgrade status and benefits.</string>
     <string name="upgrade_status_screen_title">Upgrade Status</string>
     <string name="upgrade_status_card_title">Upgrade Status</string>
     <string name="upgrade_status_free">Status: Free</string>
@@ -236,29 +236,29 @@
     <string name="workspace_empty_manager_hint">View and organize all your open tabs in one place.</string>
 
     <!-- Classic Workspace Tips -->
-    <string name="workspace_classic_tip_create_multiple">You can create multiple tabs to work with folders simultaneously</string>
-    <string name="workspace_classic_tip_search_workspace">Use the search to quickly find files across your device</string>
-    <string name="workspace_classic_tip_editor_workspace">The editor lets you view and edit text files</string>
-    <string name="workspace_classic_tip_customize_settings">Customize Butler\'s behavior in the settings</string>
-    <string name="workspace_classic_tip_root_access">Butler supports root access for advanced file operations</string>
-    <string name="workspace_classic_tip_swipe_between">Swipe to change tabs, like in a browser</string>
-    <string name="workspace_classic_tip_bookmark_folders">Bookmark frequently used folders for quick access</string>
-    <string name="workspace_classic_tip_keyboard_shortcuts">Use keyboard shortcuts for faster navigation</string>
+    <string name="workspace_classic_tip_create_multiple">You can create multiple tabs to work with folders simultaneously.</string>
+    <string name="workspace_classic_tip_search_workspace">Use the search to quickly find files across your device.</string>
+    <string name="workspace_classic_tip_editor_workspace">The editor lets you view and edit text files.</string>
+    <string name="workspace_classic_tip_customize_settings">Customize Butler\'s behavior in the settings.</string>
+    <string name="workspace_classic_tip_root_access">Butler supports root access for advanced file operations.</string>
+    <string name="workspace_classic_tip_swipe_between">Swipe to change tabs, like in a browser.</string>
+    <string name="workspace_classic_tip_bookmark_folders">Bookmark frequently used folders for quick access.</string>
+    <string name="workspace_classic_tip_keyboard_shortcuts">Use keyboard shortcuts for faster navigation.</string>
 
     <!-- Adaptive Workspace Tips -->
-    <string name="workspace_adaptive_tip_multiple_panes">Use multiple panes to compare files side by side</string>
-    <string name="workspace_adaptive_tip_different_folders">Open different folders in each pane for easy file management</string>
-    <string name="workspace_adaptive_tip_switch_layouts">Switch between pane layouts in the tab manager</string>
-    <string name="workspace_adaptive_tip_copy_between_panes">Copy files between panes with drag and drop</string>
+    <string name="workspace_adaptive_tip_multiple_panes">Use multiple panes to compare files side by side.</string>
+    <string name="workspace_adaptive_tip_different_folders">Open different folders in each pane for easy file management.</string>
+    <string name="workspace_adaptive_tip_switch_layouts">Switch between pane layouts in the tab manager.</string>
+    <string name="workspace_adaptive_tip_copy_between_panes">Copy files between panes with drag and drop.</string>
 
     <!-- Workspace > Settings-->
     <string name="workspace_settings_title">Tabs</string>
     <string name="workspace_settings_button_behavior">Button Behavior</string>
     <string name="workspace_settings_flip_button_actions_title">Flip Button Actions</string>
-    <string name="workspace_settings_flip_button_actions_desc">Normal click creates new tab, long click opens manager</string>
+    <string name="workspace_settings_flip_button_actions_desc">Normal click creates new tab, long click opens manager.</string>
     <string name="workspace_settings_navigation">Navigation</string>
     <string name="workspace_settings_swipe_gestures_title">Swipe Gestures</string>
-    <string name="workspace_settings_swipe_gestures_desc">Swipe left or right to switch between tabs</string>
+    <string name="workspace_settings_swipe_gestures_desc">Swipe left or right to switch between tabs.</string>
 
     <string name="workspace_badge_tip_title">Tip: Tab Button Indicators</string>
     <string name="workspace_badge_open_workspaces">Number of open tabs</string>
@@ -294,9 +294,9 @@
     <string name="workspace_row_close_content_desc">Close tab</string>
 
     <!-- Settings Index -->
-    <string name="workspace_settings_subtitle">Configure tab behavior</string>
-    <string name="explorer_settings_subtitle">Configure file explorer behavior</string>
-    <string name="searcher_settings_subtitle">Configure search behavior</string>
-    <string name="editor_settings_subtitle">Configure text editor behavior</string>
+    <string name="workspace_settings_subtitle">Configure tab behavior.</string>
+    <string name="explorer_settings_subtitle">Configure file explorer behavior.</string>
+    <string name="searcher_settings_subtitle">Configure search behavior.</string>
+    <string name="editor_settings_subtitle">Configure text editor behavior.</string>
 
 </resources>

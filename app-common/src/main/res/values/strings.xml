@@ -40,12 +40,12 @@
     <string name="general_manage_action">Manage</string>
     <string name="general_sync_action">Synchronize</string>
     <string name="general_error_label">Error</string>
-    <string name="general_tap_hint_msg">Tap for more options</string>
+    <string name="general_tap_hint_msg">Tap for more options.</string>
     <string name="general_upgrade_action">Upgrade</string>
     <string name="general_donate_action">Donate</string>
     <string name="general_check_action">Check</string>
     <string name="general_filter_action">Filter</string>
-    <string name="general_internal_not_available_msg">Internet connection unavailable</string>
+    <string name="general_internal_not_available_msg">Internet connection unavailable.</string>
     <string name="general_refresh_action">Refresh</string>
     <string name="general_progress_searching">Searching</string>
     <string name="general_progress_generating_searchpaths">Generating search paths</string>
@@ -100,7 +100,7 @@
     </plurals>
 
     <string name="general_root_required_label">Requires root</string>
-    <string name="general_root_required_message">Requires a rooted device</string>
+    <string name="general_root_required_message">Requires a rooted device.</string>
 
     <plurals name="result_x_items">
         <item quantity="one">%s item</item>
@@ -162,7 +162,7 @@
 
     <string name="general_advice_title">Advice</string>
     <string name="general_error_invalid_input_label">Invalid input</string>
-    <string name="general_information_for_the_developer">Information for the developer</string>
+    <string name="general_information_for_the_developer">Information for the developer.</string>
     <string name="general_error_type_mismatch_msg">Type mismatch: Wanted %1$s, but got %2$s.</string>
     <string name="general_error_cant_access_msg">Can\'t access %s.</string>
     <string name="general_error_root_unavailable">Root access is unavailable.</string>
@@ -195,7 +195,7 @@
 
     <!-- Common permission strings -->
     <string name="common_permission_required_title">Permission Required</string>
-    <string name="common_permission_additional_required">Additional permissions are required to access: %1$s</string>
+    <string name="common_permission_additional_required">Additional permissions are required to access: %1$s.</string>
     <string name="common_permission_open_setup_action">Open Setup</string>
     <string name="common_permission_storage_manage_description">Grant storage access to manage all files.</string>
     <string name="common_permission_saf_required_description">Folder access permission required.</string>
