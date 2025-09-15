@@ -32,6 +32,7 @@ class SearcherSettings @Inject constructor(
     val maxHistoryItems = dataStore.createValue("searcher.max_history_items", 50)
     val saveHistory = dataStore.createValue("searcher.save_history", true)
     val maxSearchResults = dataStore.createValue("searcher.max_search_results", 1000)
+    val defaultSearchPath = dataStore.createValue("searcher.default_search_path", "")
 
     override val mapper = PreferenceStoreMapper(
         debugSettings.isDebugMode,
@@ -41,6 +42,7 @@ class SearcherSettings @Inject constructor(
         maxHistoryItems,
         saveHistory,
         maxSearchResults,
+        defaultSearchPath,
     )
 
     companion object {

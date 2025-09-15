@@ -14,6 +14,7 @@ import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.setup.core.SetupModule
 import android.content.Context
+import android.os.Environment
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
@@ -48,8 +49,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     private val searchQuery = MutableStateFlow(TextFieldValue(""))
     private val currentFilter = MutableStateFlow(SearchQuery.Filter.DEFAULT)
-    private val searchPath =
-        MutableStateFlow<APath>(LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler"))
+    private val searchPath = MutableStateFlow<APath>(LocalPath.build(Environment.getExternalStorageDirectory()))
 
     init {
         combine(
@@ -63,6 +63,15 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 useRegex = useRegex
             )
         }.launchIn(vmScope)
+
+        vmScope.launch {
+            val defaultPath = searcherSettings.defaultSearchPath.flow.first()
+            searchPath.value = if (defaultPath.isNotEmpty()) {
+                LocalPath.build(defaultPath)
+            } else {
+                LocalPath.build(Environment.getExternalStorageDirectory())
+            }
+        }
     }
 
     private var activeSearchJob: Job? = null
