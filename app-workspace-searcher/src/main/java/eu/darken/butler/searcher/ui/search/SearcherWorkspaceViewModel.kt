@@ -121,7 +121,12 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         searchQuery.value = query
     }
 
-    fun performSearch() {
+    fun performExplicitSearch() {
+        log(TAG, INFO) { "Performing explicit search with history save" }
+        performSearch(saveToHistory = true)
+    }
+
+    fun performSearch(saveToHistory: Boolean = false) {
         val query = searchQuery.value.text
         if (query.isBlank()) return
 
@@ -145,8 +150,12 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 filter = currentFilter.value
             )
 
-            // Record search in history
-            currentSearchId = searchHistory.addSearch(searchRequest)
+            // Record search in history only if explicitly requested
+            currentSearchId = if (saveToHistory) {
+                searchHistory.addSearch(searchRequest)
+            } else {
+                null
+            }
             try {
                 val results = mutableListOf<SearchResult>()
                 searchEngine.search(
@@ -242,6 +251,23 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     fun onSearchResultClick(result: SearchResult) {
         log(TAG) { "Search result clicked: ${result.path}" }
+
+        // Save current search to history since user found it useful
+        vmScope.launch {
+            val currentQuery = searchQuery.value.text
+            if (currentQuery.isNotBlank()) {
+                val searchRequest = SearchQuery(
+                    query = currentQuery,
+                    path = searchPath.value,
+                    options = SearchQuery.Options(
+                        maxResults = searcherSettings.maxSearchResults.value()
+                    ),
+                    filter = currentFilter.value
+                )
+                searchHistory.addSearch(searchRequest)
+            }
+        }
+
         // TODO: Navigate to explorer with the selected file
     }
 

@@ -99,6 +99,7 @@ fun SearcherWorkspacePage(
     onUpdateQuery: (TextFieldValue) -> Unit = {},
     onUpdateSearchPath: (APath) -> Unit = {},
     onPerformSearch: () -> Unit = {},
+    onExplicitSearch: () -> Unit = {},
     onCancelSearch: () -> Unit = {},
     onClearResults: () -> Unit = {},
     onResultClick: (SearchResult) -> Unit = {},
@@ -145,6 +146,7 @@ fun SearcherWorkspacePage(
                 onUpdateQuery = onUpdateQuery,
                 onUpdateSearchPath = onUpdateSearchPath,
                 onPerformSearch = onPerformSearch,
+                onExplicitSearch = onExplicitSearch,
                 onCancelSearch = onCancelSearch,
                 onToggleCaseSensitive = onToggleCaseSensitive,
                 onToggleWholeWord = onToggleWholeWord,
@@ -277,6 +279,7 @@ fun SearcherWorkspacePageHost(
             onUpdateQuery = vm::updateSearchQuery,
             onUpdateSearchPath = vm::updateSearchPath,
             onPerformSearch = vm::performSearch,
+            onExplicitSearch = vm::performExplicitSearch,
             onCancelSearch = vm::cancelSearch,
             onClearResults = vm::clearResults,
             onResultClick = vm::onSearchResultClick,
@@ -287,11 +290,11 @@ fun SearcherWorkspacePageHost(
                     vm.updateSearchQuery(TextFieldValue(query.query))
                     vm.updateSearchPath(query.path)
                     vm.updateFilter(query.filter)
-                    vm.performSearch()
+                    vm.performExplicitSearch() // Use explicit search for history items too
                 } ?: run {
                     // Fallback to just the base query if full query unavailable
                     vm.updateSearchQuery(TextFieldValue(item.baseQuery))
-                    vm.performSearch()
+                    vm.performExplicitSearch() // Use explicit search for history items too
                 }
             },
             onToggleCaseSensitive = vm::toggleCaseSensitive,
