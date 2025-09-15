@@ -10,6 +10,7 @@ import eu.darken.butler.common.datastore.PreferenceStoreMapper
 import eu.darken.butler.common.datastore.createValue
 import eu.darken.butler.common.debug.DebugSettings
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.APath
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -29,10 +30,11 @@ class SearcherSettings @Inject constructor(
     val caseSensitive = dataStore.createValue("searcher.case_sensitive", false)
     val wholeWord = dataStore.createValue("searcher.whole_word", false)
     val useRegex = dataStore.createValue("searcher.use_regex", false)
-    val maxHistoryItems = dataStore.createValue("searcher.max_history_items", 50)
-    val saveHistory = dataStore.createValue("searcher.save_history", true)
-    val maxSearchResults = dataStore.createValue("searcher.max_search_results", 1000)
-    val defaultSearchPath = dataStore.createValue("searcher.default_search_path", "")
+
+    val defaultSearchPath = dataStore.createValue<APath?>("searcher.default.path", null, json)
+    val maxSearchResults = dataStore.createValue("searcher.results.maximum", 1000)
+    val saveHistory = dataStore.createValue("searcher.history.enabled", true)
+    val maxHistoryItems = dataStore.createValue("searcher.history.maximum", 50)
 
     override val mapper = PreferenceStoreMapper(
         debugSettings.isDebugMode,

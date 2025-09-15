@@ -92,6 +92,10 @@ class SearchHistory @Inject constructor(
         log(TAG) { "Clearing all search history" }
         searchHistoryDao.deleteAll()
     }
+
+    suspend fun getHistoryCount(): Int {
+        return searchHistoryDao.getCount()
+    }
     
     companion object {
         private val TAG = logTag("Searcher", "History")

@@ -1,33 +1,33 @@
 package eu.darken.butler.searcher.ui.search
 
+import android.content.Context
+import android.os.Environment
 import androidx.compose.ui.text.input.TextFieldValue
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.workspace.core.permissions.PathPermissionChecker
-import eu.darken.butler.workspace.core.permissions.PermissionState
-import eu.darken.butler.common.navigation.Nav
-import eu.darken.butler.common.navigation.destSetup
-import eu.darken.butler.setup.core.SetupModule
-import android.content.Context
-import android.os.Environment
-import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
+import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.searcher.core.SearchEngine
 import eu.darken.butler.searcher.core.SearchHistory
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchResult
 import eu.darken.butler.searcher.core.SearcherSettings
+import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.permissions.PathPermissionChecker
+import eu.darken.butler.workspace.core.permissions.PermissionState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -68,17 +68,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
         vmScope.launch {
             val defaultPath = searcherSettings.defaultSearchPath.value()
-            searchPath.value = if (defaultPath.isNotEmpty()) {
-                LocalPath.build(defaultPath)
-            } else {
-                LocalPath.build(Environment.getExternalStorageDirectory())
-            }
+            searchPath.value = defaultPath ?: LocalPath.build(Environment.getExternalStorageDirectory())
         }
     }
 
     private var activeSearchJob: Job? = null
     private var currentSearchId: String? = null
-    
+
 
     data class SearchState(
         val status: Status = Status.IDLE,
@@ -133,18 +129,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
         activeSearchJob?.cancel()
 
-        val searchRequest = SearchQuery(
-            query = query,
-            path = searchPath.value,
-            options = SearchQuery.Options(),
-            filter = currentFilter.value
-        )
-
-        // Record search in history
-        vmScope.launch {
-            currentSearchId = searchHistory.addSearch(searchRequest)
-        }
-
         // Clear previous results and set searching state
         searchState.update {
             it.copy(status = SearchState.Status.SEARCHING, results = emptyList(), error = null)
@@ -152,6 +136,17 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
         // Start the search
         activeSearchJob = vmScope.launch {
+            val searchRequest = SearchQuery(
+                query = query,
+                path = searchPath.value,
+                options = SearchQuery.Options(
+                    maxResults = searcherSettings.maxSearchResults.value()
+                ),
+                filter = currentFilter.value
+            )
+
+            // Record search in history
+            currentSearchId = searchHistory.addSearch(searchRequest)
             try {
                 val results = mutableListOf<SearchResult>()
                 searchEngine.search(
@@ -191,7 +186,14 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     fun clearResults() {
         log(TAG) { "Clearing search results" }
-        searchState.update { it.copy(status = SearchState.Status.IDLE, results = emptyList(), progress = null, error = null) }
+        searchState.update {
+            it.copy(
+                status = SearchState.Status.IDLE,
+                results = emptyList(),
+                progress = null,
+                error = null
+            )
+        }
         searchQuery.value = TextFieldValue("")
     }
 
