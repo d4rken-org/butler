@@ -12,13 +12,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.FolderOff
 import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material.icons.twotone.Folder
-import androidx.compose.material.icons.twotone.Security
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,7 +30,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.permissions.Permission
 import eu.darken.butler.explorer.R
 import eu.darken.butler.workspace.core.permissions.PermissionState
-import eu.darken.butler.workspace.core.permissions.PermissionRequirement
+import eu.darken.butler.workspace.core.permissions.SetupRequirement
 
 @Composable
 fun PermissionRequestCard(
@@ -129,11 +127,10 @@ private fun PermissionRequestCardPreview() {
         PermissionRequestCard(
             permissionState = PermissionState(
                 requirements = listOf(
-                    PermissionRequirement(
+                    SetupRequirement(
                         permission = Permission.MANAGE_EXTERNAL_STORAGE,
                         isRequired = true,
-                        reason = "Access files and folders".toCaString(),
-                        alternativeAccess = null,
+                        description = "Access files and folders".toCaString(),
                     )
                 ),
                 hasSufficientPermissions = false,

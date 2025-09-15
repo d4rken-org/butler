@@ -1,5 +1,6 @@
 package eu.darken.butler.searcher.ui.search.rows
 
+import eu.darken.butler.common.files.FileType
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import eu.darken.butler.common.compose.Preview2

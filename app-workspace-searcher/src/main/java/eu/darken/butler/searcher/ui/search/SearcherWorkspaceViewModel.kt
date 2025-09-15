@@ -11,6 +11,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.permissions.PathPermissionChecker
+import eu.darken.butler.workspace.core.permissions.PermissionState
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.setup.core.SetupModule
@@ -115,7 +116,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             caseSensitive = filter.caseSensitive,
             wholeWord = filter.wholeWord,
             useRegex = filter.useRegex,
-            needsPermissions = pathPermissionChecker.check(path).needsPermissions,
+            permissionState = pathPermissionChecker.check(path),
         )
     }.asStateFlow()
 
@@ -252,13 +253,16 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val caseSensitive: Boolean = false,
         val wholeWord: Boolean = false,
         val useRegex: Boolean = false,
-        val needsPermissions: Boolean = false,
+        val permissionState: PermissionState = PermissionState(),
     ) {
         val isSearching: Boolean
             get() = searchState.status == SearchState.Status.SEARCHING
 
         val hasResults: Boolean
             get() = searchState.results.isNotEmpty()
+
+        val needsPermissions: Boolean
+            get() = permissionState.needsPermissions
     }
 
     fun navigateToSetup() = launch {
