@@ -46,11 +46,7 @@ data class SearchQuery(
         val caseSensitive: Boolean = false,
         val useRegex: Boolean = false,
         val wholeWord: Boolean = false
-    ) : Parcelable {
-        companion object {
-            val DEFAULT = Filter()
-        }
-    }
+    ) : Parcelable
     
     companion object {
         fun create(
