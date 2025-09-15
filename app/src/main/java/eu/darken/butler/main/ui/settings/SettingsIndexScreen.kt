@@ -8,15 +8,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.twotone.ListAlt
-import androidx.compose.material.icons.twotone.Favorite
-import androidx.compose.material.icons.twotone.PrivacyTip
-import androidx.compose.material.icons.twotone.Tune
 import androidx.compose.material.icons.twotone.Edit
+import androidx.compose.material.icons.twotone.Favorite
 import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Info
+import androidx.compose.material.icons.twotone.PrivacyTip
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Stars
+import androidx.compose.material.icons.twotone.Tune
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -120,20 +120,20 @@ fun SettingsIndexScreen(
 
             item {
                 SettingsBaseItem(
-                    icon = Icons.TwoTone.Workspaces,
-                    title = stringResource(R.string.workspace_settings_title),
-                    subtitle = stringResource(R.string.workspace_settings_subtitle),
-                    onClick = { onNavigateTo(Nav.Settings.workspaces()) },
+                    icon = Icons.TwoTone.Tune,
+                    title = stringResource(R.string.setup_title),
+                    subtitle = stringResource(R.string.setup_settings_description),
+                    onClick = { onNavigateTo(Nav.Main.destSetup(showCompleted = true)) },
                 )
                 SettingsDivider()
             }
 
             item {
                 SettingsBaseItem(
-                    icon = Icons.TwoTone.Tune,
-                    title = stringResource(R.string.setup_title),
-                    subtitle = stringResource(R.string.setup_settings_description),
-                    onClick = { onNavigateTo(Nav.Main.destSetup(showCompleted = true)) },
+                    icon = Icons.TwoTone.Workspaces,
+                    title = stringResource(R.string.workspace_settings_title),
+                    subtitle = stringResource(R.string.workspace_settings_subtitle),
+                    onClick = { onNavigateTo(Nav.Settings.workspaces()) },
                 )
                 SettingsDivider()
             }
