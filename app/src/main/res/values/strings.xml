@@ -192,6 +192,22 @@
     <string name="acknowledgement_lottie_subtitle">Airbnb\'s Lottie for Android. (APACHE 2.0)</string>
     <string name="acknowledgement_android_robot_title">Android</string>
     <string name="acknowledgement_android_robot_subtitle">The Android robot is reproduced or modified from work created and shared by Google and used according to terms described in the Creative Commons 3.0 Attribution License.</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">Android\'s modern toolkit for building native UI. (APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">Jetpack Libraries</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room, WorkManager, DataStore, Navigation and other AndroidX libraries. (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">Kotlin Extensions</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">Coroutines and Serialization libraries. (APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">Image loading library backed by Kotlin Coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_square_libraries_title">Square Libraries</string>
+    <string name="acknowledgement_square_libraries_subtitle">Retrofit, OkHttp, and OkIO networking libraries. (APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">Utilities for Jetpack Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">Drag and drop for LazyColumn in Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">Semantic versioning library for Kotlin. (MIT License)</string>
 
     <string name="settings_sponsor_development_title">Sponsor development</string>
     <string name="settings_sponsor_development_summary">Become a patron and make continued development possible.</string>
