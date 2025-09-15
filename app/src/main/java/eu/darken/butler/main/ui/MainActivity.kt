@@ -1,5 +1,6 @@
 package eu.darken.butler.main.ui
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.WindowManager
@@ -31,6 +32,7 @@ import eu.darken.butler.common.theming.ThemeState
 import eu.darken.butler.common.ui.Activity2
 import eu.darken.butler.main.core.CurriculumVitae
 import eu.darken.butler.main.core.GeneralSettings
+import eu.darken.butler.main.core.shortcuts.DynamicShortcutManager
 import eu.darken.butler.workspace.ui.workspaces.workspaces
 import javax.inject.Inject
 
@@ -43,6 +45,7 @@ class MainActivity : Activity2() {
     @Inject lateinit var navCtrl: NavigationController
     @Inject lateinit var navigationEntries: Set<@JvmSuppressWildcards NavigationEntry>
     @Inject lateinit var generalSettings: GeneralSettings
+    @Inject lateinit var shortcutManager: DynamicShortcutManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Set initial window background to prevent white flash
@@ -63,6 +66,9 @@ class MainActivity : Activity2() {
         }
 
         curriculumVitae.updateAppOpened()
+
+        // Handle shortcut intent if present (will be processed once navigation is ready)
+        savedIntent = intent
 
         setContent {
             val themeState by produceState<ThemeState?>(initialValue = null) {
@@ -148,7 +154,37 @@ class MainActivity : Activity2() {
     override fun onResume() {
         super.onResume()
         vm.checkUpgrades()
+
+        savedIntent?.let { intent ->
+            when (intent.action) {
+                DynamicShortcutManager.EXPLORER_SHORTCUT_ACTION -> {
+                    handleShortcutIntent(intent)
+                    savedIntent = null
+                }
+                DynamicShortcutManager.EXPLORER_NEW_ACTION -> {
+                    handleNewExplorerIntent()
+                    savedIntent = null
+                }
+            }
+        }
     }
+
+    private fun handleShortcutIntent(intent: Intent) {
+        val directoryPath = intent.getStringExtra(DynamicShortcutManager.EXPLORER_EXTRA_PATH)
+        if (directoryPath != null) {
+            log(TAG) { "Opening directory from shortcut: $directoryPath" }
+            vm.openDirectoryFromShortcut(directoryPath)
+            shortcutManager.reportPathShortcutUsed(directoryPath)
+        }
+    }
+
+    private fun handleNewExplorerIntent() {
+        log(TAG) { "Creating new Explorer workspace from shortcut" }
+        vm.createNewExplorerWorkspace()
+        shortcutManager.reportNewExplorerShortcutUsed()
+    }
+
+    private var savedIntent: Intent? = null
 
     companion object {
         private val TAG = logTag("Main", "Activity")

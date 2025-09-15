@@ -49,6 +49,34 @@
     <string name="onboarding_adaptive_tablet_title">Tablet</string>
     <string name="onboarding_adaptive_tablet_description">Multiple panels side by side.</string>
 
+    <!-- Explorer Shortcuts -->
+    <string name="shortcut_explorer_new_short">New Explorer</string>
+    <string name="shortcut_explorer_new_long">Create new Explorer workspace</string>
+
+    <!-- Shortcuts Settings -->
+    <string name="shortcuts_settings_title">Shortcuts</string>
+    <string name="shortcuts_settings_subtitle">Configure launcher shortcuts</string>
+    <string name="shortcuts_settings_enabled_title">Enable shortcuts</string>
+    <string name="shortcuts_settings_enabled_subtitle">Show frequently used items in launcher</string>
+    <string name="shortcuts_settings_auto_remember_title">Remember visited paths</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">Automatically add frequently visited paths as shortcuts</string>
+    <string name="shortcuts_settings_last_accessed_title">Last accessed</string>
+    <string name="shortcuts_settings_max_count_title">Maximum shortcuts</string>
+    <string name="shortcuts_settings_max_count_subtitle">Currently showing %d shortcuts</string>
+    <string name="shortcuts_settings_min_access_title">Minimum accesses</string>
+    <string name="shortcuts_settings_min_access_subtitle">Require %d accesses before showing</string>
+    <string name="shortcuts_settings_current_title">Current shortcuts</string>
+    <string name="shortcuts_settings_current_subtitle">%d shortcuts tracked</string>
+    <string name="shortcuts_settings_clear_title">Clear shortcut history</string>
+    <string name="shortcuts_settings_clear_subtitle">Remove all tracked shortcuts</string>
+    <string name="shortcuts_settings_clear_confirm_title">Clear shortcut history?</string>
+    <string name="shortcuts_settings_clear_confirm_message">This will remove all tracked shortcuts. Bookmarks will be preserved.</string>
+    <string name="shortcuts_settings_cleared_message">Shortcut history cleared</string>
+    <string name="shortcuts_settings_max_dialog_title">Maximum shortcuts</string>
+    <string name="shortcuts_settings_max_dialog_message">Number of shortcuts to show in launcher (1–4)</string>
+    <string name="shortcuts_settings_min_dialog_title">Minimum access count</string>
+    <string name="shortcuts_settings_min_dialog_message">How many times a path must be accessed before appearing as a shortcut (1–10)</string>
+
     <string name="setup_usagestats_title">Usage stats</string>
     <string name="setup_shizuku_card_title">Shizuku</string>
     <string name="setup_root_card_title">Root</string>

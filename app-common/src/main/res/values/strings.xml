@@ -36,6 +36,7 @@
     <string name="general_read_more_action">Read more</string>
     <string name="general_mark_as_read_action">Mark as read</string>
     <string name="general_back_action">Back</string>
+    <string name="general_navigate_up_action">Navigate up</string>
     <string name="general_maybe_later_action">Maybe later</string>
     <string name="general_manage_action">Manage</string>
     <string name="general_sync_action">Synchronize</string>

@@ -21,6 +21,7 @@ import eu.darken.butler.explorer.core.operations.OperationResult
 import eu.darken.butler.explorer.core.operations.OperationState
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
+import eu.darken.butler.workspace.core.tracker.PathAccessTracker
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -35,6 +36,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.parcelize.Parcelize
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 
@@ -45,6 +49,7 @@ class ExplorerWorkspace @AssistedInject constructor(
     private val engine: BrowsingEngine,
     private val breadcrumbGenerator: BreadcrumbGenerator,
     private val operationEngine: OperationEngine,
+    private val pathAccessTracker: PathAccessTracker,
 ) : Workspace {
 
     private val tag = logTag("Explorer", "Workspace", id.shortTag)
@@ -67,6 +72,10 @@ class ExplorerWorkspace @AssistedInject constructor(
     private val navigationRequests = MutableSharedFlow<ExplorerNavigation>(replay = 1)
     private val operationRequests = MutableSharedFlow<ExplorerOperation>(replay = 1)
     private val operationMutex = Mutex()
+
+    // Track last accessed path to prevent duplicate tracking
+    private var lastTrackedPath: APath? = null
+    private var lastTrackedTime: Instant? = null
 
     data class State(
         val currentTarget: ExplorerNavigation.Target? = null,
@@ -292,6 +301,11 @@ class ExplorerWorkspace @AssistedInject constructor(
                         historyIndex = if (addToHistory) newHistory.size - 1 else current.value.historyIndex
                     )
 
+                    // Track path access for shortcuts (only for new navigations to directories)
+                    if (addToHistory && target is ExplorerNavigation.Target.Directory) {
+                        trackPathIfNeeded(target.path)
+                    }
+
                     val newTitle = location.toString().toCaString()
                     info.value = info.value.copy(title = newTitle)
                 } else {
@@ -334,6 +348,31 @@ class ExplorerWorkspace @AssistedInject constructor(
     override suspend fun release() {
         log(tag, INFO) { "release()" }
         scope.cancel()
+    }
+
+    private suspend fun trackPathIfNeeded(path: APath) {
+        val now = Clock.System.now()
+        val shouldTrack = when {
+            // Different path than last tracked
+            lastTrackedPath != path -> true
+            // Same path but more than 5 seconds have passed
+            lastTrackedTime != null && (now - lastTrackedTime!!) > 5.seconds -> true
+            // Otherwise don't track
+            else -> false
+        }
+
+        if (shouldTrack) {
+            try {
+                log(tag, DEBUG) { "Tracking path access: $path" }
+                pathAccessTracker.trackPathAccess(path)
+                lastTrackedPath = path
+                lastTrackedTime = now
+            } catch (e: Exception) {
+                log(tag, WARN) { "Failed to track path access: $e" }
+            }
+        } else {
+            log(tag, DEBUG) { "Skipping duplicate path tracking for: $path" }
+        }
     }
 
     @Parcelize
