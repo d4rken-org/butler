@@ -21,7 +21,7 @@ import javax.inject.Singleton
 
 @Singleton
 class GeneralSettings @Inject constructor(
-    @param:ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context,
     debugSettings: DebugSettings,
     json: Json,
     motdSettings: MotdSettings,

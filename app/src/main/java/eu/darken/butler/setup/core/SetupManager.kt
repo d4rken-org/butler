@@ -23,7 +23,7 @@ import javax.inject.Singleton
 
 @Singleton
 class SetupManager @Inject constructor(
-    @param:AppScope private val appScope: CoroutineScope,
+    @AppScope private val appScope: CoroutineScope,
     private val setupModules: Set<@JvmSuppressWildcards SetupModule>,
 ) {
 

@@ -29,7 +29,7 @@ import javax.inject.Singleton
 
 @Singleton
 class NetworkStateProvider @Inject constructor(
-    @param:AppScope private val appScope: CoroutineScope,
+    @AppScope private val appScope: CoroutineScope,
     private val networkRequestBuilderProvider: NetworkRequestBuilderProvider,
     private val manager: ConnectivityManager,
 ) {

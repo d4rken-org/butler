@@ -30,7 +30,7 @@ import javax.inject.Singleton
 
 @Singleton
 class UpgradeRepoGplay @Inject constructor(
-    @param:AppScope private val scope: CoroutineScope,
+    @AppScope private val scope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
     private val billingManager: BillingManager,
     private val billingCache: BillingCache,

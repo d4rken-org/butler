@@ -38,7 +38,7 @@ import kotlin.time.Instant
 
 @Singleton
 class ShizukuSetupModule @Inject constructor(
-    @param:AppScope private val appScope: CoroutineScope,
+    @AppScope private val appScope: CoroutineScope,
     private val adbSettings: AdbSettings,
     private val shizukuManager: ShizukuManager,
     rootManager: RootManager,

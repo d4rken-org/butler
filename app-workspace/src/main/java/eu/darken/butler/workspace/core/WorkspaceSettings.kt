@@ -16,7 +16,7 @@ import javax.inject.Singleton
 
 @Singleton
 class WorkspaceSettings @Inject constructor(
-    @param:ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context,
     debugSettings: DebugSettings,
     json: Json,
 ) : PreferenceScreenData {

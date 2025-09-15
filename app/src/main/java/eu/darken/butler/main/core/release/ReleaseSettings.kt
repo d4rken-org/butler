@@ -16,7 +16,7 @@ import kotlin.time.Instant
 
 @Singleton
 class ReleaseSettings @Inject constructor(
-    @param:ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context,
     json: Json,
 ) : PreferenceScreenData {
 

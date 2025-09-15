@@ -27,8 +27,8 @@ import kotlin.time.Instant
 
 @Singleton
 class CurriculumVitae @Inject constructor(
-    @param:ApplicationContext private val context: Context,
-    @param:AppScope private val appScope: CoroutineScope,
+    @ApplicationContext private val context: Context,
+    @AppScope private val appScope: CoroutineScope,
     json: Json,
 ) {
 

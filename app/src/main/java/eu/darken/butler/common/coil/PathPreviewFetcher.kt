@@ -25,7 +25,7 @@ import eu.darken.butler.common.files.iconRes
 import javax.inject.Inject
 
 class PathPreviewFetcher @Inject constructor(
-    @param:ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context,
     private val gatewaySwitch: GatewaySwitch,
     private val mimeTypeTool: MimeTypeTool,
     private val data: APathLookup<*>,
@@ -87,7 +87,7 @@ class PathPreviewFetcher @Inject constructor(
     }
 
     class Factory @Inject constructor(
-        @param:ApplicationContext private val context: Context,
+        @ApplicationContext private val context: Context,
         private val gatewaySwitch: GatewaySwitch,
         private val mimeTypeTool: MimeTypeTool,
     ) : Fetcher.Factory<APathLookup<*>> {

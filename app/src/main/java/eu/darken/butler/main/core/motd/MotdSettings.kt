@@ -14,7 +14,7 @@ import kotlin.uuid.Uuid
 
 @Singleton
 class MotdSettings @Inject constructor(
-    @param:ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context,
     json: Json,
 ) {
 

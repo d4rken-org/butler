@@ -15,7 +15,7 @@ import javax.inject.Singleton
 
 @Singleton
 class ExplorerSettings @Inject constructor(
-    @param:ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context,
     private val json: Json,
 ) : PreferenceScreenData {
 

@@ -34,8 +34,8 @@ import kotlin.time.Instant
 
 @Singleton
 class InventorySetupModule @Inject constructor(
-    @param:AppScope private val appScope: CoroutineScope,
-    @param:ApplicationContext private val context: Context,
+    @AppScope private val appScope: CoroutineScope,
+    @ApplicationContext private val context: Context,
     private val pkgOps: PkgOps,
 ) : SetupModule {
 

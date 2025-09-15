@@ -11,7 +11,7 @@ import javax.inject.Singleton
 
 @Singleton
 class BillingCache @Inject constructor(
-    @param:ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context,
 ) {
 
     private val Context.dataStore by preferencesDataStore(name = "settings_gplay")

@@ -21,7 +21,7 @@ import kotlin.uuid.Uuid
 
 @Singleton
 class UpdateService @Inject constructor(
-    @param:AppScope private val appScope: CoroutineScope,
+    @AppScope private val appScope: CoroutineScope,
     private val updateChecker: UpdateChecker,
     generalSettings: GeneralSettings,
     releaseManager: ReleaseManager,

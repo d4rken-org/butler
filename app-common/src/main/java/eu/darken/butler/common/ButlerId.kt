@@ -11,7 +11,7 @@ import kotlin.uuid.Uuid
 
 @Singleton
 class ButlerId @Inject constructor(
-    @param:ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context,
 ) {
     private val installIDFile = File(context.filesDir, INSTALL_ID_FILENAME)
     val id: String by lazy {

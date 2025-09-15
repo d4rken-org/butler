@@ -26,7 +26,7 @@ import javax.inject.Singleton
 
 @Singleton
 class BillingConnectionProvider @Inject constructor(
-    @param:ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context,
 ) {
 
     private val provider: Flow<BillingConnection> = callbackFlow {

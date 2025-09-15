@@ -20,7 +20,7 @@ import kotlin.uuid.Uuid
 
 @Singleton
 class UpgradeRepoFoss @Inject constructor(
-    @param:AppScope private val appScope: CoroutineScope,
+    @AppScope private val appScope: CoroutineScope,
     private val fossCache: FossCache,
     private val webpageTool: WebpageTool,
 ) : UpgradeRepo {

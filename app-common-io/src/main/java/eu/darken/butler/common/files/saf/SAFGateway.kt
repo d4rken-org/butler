@@ -37,9 +37,9 @@ import kotlin.time.Instant
 
 @Singleton
 class SAFGateway @Inject constructor(
-    @param:ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context,
     private val contentResolver: ContentResolver,
-    @param:AppScope private val appScope: CoroutineScope,
+    @AppScope private val appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
 ) : APathGateway<SAFPath, SAFPathLookup, SAFPathLookupExtended> {
 

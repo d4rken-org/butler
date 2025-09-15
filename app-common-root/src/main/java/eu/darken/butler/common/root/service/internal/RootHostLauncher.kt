@@ -34,7 +34,7 @@ import kotlin.uuid.Uuid
  * https://github.com/RikkaApps/Shizuku/blob/master/starter/src/main/java/moe/shizuku/starter/ServiceStarter.java
  */
 class RootHostLauncher @Inject constructor(
-    @param:ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context
 ) {
 
     fun <Service : IInterface, Host : BaseRootHost> createConnection(
