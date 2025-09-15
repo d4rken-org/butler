@@ -95,4 +95,18 @@ class MainViewModel @Inject constructor(
         log(tag) { "isConfirmExitEnabled(): onboarded=$onboarded, exitConfirm=$exitConfirm, result=$isEnabled" }
         callback(isEnabled)
     }
+
+    fun openDirectoryFromShortcut(directoryPath: String) = launch {
+        log(tag) { "openDirectoryFromShortcut($directoryPath)" }
+        // This will be handled by the workspace UI when it's ready
+        // For now, we just log it - actual implementation would involve
+        // navigating to the workspaces screen and creating a new Explorer workspace
+    }
+
+    fun createNewExplorerWorkspace() = launch {
+        log(tag) { "createNewExplorerWorkspace()" }
+        // This will be handled by the workspace UI when it's ready
+        // For now, we just log it - actual implementation would involve
+        // navigating to the workspaces screen and creating a new Explorer workspace
+    }
 }

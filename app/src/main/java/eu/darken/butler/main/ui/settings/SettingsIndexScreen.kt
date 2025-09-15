@@ -14,6 +14,7 @@ import androidx.compose.material.icons.twotone.Tune
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Info
+import androidx.compose.material.icons.twotone.PushPin
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Stars
@@ -124,6 +125,16 @@ fun SettingsIndexScreen(
                     title = stringResource(R.string.workspace_settings_title),
                     subtitle = stringResource(R.string.workspace_settings_subtitle),
                     onClick = { onNavigateTo(Nav.Settings.workspaces()) },
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
+                    icon = Icons.TwoTone.PushPin,
+                    title = stringResource(R.string.shortcuts_settings_title),
+                    subtitle = stringResource(R.string.shortcuts_settings_subtitle),
+                    onClick = { onNavigateTo(Nav.Settings.shortcuts()) },
                 )
                 SettingsDivider()
             }

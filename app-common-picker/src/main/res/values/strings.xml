@@ -11,7 +11,6 @@
     <string name="picker_folder_name_label">Folder name</string>
     <string name="picker_show_hidden_files_action">Show hidden files</string>
     <string name="picker_hide_hidden_files_action">Hide hidden files</string>
-    <string name="picker_navigate_up_action">Navigate up</string>
     <string name="picker_more_options_action">More options</string>
     <string name="picker_no_items_message">No items</string>
     <string name="picker_not_directory_error">Not a directory</string>
