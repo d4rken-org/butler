@@ -27,7 +27,9 @@ import eu.darken.butler.explorer.core.watcher.FileSystemWatcher
 import eu.darken.butler.workspace.core.permissions.PermissionState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
@@ -248,43 +250,59 @@ class BrowsingEngine @Inject constructor(
 
     suspend fun loadLocation(
         target: ExplorerNavigation.Target
-    ): Flow<ExplorerLocation> = flow {
-        log(tag, INFO) { "loadLocation(): Loading location: $target" }
-        when (target) {
-            is ExplorerNavigation.Target.Home -> emit(getHomeEntry())
-            is ExplorerNavigation.Target.Device -> emit(getDevice())
-            is ExplorerNavigation.Target.Directory -> {
-                // Start watching the directory for changes
-                startWatchingDirectory(target.path)
+    ): Flow<ExplorerLocation> = when (target) {
+        is ExplorerNavigation.Target.Home -> flowOf(getHomeEntry())
+        is ExplorerNavigation.Target.Device -> flowOf(getDevice())
+        is ExplorerNavigation.Target.Directory -> {
+            // Observe permission state changes for this directory
+            pathPermissionChecker.observePermissionState(target.path)
+                .flatMapLatest { permissionState ->
+                    flow {
+                        log(tag, INFO) { "loadLocation(): Loading directory with permission state: ${permissionState.hasSufficientPermissions}" }
 
-                val firstPass = getDirectory(target.path)
-                emit(firstPass)
+                        if (!permissionState.hasSufficientPermissions) {
+                            // Emit location with permission issue
+                            emit(
+                                ExplorerLocation.Directory(
+                                    path = target.path,
+                                    items = emptyList(),
+                                    permissionState = permissionState,
+                                )
+                            )
+                        } else {
+                            // Start watching the directory for changes
+                            startWatchingDirectory(target.path)
 
-                // Cache the directory state
-                cacheMutex.withLock {
-                    directoryCache[target.path] = DirectoryState(
-                        path = target.path,
-                        baseItems = firstPass.items,
-                        isWatching = true,
-                    )
+                            val firstPass = getDirectory(target.path)
+                            emit(firstPass)
+
+                            // Cache the directory state
+                            cacheMutex.withLock {
+                                directoryCache[target.path] = DirectoryState(
+                                    path = target.path,
+                                    baseItems = firstPass.items,
+                                    isWatching = true,
+                                )
+                            }
+
+                            val secondPass = getContentExtended(target.path)
+                            emit(
+                                firstPass.copy(items = secondPass)
+                            )
+
+                            // Update cache with extended info
+                            cacheMutex.withLock {
+                                directoryCache[target.path] = directoryCache[target.path]?.copy(
+                                    baseItems = secondPass
+                                ) ?: DirectoryState(
+                                    path = target.path,
+                                    baseItems = secondPass,
+                                    isWatching = true,
+                                )
+                            }
+                        }
+                    }
                 }
-
-                val secondPass = getContentExtended(target.path)
-                emit(
-                    firstPass.copy(items = secondPass)
-                )
-
-                // Update cache with extended info
-                cacheMutex.withLock {
-                    directoryCache[target.path] = directoryCache[target.path]?.copy(
-                        baseItems = secondPass
-                    ) ?: DirectoryState(
-                        path = target.path,
-                        baseItems = secondPass,
-                        isWatching = true,
-                    )
-                }
-            }
         }
     }
 
