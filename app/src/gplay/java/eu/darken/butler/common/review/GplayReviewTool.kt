@@ -24,7 +24,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 import javax.inject.Inject
@@ -61,16 +65,16 @@ class GplayReviewTool @Inject constructor(
         upgradeRepo.upgradeInfo,
         releaseSettings.releasePartyAt.flow,
     ) { lastDismissed, reviewedAt, reviewInfo, upgradeInfo, releasePartyAt ->
-        val now = Instant.now()
-        val isSnoozed = Duration.between(lastDismissed ?: Instant.EPOCH, now) < Duration.ofDays(14)
+        val now = Clock.System.now()
+        val isSnoozed = (now - (lastDismissed ?: Instant.fromEpochMilliseconds(0))) < 14.days
         val canShow = reviewInfo?.canShow == true
         val hasReviewed = reviewedAt != null
 
         // Free trial is 14 days, only ask for review after the user has paid something
-        val hasPaidForPro = Duration.between(upgradeInfo.upgradedAt ?: now, now) > Duration.ofDays(21)
+        val hasPaidForPro = (now - (upgradeInfo.upgradedAt ?: now)) > 21.days
 
         // User may still be hangover from party, don't ask for review
-        val hasRecoveredFromParty = Duration.between(releasePartyAt ?: now, now) > Duration.ofDays(5)
+        val hasRecoveredFromParty = (now - (releasePartyAt ?: now)) > 5.days
 
         log(TAG) { "State 1: canShow=$canShow, isSnoozed=$isSnoozed ($lastDismissed), reviewedAt=$reviewedAt" }
         log(TAG) { "State 2: hasRecoveredFromParty=$hasRecoveredFromParty, hasPaidForPro=$hasPaidForPro" }
@@ -86,7 +90,7 @@ class GplayReviewTool @Inject constructor(
 
     override suspend fun dismiss() {
         log(TAG, INFO) { "dismiss()" }
-        settings.lastDismissed.value(Instant.now())
+        settings.lastDismissed.value(Clock.System.now())
     }
 
     override suspend fun reviewNow(activity: Activity) {
@@ -109,12 +113,12 @@ class GplayReviewTool @Inject constructor(
         log(TAG) { "Review completed after ${reviewTime}ms" }
         reviewRefresh.value = Uuid.random()
 
-        if (Duration.ofMillis(reviewTime) >= Duration.ofSeconds(2)) {
+        if (reviewTime.milliseconds >= 2.seconds) {
             log(TAG, INFO) { "Marking review as completed" }
-            settings.reviewedAt.value(Instant.now())
+            settings.reviewedAt.value(Clock.System.now())
         } else {
             log(TAG, INFO) { "Review was too quick, counting as dismiss" }
-            settings.lastDismissed.value(Instant.now())
+            settings.lastDismissed.value(Clock.System.now())
         }
     }
 

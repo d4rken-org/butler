@@ -126,7 +126,7 @@ class UpgradeRepoGplay @Inject constructor(
 
         override val upgradedAt: Instant? = upgrades
             .maxByOrNull { it.purchase.purchaseTime }
-            ?.let { Instant.ofEpochMilli(it.purchase.purchaseTime) }
+            ?.let { Instant.fromEpochMilliseconds(it.purchase.purchaseTime) }
     }
 
 
