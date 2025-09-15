@@ -1,5 +1,6 @@
 package eu.darken.butler.searcher.ui.search.rows
 
+import eu.darken.butler.common.files.FileType
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.twotone.Audiotrack

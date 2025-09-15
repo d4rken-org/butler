@@ -20,6 +20,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlin.time.Duration.Companion.seconds
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -168,6 +171,24 @@ fun SetupScreenHost(
     }
 
     val state by waitForState(vm.state)
+
+    // Auto-close when all required permissions are granted
+    if (options.autoCloseWhenComplete && !options.isOnboarding) {
+        LaunchedEffect(state?.allRequiredComplete) {
+            if (state?.allRequiredComplete == true) {
+                log(TAG) { "All required permissions granted, auto-closing setup screen" }
+                vm.navUp()
+            }
+        }
+    }
+
+    // Auto-refresh setup states while screen is visible
+    LaunchedEffect(vm) {
+        while (isActive) {
+            vm.refresh()
+            delay(5.seconds)
+        }
+    }
 
     state?.let { vmState ->
         SetupScreen(

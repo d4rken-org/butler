@@ -32,9 +32,9 @@ class PathPermissionChecker @Inject constructor(
 
         // Check if this is internal storage that requires permissions
         val internalStoragePath = Environment.getExternalStorageDirectory().absolutePath
-        val requiresStoragePermission = pathString.startsWith(internalStoragePath) || 
-                                       pathString.startsWith("/storage/emulated/") ||
-                                       pathString.startsWith("/sdcard")
+        val requiresStoragePermission = pathString.startsWith(internalStoragePath) ||
+            pathString.startsWith("/storage/emulated/") ||
+            pathString.startsWith("/sdcard")
 
         if (!requiresStoragePermission) {
             // App-specific directories or other paths that don't need special permissions
@@ -53,11 +53,10 @@ class PathPermissionChecker @Inject constructor(
 
         val isGranted = requiredPermission.isGranted(context)
 
-        val requirement = PermissionRequirement(
+        val requirement = SetupRequirement(
             permission = requiredPermission,
             isRequired = true,
-            reason = eu.darken.butler.common.R.string.common_permission_storage_manage_description.toCaString(),
-            alternativeAccess = null,
+            description = eu.darken.butler.common.R.string.common_permission_storage_manage_description.toCaString(),
         )
 
         return PermissionState(

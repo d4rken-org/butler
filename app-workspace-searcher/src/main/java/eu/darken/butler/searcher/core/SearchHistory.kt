@@ -37,17 +37,29 @@ class SearchHistory @Inject constructor(
     
     suspend fun addSearch(query: SearchQuery): String {
         log(TAG, INFO) { "Adding search to history: ${query.query}" }
-        
-        val entity = SearchHistoryEntity(
-            baseQuery = query.query,
-            rawQuery = converter.fromSearchQuery(query),
-            searchedAt = Clock.System.now()
-        )
-        
+
+        val now = Clock.System.now()
+
+        // Check if we have a recent identical search (within last 5 minutes)
+        val existingEntry = searchHistoryDao.getLatestByQuery(query.query)
+
+        val entityId = if (existingEntry != null) {
+            val timeDiff = now - existingEntry.searchedAt
+            if (timeDiff.inWholeMinutes < 5) {
+                // Update existing entry's timestamp instead of creating new one
+                log(TAG) { "Updating timestamp for existing search: ${query.query}" }
+                searchHistoryDao.updateTimestamp(existingEntry.id, now)
+                existingEntry.id
+            } else {
+                // More than 5 minutes old, create new entry
+                createNewSearchEntry(query, now)
+            }
+        } else {
+            // No existing entry, create new one
+            createNewSearchEntry(query, now)
+        }
+
         appScope.launch {
-            // Insert new search
-            searchHistoryDao.insert(entity)
-            
             // Clean up old entries if exceeding max
             val maxItems = searcherSettings.maxHistoryItems.value()
             val currentCount = searchHistoryDao.getCount()
@@ -55,7 +67,17 @@ class SearchHistory @Inject constructor(
                 searchHistoryDao.deleteOldest(currentCount - maxItems)
             }
         }
-        
+
+        return entityId
+    }
+
+    private suspend fun createNewSearchEntry(query: SearchQuery, timestamp: kotlin.time.Instant): String {
+        val entity = SearchHistoryEntity(
+            baseQuery = query.query,
+            rawQuery = converter.fromSearchQuery(query),
+            searchedAt = timestamp
+        )
+        searchHistoryDao.insert(entity)
         return entity.id
     }
     
@@ -91,6 +113,10 @@ class SearchHistory @Inject constructor(
     suspend fun clearHistory() {
         log(TAG) { "Clearing all search history" }
         searchHistoryDao.deleteAll()
+    }
+
+    suspend fun getHistoryCount(): Int {
+        return searchHistoryDao.getCount()
     }
     
     companion object {

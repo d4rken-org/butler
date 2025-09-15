@@ -1,12 +1,8 @@
 package eu.darken.butler.searcher.ui.search.rows
 
+import eu.darken.butler.common.files.FileType
 import kotlin.time.Clock
 import kotlin.time.Instant
-
-
-enum class FileType {
-    FILE, DIRECTORY, SYMBOLIC_LINK, UNKNOWN
-}
 
 data class FileRowData(
     val name: String,

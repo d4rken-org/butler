@@ -3,7 +3,7 @@
     <string name="app_name_subtitle">File Explorer Extraordinaire</string>
 
     <string name="butler_mascot_description">Butler mascot</string>
-    
+
     <string name="slogan_message_0">At your service.</string>
     <string name="slogan_message_1">Everything in its place.</string>
     <string name="slogan_message_2">Order, not chaos.</string>
@@ -184,7 +184,7 @@
     <string name="ui_theme_color_green_label">Green &amp; Gold</string>
     <string name="ui_theme_color_blue_label">Blue &amp; Orange</string>
     <string name="ui_theme_color_amoled_label">AMOLED</string>
-    
+
     <!-- Setup module types -->
     <string name="setup_usagestats_title">Usage stats</string>
     <string name="setup_shizuku_card_title">Shizuku</string>
@@ -195,9 +195,8 @@
     <string name="setup_inventory_card_title">App inventory</string>
 
     <!-- Common permission strings -->
-    <string name="common_permission_required_title">Permission Required</string>
-    <string name="common_permission_additional_required">Additional permissions are required to access: %1$s.</string>
-    <string name="common_permission_open_setup_action">Open Setup</string>
-    <string name="common_permission_storage_manage_description">Grant storage access to manage all files.</string>
-    <string name="common_permission_saf_required_description">Folder access permission required.</string>
+    <string name="setup_required_card_title">Setup Required</string>
+    <string name="setup_required_card_body">Additional setup is required to perform this operation.</string>
+    <string name="setup_required_card_setup_action">Open Setup</string>
+    <string name="common_permission_storage_manage_description">Accessing this path requires the \'MANAGE_EXTERNAL_STORAGE\' permission.</string>
 </resources>

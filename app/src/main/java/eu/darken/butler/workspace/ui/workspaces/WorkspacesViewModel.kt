@@ -46,12 +46,12 @@ class WorkspacesViewModel @Inject constructor(
     private val hiddenMotdIds = MutableStateFlow<Set<Uuid>>(emptySet())
 
     init {
-        // AUTO-CREATE EXPLORER WORKSPACE FOR TESTING - REMOVE BEFORE MERGE
+        // AUTO-CREATE WORKSPACE FOR TESTING - REMOVE BEFORE MERGE
         launch {
             val currentWorkspaces = workspaceRepo.state.first()
             if (currentWorkspaces.infos.isEmpty()) {
-                log(tag) { "No workspaces found, auto-creating Explorer workspace for testing" }
-                executeAction(WorkspaceAction.Create(type = Workspace.Type.EXPLORER))
+                log(tag) { "No workspaces found, auto-creating workspace for testing" }
+                executeAction(WorkspaceAction.Create(type = Workspace.Type.SEARCHER))
             }
         }
 

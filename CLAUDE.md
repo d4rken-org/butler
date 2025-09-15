@@ -122,6 +122,9 @@ fastlane android production
 - Reactive programming with Kotlin Flow and StateFlow.
 - Centralized error handling with `ErrorEventHandler`.
 - DataStore-based settings with kotlinx serialization.
+  - When accessing settings values, use the `.value()` extension function instead of `.flow.first()`
+  - Example: `searcherSettings.defaultSearchPath.value()` not `searcherSettings.defaultSearchPath.flow.first()`
+  - For setting values use: `searcherSettings.someSetting.value(newValue)`
 - Jetpack Compose for UI.
 - Hilt for dependency injection.
 - Kotlin Coroutines & Flow for async operations.

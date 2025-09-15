@@ -33,6 +33,7 @@ fun SearchToolbarCard(
     onUpdateQuery: (TextFieldValue) -> Unit,
     onUpdateSearchPath: (APath) -> Unit,
     onPerformSearch: () -> Unit,
+    onExplicitSearch: () -> Unit = onPerformSearch,
     onCancelSearch: () -> Unit,
     onToggleCaseSensitive: () -> Unit,
     onToggleWholeWord: () -> Unit,
@@ -64,7 +65,7 @@ fun SearchToolbarCard(
                 SearchBar(
                     query = state.searchQuery,
                     onQueryChange = onUpdateQuery,
-                    onSearch = onPerformSearch,
+                    onSearch = onExplicitSearch,
                     isSearching = state.isSearching,
                     onCancel = if (state.isSearching) onCancelSearch else null,
                     modifier = Modifier.weight(1f)

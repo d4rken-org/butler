@@ -11,22 +11,18 @@
     <string name="searcher_settings_search_category">Search</string>
     <string name="searcher_settings_search_in_content_title">Search in file content</string>
     <string name="searcher_settings_search_in_content_desc">Search inside files, not just names.</string>
-    <string name="searcher_settings_case_sensitive_title">Case sensitive search</string>
-    <string name="searcher_settings_case_sensitive_desc">Distinguish between upper and lowercase.</string>
-    <string name="searcher_settings_regex_title">Enable regex support</string>
-    <string name="searcher_settings_regex_desc">Allow regular expression patterns.</string>
-    <string name="searcher_settings_search_options">Search Options</string>
-    <string name="searcher_settings_case_sensitive_subtitle">Distinguish between upper and lowercase letters.</string>
-    <string name="searcher_settings_whole_word_title">Whole word search</string>
-    <string name="searcher_settings_whole_word_subtitle">Match complete words only.</string>
-    <string name="searcher_settings_regex_subtitle">Enable regular expression patterns.</string>
     <string name="searcher_settings_history">Search History</string>
     <string name="searcher_settings_save_history_title">Save search history</string>
     <string name="searcher_settings_save_history_subtitle">Remember previous searches.</string>
+    <string name="searcher_settings_current_history_title">Current history entries</string>
+    <string name="searcher_settings_current_history_subtitle">Number of searches currently saved.</string>
     <string name="searcher_settings_max_history_title">Max history entries</string>
     <string name="searcher_settings_max_history_subtitle">Maximum number of saved searches.</string>
     <string name="searcher_settings_clear_history_title">Clear search history</string>
     <string name="searcher_settings_clear_history_subtitle">Remove all saved searches.</string>
+    <string name="searcher_settings_search_performance">Performance</string>
+    <string name="searcher_settings_max_results_title">Maximum search results</string>
+    <string name="searcher_settings_max_results_subtitle">Limit the number of results returned per search.</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Recent searches</string>
@@ -51,7 +47,8 @@
     <string name="searcher_history_clear_dialog_title">Clear search history</string>
     <string name="searcher_history_clear_dialog_message">This will remove all saved search history. This action cannot be undone.</string>
     <string name="searcher_history_clear_confirm_action">Clear</string>
-    
+    <string name="searcher_history_cleared_success">Search history cleared</string>
+
     <!-- Search progress -->
     <string name="searcher_progress_searching_in">Searching in %1$s</string>
     <string name="searcher_progress_searching">Searching…</string>
