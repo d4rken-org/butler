@@ -22,7 +22,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class ShortcutManagerService @Inject constructor(
+class DynamicShortcutManager @Inject constructor(
     @ApplicationContext private val context: Context,
     @AppScope private val appScope: CoroutineScope,
     private val shortcutRepo: ShortcutRepo,

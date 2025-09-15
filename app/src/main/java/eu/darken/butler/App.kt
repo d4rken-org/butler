@@ -24,7 +24,7 @@ import eu.darken.butler.common.updater.UpdateService
 import eu.darken.butler.main.core.CurriculumVitae
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.release.ReleaseManager
-import eu.darken.butler.main.core.shortcuts.ShortcutManagerService
+import eu.darken.butler.main.core.shortcuts.DynamicShortcutManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
@@ -48,7 +48,7 @@ open class App : Application(), Configuration.Provider {
     @Inject lateinit var updateService: UpdateService
     @Inject lateinit var theming: Theming
     @Inject lateinit var releaseManager: ReleaseManager
-    @Inject lateinit var shortcutManager: ShortcutManagerService
+    @Inject lateinit var shortcutManager: DynamicShortcutManager
 
     private val logCatLogger = LogCatLogger()
 
