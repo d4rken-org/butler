@@ -6,6 +6,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -48,7 +49,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page"), navCtrl) {
 
     private val searchQuery = MutableStateFlow(TextFieldValue(""))
-    private val currentFilter = MutableStateFlow(SearchQuery.Filter.DEFAULT)
+    private val currentFilter = MutableStateFlow(SearchQuery.Filter())
     private val searchPath = MutableStateFlow<APath>(LocalPath.build(Environment.getExternalStorageDirectory()))
 
     init {
@@ -65,7 +66,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }.launchIn(vmScope)
 
         vmScope.launch {
-            val defaultPath = searcherSettings.defaultSearchPath.flow.first()
+            val defaultPath = searcherSettings.defaultSearchPath.value()
             searchPath.value = if (defaultPath.isNotEmpty()) {
                 LocalPath.build(defaultPath)
             } else {
@@ -246,7 +247,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val searchQuery: TextFieldValue = TextFieldValue(""),
         val searchState: SearchState = SearchState(),
         val searchHistory: List<SearchHistory.SearchHistoryItem> = emptyList(),
-        val currentFilter: SearchQuery.Filter = SearchQuery.Filter.DEFAULT,
+        val currentFilter: SearchQuery.Filter = SearchQuery.Filter(),
         val searchPath: APath,
         val caseSensitive: Boolean = false,
         val wholeWord: Boolean = false,
