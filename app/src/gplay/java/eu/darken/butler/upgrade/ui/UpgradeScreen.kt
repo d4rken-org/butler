@@ -5,6 +5,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -200,21 +201,38 @@ fun UpgradeScreen(
                 )
             }
 
-            Text(
-                text = stringResource(R.string.upgrade_screen_why_title),
-                style = MaterialTheme.typography.titleMedium,
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 8.dp)
-            )
-
-            Text(
-                text = stringResource(R.string.upgrade_screen_why_body),
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp)
-            )
+                    .padding(top = 8.dp, bottom = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.upgrade_benefits_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = stringResource(R.string.upgrade_benefit_unlimited),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                Text(
+                    text = stringResource(R.string.upgrade_benefit_early_access),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                Text(
+                    text = stringResource(R.string.upgrade_benefit_motivation),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                Text(
+                    text = stringResource(R.string.upgrade_benefit_and_more),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+            }
 
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 16.dp),

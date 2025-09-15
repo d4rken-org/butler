@@ -7,8 +7,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.twotone.Cancel
+import androidx.compose.material.icons.twotone.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -75,9 +78,9 @@ fun UpgradeStatusScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(24.dp),
+                .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             // Mascot
             ButlerIcon(
@@ -108,8 +111,13 @@ fun UpgradeStatusScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                    containerColor = if (state.isUpgraded) {
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant
+                    }
+                ),
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Column(
                     modifier = Modifier
@@ -123,7 +131,7 @@ fun UpgradeStatusScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
 
-                    // Upgraded status with emoji
+                    // Upgraded status with icon
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -132,9 +140,14 @@ fun UpgradeStatusScreen(
                             text = stringResource(R.string.upgrade_status_upgraded),
                             style = MaterialTheme.typography.bodyLarge
                         )
-                        Text(
-                            text = if (state.isUpgraded) "✅" else "❌",
-                            style = MaterialTheme.typography.bodyLarge
+                        Icon(
+                            imageVector = if (state.isUpgraded) Icons.TwoTone.CheckCircle else Icons.TwoTone.Cancel,
+                            contentDescription = null,
+                            tint = if (state.isUpgraded) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
                         )
                     }
 
@@ -165,19 +178,69 @@ fun UpgradeStatusScreen(
                 }
             }
 
+            // Feature highlights for non-upgraded users
+            if (!state.isUpgraded) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.upgrade_benefits_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = stringResource(R.string.upgrade_benefit_unlimited),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        Text(
+                            text = stringResource(R.string.upgrade_benefit_motivation),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        Text(
+                            text = stringResource(R.string.upgrade_benefit_early_access),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        Text(
+                            text = stringResource(R.string.upgrade_benefit_and_more),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.weight(1f))
 
             // Upgrade button
             if (!state.isUpgraded) {
                 Button(
                     onClick = onUpgradeClick,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     val buttonText = when (state.upgradeType) {
                         UpgradeRepo.Type.GPLAY -> stringResource(R.string.upgrade_status_button_upgrade_pro)
                         UpgradeRepo.Type.FOSS -> stringResource(R.string.upgrade_status_button_upgrade_foss)
                     }
-                    Text(text = buttonText)
+                    Text(
+                        text = buttonText,
+                        style = MaterialTheme.typography.titleMedium
+                    )
                 }
             }
         }
