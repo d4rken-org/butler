@@ -93,6 +93,7 @@ fun DependencyHandlerScope.addCoil() {
 
 fun DependencyHandlerScope.addLottie() {
     implementation("com.airbnb.android:lottie:6.6.6")
+    implementation("com.airbnb.android:lottie-compose:6.6.6")
 }
 
 fun DependencyHandlerScope.addSerialization() {
