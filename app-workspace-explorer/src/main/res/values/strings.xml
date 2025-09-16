@@ -79,19 +79,25 @@
     <string name="explorer_error_write_failed">Cannot write to %1$s</string>
     <string name="explorer_error_permission_denied">Permission denied</string>
     <string name="explorer_error_storage_full">Not enough storage space</string>
-    
+
     <!-- Conflict Messages -->
-    <string name="explorer_conflict_title_file">File already exists</string>
-    <string name="explorer_conflict_title_folder">Folder already exists</string>
-    <string name="explorer_conflict_existing_file">Existing file</string>
-    <string name="explorer_conflict_existing_folder">Existing folder</string>
-    <string name="explorer_conflict_new_file">New file</string>
-    <string name="explorer_conflict_new_folder">New folder</string>
-    <string name="explorer_conflict_skip">Skip</string>
-    <string name="explorer_conflict_overwrite">Replace</string>
-    <string name="explorer_conflict_merge">Merge</string>
-    <string name="explorer_conflict_rename">Rename</string>
-    <string name="explorer_conflict_cancel">Cancel</string>
+    <string name="explorer_conflict_collision_title_file">File already exists</string>
+    <string name="explorer_conflict_collision_title_folder">Folder already exists</string>
+    <string name="explorer_conflict_collision_existing_file_label">Existing file</string>
+    <string name="explorer_conflict_collision_existing_folder_label">Existing folder</string>
+    <string name="explorer_conflict_collision_new_file">New file</string>
+    <string name="explorer_conflict_collision_new_folder">New folder</string>
+    <string name="explorer_conflict_collision_overwrite">Replace</string>
+    <string name="explorer_conflict_collision_merge">Merge</string>
+    <string name="explorer_conflict_permission_title">Insufficient permissions</string>
+    <string name="explorer_conflict_permission_description">Cannot access this location due to missing permissions</string>
+    <string name="explorer_conflict_space_title">Insufficient storage space</string>
+    <string name="explorer_conflict_space_description">Not enough space to complete this operation</string>
+    <string name="explorer_conflict_common_source_file">Source file</string>
+    <string name="explorer_conflict_common_destination_file">Destination</string>
+    <string name="explorer_conflict_common_skip">Skip</string>
+    <string name="explorer_conflict_common_rename">Rename</string>
+    <string name="explorer_conflict_common_cancel">Cancel</string>
     <string name="explorer_conflict_apply_all">Apply to all remaining conflicts</string>
     <string name="explorer_rename_new_name">New name</string>
     <string name="explorer_type_folder">Folder</string>
