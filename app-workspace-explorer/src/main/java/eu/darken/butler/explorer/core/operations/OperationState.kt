@@ -3,6 +3,7 @@ package eu.darken.butler.explorer.core.operations
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.errors.ConflictResolution
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
@@ -14,7 +15,7 @@ sealed class OperationState {
     data class OnGoing(
         override val operationId: OperationId,
         override val startTime: Instant,
-        val progress: Progress.Data,
+        val progress: Progress.Data = Progress.Data(),
         val currentItem: APath? = null,
         val processedCount: Int = 0,
         val totalCount: Int? = null,
@@ -38,7 +39,7 @@ sealed class OperationState {
         override val operationId: OperationId,
         override val startTime: Instant,
         val result: OperationResult,
-        val endTime: Instant,
+        val endTime: Instant = Clock.System.now(),
     ) : OperationState() {
         val duration: Duration = endTime - startTime
     }

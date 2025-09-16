@@ -5,11 +5,13 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.progress.Progress
+import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
@@ -23,6 +25,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
 import eu.darken.butler.workspace.core.tracker.PathAccessTracker
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -33,13 +36,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.parcelize.Parcelize
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.Instant
-import kotlin.uuid.Uuid
 
 
 class ExplorerWorkspace @AssistedInject constructor(
@@ -54,7 +51,7 @@ class ExplorerWorkspace @AssistedInject constructor(
 
     private val tag = logTag("Explorer", "Workspace", id.shortTag)
 
-    private val scope = CoroutineScope(dispatcherProvider.IO)
+    private val scope = CoroutineScope(dispatcherProvider.IO + CoroutineName(tag))
 
     override val type: Workspace.Type = Workspace.Type.EXPLORER
 
@@ -62,7 +59,10 @@ class ExplorerWorkspace @AssistedInject constructor(
         Workspace.Info(
             id = id,
             type = type,
-            title = "Explorer ${id.shortTag}".toCaString(),
+            title = when {
+                Bugs.isDebug -> "Explorer ${id.shortTag}".toCaString()
+                else -> R.string.explorer_title.toCaString()
+            },
             previewData = ExplorerPreviewData(),
         )
     )
@@ -71,11 +71,7 @@ class ExplorerWorkspace @AssistedInject constructor(
 
     private val navigationRequests = MutableSharedFlow<ExplorerNavigation>(replay = 1)
     private val operationRequests = MutableSharedFlow<ExplorerOperation>(replay = 1)
-    private val operationMutex = Mutex()
 
-    // Track last accessed path to prevent duplicate tracking
-    private var lastTrackedPath: APath? = null
-    private var lastTrackedTime: Instant? = null
 
     data class State(
         val currentTarget: ExplorerNavigation.Target? = null,
@@ -99,12 +95,9 @@ class ExplorerWorkspace @AssistedInject constructor(
     init {
         engine.subTag = id.shortTag
 
-        // Connect operation hints to browsing engine for optimistic updates
+        // TODO: Refresh directory based on hints
         operationEngine.operationHints
-            .onEach { hint ->
-                log(tag, INFO) { "Received operation hint: $hint" }
-                engine.acceptOperationHint(hint)
-            }
+            .onEach { hint -> log(tag, INFO) { "Received operation hint: $hint" } }
             .launchIn(scope)
 
         // Set up navigation flow processing
@@ -159,14 +152,14 @@ class ExplorerWorkspace @AssistedInject constructor(
                                 current.value.pendingConflicts - operation.operationId
                             },
                         )
-                        
+
                         // Handle completed operations
                         if (state is OperationState.Completed) {
                             // Add to history
                             current.value = current.value.copy(
                                 operationHistory = current.value.operationHistory + state.result
                             )
-                            
+
                             // Refresh on success
                             if (state.result is OperationResult.Success) {
                                 log(tag, INFO) { "Operation successful: $operation" }
@@ -303,7 +296,7 @@ class ExplorerWorkspace @AssistedInject constructor(
 
                     // Track path access for shortcuts (only for new navigations to directories)
                     if (addToHistory && target is ExplorerNavigation.Target.Directory) {
-                        trackPathIfNeeded(target.path)
+                        pathAccessTracker.trackPathAccess(target.path)
                     }
 
                     val newTitle = location.toString().toCaString()
@@ -326,20 +319,13 @@ class ExplorerWorkspace @AssistedInject constructor(
         }
     }
 
-    fun submitOperation(operation: ExplorerOperation) {
-        log(tag, INFO) { "Submitting operation: $operation" }
-        scope.launch {
-            operationRequests.emit(operation)
-        }
-    }
-    
     fun resolveConflict(operationId: OperationId, resolution: ConflictResolution) {
         log(tag, INFO) { "Resolving conflict for operation $operationId: $resolution" }
         scope.launch {
             operationEngine.resolveConflict(operationId, resolution)
         }
     }
-    
+
     fun cancelOperation(operationId: OperationId) {
         log(tag, INFO) { "Cancelling operation: $operationId" }
         operationEngine.cancelOperation(operationId)
@@ -350,30 +336,6 @@ class ExplorerWorkspace @AssistedInject constructor(
         scope.cancel()
     }
 
-    private suspend fun trackPathIfNeeded(path: APath) {
-        val now = Clock.System.now()
-        val shouldTrack = when {
-            // Different path than last tracked
-            lastTrackedPath != path -> true
-            // Same path but more than 5 seconds have passed
-            lastTrackedTime != null && (now - lastTrackedTime!!) > 5.seconds -> true
-            // Otherwise don't track
-            else -> false
-        }
-
-        if (shouldTrack) {
-            try {
-                log(tag, DEBUG) { "Tracking path access: $path" }
-                pathAccessTracker.trackPathAccess(path)
-                lastTrackedPath = path
-                lastTrackedTime = now
-            } catch (e: Exception) {
-                log(tag, WARN) { "Failed to track path access: $e" }
-            }
-        } else {
-            log(tag, DEBUG) { "Skipping duplicate path tracking for: $path" }
-        }
-    }
 
     @Parcelize
     data class Arguments(

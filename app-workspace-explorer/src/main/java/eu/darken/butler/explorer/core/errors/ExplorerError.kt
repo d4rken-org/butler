@@ -15,8 +15,8 @@ sealed class ExplorerError : Throwable() {
     ) : ExplorerError()
 
     data class FileConflict(
-        val source: APathLookup<out APath>,
-        val destination: APathLookup<out APath>,
+        val source: APathLookup<APath>,
+        val destination: APathLookup<APath>,
     ) : ExplorerError()
     
     data class Unknown(

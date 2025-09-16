@@ -9,7 +9,7 @@ sealed class OperationResult {
     
     data class Success(
         override val metrics: OperationMetrics,
-        val affectedPaths: List<APath> = emptyList(),
+        val affectedPaths: List<APath> = emptyList(), // TODO: Provide this information
         val summary: CaString? = null,
     ) : OperationResult()
     
@@ -18,7 +18,7 @@ sealed class OperationResult {
         val error: ExplorerError,
         val exception: Exception? = null,
         val failedPath: APath? = null,
-        val partialResults: List<APath> = emptyList(),
+        val partialResults: List<APath> = emptyList(), // TODO: Provide this information
         val isRecoverable: Boolean = false,
         val suggestion: CaString? = null,
     ) : OperationResult()
@@ -26,6 +26,6 @@ sealed class OperationResult {
     data class Cancelled(
         override val metrics: OperationMetrics,
         val cancelledAt: APath? = null,
-        val completedPaths: List<APath> = emptyList(),
+        val completedPaths: List<APath> = emptyList(), // TODO: Provide this information
     ) : OperationResult()
 }

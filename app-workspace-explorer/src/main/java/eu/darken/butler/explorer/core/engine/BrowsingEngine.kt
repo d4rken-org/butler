@@ -14,24 +14,19 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.hasApiLevel
-import eu.darken.butler.workspace.core.permissions.PathPermissionChecker
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.operations.OperationHint
-import eu.darken.butler.explorer.core.watcher.FileSystemEvent
-import eu.darken.butler.explorer.core.watcher.FileSystemWatcher
+import eu.darken.butler.workspace.core.permissions.PathPermissionCheck
 import eu.darken.butler.workspace.core.permissions.PermissionState
+import eu.darken.butler.workspace.core.permissions.check
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -39,44 +34,18 @@ import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import kotlin.time.Instant
 
-/**
- * Handles directory browsing, navigation, and file listing operations.
- * Maintains a cache of directory states and provides real-time updates
- * through file system watching (to be implemented).
- */
 class BrowsingEngine @Inject constructor(
     @ApplicationContext private val context: Context,
     private val gatewaySwitch: GatewaySwitch,
-    private val fileWatcher: FileSystemWatcher,
-    private val pathPermissionChecker: PathPermissionChecker,
+    private val pathPermissionCheck: PathPermissionCheck,
 ) {
 
     internal var subTag: String = ""
     private val tag by lazy { logTag("Explorer", "Engine", subTag) }
 
-    // Directory state cache
-    private val directoryCache = ConcurrentHashMap<APath, DirectoryState>()
-    private val cacheMutex = Mutex()
-
-    /**
-     * Represents the cached state of a directory.
-     */
-    private data class DirectoryState(
-        val path: APath,
-        val baseItems: List<ExplorerItem>,
-        val optimisticItems: List<ExplorerItem>? = null,
-        val lastRefresh: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
-        val version: Long = 0,
-        val isWatching: Boolean = false,
-        val pendingHints: List<OperationHint> = emptyList(),
-    ) {
-        val displayItems: List<ExplorerItem>
-            get() = optimisticItems ?: baseItems
-    }
-
-    private fun checkLocationPermissions(target: ExplorerNavigation.Target): PermissionState {
+    private suspend fun checkLocationPermissions(target: ExplorerNavigation.Target): PermissionState {
         log(tag) { "checkLocationPermissions(): Checking permissions for $target" }
-        
+
         return when (target) {
             is ExplorerNavigation.Target.Home,
             is ExplorerNavigation.Target.Device -> {
@@ -88,7 +57,7 @@ class BrowsingEngine @Inject constructor(
                 )
             }
             is ExplorerNavigation.Target.Directory -> {
-                pathPermissionChecker.check(target.path)
+                pathPermissionCheck.check(target.path)
             }
         }
     }
@@ -113,7 +82,7 @@ class BrowsingEngine @Inject constructor(
 
         val info = ExplorerLocation.Home.Info(
             shortcutCount = shortcuts.size,
-            totalDeviceStorage = stat?.let { it.totalBytes },
+            totalDeviceStorage = stat?.totalBytes,
             usedStorage = stat?.let { it.totalBytes - it.availableBytes },
         )
 
@@ -255,212 +224,28 @@ class BrowsingEngine @Inject constructor(
         is ExplorerNavigation.Target.Device -> flowOf(getDevice())
         is ExplorerNavigation.Target.Directory -> {
             // Observe permission state changes for this directory
-            pathPermissionChecker.observePermissionState(target.path)
-                .flatMapLatest { permissionState ->
-                    flow {
-                        log(tag, INFO) { "loadLocation(): Loading directory with permission state: ${permissionState.hasSufficientPermissions}" }
+            pathPermissionCheck.monitor(target.path).flatMapLatest { permissionState ->
+                flow {
+                    log(tag, INFO) { "loadLocation(): Loading directory with permission state: $permissionState" }
 
-                        if (!permissionState.hasSufficientPermissions) {
-                            // Emit location with permission issue
-                            emit(
-                                ExplorerLocation.Directory(
-                                    path = target.path,
-                                    items = emptyList(),
-                                    permissionState = permissionState,
-                                )
+                    if (!permissionState.hasSufficientPermissions) {
+                        log(tag, WARN) { "Insufficient permission for $target" }
+                        emit(
+                            ExplorerLocation.Directory(
+                                path = target.path,
+                                permissionState = permissionState,
                             )
-                        } else {
-                            // Start watching the directory for changes
-                            startWatchingDirectory(target.path)
-
-                            val firstPass = getDirectory(target.path)
-                            emit(firstPass)
-
-                            // Cache the directory state
-                            cacheMutex.withLock {
-                                directoryCache[target.path] = DirectoryState(
-                                    path = target.path,
-                                    baseItems = firstPass.items,
-                                    isWatching = true,
-                                )
-                            }
-
-                            val secondPass = getContentExtended(target.path)
-                            emit(
-                                firstPass.copy(items = secondPass)
-                            )
-
-                            // Update cache with extended info
-                            cacheMutex.withLock {
-                                directoryCache[target.path] = directoryCache[target.path]?.copy(
-                                    baseItems = secondPass
-                                ) ?: DirectoryState(
-                                    path = target.path,
-                                    baseItems = secondPass,
-                                    isWatching = true,
-                                )
-                            }
-                        }
-                    }
-                }
-        }
-    }
-
-    /**
-     * Apply an operation hint to provide optimistic UI updates.
-     */
-    suspend fun acceptOperationHint(hint: OperationHint) {
-        log(tag, DEBUG) { "Accepting operation hint: $hint" }
-
-        cacheMutex.withLock {
-            val state = directoryCache[hint.targetPath] ?: return
-
-            val updatedItems = when (hint) {
-                is OperationHint.FilesAdded -> {
-                    // Add files optimistically
-                    val newItems = hint.files.mapNotNull { path ->
-                        // Create placeholder items for added files
-                        val lookup = gatewaySwitch.lookup(path)
-                        ExplorerItem.RegularFile(
-                            lookup = lookup,
-                            mimeType = "application/octet-stream", // Default mime type
                         )
+                        return@flow
                     }
-                    state.baseItems + newItems
-                }
 
-                is OperationHint.FilesRemoved -> {
-                    // Remove files optimistically
-                    state.baseItems.filter { item ->
-                        when (item) {
-                            is ExplorerItem.PathItem -> {
-                                val itemPath = item.lookup.path
-                                !hint.files.any { it.path == itemPath }
-                            }
-                            else -> true
-                        }
-                    }
-                }
+                    val firstPass = getDirectory(target.path)
+                    emit(firstPass)
 
-                is OperationHint.FileRenamed -> {
-                    // Update renamed file
-                    state.baseItems.map { item ->
-                        when (item) {
-                            is ExplorerItem.PathItem -> {
-                                if (item.lookup.name == hint.oldName) {
-                                    // Create new item with renamed path
-                                    // This is a simplified version - proper implementation would update the path
-                                    item
-                                } else item
-                            }
-                            else -> item
-                        }
-                    }
-                }
-
-                else -> state.baseItems
-            }
-
-            directoryCache[hint.targetPath] = state.copy(
-                optimisticItems = updatedItems,
-                pendingHints = state.pendingHints + hint,
-                version = state.version + 1,
-            )
-        }
-    }
-
-    /**
-     * Handle file system change events.
-     */
-    private suspend fun handleFileSystemEvent(event: FileSystemEvent, path: APath) {
-        log(tag, DEBUG) { "Handling file system event: $event for $path" }
-
-        when (event) {
-            is FileSystemEvent.MassiveChange -> {
-                // Too many changes, refresh the directory
-                refreshDirectory(path)
-            }
-
-            is FileSystemEvent.FileCreated,
-            is FileSystemEvent.FileDeleted,
-            is FileSystemEvent.FileModified,
-            is FileSystemEvent.DirectoryChanged -> {
-                // Refresh the affected directory
-                val dirPath = when (val p = event.path) {
-                    is LocalPath -> p.parent() ?: p
-                    else -> p
-                }
-                refreshDirectory(dirPath)
-            }
-
-            is FileSystemEvent.WatchError -> {
-                log(tag, ERROR) { "File system watch error for $path: ${event.error}" }
-                // Stop watching and clear cache
-                stopWatchingDirectory(path)
-                cacheMutex.withLock {
-                    directoryCache.remove(path)
+                    val secondPass = getContentExtended(target.path)
+                    emit(firstPass.copy(items = secondPass))
                 }
             }
-
-            else -> {
-                // Handle other events as needed
-            }
-        }
-    }
-
-    /**
-     * Refresh a directory by re-reading from file system.
-     */
-    suspend fun refreshDirectory(path: APath) {
-        log(tag, DEBUG) { "Refreshing directory: $path" }
-
-        val items = getContent(path)
-
-        cacheMutex.withLock {
-            val state = directoryCache[path] ?: return
-            directoryCache[path] = state.copy(
-                baseItems = items,
-                optimisticItems = null, // Clear optimistic state
-                pendingHints = emptyList(), // Clear pending hints
-                lastRefresh = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
-                version = state.version + 1,
-            )
-        }
-    }
-
-    /**
-     * Start watching a directory for file system changes.
-     */
-    private suspend fun startWatchingDirectory(path: APath) {
-        try {
-            fileWatcher.startWatching(path)
-            log(tag, DEBUG) { "Started watching directory: $path" }
-        } catch (e: Exception) {
-            log(tag, WARN) { "Failed to start watching directory $path: $e" }
-        }
-    }
-
-    /**
-     * Stop watching a directory.
-     */
-    private suspend fun stopWatchingDirectory(path: APath) {
-        try {
-            fileWatcher.stopWatching(path)
-            log(tag, DEBUG) { "Stopped watching directory: $path" }
-        } catch (e: Exception) {
-            log(tag, WARN) { "Failed to stop watching directory $path: $e" }
-        }
-    }
-
-    /**
-     * Clear all cached directory states and stop watching.
-     */
-    suspend fun clearCache() {
-        cacheMutex.withLock {
-            directoryCache.keys.forEach { path ->
-                stopWatchingDirectory(path)
-            }
-            directoryCache.clear()
         }
     }
 
