@@ -21,8 +21,8 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.explorer.core.engine.locationId
-import eu.darken.butler.explorer.core.errors.ConflictResolution
-import eu.darken.butler.explorer.core.errors.ExplorerError
+import eu.darken.butler.explorer.core.operations.OperationId
+import eu.darken.butler.explorer.core.operations.conflicts.Conflict
 import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemResult
@@ -50,25 +50,19 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
     dispatchers: DispatcherProvider,
     navController: NavigationController,
-    private val workspaceProvider: WorkspaceProvider,
+    workspaceProvider: WorkspaceProvider,
     private val actionProvider: DefaultActionProvider,
     private val clipboardRepo: ClipboardRepo,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
 
-    enum class ViewMode {
-        LIST,
-        GRID
-    }
-
     private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
     private val viewModeFlow = MutableStateFlow(ViewMode.LIST)
     private val dialogStateFlow = MutableStateFlow<ExplorerDialogState>(ExplorerDialogState.None)
-    private val conflictStateFlow = MutableStateFlow<ExplorerError.FileConflict?>(null)
-    private var batchConflictStrategy: ConflictResolution? = null
+    private val conflictStateFlow = MutableStateFlow<Conflict?>(null)
+    val conflictState = conflictStateFlow
+    private var currentConflictOperationId: OperationId? = null
 
     val dialogEvents = SingleEventFlow<ExplorerDialogEvent>()
-    val explorerErrorEvents = SingleEventFlow<ExplorerError>()
-    val conflictState = conflictStateFlow
 
     private val workspace: Flow<ExplorerWorkspace?> = workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
 
@@ -77,6 +71,36 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val workspaceState: Flow<ExplorerWorkspace.State> = workspace.flatMapLatest { ws ->
         ws?.current ?: MutableStateFlow(ExplorerWorkspace.State())
     }
+
+    init {
+        // Handle dialog events
+        launch {
+            dialogEvents.collect { event ->
+                handleDialogEvent(event)
+            }
+        }
+
+        // Observe pending conflicts from workspace and update UI state
+        launch {
+            workspaceState.collect { wsState ->
+                val firstConflictEntry = wsState.pendingConflicts.entries.firstOrNull()
+                if (firstConflictEntry != null) {
+                    val (operationId, awaitingInputState) = firstConflictEntry
+                    currentConflictOperationId = operationId
+                    conflictStateFlow.value = awaitingInputState.conflict
+                } else {
+                    currentConflictOperationId = null
+                    conflictStateFlow.value = null
+                }
+            }
+        }
+    }
+
+    enum class ViewMode {
+        LIST,
+        GRID
+    }
+
 
     val state = combine(
         workspaceState,
@@ -277,15 +301,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    init {
-        // Handle dialog events
-        launch {
-            dialogEvents.collect { event ->
-                handleDialogEvent(event)
-            }
-        }
-    }
-
     private suspend fun handleDialogEvent(event: ExplorerDialogEvent) {
         log(tag) { "handleDialogEvent($event)" }
         when (event) {
@@ -315,13 +330,15 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val currentLocation = state.first().currentLocation
         if (currentLocation is ExplorerLocation.Directory) {
             val operation = when (result.type) {
-                CreateItemType.FOLDER -> ExplorerOperation.FileOp.CreateFolder(
+                CreateItemType.FOLDER -> ExplorerOperation.FileOp.Create(
                     parentPath = currentLocation.path,
-                    name = result.name
+                    name = result.name,
+                    type = ExplorerOperation.FileOp.Create.Type.FOLDER,
                 )
-                CreateItemType.FILE -> ExplorerOperation.FileOp.CreateFile(
+                CreateItemType.FILE -> ExplorerOperation.FileOp.Create(
                     parentPath = currentLocation.path,
-                    name = result.name
+                    name = result.name,
+                    type = ExplorerOperation.FileOp.Create.Type.FILE,
                 )
             }
             getWorkspace().execute(operation)
@@ -391,81 +408,20 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         clipboardRepo.clear()
     }
 
-    fun handleError(error: ExplorerError) {
-        log(tag) { "handleError($error)" }
-        when (error) {
-            is ExplorerError.FileConflict -> {
-                // Check if we have a batch strategy
-                batchConflictStrategy?.let { strategy ->
-                    when (strategy) {
-                        is ConflictResolution.Skip -> {
-                            if (strategy.applyToAll) {
-                                // Skip this conflict automatically
-                                return
-                            }
-                        }
-                        is ConflictResolution.Overwrite -> {
-                            if (strategy.applyToAll) {
-                                // Overwrite this conflict automatically
-                                return
-                            }
-                        }
-                        is ConflictResolution.Merge -> {
-                            if (strategy.applyToAll) {
-                                // Merge this conflict automatically
-                                return
-                            }
-                        }
-                        else -> {}
-                    }
-                }
-                // Show conflict dialog
-                conflictStateFlow.value = error
-            }
-            is ExplorerError.ReadError,
-            is ExplorerError.WriteError,
-            is ExplorerError.Unknown -> {
-                // Show error snackbar
-                explorerErrorEvents.tryEmit(error)
-            }
-        }
-    }
+    fun resolveConflict(resolution: Conflict.Resolution?) = launch {
+        log(tag) { "resolveConflict(): $resolution" }
 
-    fun resolveConflict(resolution: ConflictResolution) = launch {
-        log(tag) { "resolveConflict($resolution)" }
-        when (resolution) {
-            is ConflictResolution.Skip -> {
-                if (resolution.applyToAll) {
-                    batchConflictStrategy = resolution
-                }
-                // Continue operation, skipping this file
-                // TODO: Implement skip logic in engine
-            }
-            is ConflictResolution.Overwrite -> {
-                if (resolution.applyToAll) {
-                    batchConflictStrategy = resolution
-                }
-                // Continue operation, overwriting this file
-                // TODO: Implement overwrite logic in engine
-            }
-            is ConflictResolution.Merge -> {
-                if (resolution.applyToAll) {
-                    batchConflictStrategy = resolution
-                }
-                // Continue operation, merging folder contents
-                // TODO: Implement merge logic in engine for directories
-            }
-            is ConflictResolution.Rename -> {
-                // Rename and continue
-                // TODO: Implement rename logic in engine
-            }
-            is ConflictResolution.Cancel -> {
-                // Cancel entire operation
-                batchConflictStrategy = null
-                // TODO: Cancel ongoing operation in engine
-            }
+        val operationId = currentConflictOperationId
+        if (operationId != null) {
+            // Forward resolution to workspace
+            getWorkspace().resolveConflict(operationId, resolution)
+        } else {
+            log(tag, WARN) { "Cannot resolve conflict: no current operation ID" }
         }
+
+        // Clear conflict UI state (it will be updated by workspace state observer if needed)
         conflictStateFlow.value = null
+        currentConflictOperationId = null
     }
 
     data class State(

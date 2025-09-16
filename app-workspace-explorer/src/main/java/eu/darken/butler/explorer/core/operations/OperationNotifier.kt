@@ -12,7 +12,7 @@ import kotlin.time.Instant
  * Hints about operations that are about to happen or have just happened.
  * Used to provide optimistic UI updates before file system changes are confirmed.
  */
-class OperationHints @Inject constructor() {
+class OperationNotifier @Inject constructor() {
     private val publisher = MutableSharedFlow<Hint>()
     val hints: Flow<Hint> = publisher
 

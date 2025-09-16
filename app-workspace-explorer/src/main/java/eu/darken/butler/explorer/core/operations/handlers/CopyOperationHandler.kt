@@ -13,15 +13,14 @@ import eu.darken.butler.common.files.extensions.deleteWalk
 import eu.darken.butler.common.files.extensions.du
 import eu.darken.butler.common.files.extensions.exists
 import eu.darken.butler.common.files.extensions.isDirectory
+import eu.darken.butler.common.files.extensions.lookup
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
-import eu.darken.butler.explorer.core.operations.ConflictInfo
-import eu.darken.butler.explorer.core.operations.ConflictType
 import eu.darken.butler.explorer.core.operations.OperationMetrics
 import eu.darken.butler.explorer.core.operations.OperationNotifier
 import eu.darken.butler.explorer.core.operations.OperationState
+import eu.darken.butler.explorer.core.operations.conflicts.Conflict
 import eu.darken.butler.explorer.core.operations.conflicts.ConflictHandler
-import eu.darken.butler.explorer.core.operations.conflicts.ConflictResolution
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.last
@@ -77,98 +76,48 @@ class CopyOperationHandler @AssistedInject constructor(
         )
 
         for (source in operation.sources) {
-            val targetPath = operation.destination.child(source.name)
+            var targetPath = operation.destination.child(source.name)
 
             // Check for conflicts
             if (targetPath.exists(gatewaySwitch)) {
-                val conflict = ConflictInfo(
-                    type = if (gatewaySwitch.lookup(targetPath).isDirectory) {
-                        ConflictType.DIRECTORY_EXISTS
-                    } else {
-                        ConflictType.FILE_EXISTS
-                    },
-                    sourcePath = source,
-                    targetPath = targetPath,
+                val sourceLookup = source.lookup(gatewaySwitch)
+                val targetLookup = targetPath.lookup(gatewaySwitch)
+                val conflict = Conflict.PathAlreadyExists(
+                    source = sourceLookup,
+                    destination = targetLookup,
+                    canMerge = targetLookup.isDirectory && sourceLookup.isDirectory,
                 )
 
-                val resolution = conflictHandler.handleConflict(
+                val resolution = (conflictHandler.handleConflict(
                     operationId = operation.operationId,
                     conflict = conflict,
-                    strategy = operation.options.conflictStrategy,
                     emitState = emitState
-                )
+                ) ?: Conflict.PathAlreadyExists.Resolution.Cancel) as Conflict.PathAlreadyExists.Resolution
 
                 when (resolution) {
-                    is ConflictResolution.Skip -> {
+                    is Conflict.PathAlreadyExists.Resolution.Skip -> {
                         metrics = metrics.withSkippedFile()
                         processedCount++
                         continue
                     }
-                    is ConflictResolution.Overwrite -> {
+                    is Conflict.PathAlreadyExists.Resolution.Overwrite -> {
                         // Delete target before copy
                         targetPath.deleteWalk(gatewaySwitch)
                     }
-                    is ConflictResolution.Rename -> {
-                        val renamedTarget = operation.destination.child(resolution.newName)
-
-                        // Copy with progress tracking
-                        val copyResult = source.copyOperation(
-                            gateway = gatewaySwitch,
-                            target = renamedTarget,
-                            overwrite = false
-                        )
-                            .onEach { copyOp ->
-                                when (copyOp.state) {
-                                    CopyOperation.State.COPYING -> {
-                                        emitState(
-                                            OperationState.OnGoing(
-                                                operationId = operation.operationId,
-                                                startTime = startTime,
-                                                progress = Progress.Data(
-                                                    count = Progress.Count.Size(
-                                                        totalBytesCopied + copyOp.bytesCopied,
-                                                        totalBytesToCopy
-                                                    )
-                                                ),
-                                                currentItem = copyOp.currentPath ?: source,
-                                                processedCount = processedCount,
-                                                totalCount = totalFiles,
-                                                bytesProcessed = totalBytesCopied + copyOp.bytesCopied,
-                                                totalBytes = totalBytesToCopy,
-                                            )
-                                        )
-                                    }
-                                    CopyOperation.State.FAILED -> {
-                                        throw copyOp.error ?: IOException("Copy failed")
-                                    }
-                                    else -> {} // Ignore other states
-                                }
-                            }
-                            .last() // Wait for completion and get final result
-
-                        // Check the result
-                        if (copyResult.state != CopyOperation.State.COMPLETED) {
-                            throw IOException("Copy operation did not complete successfully")
+                    is Conflict.PathAlreadyExists.Resolution.Rename -> {
+                        targetPath = operation.destination.child(resolution.newName)
+                    }
+                    is Conflict.PathAlreadyExists.Resolution.Merge -> {
+                        if (!sourceLookup.isDirectory && targetLookup.isDirectory) {
+                            throw IllegalArgumentException("Can't merge files, only folders.")
                         }
-
-                        val sourceSize = copyResult.totalBytes
-                        totalBytesCopied += sourceSize
-                        metrics = metrics.withAddedFile(sourceSize)
-                        processedCount++
-                        continue
                     }
-                    is ConflictResolution.Cancel -> {
+                    is Conflict.PathAlreadyExists.Resolution.Cancel -> {
                         throw CancellationException("Operation cancelled by user")
-                    }
-                    else -> {
-                        metrics = metrics.withSkippedFile()
-                        processedCount++
-                        continue
                     }
                 }
             }
 
-            // No conflict or overwrite resolved, proceed with copy
             // Copy with progress tracking
             val copyResult = source.copyOperation(
                 gateway = gatewaySwitch,

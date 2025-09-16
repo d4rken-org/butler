@@ -15,12 +15,11 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
-import eu.darken.butler.explorer.core.errors.ConflictResolution
-import eu.darken.butler.explorer.core.operations.ConflictStrategy
-import eu.darken.butler.explorer.core.operations.OperationEngine
 import eu.darken.butler.explorer.core.operations.OperationId
 import eu.darken.butler.explorer.core.operations.OperationResult
 import eu.darken.butler.explorer.core.operations.OperationState
+import eu.darken.butler.explorer.core.operations.OperationsEngine
+import eu.darken.butler.explorer.core.operations.conflicts.Conflict
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
 import eu.darken.butler.workspace.core.tracker.PathAccessTracker
@@ -43,15 +42,18 @@ class ExplorerWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
     @Assisted private val arguments: Arguments?,
     dispatcherProvider: DispatcherProvider,
-    private val engine: BrowsingEngine,
+    private val browsingEngineFactory: BrowsingEngine.Factory,
+    private val operationsEngineFactory: OperationsEngine.Factory,
     private val breadcrumbGenerator: BreadcrumbGenerator,
-    private val operationEngine: OperationEngine,
     private val pathAccessTracker: PathAccessTracker,
 ) : Workspace {
 
     private val tag = logTag("Explorer", "Workspace", id.shortTag)
 
     private val scope = CoroutineScope(dispatcherProvider.IO + CoroutineName(tag))
+
+    private val browsingEngine = browsingEngineFactory.create(id)
+    private val operationEngine = operationsEngineFactory.create(id)
 
     override val type: Workspace.Type = Workspace.Type.EXPLORER
 
@@ -90,13 +92,12 @@ class ExplorerWorkspace @AssistedInject constructor(
         val canGoBack: Boolean get() = historyIndex > 0
         val canGoForward: Boolean get() = historyIndex < navigationHistory.size - 1
         val hasActiveOperations: Boolean get() = activeOperations.isNotEmpty()
+        val hasPendingConflicts: Boolean get() = pendingConflicts.isNotEmpty()
     }
 
     init {
-        engine.subTag = id.shortTag
-
         // TODO: Refresh directory based on hints
-        operationEngine.operationHints
+        operationEngine.hints
             .onEach { hint -> log(tag, INFO) { "Received operation hint: $hint" } }
             .launchIn(scope)
 
@@ -137,7 +138,6 @@ class ExplorerWorkspace @AssistedInject constructor(
                     operationEngine.execute(
                         operation = operation,
                         scope = scope,
-                        conflictStrategy = ConflictStrategy.ASK,
                     ).collect { state ->
                         // Update active operations map
                         current.value = current.value.copy(
@@ -162,12 +162,12 @@ class ExplorerWorkspace @AssistedInject constructor(
 
                             // Refresh on success
                             if (state.result is OperationResult.Success) {
-                                log(tag, INFO) { "Operation successful: $operation" }
+                                log(tag, INFO) { "Operation successful: ${state.result}" }
                                 current.value.currentTarget?.let {
                                     processNavigationRequest(ExplorerNavigation.Refresh)
                                 }
                             } else if (state.result is OperationResult.Failure) {
-                                log(tag, ERROR) { "Operation failed: ${state.result.error}" }
+                                log(tag, ERROR) { "Operation failed: ${state.result}" }
                                 current.value = current.value.copy(
                                     error = state.result.exception
                                 )
@@ -270,7 +270,7 @@ class ExplorerWorkspace @AssistedInject constructor(
             error = null
         )
         try {
-            engine.loadLocation(target).collectIndexed { index, location ->
+            browsingEngine.loadLocation(target).collectIndexed { index, location ->
                 if (index == 0) {
                     val newHistory = if (addToHistory) {
                         val currentHistory = current.value.navigationHistory
@@ -319,7 +319,7 @@ class ExplorerWorkspace @AssistedInject constructor(
         }
     }
 
-    fun resolveConflict(operationId: OperationId, resolution: ConflictResolution) {
+    fun resolveConflict(operationId: OperationId, resolution: Conflict.Resolution?) {
         log(tag, INFO) { "Resolving conflict for operation $operationId: $resolution" }
         scope.launch {
             operationEngine.resolveConflict(operationId, resolution)

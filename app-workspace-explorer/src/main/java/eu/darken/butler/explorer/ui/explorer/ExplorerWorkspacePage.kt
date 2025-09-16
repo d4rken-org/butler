@@ -26,7 +26,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -57,8 +56,6 @@ import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.explorer.core.errors.ConflictResolution
-import eu.darken.butler.explorer.core.errors.ExplorerError
 import eu.darken.butler.explorer.ui.common.ConflictBottomSheet
 import eu.darken.butler.explorer.ui.common.ErrorSnackbar
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
@@ -122,24 +119,6 @@ fun ExplorerWorkspacePage(
 
     // Observe conflict state
     val conflictState by (vm?.conflictState?.collectAsState() ?: remember { mutableStateOf(null) })
-
-    // Observe error events for snackbar
-    vm?.let { viewModel ->
-        LaunchedEffect(viewModel.explorerErrorEvents) {
-            viewModel.explorerErrorEvents.collect { error ->
-                val message = when (error) {
-                    is ExplorerError.ReadError -> "Cannot read: ${error.path.name}"
-                    is ExplorerError.WriteError -> "Cannot write to: ${error.path.name}"
-                    else -> "Operation failed"
-                }
-                snackbarHostState.showSnackbar(
-                    message = message,
-                    actionLabel = "Dismiss",
-                    duration = SnackbarDuration.Short
-                )
-            }
-        }
-    }
 
     LaunchedEffect(state.locationId) {
         if (state.locationId != null) {
@@ -421,12 +400,8 @@ fun ExplorerWorkspacePage(
     conflictState?.let { conflict ->
         ConflictBottomSheet(
             conflict = conflict,
-            onResolution = { resolution ->
-                vm?.resolveConflict(resolution)
-            },
-            onDismiss = {
-                vm?.resolveConflict(ConflictResolution.Cancel)
-            }
+            onResolution = { resolution -> vm?.resolveConflict(resolution) },
+            onDismiss = { vm?.resolveConflict(null) },
         )
     }
 }

@@ -2,7 +2,6 @@ package eu.darken.butler.explorer.core.operations
 
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.explorer.core.errors.ExplorerError
 
 sealed class OperationResult {
     abstract val metrics: OperationMetrics
@@ -15,8 +14,7 @@ sealed class OperationResult {
     
     data class Failure(
         override val metrics: OperationMetrics,
-        val error: ExplorerError,
-        val exception: Exception? = null,
+        val exception: Exception,
         val failedPath: APath? = null,
         val partialResults: List<APath> = emptyList(), // TODO: Provide this information
         val isRecoverable: Boolean = false,

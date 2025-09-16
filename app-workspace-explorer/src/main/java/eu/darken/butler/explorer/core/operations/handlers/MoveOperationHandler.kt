@@ -59,7 +59,6 @@ class MoveOperationHandler @AssistedInject constructor(
                 sources = operation.sources,
                 destination = operation.destination,
                 options = CopyOptions(
-                    conflictStrategy = operation.options.conflictStrategy,
                     preserveAttributes = operation.options.preserveAttributes,
                 ),
             ),

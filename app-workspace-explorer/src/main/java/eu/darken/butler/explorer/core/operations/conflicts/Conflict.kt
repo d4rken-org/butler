@@ -1,23 +1,54 @@
 package eu.darken.butler.explorer.core.operations.conflicts
 
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.explorer.core.operations.ConflictType
-import kotlin.time.Instant
+import eu.darken.butler.common.files.APathLookup
 import kotlin.uuid.Uuid
 
-data class ConflictInfo(
-    val conflictId: ConflictId = Uuid.Companion.random(),
-    val type: ConflictType,
-    val sourcePath: APath,
-    val targetPath: APath? = null,
-    val sourceSize: Long? = null,
-    val targetSize: Long? = null,
-    val sourceModified: Instant? = null,
-    val targetModified: Instant? = null,
-    val message: String? = null,
-    val canSkip: Boolean = true,
-    val canOverwrite: Boolean = true,
-    val canMerge: Boolean = false,
-    val canRename: Boolean = true,
-    val suggestedName: String? = null,
-)
+sealed interface Conflict {
+    val conflictId: ConflictId
+
+    interface Resolution
+
+    data class PathAlreadyExists(
+        override val conflictId: ConflictId = Uuid.Companion.random(),
+        val destination: APathLookup<APath>,
+        val source: APathLookup<APath>? = null,
+        val canSkip: Boolean = true,
+        val canOverwrite: Boolean = true,
+        val canRename: Boolean = true,
+        val suggestedName: String? = null,
+        val canMerge: Boolean = false,
+    ) : Conflict {
+        sealed interface Resolution : Conflict.Resolution {
+            data class Skip(val applyToAll: Boolean = false) : Resolution
+            data class Overwrite(val applyToAll: Boolean = false) : Resolution
+            data class Rename(val newName: String) : Resolution
+            data class Merge(val applyToAll: Boolean = false) : Resolution
+            data object Cancel : Resolution
+        }
+    }
+
+    data class InsufficientPermission(
+        override val conflictId: ConflictId = Uuid.Companion.random(),
+        val source: APathLookup<APath>,
+        val destination: APathLookup<APath>,
+        val canSkip: Boolean = true,
+    ) : Conflict {
+        sealed interface Resolution : Conflict.Resolution {
+            data class Skip(val applyToAll: Boolean = false) : Resolution
+            data object Cancel : Resolution
+        }
+    }
+
+    data class InsufficientSpace(
+        override val conflictId: ConflictId = Uuid.Companion.random(),
+        val source: APathLookup<APath>,
+        val destination: APathLookup<APath>,
+        val canSkip: Boolean = true,
+    ) : Conflict {
+        sealed interface Resolution : Conflict.Resolution {
+            data class Skip(val applyToAll: Boolean = false) : Resolution
+            data object Cancel : Resolution
+        }
+    }
+}

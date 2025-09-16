@@ -9,9 +9,8 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
-import eu.darken.butler.explorer.core.errors.ConflictResolution
-import eu.darken.butler.explorer.core.errors.ExplorerError
-import eu.darken.butler.explorer.core.operations.handlers.ConflictHandler
+import eu.darken.butler.explorer.core.operations.conflicts.Conflict
+import eu.darken.butler.explorer.core.operations.conflicts.ConflictHandler
 import eu.darken.butler.explorer.core.operations.handlers.CopyOperationHandler
 import eu.darken.butler.explorer.core.operations.handlers.CreateOperationHandler
 import eu.darken.butler.explorer.core.operations.handlers.DeleteOperationHandler
@@ -32,11 +31,11 @@ import kotlin.time.Clock
  * conflict resolution, and cancellation. Operations are executed asynchronously
  * and can be suspended while awaiting user input for conflict resolution.
  */
-class OperationEngine @AssistedInject constructor(
+class OperationsEngine @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     private val dispatcherProvider: DispatcherProvider,
-    private val operationHints: OperationHints,
-    private val conflictHandler: ConflictHandler,
+    private val operationNotifier: OperationNotifier,
+    private val conflictHandlerFactory: ConflictHandler.Factory,
     private val copyHandlerFactory: CopyOperationHandler.Factory,
     private val moveHandlerFactory: MoveOperationHandler.Factory,
     private val deleteHandlerFactory: DeleteOperationHandler.Factory,
@@ -44,23 +43,22 @@ class OperationEngine @AssistedInject constructor(
     private val renameHandlerFactory: RenameOperationHandler.Factory,
 ) {
 
-    private val tag = logTag("Explorer", "Workspace", "OperationEngine", workspaceId.shortTag)
+    private val conflictHandler = conflictHandlerFactory.create(workspaceId)
+    private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "OperationEngine")
 
     private val activeOperations = ConcurrentHashMap<OperationId, Job>()
-    private val conflictStrategies = ConcurrentHashMap<OperationId, ConflictStrategy>()
 
-    private val copyHandler = copyHandlerFactory.create(operationHints, conflictHandler)
-    private val moveHandler = moveHandlerFactory.create(operationHints, copyHandler)
-    private val deleteHandler = deleteHandlerFactory.create(operationHints)
-    private val createHandler = createHandlerFactory.create(operationHints, conflictHandler)
-    private val renameHandler = renameHandlerFactory.create(operationHints)
+    private val copyHandler = copyHandlerFactory.create(workspaceId, operationNotifier, conflictHandler)
+    private val moveHandler = moveHandlerFactory.create(workspaceId, operationNotifier, copyHandler)
+    private val deleteHandler = deleteHandlerFactory.create(workspaceId, operationNotifier)
+    private val createHandler = createHandlerFactory.create(workspaceId, operationNotifier, conflictHandler)
+    private val renameHandler = renameHandlerFactory.create(workspaceId, operationNotifier)
 
-    val hints = operationHints.hints
+    val hints = operationNotifier.hints
 
     fun execute(
         operation: ExplorerOperation,
         scope: CoroutineScope,
-        conflictStrategy: ConflictStrategy = ConflictStrategy.ASK,
     ): Flow<OperationState> = flow {
         log(tag, DEBUG) { "execute(): $operation" }
         val startTime = Clock.System.now()
@@ -69,8 +67,6 @@ class OperationEngine @AssistedInject constructor(
 
         try {
             activeOperations[operation.operationId] = scope.coroutineContext[Job]!!
-            conflictStrategies[operation.operationId] = conflictStrategy
-
             // Emit initial state
             emit(
                 OperationState.OnGoing(
@@ -97,13 +93,8 @@ class OperationEngine @AssistedInject constructor(
                         emit(state)
                     }
                 }
-                is ExplorerOperation.FileOp.CreateFolder -> {
-                    metrics = createHandler.executeCreateFolder(operation, startTime) { state ->
-                        emit(state)
-                    }
-                }
-                is ExplorerOperation.FileOp.CreateFile -> {
-                    metrics = createHandler.executeCreateFile(operation, startTime) { state ->
+                is ExplorerOperation.FileOp.Create -> {
+                    metrics = createHandler.execute(operation, startTime) { state ->
                         emit(state)
                     }
                 }
@@ -144,33 +135,18 @@ class OperationEngine @AssistedInject constructor(
                     startTime = startTime,
                     result = OperationResult.Failure(
                         metrics = metrics,
-                        error = when (e) {
-                            else -> ExplorerError.Unknown(e)
-                        },
                         exception = e,
                     ),
                 )
             )
         } finally {
             activeOperations.remove(operation.operationId)
-            conflictStrategies.remove(operation.operationId)
         }
     }.flowOn(dispatcherProvider.IO)
 
-    suspend fun resolveConflict(operationId: OperationId, resolution: ConflictResolution) {
+    suspend fun resolveConflict(operationId: OperationId, resolution: Conflict.Resolution?) {
         log(tag) { "resolveConflict(): Operation $operationId: $resolution" }
         conflictHandler.resolveConflict(operationId, resolution)
-
-        // Update strategy if "apply to all" is set
-        if (resolution is ConflictResolution.Skip && resolution.applyToAll ||
-            resolution is ConflictResolution.Overwrite && resolution.applyToAll ||
-            resolution is ConflictResolution.Merge && resolution.applyToAll
-        ) {
-            conflictStrategies[operationId] = ConflictStrategy(
-                defaultResolution = resolution,
-                applyToAll = true,
-            )
-        }
     }
 
     fun cancelOperation(operationId: OperationId) {
@@ -180,6 +156,6 @@ class OperationEngine @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(workspaceId: Workspace.Id): DeleteOperationHandler
+        fun create(workspaceId: Workspace.Id): OperationsEngine
     }
 }

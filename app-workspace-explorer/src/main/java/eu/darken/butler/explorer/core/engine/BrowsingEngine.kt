@@ -7,6 +7,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Code
 import androidx.compose.material.icons.twotone.PhoneAndroid
 import androidx.compose.material.icons.twotone.Storage
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.Bugs
@@ -18,7 +21,7 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
-import eu.darken.butler.explorer.core.operations.OperationHint
+import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.permissions.PathPermissionCheck
 import eu.darken.butler.workspace.core.permissions.PermissionState
 import eu.darken.butler.workspace.core.permissions.check
@@ -27,21 +30,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import java.util.concurrent.ConcurrentHashMap
-import javax.inject.Inject
-import kotlin.time.Instant
 
-class BrowsingEngine @Inject constructor(
+class BrowsingEngine @AssistedInject constructor(
+    @Assisted private val workspaceId: Workspace.Id,
     @ApplicationContext private val context: Context,
     private val gatewaySwitch: GatewaySwitch,
     private val pathPermissionCheck: PathPermissionCheck,
 ) {
 
-    internal var subTag: String = ""
-    private val tag by lazy { logTag("Explorer", "Engine", subTag) }
+    private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "BrowsingEngine")
 
     private suspend fun checkLocationPermissions(target: ExplorerNavigation.Target): PermissionState {
         log(tag) { "checkLocationPermissions(): Checking permissions for $target" }
@@ -249,4 +247,8 @@ class BrowsingEngine @Inject constructor(
         }
     }
 
+    @AssistedFactory
+    interface Factory {
+        fun create(workspaceId: Workspace.Id): BrowsingEngine
+    }
 }

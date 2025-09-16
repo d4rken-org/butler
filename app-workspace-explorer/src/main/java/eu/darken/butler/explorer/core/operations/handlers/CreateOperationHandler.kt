@@ -20,23 +20,23 @@ import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CancellationException
 import kotlin.time.Instant
 
-class CreateFolderOperationHandler @AssistedInject constructor(
+class CreateOperationHandler @AssistedInject constructor(
     @Assisted workspaceId: Workspace.Id,
     @Assisted private val conflictHandler: ConflictHandler,
     @Assisted operationNotifier: OperationNotifier,
     gatewaySwitch: GatewaySwitch,
     dispatcherProvider: DispatcherProvider,
-) : BaseOperationHandler<ExplorerOperation.FileOp.CreateFolder>(
+) : BaseOperationHandler<ExplorerOperation.FileOp.Create>(
     workspaceId,
     gatewaySwitch,
     dispatcherProvider,
     operationNotifier
 ) {
 
-    private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "Operation", "CreateFolder")
+    private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "Operation", "Create")
 
     override suspend fun execute(
-        operation: ExplorerOperation.FileOp.CreateFolder,
+        operation: ExplorerOperation.FileOp.Create,
         startTime: Instant,
         emitState: suspend (OperationState) -> Unit,
     ): OperationMetrics {
@@ -44,7 +44,7 @@ class CreateFolderOperationHandler @AssistedInject constructor(
         val folderPath = operation.parentPath.child(operation.name)
 
         if (folderPath.exists(gatewaySwitch)) {
-            val conflict = Conflict.FolderAlreadyExists(
+            val conflict = Conflict.PathAlreadyExists(
                 destination = folderPath.lookup(gatewaySwitch),
             )
 
@@ -52,13 +52,13 @@ class CreateFolderOperationHandler @AssistedInject constructor(
                 operationId = operation.operationId,
                 conflict = conflict,
                 emitState = emitState
-            ) as Conflict.FolderAlreadyExists.Resolution
+            ) as Conflict.PathAlreadyExists.Resolution
 
             when (resolution) {
-                is Conflict.FolderAlreadyExists.Resolution.Skip -> {
+                is Conflict.PathAlreadyExists.Resolution.Skip -> {
                     return OperationMetrics().withSkippedFile()
                 }
-                is Conflict.FolderAlreadyExists.Resolution.Rename -> {
+                is Conflict.PathAlreadyExists.Resolution.Rename -> {
                     val newPath = operation.parentPath.child(resolution.newName)
                     gatewaySwitch.createDir(newPath)
 
@@ -72,9 +72,15 @@ class CreateFolderOperationHandler @AssistedInject constructor(
 
                     return OperationMetrics().withAddedDirectory()
                 }
-                is Conflict.FolderAlreadyExists.Resolution.Merge -> TODO()
-                is Conflict.FolderAlreadyExists.Resolution.Overwrite -> TODO()
-                is Conflict.Resolution.Cancel -> throw CancellationException("Operation cancelled")
+                is Conflict.PathAlreadyExists.Resolution.Overwrite -> {
+                    TODO()
+                }
+                is Conflict.PathAlreadyExists.Resolution.Merge -> {
+                    throw IllegalArgumentException("Can't merge on create")
+                }
+                is Conflict.PathAlreadyExists.Resolution.Cancel -> {
+                    throw CancellationException("Operation cancelled")
+                }
             }
         }
 
@@ -98,6 +104,6 @@ class CreateFolderOperationHandler @AssistedInject constructor(
             workspaceId: Workspace.Id,
             operationNotifier: OperationNotifier,
             conflictHandler: ConflictHandler,
-        ): CreateFolderOperationHandler
+        ): CreateOperationHandler
     }
 }
