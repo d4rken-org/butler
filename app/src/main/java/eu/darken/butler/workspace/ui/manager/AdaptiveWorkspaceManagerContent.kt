@@ -236,11 +236,11 @@ private fun ListLayout(
     ) { from, to ->
         log("WorkspaceManager") { "Reorder from ${from.index} to ${to.index}" }
         
-        val fromKey = from.key as? LazyColumnItemKey
-        val toKey = to.key as? LazyColumnItemKey
+        val fromKey = from.key as? WorkspaceManagerColumnItemKey
+        val toKey = to.key as? WorkspaceManagerColumnItemKey
         
         when {
-            fromKey is LazyColumnItemKey.Workspace && toKey is LazyColumnItemKey.Workspace -> {
+            fromKey is WorkspaceManagerColumnItemKey.Workspace && toKey is WorkspaceManagerColumnItemKey.Workspace -> {
                 val fromWorkspaceIndex = localWorkspaceItems.indexOfFirst { it.id == fromKey.id }
                 val toWorkspaceIndex = localWorkspaceItems.indexOfFirst { it.id == toKey.id }
                 
@@ -262,7 +262,7 @@ private fun ListLayout(
     ) {
         // Status card
         if (state.workspaceCount > 0) {
-            item(key = LazyColumnItemKey.StatusCard) {
+            item(key = WorkspaceManagerColumnItemKey.StatusCard) {
                 WorkspaceStatusCard(
                     workspaceCount = state.workspaceCount,
                     operationsCount = state.operationsCount,
@@ -272,17 +272,17 @@ private fun ListLayout(
         }
         
         if (state.workspaces.isEmpty()) {
-            item(key = LazyColumnItemKey.Custom("empty_state", "")) {
+            item(key = WorkspaceManagerColumnItemKey.Custom("empty_state", "")) {
                 EmptyStateContent()
             }
         } else {
             items(
                 items = localWorkspaceItems,
-                key = { workspace -> LazyColumnItemKey.Workspace.Standard(workspace.id) }
+                key = { workspace -> WorkspaceManagerColumnItemKey.Workspace.Standard(workspace.id) }
             ) { workspace ->
                 ReorderableItem(
                     reorderableLazyListState,
-                    key = LazyColumnItemKey.Workspace.Standard(workspace.id)
+                    key = WorkspaceManagerColumnItemKey.Workspace.Standard(workspace.id)
                 ) { itemIsDragging ->
                     WorkspaceListItem(
                         modifier = Modifier
@@ -305,7 +305,7 @@ private fun ListLayout(
         
         // Explanation cards
         if (state.showButtonBehaviorExplanation) {
-            item(key = LazyColumnItemKey.Explanation.ButtonBehaviorExplanation) {
+            item(key = WorkspaceManagerColumnItemKey.Explanation.ButtonBehaviorExplanation) {
                 Box(modifier = Modifier.padding(horizontal = 16.dp)) {
                     WorkspaceButtonBehaviorCard(
                         isButtonFlipped = state.isButtonActionsFlipped,
@@ -317,7 +317,7 @@ private fun ListLayout(
         }
         
         if (state.showBadgeExplanation) {
-            item(key = LazyColumnItemKey.Explanation.BadgeExplanation) {
+            item(key = WorkspaceManagerColumnItemKey.Explanation.BadgeExplanation) {
                 Box(modifier = Modifier.padding(horizontal = 16.dp)) {
                     WorkspaceBadgeExplanationCard(
                         onDismiss = onDismissBadgeExplanation
@@ -362,7 +362,7 @@ private fun GridLayout(
         // Status card spanning full width
         if (state.workspaceCount > 0) {
             item(
-                key = LazyColumnItemKey.StatusCard,
+                key = WorkspaceManagerColumnItemKey.StatusCard,
                 span = { GridItemSpan(maxLineSpan) }
             ) {
                 WorkspaceStatusCard(
@@ -375,7 +375,7 @@ private fun GridLayout(
         
         if (state.workspaces.isEmpty()) {
             item(
-                key = LazyColumnItemKey.Custom("empty_state", ""),
+                key = WorkspaceManagerColumnItemKey.Custom("empty_state", ""),
                 span = { GridItemSpan(maxLineSpan) }
             ) {
                 EmptyStateContent()
@@ -383,7 +383,7 @@ private fun GridLayout(
         } else {
             items(
                 items = state.workspaces,
-                key = { workspace -> LazyColumnItemKey.Workspace.Standard(workspace.id) },
+                key = { workspace -> WorkspaceManagerColumnItemKey.Workspace.Standard(workspace.id) },
                 span = { GridItemSpan(1) }
             ) { workspace ->
                 WorkspaceGridItem(
@@ -398,7 +398,7 @@ private fun GridLayout(
         // Explanation cards spanning full width
         if (state.showButtonBehaviorExplanation) {
             item(
-                key = LazyColumnItemKey.Explanation.ButtonBehaviorExplanation,
+                key = WorkspaceManagerColumnItemKey.Explanation.ButtonBehaviorExplanation,
                 span = { GridItemSpan(maxLineSpan) }
             ) {
                 WorkspaceButtonBehaviorCard(
@@ -411,7 +411,7 @@ private fun GridLayout(
         
         if (state.showBadgeExplanation) {
             item(
-                key = LazyColumnItemKey.Explanation.BadgeExplanation,
+                key = WorkspaceManagerColumnItemKey.Explanation.BadgeExplanation,
                 span = { GridItemSpan(maxLineSpan) }
             ) {
                 WorkspaceBadgeExplanationCard(

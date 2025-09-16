@@ -45,40 +45,6 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.workspace.core.Workspace
-import kotlinx.parcelize.Parcelize
-
-sealed class LazyColumnItemKey : Parcelable {
-    @Parcelize
-    data object StatusCard : LazyColumnItemKey()
-
-    sealed class Workspace(open val id: eu.darken.butler.workspace.core.Workspace.Id) : LazyColumnItemKey() {
-        @Parcelize
-        data class Standard(override val id: eu.darken.butler.workspace.core.Workspace.Id) : Workspace(id)
-
-        @Parcelize
-        data class Compact(override val id: eu.darken.butler.workspace.core.Workspace.Id) : Workspace(id)
-
-        @Parcelize
-        data class Detailed(override val id: eu.darken.butler.workspace.core.Workspace.Id) : Workspace(id)
-    }
-
-    sealed class Explanation : LazyColumnItemKey() {
-        @Parcelize
-        data object BadgeExplanation : Explanation()
-
-        @Parcelize
-        data object ButtonBehaviorExplanation : Explanation()
-
-        @Parcelize
-        data object TutorialCard : Explanation()
-
-        @Parcelize
-        data object TipsCard : Explanation()
-    }
-
-    @Parcelize
-    data class Custom(val type: String, val id: String) : LazyColumnItemKey()
-}
 
 @Composable
 fun WorkspaceManagerScreenHost(
