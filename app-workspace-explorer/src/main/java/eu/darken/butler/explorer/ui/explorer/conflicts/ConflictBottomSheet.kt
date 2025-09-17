@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.common
+package eu.darken.butler.explorer.ui.explorer.conflicts
 
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -27,6 +27,10 @@ fun ConflictBottomSheet(
                 onResolution = onResolution,
             )
             is Conflict.InsufficientSpace -> InsufficientSpaceConflictSheet(
+                conflict = conflict,
+                onResolution = onResolution,
+            )
+            is Conflict.UnknownError -> UnknownErrorConflictSheet(
                 conflict = conflict,
                 onResolution = onResolution,
             )

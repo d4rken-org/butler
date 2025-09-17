@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.common
+package eu.darken.butler.explorer.ui.explorer.conflicts
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.common
+package eu.darken.butler.explorer.ui.explorer.conflicts
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -39,7 +39,7 @@ fun PathConflictFileComparisonCard(
     lookup: APathLookup<APath>,
     modifier: Modifier = Modifier,
 ) {
-    val dateFormat = remember { DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT) }
+    val dateFormat = remember { DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM) }
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -98,7 +98,7 @@ private fun PathConflictFileComparisonCardFilePreview() {
     PreviewWrapper {
         PathConflictFileComparisonCard(
             lookup = LocalPathLookup(
-                lookedUp = LocalPath.build("/storage/emulated/0/Download/document.pdf"),
+                lookedUp = LocalPath.build("/storage/emulated/0/Download/very-long-documentname-that-ellipsizes.pdf"),
                 fileType = FileType.FILE,
                 size = 1024 * 1024 * 5, // 5MB
                 modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000), // 1 day ago

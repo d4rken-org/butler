@@ -1,5 +1,6 @@
-package eu.darken.butler.explorer.ui.common
+package eu.darken.butler.explorer.ui.explorer.conflicts
 
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -21,7 +22,7 @@ fun PathConflictRenameDialog(
 ) {
     var newName by remember { mutableStateOf(currentName) }
 
-    androidx.compose.material3.AlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.explorer_conflict_common_rename)) },
         text = {

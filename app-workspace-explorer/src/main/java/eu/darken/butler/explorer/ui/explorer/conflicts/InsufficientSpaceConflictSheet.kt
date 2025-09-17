@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.common
+package eu.darken.butler.explorer.ui.explorer.conflicts
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,9 +32,9 @@ import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 @Composable
-fun InsufficientPermissionConflictSheet(
-    conflict: Conflict.InsufficientPermission,
-    onResolution: (Conflict.InsufficientPermission.Resolution) -> Unit,
+fun InsufficientSpaceConflictSheet(
+    conflict: Conflict.InsufficientSpace,
+    onResolution: (Conflict.InsufficientSpace.Resolution) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var applyToAll by remember { mutableStateOf(false) }
@@ -47,7 +47,7 @@ fun InsufficientPermissionConflictSheet(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
-            text = stringResource(R.string.explorer_conflict_permission_title),
+            text = stringResource(R.string.explorer_conflict_space_title),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
         )
@@ -55,7 +55,7 @@ fun InsufficientPermissionConflictSheet(
         HorizontalDivider()
 
         Text(
-            text = stringResource(R.string.explorer_conflict_permission_description),
+            text = stringResource(R.string.explorer_conflict_space_description),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -97,7 +97,7 @@ fun InsufficientPermissionConflictSheet(
             if (conflict.canSkip) {
                 OutlinedButton(
                     onClick = {
-                        onResolution(Conflict.InsufficientPermission.Resolution.Skip(applyToAll))
+                        onResolution(Conflict.InsufficientSpace.Resolution.Skip(applyToAll))
                     },
                     modifier = Modifier.weight(1f),
                 ) {
@@ -107,7 +107,7 @@ fun InsufficientPermissionConflictSheet(
 
             TextButton(
                 onClick = {
-                    onResolution(Conflict.InsufficientPermission.Resolution.Cancel)
+                    onResolution(Conflict.InsufficientSpace.Resolution.Cancel)
                 },
                 modifier = Modifier.weight(1f),
             ) {
@@ -119,20 +119,20 @@ fun InsufficientPermissionConflictSheet(
 
 @Preview2
 @Composable
-private fun InsufficientPermissionConflictSheetPreview() {
+private fun InsufficientSpaceConflictSheetPreview() {
     PreviewWrapper {
-        InsufficientPermissionConflictSheet(
-            conflict = Conflict.InsufficientPermission(
+        InsufficientSpaceConflictSheet(
+            conflict = Conflict.InsufficientSpace(
                 conflictId = Uuid.random(),
                 source = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Download/document.pdf"),
+                    lookedUp = LocalPath.build("/storage/emulated/0/Movies/large_video.mp4"),
                     fileType = FileType.FILE,
-                    size = 1024 * 1024 * 5, // 5MB
+                    size = 1024L * 1024L * 1024L * 4L, // 4GB large file
                     modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000), // 1 hour ago
                     target = null,
                 ),
                 destination = LocalPathLookup(
-                    lookedUp = LocalPath.build("/system/protected/document.pdf"),
+                    lookedUp = LocalPath.build("/storage/external/large_video.mp4"),
                     fileType = FileType.FILE,
                     size = 0,
                     modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
