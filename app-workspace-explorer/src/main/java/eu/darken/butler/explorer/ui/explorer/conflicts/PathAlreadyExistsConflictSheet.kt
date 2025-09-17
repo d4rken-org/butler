@@ -7,9 +7,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.BorderColor
+import androidx.compose.material.icons.twotone.Cancel
+import androidx.compose.material.icons.twotone.DriveFileRenameOutline
+import androidx.compose.material.icons.twotone.FolderZip
+import androidx.compose.material.icons.twotone.SaveAs
+import androidx.compose.material.icons.twotone.SkipNext
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -115,7 +124,17 @@ fun PathAlreadyExistsConflictSheet(
                         },
                         modifier = Modifier.weight(1f),
                     ) {
-                        Text(stringResource(R.string.explorer_conflict_common_skip))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                imageVector = Icons.TwoTone.SkipNext,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Text(stringResource(R.string.explorer_conflict_common_skip))
+                        }
                     }
                 }
 
@@ -126,7 +145,17 @@ fun PathAlreadyExistsConflictSheet(
                         },
                         modifier = Modifier.weight(1f),
                     ) {
-                        Text(stringResource(R.string.explorer_conflict_collision_merge))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                imageVector = Icons.TwoTone.FolderZip,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Text(stringResource(R.string.explorer_conflict_collision_merge))
+                        }
                     }
                 } else if (conflict.canOverwrite) {
                     OutlinedButton(
@@ -135,7 +164,17 @@ fun PathAlreadyExistsConflictSheet(
                         },
                         modifier = Modifier.weight(1f),
                     ) {
-                        Text(stringResource(R.string.explorer_conflict_collision_overwrite))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                imageVector = Icons.TwoTone.SaveAs,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Text(stringResource(R.string.explorer_conflict_collision_overwrite))
+                        }
                     }
                 }
             }
@@ -151,7 +190,17 @@ fun PathAlreadyExistsConflictSheet(
                             onClick = { showRenameNewDialog = true },
                             modifier = Modifier.weight(1f),
                         ) {
-                            Text(stringResource(R.string.explorer_conflict_common_rename_new))
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.TwoTone.DriveFileRenameOutline,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                                Text(stringResource(R.string.explorer_conflict_common_rename_new))
+                            }
                         }
                     }
 
@@ -160,7 +209,17 @@ fun PathAlreadyExistsConflictSheet(
                             onClick = { showRenameExistingDialog = true },
                             modifier = Modifier.weight(1f),
                         ) {
-                            Text(stringResource(R.string.explorer_conflict_common_rename_existing))
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.TwoTone.BorderColor,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                                Text(stringResource(R.string.explorer_conflict_common_rename_existing))
+                            }
                         }
                     }
                 }
@@ -173,7 +232,17 @@ fun PathAlreadyExistsConflictSheet(
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(stringResource(R.string.explorer_conflict_common_cancel))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Cancel,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text(stringResource(R.string.explorer_conflict_common_cancel))
+                }
             }
         }
     }

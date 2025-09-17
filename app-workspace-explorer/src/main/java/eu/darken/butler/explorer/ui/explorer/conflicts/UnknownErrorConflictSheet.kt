@@ -7,13 +7,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Cancel
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.ExpandLess
 import androidx.compose.material.icons.twotone.ExpandMore
+import androidx.compose.material.icons.twotone.Refresh
+import androidx.compose.material.icons.twotone.SkipNext
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -209,7 +213,17 @@ fun UnknownErrorConflictSheet(
                         },
                         modifier = Modifier.weight(1f),
                     ) {
-                        Text(stringResource(eu.darken.butler.common.R.string.general_retry_action))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                imageVector = Icons.TwoTone.Refresh,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Text(stringResource(eu.darken.butler.common.R.string.general_retry_action))
+                        }
                     }
                 }
 
@@ -220,7 +234,17 @@ fun UnknownErrorConflictSheet(
                         },
                         modifier = Modifier.weight(1f),
                     ) {
-                        Text(stringResource(R.string.explorer_conflict_common_skip))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                imageVector = Icons.TwoTone.SkipNext,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Text(stringResource(R.string.explorer_conflict_common_skip))
+                        }
                     }
                 }
             }
@@ -231,7 +255,17 @@ fun UnknownErrorConflictSheet(
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(stringResource(R.string.explorer_conflict_common_cancel))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Cancel,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text(stringResource(R.string.explorer_conflict_common_cancel))
+                }
             }
         }
     }
