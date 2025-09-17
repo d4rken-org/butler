@@ -9,7 +9,6 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
-import eu.darken.butler.explorer.core.operations.OperationContext
 import eu.darken.butler.explorer.core.operations.conflicts.Conflict
 import eu.darken.butler.explorer.core.operations.conflicts.ConflictHandler
 import eu.darken.butler.explorer.core.operations.handlers.CopyOperationHandler
@@ -25,7 +24,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.time.Clock
 
 /**
  * Executes file system operations with support for progress tracking,
@@ -62,30 +60,24 @@ class OperationsEngine @AssistedInject constructor(
         scope: CoroutineScope,
     ): Flow<OperationState> = flow {
         log(tag, DEBUG) { "execute(): $operation" }
-        val startTime = Clock.System.now()
-        var metrics = OperationMetrics()
-
+        val context = OperationContext(
+            operationId = operation.operationId,
+            emitState = { state -> emit(state) }
+        )
 
         try {
             activeOperations[operation.operationId] = scope.coroutineContext[Job]!!
-            // Create operation context
-            val context = OperationContext(
-                operationId = operation.operationId,
-                startTime = startTime,
-                emitState = { state -> emit(state) }
-            )
 
-            // Emit initial state
             context.emit(
                 OperationState.OnGoing(
-                    operationId = operation.operationId,
-                    startTime = startTime,
+                    operationId = context.operationId,
+                    startTime = context.startTime,
                     canCancel = operation.canCancel,
                 )
             )
 
             // Execute based on operation type using context extension pattern
-            metrics = with(context) {
+           val metrics = with(context) {
                 when (operation) {
                     is ExplorerOperation.FileOp.Copy -> {
                         copyHandler.execute(operation)
@@ -108,8 +100,8 @@ class OperationsEngine @AssistedInject constructor(
             // Emit success
             emit(
                 OperationState.Completed(
-                    operationId = operation.operationId,
-                    startTime = startTime,
+                    operationId = context.operationId,
+                    startTime = context.startTime,
                     result = OperationResult.Success(metrics = metrics),
                 )
             )
@@ -118,9 +110,9 @@ class OperationsEngine @AssistedInject constructor(
             log(tag, WARN) { "Operation cancelled: $operation" }
             emit(
                 OperationState.Completed(
-                    operationId = operation.operationId,
-                    startTime = startTime,
-                    result = OperationResult.Cancelled(metrics = metrics),
+                    operationId = context.operationId,
+                    startTime = context.startTime,
+                    result = OperationResult.Cancelled(metrics = OperationMetrics()),
                 )
             )
             throw e
@@ -128,10 +120,10 @@ class OperationsEngine @AssistedInject constructor(
             log(tag, ERROR) { "Operation failed: $operation - ${e.asLog()}" }
             emit(
                 OperationState.Completed(
-                    operationId = operation.operationId,
-                    startTime = startTime,
+                    operationId = context.operationId,
+                    startTime = context.startTime,
                     result = OperationResult.Failure(
-                        metrics = metrics,
+                        metrics = OperationMetrics(),
                         exception = e,
                     ),
                 )

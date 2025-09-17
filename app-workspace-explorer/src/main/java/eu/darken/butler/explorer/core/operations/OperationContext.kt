@@ -2,6 +2,7 @@ package eu.darken.butler.explorer.core.operations
 
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.explorer.core.operations.handlers.BaseOperationHandler
+import kotlin.time.Clock
 import kotlin.time.Instant
 
 /**
@@ -10,7 +11,7 @@ import kotlin.time.Instant
  */
 data class OperationContext(
     val operationId: OperationId,
-    val startTime: Instant,
+    val startTime: Instant = Clock.System.now(),
     private val emitState: suspend (OperationState) -> Unit,
 ) {
 

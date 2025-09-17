@@ -15,7 +15,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.time.Clock
 
 class ConflictHandler @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,

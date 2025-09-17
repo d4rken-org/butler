@@ -15,8 +15,6 @@ import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.explorer.core.operations.OperationContext
 import eu.darken.butler.explorer.core.operations.OperationMetrics
 import eu.darken.butler.explorer.core.operations.OperationNotifier
-import eu.darken.butler.explorer.core.operations.OperationNotifier.Hint.*
-import eu.darken.butler.explorer.core.operations.OperationState
 import eu.darken.butler.explorer.core.operations.conflicts.Conflict
 import eu.darken.butler.explorer.core.operations.conflicts.ConflictHandler
 import eu.darken.butler.workspace.core.Workspace
