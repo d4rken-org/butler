@@ -82,15 +82,6 @@ private fun OnboardingScreen(
                         }
                     )
 
-                Page.BETA ->
-                    BetaPage(
-                        onContinue = {
-                            scope.launch {
-                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                            }
-                        }
-                    )
-
                 Page.WORKSPACES ->
                     WorkspacesPage(
                         onContinue = {
@@ -111,6 +102,15 @@ private fun OnboardingScreen(
 
                 Page.SUSTAINABILITY ->
                     SustainabilityPage(
+                        onContinue = {
+                            scope.launch {
+                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                            }
+                        }
+                    )
+
+                Page.BETA ->
+                    BetaPage(
                         onContinue = {
                             scope.launch {
                                 pagerState.animateScrollToPage(pagerState.currentPage + 1)
