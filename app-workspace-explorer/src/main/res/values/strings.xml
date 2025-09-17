@@ -125,4 +125,10 @@
     <string name="explorer_permission_storage_write_description">Butler needs additional permission to browse this location.</string>
     <string name="explorer_permission_generic_description">Butler needs additional permission to browse this location.</string>
     <string name="explorer_permission_setup_action">Open Setup</string>
+
+    <!-- Unknown Error Conflict Messages -->
+    <string name="explorer_conflict_unknown_error_title">Operation Failed</string>
+    <string name="explorer_conflict_unknown_error_description">An unexpected error occurred while processing this file.</string>
+    <string name="explorer_conflict_unknown_error_show_details">Show technical details</string>
+    <string name="explorer_conflict_unknown_error_hide_details">Hide technical details</string>
 </resources>

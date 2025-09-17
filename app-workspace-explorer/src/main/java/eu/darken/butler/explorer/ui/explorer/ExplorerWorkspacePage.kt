@@ -56,8 +56,8 @@ import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.explorer.ui.common.ConflictBottomSheet
-import eu.darken.butler.explorer.ui.common.ErrorSnackbar
+import eu.darken.butler.explorer.ui.explorer.conflicts.ConflictBottomSheet
+import eu.darken.butler.explorer.ui.explorer.conflicts.ErrorSnackbar
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.items.grid.PathItemGrid

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -61,7 +62,7 @@ fun UnknownErrorConflictSheet(
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .padding(top = 8.dp, bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         // Title with error icon
         Row(
@@ -83,16 +84,9 @@ fun UnknownErrorConflictSheet(
 
         HorizontalDivider()
 
-        // Error category and description
         Text(
-            text = "category",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.error,
-            fontWeight = FontWeight.Medium,
-        )
-
-        Text(
-            text = "description",
+            modifier  = modifier.padding(bottom = 8.dp),
+            text = conflict.errorMessage.asComposable(),
             style = MaterialTheme.typography.bodyMedium,
         )
 
@@ -118,14 +112,15 @@ fun UnknownErrorConflictSheet(
 
         // Technical details section
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant,
             ),
         ) {
             Column(
-                modifier = Modifier.padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -133,6 +128,7 @@ fun UnknownErrorConflictSheet(
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text(
+                        modifier = Modifier.padding(16.dp),
                         text = stringResource(
                             if (showTechnicalDetails) {
                                 R.string.explorer_conflict_unknown_error_hide_details
@@ -140,7 +136,7 @@ fun UnknownErrorConflictSheet(
                                 R.string.explorer_conflict_unknown_error_show_details
                             }
                         ),
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     IconButton(
@@ -158,32 +154,22 @@ fun UnknownErrorConflictSheet(
                 }
 
                 AnimatedVisibility(visible = showTechnicalDetails) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        SelectionContainer {
+                    Column {
+                        HorizontalDivider()
+                        SelectionContainer(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 300.dp)
+                        ) {
                             Text(
-                                text = conflict.errorMessage.asComposable(),
-                                style = MaterialTheme.typography.bodySmall,
+                                text = conflict.exception.stackTraceToString(),
+                                style = MaterialTheme.typography.labelSmall,
                                 fontFamily = FontFamily.Monospace,
                                 modifier = Modifier
                                     .fillMaxWidth()
+                                    .padding(start = 16.dp, end = 16.dp)
                                     .verticalScroll(rememberScrollState()),
                             )
-                        }
-
-                        conflict.exception?.let { exception ->
-                            HorizontalDivider()
-                            SelectionContainer {
-                                Text(
-                                    text = exception.stackTraceToString(),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontFamily = FontFamily.Monospace,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .verticalScroll(rememberScrollState()),
-                                )
-                            }
                         }
                     }
                 }
@@ -223,7 +209,7 @@ fun UnknownErrorConflictSheet(
                         },
                         modifier = Modifier.weight(1f),
                     ) {
-                        Text(stringResource(R.string.explorer_conflict_unknown_error_retry))
+                        Text(stringResource(eu.darken.butler.common.R.string.general_retry_action))
                     }
                 }
 

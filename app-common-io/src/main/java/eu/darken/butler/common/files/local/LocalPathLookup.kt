@@ -13,5 +13,5 @@ data class LocalPathLookup(
     override val fileType: FileType,
     override val size: Long,
     override val modifiedAt: Instant,
-    override val target: LocalPath?
+    override val target: LocalPath? = null,
 ) : APathLookup<LocalPath>, Parcelable

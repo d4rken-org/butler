@@ -98,11 +98,26 @@ private fun PathConflictFileComparisonCardFilePreview() {
     PreviewWrapper {
         PathConflictFileComparisonCard(
             lookup = LocalPathLookup(
-                lookedUp = LocalPath.build("/storage/emulated/0/Download/very-long-documentname-that-ellipsizes.pdf"),
+                lookedUp = LocalPath.build("/storage/emulated/0/Download/documentname.pdf"),
                 fileType = FileType.FILE,
                 size = 1024 * 1024 * 5, // 5MB
                 modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000), // 1 day ago
-                target = null,
+            ),
+        )
+    }
+}
+
+
+@Preview2
+@Composable
+private fun PathConflictFileComparisonCardEmptyFilePreview() {
+    PreviewWrapper {
+        PathConflictFileComparisonCard(
+            lookup = LocalPathLookup(
+                lookedUp = LocalPath.build("/storage/emulated/0/Download/very-long-documentname-that-ellipsizes.pdf"),
+                fileType = FileType.FILE,
+                size = 0L,
+                modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000), // 1 day ago
             ),
         )
     }
@@ -118,7 +133,6 @@ private fun PathConflictFileComparisonCardFolderPreview() {
                 fileType = FileType.DIRECTORY,
                 size = 0,
                 modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000), // 1 hour ago
-                target = null,
             ),
         )
     }

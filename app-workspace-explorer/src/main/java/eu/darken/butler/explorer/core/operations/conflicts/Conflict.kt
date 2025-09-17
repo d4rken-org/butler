@@ -1,5 +1,8 @@
 package eu.darken.butler.explorer.core.operations.conflicts
 
+import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.caString
+import eu.darken.butler.common.error.localized
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import kotlin.uuid.Uuid
@@ -48,6 +51,22 @@ sealed interface Conflict {
     ) : Conflict {
         sealed interface Resolution : Conflict.Resolution {
             data class Skip(val applyToAll: Boolean = false) : Resolution
+            data object Cancel : Resolution
+        }
+    }
+
+    data class UnknownError(
+        override val conflictId: ConflictId = Uuid.Companion.random(),
+        val source: APathLookup<APath>? = null,
+        val destination: APathLookup<APath>? = null,
+        val exception: Throwable,
+        val errorMessage: CaString = caString { exception.localized(it).description.get(it) },
+        val canSkip: Boolean = true,
+        val canRetry: Boolean = false,
+    ) : Conflict {
+        sealed interface Resolution : Conflict.Resolution {
+            data class Skip(val applyToAll: Boolean = false) : Resolution
+            data class Retry(val applyToAll: Boolean = false) : Resolution
             data object Cancel : Resolution
         }
     }

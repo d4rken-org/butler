@@ -44,7 +44,7 @@ fun InsufficientSpaceConflictSheet(
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .padding(top = 8.dp, bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
             text = stringResource(R.string.explorer_conflict_space_title),
@@ -55,6 +55,7 @@ fun InsufficientSpaceConflictSheet(
         HorizontalDivider()
 
         Text(
+            modifier  = modifier.padding(bottom = 8.dp),
             text = stringResource(R.string.explorer_conflict_space_description),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -129,14 +130,12 @@ private fun InsufficientSpaceConflictSheetPreview() {
                     fileType = FileType.FILE,
                     size = 1024L * 1024L * 1024L * 4L, // 4GB large file
                     modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000), // 1 hour ago
-                    target = null,
                 ),
                 destination = LocalPathLookup(
                     lookedUp = LocalPath.build("/storage/external/large_video.mp4"),
                     fileType = FileType.FILE,
-                    size = 0,
+                    size = 123,
                     modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
-                    target = null,
                 ),
                 canSkip = true,
             ),

@@ -44,7 +44,7 @@ fun InsufficientPermissionConflictSheet(
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .padding(top = 8.dp, bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
             text = stringResource(R.string.explorer_conflict_permission_title),
@@ -55,6 +55,7 @@ fun InsufficientPermissionConflictSheet(
         HorizontalDivider()
 
         Text(
+            modifier  = modifier.padding(bottom = 8.dp),
             text = stringResource(R.string.explorer_conflict_permission_description),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

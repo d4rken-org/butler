@@ -1,5 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer.conflicts
 
+import android.R.attr.onClick
+import android.widget.Button
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -47,7 +49,7 @@ fun PathAlreadyExistsConflictSheet(
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .padding(top = 8.dp, bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
             text = stringResource(
@@ -105,7 +107,7 @@ fun PathAlreadyExistsConflictSheet(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 if (conflict.canSkip) {
-                    OutlinedButton(
+                    Button(
                         onClick = {
                             onResolution(Conflict.PathAlreadyExists.Resolution.Skip(applyToAll))
                         },
@@ -116,7 +118,7 @@ fun PathAlreadyExistsConflictSheet(
                 }
 
                 if (isDirectory && conflict.canMerge) {
-                    Button(
+                    OutlinedButton(
                         onClick = {
                             onResolution(Conflict.PathAlreadyExists.Resolution.Merge(applyToAll))
                         },
@@ -125,7 +127,7 @@ fun PathAlreadyExistsConflictSheet(
                         Text(stringResource(R.string.explorer_conflict_collision_merge))
                     }
                 } else if (!isDirectory && conflict.canOverwrite) {
-                    Button(
+                    OutlinedButton(
                         onClick = {
                             onResolution(Conflict.PathAlreadyExists.Resolution.Overwrite(applyToAll))
                         },

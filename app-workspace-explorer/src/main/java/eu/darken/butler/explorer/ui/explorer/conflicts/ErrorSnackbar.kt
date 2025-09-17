@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -71,7 +72,7 @@ fun ErrorSnackbarPreview() {
             ) { data ->
                 ErrorSnackbar(snackbarData = data)
             }
-            
+
             // Show a sample error snackbar
             Snackbar(
                 containerColor = MaterialTheme.colorScheme.errorContainer,
@@ -79,7 +80,7 @@ fun ErrorSnackbarPreview() {
                 action = {
                     TextButton(onClick = {}) {
                         Text(
-                            text = "Retry",
+                            text = stringResource(eu.darken.butler.common.R.string.general_retry_action),
                             color = MaterialTheme.colorScheme.inversePrimary,
                         )
                     }

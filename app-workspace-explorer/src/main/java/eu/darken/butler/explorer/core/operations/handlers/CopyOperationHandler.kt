@@ -25,7 +25,6 @@ import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
-import java.io.IOException
 import kotlin.time.Instant
 
 class CopyOperationHandler @AssistedInject constructor(
@@ -40,7 +39,6 @@ class CopyOperationHandler @AssistedInject constructor(
     dispatcherProvider,
     operationNotifier
 ) {
-
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "Operation", "Copy")
 
     override suspend fun execute(
@@ -77,11 +75,11 @@ class CopyOperationHandler @AssistedInject constructor(
 
         for (source in operation.sources) {
             var targetPath = operation.destination.child(source.name)
+            val sourceLookup = source.lookup(gatewaySwitch)
+            val targetLookup = targetPath.lookup(gatewaySwitch)
 
             // Check for conflicts
             if (targetPath.exists(gatewaySwitch)) {
-                val sourceLookup = source.lookup(gatewaySwitch)
-                val targetLookup = targetPath.lookup(gatewaySwitch)
                 val conflict = Conflict.PathAlreadyExists(
                     source = sourceLookup,
                     destination = targetLookup,
@@ -118,12 +116,12 @@ class CopyOperationHandler @AssistedInject constructor(
                 }
             }
 
-            // Copy with progress tracking
-            val copyResult = source.copyOperation(
-                gateway = gatewaySwitch,
-                target = targetPath,
-                overwrite = targetPath.exists(gatewaySwitch) // true if we deleted for overwrite
-            )
+            val copyResult = source
+                .copyOperation(
+                    gateway = gatewaySwitch,
+                    target = targetPath,
+                    overwrite = targetPath.exists(gatewaySwitch) // true if we deleted for overwrite
+                )
                 .onEach { copyOp ->
                     when (copyOp.state) {
                         CopyOperation.State.COPYING -> {
@@ -145,17 +143,39 @@ class CopyOperationHandler @AssistedInject constructor(
                                 )
                             )
                         }
-                        CopyOperation.State.FAILED -> {
-                            throw copyOp.error ?: IOException("Copy failed")
-                        }
                         else -> {} // Ignore other states
                     }
                 }
                 .last() // Wait for completion and get final result
 
-            // Check the result
             if (copyResult.state != CopyOperation.State.COMPLETED) {
-                throw IOException("Copy operation did not complete successfully")
+                val conflict = Conflict.UnknownError(
+                    exception = copyResult.error!!,
+                    source = sourceLookup,
+                    destination = targetPath.lookup(gatewaySwitch),
+                    canSkip = true,
+                    canRetry = true,
+                )
+
+                val resolution = (conflictHandler.handleConflict(
+                    operationId = operation.operationId,
+                    conflict = conflict,
+                    emitState = emitState
+                ) ?: Conflict.UnknownError.Resolution.Cancel) as Conflict.UnknownError.Resolution
+
+                when (resolution) {
+                    is Conflict.UnknownError.Resolution.Skip -> {
+                        metrics = metrics.withSkippedFile()
+                        processedCount++
+                        continue
+                    }
+                    is Conflict.UnknownError.Resolution.Retry -> {
+                        // TODO
+                    }
+                    is Conflict.UnknownError.Resolution.Cancel -> {
+                        throw CancellationException("Operation cancelled by user")
+                    }
+                }
             }
 
             processedCount++
