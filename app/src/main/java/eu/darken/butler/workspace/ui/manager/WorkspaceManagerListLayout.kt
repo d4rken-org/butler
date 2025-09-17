@@ -19,6 +19,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.rows.WorkspaceBadgeExplanationCard
 import eu.darken.butler.workspace.ui.manager.rows.WorkspaceButtonBehaviorCard
@@ -40,11 +41,12 @@ fun WorkspaceManagerListLayout(
     onDismissButtonBehaviorExplanation: () -> Unit,
     onToggleButtonActions: () -> Unit,
 ) {
+    val tag = logTag("Workspace", "Manager", "ListLayout")
     var localWorkspaceItems by remember { mutableStateOf(state.workspaces) }
     var isDragging by remember { mutableStateOf(false) }
 
     if (!isDragging) {
-        log("WorkspaceManager") { "Updating local workspace items: ${state.workspaces}" }
+        log(tag) { "Updating local workspace items: ${state.workspaces}" }
         localWorkspaceItems = state.workspaces
     }
 
@@ -52,7 +54,7 @@ fun WorkspaceManagerListLayout(
     val reorderableLazyListState = rememberReorderableLazyListState(
         lazyListState = lazyListState
     ) { from, to ->
-        log("WorkspaceManager") { "Reorder from ${from.index} to ${to.index}" }
+        log(tag) { "Reorder from ${from.index} to ${to.index}" }
 
         val fromKey = from.key as? WorkspaceManagerColumnItemKey
         val toKey = to.key as? WorkspaceManagerColumnItemKey

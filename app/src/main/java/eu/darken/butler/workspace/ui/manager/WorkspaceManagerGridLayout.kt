@@ -8,13 +8,20 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.preview.EditorPreviewData
 import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
@@ -23,6 +30,8 @@ import eu.darken.butler.workspace.ui.manager.rows.WorkspaceBadgeExplanationCard
 import eu.darken.butler.workspace.ui.manager.rows.WorkspaceButtonBehaviorCard
 import eu.darken.butler.workspace.ui.manager.rows.WorkspaceGridItem
 import eu.darken.butler.workspace.ui.manager.rows.WorkspaceStatusCard
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyGridState
 
 @Composable
 fun WorkspaceManagerGridLayout(
@@ -37,6 +46,15 @@ fun WorkspaceManagerGridLayout(
     onDismissButtonBehaviorExplanation: () -> Unit,
     onToggleButtonActions: () -> Unit,
 ) {
+    val tag = logTag("Workspace", "Manager", "GridLayout")
+    var localWorkspaceItems by remember { mutableStateOf(state.workspaces) }
+    var isDragging by remember { mutableStateOf(false) }
+
+    if (!isDragging) {
+        log(tag) { "Updating local workspace items: ${state.workspaces}" }
+        localWorkspaceItems = state.workspaces
+    }
+
     // Calculate number of columns based on screen width
     val columns = when {
         screenWidth < 840.dp -> 2
@@ -46,8 +64,33 @@ fun WorkspaceManagerGridLayout(
     // Calculate span for explanation cards - use 2 columns on large screens, full width otherwise
     val explanationSpan = if (columns == 3) 2 else columns
 
+    val lazyGridState = rememberLazyGridState()
+    val reorderableLazyGridState = rememberReorderableLazyGridState(
+        lazyGridState = lazyGridState
+    ) { from, to ->
+        log(tag) { "Reorder from ${from.index} to ${to.index}" }
+
+        val fromKey = from.key as? WorkspaceManagerColumnItemKey
+        val toKey = to.key as? WorkspaceManagerColumnItemKey
+
+        when {
+            fromKey is WorkspaceManagerColumnItemKey.Workspace && toKey is WorkspaceManagerColumnItemKey.Workspace -> {
+                val fromWorkspaceIndex = localWorkspaceItems.indexOfFirst { it.id == fromKey.id }
+                val toWorkspaceIndex = localWorkspaceItems.indexOfFirst { it.id == toKey.id }
+
+                if (fromWorkspaceIndex != -1 && toWorkspaceIndex != -1) {
+                    val newList = localWorkspaceItems.toMutableList()
+                    val movedItem = newList.removeAt(fromWorkspaceIndex)
+                    newList.add(toWorkspaceIndex, movedItem)
+                    localWorkspaceItems = newList
+                }
+            }
+        }
+    }
+
     LazyVerticalGrid(
         modifier = modifier,
+        state = lazyGridState,
         columns = GridCells.Fixed(columns),
         contentPadding = PaddingValues(
             top = paddingValues.calculateTopPadding(),
@@ -81,16 +124,28 @@ fun WorkspaceManagerGridLayout(
             }
         } else {
             items(
-                items = state.workspaces,
+                items = localWorkspaceItems,
                 key = { workspace -> WorkspaceManagerColumnItemKey.Workspace.Standard(workspace.id) },
                 span = { GridItemSpan(1) }
             ) { workspace ->
-                WorkspaceGridItem(
-                    modifier = Modifier,
-                    workspace = workspace,
-                    onClose = { onCloseWorkspace(workspace.id) },
-                    onSelect = { onSelectWorkspace(workspace.id) }
-                )
+                ReorderableItem(
+                    reorderableLazyGridState,
+                    key = WorkspaceManagerColumnItemKey.Workspace.Standard(workspace.id)
+                ) { itemIsDragging ->
+                    WorkspaceGridItem(
+                        modifier = Modifier.animateItem(),
+                        reorderableScope = this@ReorderableItem,
+                        workspace = workspace,
+                        onClose = { onCloseWorkspace(workspace.id) },
+                        onSelect = { onSelectWorkspace(workspace.id) },
+                        isDragging = itemIsDragging,
+                        onDragStarted = { isDragging = true },
+                        onDragStopped = {
+                            isDragging = false
+                            onReorderWorkspaces(localWorkspaceItems.map { it.id })
+                        }
+                    )
+                }
             }
         }
 
