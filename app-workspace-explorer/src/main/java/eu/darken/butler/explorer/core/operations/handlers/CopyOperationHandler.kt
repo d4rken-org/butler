@@ -105,6 +105,17 @@ class CopyOperationHandler @AssistedInject constructor(
                     is Conflict.PathAlreadyExists.Resolution.Rename -> {
                         targetPath = operation.destination.child(resolution.newName)
                     }
+                    is Conflict.PathAlreadyExists.Resolution.RenameExisting -> {
+                        // Rename the existing file to make room for the incoming file
+                        val existingPath = targetPath
+                        val newExistingPath = operation.destination.child(resolution.newName)
+                        existingPath.copyOperation(
+                            gateway = gatewaySwitch,
+                            target = newExistingPath,
+                            overwrite = false
+                        ).last()
+                        existingPath.deleteWalk(gatewaySwitch)
+                    }
                     is Conflict.PathAlreadyExists.Resolution.Merge -> {
                         if (!sourceLookup.isDirectory && targetLookup.isDirectory) {
                             throw IllegalArgumentException("Can't merge files, only folders.")

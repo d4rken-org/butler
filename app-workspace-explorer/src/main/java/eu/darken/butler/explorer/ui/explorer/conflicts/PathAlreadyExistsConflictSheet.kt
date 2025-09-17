@@ -41,7 +41,8 @@ fun PathAlreadyExistsConflictSheet(
     modifier: Modifier = Modifier,
 ) {
     var applyToAll by remember { mutableStateOf(false) }
-    var showRenameDialog by remember { mutableStateOf(false) }
+    var showRenameNewDialog by remember { mutableStateOf(false) }
+    var showRenameExistingDialog by remember { mutableStateOf(false) }
     val isDirectory = conflict.destination.fileType == FileType.DIRECTORY
 
     Column(
@@ -102,6 +103,7 @@ fun PathAlreadyExistsConflictSheet(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            // Primary row: Skip and Merge/Overwrite
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -126,7 +128,7 @@ fun PathAlreadyExistsConflictSheet(
                     ) {
                         Text(stringResource(R.string.explorer_conflict_collision_merge))
                     }
-                } else if (!isDirectory && conflict.canOverwrite) {
+                } else if (conflict.canOverwrite) {
                     OutlinedButton(
                         onClick = {
                             onResolution(Conflict.PathAlreadyExists.Resolution.Overwrite(applyToAll))
@@ -138,69 +140,68 @@ fun PathAlreadyExistsConflictSheet(
                 }
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                if (isDirectory && conflict.canOverwrite) {
-                    OutlinedButton(
-                        onClick = {
-                            onResolution(Conflict.PathAlreadyExists.Resolution.Overwrite(applyToAll))
-                        },
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text(stringResource(R.string.explorer_conflict_collision_overwrite))
-                    }
-                } else if (!isDirectory && conflict.canRename) {
-                    OutlinedButton(
-                        onClick = { showRenameDialog = true },
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text(stringResource(R.string.explorer_conflict_common_rename))
-                    }
-                }
-
-                if (isDirectory && conflict.canRename) {
-                    OutlinedButton(
-                        onClick = { showRenameDialog = true },
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text(stringResource(R.string.explorer_conflict_common_rename))
-                    }
-                } else if (!isDirectory) {
-                    TextButton(
-                        onClick = {
-                            onResolution(Conflict.PathAlreadyExists.Resolution.Cancel)
-                        },
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text(stringResource(R.string.explorer_conflict_common_cancel))
-                    }
-                }
-            }
-
-            if (isDirectory) {
-                TextButton(
-                    onClick = {
-                        onResolution(Conflict.PathAlreadyExists.Resolution.Cancel)
-                    },
+            // Rename options row
+            if (conflict.canRenameNew || conflict.canRenameExisting) {
+                Row(
                     modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text(stringResource(R.string.explorer_conflict_common_cancel))
+                    if (conflict.canRenameNew) {
+                        OutlinedButton(
+                            onClick = { showRenameNewDialog = true },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(stringResource(R.string.explorer_conflict_common_rename_new))
+                        }
+                    }
+
+                    if (conflict.canRenameExisting) {
+                        OutlinedButton(
+                            onClick = { showRenameExistingDialog = true },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(stringResource(R.string.explorer_conflict_common_rename_existing))
+                        }
+                    }
                 }
+            }
+
+            // Cancel button
+            TextButton(
+                onClick = {
+                    onResolution(Conflict.PathAlreadyExists.Resolution.Cancel)
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(R.string.explorer_conflict_common_cancel))
             }
         }
     }
 
-    if (showRenameDialog) {
+    // Rename new file dialog
+    if (showRenameNewDialog) {
         val nameToRename = conflict.suggestedName ?: conflict.source?.name ?: conflict.destination.name
         PathConflictRenameDialog(
             currentName = nameToRename,
+            dialogTitle = stringResource(R.string.explorer_rename_dialog_title_new),
             onConfirm = { newName ->
                 onResolution(Conflict.PathAlreadyExists.Resolution.Rename(newName))
-                showRenameDialog = false
+                showRenameNewDialog = false
             },
-            onDismiss = { showRenameDialog = false },
+            onDismiss = { showRenameNewDialog = false },
+        )
+    }
+
+    // Rename existing file dialog
+    if (showRenameExistingDialog) {
+        PathConflictRenameDialog(
+            currentName = conflict.destination.name,
+            dialogTitle = stringResource(R.string.explorer_rename_dialog_title_existing),
+            onConfirm = { newName ->
+                onResolution(Conflict.PathAlreadyExists.Resolution.RenameExisting(newName))
+                showRenameExistingDialog = false
+            },
+            onDismiss = { showRenameExistingDialog = false },
         )
     }
 }
@@ -228,7 +229,37 @@ private fun PathAlreadyExistsConflictSheetFilePreview() {
                 ),
                 canSkip = true,
                 canOverwrite = true,
-                canRename = true,
+                canRenameNew = true,
+                canMerge = false,
+            ),
+            onResolution = {},
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun PathAlreadyExistsConflictSheetRenameOptionsPreview() {
+    PreviewWrapper {
+        PathAlreadyExistsConflictSheet(
+            conflict = Conflict.PathAlreadyExists(
+                conflictId = Uuid.random(),
+                destination = LocalPathLookup(
+                    lookedUp = LocalPath.build("/storage/emulated/0/Downloads/document.pdf"),
+                    fileType = FileType.FILE,
+                    size = 1024 * 1024 * 2, // 2MB
+                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000), // 1 day ago
+                ),
+                source = LocalPathLookup(
+                    lookedUp = LocalPath.build("/storage/emulated/0/Desktop/document.pdf"),
+                    fileType = FileType.FILE,
+                    size = 1024 * 1024 * 3, // 3MB
+                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000), // 1 hour ago
+                ),
+                canSkip = true,
+                canOverwrite = true,
+                canRenameNew = true,
+                canRenameExisting = true, // Show both rename options
                 canMerge = false,
             ),
             onResolution = {},
@@ -259,7 +290,7 @@ private fun PathAlreadyExistsConflictSheetFolderPreview() {
                 ),
                 canSkip = true,
                 canOverwrite = true,
-                canRename = true,
+                canRenameNew = true,
                 canMerge = true, // Directory can be merged
             ),
             onResolution = {},

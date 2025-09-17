@@ -18,7 +18,8 @@ sealed interface Conflict {
         val source: APathLookup<APath>? = null,
         val canSkip: Boolean = true,
         val canOverwrite: Boolean = true,
-        val canRename: Boolean = true,
+        val canRenameNew: Boolean = true,
+        val canRenameExisting: Boolean = true,
         val suggestedName: String? = null,
         val canMerge: Boolean = false,
     ) : Conflict {
@@ -26,6 +27,7 @@ sealed interface Conflict {
             data class Skip(val applyToAll: Boolean = false) : Resolution
             data class Overwrite(val applyToAll: Boolean = false) : Resolution
             data class Rename(val newName: String) : Resolution
+            data class RenameExisting(val newName: String) : Resolution
             data class Merge(val applyToAll: Boolean = false) : Resolution
             data object Cancel : Resolution
         }

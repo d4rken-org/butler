@@ -19,12 +19,13 @@ fun PathConflictRenameDialog(
     currentName: String,
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
+    dialogTitle: String = stringResource(R.string.explorer_conflict_common_rename),
 ) {
     var newName by remember { mutableStateOf(currentName) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.explorer_conflict_common_rename)) },
+        title = { Text(dialogTitle) },
         text = {
             OutlinedTextField(
                 value = newName,

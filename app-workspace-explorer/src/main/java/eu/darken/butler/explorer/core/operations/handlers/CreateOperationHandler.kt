@@ -7,6 +7,8 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.extensions.copyOperation
+import eu.darken.butler.common.files.extensions.deleteWalk
 import eu.darken.butler.common.files.extensions.exists
 import eu.darken.butler.common.files.extensions.lookup
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
@@ -18,6 +20,7 @@ import eu.darken.butler.explorer.core.operations.conflicts.Conflict
 import eu.darken.butler.explorer.core.operations.conflicts.ConflictHandler
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.last
 import kotlin.time.Instant
 
 class CreateOperationHandler @AssistedInject constructor(
@@ -41,11 +44,11 @@ class CreateOperationHandler @AssistedInject constructor(
         emitState: suspend (OperationState) -> Unit,
     ): OperationMetrics {
         log(tag) { "executeCreateFolder(): $operation" }
-        val folderPath = operation.parentPath.child(operation.name)
+        var targetPath = operation.parentPath.child(operation.name)
 
-        if (folderPath.exists(gatewaySwitch)) {
+        if (targetPath.exists(gatewaySwitch)) {
             val conflict = Conflict.PathAlreadyExists(
-                destination = folderPath.lookup(gatewaySwitch),
+                destination = targetPath.lookup(gatewaySwitch),
             )
 
             val resolution = conflictHandler.handleConflict(
@@ -59,21 +62,22 @@ class CreateOperationHandler @AssistedInject constructor(
                     return OperationMetrics().withSkippedFile()
                 }
                 is Conflict.PathAlreadyExists.Resolution.Rename -> {
-                    val newPath = operation.parentPath.child(resolution.newName)
-                    gatewaySwitch.createDir(newPath)
-
-                    operationNotifier.publish(
-                        FilesAdded(
-                            targetPath = operation.parentPath,
-                            files = listOf(newPath),
-                            operationId = operation.operationId,
-                        )
-                    )
-
-                    return OperationMetrics().withAddedDirectory()
+                    targetPath = operation.parentPath.child(resolution.newName)
+                }
+                is Conflict.PathAlreadyExists.Resolution.RenameExisting -> {
+                    // Rename the existing file/folder to make room for the new one
+                    val existingPath = targetPath
+                    val newExistingPath = operation.parentPath.child(resolution.newName)
+                    existingPath.copyOperation(
+                        gateway = gatewaySwitch,
+                        target = newExistingPath,
+                        overwrite = false
+                    ).last()
+                    existingPath.deleteWalk(gatewaySwitch)
                 }
                 is Conflict.PathAlreadyExists.Resolution.Overwrite -> {
-                    TODO()
+                    // Delete existing file/folder before creating new one
+                    targetPath.deleteWalk(gatewaySwitch)
                 }
                 is Conflict.PathAlreadyExists.Resolution.Merge -> {
                     throw IllegalArgumentException("Can't merge on create")
@@ -84,13 +88,13 @@ class CreateOperationHandler @AssistedInject constructor(
             }
         }
 
-        gatewaySwitch.createDir(folderPath)
+        gatewaySwitch.createDir(targetPath)
 
         // Emit hint for the created folder
         operationNotifier.publish(
             OperationNotifier.Hint.FilesAdded(
                 targetPath = operation.parentPath,
-                files = listOf(folderPath),
+                files = listOf(targetPath),
                 operationId = operation.operationId,
             )
         )

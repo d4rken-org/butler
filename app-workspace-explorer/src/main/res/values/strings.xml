@@ -97,9 +97,13 @@
     <string name="explorer_conflict_common_destination_file">Destination</string>
     <string name="explorer_conflict_common_skip">Skip</string>
     <string name="explorer_conflict_common_rename">Rename</string>
+    <string name="explorer_conflict_common_rename_new">Rename new</string>
+    <string name="explorer_conflict_common_rename_existing">Rename existing</string>
     <string name="explorer_conflict_common_cancel">Cancel</string>
     <string name="explorer_conflict_apply_all">Apply to all remaining conflicts</string>
     <string name="explorer_rename_new_name">New name</string>
+    <string name="explorer_rename_dialog_title_new">Rename incoming file</string>
+    <string name="explorer_rename_dialog_title_existing">Rename existing file</string>
     <string name="explorer_type_folder">Folder</string>
 
     <!-- Empty Folder Captions -->
