@@ -3,11 +3,10 @@ package eu.darken.butler.explorer.core.operations.handlers
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
+import eu.darken.butler.explorer.core.operations.OperationContext
 import eu.darken.butler.explorer.core.operations.OperationMetrics
 import eu.darken.butler.explorer.core.operations.OperationNotifier
-import eu.darken.butler.explorer.core.operations.OperationState
 import eu.darken.butler.workspace.core.Workspace
-import kotlin.time.Instant
 
 /**
  * Base class for operation handlers providing shared functionality.
@@ -18,9 +17,8 @@ abstract class BaseOperationHandler<T : ExplorerOperation>(
     protected val dispatcherProvider: DispatcherProvider,
     protected val operationNotifier: OperationNotifier,
 ) {
-    abstract suspend fun execute(
+    abstract suspend fun executeInContext(
+        context: OperationContext,
         operation: T,
-        startTime: Instant,
-        emitState: suspend (OperationState) -> Unit,
     ): OperationMetrics
 }

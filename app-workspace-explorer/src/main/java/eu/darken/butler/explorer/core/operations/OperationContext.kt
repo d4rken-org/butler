@@ -1,0 +1,28 @@
+package eu.darken.butler.explorer.core.operations
+
+import eu.darken.butler.explorer.core.engine.ExplorerOperation
+import eu.darken.butler.explorer.core.operations.handlers.BaseOperationHandler
+import kotlin.time.Instant
+
+/**
+ * Context object that encapsulates operation execution state and capabilities.
+ * This avoids passing multiple parameters through operation handler chains.
+ */
+data class OperationContext(
+    val operationId: OperationId,
+    val startTime: Instant,
+    private val emitState: suspend (OperationState) -> Unit,
+) {
+
+    suspend fun emit(state: OperationState) {
+        emitState(state)
+    }
+
+    /**
+     * Extension function to execute operation handlers within this context.
+     * This enables the pattern: with(context) { handler.execute(operation) }
+     */
+    suspend fun <T : ExplorerOperation> BaseOperationHandler<T>.execute(
+        operation: T
+    ): OperationMetrics = executeInContext(this@OperationContext, operation)
+}

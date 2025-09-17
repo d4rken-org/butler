@@ -16,6 +16,7 @@ import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.lookup
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
+import eu.darken.butler.explorer.core.operations.OperationContext
 import eu.darken.butler.explorer.core.operations.OperationMetrics
 import eu.darken.butler.explorer.core.operations.OperationNotifier
 import eu.darken.butler.explorer.core.operations.OperationState
@@ -25,7 +26,6 @@ import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
-import kotlin.time.Instant
 
 class CopyOperationHandler @AssistedInject constructor(
     @Assisted workspaceId: Workspace.Id,
@@ -41,11 +41,11 @@ class CopyOperationHandler @AssistedInject constructor(
 ) {
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "Operation", "Copy")
 
-    override suspend fun execute(
+    override suspend fun executeInContext(
+        context: OperationContext,
         operation: ExplorerOperation.FileOp.Copy,
-        startTime: Instant,
-        emitState: suspend (OperationState) -> Unit,
     ): OperationMetrics {
+        with(context) {
         log(tag) { "execute(): $operation" }
         var metrics = OperationMetrics()
         val totalFiles = operation.sources.size
@@ -87,9 +87,8 @@ class CopyOperationHandler @AssistedInject constructor(
                 )
 
                 val resolution = (conflictHandler.handleConflict(
-                    operationId = operation.operationId,
+                    context = context,
                     conflict = conflict,
-                    emitState = emitState
                 ) ?: Conflict.PathAlreadyExists.Resolution.Cancel) as Conflict.PathAlreadyExists.Resolution
 
                 when (resolution) {
@@ -136,7 +135,7 @@ class CopyOperationHandler @AssistedInject constructor(
                 .onEach { copyOp ->
                     when (copyOp.state) {
                         CopyOperation.State.COPYING -> {
-                            emitState(
+                            emit(
                                 OperationState.OnGoing(
                                     operationId = operation.operationId,
                                     startTime = startTime,
@@ -169,9 +168,8 @@ class CopyOperationHandler @AssistedInject constructor(
                 )
 
                 val resolution = (conflictHandler.handleConflict(
-                    operationId = operation.operationId,
+                    context = context,
                     conflict = conflict,
-                    emitState = emitState
                 ) ?: Conflict.UnknownError.Resolution.Cancel) as Conflict.UnknownError.Resolution
 
                 when (resolution) {
@@ -194,7 +192,8 @@ class CopyOperationHandler @AssistedInject constructor(
             metrics = metrics.withAddedFile(copyResult.totalBytes)
         }
 
-        return metrics
+            return metrics
+        }
     }
 
     @AssistedFactory

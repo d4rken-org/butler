@@ -7,6 +7,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.explorer.core.operations.OperationContext
 import eu.darken.butler.explorer.core.operations.OperationId
 import eu.darken.butler.explorer.core.operations.OperationState
 import eu.darken.butler.workspace.core.Workspace
@@ -25,36 +26,33 @@ class ConflictHandler @AssistedInject constructor(
     private val mutex = Mutex()
 
     suspend fun handleConflict(
-        operationId: OperationId,
+        context: OperationContext,
         conflict: Conflict,
-        emitState: suspend (OperationState) -> Unit,
     ): Conflict.Resolution? {
-        log(tag) { "handleConflict(): $operationId - $conflict" }
+        log(tag) { "handleConflict(): ${context.operationId} - $conflict" }
 
-        // Create deferred for user input
         val deferred = CompletableDeferred<Conflict.Resolution?>()
 
         mutex.withLock {
-            pendingConflicts[operationId] = deferred
+            pendingConflicts[context.operationId] = deferred
         }
 
-        try {
-            // Emit awaiting input state
-            emitState(
+        return try {
+            context.emit(
                 OperationState.AwaitingInput(
-                    operationId = operationId,
-                    startTime = Clock.System.now(),
+                    operationId = context.operationId,
+                    startTime = context.startTime,
                     conflict = conflict,
                 )
             )
 
-            return deferred.await()
+            deferred.await()
         } catch (e: Exception) {
             log(tag, WARN) { "Conflict resolution failed: ${e.asLog()}" }
-            return null
+            null
         } finally {
             mutex.withLock {
-                pendingConflicts.remove(operationId)
+                pendingConflicts.remove(context.operationId)
             }
         }
     }

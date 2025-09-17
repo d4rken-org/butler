@@ -12,6 +12,7 @@ import eu.darken.butler.common.files.extensions.deleteWalk
 import eu.darken.butler.common.files.extensions.exists
 import eu.darken.butler.common.files.extensions.lookup
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
+import eu.darken.butler.explorer.core.operations.OperationContext
 import eu.darken.butler.explorer.core.operations.OperationMetrics
 import eu.darken.butler.explorer.core.operations.OperationNotifier
 import eu.darken.butler.explorer.core.operations.OperationNotifier.Hint.*
@@ -21,7 +22,6 @@ import eu.darken.butler.explorer.core.operations.conflicts.ConflictHandler
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.last
-import kotlin.time.Instant
 
 class CreateOperationHandler @AssistedInject constructor(
     @Assisted workspaceId: Workspace.Id,
@@ -38,11 +38,11 @@ class CreateOperationHandler @AssistedInject constructor(
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "Operation", "Create")
 
-    override suspend fun execute(
+    override suspend fun executeInContext(
+        context: OperationContext,
         operation: ExplorerOperation.FileOp.Create,
-        startTime: Instant,
-        emitState: suspend (OperationState) -> Unit,
     ): OperationMetrics {
+        with(context) {
         log(tag) { "executeCreateFolder(): $operation" }
         var targetPath = operation.parentPath.child(operation.name)
 
@@ -52,9 +52,8 @@ class CreateOperationHandler @AssistedInject constructor(
             )
 
             val resolution = conflictHandler.handleConflict(
-                operationId = operation.operationId,
+                context = context,
                 conflict = conflict,
-                emitState = emitState
             ) as Conflict.PathAlreadyExists.Resolution
 
             when (resolution) {
@@ -99,7 +98,8 @@ class CreateOperationHandler @AssistedInject constructor(
             )
         )
 
-        return OperationMetrics().withAddedDirectory()
+            return OperationMetrics().withAddedDirectory()
+        }
     }
 
     @AssistedFactory

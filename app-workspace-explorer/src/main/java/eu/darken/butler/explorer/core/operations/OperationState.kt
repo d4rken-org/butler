@@ -7,9 +7,9 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
 
-sealed class OperationState {
-    abstract val operationId: OperationId
-    abstract val startTime: Instant
+sealed interface OperationState {
+    val operationId: OperationId
+    val startTime: Instant
 
     data class OnGoing(
         override val operationId: OperationId,
@@ -23,7 +23,7 @@ sealed class OperationState {
         val currentSpeed: Long? = null, // bytes per second
         val estimatedTimeRemaining: Duration? = null,
         val canCancel: Boolean = true,
-    ) : OperationState()
+    ) : OperationState
 
     data class AwaitingInput(
         override val operationId: OperationId,
@@ -31,14 +31,14 @@ sealed class OperationState {
         val conflict: Conflict,
         val previousProgress: Progress.Data? = null,
         val timeout: Duration? = null,
-    ) : OperationState()
+    ) : OperationState
 
     data class Completed(
         override val operationId: OperationId,
         override val startTime: Instant,
         val result: OperationResult,
         val endTime: Instant = Clock.System.now(),
-    ) : OperationState() {
+    ) : OperationState {
         val duration: Duration = endTime - startTime
     }
 }

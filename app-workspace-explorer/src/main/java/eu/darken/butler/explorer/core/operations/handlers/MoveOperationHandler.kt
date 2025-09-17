@@ -11,11 +11,11 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.extensions.deleteWalk
 import eu.darken.butler.explorer.core.engine.CopyOptions
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
+import eu.darken.butler.explorer.core.operations.OperationContext
 import eu.darken.butler.explorer.core.operations.OperationMetrics
 import eu.darken.butler.explorer.core.operations.OperationNotifier
 import eu.darken.butler.explorer.core.operations.OperationState
 import eu.darken.butler.workspace.core.Workspace
-import kotlin.time.Instant
 
 class MoveOperationHandler @AssistedInject constructor(
     @Assisted workspaceId: Workspace.Id,
@@ -32,11 +32,11 @@ class MoveOperationHandler @AssistedInject constructor(
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "OperationEngine", "Move")
 
-    override suspend fun execute(
+    override suspend fun executeInContext(
+        context: OperationContext,
         operation: ExplorerOperation.FileOp.Move,
-        startTime: Instant,
-        emitState: suspend (OperationState) -> Unit,
     ): OperationMetrics {
+        with(context) {
         log(tag) { "execute(): $operation" }
 
         // Emit hint for move operation
@@ -53,25 +53,25 @@ class MoveOperationHandler @AssistedInject constructor(
         operationNotifier.publish(hint.asAdditionHint())
         operationNotifier.publish(hint.asRemovalHint())
 
-        // Move is copy + delete
-        val metrics = copyHandler.execute(
-            operation = ExplorerOperation.FileOp.Copy(
-                sources = operation.sources,
-                destination = operation.destination,
-                options = CopyOptions(
-                    preserveAttributes = operation.options.preserveAttributes,
-                ),
-            ),
-            startTime = startTime,
-            emitState = emitState,
-        )
+            // Move is copy + delete
+            val metrics = copyHandler.executeInContext(
+                context,
+                ExplorerOperation.FileOp.Copy(
+                    sources = operation.sources,
+                    destination = operation.destination,
+                    options = CopyOptions(
+                        preserveAttributes = operation.options.preserveAttributes,
+                    ),
+                )
+            )
 
-        // Delete sources after successful copy
-        for (source in operation.sources) {
-            source.deleteWalk(gatewaySwitch)
+            // Delete sources after successful copy
+            for (source in operation.sources) {
+                source.deleteWalk(gatewaySwitch)
+            }
+
+            return metrics
         }
-
-        return metrics
     }
 
     @AssistedFactory

@@ -9,6 +9,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
+import eu.darken.butler.explorer.core.operations.OperationContext
 import eu.darken.butler.explorer.core.operations.conflicts.Conflict
 import eu.darken.butler.explorer.core.operations.conflicts.ConflictHandler
 import eu.darken.butler.explorer.core.operations.handlers.CopyOperationHandler
@@ -67,8 +68,15 @@ class OperationsEngine @AssistedInject constructor(
 
         try {
             activeOperations[operation.operationId] = scope.coroutineContext[Job]!!
+            // Create operation context
+            val context = OperationContext(
+                operationId = operation.operationId,
+                startTime = startTime,
+                emitState = { state -> emit(state) }
+            )
+
             // Emit initial state
-            emit(
+            context.emit(
                 OperationState.OnGoing(
                     operationId = operation.operationId,
                     startTime = startTime,
@@ -76,35 +84,24 @@ class OperationsEngine @AssistedInject constructor(
                 )
             )
 
-            // Execute based on operation type
-            when (operation) {
-                is ExplorerOperation.FileOp.Copy -> {
-                    metrics = copyHandler.execute(operation, startTime) { state ->
-                        emit(state)
+            // Execute based on operation type using context extension pattern
+            metrics = with(context) {
+                when (operation) {
+                    is ExplorerOperation.FileOp.Copy -> {
+                        copyHandler.execute(operation)
                     }
-                }
-                is ExplorerOperation.FileOp.Move -> {
-                    metrics = moveHandler.execute(operation, startTime) { state ->
-                        emit(state)
+                    is ExplorerOperation.FileOp.Move -> {
+                        moveHandler.execute(operation)
                     }
-                }
-                is ExplorerOperation.FileOp.Delete -> {
-                    metrics = deleteHandler.execute(operation, startTime) { state ->
-                        emit(state)
+                    is ExplorerOperation.FileOp.Delete -> {
+                        deleteHandler.execute(operation)
                     }
-                }
-                is ExplorerOperation.FileOp.Create -> {
-                    metrics = createHandler.execute(operation, startTime) { state ->
-                        emit(state)
+                    is ExplorerOperation.FileOp.Create -> {
+                        createHandler.execute(operation)
                     }
-                }
-                is ExplorerOperation.FileOp.Rename -> {
-                    metrics = renameHandler.execute(operation, startTime) { state ->
-                        emit(state)
+                    is ExplorerOperation.FileOp.Rename -> {
+                        renameHandler.execute(operation)
                     }
-                }
-                else -> {
-                    throw UnsupportedOperationException("Operation not yet implemented: $operation")
                 }
             }
 

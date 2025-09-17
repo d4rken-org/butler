@@ -15,11 +15,11 @@ import eu.darken.butler.common.files.extensions.deleteWalk
 import eu.darken.butler.common.files.extensions.exists
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
+import eu.darken.butler.explorer.core.operations.OperationContext
 import eu.darken.butler.explorer.core.operations.OperationMetrics
 import eu.darken.butler.explorer.core.operations.OperationNotifier
 import eu.darken.butler.explorer.core.operations.OperationState
 import eu.darken.butler.workspace.core.Workspace
-import kotlin.time.Instant
 
 class DeleteOperationHandler @AssistedInject constructor(
     @Assisted workspaceId: Workspace.Id,
@@ -35,11 +35,11 @@ class DeleteOperationHandler @AssistedInject constructor(
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "Operation", "Delete")
 
-    override suspend fun execute(
+    override suspend fun executeInContext(
+        context: OperationContext,
         operation: ExplorerOperation.FileOp.Delete,
-        startTime: Instant,
-        emitState: suspend (OperationState) -> Unit,
     ): OperationMetrics {
+        with(context) {
         log(tag) { "execute(): $operation" }
         var metrics = OperationMetrics()
         val totalFiles = operation.paths.size
@@ -77,7 +77,7 @@ class DeleteOperationHandler @AssistedInject constructor(
                 processedCount++
                 metrics = metrics.withRemovedFile(size)
 
-                emitState(
+                emit(
                     OperationState.OnGoing(
                         operationId = operation.operationId,
                         startTime = startTime,
@@ -99,7 +99,8 @@ class DeleteOperationHandler @AssistedInject constructor(
             }
         }
 
-        return metrics
+            return metrics
+        }
     }
 
     @AssistedFactory

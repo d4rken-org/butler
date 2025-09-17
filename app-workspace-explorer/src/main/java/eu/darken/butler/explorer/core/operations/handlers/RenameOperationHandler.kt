@@ -8,11 +8,11 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
+import eu.darken.butler.explorer.core.operations.OperationContext
 import eu.darken.butler.explorer.core.operations.OperationMetrics
 import eu.darken.butler.explorer.core.operations.OperationNotifier
 import eu.darken.butler.explorer.core.operations.OperationState
 import eu.darken.butler.workspace.core.Workspace
-import kotlin.time.Instant
 
 class RenameOperationHandler @AssistedInject constructor(
     @Assisted workspaceId: Workspace.Id,
@@ -28,11 +28,11 @@ class RenameOperationHandler @AssistedInject constructor(
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "Operation", "Rename")
 
-    override suspend fun execute(
+    override suspend fun executeInContext(
+        context: OperationContext,
         operation: ExplorerOperation.FileOp.Rename,
-        startTime: Instant,
-        emitState: suspend (OperationState) -> Unit,
     ): OperationMetrics {
+        with(context) {
         log(tag) { "execute(): $operation" }
 
         // TODO: Implement actual rename with gateway
@@ -40,8 +40,9 @@ class RenameOperationHandler @AssistedInject constructor(
         // For now, just log the operation
         log(tag) { "Rename: ${operation.path} -> ${operation.newName}" }
 
-        // Placeholder
-        return OperationMetrics().withAddedFile(0L)
+            // Placeholder
+            return OperationMetrics().withAddedFile(0L)
+        }
     }
 
     @AssistedFactory
