@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
+import androidx.compose.material.icons.twotone.DragIndicator
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -20,6 +21,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -40,11 +43,16 @@ import eu.darken.butler.workspace.ui.manager.rows.preview.WorkspacePreview
 @Composable
 fun WorkspaceGridItem(
     modifier: Modifier = Modifier,
+    reorderableScope: sh.calvin.reorderable.ReorderableCollectionItemScope? = null,
     workspace: WorkspaceManagerViewModel.WorkspaceItem,
     onClose: () -> Unit,
     onSelect: () -> Unit,
     showPreview: Boolean = true,
+    isDragging: Boolean = false,
+    onDragStarted: () -> Unit = {},
+    onDragStopped: () -> Unit = {},
 ) {
+    val haptic = LocalHapticFeedback.current
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -54,13 +62,43 @@ fun WorkspaceGridItem(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp,
+            defaultElevation = if (isDragging) 8.dp else 2.dp,
             pressedElevation = 4.dp
         )
     ) {
         Box(
             modifier = Modifier.fillMaxWidth()
         ) {
+            // Drag handle in top left corner
+            if (reorderableScope != null) {
+                Box(
+                    modifier = with(reorderableScope) {
+                        Modifier
+                            .align(Alignment.TopStart)
+                            .padding(4.dp)
+                            .size(32.dp)
+                            .draggableHandle(
+                                onDragStarted = {
+                                    onDragStarted()
+                                    haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
+                                },
+                                onDragStopped = {
+                                    onDragStopped()
+                                    haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                                },
+                            )
+                    },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.TwoTone.DragIndicator,
+                        contentDescription = stringResource(R.string.workspace_row_reorder_content_desc),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+
             // Close button in top right corner
             IconButton(
                 onClick = onClose,
@@ -88,7 +126,10 @@ fun WorkspaceGridItem(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(end = 28.dp), // Add padding to avoid close button overlap
+                        .padding(
+                            start = if (reorderableScope != null) 28.dp else 0.dp, // Avoid drag handle overlap
+                            end = 28.dp // Avoid close button overlap
+                        ),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -136,12 +177,30 @@ fun WorkspaceGridItem(
     }
 }
 
+private fun createMockReorderableScope() = object : sh.calvin.reorderable.ReorderableCollectionItemScope {
+    override fun Modifier.draggableHandle(
+        enabled: Boolean,
+        interactionSource: androidx.compose.foundation.interaction.MutableInteractionSource?,
+        onDragStarted: (androidx.compose.ui.geometry.Offset) -> Unit,
+        onDragStopped: () -> Unit,
+        dragGestureDetector: sh.calvin.reorderable.DragGestureDetector
+    ): Modifier = this
+
+    override fun Modifier.longPressDraggableHandle(
+        enabled: Boolean,
+        interactionSource: androidx.compose.foundation.interaction.MutableInteractionSource?,
+        onDragStarted: (androidx.compose.ui.geometry.Offset) -> Unit,
+        onDragStopped: () -> Unit
+    ): Modifier = this
+}
+
 @Preview2
 @Composable
 private fun WorkspaceGridItemPreview() {
     PreviewWrapper {
         WorkspaceGridItem(
             modifier = Modifier.padding(16.dp),
+            reorderableScope = createMockReorderableScope(),
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
                 id = Workspace.Id(),
                 type = Workspace.Type.EXPLORER,
@@ -150,7 +209,8 @@ private fun WorkspaceGridItemPreview() {
                 previewData = ExplorerPreviewData(),
             ),
             onClose = {},
-            onSelect = {}
+            onSelect = {},
+            isDragging = false
         )
     }
 }
@@ -161,6 +221,7 @@ private fun WorkspaceGridItemSearcherPreview() {
     PreviewWrapper {
         WorkspaceGridItem(
             modifier = Modifier.padding(16.dp),
+            reorderableScope = createMockReorderableScope(),
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
                 id = Workspace.Id(),
                 type = Workspace.Type.SEARCHER,
@@ -169,7 +230,8 @@ private fun WorkspaceGridItemSearcherPreview() {
                 previewData = SearcherPreviewData(),
             ),
             onClose = {},
-            onSelect = {}
+            onSelect = {},
+            isDragging = false
         )
     }
 }
@@ -180,6 +242,7 @@ private fun WorkspaceGridItemEditorPreview() {
     PreviewWrapper {
         WorkspaceGridItem(
             modifier = Modifier.padding(16.dp),
+            reorderableScope = createMockReorderableScope(),
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
                 id = Workspace.Id(),
                 type = Workspace.Type.EDITOR,
@@ -188,7 +251,29 @@ private fun WorkspaceGridItemEditorPreview() {
                 previewData = EditorPreviewData(),
             ),
             onClose = {},
-            onSelect = {}
+            onSelect = {},
+            isDragging = false
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun WorkspaceGridItemDraggingPreview() {
+    PreviewWrapper {
+        WorkspaceGridItem(
+            modifier = Modifier.padding(16.dp),
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = Workspace.Id(),
+                type = Workspace.Type.SEARCHER,
+                title = "Search".toCaString(),
+                subtitle = "Search for files and folders".toCaString(),
+                previewData = SearcherPreviewData(),
+            ),
+            onClose = {},
+            onSelect = {},
+            isDragging = true
         )
     }
 }
