@@ -1,6 +1,5 @@
 package eu.darken.butler.searcher.ui.search.rows
 
-import eu.darken.butler.common.files.FileType
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.files.metadata.FileType
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 

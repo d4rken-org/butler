@@ -125,6 +125,7 @@
     <string name="general_undo_action">Undo</string>
     <string name="general_create_action">Create</string>
     <string name="general_rename_action">Rename</string>
+    <string name="general_retry_action">Retry</string>
 
     <string name="general_list_select_all_action">Select all</string>
 

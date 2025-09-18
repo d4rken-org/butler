@@ -2,7 +2,7 @@ package eu.darken.butler.searcher.core
 
 import android.os.Parcelable
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.FileType
+import eu.darken.butler.common.files.metadata.FileType
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable

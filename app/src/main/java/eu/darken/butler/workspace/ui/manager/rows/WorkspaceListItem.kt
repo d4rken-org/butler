@@ -99,7 +99,8 @@ fun WorkspaceListItem(
             )
 
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center,
             ) {
                 Text(
                     text = workspace.title.asComposable(),
@@ -108,13 +109,15 @@ fun WorkspaceListItem(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                    text = workspace.subtitle?.asComposable() ?: "",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                if (workspace.subtitle != null) {
+                    Text(
+                        text = workspace.subtitle.asComposable(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
 
             IconButton(
@@ -198,6 +201,41 @@ private fun WorkspaceListItemDraggingPreview() {
             onClose = {},
             onSelect = {},
             isDragging = true
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun WorkspaceListItemNoSubtitlePreview() {
+    PreviewWrapper {
+        WorkspaceListItem(
+            modifier = Modifier.padding(16.dp),
+            reorderableScope = object : sh.calvin.reorderable.ReorderableCollectionItemScope {
+                override fun Modifier.draggableHandle(
+                    enabled: Boolean,
+                    interactionSource: androidx.compose.foundation.interaction.MutableInteractionSource?,
+                    onDragStarted: (androidx.compose.ui.geometry.Offset) -> Unit,
+                    onDragStopped: () -> Unit,
+                    dragGestureDetector: sh.calvin.reorderable.DragGestureDetector
+                ): Modifier = this
+
+                override fun Modifier.longPressDraggableHandle(
+                    enabled: Boolean,
+                    interactionSource: androidx.compose.foundation.interaction.MutableInteractionSource?,
+                    onDragStarted: (androidx.compose.ui.geometry.Offset) -> Unit,
+                    onDragStopped: () -> Unit
+                ): Modifier = this
+            },
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = Workspace.Id(),
+                type = Workspace.Type.TEMPLATES,
+                title = "Templates".toCaString(),
+                subtitle = null
+            ),
+            onClose = {},
+            onSelect = {},
+            isDragging = false
         )
     }
 }

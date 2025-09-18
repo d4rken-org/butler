@@ -4,8 +4,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.files.APathLookup
-import eu.darken.butler.common.files.Ownership
-import eu.darken.butler.common.files.Permissions
+import eu.darken.butler.common.files.metadata.Ownership
+import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import java.text.SimpleDateFormat
 import java.util.Date

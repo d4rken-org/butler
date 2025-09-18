@@ -13,20 +13,22 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.Ownership
-import eu.darken.butler.common.files.Permissions
-import eu.darken.butler.common.files.ReadException
-import eu.darken.butler.common.files.WriteException
 import eu.darken.butler.common.files.core.local.createSymlink
 import eu.darken.butler.common.files.core.local.isReadable
 import eu.darken.butler.common.files.core.local.listFiles2
 import eu.darken.butler.common.files.core.local.parentsInclusive
+import eu.darken.butler.common.files.errors.ReadException
+import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.asFile
 import eu.darken.butler.common.files.io.callbacks
 import eu.darken.butler.common.files.local.ipc.FileOpsClient
 import eu.darken.butler.common.files.local.walkers.DirectLocalWalker
 import eu.darken.butler.common.files.local.walkers.EscalatingWalker
 import eu.darken.butler.common.files.local.walkers.IndirectLocalWalker
+import eu.darken.butler.common.files.metadata.Ownership
+import eu.darken.butler.common.files.metadata.Permissions
+import eu.darken.butler.common.files.operations.CopyOperation
+import eu.darken.butler.common.files.operations.MoveOperation
 import eu.darken.butler.common.funnel.IPCFunnel
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.ipc.fileHandle
@@ -40,6 +42,7 @@ import eu.darken.butler.common.sharedresource.keepResourcesAlive
 import eu.darken.butler.common.storage.StorageEnvironment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
@@ -972,6 +975,31 @@ class LocalGateway @Inject constructor(
             log(TAG, WARN) { "setOwnership(path=$path, ownership=$ownership, mode=$mode) failed." }
             throw WriteException(path = path, cause = e)
         }
+    }
+
+    override suspend fun copy(
+        source: LocalPath,
+        destination: LocalPath,
+        options: CopyOperation.Options
+    ): Flow<CopyOperation.Result> = flow {
+        // TODO: Implement efficient native copy using java.nio
+        // - Use Files.walk() for directory traversal
+        // - Use Files.copy() with REPLACE_EXISTING based on options
+        // - Handle issues via options.onIssue callback
+        // - Report progress via options.onProgress
+        throw NotImplementedError("TODO: LocalGateway copy implementation")
+    }
+
+    override suspend fun move(
+        source: LocalPath,
+        target: LocalPath,
+        options: MoveOperation.Options
+    ): Flow<MoveOperation.Result> = flow {
+        // TODO: Implement atomic move using Files.move()
+        // - Try ATOMIC_MOVE first for same filesystem
+        // - Fallback to copy+delete for cross-filesystem
+        // - Handle issues via options.onIssue callback
+        throw NotImplementedError("TODO: LocalGateway move implementation")
     }
 
     enum class Mode {

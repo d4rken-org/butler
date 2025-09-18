@@ -1,6 +1,6 @@
 package eu.darken.butler.searcher.ui.search.rows
 
-import eu.darken.butler.common.files.FileType
+import eu.darken.butler.common.files.metadata.FileType
 import kotlin.time.Clock
 import kotlin.time.Instant
 

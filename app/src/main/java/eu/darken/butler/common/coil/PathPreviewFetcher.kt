@@ -14,14 +14,13 @@ import coil3.fetch.SourceFetchResult
 import coil3.request.Options
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.MimeTypeTool
-import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.files.APathLookup
-import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.extensions.asFile
 import eu.darken.butler.common.files.extensions.extension
 import eu.darken.butler.common.files.iconRes
+import eu.darken.butler.common.files.metadata.FileType
 import javax.inject.Inject
 
 class PathPreviewFetcher @Inject constructor(

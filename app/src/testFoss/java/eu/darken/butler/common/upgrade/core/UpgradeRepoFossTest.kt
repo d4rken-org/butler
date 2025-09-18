@@ -32,7 +32,7 @@ class UpgradeRepoFossTest : BaseTest() {
 
         UpgradeRepoFoss.Info(
             isUpgraded = true,
-            upgradedAt = Instant.EPOCH,
+            upgradedAt = Instant.fromEpochMilliseconds(0),
         ).isUpgraded shouldBe true
     }
 }
