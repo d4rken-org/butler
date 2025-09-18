@@ -6,7 +6,6 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.replayingShare
-import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.setup.core.inventory.InventorySetupModule
 import eu.darken.butler.setup.core.notification.NotificationSetupModule
 import eu.darken.butler.setup.core.root.RootSetupModule
@@ -17,6 +16,7 @@ import eu.darken.butler.setup.core.usagestats.UsageStatsSetupModule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -34,6 +34,7 @@ class SetupManager @Inject constructor(
             state.type to state
         }
     }
+        .distinctUntilChanged()
         .onEach { states ->
             log(TAG) { "Setup states updated: ${states.mapValues { "${it.key}=${it.value}" }}" }
         }

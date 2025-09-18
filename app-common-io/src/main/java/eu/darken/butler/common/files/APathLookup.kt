@@ -3,6 +3,7 @@ package eu.darken.butler.common.files
 import androidx.annotation.Keep
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.files.extensions.Segments
+import eu.darken.butler.common.files.metadata.FileType
 import kotlin.time.Instant
 
 @Keep

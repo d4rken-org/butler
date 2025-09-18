@@ -3,6 +3,7 @@ package eu.darken.butler.common.files
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import eu.darken.butler.R
+import eu.darken.butler.common.files.metadata.FileType
 
 @get:DrawableRes
 val FileType.iconRes: Int

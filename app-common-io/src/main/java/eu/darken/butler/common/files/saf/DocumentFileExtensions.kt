@@ -10,8 +10,8 @@ import androidx.documentfile.provider.DocumentFile
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
-import eu.darken.butler.common.files.Ownership
-import eu.darken.butler.common.files.Permissions
+import eu.darken.butler.common.files.metadata.Ownership
+import eu.darken.butler.common.files.metadata.Permissions
 import java.io.IOException
 import java.util.Date
 

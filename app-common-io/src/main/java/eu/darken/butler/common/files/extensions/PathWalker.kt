@@ -1,13 +1,13 @@
-package eu.darken.butler.common.files
+package eu.darken.butler.common.files.extensions
 
 import eu.darken.butler.common.debug.Bugs
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.extensions.isDirectory
-import eu.darken.butler.common.files.extensions.isFile
-import eu.darken.butler.common.files.extensions.lookup
-import eu.darken.butler.common.files.extensions.lookupFiles
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.APathGateway
+import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.APathLookupExtended
 import kotlinx.coroutines.flow.AbstractFlow
 import kotlinx.coroutines.flow.FlowCollector
 import java.io.IOException
@@ -43,7 +43,7 @@ class PathWalker<
             val newBatch = try {
                 lookUp.lookedUp.lookupFiles(gateway)
             } catch (e: IOException) {
-                log(TAG, ERROR) { "Failed to read $lookUp: $e" }
+                log(TAG, Logging.Priority.ERROR) { "Failed to read $lookUp: $e" }
                 if (onError(lookUp, e)) {
                     emptyList()
                 } else {
@@ -55,13 +55,13 @@ class PathWalker<
                 .filter {
                     val allowed = onFilter(it)
                     if (Bugs.isTrace) {
-                        if (!allowed) log(tag, VERBOSE) { "Skipping (filter): $it" }
+                        if (!allowed) log(tag, Logging.Priority.VERBOSE) { "Skipping (filter): $it" }
                     }
                     allowed
                 }
                 .forEach { child ->
                     if (child.isDirectory) {
-                        if (Bugs.isTrace) log(tag, VERBOSE) { "Walking: $child" }
+                        if (Bugs.isTrace) log(tag, Logging.Priority.VERBOSE) { "Walking: $child" }
                         queue.addFirst(child)
                     }
                     collector.emit(child)

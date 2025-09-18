@@ -6,7 +6,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.APathLookupExtended
-import eu.darken.butler.common.files.FileType
+import eu.darken.butler.common.files.metadata.FileType
 import kotlinx.coroutines.flow.Flow
 import okio.FileHandle
 

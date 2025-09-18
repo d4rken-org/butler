@@ -26,8 +26,9 @@ import eu.darken.butler.searcher.core.SearchResult
 import eu.darken.butler.searcher.core.SearcherSettings
 import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.permissions.PathPermissionChecker
+import eu.darken.butler.workspace.core.permissions.PathPermissionCheck
 import eu.darken.butler.workspace.core.permissions.PermissionState
+import eu.darken.butler.workspace.core.permissions.check
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -46,7 +47,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val searchEngine: SearchEngine,
     private val searchHistory: SearchHistory,
     private val searcherSettings: SearcherSettings,
-    private val pathPermissionChecker: PathPermissionChecker,
+    private val pathPermissionCheck: PathPermissionCheck,
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page"), navCtrl) {
 
     private val searchQuery = MutableStateFlow(TextFieldValue(""))
@@ -112,7 +113,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             caseSensitive = filter.caseSensitive,
             wholeWord = filter.wholeWord,
             useRegex = filter.useRegex,
-            permissionState = pathPermissionChecker.check(path),
+            permissionState = pathPermissionCheck.check(path),
         )
     }.asStateFlow()
 

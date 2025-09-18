@@ -1,12 +1,8 @@
 package eu.darken.butler.searcher.ui.search.rows
 
-import eu.darken.butler.common.files.FileType
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.twotone.Audiotrack
-import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.twotone.Code
 import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.FolderOpen
@@ -17,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import eu.darken.butler.common.files.metadata.FileType
 
 @Composable
 fun getFileIconAndTint(data: FileRowData): Pair<ImageVector, Color> {

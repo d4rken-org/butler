@@ -6,7 +6,6 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.extensions.exists
 import eu.darken.butler.common.files.extensions.lookup
-import eu.darken.butler.common.files.APathLookup
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +17,7 @@ import okio.use
  * Supports both file-based and in-memory editing.
  */
 interface EditorDataSource {
-    val fileInfo: StateFlow<eu.darken.butler.editor.core.FileInfo?>
+    val fileInfo: StateFlow<FileInfo?>
     val isModified: StateFlow<Boolean>
     
     suspend fun readChunk(startOffset: Long, size: Long): Result<String>
@@ -36,8 +35,8 @@ class FileDataSource @AssistedInject constructor(
     @Assisted private val gatewaySwitch: GatewaySwitch
 ) : EditorDataSource {
     
-    private val _fileInfo = MutableStateFlow<eu.darken.butler.editor.core.FileInfo?>(null)
-    override val fileInfo: StateFlow<eu.darken.butler.editor.core.FileInfo?> = _fileInfo.asStateFlow()
+    private val _fileInfo = MutableStateFlow<FileInfo?>(null)
+    override val fileInfo: StateFlow<FileInfo?> = _fileInfo.asStateFlow()
     
     private val _isModified = MutableStateFlow(false)
     override val isModified: StateFlow<Boolean> = _isModified.asStateFlow()
@@ -127,7 +126,7 @@ class InMemoryDataSource @AssistedInject constructor(
     @Assisted private val initialContent: String
 ) : EditorDataSource {
     
-    override val fileInfo: StateFlow<eu.darken.butler.editor.core.FileInfo?> = MutableStateFlow(null)
+    override val fileInfo: StateFlow<FileInfo?> = MutableStateFlow(null)
     
     private val _isModified = MutableStateFlow(false)
     override val isModified: StateFlow<Boolean> = _isModified.asStateFlow()

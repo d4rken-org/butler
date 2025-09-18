@@ -37,7 +37,7 @@ object ByteFormatter {
     }
 
     @Composable
-    fun formatFileSize(bytes: Long): String {
-        return formatFileSize(LocalContext.current, bytes)
+    fun formatFileSize(bytes: Long, shortFormat: Boolean = true): String {
+        return formatFileSize(context = LocalContext.current, bytes = bytes, shortFormat = shortFormat)
     }
 }
