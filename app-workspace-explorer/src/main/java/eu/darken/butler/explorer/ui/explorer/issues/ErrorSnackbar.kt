@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer.conflicts
+package eu.darken.butler.explorer.ui.explorer.issues
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize

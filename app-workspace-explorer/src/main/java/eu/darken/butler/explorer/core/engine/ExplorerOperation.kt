@@ -7,9 +7,6 @@ import kotlin.uuid.Uuid
 sealed interface ExplorerOperation {
     val operationId: OperationId
 
-    val canCancel: Boolean
-        get() = true
-
     sealed interface FileOp : ExplorerOperation {
         data class Create(
             override val operationId: OperationId = Uuid.random(),

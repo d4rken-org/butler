@@ -10,6 +10,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.operations.Issue
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
@@ -19,7 +20,6 @@ import eu.darken.butler.explorer.core.operations.OperationId
 import eu.darken.butler.explorer.core.operations.OperationResult
 import eu.darken.butler.explorer.core.operations.OperationState
 import eu.darken.butler.explorer.core.operations.OperationsEngine
-import eu.darken.butler.explorer.core.operations.conflicts.Conflict
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
 import eu.darken.butler.workspace.core.tracker.PathAccessTracker
@@ -319,7 +319,7 @@ class ExplorerWorkspace @AssistedInject constructor(
         }
     }
 
-    fun resolveConflict(operationId: OperationId, resolution: Conflict.Resolution?) {
+    fun resolveConflict(operationId: OperationId, resolution: Issue.Resolution?) {
         log(tag, INFO) { "Resolving conflict for operation $operationId: $resolution" }
         scope.launch {
             operationEngine.resolveConflict(operationId, resolution)

@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer.conflicts
+package eu.darken.butler.explorer.ui.explorer.issues
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -26,16 +26,16 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
-import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.explorer.R
 import java.text.DateFormat
 import java.util.Date
 import kotlin.time.Instant
 
 @Composable
-fun PathConflictFileComparisonCard(
+fun PathIssueFileComparisonCard(
     lookup: APathLookup<APath>,
     modifier: Modifier = Modifier,
 ) {
@@ -94,9 +94,9 @@ fun PathConflictFileComparisonCard(
 
 @Preview2
 @Composable
-private fun PathConflictFileComparisonCardFilePreview() {
+private fun PathIssueFileComparisonCardFilePreview() {
     PreviewWrapper {
-        PathConflictFileComparisonCard(
+        PathIssueFileComparisonCard(
             lookup = LocalPathLookup(
                 lookedUp = LocalPath.build("/storage/emulated/0/Download/documentname.pdf"),
                 fileType = FileType.FILE,
@@ -110,9 +110,9 @@ private fun PathConflictFileComparisonCardFilePreview() {
 
 @Preview2
 @Composable
-private fun PathConflictFileComparisonCardEmptyFilePreview() {
+private fun PathIssueFileComparisonCardEmptyFilePreview() {
     PreviewWrapper {
-        PathConflictFileComparisonCard(
+        PathIssueFileComparisonCard(
             lookup = LocalPathLookup(
                 lookedUp = LocalPath.build("/storage/emulated/0/Download/very-long-documentname-that-ellipsizes.pdf"),
                 fileType = FileType.FILE,
@@ -125,9 +125,9 @@ private fun PathConflictFileComparisonCardEmptyFilePreview() {
 
 @Preview2
 @Composable
-private fun PathConflictFileComparisonCardFolderPreview() {
+private fun PathIssueFileComparisonCardFolderPreview() {
     PreviewWrapper {
-        PathConflictFileComparisonCard(
+        PathIssueFileComparisonCard(
             lookup = LocalPathLookup(
                 lookedUp = LocalPath.build("/storage/emulated/0/Pictures/Vacation"),
                 fileType = FileType.DIRECTORY,

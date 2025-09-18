@@ -13,13 +13,15 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathGateway
-import eu.darken.butler.common.files.Ownership
-import eu.darken.butler.common.files.Permissions
-import eu.darken.butler.common.files.ReadException
 import eu.darken.butler.common.files.SAFPath
-import eu.darken.butler.common.files.WriteException
+import eu.darken.butler.common.files.errors.ReadException
+import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
+import eu.darken.butler.common.files.metadata.Ownership
+import eu.darken.butler.common.files.metadata.Permissions
+import eu.darken.butler.common.files.operations.CopyOperation
+import eu.darken.butler.common.files.operations.MoveOperation
 import eu.darken.butler.common.sharedresource.SharedResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -424,6 +426,30 @@ class SAFGateway @Inject constructor(
 
     override suspend fun createSymlink(linkPath: SAFPath, targetPath: SAFPath): Boolean {
         throw UnsupportedOperationException("SAF doesn't support symlinks. createSymlink(linkPath=$linkPath, targetPath=$targetPath)")
+    }
+
+    override suspend fun copy(
+        source: SAFPath,
+        destination: SAFPath,
+        options: CopyOperation.Options
+    ): Flow<CopyOperation.Result> = flow {
+        // TODO: Implement using DocumentFile APIs
+        // - Use DocumentFile.listFiles() for traversal
+        // - Use ContentResolver streams for copying
+        // - Handle issues via options.onIssue callback
+        throw NotImplementedError("TODO: SAFGateway copy implementation")
+    }
+
+    override suspend fun move(
+        source: SAFPath,
+        destination: SAFPath,
+        options: MoveOperation.Options
+    ): Flow<MoveOperation.Result> = flow {
+        // TODO: Implement using DocumentFile.renameTo()
+        // - Try renameTo() for same parent directory
+        // - Fallback to copy+delete for different parents
+        // - Handle issues via options.onIssue callback
+        throw NotImplementedError("TODO: SAFGateway move implementation")
     }
 
     companion object {

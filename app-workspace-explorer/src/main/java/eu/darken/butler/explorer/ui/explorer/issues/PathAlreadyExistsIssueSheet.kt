@@ -1,7 +1,5 @@
-package eu.darken.butler.explorer.ui.explorer.conflicts
+package eu.darken.butler.explorer.ui.explorer.issues
 
-import android.R.attr.onClick
-import android.widget.Button
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,24 +33,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.operations.Issue
 import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.core.operations.conflicts.Conflict
 import kotlin.time.Instant
-import kotlin.uuid.Uuid
 
 @Composable
-fun PathAlreadyExistsConflictSheet(
-    conflict: Conflict.PathAlreadyExists,
-    onResolution: (Conflict.PathAlreadyExists.Resolution) -> Unit,
+fun PathAlreadyExistsIssueSheet(
+    issue: Issue.PathAlreadyExists,
+    onResolution: (Issue.PathAlreadyExists.Resolution) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var applyToAll by remember { mutableStateOf(false) }
     var showRenameNewDialog by remember { mutableStateOf(false) }
     var showRenameExistingDialog by remember { mutableStateOf(false) }
-    val isDirectory = conflict.destination.fileType == FileType.DIRECTORY
+    val isDirectory = issue.destination.fileType == FileType.DIRECTORY
 
     Column(
         modifier = modifier
@@ -63,8 +60,8 @@ fun PathAlreadyExistsConflictSheet(
     ) {
         Text(
             text = stringResource(
-                if (isDirectory) R.string.explorer_conflict_collision_title_folder
-                else R.string.explorer_conflict_collision_title_file
+                if (isDirectory) R.string.explorer_issue_collision_title_folder
+                else R.string.explorer_issue_collision_title_file
             ),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
@@ -74,24 +71,24 @@ fun PathAlreadyExistsConflictSheet(
 
         Text(
             text = stringResource(
-                if (isDirectory) R.string.explorer_conflict_collision_existing_folder_label
-                else R.string.explorer_conflict_collision_existing_file_label
+                if (isDirectory) R.string.explorer_issue_collision_existing_folder_label
+                else R.string.explorer_issue_collision_existing_file_label
             ),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        PathConflictFileComparisonCard(lookup = conflict.destination)
+        PathIssueFileComparisonCard(lookup = issue.destination)
 
-        conflict.source?.let { source ->
+        issue.source?.let { source ->
             Text(
                 text = stringResource(
-                    if (isDirectory) R.string.explorer_conflict_collision_new_folder
-                    else R.string.explorer_conflict_collision_new_file
+                    if (isDirectory) R.string.explorer_issue_collision_new_folder
+                    else R.string.explorer_issue_collision_new_file
                 ),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            PathConflictFileComparisonCard(lookup = source)
+            PathIssueFileComparisonCard(lookup = source)
         }
 
         Row(
@@ -103,7 +100,7 @@ fun PathAlreadyExistsConflictSheet(
                 onCheckedChange = { applyToAll = it },
             )
             Text(
-                text = stringResource(R.string.explorer_conflict_apply_all),
+                text = stringResource(R.string.explorer_issue_apply_all),
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
@@ -117,10 +114,10 @@ fun PathAlreadyExistsConflictSheet(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                if (conflict.canSkip) {
+                if (issue.canSkip) {
                     Button(
                         onClick = {
-                            onResolution(Conflict.PathAlreadyExists.Resolution.Skip(applyToAll))
+                            onResolution(Issue.PathAlreadyExists.Resolution.Skip(applyToAll))
                         },
                         modifier = Modifier.weight(1f),
                     ) {
@@ -133,15 +130,15 @@ fun PathAlreadyExistsConflictSheet(
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp),
                             )
-                            Text(stringResource(R.string.explorer_conflict_common_skip))
+                            Text(stringResource(R.string.explorer_issue_common_skip))
                         }
                     }
                 }
 
-                if (isDirectory && conflict.canMerge) {
+                if (isDirectory && issue.canMerge) {
                     OutlinedButton(
                         onClick = {
-                            onResolution(Conflict.PathAlreadyExists.Resolution.Merge(applyToAll))
+                            onResolution(Issue.PathAlreadyExists.Resolution.Merge(applyToAll))
                         },
                         modifier = Modifier.weight(1f),
                     ) {
@@ -154,13 +151,13 @@ fun PathAlreadyExistsConflictSheet(
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp),
                             )
-                            Text(stringResource(R.string.explorer_conflict_collision_merge))
+                            Text(stringResource(R.string.explorer_issue_collision_merge))
                         }
                     }
-                } else if (conflict.canOverwrite) {
+                } else if (issue.canOverwrite) {
                     OutlinedButton(
                         onClick = {
-                            onResolution(Conflict.PathAlreadyExists.Resolution.Overwrite(applyToAll))
+                            onResolution(Issue.PathAlreadyExists.Resolution.Overwrite(applyToAll))
                         },
                         modifier = Modifier.weight(1f),
                     ) {
@@ -173,19 +170,19 @@ fun PathAlreadyExistsConflictSheet(
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp),
                             )
-                            Text(stringResource(R.string.explorer_conflict_collision_overwrite))
+                            Text(stringResource(R.string.explorer_issue_collision_overwrite))
                         }
                     }
                 }
             }
 
             // Rename options row
-            if (conflict.canRenameNew || conflict.canRenameExisting) {
+            if (issue.canRenameSource || issue.canRenameDestination) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    if (conflict.canRenameNew) {
+                    if (issue.canRenameSource) {
                         OutlinedButton(
                             onClick = { showRenameNewDialog = true },
                             modifier = Modifier.weight(1f),
@@ -199,12 +196,12 @@ fun PathAlreadyExistsConflictSheet(
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp),
                                 )
-                                Text(stringResource(R.string.explorer_conflict_common_rename_new))
+                                Text(stringResource(R.string.explorer_issue_common_rename_new))
                             }
                         }
                     }
 
-                    if (conflict.canRenameExisting) {
+                    if (issue.canRenameDestination) {
                         OutlinedButton(
                             onClick = { showRenameExistingDialog = true },
                             modifier = Modifier.weight(1f),
@@ -218,7 +215,7 @@ fun PathAlreadyExistsConflictSheet(
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp),
                                 )
-                                Text(stringResource(R.string.explorer_conflict_common_rename_existing))
+                                Text(stringResource(R.string.explorer_issue_common_rename_existing))
                             }
                         }
                     }
@@ -228,7 +225,7 @@ fun PathAlreadyExistsConflictSheet(
             // Cancel button
             TextButton(
                 onClick = {
-                    onResolution(Conflict.PathAlreadyExists.Resolution.Cancel)
+                    onResolution(Issue.PathAlreadyExists.Resolution.Cancel)
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {
@@ -241,7 +238,7 @@ fun PathAlreadyExistsConflictSheet(
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
                     )
-                    Text(stringResource(R.string.explorer_conflict_common_cancel))
+                    Text(stringResource(R.string.explorer_issue_common_cancel))
                 }
             }
         }
@@ -249,12 +246,12 @@ fun PathAlreadyExistsConflictSheet(
 
     // Rename new file dialog
     if (showRenameNewDialog) {
-        val nameToRename = conflict.suggestedName ?: conflict.source?.name ?: conflict.destination.name
-        PathConflictRenameDialog(
+        val nameToRename = issue.suggestedName ?: issue.source?.name ?: issue.destination.name
+        PathIssueRenameDialog(
             currentName = nameToRename,
             dialogTitle = stringResource(R.string.explorer_rename_dialog_title_new),
             onConfirm = { newName ->
-                onResolution(Conflict.PathAlreadyExists.Resolution.Rename(newName))
+                onResolution(Issue.PathAlreadyExists.Resolution.RenameSource(newName))
                 showRenameNewDialog = false
             },
             onDismiss = { showRenameNewDialog = false },
@@ -263,11 +260,11 @@ fun PathAlreadyExistsConflictSheet(
 
     // Rename existing file dialog
     if (showRenameExistingDialog) {
-        PathConflictRenameDialog(
-            currentName = conflict.destination.name,
+        PathIssueRenameDialog(
+            currentName = issue.destination.name,
             dialogTitle = stringResource(R.string.explorer_rename_dialog_title_existing),
             onConfirm = { newName ->
-                onResolution(Conflict.PathAlreadyExists.Resolution.RenameExisting(newName))
+                onResolution(Issue.PathAlreadyExists.Resolution.RenameDestination(newName))
                 showRenameExistingDialog = false
             },
             onDismiss = { showRenameExistingDialog = false },
@@ -277,11 +274,10 @@ fun PathAlreadyExistsConflictSheet(
 
 @Preview2
 @Composable
-private fun PathAlreadyExistsConflictSheetFilePreview() {
+private fun PathAlreadyExistsIssueSheetFilePreview() {
     PreviewWrapper {
-        PathAlreadyExistsConflictSheet(
-            conflict = Conflict.PathAlreadyExists(
-                conflictId = Uuid.random(),
+        PathAlreadyExistsIssueSheet(
+            issue = Issue.PathAlreadyExists(
                 destination = LocalPathLookup(
                     lookedUp = LocalPath.build("/storage/emulated/0/Download/document.pdf"),
                     fileType = FileType.FILE,
@@ -298,7 +294,7 @@ private fun PathAlreadyExistsConflictSheetFilePreview() {
                 ),
                 canSkip = true,
                 canOverwrite = true,
-                canRenameNew = true,
+                canRenameSource = true,
                 canMerge = false,
             ),
             onResolution = {},
@@ -308,11 +304,10 @@ private fun PathAlreadyExistsConflictSheetFilePreview() {
 
 @Preview2
 @Composable
-private fun PathAlreadyExistsConflictSheetRenameOptionsPreview() {
+private fun PathAlreadyExistsIssueSheetRenameOptionsPreview() {
     PreviewWrapper {
-        PathAlreadyExistsConflictSheet(
-            conflict = Conflict.PathAlreadyExists(
-                conflictId = Uuid.random(),
+        PathAlreadyExistsIssueSheet(
+            issue = Issue.PathAlreadyExists(
                 destination = LocalPathLookup(
                     lookedUp = LocalPath.build("/storage/emulated/0/Downloads/document.pdf"),
                     fileType = FileType.FILE,
@@ -327,8 +322,8 @@ private fun PathAlreadyExistsConflictSheetRenameOptionsPreview() {
                 ),
                 canSkip = true,
                 canOverwrite = true,
-                canRenameNew = true,
-                canRenameExisting = true, // Show both rename options
+                canRenameSource = true,
+                canRenameDestination = true, // Show both rename options
                 canMerge = false,
             ),
             onResolution = {},
@@ -338,11 +333,10 @@ private fun PathAlreadyExistsConflictSheetRenameOptionsPreview() {
 
 @Preview2
 @Composable
-private fun PathAlreadyExistsConflictSheetFolderPreview() {
+private fun PathAlreadyExistsIssueSheetFolderPreview() {
     PreviewWrapper {
-        PathAlreadyExistsConflictSheet(
-            conflict = Conflict.PathAlreadyExists(
-                conflictId = Uuid.random(),
+        PathAlreadyExistsIssueSheet(
+            issue = Issue.PathAlreadyExists(
                 destination = LocalPathLookup(
                     lookedUp = LocalPath.build("/storage/emulated/0/Pictures/Vacation"),
                     fileType = FileType.DIRECTORY,
@@ -359,7 +353,7 @@ private fun PathAlreadyExistsConflictSheetFolderPreview() {
                 ),
                 canSkip = true,
                 canOverwrite = true,
-                canRenameNew = true,
+                canRenameSource = true,
                 canMerge = true, // Directory can be merged
             ),
             onResolution = {},

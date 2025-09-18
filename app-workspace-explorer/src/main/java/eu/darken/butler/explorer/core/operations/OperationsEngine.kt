@@ -8,9 +8,8 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.operations.Issue
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
-import eu.darken.butler.explorer.core.operations.conflicts.Conflict
-import eu.darken.butler.explorer.core.operations.conflicts.ConflictHandler
 import eu.darken.butler.explorer.core.operations.handlers.CopyOperationHandler
 import eu.darken.butler.explorer.core.operations.handlers.CreateOperationHandler
 import eu.darken.butler.explorer.core.operations.handlers.DeleteOperationHandler
@@ -34,7 +33,7 @@ class OperationsEngine @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     private val dispatcherProvider: DispatcherProvider,
     private val operationNotifier: OperationNotifier,
-    private val conflictHandlerFactory: ConflictHandler.Factory,
+    private val issueHandlerFactory: IssueHandler.Factory,
     private val copyHandlerFactory: CopyOperationHandler.Factory,
     private val moveHandlerFactory: MoveOperationHandler.Factory,
     private val deleteHandlerFactory: DeleteOperationHandler.Factory,
@@ -42,16 +41,16 @@ class OperationsEngine @AssistedInject constructor(
     private val renameHandlerFactory: RenameOperationHandler.Factory,
 ) {
 
-    private val conflictHandler = conflictHandlerFactory.create(workspaceId)
+    private val issueHandler = issueHandlerFactory.create(workspaceId)
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "OperationEngine")
 
     private val activeOperations = ConcurrentHashMap<OperationId, Job>()
 
-    private val copyHandler = copyHandlerFactory.create(workspaceId, operationNotifier, conflictHandler)
-    private val moveHandler = moveHandlerFactory.create(workspaceId, operationNotifier, copyHandler)
-    private val deleteHandler = deleteHandlerFactory.create(workspaceId, operationNotifier)
-    private val createHandler = createHandlerFactory.create(workspaceId, operationNotifier, conflictHandler)
-    private val renameHandler = renameHandlerFactory.create(workspaceId, operationNotifier)
+    private val copyHandler = copyHandlerFactory.create(workspaceId, issueHandler)
+    private val moveHandler = moveHandlerFactory.create(workspaceId, issueHandler, copyHandler)
+    private val deleteHandler = deleteHandlerFactory.create(workspaceId, issueHandler)
+    private val createHandler = createHandlerFactory.create(workspaceId, issueHandler)
+    private val renameHandler = renameHandlerFactory.create(workspaceId, issueHandler)
 
     val hints = operationNotifier.hints
 
@@ -60,9 +59,12 @@ class OperationsEngine @AssistedInject constructor(
         scope: CoroutineScope,
     ): Flow<OperationState> = flow {
         log(tag, DEBUG) { "execute(): $operation" }
+        var metrics = OperationMetrics()
+
         val context = OperationContext(
             operationId = operation.operationId,
-            emitState = { state -> emit(state) }
+            emitState = { emit(it) },
+            emitHint = { operationNotifier.publish(it) }
         )
 
         try {
@@ -71,13 +73,12 @@ class OperationsEngine @AssistedInject constructor(
             context.emit(
                 OperationState.OnGoing(
                     operationId = context.operationId,
-                    startTime = context.startTime,
-                    canCancel = operation.canCancel,
+                    startedAt = context.startedAt,
                 )
             )
 
             // Execute based on operation type using context extension pattern
-           val metrics = with(context) {
+            with(context) {
                 when (operation) {
                     is ExplorerOperation.FileOp.Copy -> {
                         copyHandler.execute(operation)
@@ -101,7 +102,7 @@ class OperationsEngine @AssistedInject constructor(
             emit(
                 OperationState.Completed(
                     operationId = context.operationId,
-                    startTime = context.startTime,
+                    startedAt = context.startedAt,
                     result = OperationResult.Success(metrics = metrics),
                 )
             )
@@ -111,8 +112,8 @@ class OperationsEngine @AssistedInject constructor(
             emit(
                 OperationState.Completed(
                     operationId = context.operationId,
-                    startTime = context.startTime,
-                    result = OperationResult.Cancelled(metrics = OperationMetrics()),
+                    startedAt = context.startedAt,
+                    result = OperationResult.Cancelled(metrics = metrics),
                 )
             )
             throw e
@@ -121,9 +122,9 @@ class OperationsEngine @AssistedInject constructor(
             emit(
                 OperationState.Completed(
                     operationId = context.operationId,
-                    startTime = context.startTime,
+                    startedAt = context.startedAt,
                     result = OperationResult.Failure(
-                        metrics = OperationMetrics(),
+                        metrics = metrics,
                         exception = e,
                     ),
                 )
@@ -133,9 +134,9 @@ class OperationsEngine @AssistedInject constructor(
         }
     }.flowOn(dispatcherProvider.IO)
 
-    suspend fun resolveConflict(operationId: OperationId, resolution: Conflict.Resolution?) {
+    suspend fun resolveConflict(operationId: OperationId, resolution: Issue.Resolution?) {
         log(tag) { "resolveConflict(): Operation $operationId: $resolution" }
-        conflictHandler.resolveConflict(operationId, resolution)
+        issueHandler.resolveIssue(operationId, resolution)
     }
 
     fun cancelOperation(operationId: OperationId) {

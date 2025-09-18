@@ -56,10 +56,10 @@ import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.explorer.ui.explorer.conflicts.ConflictBottomSheet
-import eu.darken.butler.explorer.ui.explorer.conflicts.ErrorSnackbar
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
+import eu.darken.butler.explorer.ui.explorer.issues.ErrorSnackbar
+import eu.darken.butler.explorer.ui.explorer.issues.IssueBottomSheet
 import eu.darken.butler.explorer.ui.explorer.items.grid.PathItemGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.ShortcutGrid
 import eu.darken.butler.explorer.ui.explorer.items.row.PathItemRow
@@ -398,8 +398,8 @@ fun ExplorerWorkspacePage(
 
     // Show conflict bottom sheet when needed
     conflictState?.let { conflict ->
-        ConflictBottomSheet(
-            conflict = conflict,
+        IssueBottomSheet(
+            issue = conflict,
             onResolution = { resolution -> vm?.resolveConflict(resolution) },
             onDismiss = { vm?.resolveConflict(null) },
         )

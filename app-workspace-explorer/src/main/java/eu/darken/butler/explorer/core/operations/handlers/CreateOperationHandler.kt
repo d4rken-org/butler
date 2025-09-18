@@ -11,27 +11,24 @@ import eu.darken.butler.common.files.extensions.copyOperation
 import eu.darken.butler.common.files.extensions.deleteWalk
 import eu.darken.butler.common.files.extensions.exists
 import eu.darken.butler.common.files.extensions.lookup
+import eu.darken.butler.common.files.operations.Issue
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
+import eu.darken.butler.explorer.core.operations.IssueHandler
 import eu.darken.butler.explorer.core.operations.OperationContext
-import eu.darken.butler.explorer.core.operations.OperationMetrics
 import eu.darken.butler.explorer.core.operations.OperationNotifier
-import eu.darken.butler.explorer.core.operations.conflicts.Conflict
-import eu.darken.butler.explorer.core.operations.conflicts.ConflictHandler
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.last
 
 class CreateOperationHandler @AssistedInject constructor(
     @Assisted workspaceId: Workspace.Id,
-    @Assisted private val conflictHandler: ConflictHandler,
-    @Assisted operationNotifier: OperationNotifier,
+    @Assisted private val issueHandler: IssueHandler,
     gatewaySwitch: GatewaySwitch,
     dispatcherProvider: DispatcherProvider,
 ) : BaseOperationHandler<ExplorerOperation.FileOp.Create>(
     workspaceId,
     gatewaySwitch,
     dispatcherProvider,
-    operationNotifier
 ) {
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "Operation", "Create")
@@ -39,29 +36,28 @@ class CreateOperationHandler @AssistedInject constructor(
     override suspend fun executeInContext(
         context: OperationContext,
         operation: ExplorerOperation.FileOp.Create,
-    ): OperationMetrics {
-        with(context) {
+    ): Unit = with(context) {
         log(tag) { "executeCreateFolder(): $operation" }
         var targetPath = operation.parentPath.child(operation.name)
 
         if (targetPath.exists(gatewaySwitch)) {
-            val conflict = Conflict.PathAlreadyExists(
+            val issue = Issue.PathAlreadyExists(
                 destination = targetPath.lookup(gatewaySwitch),
             )
 
-            val resolution = conflictHandler.handleConflict(
+            val resolution = issueHandler.handleIssue(
                 context = context,
-                conflict = conflict,
-            ) as Conflict.PathAlreadyExists.Resolution
+                issue = issue,
+            ) as Issue.PathAlreadyExists.Resolution
 
             when (resolution) {
-                is Conflict.PathAlreadyExists.Resolution.Skip -> {
-                    return OperationMetrics().withSkippedFile()
+                is Issue.PathAlreadyExists.Resolution.Skip -> {
+                    return
                 }
-                is Conflict.PathAlreadyExists.Resolution.Rename -> {
+                is Issue.PathAlreadyExists.Resolution.RenameSource -> {
                     targetPath = operation.parentPath.child(resolution.newName)
                 }
-                is Conflict.PathAlreadyExists.Resolution.RenameExisting -> {
+                is Issue.PathAlreadyExists.Resolution.RenameDestination -> {
                     // Rename the existing file/folder to make room for the new one
                     val existingPath = targetPath
                     val newExistingPath = operation.parentPath.child(resolution.newName)
@@ -72,14 +68,14 @@ class CreateOperationHandler @AssistedInject constructor(
                     ).last()
                     existingPath.deleteWalk(gatewaySwitch)
                 }
-                is Conflict.PathAlreadyExists.Resolution.Overwrite -> {
+                is Issue.PathAlreadyExists.Resolution.Overwrite -> {
                     // Delete existing file/folder before creating new one
                     targetPath.deleteWalk(gatewaySwitch)
                 }
-                is Conflict.PathAlreadyExists.Resolution.Merge -> {
+                is Issue.PathAlreadyExists.Resolution.Merge -> {
                     throw IllegalArgumentException("Can't merge on create")
                 }
-                is Conflict.PathAlreadyExists.Resolution.Cancel -> {
+                is Issue.PathAlreadyExists.Resolution.Cancel -> {
                     throw CancellationException("Operation cancelled")
                 }
             }
@@ -87,25 +83,18 @@ class CreateOperationHandler @AssistedInject constructor(
 
         gatewaySwitch.createDir(targetPath)
 
-        // Emit hint for the created folder
-        operationNotifier.publish(
-            OperationNotifier.Hint.FilesAdded(
-                targetPath = operation.parentPath,
-                files = listOf(targetPath),
-                operationId = operation.operationId,
-            )
-        )
-
-            return OperationMetrics().withAddedDirectory()
-        }
+        OperationNotifier.Hint.FilesAdded(
+            operationId = operation.operationId,
+            affectedFolder = operation.parentPath,
+            files = listOf(targetPath),
+        ).run { emit(this) }
     }
 
     @AssistedFactory
     interface Factory {
         fun create(
             workspaceId: Workspace.Id,
-            operationNotifier: OperationNotifier,
-            conflictHandler: ConflictHandler,
+            issueHandler: IssueHandler,
         ): CreateOperationHandler
     }
 }

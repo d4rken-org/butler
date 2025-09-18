@@ -8,8 +8,6 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.Ownership
-import eu.darken.butler.common.files.Permissions
 import eu.darken.butler.common.files.core.local.createSymlink
 import eu.darken.butler.common.files.core.local.listFiles2
 import eu.darken.butler.common.files.extensions.asFile
@@ -20,6 +18,8 @@ import eu.darken.butler.common.files.local.performLookupExtended
 import eu.darken.butler.common.files.local.setOwnership
 import eu.darken.butler.common.files.local.setPermissions
 import eu.darken.butler.common.files.local.walkers.DirectLocalWalker
+import eu.darken.butler.common.files.metadata.Ownership
+import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.funnel.IPCFunnel
 import eu.darken.butler.common.ipc.IpcHostModule
 import eu.darken.butler.common.ipc.RemoteFileHandle

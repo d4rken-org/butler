@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer.conflicts
+package eu.darken.butler.explorer.ui.explorer.issues
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,18 +28,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.operations.Issue
 import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.core.operations.conflicts.Conflict
 import kotlin.time.Instant
-import kotlin.uuid.Uuid
 
 @Composable
-fun InsufficientSpaceConflictSheet(
-    conflict: Conflict.InsufficientSpace,
-    onResolution: (Conflict.InsufficientSpace.Resolution) -> Unit,
+fun InsufficientPermissionIssueSheet(
+    issue: Issue.InsufficientPermission,
+    onResolution: (Issue.InsufficientPermission.Resolution) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var applyToAll by remember { mutableStateOf(false) }
@@ -52,7 +51,7 @@ fun InsufficientSpaceConflictSheet(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
-            text = stringResource(R.string.explorer_conflict_space_title),
+            text = stringResource(R.string.explorer_issue_permission_title),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
         )
@@ -61,26 +60,26 @@ fun InsufficientSpaceConflictSheet(
 
         Text(
             modifier  = modifier.padding(bottom = 8.dp),
-            text = stringResource(R.string.explorer_conflict_space_description),
+            text = stringResource(R.string.explorer_issue_permission_description),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Text(
-            text = stringResource(R.string.explorer_conflict_common_source_file),
+            text = stringResource(R.string.explorer_issue_common_source_file),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        PathConflictFileComparisonCard(lookup = conflict.source)
+        PathIssueFileComparisonCard(lookup = issue.source)
 
         Text(
-            text = stringResource(R.string.explorer_conflict_common_destination_file),
+            text = stringResource(R.string.explorer_issue_common_destination_file),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        PathConflictFileComparisonCard(lookup = conflict.destination)
+        PathIssueFileComparisonCard(lookup = issue.destination)
 
-        if (conflict.canSkip) {
+        if (issue.canSkip) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -90,7 +89,7 @@ fun InsufficientSpaceConflictSheet(
                     onCheckedChange = { applyToAll = it },
                 )
                 Text(
-                    text = stringResource(R.string.explorer_conflict_apply_all),
+                    text = stringResource(R.string.explorer_issue_apply_all),
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
@@ -100,10 +99,10 @@ fun InsufficientSpaceConflictSheet(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (conflict.canSkip) {
+            if (issue.canSkip) {
                 OutlinedButton(
                     onClick = {
-                        onResolution(Conflict.InsufficientSpace.Resolution.Skip(applyToAll))
+                        onResolution(Issue.InsufficientPermission.Resolution.Skip(applyToAll))
                     },
                     modifier = Modifier.weight(1f),
                 ) {
@@ -116,14 +115,14 @@ fun InsufficientSpaceConflictSheet(
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
                         )
-                        Text(stringResource(R.string.explorer_conflict_common_skip))
+                        Text(stringResource(R.string.explorer_issue_common_skip))
                     }
                 }
             }
 
             TextButton(
                 onClick = {
-                    onResolution(Conflict.InsufficientSpace.Resolution.Cancel)
+                    onResolution(Issue.InsufficientPermission.Resolution.Cancel)
                 },
                 modifier = Modifier.weight(1f),
             ) {
@@ -136,7 +135,7 @@ fun InsufficientSpaceConflictSheet(
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
                     )
-                    Text(stringResource(R.string.explorer_conflict_common_cancel))
+                    Text(stringResource(R.string.explorer_issue_common_cancel))
                 }
             }
         }
@@ -145,22 +144,23 @@ fun InsufficientSpaceConflictSheet(
 
 @Preview2
 @Composable
-private fun InsufficientSpaceConflictSheetPreview() {
+private fun InsufficientPermissionConflictSheetPreview() {
     PreviewWrapper {
-        InsufficientSpaceConflictSheet(
-            conflict = Conflict.InsufficientSpace(
-                conflictId = Uuid.random(),
+        InsufficientPermissionIssueSheet(
+            issue = Issue.InsufficientPermission(
                 source = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Movies/large_video.mp4"),
+                    lookedUp = LocalPath.build("/storage/emulated/0/Download/document.pdf"),
                     fileType = FileType.FILE,
-                    size = 1024L * 1024L * 1024L * 4L, // 4GB large file
+                    size = 1024 * 1024 * 5, // 5MB
                     modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000), // 1 hour ago
+                    target = null,
                 ),
                 destination = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/external/large_video.mp4"),
+                    lookedUp = LocalPath.build("/system/protected/document.pdf"),
                     fileType = FileType.FILE,
-                    size = 123,
+                    size = 0,
                     modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
+                    target = null,
                 ),
                 canSkip = true,
             ),

@@ -13,24 +13,21 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.extensions.delete
 import eu.darken.butler.common.files.extensions.deleteWalk
 import eu.darken.butler.common.files.extensions.exists
-import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
+import eu.darken.butler.explorer.core.operations.IssueHandler
 import eu.darken.butler.explorer.core.operations.OperationContext
-import eu.darken.butler.explorer.core.operations.OperationMetrics
 import eu.darken.butler.explorer.core.operations.OperationNotifier
-import eu.darken.butler.explorer.core.operations.OperationState
 import eu.darken.butler.workspace.core.Workspace
 
 class DeleteOperationHandler @AssistedInject constructor(
     @Assisted workspaceId: Workspace.Id,
-    @Assisted operationNotifier: OperationNotifier,
+    @Assisted private val issueHandler: IssueHandler,
     gatewaySwitch: GatewaySwitch,
     dispatcherProvider: DispatcherProvider,
 ) : BaseOperationHandler<ExplorerOperation.FileOp.Delete>(
     workspaceId,
     gatewaySwitch,
     dispatcherProvider,
-    operationNotifier
 ) {
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "Operation", "Delete")
@@ -38,32 +35,28 @@ class DeleteOperationHandler @AssistedInject constructor(
     override suspend fun executeInContext(
         context: OperationContext,
         operation: ExplorerOperation.FileOp.Delete,
-    ): OperationMetrics {
-        with(context) {
+    ): Unit = with(context) {
         log(tag) { "execute(): $operation" }
-        var metrics = OperationMetrics()
-        val totalFiles = operation.paths.size
+        operation.paths.size
         var processedCount = 0
 
         // Emit hint that files will be removed
         val parentPath = when (val first = operation.paths.firstOrNull()) {
             is LocalPath -> first.parent()
-            else -> null
+            else -> null // TODO We should support more path types
         }
         if (parentPath != null) {
-            this@DeleteOperationHandler.operationNotifier.publish(
-                OperationNotifier.Hint.FilesRemoved(
-                    targetPath = parentPath,
-                    files = operation.paths.toList(),
-                    operationId = operation.operationId,
-                )
-            )
+            OperationNotifier.Hint.FilesRemoved(
+                affectedFolder = parentPath,
+                files = operation.paths.toList(),
+                operationId = operation.operationId,
+            ).run { emit(this) }
         }
 
         for (path in operation.paths) {
             try {
                 // Get size before deletion for metrics
-                val size = if (path.exists(gatewaySwitch)) {
+                if (path.exists(gatewaySwitch)) {
                     gatewaySwitch.lookup(path).size
                 } else 0L
 
@@ -75,22 +68,8 @@ class DeleteOperationHandler @AssistedInject constructor(
                 }
 
                 processedCount++
-                metrics = metrics.withRemovedFile(size)
-
-                emit(
-                    OperationState.OnGoing(
-                        operationId = operation.operationId,
-                        startTime = startTime,
-                        progress = Progress.Data(count = Progress.Count.Counter(processedCount, totalFiles)),
-                        currentItem = path,
-                        processedCount = processedCount,
-                        totalCount = totalFiles,
-                        bytesProcessed = metrics.bytesProcessed,
-                    )
-                )
             } catch (e: Exception) {
                 if (operation.options.skipOnError) {
-                    metrics = metrics.withFailedFile()
                     log(tag, WARN) { "Failed to delete $path: ${e.asLog()}" }
                     continue
                 } else {
@@ -98,16 +77,13 @@ class DeleteOperationHandler @AssistedInject constructor(
                 }
             }
         }
-
-            return metrics
-        }
     }
 
     @AssistedFactory
     interface Factory {
         fun create(
             workspaceId: Workspace.Id,
-            operationNotifier: OperationNotifier,
+            issueHandler: IssueHandler,
         ): DeleteOperationHandler
     }
 }

@@ -1,7 +1,7 @@
 package eu.darken.butler.explorer.core.engine
 
 import eu.darken.butler.common.files.APathLookup
-import eu.darken.butler.common.files.FileType
+import eu.darken.butler.common.files.metadata.FileType
 import java.util.Locale
 
 class FileTypeClassifier {

@@ -11,15 +11,14 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.extensions.deleteWalk
 import eu.darken.butler.explorer.core.engine.CopyOptions
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
+import eu.darken.butler.explorer.core.operations.IssueHandler
 import eu.darken.butler.explorer.core.operations.OperationContext
-import eu.darken.butler.explorer.core.operations.OperationMetrics
 import eu.darken.butler.explorer.core.operations.OperationNotifier
-import eu.darken.butler.explorer.core.operations.OperationState
 import eu.darken.butler.workspace.core.Workspace
 
 class MoveOperationHandler @AssistedInject constructor(
     @Assisted workspaceId: Workspace.Id,
-    @Assisted operationNotifier: OperationNotifier,
+    @Assisted issueHandler: IssueHandler,
     @Assisted private val copyHandler: CopyOperationHandler,
     gatewaySwitch: GatewaySwitch,
     dispatcherProvider: DispatcherProvider,
@@ -27,7 +26,6 @@ class MoveOperationHandler @AssistedInject constructor(
     workspaceId,
     gatewaySwitch,
     dispatcherProvider,
-    operationNotifier
 ) {
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "OperationEngine", "Move")
@@ -35,50 +33,48 @@ class MoveOperationHandler @AssistedInject constructor(
     override suspend fun executeInContext(
         context: OperationContext,
         operation: ExplorerOperation.FileOp.Move,
-    ): OperationMetrics {
-        with(context) {
+    ): Unit = with(context) {
         log(tag) { "execute(): $operation" }
 
         // Emit hint for move operation
-        val sourcePath = when (val first = operation.sources.firstOrNull()) {
+        when (val first = operation.sources.firstOrNull()) {
             is LocalPath -> first.parent() ?: operation.destination
             else -> operation.destination
         }
-        val hint = OperationNotifier.Hint.FilesMoved(
-            targetPath = operation.destination,
-            sourcePath = sourcePath,
-            files = operation.sources.toList(),
-            operationId = operation.operationId,
-        )
-        operationNotifier.publish(hint.asAdditionHint())
-        operationNotifier.publish(hint.asRemovalHint())
 
-            // Move is copy + delete
-            val metrics = copyHandler.executeInContext(
-                context,
-                ExplorerOperation.FileOp.Copy(
-                    sources = operation.sources,
-                    destination = operation.destination,
-                    options = CopyOptions(
-                        preserveAttributes = operation.options.preserveAttributes,
-                    ),
-                )
+        // Move is copy + delete
+        copyHandler.executeInContext(
+            context,
+            ExplorerOperation.FileOp.Copy(
+                sources = operation.sources,
+                destination = operation.destination,
+                options = CopyOptions(
+                    preserveAttributes = operation.options.preserveAttributes,
+                ),
             )
+        )
+        OperationNotifier.Hint.FilesAdded(
+            operationId = operation.operationId,
+            affectedFolder = operation.destination,
+            files = operation.sources.toList(),
+        ).run { emit(this) }
 
-            // Delete sources after successful copy
-            for (source in operation.sources) {
-                source.deleteWalk(gatewaySwitch)
-            }
-
-            return metrics
+        // Delete sources after successful copy
+        for (source in operation.sources) {
+            source.deleteWalk(gatewaySwitch)
         }
+        OperationNotifier.Hint.FilesRemoved(
+            operationId = operation.operationId,
+            affectedFolder = operation.destination,
+            files = operation.sources.toList(),
+        ).run { emit(this) }
     }
 
     @AssistedFactory
     interface Factory {
         fun create(
             workspaceId: Workspace.Id,
-            operationNotifier: OperationNotifier,
+            issueHandler: IssueHandler,
             copyHandler: CopyOperationHandler,
         ): MoveOperationHandler
     }

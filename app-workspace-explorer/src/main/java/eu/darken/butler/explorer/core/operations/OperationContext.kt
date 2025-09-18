@@ -11,12 +11,16 @@ import kotlin.time.Instant
  */
 data class OperationContext(
     val operationId: OperationId,
-    val startTime: Instant = Clock.System.now(),
+    val startedAt: Instant = Clock.System.now(),
     private val emitState: suspend (OperationState) -> Unit,
+    private val emitHint: suspend (OperationNotifier.Hint) -> Unit,
 ) {
-
     suspend fun emit(state: OperationState) {
         emitState(state)
+    }
+
+    suspend fun emit(hint: OperationNotifier.Hint) {
+        emitHint(hint)
     }
 
     /**
@@ -25,5 +29,5 @@ data class OperationContext(
      */
     suspend fun <T : ExplorerOperation> BaseOperationHandler<T>.execute(
         operation: T
-    ): OperationMetrics = executeInContext(this@OperationContext, operation)
+    ) = executeInContext(this@OperationContext, operation)
 }

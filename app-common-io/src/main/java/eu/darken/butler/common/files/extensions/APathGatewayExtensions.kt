@@ -1,16 +1,15 @@
 package eu.darken.butler.common.files.extensions
 
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.APathLookupExtended
-import eu.darken.butler.common.files.FileType
-import eu.darken.butler.common.files.Ownership
-import eu.darken.butler.common.files.PathException
-import eu.darken.butler.common.files.Permissions
+import eu.darken.butler.common.files.errors.PathException
+import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.metadata.Ownership
+import eu.darken.butler.common.files.metadata.Permissions
 import kotlinx.coroutines.flow.Flow
 import okio.FileHandle
 import okio.IOException

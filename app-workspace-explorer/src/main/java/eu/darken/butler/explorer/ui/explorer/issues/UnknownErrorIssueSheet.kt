@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer.conflicts
+package eu.darken.butler.explorer.ui.explorer.issues
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
@@ -44,18 +44,18 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
-import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.operations.Issue
 import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.core.operations.conflicts.Conflict
 import java.io.IOException
 import kotlin.time.Instant
 
 @Composable
-fun UnknownErrorConflictSheet(
-    conflict: Conflict.UnknownError,
-    onResolution: (Conflict.UnknownError.Resolution) -> Unit,
+fun UnknownErrorIssueSheet(
+    issue: Issue.UnknownError,
+    onResolution: (Issue.UnknownError.Resolution) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var applyToAll by remember { mutableStateOf(false) }
@@ -80,7 +80,7 @@ fun UnknownErrorConflictSheet(
                 tint = MaterialTheme.colorScheme.error,
             )
             Text(
-                text = stringResource(R.string.explorer_conflict_unknown_error_title),
+                text = stringResource(R.string.explorer_issue_unknown_error_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
             )
@@ -90,28 +90,28 @@ fun UnknownErrorConflictSheet(
 
         Text(
             modifier  = modifier.padding(bottom = 8.dp),
-            text = conflict.errorMessage.asComposable(),
+            text = issue.errorMessage.asComposable(),
             style = MaterialTheme.typography.bodyMedium,
         )
 
         // Show source file if available
-        conflict.source?.let { source ->
+        issue.source?.let { source ->
             Text(
-                text = stringResource(R.string.explorer_conflict_common_source_file),
+                text = stringResource(R.string.explorer_issue_common_source_file),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            PathConflictFileComparisonCard(lookup = source)
+            PathIssueFileComparisonCard(lookup = source)
         }
 
         // Show destination file if available
-        conflict.destination?.let { destination ->
+        issue.destination?.let { destination ->
             Text(
-                text = stringResource(R.string.explorer_conflict_common_destination_file),
+                text = stringResource(R.string.explorer_issue_common_destination_file),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            PathConflictFileComparisonCard(lookup = destination)
+            PathIssueFileComparisonCard(lookup = destination)
         }
 
         // Technical details section
@@ -135,9 +135,9 @@ fun UnknownErrorConflictSheet(
                         modifier = Modifier.padding(16.dp),
                         text = stringResource(
                             if (showTechnicalDetails) {
-                                R.string.explorer_conflict_unknown_error_hide_details
+                                R.string.explorer_issue_unknown_error_hide_details
                             } else {
-                                R.string.explorer_conflict_unknown_error_show_details
+                                R.string.explorer_issue_unknown_error_show_details
                             }
                         ),
                         style = MaterialTheme.typography.bodyMedium,
@@ -166,7 +166,7 @@ fun UnknownErrorConflictSheet(
                                 .heightIn(max = 300.dp)
                         ) {
                             Text(
-                                text = conflict.exception.stackTraceToString(),
+                                text = issue.exception.stackTraceToString(),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontFamily = FontFamily.Monospace,
                                 modifier = Modifier
@@ -181,7 +181,7 @@ fun UnknownErrorConflictSheet(
         }
 
         // Apply to all checkbox (if skipping is allowed)
-        if (conflict.canSkip) {
+        if (issue.canSkip) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -191,7 +191,7 @@ fun UnknownErrorConflictSheet(
                     onCheckedChange = { applyToAll = it },
                 )
                 Text(
-                    text = stringResource(R.string.explorer_conflict_apply_all),
+                    text = stringResource(R.string.explorer_issue_apply_all),
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
@@ -206,10 +206,10 @@ fun UnknownErrorConflictSheet(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                if (conflict.canRetry) {
+                if (issue.canRetry) {
                     Button(
                         onClick = {
-                            onResolution(Conflict.UnknownError.Resolution.Retry(applyToAll))
+                            onResolution(Issue.UnknownError.Resolution.Retry(applyToAll))
                         },
                         modifier = Modifier.weight(1f),
                     ) {
@@ -227,10 +227,10 @@ fun UnknownErrorConflictSheet(
                     }
                 }
 
-                if (conflict.canSkip) {
+                if (issue.canSkip) {
                     OutlinedButton(
                         onClick = {
-                            onResolution(Conflict.UnknownError.Resolution.Skip(applyToAll))
+                            onResolution(Issue.UnknownError.Resolution.Skip(applyToAll))
                         },
                         modifier = Modifier.weight(1f),
                     ) {
@@ -243,7 +243,7 @@ fun UnknownErrorConflictSheet(
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp),
                             )
-                            Text(stringResource(R.string.explorer_conflict_common_skip))
+                            Text(stringResource(R.string.explorer_issue_common_skip))
                         }
                     }
                 }
@@ -251,7 +251,7 @@ fun UnknownErrorConflictSheet(
 
             TextButton(
                 onClick = {
-                    onResolution(Conflict.UnknownError.Resolution.Cancel)
+                    onResolution(Issue.UnknownError.Resolution.Cancel)
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {
@@ -264,7 +264,7 @@ fun UnknownErrorConflictSheet(
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
                     )
-                    Text(stringResource(R.string.explorer_conflict_common_cancel))
+                    Text(stringResource(R.string.explorer_issue_common_cancel))
                 }
             }
         }
@@ -273,10 +273,10 @@ fun UnknownErrorConflictSheet(
 
 @Preview2
 @Composable
-private fun UnknownErrorConflictSheetIOErrorPreview() {
+private fun UnknownErrorIssueSheetIOErrorPreview() {
     PreviewWrapper {
-        UnknownErrorConflictSheet(
-            conflict = Conflict.UnknownError(
+        UnknownErrorIssueSheet(
+            issue = Issue.UnknownError(
                 source = LocalPathLookup(
                     lookedUp = LocalPath.build("/storage/emulated/0/Documents/corrupted_file.pdf"),
                     fileType = FileType.FILE,
@@ -303,10 +303,10 @@ private fun UnknownErrorConflictSheetIOErrorPreview() {
 
 @Preview2
 @Composable
-private fun UnknownErrorConflictSheetSecurityErrorPreview() {
+private fun UnknownErrorIssueSheetSecurityErrorPreview() {
     PreviewWrapper {
-        UnknownErrorConflictSheet(
-            conflict = Conflict.UnknownError(
+        UnknownErrorIssueSheet(
+            issue = Issue.UnknownError(
                 source = LocalPathLookup(
                     lookedUp = LocalPath.build("/data/data/com.example.app/files/sensitive.dat"),
                     fileType = FileType.FILE,
@@ -326,10 +326,10 @@ private fun UnknownErrorConflictSheetSecurityErrorPreview() {
 
 @Preview2
 @Composable
-private fun UnknownErrorConflictSheetUnknownErrorPreview() {
+private fun UnknownErrorIssueSheetUnknownErrorPreview() {
     PreviewWrapper {
-        UnknownErrorConflictSheet(
-            conflict = Conflict.UnknownError(
+        UnknownErrorIssueSheet(
+            issue = Issue.UnknownError(
                 errorMessage = "java.lang.RuntimeException: Unexpected vendor-specific error occurred".toCaString(),
                 exception = RuntimeException("Unexpected vendor-specific error occurred"),
                 canSkip = true,

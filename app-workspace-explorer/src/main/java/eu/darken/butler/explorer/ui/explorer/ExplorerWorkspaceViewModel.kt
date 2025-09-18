@@ -9,6 +9,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.operations.Issue
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
@@ -22,7 +23,6 @@ import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.explorer.core.engine.locationId
 import eu.darken.butler.explorer.core.operations.OperationId
-import eu.darken.butler.explorer.core.operations.conflicts.Conflict
 import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemResult
@@ -58,7 +58,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
     private val viewModeFlow = MutableStateFlow(ViewMode.LIST)
     private val dialogStateFlow = MutableStateFlow<ExplorerDialogState>(ExplorerDialogState.None)
-    private val conflictStateFlow = MutableStateFlow<Conflict?>(null)
+    private val conflictStateFlow = MutableStateFlow<Issue?>(null)
     val conflictState = conflictStateFlow
     private var currentConflictOperationId: OperationId? = null
 
@@ -87,7 +87,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 if (firstConflictEntry != null) {
                     val (operationId, awaitingInputState) = firstConflictEntry
                     currentConflictOperationId = operationId
-                    conflictStateFlow.value = awaitingInputState.conflict
+                    conflictStateFlow.value = awaitingInputState.issue
                 } else {
                     currentConflictOperationId = null
                     conflictStateFlow.value = null
@@ -408,7 +408,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         clipboardRepo.clear()
     }
 
-    fun resolveConflict(resolution: Conflict.Resolution?) = launch {
+    fun resolveConflict(resolution: Issue.Resolution?) = launch {
         log(tag) { "resolveConflict(): $resolution" }
 
         val operationId = currentConflictOperationId

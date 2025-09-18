@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer.conflicts
+package eu.darken.butler.explorer.ui.explorer.issues
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
@@ -15,11 +15,11 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.R
 
 @Composable
-fun PathConflictRenameDialog(
+fun PathIssueRenameDialog(
     currentName: String,
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
-    dialogTitle: String = stringResource(R.string.explorer_conflict_common_rename),
+    dialogTitle: String = stringResource(R.string.explorer_issue_common_rename),
 ) {
     var newName by remember { mutableStateOf(currentName) }
 
@@ -56,9 +56,9 @@ fun PathConflictRenameDialog(
 
 @Preview2
 @Composable
-private fun PathConflictRenameDialogPreview() {
+private fun PathIssueRenameDialogPreview() {
     PreviewWrapper {
-        PathConflictRenameDialog(
+        PathIssueRenameDialog(
             currentName = "document.pdf",
             onConfirm = {},
             onDismiss = {},

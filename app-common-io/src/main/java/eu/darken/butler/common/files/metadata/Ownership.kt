@@ -1,4 +1,4 @@
-package eu.darken.butler.common.files
+package eu.darken.butler.common.files.metadata
 
 import android.os.Parcel
 import android.os.Parcelable
