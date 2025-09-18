@@ -32,7 +32,7 @@ class DeleteOperationHandler @AssistedInject constructor(
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "Operation", "Delete")
 
-    override suspend fun executeInContext(
+    override suspend fun execute(
         context: OperationContext,
         operation: ExplorerOperation.FileOp.Delete,
     ): Unit = with(context) {

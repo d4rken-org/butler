@@ -30,7 +30,7 @@ class MoveOperationHandler @AssistedInject constructor(
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "OperationEngine", "Move")
 
-    override suspend fun executeInContext(
+    override suspend fun execute(
         context: OperationContext,
         operation: ExplorerOperation.FileOp.Move,
     ): Unit = with(context) {
@@ -43,7 +43,7 @@ class MoveOperationHandler @AssistedInject constructor(
         }
 
         // Move is copy + delete
-        copyHandler.executeInContext(
+        copyHandler.execute(
             context,
             ExplorerOperation.FileOp.Copy(
                 sources = operation.sources,

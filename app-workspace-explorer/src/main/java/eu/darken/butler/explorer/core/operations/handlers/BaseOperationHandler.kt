@@ -14,7 +14,7 @@ abstract class BaseOperationHandler<T : ExplorerOperation>(
     protected val gatewaySwitch: GatewaySwitch,
     protected val dispatcherProvider: DispatcherProvider,
 ) {
-    abstract suspend fun executeInContext(
+    abstract suspend fun execute(
         context: OperationContext,
         operation: T,
     )

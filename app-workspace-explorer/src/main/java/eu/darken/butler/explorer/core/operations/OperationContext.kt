@@ -29,5 +29,5 @@ data class OperationContext(
      */
     suspend fun <T : ExplorerOperation> BaseOperationHandler<T>.execute(
         operation: T
-    ) = executeInContext(this@OperationContext, operation)
+    ) = execute(this@OperationContext, operation)
 }

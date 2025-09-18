@@ -26,7 +26,7 @@ class RenameOperationHandler @AssistedInject constructor(
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "Operation", "Rename")
 
-    override suspend fun executeInContext(
+    override suspend fun execute(
         context: OperationContext,
         operation: ExplorerOperation.FileOp.Rename,
     ): Unit = with(context) {

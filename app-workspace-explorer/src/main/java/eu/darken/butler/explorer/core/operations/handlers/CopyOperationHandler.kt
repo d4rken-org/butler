@@ -44,7 +44,7 @@ class CopyOperationHandler @AssistedInject constructor(
 ) {
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "Operation", "Copy")
 
-    override suspend fun executeInContext(
+    override suspend fun execute(
         context: OperationContext,
         operation: ExplorerOperation.FileOp.Copy,
     ): Unit = with(context) {
