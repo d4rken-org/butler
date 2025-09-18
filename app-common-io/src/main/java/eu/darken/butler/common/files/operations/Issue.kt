@@ -20,12 +20,12 @@ sealed interface Issue {
         override val issueId: IssueId = IssueId(),
         val source: APathLookup<APath>? = null,
         val destination: APathLookup<APath>,
-        val canSkip: Boolean = true,
-        val canOverwrite: Boolean = true,
-        val canRenameSource: Boolean = true,
-        val canRenameDestination: Boolean = true,
-        val suggestedName: String? = null,
+        val canSkip: Boolean = false,
+        val canOverwrite: Boolean = false,
         val canMerge: Boolean = false,
+        val canRenameSource: Boolean = false,
+        val canRenameDestination: Boolean = false,
+        val suggestedName: String? = null,
     ) : Issue {
         sealed interface Resolution : Issue.Resolution {
             data class Skip(val applyToAll: Boolean = false) : Resolution
@@ -42,7 +42,7 @@ sealed interface Issue {
         override val issueId: IssueId = IssueId(),
         val source: APathLookup<APath>,
         val destination: APathLookup<APath>,
-        val canSkip: Boolean = true,
+        val canSkip: Boolean = false,
     ) : Issue {
         sealed interface Resolution : Issue.Resolution {
             data class Skip(val applyToAll: Boolean = false) : Resolution
@@ -54,7 +54,7 @@ sealed interface Issue {
         override val issueId: IssueId = IssueId(),
         val source: APathLookup<APath>,
         val destination: APathLookup<APath>,
-        val canSkip: Boolean = true,
+        val canSkip: Boolean = false,
     ) : Issue {
         sealed interface Resolution : Issue.Resolution {
             data class Skip(val applyToAll: Boolean = false) : Resolution
@@ -68,7 +68,7 @@ sealed interface Issue {
         val destination: APathLookup<APath>? = null,
         val exception: Throwable,
         val errorMessage: CaString = caString { exception.localized(it).description.get(it) },
-        val canSkip: Boolean = true,
+        val canSkip: Boolean = false,
         val canRetry: Boolean = false,
     ) : Issue {
         sealed interface Resolution : Issue.Resolution {
