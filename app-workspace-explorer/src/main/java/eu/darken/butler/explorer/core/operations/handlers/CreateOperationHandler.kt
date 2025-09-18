@@ -62,9 +62,6 @@ class CreateOperationHandler @AssistedInject constructor(
             log(tag, INFO) { "resolveNestedConflicts(): Resolution: $nestedResolution" }
 
             when (nestedResolution) {
-                is Issue.PathAlreadyExists.Resolution.Skip -> {
-                    throw CancellationException("Nested conflict skipped")
-                }
                 is Issue.PathAlreadyExists.Resolution.RenameSource -> {
                     currentName = nestedResolution.newName
                 }
@@ -75,12 +72,10 @@ class CreateOperationHandler @AssistedInject constructor(
                     currentPath.deleteWalk(gatewaySwitch)
                     break // Exit conflict loop, path is now clear
                 }
-                is Issue.PathAlreadyExists.Resolution.Merge -> {
-                    throw IllegalArgumentException("Cannot merge when renaming existing file")
-                }
-                is Issue.PathAlreadyExists.Resolution.Cancel -> {
-                    throw CancellationException("Operation cancelled")
-                }
+                is Issue.PathAlreadyExists.Resolution.Skip -> throw IllegalStateException("canSkip = false")
+                is Issue.PathAlreadyExists.Resolution.Merge -> throw IllegalArgumentException("Cannot merge when renaming existing file")
+                is Issue.PathAlreadyExists.Resolution.Cancel -> throw CancellationException("Operation cancelled")
+
             }
         }
 
@@ -119,8 +114,6 @@ class CreateOperationHandler @AssistedInject constructor(
             log(tag, INFO) { "execute(): Issue: $issue - Resolution: $resolution" }
 
             when (resolution) {
-                is Issue.PathAlreadyExists.Resolution.Skip -> return
-
                 is Issue.PathAlreadyExists.Resolution.RenameSource -> {
                     currentOperation = currentOperation.copy(name = resolution.newName)
                     // Continue loop to check if new name also conflicts
@@ -146,7 +139,6 @@ class CreateOperationHandler @AssistedInject constructor(
                                 source = destinationPath.lookup(gatewaySwitch),
                                 destination = resolvedPath.lookup(gatewaySwitch),
                                 canRetry = true,
-                                canSkip = false,
                             )
                             when (issueHandler.handleIssue(context, moveIssue) as Issue.UnknownError.Resolution) {
                                 is Issue.UnknownError.Resolution.Retry -> continue
@@ -182,7 +174,7 @@ class CreateOperationHandler @AssistedInject constructor(
                 }
 
                 is Issue.PathAlreadyExists.Resolution.Merge -> throw IllegalArgumentException("Can't merge on create")
-
+                is Issue.PathAlreadyExists.Resolution.Skip -> throw IllegalStateException("canSkip = false")
                 is Issue.PathAlreadyExists.Resolution.Cancel -> throw CancellationException("Operation cancelled")
             }
         }
@@ -207,12 +199,11 @@ class CreateOperationHandler @AssistedInject constructor(
                     errorMessage = (e.message ?: e.toString()).toCaString(),
                     destination = destinationPath.lookup(gatewaySwitch),
                     canRetry = true,
-                    canSkip = true,
                 )
                 when (issueHandler.handleIssue(context, createIssue) as Issue.UnknownError.Resolution) {
                     is Issue.UnknownError.Resolution.Retry -> continue
                     is Issue.UnknownError.Resolution.Cancel -> throw CancellationException("Operation cancelled")
-                    is Issue.UnknownError.Resolution.Skip -> return
+                    is Issue.UnknownError.Resolution.Skip -> throw IllegalStateException("canSkip = false")
                 }
             }
         }
