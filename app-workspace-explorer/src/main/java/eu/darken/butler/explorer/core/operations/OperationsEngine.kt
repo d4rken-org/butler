@@ -14,7 +14,6 @@ import eu.darken.butler.explorer.core.operations.handlers.CopyOperationHandler
 import eu.darken.butler.explorer.core.operations.handlers.CreateOperationHandler
 import eu.darken.butler.explorer.core.operations.handlers.DeleteOperationHandler
 import eu.darken.butler.explorer.core.operations.handlers.MoveOperationHandler
-import eu.darken.butler.explorer.core.operations.handlers.RenameOperationHandler
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -38,7 +37,6 @@ class OperationsEngine @AssistedInject constructor(
     private val moveHandlerFactory: MoveOperationHandler.Factory,
     private val deleteHandlerFactory: DeleteOperationHandler.Factory,
     private val createHandlerFactory: CreateOperationHandler.Factory,
-    private val renameHandlerFactory: RenameOperationHandler.Factory,
 ) {
 
     private val issueHandler = issueHandlerFactory.create(workspaceId)
@@ -50,7 +48,6 @@ class OperationsEngine @AssistedInject constructor(
     private val moveHandler = moveHandlerFactory.create(workspaceId, issueHandler, copyHandler)
     private val deleteHandler = deleteHandlerFactory.create(workspaceId, issueHandler)
     private val createHandler = createHandlerFactory.create(workspaceId, issueHandler)
-    private val renameHandler = renameHandlerFactory.create(workspaceId, issueHandler)
 
     val hints = operationNotifier.hints
 
@@ -91,9 +88,6 @@ class OperationsEngine @AssistedInject constructor(
                     }
                     is ExplorerOperation.FileOp.Create -> {
                         createHandler.execute(operation)
-                    }
-                    is ExplorerOperation.FileOp.Rename -> {
-                        renameHandler.execute(operation)
                     }
                 }
             }

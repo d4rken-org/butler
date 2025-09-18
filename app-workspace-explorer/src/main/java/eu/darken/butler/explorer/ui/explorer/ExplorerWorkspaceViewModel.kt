@@ -364,10 +364,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "onRename($result)" }
         dialogStateFlow.value = ExplorerDialogState.None
 
+        val currentLocation = state.first().currentLocation as ExplorerLocation.Directory
         getWorkspace().execute(
-            ExplorerOperation.FileOp.Rename(
-                path = result.item,
-                newName = result.newName
+            ExplorerOperation.FileOp.Move(
+                sources = setOf(result.item),
+                destination = currentLocation.path.child(result.newName),
             )
         )
     }

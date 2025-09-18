@@ -40,12 +40,6 @@ sealed interface ExplorerOperation {
             val destination: APath,
             val options: MoveOptions = MoveOptions(),
         ) : FileOp
-
-        data class Rename(
-            override val operationId: OperationId = Uuid.random(),
-            val path: APath,
-            val newName: String,
-        ) : FileOp
     }
 }
 
