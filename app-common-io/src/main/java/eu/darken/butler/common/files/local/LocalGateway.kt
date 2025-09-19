@@ -28,6 +28,7 @@ import eu.darken.butler.common.files.local.walkers.IndirectLocalWalker
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.operations.CopyOperation
+import eu.darken.butler.common.files.operations.DeleteOperation
 import eu.darken.butler.common.files.operations.MoveOperation
 import eu.darken.butler.common.funnel.IPCFunnel
 import eu.darken.butler.common.hasApiLevel
@@ -42,7 +43,6 @@ import eu.darken.butler.common.sharedresource.keepResourcesAlive
 import eu.darken.butler.common.storage.StorageEnvironment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
@@ -724,109 +724,113 @@ class LocalGateway @Inject constructor(
         }
     }
 
-    override suspend fun delete(path: LocalPath, recursive: Boolean) = delete(
-        path,
-        recursive = recursive,
+    override suspend fun delete(
+        targets: Set<LocalPath>,
+        options: DeleteOperation.Options<LocalPath>
+    ): Flow<DeleteOperation.Result<LocalPath>> = delete(
+        targets = targets,
+        options = options,
         mode = Mode.AUTO
     )
 
     suspend fun delete(
-        path: LocalPath,
-        recursive: Boolean = false,
+        targets: Set<LocalPath>,
+        options: DeleteOperation.Options<LocalPath>,
         mode: Mode = Mode.AUTO
-    ): Unit = runIO {
-        try {
-            val javaFile = path.asFile()
-
-            // On devices without root or adb:
-            // Determining whether if a file can't be deleted or just does not exist prevents WriteException errors.
-            val normalCanWrite = when {
-                mode == Mode.ROOT -> false
-                mode == Mode.ADB -> false
-                javaFile.canWrite() -> true
-                // We couldn't write but it exists, so we can't write normally
-                javaFile.exists() -> false
-                // Does it not exist or do we lack permission? Also see `LocalGateway.exists(...)`
-                else -> when {
-                    // On Android 12+ Android/data isn't accessible anymore via normal java file access.
-                    hasApiLevel(32) && storageEnvironment.publicDataDirs.any { it.isAncestorOf(path) } -> false
-                    // If the file path is on public storage, and it wasn't Android/data then, assume true
-                    else -> storageEnvironment.externalDirs
-                        .firstOrNull { it.isAncestorOf(path) }
-                        ?.asFile()
-                        ?.canWrite() ?: false
-                }
-            }
-
-            when {
-                mode == Mode.NORMAL || mode == Mode.AUTO && normalCanWrite -> {
-                    log(TAG, VERBOSE) { "delete($mode->NORMAL): $path" }
-
-                    var success = javaFile.run {
-                        when {
-                            Bugs.isDryRun -> {
-                                log(TAG, INFO) { "DRYRUN: Not deleting $javaFile" }
-                                javaFile.canWrite()
-                            }
-
-                            recursive -> deleteRecursively()
-                            else -> delete()
-                        }
-                    }
-
-                    if (!success) {
-                        success = !javaFile.exists()
-                        if (success) {
-                            log(TAG, WARN) { "Tried to delete file, but it's already gone: $path" }
-                        } else if (!normalCanWrite) {
-                            // This was not AUTO, but Mode.NORMAL, we don't try other modes after this
-                            throw WriteException(path = path)
-                        }
-                    }
-
-                    if (!success) {
-                        if (mode == Mode.AUTO && hasRoot()) {
-                            delete(path, recursive = recursive, mode = Mode.ROOT)
-                            return@runIO
-                        } else {
-                            throw IOException("delete() call returned false")
-                        }
-                    }
-
-                    if (!success) {
-                        if (mode == Mode.AUTO && hasAdb()) {
-                            delete(path, recursive = recursive, mode = Mode.ADB)
-                            return@runIO
-                        } else {
-                            throw IOException("delete() call returned false")
-                        }
-                    }
-                }
-
-                hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
-                    log(TAG, VERBOSE) { "delete($mode->ROOT): $path" }
-                    rootOps {
-                        if (Bugs.isDryRun) log(TAG, INFO) { "DRYRUN: Not deleting (root) $javaFile" }
-                        val success = it.delete(path, recursive = true, dryRun = Bugs.isDryRun)
-                        if (!success) throw IOException("Root delete() call returned false")
-                    }
-                }
-
-                hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
-                    log(TAG, VERBOSE) { "delete($mode->ADB): $path" }
-                    adbOps {
-                        if (Bugs.isDryRun) log(TAG, INFO) { "DRYRUN: Not deleting (adb) $javaFile" }
-                        val success = it.delete(path, recursive = true, dryRun = Bugs.isDryRun)
-                        if (!success) throw IOException("ADB delete() call returned false")
-                    }
-                }
-
-                else -> throw IOException("No matching mode available.")
-            }
-        } catch (e: IOException) {
-            log(TAG, WARN) { "delete(path=$path, mode=$mode) failed." }
-            throw WriteException(path = path, cause = e)
-        }
+    ): Flow<DeleteOperation.Result<LocalPath>> {
+        TODO("Not yet implemented")
+//                try {
+//            val javaFile = path.asFile()
+//
+//            // On devices without root or adb:
+//            // Determining whether if a file can't be deleted or just does not exist prevents WriteException errors.
+//            val normalCanWrite = when {
+//                mode == Mode.ROOT -> false
+//                mode == Mode.ADB -> false
+//                javaFile.canWrite() -> true
+//                // We couldn't write but it exists, so we can't write normally
+//                javaFile.exists() -> false
+//                // Does it not exist or do we lack permission? Also see `LocalGateway.exists(...)`
+//                else -> when {
+//                    // On Android 12+ Android/data isn't accessible anymore via normal java file access.
+//                    hasApiLevel(32) && storageEnvironment.publicDataDirs.any { it.isAncestorOf(path) } -> false
+//                    // If the file path is on public storage, and it wasn't Android/data then, assume true
+//                    else -> storageEnvironment.externalDirs
+//                        .firstOrNull { it.isAncestorOf(path) }
+//                        ?.asFile()
+//                        ?.canWrite() ?: false
+//                }
+//            }
+//
+//            when {
+//                mode == Mode.NORMAL || mode == Mode.AUTO && normalCanWrite -> {
+//                    log(TAG, VERBOSE) { "delete($mode->NORMAL): $path" }
+//
+//                    var success = javaFile.run {
+//                        when {
+//                            Bugs.isDryRun -> {
+//                                log(TAG, INFO) { "DRYRUN: Not deleting $javaFile" }
+//                                javaFile.canWrite()
+//                            }
+//
+//                            recursive -> deleteRecursively()
+//                            else -> delete()
+//                        }
+//                    }
+//
+//                    if (!success) {
+//                        success = !javaFile.exists()
+//                        if (success) {
+//                            log(TAG, WARN) { "Tried to delete file, but it's already gone: $path" }
+//                        } else if (!normalCanWrite) {
+//                            // This was not AUTO, but Mode.NORMAL, we don't try other modes after this
+//                            throw WriteException(path = path)
+//                        }
+//                    }
+//
+//                    if (!success) {
+//                        if (mode == Mode.AUTO && hasRoot()) {
+//                            delete(path, recursive = recursive, mode = Mode.ROOT)
+//                            return@runIO
+//                        } else {
+//                            throw IOException("delete() call returned false")
+//                        }
+//                    }
+//
+//                    if (!success) {
+//                        if (mode == Mode.AUTO && hasAdb()) {
+//                            delete(path, recursive = recursive, mode = Mode.ADB)
+//                            return@runIO
+//                        } else {
+//                            throw IOException("delete() call returned false")
+//                        }
+//                    }
+//                }
+//
+//                hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
+//                    log(TAG, VERBOSE) { "delete($mode->ROOT): $path" }
+//                    rootOps {
+//                        if (Bugs.isDryRun) log(TAG, INFO) { "DRYRUN: Not deleting (root) $javaFile" }
+//                        val success = it.delete(path, recursive = true, dryRun = Bugs.isDryRun)
+//                        if (!success) throw IOException("Root delete() call returned false")
+//                    }
+//                }
+//
+//                hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
+//                    log(TAG, VERBOSE) { "delete($mode->ADB): $path" }
+//                    adbOps {
+//                        if (Bugs.isDryRun) log(TAG, INFO) { "DRYRUN: Not deleting (adb) $javaFile" }
+//                        val success = it.delete(path, recursive = true, dryRun = Bugs.isDryRun)
+//                        if (!success) throw IOException("ADB delete() call returned false")
+//                    }
+//                }
+//
+//                else -> throw IOException("No matching mode available.")
+//            }
+//        } catch (e: IOException) {
+//            log(TAG, WARN) { "delete(path=$path, mode=$mode) failed." }
+//            throw WriteException(path = path, cause = e)
+//        }
     }
 
     override suspend fun createSymlink(linkPath: LocalPath, targetPath: LocalPath): Boolean =
@@ -980,8 +984,8 @@ class LocalGateway @Inject constructor(
     override suspend fun copy(
         source: LocalPath,
         destination: LocalPath,
-        options: CopyOperation.Options
-    ): Flow<CopyOperation.Result> = flow {
+        options: CopyOperation.Options<LocalPath>
+    ): Flow<CopyOperation.Result<LocalPath>> {
         // TODO: Implement efficient native copy using java.nio
         // - Use Files.walk() for directory traversal
         // - Use Files.copy() with REPLACE_EXISTING based on options
@@ -992,9 +996,9 @@ class LocalGateway @Inject constructor(
 
     override suspend fun move(
         source: LocalPath,
-        target: LocalPath,
-        options: MoveOperation.Options
-    ): Flow<MoveOperation.Result> = flow {
+        destination: LocalPath,
+        options: MoveOperation.Options<LocalPath>
+    ): Flow<MoveOperation.Result<LocalPath>> {
         // TODO: Implement atomic move using Files.move()
         // - Try ATOMIC_MOVE first for same filesystem
         // - Fallback to copy+delete for cross-filesystem

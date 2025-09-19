@@ -23,7 +23,6 @@ sealed interface ExplorerOperation {
         data class Delete(
             override val operationId: OperationId = Uuid.random(),
             val paths: Set<APath>,
-            val recursive: Boolean = true,
             val options: DeleteOptions = DeleteOptions(),
         ) : FileOp
 

@@ -10,9 +10,10 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.common.files.extensions.deleteWalk
+import eu.darken.butler.common.files.extensions.delete
 import eu.darken.butler.common.files.extensions.exists
 import eu.darken.butler.common.files.extensions.lookup
+import eu.darken.butler.common.files.operations.DeleteOperation
 import eu.darken.butler.common.files.operations.Issue
 import eu.darken.butler.common.files.operations.MoveOperation
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
@@ -69,7 +70,15 @@ class CreateOperationHandler @AssistedInject constructor(
                     throw IllegalArgumentException("Cannot rename destination when renaming existing file")
                 }
                 is Issue.PathAlreadyExists.Resolution.Overwrite -> {
-                    currentPath.deleteWalk(gatewaySwitch)
+                    currentPath.delete(
+                        gateway = gatewaySwitch,
+                        options = DeleteOperation.Options(
+                            recursive = true,
+                            onIssue = { issue ->
+                                issueHandler.handleIssue(context, issue)
+                            }
+                        )
+                    ).last()
                     break // Exit conflict loop, path is now clear
                 }
                 is Issue.PathAlreadyExists.Resolution.Skip -> throw IllegalStateException("canSkip = false")
@@ -153,7 +162,15 @@ class CreateOperationHandler @AssistedInject constructor(
                 is Issue.PathAlreadyExists.Resolution.Overwrite -> {
                     while (currentCoroutineContext().isActive) {
                         try {
-                            destinationPath.deleteWalk(gatewaySwitch)
+                            destinationPath.delete(
+                                gateway = gatewaySwitch,
+                                options = DeleteOperation.Options(
+                                    recursive = true,
+                                    onIssue = { issue ->
+                                        issueHandler.handleIssue(context, issue)
+                                    }
+                                )
+                            ).last()
                             break // Delete succeeded, exit loop
                         } catch (e: Exception) {
                             val deleteIssue = Issue.UnknownError(

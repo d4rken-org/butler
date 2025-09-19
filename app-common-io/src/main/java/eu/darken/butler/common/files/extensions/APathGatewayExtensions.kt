@@ -6,11 +6,12 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.APathLookupExtended
-import eu.darken.butler.common.files.errors.PathException
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
+import eu.darken.butler.common.files.operations.DeleteOperation
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.onCompletion
 import okio.FileHandle
 import okio.IOException
 import kotlin.time.Instant
@@ -83,44 +84,18 @@ suspend fun <T : APath> T.createDirIfNecessary(gateway: APathGateway<T, out APat
 
 suspend fun <T : APath> T.delete(
     gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
-    recursive: Boolean = false,
-) {
-    gateway.delete(
-        this,
-        recursive = recursive
-    )
-    log(VERBOSE) { "APath.delete(recursive=$recursive): Deleted $this" }
-}
+    options: DeleteOperation.Options<T>,
+) = setOf(this).delete(gateway, options)
 
-suspend fun <T : APath> T.deleteWalk(
+suspend fun <T : APath> Collection<T>.delete(
     gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
-    filter: (APathLookup<*>) -> Boolean = { true }
-) {
-    try {
-        val lookup = gateway.lookup(this)
-
-        if (lookup.isDirectory) {
-            gateway.listFiles(this).forEach {
-                it.deleteWalk(gateway, filter) // Recursion enter
-            }
+    options: DeleteOperation.Options<T>,
+): Flow<DeleteOperation.Result<T>> {
+    return gateway
+        .delete(targets = this.toSet(), options = options)
+        .onCompletion {
+            log(VERBOSE) { "Collection<APath>.delete(options=$options): Deleted $this@delete" }
         }
-
-        if (!filter(lookup)) {
-            log(VERBOSE) { "Skipped due to filter: $this" }
-            return
-        }
-    } catch (e: PathException) {
-        val exists = gateway.exists(this)
-        if (!exists) {
-            log(WARN) { "Path failed to delete, but no longer exists: $this" }
-            return
-        } else {
-            throw e
-        }
-    }
-
-    // Recursion exit
-    this.delete(gateway, recursive = false)
 }
 
 suspend fun <T : APath> T.file(

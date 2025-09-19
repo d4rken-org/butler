@@ -11,6 +11,7 @@ import eu.darken.butler.common.files.local.LocalGateway
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.operations.CopyOperation
+import eu.darken.butler.common.files.operations.DeleteOperation
 import eu.darken.butler.common.files.operations.MoveOperation
 import eu.darken.butler.common.files.saf.SAFGateway
 import eu.darken.butler.common.sharedresource.SharedResource
@@ -186,8 +187,11 @@ class GatewaySwitch @Inject constructor(
         return useGateway(path) { file(path, readWrite) }
     }
 
-    override suspend fun delete(path: APath, recursive: Boolean) {
-        return useGateway(path) { delete(path, recursive = recursive) }
+    override suspend fun delete(
+        targets: Set<APath>,
+        options: DeleteOperation.Options<APath>
+    ): Flow<DeleteOperation.Result<APath>> {
+        TODO("Not yet implemented")
     }
 
     override suspend fun createSymlink(linkPath: APath, targetPath: APath): Boolean {
@@ -231,8 +235,8 @@ class GatewaySwitch @Inject constructor(
     override suspend fun copy(
         source: APath,
         destination: APath,
-        options: CopyOperation.Options,
-    ): Flow<CopyOperation.Result> = flow {
+        options: CopyOperation.Options<APath>,
+    ): Flow<CopyOperation.Result<APath>> = flow {
         when {
             // Same gateway type - use native implementation
             source::class == destination::class -> {
@@ -251,8 +255,8 @@ class GatewaySwitch @Inject constructor(
     override suspend fun move(
         source: APath,
         destination: APath,
-        options: MoveOperation.Options
-    ): Flow<MoveOperation.Result> = flow {
+        options: MoveOperation.Options<APath>
+    ): Flow<MoveOperation.Result<APath>> = flow {
         when {
             // Same gateway type - try atomic move first
             source::class == destination::class -> {
@@ -268,11 +272,43 @@ class GatewaySwitch @Inject constructor(
         }
     }
 
+
+//    suspend fun <T : APath> T.deleteWalk(
+//        gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
+//        filter: (APathLookup<*>) -> Boolean = { true }
+//    ) {
+//        try {
+//            val lookup = gateway.lookup(this)
+//
+//            if (lookup.isDirectory) {
+//                gateway.listFiles(this).forEach {
+//                    it.deleteWalk(gateway, filter) // Recursion enter
+//                }
+//            }
+//
+//            if (!filter(lookup)) {
+//                log(VERBOSE) { "Skipped due to filter: $this" }
+//                return
+//            }
+//        } catch (e: PathException) {
+//            val exists = gateway.exists(this)
+//            if (!exists) {
+//                log(WARN) { "Path failed to delete, but no longer exists: $this" }
+//                return
+//            } else {
+//                throw e
+//            }
+//        }
+//
+//        // Recursion exit
+//        this.delete(gateway, recursive = false)
+//    }
+
     private suspend fun performCrossGatewayCopy(
         source: APath,
         target: APath,
-        options: CopyOperation.Options
-    ): Flow<CopyOperation.Result> = flow {
+        options: CopyOperation.Options<APath>
+    ): Flow<CopyOperation.Result<APath>> = flow {
         // TODO: Implement cross-gateway copy
         // - Handle file handle transfers between different gateway types
         // - Emit progress updates via options.onProgress
@@ -283,8 +319,8 @@ class GatewaySwitch @Inject constructor(
     private suspend fun performCrossGatewayMove(
         source: APath,
         target: APath,
-        options: MoveOperation.Options
-    ): Flow<MoveOperation.Result> = flow {
+        options: MoveOperation.Options<APath>
+    ): Flow<MoveOperation.Result<APath>> = flow {
         // TODO: Implement cross-gateway move (copy + delete)
         // - Copy from source to target using cross-gateway copy
         // - Delete source after successful copy

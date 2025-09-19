@@ -11,13 +11,14 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.extensions.CopyOperation
 import eu.darken.butler.common.files.extensions.copyOperation
 import eu.darken.butler.common.files.extensions.createDirIfNecessary
-import eu.darken.butler.common.files.extensions.deleteWalk
+import eu.darken.butler.common.files.extensions.delete
 import eu.darken.butler.common.files.extensions.du
 import eu.darken.butler.common.files.extensions.exists
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.lookup
 import eu.darken.butler.common.files.extensions.walk
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.operations.DeleteOperation
 import eu.darken.butler.common.files.operations.Issue
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
@@ -83,7 +84,15 @@ class CopyOperationHandler @AssistedInject constructor(
                     }
                     is Issue.PathAlreadyExists.Resolution.Overwrite -> {
                         // Delete target before copy
-                        targetPath.deleteWalk(gatewaySwitch)
+                        targetPath.delete(
+                            gateway = gatewaySwitch,
+                            options = DeleteOperation.Options(
+                                recursive = true,
+                                onIssue = { issue ->
+                                    issueHandler.handleIssue(context, issue)
+                                }
+                            )
+                        ).last()
                     }
                     is Issue.PathAlreadyExists.Resolution.RenameSource -> {
                         targetPath = operation.destination.child(resolution.newName)
@@ -97,7 +106,15 @@ class CopyOperationHandler @AssistedInject constructor(
                             target = newExistingPath,
                             overwrite = false
                         ).last()
-                        existingPath.deleteWalk(gatewaySwitch)
+                        existingPath.delete(
+                            gateway = gatewaySwitch,
+                            options = DeleteOperation.Options(
+                                recursive = true,
+                                onIssue = { issue ->
+                                    issueHandler.handleIssue(context, issue)
+                                }
+                            )
+                        ).last()
                     }
                     is Issue.PathAlreadyExists.Resolution.Merge -> {
                         if (!sourceLookup.isDirectory && targetLookup.isDirectory) {
@@ -223,7 +240,13 @@ class CopyOperationHandler @AssistedInject constructor(
                             return@collect // Skip this file
                         }
                         is Issue.PathAlreadyExists.Resolution.Overwrite -> {
-                            targetPath.deleteWalk(gatewaySwitch)
+                            targetPath.delete(
+                                gateway = gatewaySwitch,
+                                options = DeleteOperation.Options(
+                                    recursive = true,
+                                    onIssue = { issue -> issueHandler.handleIssue(context, issue) }
+                                )
+                            ).last()
                         }
                         is Issue.PathAlreadyExists.Resolution.RenameSource -> {
                             val newRelativePath = relativePath.dropLast(1) + resolution.newName
@@ -239,7 +262,15 @@ class CopyOperationHandler @AssistedInject constructor(
                                 target = newExistingPath,
                                 overwrite = false
                             ).last()
-                            existingPath.deleteWalk(gatewaySwitch)
+                            existingPath.delete(
+                                gateway = gatewaySwitch,
+                                options = DeleteOperation.Options(
+                                    recursive = true,
+                                    onIssue = { issue ->
+                                        issueHandler.handleIssue(context, issue)
+                                    }
+                                )
+                            ).last()
                         }
                         is Issue.PathAlreadyExists.Resolution.Merge -> {
                             // For files, merging is not possible - this should not happen
@@ -298,7 +329,15 @@ class CopyOperationHandler @AssistedInject constructor(
                                 return@collect // Skip this directory
                             }
                             is Issue.PathAlreadyExists.Resolution.Overwrite -> {
-                                targetPath.deleteWalk(gatewaySwitch)
+                                targetPath.delete(
+                                    gateway = gatewaySwitch,
+                                    options = DeleteOperation.Options(
+                                        recursive = true,
+                                        onIssue = { issue ->
+                                            issueHandler.handleIssue(context, issue)
+                                        }
+                                    )
+                                ).last()
                             }
                             is Issue.PathAlreadyExists.Resolution.RenameSource -> {
                                 val newRelativePath = relativePath.dropLast(1) + resolution.newName
@@ -314,7 +353,15 @@ class CopyOperationHandler @AssistedInject constructor(
                                     target = newExistingPath,
                                     overwrite = false
                                 ).last()
-                                existingPath.deleteWalk(gatewaySwitch)
+                                existingPath.delete(
+                                    gateway = gatewaySwitch,
+                                    options = DeleteOperation.Options(
+                                        recursive = true,
+                                        onIssue = { issue ->
+                                            issueHandler.handleIssue(context, issue)
+                                        }
+                                    )
+                                ).last()
                             }
                             is Issue.PathAlreadyExists.Resolution.Merge -> {
                                 throw IllegalArgumentException("Can't merge directory with file.")

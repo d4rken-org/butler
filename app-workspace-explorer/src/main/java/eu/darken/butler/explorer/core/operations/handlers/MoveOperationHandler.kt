@@ -8,17 +8,19 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.extensions.deleteWalk
+import eu.darken.butler.common.files.extensions.delete
+import eu.darken.butler.common.files.operations.DeleteOperation
 import eu.darken.butler.explorer.core.engine.CopyOptions
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.explorer.core.operations.IssueHandler
 import eu.darken.butler.explorer.core.operations.OperationContext
 import eu.darken.butler.explorer.core.operations.OperationNotifier
 import eu.darken.butler.workspace.core.Workspace
+import kotlinx.coroutines.flow.last
 
 class MoveOperationHandler @AssistedInject constructor(
     @Assisted workspaceId: Workspace.Id,
-    @Assisted issueHandler: IssueHandler,
+    @Assisted private val issueHandler: IssueHandler,
     @Assisted private val copyHandler: CopyOperationHandler,
     gatewaySwitch: GatewaySwitch,
     dispatcherProvider: DispatcherProvider,
@@ -61,7 +63,15 @@ class MoveOperationHandler @AssistedInject constructor(
 
         // Delete sources after successful copy
         for (source in operation.sources) {
-            source.deleteWalk(gatewaySwitch)
+            source.delete(
+                gateway = gatewaySwitch,
+                options = DeleteOperation.Options(
+                    recursive = true,
+                    onIssue = { issue ->
+                        issueHandler.handleIssue(context, issue)
+                    }
+                )
+            ).last()
         }
         OperationNotifier.Hint.FilesRemoved(
             operationId = operation.operationId,

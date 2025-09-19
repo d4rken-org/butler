@@ -2,6 +2,7 @@ package eu.darken.butler.common.files
 
 import eu.darken.butler.common.files.core.local.tryMkFile
 import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.serialization.SerializationIOModule
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe

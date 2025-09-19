@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.core.operations
 
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.explorer.core.operations.handlers.BaseOperationHandler
 import kotlin.time.Clock
@@ -30,4 +31,26 @@ data class OperationContext(
     suspend fun <T : ExplorerOperation> BaseOperationHandler<T>.execute(
         operation: T
     ) = execute(this@OperationContext, operation)
+
+    suspend fun trackPath(path: APath) = {
+        TODO()
+    }
+
+    suspend fun trackPaths(paths: Collection<APath>) {
+        TODO()
+    }
+
+    suspend fun trackBytes(bytes: Long) {
+        TODO()
+    }
+
+    suspend fun trackBytesPerSecond(bytesPerSecond: Long) {
+        TODO()
+    }
+
+    suspend fun trackPeakBytesPerSecond(peakBytesPerSecond: Long) {
+        TODO()
+    }
+
+    suspend fun getMetrics(): OperationMetrics = TODO()
 }

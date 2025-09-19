@@ -21,6 +21,7 @@ import eu.darken.butler.common.files.extensions.isFile
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.operations.CopyOperation
+import eu.darken.butler.common.files.operations.DeleteOperation
 import eu.darken.butler.common.files.operations.MoveOperation
 import eu.darken.butler.common.sharedresource.SharedResource
 import kotlinx.coroutines.CoroutineScope
@@ -159,45 +160,46 @@ class SAFGateway @Inject constructor(
         }
     }
 
-    suspend fun delete(path: SAFPath) = delete(path, recursive = false)
-
-    override suspend fun delete(path: SAFPath, recursive: Boolean) = runIO {
-
-        log(TAG, VERBOSE) { "delete(recursive=$recursive): $path" }
-
-        val queue = LinkedList(listOf(lookup(path)))
-
-        while (!queue.isEmpty()) {
-            val lookUp = queue.removeFirst()
-
-            if (lookUp.isDirectory) {
-                val newBatch = try {
-                    lookupFiles(lookUp.lookedUp)
-                } catch (e: IOException) {
-                    log(TAG, ERROR) { "Failed to read directory to delete $lookUp: $e" }
-                    throw ReadException(path = path, cause = e)
-                }
-                queue.addAll(newBatch)
-            } else {
-                var success = try {
-                    lookUp.docFile.delete()
-                } catch (e: Exception) {
-                    throw WriteException(path = path, cause = e)
-                }
-
-                if (!success) {
-                    success = try {
-                        !lookUp.docFile.exists
-                    } catch (e: IOException) {
-                        log(TAG, ERROR) { "Failed to perform exists() check $lookUp: $e" }
-                        throw ReadException(path = path, cause = e)
-                    }
-                    if (success) log(TAG, WARN) { "Tried to delete file, but it's already gone: $path" }
-                }
-
-                if (!success) throw IOException("Document delete() call returned false")
-            }
-        }
+    override suspend fun delete(
+        targets: Set<SAFPath>,
+        options: DeleteOperation.Options<SAFPath>
+    ): Flow<DeleteOperation.Result<SAFPath>> {
+        TODO("Not yet implemented")
+//        log(TAG, VERBOSE) { "delete(recursive=$recursive): $path" }
+//
+//        val queue = LinkedList(listOf(lookup(path)))
+//
+//        while (!queue.isEmpty()) {
+//            val lookUp = queue.removeFirst()
+//
+//            if (lookUp.isDirectory) {
+//                val newBatch = try {
+//                    lookupFiles(lookUp.lookedUp)
+//                } catch (e: IOException) {
+//                    log(TAG, ERROR) { "Failed to read directory to delete $lookUp: $e" }
+//                    throw ReadException(path = path, cause = e)
+//                }
+//                queue.addAll(newBatch)
+//            } else {
+//                var success = try {
+//                    lookUp.docFile.delete()
+//                } catch (e: Exception) {
+//                    throw WriteException(path = path, cause = e)
+//                }
+//
+//                if (!success) {
+//                    success = try {
+//                        !lookUp.docFile.exists
+//                    } catch (e: IOException) {
+//                        log(TAG, ERROR) { "Failed to perform exists() check $lookUp: $e" }
+//                        throw ReadException(path = path, cause = e)
+//                    }
+//                    if (success) log(TAG, WARN) { "Tried to delete file, but it's already gone: $path" }
+//                }
+//
+//                if (!success) throw IOException("Document delete() call returned false")
+//            }
+//        }
     }
 
     override suspend fun canWrite(path: SAFPath): Boolean = runIO {
@@ -431,8 +433,8 @@ class SAFGateway @Inject constructor(
     override suspend fun copy(
         source: SAFPath,
         destination: SAFPath,
-        options: CopyOperation.Options
-    ): Flow<CopyOperation.Result> = flow {
+        options: CopyOperation.Options<SAFPath>
+    ): Flow<CopyOperation.Result<SAFPath>> {
         // TODO: Implement using DocumentFile APIs
         // - Use DocumentFile.listFiles() for traversal
         // - Use ContentResolver streams for copying
@@ -443,8 +445,8 @@ class SAFGateway @Inject constructor(
     override suspend fun move(
         source: SAFPath,
         destination: SAFPath,
-        options: MoveOperation.Options
-    ): Flow<MoveOperation.Result> = flow {
+        options: MoveOperation.Options<SAFPath>
+    ): Flow<MoveOperation.Result<SAFPath>> {
         // TODO: Implement using DocumentFile.renameTo()
         // - Try renameTo() for same parent directory
         // - Fallback to copy+delete for different parents

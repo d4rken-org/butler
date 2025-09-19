@@ -56,26 +56,27 @@ class OperationsEngine @AssistedInject constructor(
         scope: CoroutineScope,
     ): Flow<OperationState> = flow {
         log(tag, DEBUG) { "execute(): $operation" }
-        var metrics = OperationMetrics()
-
-        val context = OperationContext(
+        val opCon = OperationContext(
             operationId = operation.operationId,
-            emitState = { emit(it) },
+            emitState = { state ->
+                log(tag) { "execute(): Current state: $state" }
+                emit(state)
+            },
             emitHint = { operationNotifier.publish(it) }
         )
 
         try {
             activeOperations[operation.operationId] = scope.coroutineContext[Job]!!
 
-            context.emit(
+            opCon.emit(
                 OperationState.OnGoing(
-                    operationId = context.operationId,
-                    startedAt = context.startedAt,
+                    operationId = opCon.operationId,
+                    startedAt = opCon.startedAt,
                 )
             )
 
             // Execute based on operation type using context extension pattern
-            with(context) {
+            with(opCon) {
                 when (operation) {
                     is ExplorerOperation.FileOp.Copy -> {
                         copyHandler.execute(operation)
@@ -92,12 +93,13 @@ class OperationsEngine @AssistedInject constructor(
                 }
             }
 
-            // Emit success
             emit(
                 OperationState.Completed(
-                    operationId = context.operationId,
-                    startedAt = context.startedAt,
-                    result = OperationResult.Success(metrics = metrics),
+                    operationId = opCon.operationId,
+                    startedAt = opCon.startedAt,
+                    result = OperationResult.Success(
+                        metrics = opCon.getMetrics(),
+                    ),
                 )
             )
 
@@ -105,9 +107,11 @@ class OperationsEngine @AssistedInject constructor(
             log(tag, WARN) { "Operation cancelled: $operation" }
             emit(
                 OperationState.Completed(
-                    operationId = context.operationId,
-                    startedAt = context.startedAt,
-                    result = OperationResult.Cancelled(metrics = metrics),
+                    operationId = opCon.operationId,
+                    startedAt = opCon.startedAt,
+                    result = OperationResult.Cancelled(
+                        metrics = opCon.getMetrics(),
+                    ),
                 )
             )
             throw e
@@ -115,11 +119,11 @@ class OperationsEngine @AssistedInject constructor(
             log(tag, ERROR) { "Operation failed: $operation - ${e.asLog()}" }
             emit(
                 OperationState.Completed(
-                    operationId = context.operationId,
-                    startedAt = context.startedAt,
+                    operationId = opCon.operationId,
+                    startedAt = opCon.startedAt,
                     result = OperationResult.Failure(
-                        metrics = metrics,
-                        exception = e,
+                        metrics = opCon.getMetrics(),
+                        exception = e
                     ),
                 )
             )

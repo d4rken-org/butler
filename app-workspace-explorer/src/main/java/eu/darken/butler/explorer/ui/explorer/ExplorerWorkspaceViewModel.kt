@@ -353,7 +353,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             getWorkspace().execute(
                 ExplorerOperation.FileOp.Delete(
                     paths = result.items,
-                    recursive = true
                 )
             )
             clearSelection()
