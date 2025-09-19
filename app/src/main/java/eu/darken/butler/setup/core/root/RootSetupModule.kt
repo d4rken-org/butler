@@ -24,13 +24,14 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
-import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 @Singleton
 class RootSetupModule @Inject constructor(
-    @param:AppScope private val appScope: CoroutineScope,
+    @AppScope private val appScope: CoroutineScope,
     private val rootSettings: RootSettings,
     private val rootManager: RootManager,
 ) : SetupModule {
@@ -76,7 +77,7 @@ class RootSetupModule @Inject constructor(
     }
 
     data class Loading(
-        override val startAt: Instant = Instant.now(),
+        override val startAt: Instant = Clock.System.now(),
     ) : SetupModule.State.Loading {
         override val type: SetupModule.Type = SetupModule.Type.ROOT
     }

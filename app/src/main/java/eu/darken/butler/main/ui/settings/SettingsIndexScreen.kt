@@ -7,25 +7,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.automirrored.twotone.ListAlt
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.twotone.Favorite
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.twotone.PrivacyTip
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Stars
-import androidx.compose.material.icons.twotone.Tune
-import androidx.compose.material.icons.filled.Workspaces
 import androidx.compose.material.icons.twotone.Edit
+import androidx.compose.material.icons.twotone.Favorite
 import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Info
-import androidx.compose.material.icons.twotone.ListAlt
+import androidx.compose.material.icons.twotone.PushPin
+import androidx.compose.material.icons.twotone.PrivacyTip
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Stars
+import androidx.compose.material.icons.twotone.Tune
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -129,6 +121,16 @@ fun SettingsIndexScreen(
 
             item {
                 SettingsBaseItem(
+                    icon = Icons.TwoTone.Tune,
+                    title = stringResource(R.string.setup_title),
+                    subtitle = stringResource(R.string.setup_settings_description),
+                    onClick = { onNavigateTo(Nav.Main.destSetup(showCompleted = true)) },
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
                     icon = Icons.TwoTone.Workspaces,
                     title = stringResource(R.string.workspace_settings_title),
                     subtitle = stringResource(R.string.workspace_settings_subtitle),
@@ -139,10 +141,10 @@ fun SettingsIndexScreen(
 
             item {
                 SettingsBaseItem(
-                    icon = Icons.TwoTone.Tune,
-                    title = stringResource(R.string.setup_title),
-                    subtitle = stringResource(R.string.setup_settings_description),
-                    onClick = { onNavigateTo(Nav.Main.destSetup(showCompleted = true)) },
+                    icon = Icons.TwoTone.PushPin,
+                    title = stringResource(R.string.shortcuts_settings_title),
+                    subtitle = stringResource(R.string.shortcuts_settings_subtitle),
+                    onClick = { onNavigateTo(Nav.Settings.shortcuts()) },
                 )
                 SettingsDivider()
             }

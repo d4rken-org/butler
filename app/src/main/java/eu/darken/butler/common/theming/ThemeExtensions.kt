@@ -7,7 +7,8 @@ import kotlinx.coroutines.flow.combine
 val GeneralSettings.themeState: Flow<ThemeState>
     get() = combine(
         themeMode.flow,
-        themeStyle.flow
-    ) { mode, style ->
-        ThemeState(mode, style)
+        themeStyle.flow,
+        themeColor.flow
+    ) { mode, style, color ->
+        ThemeState(mode, style, color)
     }

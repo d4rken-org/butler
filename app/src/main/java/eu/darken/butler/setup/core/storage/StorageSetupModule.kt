@@ -29,14 +29,15 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onStart
-import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 @Singleton
 class StorageSetupModule @Inject constructor(
-    @param:AppScope private val appScope: CoroutineScope,
-    @param:ApplicationContext private val context: Context,
+    @AppScope private val appScope: CoroutineScope,
+    @ApplicationContext private val context: Context,
     private val storageManager2: StorageManager2,
     private val deviceDetective: DeviceDetective,
 ) : SetupModule {
@@ -131,7 +132,7 @@ class StorageSetupModule @Inject constructor(
     }
 
     data class Loading(
-        override val startAt: Instant = Instant.now(),
+        override val startAt: Instant = Clock.System.now(),
     ) : SetupModule.State.Loading {
         override val type: SetupModule.Type = SetupModule.Type.STORAGE
     }

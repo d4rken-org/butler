@@ -1,10 +1,8 @@
 package eu.darken.butler.searcher.ui.search.rows
 
-import java.time.Instant
-
-enum class FileType {
-    FILE, DIRECTORY, SYMBOLIC_LINK, UNKNOWN
-}
+import eu.darken.butler.common.files.metadata.FileType
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 data class FileRowData(
     val name: String,
@@ -27,7 +25,7 @@ sealed class FileRowType {
 
 fun determineFileRowType(fileName: String): FileRowType {
     val extension = fileName.substringAfterLast('.', "").lowercase()
-    
+
     return when (extension) {
         "jpg", "jpeg", "png", "gif", "bmp", "webp", "svg" -> FileRowType.Media
         "mp4", "avi", "mkv", "mov", "wmv", "flv", "webm" -> FileRowType.Media
@@ -38,36 +36,21 @@ fun determineFileRowType(fileName: String): FileRowType {
         "apk", "aab" -> FileRowType.App
         "kt", "java", "py", "js", "ts", "html", "css", "xml", "json" -> FileRowType.Code
         "cpp", "c", "h", "swift", "go", "rs", "php", "rb" -> FileRowType.Code
-        
+
         else -> FileRowType.Default
     }
 }
 
-fun formatFileSize(bytes: Long): String {
-    val units = arrayOf("B", "KB", "MB", "GB", "TB")
-    var size = bytes.toDouble()
-    var unitIndex = 0
-    
-    while (size >= 1024 && unitIndex < units.size - 1) {
-        size /= 1024
-        unitIndex++
-    }
-    
-    return if (unitIndex == 0) {
-        "${size.toInt()} ${units[unitIndex]}"
-    } else {
-        "%.1f %s".format(size, units[unitIndex])
-    }
-}
+// Note: formatFileSize moved to ByteFormatter in app-common module
 
 fun formatRelativeTime(instant: Instant): String {
-    val now = java.time.Instant.now()
-    val duration = java.time.Duration.between(instant, now)
-    
+    val now = Clock.System.now()
+    val duration = instant - now
+    // TODO localize
     return when {
-        duration.toDays() > 0 -> "${duration.toDays()} days ago"
-        duration.toHours() > 0 -> "${duration.toHours()} hours ago"
-        duration.toMinutes() > 0 -> "${duration.toMinutes()} minutes ago"
+        duration.inWholeDays > 0 -> "${duration.inWholeDays} days ago"
+        duration.inWholeHours > 0 -> "${duration.inWholeHours} hours ago"
+        duration.inWholeMinutes > 0 -> "${duration.inWholeMinutes} minutes ago"
         else -> "Just now"
     }
 }

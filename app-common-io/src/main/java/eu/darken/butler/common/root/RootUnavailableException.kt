@@ -8,7 +8,7 @@ import eu.darken.butler.common.error.LocalizedError
 class RootUnavailableException @JvmOverloads constructor(
     message: String? = null,
     cause: Throwable? = null,
-    @param:StringRes val errorMsgRes: Int = eu.darken.butler.common.R.string.general_error_root_unavailable
+    @StringRes val errorMsgRes: Int = eu.darken.butler.common.R.string.general_error_root_unavailable
 ) : RootException(message = message, cause = cause), HasLocalizedError {
 
     override fun getLocalizedError() = LocalizedError(

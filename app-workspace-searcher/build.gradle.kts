@@ -57,4 +57,5 @@ dependencies {
     addTesting()
 
     addCoil()
+    addRoomDb()
 }

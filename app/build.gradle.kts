@@ -192,6 +192,7 @@ dependencies {
     implementation(project(":app-workspace-searcher"))
     implementation(project(":app-workspace-editor"))
     implementation(project(":app-workspace-templates"))
+    implementation(project(":app-common-picker"))
 
     addDI()
     addCoroutines()

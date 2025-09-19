@@ -1,6 +1,5 @@
 package eu.darken.butler.common.files.local
 
-import eu.darken.butler.common.files.FileType
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.extensions.isAncestorOf
 import eu.darken.butler.common.files.extensions.isChildOf
@@ -10,11 +9,12 @@ import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.common.files.extensions.removePrefix
 import eu.darken.butler.common.files.extensions.segs
 import eu.darken.butler.common.files.extensions.startsWith
+import eu.darken.butler.common.files.metadata.FileType
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
-import java.time.Instant
+import kotlin.time.Instant
 
 class LocalPathExtensionsTest : BaseTest() {
 
@@ -81,14 +81,14 @@ class LocalPathExtensionsTest : BaseTest() {
             lookedUp = LocalPath.build("test", "file1"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2 = LocalPathLookup(
             lookedUp = LocalPath.build("test", "file2"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         file1.matches(file1) shouldBe true
@@ -111,14 +111,14 @@ class LocalPathExtensionsTest : BaseTest() {
             lookedUp = LocalPath.build("parent"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2 = LocalPathLookup(
             lookedUp = LocalPath.build("parent", "child", "niece"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
 
@@ -151,14 +151,14 @@ class LocalPathExtensionsTest : BaseTest() {
             lookedUp = LocalPath.build("parent"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2 = LocalPathLookup(
             lookedUp = LocalPath.build("parent", "child", "niece"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
 
@@ -192,14 +192,14 @@ class LocalPathExtensionsTest : BaseTest() {
             lookedUp = LocalPath.build("parent"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2 = LocalPathLookup(
             lookedUp = LocalPath.build("parent", "child"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
 
@@ -232,14 +232,14 @@ class LocalPathExtensionsTest : BaseTest() {
             lookedUp = LocalPath.build("parent"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2 = LocalPathLookup(
             lookedUp = LocalPath.build("parent", "child"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
 
@@ -272,14 +272,14 @@ class LocalPathExtensionsTest : BaseTest() {
             lookedUp = LocalPath.build("chi"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2 = LocalPathLookup(
             lookedUp = LocalPath.build("child"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
 
@@ -317,14 +317,14 @@ class LocalPathExtensionsTest : BaseTest() {
             lookedUp = LocalPath.build("pre", "fix"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val preLookup = LocalPathLookup(
             lookedUp = LocalPath.build("pre"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
 
@@ -356,14 +356,14 @@ class LocalPathExtensionsTest : BaseTest() {
             lookedUp = LocalPath.build("prefix", "overlap", "folder"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val preLookup = LocalPathLookup(
             lookedUp = LocalPath.build("prefix", "overlap"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
 

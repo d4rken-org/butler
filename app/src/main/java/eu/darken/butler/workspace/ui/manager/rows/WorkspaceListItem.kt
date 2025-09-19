@@ -12,10 +12,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.DragIndicator
-import androidx.compose.material.icons.twotone.Edit
-import androidx.compose.material.icons.twotone.Folder
-import androidx.compose.material.icons.twotone.Search
-import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -25,7 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -37,6 +32,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
 
 @Composable
@@ -96,14 +92,15 @@ fun WorkspaceListItem(
             }
 
             Icon(
-                imageVector = getIconForWorkspaceType(workspace.type),
+                imageVector = workspace.type.icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp)
             )
 
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center,
             ) {
                 Text(
                     text = workspace.title.asComposable(),
@@ -112,13 +109,15 @@ fun WorkspaceListItem(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                    text = workspace.subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                if (workspace.subtitle != null) {
+                    Text(
+                        text = workspace.subtitle.asComposable(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
 
             IconButton(
@@ -133,15 +132,6 @@ fun WorkspaceListItem(
                 )
             }
         }
-    }
-}
-
-private fun getIconForWorkspaceType(type: Workspace.Type): ImageVector {
-    return when (type) {
-        Workspace.Type.TEMPLATES -> Icons.TwoTone.Workspaces
-        Workspace.Type.EXPLORER -> Icons.TwoTone.Folder
-        Workspace.Type.SEARCHER -> Icons.TwoTone.Search
-        Workspace.Type.EDITOR -> Icons.TwoTone.Edit
     }
 }
 
@@ -171,7 +161,7 @@ private fun WorkspaceListItemPreview() {
                 id = Workspace.Id(),
                 type = Workspace.Type.EXPLORER,
                 title = "Explorer".toCaString(),
-                subtitle = "File explorer"
+                subtitle = "File explorer".toCaString()
             ),
             onClose = {},
             onSelect = {},
@@ -206,11 +196,46 @@ private fun WorkspaceListItemDraggingPreview() {
                 id = Workspace.Id(),
                 type = Workspace.Type.SEARCHER,
                 title = "Search".toCaString(),
-                subtitle = "File search"
+                subtitle = "File search".toCaString()
             ),
             onClose = {},
             onSelect = {},
             isDragging = true
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun WorkspaceListItemNoSubtitlePreview() {
+    PreviewWrapper {
+        WorkspaceListItem(
+            modifier = Modifier.padding(16.dp),
+            reorderableScope = object : sh.calvin.reorderable.ReorderableCollectionItemScope {
+                override fun Modifier.draggableHandle(
+                    enabled: Boolean,
+                    interactionSource: androidx.compose.foundation.interaction.MutableInteractionSource?,
+                    onDragStarted: (androidx.compose.ui.geometry.Offset) -> Unit,
+                    onDragStopped: () -> Unit,
+                    dragGestureDetector: sh.calvin.reorderable.DragGestureDetector
+                ): Modifier = this
+
+                override fun Modifier.longPressDraggableHandle(
+                    enabled: Boolean,
+                    interactionSource: androidx.compose.foundation.interaction.MutableInteractionSource?,
+                    onDragStarted: (androidx.compose.ui.geometry.Offset) -> Unit,
+                    onDragStopped: () -> Unit
+                ): Modifier = this
+            },
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = Workspace.Id(),
+                type = Workspace.Type.TEMPLATES,
+                title = "Templates".toCaString(),
+                subtitle = null
+            ),
+            onClose = {},
+            onSelect = {},
+            isDragging = false
         )
     }
 }

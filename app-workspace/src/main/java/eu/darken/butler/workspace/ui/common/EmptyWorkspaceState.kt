@@ -110,7 +110,7 @@ fun EnhancedEmptyWorkspaceState(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier
-                    .padding(24.dp)
+                    .padding(horizontal = 24.dp, vertical = 16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
                 // Animated Butler Icon

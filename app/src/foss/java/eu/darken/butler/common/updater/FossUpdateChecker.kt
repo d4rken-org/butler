@@ -11,13 +11,13 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.getPackageInfo
 import eu.darken.butler.common.pkgs.features.getInstallerInfo
-import java.time.Duration
-import java.time.Instant
 import javax.inject.Inject
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
 
 @Reusable
 class FossUpdateChecker @Inject constructor(
-    @param:ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context,
     private val checker: GithubReleaseCheck,
     private val webpageTool: WebpageTool,
     private val settings: FossUpdateSettings,
@@ -27,7 +27,7 @@ class FossUpdateChecker @Inject constructor(
         log(TAG) { "getLatest($channel) checking..." }
 
         val release: GithubApi.ReleaseInfo? = try {
-            if (Duration.between(settings.lastReleaseCheck.value(), Instant.now()) < UPDATE_CHECK_INTERVAL) {
+            if ((settings.lastReleaseCheck.value() - Clock.System.now()) < UPDATE_CHECK_INTERVAL) {
                 log(TAG) { "Using cached release data" }
                 when (channel) {
                     UpdateChecker.Channel.BETA -> settings.lastReleaseBeta.value()
@@ -40,7 +40,7 @@ class FossUpdateChecker @Inject constructor(
                     UpdateChecker.Channel.PROD -> checker.latestRelease(OWNER, REPO)
                 }.also {
                     log(TAG, INFO) { "getLatest($channel) new data is $it" }
-                    settings.lastReleaseCheck.value(Instant.now())
+                    settings.lastReleaseCheck.value(Clock.System.now())
                     when (channel) {
                         UpdateChecker.Channel.BETA -> settings.lastReleaseBeta.value(it)
                         UpdateChecker.Channel.PROD -> settings.lastReleaseProd.value(it)
@@ -128,7 +128,7 @@ class FossUpdateChecker @Inject constructor(
     ) : UpdateChecker.Update
 
     companion object {
-        private val UPDATE_CHECK_INTERVAL = Duration.ofDays(3)
+        private val UPDATE_CHECK_INTERVAL = 3.days
         private const val OWNER = "d4rken-org"
         private const val REPO = "butler"
         private val FDROIDS = setOf(

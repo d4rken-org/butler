@@ -89,7 +89,24 @@ class MainViewModel @Inject constructor(
 
     fun isConfirmExitEnabled(callback: (Boolean) -> Unit) = launch {
         log(tag) { "isConfirmExitEnabled()" }
-        val isEnabled = generalSettings.isConfirmExitEnabled.flow.first()
+        val onboarded = generalSettings.isOnboardingCompleted.flow.first()
+        val exitConfirm = generalSettings.isConfirmExitEnabled.flow.first()
+        val isEnabled = onboarded && exitConfirm
+        log(tag) { "isConfirmExitEnabled(): onboarded=$onboarded, exitConfirm=$exitConfirm, result=$isEnabled" }
         callback(isEnabled)
+    }
+
+    fun openDirectoryFromShortcut(directoryPath: String) = launch {
+        log(tag) { "openDirectoryFromShortcut($directoryPath)" }
+        // This will be handled by the workspace UI when it's ready
+        // For now, we just log it - actual implementation would involve
+        // navigating to the workspaces screen and creating a new Explorer workspace
+    }
+
+    fun createNewExplorerWorkspace() = launch {
+        log(tag) { "createNewExplorerWorkspace()" }
+        // This will be handled by the workspace UI when it's ready
+        // For now, we just log it - actual implementation would involve
+        // navigating to the workspaces screen and creating a new Explorer workspace
     }
 }

@@ -3,7 +3,6 @@ package eu.darken.butler.upgrade.ui
 import android.app.Activity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -84,7 +83,7 @@ class UpgradeViewModel @Inject constructor(
             formattedPrice = subOffer?.let { it.pricingPhases.pricingPhaseList.firstOrNull()?.formattedPrice },
         )
 
-        val trialOffer = sub?.firstOrNull()?.details?.subscriptionOfferDetails?.none { offer ->
+        val trialOffer = sub?.firstOrNull()?.details?.subscriptionOfferDetails?.any { offer ->
             OurSku.Sub.PRO_UPGRADE.TRIAL_OFFER.matches(offer)
         }
         val trialState = State.Trial(

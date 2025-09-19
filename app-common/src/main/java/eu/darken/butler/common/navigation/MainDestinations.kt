@@ -1,5 +1,6 @@
 package eu.darken.butler.common.navigation
 
+import eu.darken.butler.setup.core.SetupModule
 import kotlinx.serialization.Serializable
 
 
@@ -29,18 +30,25 @@ fun Nav.Main.upgrade(): NavigationDestination = DestinationUpgrade
 
 @Serializable
 data class DestinationSetup(
-    val typeFilter: Set<String>? = null,
+    val typeFilter: Set<SetupModule.Type>? = null,
+    val requiredTypes: Set<SetupModule.Type>? = null,
     val isOnboarding: Boolean = false,
     val showCompleted: Boolean = false,
+    val autoCloseWhenComplete: Boolean = true,
 ) : NavigationDestination
 
 @Suppress("UnusedReceiverParameter")
 fun Nav.Main.destSetup(
-    typeFilter: Set<String>? = null,
+    typeFilter: Set<SetupModule.Type>? = null,
+    requiredTypes: Set<SetupModule.Type>? = null,
     isOnboarding: Boolean = false,
     showCompleted: Boolean = false,
+    autoCloseWhenComplete: Boolean = true,
 ): NavigationDestination = DestinationSetup(
     typeFilter = typeFilter,
+    requiredTypes = requiredTypes,
     isOnboarding = isOnboarding,
     showCompleted = showCompleted,
+    autoCloseWhenComplete = autoCloseWhenComplete,
 )
+

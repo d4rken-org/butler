@@ -32,7 +32,7 @@ import javax.inject.Inject
 
 
 class PkgOpsHost @Inject constructor(
-    @param:ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context,
     private val libcoreTool: LibcoreTool,
     private val sharedShell: SharedShell,
     private val processScanner: ProcessScanner,

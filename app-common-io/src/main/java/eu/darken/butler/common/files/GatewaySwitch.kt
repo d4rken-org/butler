@@ -6,23 +6,29 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.local.LocalGateway
+import eu.darken.butler.common.files.metadata.Ownership
+import eu.darken.butler.common.files.metadata.Permissions
+import eu.darken.butler.common.files.operations.CopyOperation
+import eu.darken.butler.common.files.operations.MoveOperation
 import eu.darken.butler.common.files.saf.SAFGateway
 import eu.darken.butler.common.sharedresource.SharedResource
 import eu.darken.butler.common.sharedresource.adoptChildResource
 import eu.darken.butler.common.storage.PathMapper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.plus
 import okio.FileHandle
 import okio.IOException
-import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Instant
 
 @Singleton
 class GatewaySwitch @Inject constructor(
-    @param:AppScope private val appScope: CoroutineScope,
+    @AppScope private val appScope: CoroutineScope,
     dispatcherProvider: DispatcherProvider,
     private val safGateway: SAFGateway,
     private val localGateway: LocalGateway,
@@ -220,6 +226,70 @@ class GatewaySwitch @Inject constructor(
         is LocalPath -> mapper.toSAFPath(this) ?: throw ReadException("Can't map to SAF", this)
         is SAFPath -> mapper.toLocalPath(this) ?: throw ReadException("Can't map to LOCAL", this)
         is RawPath -> throw UnsupportedOperationException("Alternative mapping for RAW not available")
+    }
+
+    override suspend fun copy(
+        source: APath,
+        destination: APath,
+        options: CopyOperation.Options,
+    ): Flow<CopyOperation.Result> = flow {
+        when {
+            // Same gateway type - use native implementation
+            source::class == destination::class -> {
+                useGateway(source) {
+                    copy(source, destination, options)
+                }.collect { emit(it) }
+            }
+            // Cross-gateway copy
+            else -> {
+                performCrossGatewayCopy(source, destination, options)
+                    .collect { emit(it) }
+            }
+        }
+    }
+
+    override suspend fun move(
+        source: APath,
+        destination: APath,
+        options: MoveOperation.Options
+    ): Flow<MoveOperation.Result> = flow {
+        when {
+            // Same gateway type - try atomic move first
+            source::class == destination::class -> {
+                useGateway(source) {
+                    move(source, destination, options)
+                }.collect { emit(it) }
+            }
+            // Cross-gateway move: copy then delete
+            else -> {
+                performCrossGatewayMove(source, destination, options)
+                    .collect { emit(it) }
+            }
+        }
+    }
+
+    private suspend fun performCrossGatewayCopy(
+        source: APath,
+        target: APath,
+        options: CopyOperation.Options
+    ): Flow<CopyOperation.Result> = flow {
+        // TODO: Implement cross-gateway copy
+        // - Handle file handle transfers between different gateway types
+        // - Emit progress updates via options.onProgress
+        // - Handle conflicts via options.onIssue
+        throw NotImplementedError("TODO: Cross-gateway copy implementation")
+    }
+
+    private suspend fun performCrossGatewayMove(
+        source: APath,
+        target: APath,
+        options: MoveOperation.Options
+    ): Flow<MoveOperation.Result> = flow {
+        // TODO: Implement cross-gateway move (copy + delete)
+        // - Copy from source to target using cross-gateway copy
+        // - Delete source after successful copy
+        // - Handle conflicts via options.onIssue
+        throw NotImplementedError("TODO: Cross-gateway move implementation")
     }
 
     enum class Type {

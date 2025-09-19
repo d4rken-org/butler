@@ -5,16 +5,26 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.operations.Issue
 import eu.darken.butler.common.progress.Progress
-import eu.darken.butler.explorer.core.engine.ExplorerEngine
+import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
+import eu.darken.butler.explorer.core.operations.OperationId
+import eu.darken.butler.explorer.core.operations.OperationResult
+import eu.darken.butler.explorer.core.operations.OperationState
+import eu.darken.butler.explorer.core.operations.OperationsEngine
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
+import eu.darken.butler.workspace.core.tracker.PathAccessTracker
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -25,8 +35,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.parcelize.Parcelize
 
 
@@ -34,13 +42,18 @@ class ExplorerWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
     @Assisted private val arguments: Arguments?,
     dispatcherProvider: DispatcherProvider,
-    private val engine: ExplorerEngine,
+    private val browsingEngineFactory: BrowsingEngine.Factory,
+    private val operationsEngineFactory: OperationsEngine.Factory,
     private val breadcrumbGenerator: BreadcrumbGenerator,
+    private val pathAccessTracker: PathAccessTracker,
 ) : Workspace {
 
     private val tag = logTag("Explorer", "Workspace", id.shortTag)
 
-    private val scope = CoroutineScope(dispatcherProvider.IO)
+    private val scope = CoroutineScope(dispatcherProvider.IO + CoroutineName(tag))
+
+    private val browsingEngine = browsingEngineFactory.create(id)
+    private val operationEngine = operationsEngineFactory.create(id)
 
     override val type: Workspace.Type = Workspace.Type.EXPLORER
 
@@ -48,7 +61,11 @@ class ExplorerWorkspace @AssistedInject constructor(
         Workspace.Info(
             id = id,
             type = type,
-            title = "Explorer ${id.shortTag}".toCaString(),
+            title = when {
+                Bugs.isDebug -> "Explorer ${id.shortTag}".toCaString()
+                else -> R.string.explorer_title.toCaString()
+            },
+            previewData = ExplorerPreviewData(),
         )
     )
 
@@ -56,7 +73,7 @@ class ExplorerWorkspace @AssistedInject constructor(
 
     private val navigationRequests = MutableSharedFlow<ExplorerNavigation>(replay = 1)
     private val operationRequests = MutableSharedFlow<ExplorerOperation>(replay = 1)
-    private val operationMutex = Mutex()
+
 
     data class State(
         val currentTarget: ExplorerNavigation.Target? = null,
@@ -68,12 +85,22 @@ class ExplorerWorkspace @AssistedInject constructor(
         val isLoadingExtended: Boolean = false,
         val error: Throwable? = null,
         val progress: Progress.Data? = null,
+        val activeOperations: Map<OperationId, OperationState> = emptyMap(),
+        val operationHistory: List<OperationResult> = emptyList(),
+        val pendingConflicts: Map<OperationId, OperationState.AwaitingInput> = emptyMap(),
     ) {
         val canGoBack: Boolean get() = historyIndex > 0
         val canGoForward: Boolean get() = historyIndex < navigationHistory.size - 1
+        val hasActiveOperations: Boolean get() = activeOperations.isNotEmpty()
+        val hasPendingConflicts: Boolean get() = pendingConflicts.isNotEmpty()
     }
 
     init {
+        // TODO: Refresh directory based on hints
+        operationEngine.hints
+            .onEach { hint -> log(tag, INFO) { "Received operation hint: $hint" } }
+            .launchIn(scope)
+
         // Set up navigation flow processing
         navigationRequests
             .onEach { log(tag, INFO) { "New navigation request: $it" } }
@@ -102,35 +129,50 @@ class ExplorerWorkspace @AssistedInject constructor(
                 }
             }
             .launchIn(scope)
-            
+
         // Set up operation flow processing
         operationRequests
             .onEach { log(tag, INFO) { "New operation request: $it" } }
             .onEach { operation ->
-                operationMutex.withLock {
-                    try {
-                        current.value = current.value.copy(isLoading = true)
-                        val result = engine.executeOperation(operation)
-                        
-                        if (result.isSuccess) {
-                            log(tag, INFO) { "Operation successful: $operation" }
-                            // Refresh current location after successful operation
-                            current.value.currentTarget?.let { target ->
-                                processNavigationRequest(ExplorerNavigation.Refresh)
-                            }
-                        } else {
-                            log(tag, ERROR) { "Operation failed: ${result.exceptionOrNull()}" }
-                            current.value = current.value.copy(
-                                error = result.exceptionOrNull(),
-                                isLoading = false
-                            )
-                        }
-                    } catch (e: Exception) {
-                        log(tag, ERROR) { "Operation processing failed: $e" }
+                scope.launch {
+                    operationEngine.execute(
+                        operation = operation,
+                        scope = scope,
+                    ).collect { state ->
+                        // Update active operations map
                         current.value = current.value.copy(
-                            error = e,
-                            isLoading = false
+                            activeOperations = if (state is OperationState.Completed) {
+                                current.value.activeOperations - operation.operationId
+                            } else {
+                                current.value.activeOperations + (operation.operationId to state)
+                            },
+                            pendingConflicts = if (state is OperationState.AwaitingInput) {
+                                current.value.pendingConflicts + (operation.operationId to state)
+                            } else {
+                                current.value.pendingConflicts - operation.operationId
+                            },
                         )
+
+                        // Handle completed operations
+                        if (state is OperationState.Completed) {
+                            // Add to history
+                            current.value = current.value.copy(
+                                operationHistory = current.value.operationHistory + state.result
+                            )
+
+                            // Refresh on success
+                            if (state.result is OperationResult.Success) {
+                                log(tag, INFO) { "Operation successful: ${state.result}" }
+                                current.value.currentTarget?.let {
+                                    processNavigationRequest(ExplorerNavigation.Refresh)
+                                }
+                            } else if (state.result is OperationResult.Failure) {
+                                log(tag, ERROR) { "Operation failed: ${state.result}" }
+                                current.value = current.value.copy(
+                                    error = state.result.exception
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -210,7 +252,7 @@ class ExplorerWorkspace @AssistedInject constructor(
             log(tag) { "navigate(): Submitted $request" }
         }
     }
-    
+
     fun execute(operation: ExplorerOperation) {
         log(tag) { "execute(): $operation" }
         scope.launch {
@@ -228,7 +270,7 @@ class ExplorerWorkspace @AssistedInject constructor(
             error = null
         )
         try {
-            engine.loadLocation(target).collectIndexed { index, location ->
+            browsingEngine.loadLocation(target).collectIndexed { index, location ->
                 if (index == 0) {
                     val newHistory = if (addToHistory) {
                         val currentHistory = current.value.navigationHistory
@@ -252,6 +294,11 @@ class ExplorerWorkspace @AssistedInject constructor(
                         historyIndex = if (addToHistory) newHistory.size - 1 else current.value.historyIndex
                     )
 
+                    // Track path access for shortcuts (only for new navigations to directories)
+                    if (addToHistory && target is ExplorerNavigation.Target.Directory) {
+                        pathAccessTracker.trackPathAccess(target.path)
+                    }
+
                     val newTitle = location.toString().toCaString()
                     info.value = info.value.copy(title = newTitle)
                 } else {
@@ -272,10 +319,23 @@ class ExplorerWorkspace @AssistedInject constructor(
         }
     }
 
+    fun resolveConflict(operationId: OperationId, resolution: Issue.Resolution?) {
+        log(tag, INFO) { "Resolving conflict for operation $operationId: $resolution" }
+        scope.launch {
+            operationEngine.resolveConflict(operationId, resolution)
+        }
+    }
+
+    fun cancelOperation(operationId: OperationId) {
+        log(tag, INFO) { "Cancelling operation: $operationId" }
+        operationEngine.cancelOperation(operationId)
+    }
+
     override suspend fun release() {
         log(tag, INFO) { "release()" }
         scope.cancel()
     }
+
 
     @Parcelize
     data class Arguments(

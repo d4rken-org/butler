@@ -1,8 +1,4 @@
 package eu.darken.butler.editor.ui.editor
-
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -57,7 +53,12 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.picker.core.FilePickerConfig
+import eu.darken.butler.common.picker.core.FilePickerResult
+import eu.darken.butler.common.picker.core.SelectionMode
+import eu.darken.butler.common.picker.ui.FilePickerHost
+import eu.darken.butler.common.picker.ui.FilePickerMode
+import eu.darken.butler.common.picker.ui.rememberFilePickerLauncher
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.MemoryStats
@@ -146,17 +147,15 @@ fun EditorWorkspacePage(
     var showMemoryStats by remember { mutableStateOf(false) }
 
     // File picker launcher
-    val filePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri: Uri? ->
-        uri?.let { selectedUri: Uri ->
-            // For now, create a SAFPath from the URI - this is a simplified approach
-            try {
-                val path = SAFPath(treeRoot = selectedUri.toString(), segments = emptyList())
-                onOpenFile(path)
-            } catch (e: Exception) {
-                // Handle invalid URI format
-                log("EditorWorkspacePage") { "Failed to create path from URI: $selectedUri" }
+    val filePickerLauncher = rememberFilePickerLauncher { result ->
+        when (result) {
+            is FilePickerResult.Selected -> {
+                if (result.paths.isNotEmpty()) {
+                    onOpenFile(result.paths.first())
+                }
+            }
+            FilePickerResult.Cancelled -> {
+                // User cancelled, do nothing
             }
         }
     }
@@ -172,7 +171,17 @@ fun EditorWorkspacePage(
             isModified = state.isModified,
             hasFile = state.hasFile || state.currentContent.isNotEmpty(),
             isLoading = state.isLoading,
-            onOpenFile = { filePickerLauncher.launch(arrayOf("*/*")) },
+            onOpenFile = {
+                filePickerLauncher.launch(
+                    config = FilePickerConfig(
+                        mode = SelectionMode.SingleFile,
+                        filters = listOf("*.txt", "*.md", "*.json", "*.xml", "*.log"),
+                        title = "Open File",
+                        showHiddenFiles = false
+                    ),
+                    mode = FilePickerMode.BOTTOM_SHEET
+                )
+            },
             onSaveFile = onSaveFile,
             onCloseFile = onCloseFile,
             onUndo = onUndo,
@@ -276,6 +285,12 @@ fun EditorWorkspacePage(
             onDismiss = { showSearchDialog = false }
         )
     }
+    
+    // File picker host
+    FilePickerHost(
+        launcher = filePickerLauncher,
+        mode = FilePickerMode.BOTTOM_SHEET
+    )
 }
 
 @Composable

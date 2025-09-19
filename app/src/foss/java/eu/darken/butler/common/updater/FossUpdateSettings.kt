@@ -10,13 +10,13 @@ import eu.darken.butler.common.datastore.createValue
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.logTag
 import kotlinx.serialization.json.Json
-import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Instant
 
 @Singleton
 class FossUpdateSettings @Inject constructor(
-    @param:ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context,
     json: Json,
 ) {
 
@@ -37,7 +37,7 @@ class FossUpdateSettings @Inject constructor(
         return update.getSetting().value()
     }
 
-    val lastReleaseCheck = dataStore.createValue("check.last", Instant.EPOCH, json)
+    val lastReleaseCheck = dataStore.createValue("check.last", Instant.fromEpochMilliseconds(0), json)
     val lastReleaseProd = dataStore.createValue<GithubApi.ReleaseInfo?>("check.last.prod", null, json)
     val lastReleaseBeta = dataStore.createValue<GithubApi.ReleaseInfo?>("check.last.beta", null, json)
 

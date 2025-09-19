@@ -14,7 +14,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import testhelpers.BaseTest
-import java.time.Instant
+import kotlin.time.Instant
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
@@ -26,14 +26,14 @@ class APathLookupExtensionTest : BaseTest() {
             lookedUp = LocalPath.build("test", "file1"),
             fileType = FileType.DIRECTORY,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("test", "file2"),
             fileType = FileType.FILE,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         lookup1.isDirectory shouldBe true
@@ -68,14 +68,14 @@ class APathLookupExtensionTest : BaseTest() {
             lookedUp = LocalPath.build("test", "file1"),
             fileType = FileType.DIRECTORY,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup1s: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("test", "file1", "sub"),
             fileType = FileType.DIRECTORY,
             size = 16,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2: APathLookup<*> = SAFPathLookup(
@@ -106,28 +106,28 @@ class APathLookupExtensionTest : BaseTest() {
             lookedUp = LocalPath.build("data", "log", "knoxsdk.log.0.lck"),
             fileType = FileType.FILE,
             size = 0,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup2: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("data", "log", "knoxsdk.log.0"),
             fileType = FileType.FILE,
             size = 7920,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup3: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("data", "log", "knoxsdk.log.0.1.lck"),
             fileType = FileType.FILE,
             size = 0,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
         val lookup4: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("data", "log", "knoxsdk.log.0.1"),
             fileType = FileType.FILE,
             size = 2660,
-            modifiedAt = Instant.EPOCH,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             target = null,
         )
 
@@ -151,7 +151,7 @@ class APathLookupExtensionTest : BaseTest() {
                 lookedUp = LocalPath.build("parentA", "parentB", "file$it"),
                 fileType = FileType.FILE,
                 size = 0,
-                modifiedAt = Instant.EPOCH,
+                modifiedAt = Instant.fromEpochMilliseconds(0),
                 target = null,
             ).run { targets.add(this) }
         }

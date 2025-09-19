@@ -25,7 +25,7 @@ import javax.inject.Singleton
 
 @Singleton
 class WorkspaceRepo @Inject constructor(
-    @param:AppScope private val appScope: CoroutineScope,
+    @AppScope private val appScope: CoroutineScope,
     private val templatesWorkspaceFactory: TemplatesWorkspace.Factory,
     private val explorerWorkspaceFactory: ExplorerWorkspace.Factory,
     private val searcherWorkspaceFactory: SearcherWorkspace.Factory,

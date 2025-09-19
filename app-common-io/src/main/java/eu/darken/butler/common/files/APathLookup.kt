@@ -3,7 +3,8 @@ package eu.darken.butler.common.files
 import androidx.annotation.Keep
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.files.extensions.Segments
-import java.time.Instant
+import eu.darken.butler.common.files.metadata.FileType
+import kotlin.time.Instant
 
 @Keep
 interface APathLookup<out T : APath> {

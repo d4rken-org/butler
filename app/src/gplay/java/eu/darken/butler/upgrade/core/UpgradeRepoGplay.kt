@@ -24,13 +24,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import java.time.Instant
+import kotlin.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class UpgradeRepoGplay @Inject constructor(
-    @param:AppScope private val scope: CoroutineScope,
+    @AppScope private val scope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
     private val billingManager: BillingManager,
     private val billingCache: BillingCache,
@@ -126,7 +126,7 @@ class UpgradeRepoGplay @Inject constructor(
 
         override val upgradedAt: Instant? = upgrades
             .maxByOrNull { it.purchase.purchaseTime }
-            ?.let { Instant.ofEpochMilli(it.purchase.purchaseTime) }
+            ?.let { Instant.fromEpochMilliseconds(it.purchase.purchaseTime) }
     }
 
 

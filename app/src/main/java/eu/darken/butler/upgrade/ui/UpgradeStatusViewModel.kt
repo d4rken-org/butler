@@ -9,11 +9,12 @@ import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.upgrade.UpgradeRepo
 import kotlinx.coroutines.flow.map
-import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import javax.inject.Inject
+import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 
 @HiltViewModel
 class UpgradeStatusViewModel @Inject constructor(
@@ -37,7 +38,7 @@ class UpgradeStatusViewModel @Inject constructor(
         val formatter = DateTimeFormatter
             .ofLocalizedDate(FormatStyle.LONG)
             .withZone(ZoneId.systemDefault())
-        return formatter.format(instant)
+        return formatter.format(instant.toJavaInstant())
     }
 
     fun onUpgradeClick() {

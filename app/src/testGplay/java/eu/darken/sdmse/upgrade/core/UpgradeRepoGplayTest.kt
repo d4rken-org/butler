@@ -1,10 +1,10 @@
-package eu.darken.butler.common.upgrade.core
+package eu.darken.sdmse.upgrade.core
 
 import com.android.billingclient.api.Purchase
-import eu.darken.butler.common.upgrade.UpgradeRepo
-import eu.darken.butler.common.upgrade.core.billing.BillingData
+import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.upgrade.core.OurSku
 import eu.darken.butler.upgrade.core.UpgradeRepoGplay
+import eu.darken.butler.upgrade.core.billing.BillingData
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -12,7 +12,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
-import java.time.Instant
+import kotlin.time.Instant
 
 class UpgradeRepoGplayTest : BaseTest() {
 
@@ -47,7 +47,7 @@ class UpgradeRepoGplayTest : BaseTest() {
                 purchases = setOf(
                     mockk<Purchase>().apply {
                         every { products } returns OurSku.PRO_SKUS.map { it.id }
-                        every { purchaseTime } returns Instant.parse("2023-12-10T00:00:00Z").toEpochMilli()
+                        every { purchaseTime } returns Instant.parse("2023-12-10T00:00:00Z").toEpochMilliseconds()
                     }
                 )
             )

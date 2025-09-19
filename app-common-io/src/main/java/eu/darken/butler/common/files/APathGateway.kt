@@ -1,15 +1,19 @@
 package eu.darken.butler.common.files
 
+import eu.darken.butler.common.files.metadata.Ownership
+import eu.darken.butler.common.files.metadata.Permissions
+import eu.darken.butler.common.files.operations.CopyOperation
+import eu.darken.butler.common.files.operations.MoveOperation
 import eu.darken.butler.common.sharedresource.HasSharedResource
 import kotlinx.coroutines.flow.Flow
 import okio.FileHandle
-import java.time.Instant
+import kotlin.time.Instant
 
 interface APathGateway<
-        P : APath,
-        PLU : APathLookup<P>,
-        PLUE : APathLookupExtended<P>,
-        > : HasSharedResource<Any> {
+    P : APath,
+    PLU : APathLookup<P>,
+    PLUE : APathLookupExtended<P>,
+    > : HasSharedResource<Any>, CopyOperation<P>, MoveOperation<P> {
 
     suspend fun createDir(path: P)
 
@@ -63,4 +67,16 @@ interface APathGateway<
     suspend fun setPermissions(path: P, permissions: Permissions): Boolean
 
     suspend fun setOwnership(path: P, ownership: Ownership): Boolean
+
+    override suspend fun copy(
+        source: P,
+        destination: P,
+        options: CopyOperation.Options
+    ): Flow<CopyOperation.Result>
+
+    override suspend fun move(
+        source: P,
+        destination: P,
+        options: MoveOperation.Options
+    ): Flow<MoveOperation.Result>
 }

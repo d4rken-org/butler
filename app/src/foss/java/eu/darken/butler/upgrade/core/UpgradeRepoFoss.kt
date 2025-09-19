@@ -12,21 +12,22 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import java.time.Instant
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Clock
+import kotlin.time.Instant
+import kotlin.uuid.Uuid
 
 @Singleton
 class UpgradeRepoFoss @Inject constructor(
-    @param:AppScope private val appScope: CoroutineScope,
+    @AppScope private val appScope: CoroutineScope,
     private val fossCache: FossCache,
     private val webpageTool: WebpageTool,
 ) : UpgradeRepo {
 
     override val mainWebsite: String = SITE
 
-    private val refreshTrigger = MutableStateFlow(UUID.randomUUID())
+    private val refreshTrigger = MutableStateFlow(Uuid.random())
 
     override val upgradeInfo: Flow<UpgradeRepo.Info> = combine(
         fossCache.upgrade.flow,
@@ -47,7 +48,7 @@ class UpgradeRepoFoss @Inject constructor(
     fun launchGithubSponsorsUpgrade() = appScope.launch {
         log(TAG) { "launchGithubSponsorsUpgrade()" }
         fossCache.upgrade.valueBlocking = FossUpgrade(
-            upgradedAt = Instant.now(),
+            upgradedAt = Clock.System.now(),
             upgradeType = FossUpgrade.Type.GITHUB_SPONSORS
         )
         webpageTool.open(mainWebsite)
@@ -55,7 +56,7 @@ class UpgradeRepoFoss @Inject constructor(
 
     override suspend fun refresh() {
         log(TAG) { "refresh()" }
-        refreshTrigger.value = UUID.randomUUID()
+        refreshTrigger.value = Uuid.random()
     }
 
     data class Info(

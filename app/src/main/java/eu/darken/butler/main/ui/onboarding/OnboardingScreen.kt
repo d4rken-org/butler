@@ -3,6 +3,7 @@ package eu.darken.butler.main.ui.onboarding
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -20,9 +21,27 @@ import eu.darken.butler.main.ui.onboarding.OnboardingViewModel.State.*
 import eu.darken.butler.main.ui.onboarding.pages.AdaptiveLayoutPage
 import eu.darken.butler.main.ui.onboarding.pages.BetaPage
 import eu.darken.butler.main.ui.onboarding.pages.PrivacyPage
+import eu.darken.butler.main.ui.onboarding.pages.SustainabilityPage
 import eu.darken.butler.main.ui.onboarding.pages.WelcomePage
 import eu.darken.butler.main.ui.onboarding.pages.WorkspacesPage
 import kotlinx.coroutines.launch
+
+@Composable
+fun OnboardingScreenHost(vm: OnboardingViewModel = hiltViewModel()) {
+    ErrorEventHandler(vm)
+
+    val state by waitForState(vm.state)
+
+    state?.let { state ->
+        OnboardingScreen(
+            state = state,
+            onUpdateCheckChange = { vm.setUpdateCheckEnabled(it) },
+            onMotdCheckChange = { vm.setMotdCheckEnabled(it) },
+            onReadPrivacyPolicy = { vm.readPrivacyPolicy() },
+            onFinishOnboarding = vm::completeOnboarding,
+        )
+    }
+}
 
 @Composable
 private fun OnboardingScreen(
@@ -46,7 +65,8 @@ private fun OnboardingScreen(
 
     Column(modifier = Modifier
         .fillMaxSize()
-        .padding(16.dp)) {
+        .padding(16.dp)
+        .navigationBarsPadding()) {
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.weight(1f),
@@ -55,15 +75,6 @@ private fun OnboardingScreen(
             when (Page.entries[page]) {
                 Page.WELCOME ->
                     WelcomePage(
-                        onContinue = {
-                            scope.launch {
-                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                            }
-                        }
-                    )
-
-                Page.BETA ->
-                    BetaPage(
                         onContinue = {
                             scope.launch {
                                 pagerState.animateScrollToPage(pagerState.currentPage + 1)
@@ -82,6 +93,24 @@ private fun OnboardingScreen(
 
                 Page.ADAPTIVE_LAYOUT ->
                     AdaptiveLayoutPage(
+                        onContinue = {
+                            scope.launch {
+                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                            }
+                        }
+                    )
+
+                Page.SUSTAINABILITY ->
+                    SustainabilityPage(
+                        onContinue = {
+                            scope.launch {
+                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                            }
+                        }
+                    )
+
+                Page.BETA ->
+                    BetaPage(
                         onContinue = {
                             scope.launch {
                                 pagerState.animateScrollToPage(pagerState.currentPage + 1)
@@ -113,23 +142,6 @@ private fun OnboardingScreenPreview() {
             onMotdCheckChange = {},
             onReadPrivacyPolicy = {},
             onFinishOnboarding = {},
-        )
-    }
-}
-
-@Composable
-fun OnboardingScreenHost(vm: OnboardingViewModel = hiltViewModel()) {
-    ErrorEventHandler(vm)
-
-    val state by waitForState(vm.state)
-
-    state?.let { state ->
-        OnboardingScreen(
-            state = state,
-            onUpdateCheckChange = { vm.setUpdateCheckEnabled(it) },
-            onMotdCheckChange = { vm.setMotdCheckEnabled(it) },
-            onReadPrivacyPolicy = { vm.readPrivacyPolicy() },
-            onFinishOnboarding = vm::completeOnboarding,
         )
     }
 }

@@ -7,7 +7,9 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.preview.SearcherPreviewData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.parcelize.Parcelize
 
@@ -26,6 +28,7 @@ class SearcherWorkspace @AssistedInject constructor(
             id = id,
             type = type,
             title = "Searcher ${id.shortTag}".toCaString(),
+            previewData = SearcherPreviewData(),
         )
     )
 
@@ -35,7 +38,7 @@ class SearcherWorkspace @AssistedInject constructor(
 
     @Parcelize
     data class Arguments(
-        val placeholder: String,
+        val startPath: APath? = null,
     ) : Workspace.Arguments {
         override val type: Workspace.Type
             get() = Workspace.Type.SEARCHER

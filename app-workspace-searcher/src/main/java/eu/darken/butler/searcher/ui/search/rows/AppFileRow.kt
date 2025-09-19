@@ -6,13 +6,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import java.time.Instant
+import eu.darken.butler.common.files.metadata.FileType
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun AppFileRow(
@@ -55,7 +56,7 @@ private fun AppFileRowPreview() {
                     path = "/storage/emulated/0/Download/signal-android.apk",
                     fileType = FileType.FILE,
                     size = 1024 * 1024 * 47,
-                    modifiedAt = Instant.now().minusSeconds(1800),
+                    modifiedAt = Clock.System.now() - 1800.seconds,
                     metadata = mapOf(
                         "Package" to "org.thoughtcrime.securesms",
                         "Version" to "6.42.3",
@@ -71,7 +72,7 @@ private fun AppFileRowPreview() {
                     path = "/storage/emulated/0/Android/data/eu.darken.butler/butler-app.aab",
                     fileType = FileType.FILE,
                     size = 1024 * 1024 * 12,
-                    modifiedAt = Instant.now().minusSeconds(3600),
+                    modifiedAt = Clock.System.now() - 3600.seconds,
                     metadata = mapOf(
                         "Package" to "eu.darken.butler",
                         "Version" to "1.0.0"

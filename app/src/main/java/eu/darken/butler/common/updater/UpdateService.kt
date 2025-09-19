@@ -15,19 +15,19 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.uuid.Uuid
 
 @Singleton
 class UpdateService @Inject constructor(
-    @param:AppScope private val appScope: CoroutineScope,
+    @AppScope private val appScope: CoroutineScope,
     private val updateChecker: UpdateChecker,
     generalSettings: GeneralSettings,
     releaseManager: ReleaseManager,
 ) {
 
-    private val updateCheckTrigger = MutableStateFlow(UUID.randomUUID())
+    private val updateCheckTrigger = MutableStateFlow(Uuid.random())
     val availableUpdate: Flow<UpdateChecker.Update?> = flow { emit(updateChecker.isCheckSupported()) }
         .flatMapLatest { isSupported ->
             if (!isSupported) {
@@ -66,7 +66,7 @@ class UpdateService @Inject constructor(
 
     suspend fun refresh() {
         log(TAG) { "refresh()" }
-        updateCheckTrigger.value = UUID.randomUUID()
+        updateCheckTrigger.value = Uuid.random()
     }
 
     companion object {

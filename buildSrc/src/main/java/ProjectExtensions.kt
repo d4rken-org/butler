@@ -1,4 +1,3 @@
-
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.LibraryExtension
 import org.gradle.api.JavaVersion
@@ -70,6 +69,7 @@ fun Project.setupKotlinOptions() {
                 "-Xcontext-parameters",
                 "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
                 "-opt-in=kotlin.uuid.ExperimentalUuidApi",
+                "-XXLanguage:+PropertyParamAnnotationDefaultTargetMode",
             )
         }
     }

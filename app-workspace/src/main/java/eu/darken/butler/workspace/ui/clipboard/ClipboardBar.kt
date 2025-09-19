@@ -42,11 +42,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -63,14 +60,14 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.RawPath
+import eu.darken.butler.common.ui.SwipeToDismissItem
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import java.util.Locale
-import java.util.UUID
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
+import kotlin.uuid.Uuid
 import eu.darken.butler.common.R as CommonR
 
 @Composable
@@ -293,56 +290,28 @@ private fun SwipeToDismissEntry(
     triggerDismiss: Long = 0L,
     dismissDelay: Long = 0L,
 ) {
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { dismissValue ->
-            when (dismissValue) {
-                SwipeToDismissBoxValue.EndToStart -> {
-                    onRemoveClick()
-                    true
-                }
-                else -> false
-            }
-        }
-    )
-
-    // Handle programmatic dismiss trigger for clear all animation
-    LaunchedEffect(triggerDismiss) {
-        if (triggerDismiss > 0L) {
-            kotlinx.coroutines.delay(dismissDelay)
-            dismissState.dismiss(SwipeToDismissBoxValue.EndToStart)
-        }
-    }
-
-    SwipeToDismissBox(
-        state = dismissState,
+    SwipeToDismissItem(
         modifier = modifier,
-        enableDismissFromStartToEnd = false,
-        backgroundContent = {
-            // Red background with close icon and text when swiping
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.errorContainer)
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.Close,
-                        contentDescription = stringResource(CommonR.string.general_dismiss_action),
-                        tint = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = stringResource(CommonR.string.general_dismiss_action),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onErrorContainer
-                    )
-                }
-            }
+        onDismiss = onRemoveClick,
+        dismissThreshold = 0.5f,
+        backgroundColor = MaterialTheme.colorScheme.errorContainer,
+        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        verticalPadding = 8,
+        programmaticDismissTrigger = triggerDismiss,
+        programmaticDismissDelay = dismissDelay,
+        dismissContent = {
+            Icon(
+                imageVector = Icons.TwoTone.Close,
+                contentDescription = stringResource(CommonR.string.general_dismiss_action),
+                tint = MaterialTheme.colorScheme.onErrorContainer,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = stringResource(CommonR.string.general_dismiss_action),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer
+            )
         }
     ) {
         ClipboardEntry(
@@ -597,7 +566,7 @@ private fun formatTimestamp(instant: kotlin.time.Instant): String {
 fun ClipboardBarPreview() {
     val mockEntries = listOf(
         ClipboardClip.Paths(
-            origin = Workspace.Id(UUID.randomUUID()),
+            origin = Workspace.Id(Uuid.random()),
             mode = ClipboardClip.Paths.Mode.COPY,
             paths = listOf(
                 LocalPath.build("/storage/emulated/0/Pictures/photo1.jpg"),
@@ -607,7 +576,7 @@ fun ClipboardBarPreview() {
             clippedAt = Clock.System.now() - 5.minutes,
         ),
         ClipboardClip.Paths(
-            origin = Workspace.Id(UUID.randomUUID()),
+            origin = Workspace.Id(Uuid.random()),
             mode = ClipboardClip.Paths.Mode.CUT,
             paths = listOf(
                 LocalPath.build("/storage/emulated/0/Documents/report.pdf"),
@@ -629,7 +598,7 @@ fun ClipboardBarPreview() {
 @Composable
 fun ClipboardBarSingleItemPreview() {
     val singleEntry = ClipboardClip.Paths(
-        origin = Workspace.Id(UUID.randomUUID()),
+        origin = Workspace.Id(Uuid.random()),
         mode = ClipboardClip.Paths.Mode.COPY,
         paths = listOf(
             LocalPath.build("/storage/emulated/0/Documents/important_document.pdf"),
@@ -657,7 +626,7 @@ fun ClipboardBarSingleItemPreview() {
 fun ClipboardBarExpandedPreview() {
     val mockEntries = listOf(
         ClipboardClip.Paths(
-            origin = Workspace.Id(UUID.randomUUID()),
+            origin = Workspace.Id(Uuid.random()),
             mode = ClipboardClip.Paths.Mode.COPY,
             paths = listOf(
                 LocalPath.build("/storage/emulated/0/Pictures/photo1.jpg"),
@@ -667,7 +636,7 @@ fun ClipboardBarExpandedPreview() {
             clippedAt = Clock.System.now() - 5.minutes,
         ),
         ClipboardClip.Paths(
-            origin = Workspace.Id(UUID.randomUUID()),
+            origin = Workspace.Id(Uuid.random()),
             mode = ClipboardClip.Paths.Mode.CUT,
             paths = listOf(
                 LocalPath.build("/storage/emulated/0/Documents/report.pdf"),
@@ -675,7 +644,7 @@ fun ClipboardBarExpandedPreview() {
             clippedAt = Clock.System.now() - 2.minutes,
         ),
         ClipboardClip.Paths(
-            origin = Workspace.Id(UUID.randomUUID()),
+            origin = Workspace.Id(Uuid.random()),
             mode = ClipboardClip.Paths.Mode.COPY,
             paths = listOf(
                 LocalPath.build("/storage/emulated/0/Downloads/app.apk"),

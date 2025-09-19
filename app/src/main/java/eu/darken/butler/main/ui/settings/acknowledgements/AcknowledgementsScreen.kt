@@ -174,10 +174,80 @@ fun AcknowledgementsScreen(
                     title = stringResource(R.string.acknowledgement_android_robot_title),
                     subtitle = stringResource(R.string.acknowledgement_android_robot_subtitle),
                     onClick = {
-                        onOpenUrl(
-                            "https://developer.android.com/distribute/tools/promote/brand.html"
-                        )
+                        onOpenUrl("https://developer.android.com/distribute/tools/promote/brand.html")
                     }
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
+                    title = stringResource(R.string.acknowledgement_jetpack_compose_title),
+                    subtitle = stringResource(R.string.acknowledgement_jetpack_compose_subtitle),
+                    onClick = { onOpenUrl("https://developer.android.com/jetpack/compose") }
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
+                    title = stringResource(R.string.acknowledgement_jetpack_libraries_title),
+                    subtitle = stringResource(R.string.acknowledgement_jetpack_libraries_subtitle),
+                    onClick = { onOpenUrl("https://developer.android.com/jetpack") }
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
+                    title = stringResource(R.string.acknowledgement_kotlin_extensions_title),
+                    subtitle = stringResource(R.string.acknowledgement_kotlin_extensions_subtitle),
+                    onClick = { onOpenUrl("https://github.com/Kotlin/kotlinx.coroutines") }
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
+                    title = stringResource(R.string.acknowledgement_coil_title),
+                    subtitle = stringResource(R.string.acknowledgement_coil_subtitle),
+                    onClick = { onOpenUrl("https://github.com/coil-kt/coil") }
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
+                    title = stringResource(R.string.acknowledgement_square_libraries_title),
+                    subtitle = stringResource(R.string.acknowledgement_square_libraries_subtitle),
+                    onClick = { onOpenUrl("https://square.github.io/") }
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
+                    title = stringResource(R.string.acknowledgement_accompanist_title),
+                    subtitle = stringResource(R.string.acknowledgement_accompanist_subtitle),
+                    onClick = { onOpenUrl("https://github.com/google/accompanist") }
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
+                    title = stringResource(R.string.acknowledgement_reorderable_title),
+                    subtitle = stringResource(R.string.acknowledgement_reorderable_subtitle),
+                    onClick = { onOpenUrl("https://github.com/Calvin-LL/Reorderable") }
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
+                    title = stringResource(R.string.acknowledgement_semver_title),
+                    subtitle = stringResource(R.string.acknowledgement_semver_subtitle),
+                    onClick = { onOpenUrl("https://github.com/z4kn4fein/kotlin-semver") }
                 )
             }
         }

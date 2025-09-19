@@ -7,8 +7,11 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
+import eu.darken.butler.searcher.core.SearchHistory
 import eu.darken.butler.searcher.core.SearcherSettings
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onStart
 import javax.inject.Inject
 
 @HiltViewModel
@@ -18,38 +21,35 @@ constructor(
     dispatcherProvider: DispatcherProvider,
     navCtrl: NavigationController,
     private val searcherSettings: SearcherSettings,
+    private val searchHistory: SearchHistory,
 ) : ViewModel4(dispatcherProvider, logTag("Searcher", "Settings"), navCtrl) {
+
+    // Create a flow for history count that refreshes periodically
+    private val historyCountFlow = flow {
+        while (true) {
+            emit(searchHistory.getHistoryCount())
+            kotlinx.coroutines.delay(1000) // Refresh every second
+        }
+    }.onStart { emit(0) } // Start with 0 while loading
 
     // Combine all settings into the final state
     val state = combine(
-        searcherSettings.caseSensitive.flow,
-        searcherSettings.wholeWord.flow,
-        searcherSettings.useRegex.flow,
+        searcherSettings.maxSearchResults.flow,
         searcherSettings.maxHistoryItems.flow,
         searcherSettings.saveHistory.flow,
-    ) { caseSensitive, wholeWord, useRegex, maxHistoryItems, saveHistory ->
+        historyCountFlow,
+    ) { maxSearchResults, maxHistoryItems, saveHistory, historyCount ->
         State(
-            caseSensitive = caseSensitive,
-            wholeWord = wholeWord,
-            useRegex = useRegex,
+            maxSearchResults = maxSearchResults,
             maxHistoryItems = maxHistoryItems,
             saveHistory = saveHistory,
+            currentHistoryCount = historyCount,
         )
     }.asStateFlow()
 
-    fun updateCaseSensitive(enabled: Boolean) = launch {
-        log(tag) { "updateCaseSensitive($enabled)" }
-        searcherSettings.caseSensitive.value(enabled)
-    }
-
-    fun updateWholeWord(enabled: Boolean) = launch {
-        log(tag) { "updateWholeWord($enabled)" }
-        searcherSettings.wholeWord.value(enabled)
-    }
-
-    fun updateUseRegex(enabled: Boolean) = launch {
-        log(tag) { "updateUseRegex($enabled)" }
-        searcherSettings.useRegex.value(enabled)
+    fun updateMaxSearchResults(count: Int) = launch {
+        log(tag) { "updateMaxSearchResults($count)" }
+        searcherSettings.maxSearchResults.value(count)
     }
 
     fun updateMaxHistoryItems(count: Int) = launch {
@@ -64,16 +64,14 @@ constructor(
 
     fun clearSearchHistory() = launch {
         log(tag) { "clearSearchHistory()" }
-        // Implementation would depend on how search history is stored
-        // This is just a placeholder for the functionality
+        searchHistory.clearHistory()
     }
 
 
     data class State(
-        val caseSensitive: Boolean = false,
-        val wholeWord: Boolean = false,
-        val useRegex: Boolean = false,
+        val maxSearchResults: Int = 1000,
         val maxHistoryItems: Int = 10,
         val saveHistory: Boolean = true,
+        val currentHistoryCount: Int = 0,
     )
 }

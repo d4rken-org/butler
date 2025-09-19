@@ -10,6 +10,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.templates.R
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.preview.TemplatesPreviewData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.parcelize.Parcelize
 
@@ -31,7 +32,8 @@ class TemplatesWorkspace @AssistedInject constructor(
                 val base = StringBuilder(it.getString(R.string.workspace_templates_tab_title))
                 if (Bugs.isDebug) base.append(" " + id.shortTag)
                 base.toString()
-            }
+            },
+            previewData = TemplatesPreviewData(),
         )
     )
 

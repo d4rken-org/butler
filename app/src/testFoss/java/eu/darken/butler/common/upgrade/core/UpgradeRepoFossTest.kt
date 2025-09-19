@@ -7,7 +7,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
-import java.time.Instant
+import kotlin.time.Instant
 
 class UpgradeRepoFossTest : BaseTest() {
 
@@ -32,7 +32,7 @@ class UpgradeRepoFossTest : BaseTest() {
 
         UpgradeRepoFoss.Info(
             isUpgraded = true,
-            upgradedAt = Instant.EPOCH,
+            upgradedAt = Instant.fromEpochMilliseconds(0),
         ).isUpgraded shouldBe true
     }
 }

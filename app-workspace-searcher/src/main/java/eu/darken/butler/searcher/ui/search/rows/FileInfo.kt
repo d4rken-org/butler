@@ -9,9 +9,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.ByteFormatter
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import java.time.Instant
+import eu.darken.butler.common.files.metadata.FileType
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun FileInfo(
@@ -44,7 +47,7 @@ fun FileInfo(
         val isDirectory = data.fileType == FileType.DIRECTORY
         val details = buildString {
             if (!isDirectory && data.size != null) {
-                append(formatFileSize(data.size))
+                append(ByteFormatter.formatFileSize(data.size))
             }
             if (data.modifiedAt != null) {
                 if (isNotEmpty()) append(" • ")
@@ -88,7 +91,7 @@ private fun FileInfoPreview() {
                     path = "/storage/emulated/0/Downloads/document.pdf",
                     fileType = FileType.FILE,
                     size = 1024 * 512,
-                    modifiedAt = Instant.now().minusSeconds(3600)
+                    modifiedAt = Clock.System.now() - 3600.seconds,
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -98,7 +101,7 @@ private fun FileInfoPreview() {
                     name = "Pictures",
                     path = "/storage/emulated/0/Pictures",
                     fileType = FileType.DIRECTORY,
-                    modifiedAt = Instant.now().minusSeconds(86400)
+                    modifiedAt = Clock.System.now() - 86400.seconds
                 ),
                 showPath = false,
                 modifier = Modifier.fillMaxWidth()

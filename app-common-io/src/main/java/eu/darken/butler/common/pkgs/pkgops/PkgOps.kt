@@ -49,15 +49,17 @@ import eu.darken.butler.common.user.UserHandle2
 import eu.darken.butler.common.user.UserManager2
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.plus
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.uuid.Uuid
+import kotlin.uuid.toJavaUuid
+import kotlin.uuid.toKotlinUuid
 
 @Singleton
 class PkgOps @Inject constructor(
-    @param:AppScope private val appScope: CoroutineScope,
+    @AppScope private val appScope: CoroutineScope,
     dispatcherProvider: DispatcherProvider,
-    @param:ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context,
     private val ipcFunnel: IPCFunnel,
     private val rootManager: RootManager,
     private val adbManager: AdbManager,
@@ -490,11 +492,11 @@ class PkgOps @Inject constructor(
 
     suspend fun querySizeStats(
         installId: InstallId,
-        storageUUID: UUID = StorageManager.UUID_DEFAULT
+        storageUUID: Uuid = StorageManager.UUID_DEFAULT.toKotlinUuid()
     ): SizeStats? = try {
         log(TAG, VERBOSE) { "querySizeStats($installId,$storageUUID)" }
         val stats = storageStatsManager.queryStatsForPackage(
-            storageUUID,
+            storageUUID.toJavaUuid(),
             installId.pkgId.name,
             installId.userHandle.asUserHandle(),
         )

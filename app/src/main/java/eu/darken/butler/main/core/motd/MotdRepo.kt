@@ -17,19 +17,19 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.uuid.Uuid
 
 @Singleton
 class MotdRepo @Inject constructor(
-    @param:AppScope private val scope: CoroutineScope,
+    @AppScope private val scope: CoroutineScope,
     private val endpoint: MotdEndpoint,
     private val settings: MotdSettings,
     generalSettings: GeneralSettings,
     localeManager: LocaleManager,
 ) {
-    private val refreshTrigger = MutableStateFlow(UUID.randomUUID())
+    private val refreshTrigger = MutableStateFlow(Uuid.random())
 
     val motd: Flow<MotdState?> = combine(
         refreshTrigger,
@@ -69,7 +69,7 @@ class MotdRepo @Inject constructor(
         }
         .replayingShare(scope)
 
-    suspend fun dismiss(id: UUID) {
+    suspend fun dismiss(id: Uuid) {
         log(TAG) { "dismiss(${id})" }
         settings.lastDismissedMotd.value(id)
     }

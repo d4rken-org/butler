@@ -14,7 +14,7 @@ import javax.inject.Singleton
 
 @Singleton
 class GooglePlayReporting @Inject constructor(
-    @param:ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context,
     private val generalSettings: GeneralSettings,
     private val debugSettings: DebugSettings,
     private val butlerId: ButlerId,

@@ -27,19 +27,6 @@ import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.SinglePaneLayou
 import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.TripleMainLeftLayout
 import kotlinx.parcelize.Parcelize
 
-/**
- * Creates a callback function for divider position changes.
- * This helper ensures that divider positions are always updated with the current state,
- * avoiding stale closure issues.
- */
-private fun createDividerCallback(
-    getCurrentDividerPositions: () -> DividerPositions,
-    onDividerPositionsChange: (DividerPositions) -> Unit,
-    updatePosition: DividerPositions.(Float) -> DividerPositions,
-): (Float) -> Unit = { newPos ->
-    val current = getCurrentDividerPositions()
-    onDividerPositionsChange(current.updatePosition(newPos))
-}
 
 
 /**
@@ -69,7 +56,6 @@ data class DividerPositions(
  * @param focusedTabId The ID of the currently focused workspace
  * @param dividerPositions Current positions of the dividers
  * @param onDividerPositionsChange Callback when divider positions change
- * @param getCurrentDividerPositions Function to get the latest divider positions (used to avoid stale closures)
  * @param onTabFocus Callback when a workspace tab receives focus
  * @param showPaneNumbers Whether to show pane numbers for workspace assignment
  * @param paneContent Content to display for each workspace
@@ -82,7 +68,6 @@ fun AdaptiveWorkspaceContainer(
     focusedTabId: Workspace.Id?,
     dividerPositions: DividerPositions,
     onDividerPositionsChange: (DividerPositions) -> Unit,
-    getCurrentDividerPositions: () -> DividerPositions = { dividerPositions },
     onTabFocus: (Workspace.Id) -> Unit,
     showPaneNumbers: Boolean = false,
     showPaneOverlay: Boolean = false,
@@ -98,10 +83,6 @@ fun AdaptiveWorkspaceContainer(
                 containerSize = coordinates.size
             }
     ) {
-        val dividerCallbackFactory: (DividerPositions.(Float) -> DividerPositions) -> (Float) -> Unit = { updateFn ->
-            createDividerCallback(getCurrentDividerPositions, onDividerPositionsChange, updateFn)
-        }
-        
         when (design.layout) {
             WorkspaceDesign.Layout.SINGLE -> {
                 SinglePaneLayout(
@@ -123,7 +104,7 @@ fun AdaptiveWorkspaceContainer(
                     showPaneNumbers = showPaneNumbers,
                     showPaneOverlay = showPaneOverlay,
                     onTabFocus = onTabFocus,
-                    createDividerCallback = dividerCallbackFactory,
+                    onDividerPositionsChange = onDividerPositionsChange,
                     paneContent = paneContent,
                 )
             }
@@ -137,7 +118,7 @@ fun AdaptiveWorkspaceContainer(
                     showPaneNumbers = showPaneNumbers,
                     showPaneOverlay = showPaneOverlay,
                     onTabFocus = onTabFocus,
-                    createDividerCallback = dividerCallbackFactory,
+                    onDividerPositionsChange = onDividerPositionsChange,
                     paneContent = paneContent,
                 )
             }
@@ -151,7 +132,7 @@ fun AdaptiveWorkspaceContainer(
                     showPaneNumbers = showPaneNumbers,
                     showPaneOverlay = showPaneOverlay,
                     onTabFocus = onTabFocus,
-                    createDividerCallback = dividerCallbackFactory,
+                    onDividerPositionsChange = onDividerPositionsChange,
                     paneContent = paneContent,
                 )
             }
@@ -189,7 +170,6 @@ private fun AdaptiveWorkspaceContainerPreview() {
             focusedTabId = tabs[0].id,
             dividerPositions = dividerPositions,
             onDividerPositionsChange = { dividerPositions = it },
-            getCurrentDividerPositions = { dividerPositions },
             onTabFocus = {},
             showPaneNumbers = true,
             paneContent = { tab, paneNumber ->

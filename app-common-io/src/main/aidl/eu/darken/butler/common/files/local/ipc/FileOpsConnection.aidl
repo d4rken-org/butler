@@ -6,8 +6,8 @@ import eu.darken.butler.common.ipc.RemoteOutputStream;
 import eu.darken.butler.common.files.LocalPath;
 import eu.darken.butler.common.files.local.LocalPathLookup;
 import eu.darken.butler.common.files.local.LocalPathLookupExtended;
-import eu.darken.butler.common.files.Ownership;
-import eu.darken.butler.common.files.Permissions;
+import eu.darken.butler.common.files.metadata.Ownership;
+import eu.darken.butler.common.files.metadata.Permissions;
 
 interface FileOpsConnection {
 

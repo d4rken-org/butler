@@ -62,6 +62,11 @@ class OnboardingViewModel @Inject constructor(
         webpageTool.open(ButlerLinks.PRIVACY_POLICY)
     }
 
+    fun reportIssue() = launch {
+        log(tag) { "reportIssue()" }
+        webpageTool.open(ButlerLinks.ISSUES)
+    }
+
     data class State(
         val startPage: Page = Page.WELCOME,
         val isUpdateCheckEnabled: Boolean = false,
@@ -71,9 +76,10 @@ class OnboardingViewModel @Inject constructor(
 
         enum class Page {
             WELCOME,
-            BETA,
             WORKSPACES,
             ADAPTIVE_LAYOUT,
+            SUSTAINABILITY,
+            BETA,
             PRIVACY,
             ;
         }

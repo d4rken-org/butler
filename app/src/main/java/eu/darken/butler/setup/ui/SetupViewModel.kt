@@ -42,16 +42,57 @@ class SetupViewModel @AssistedInject constructor(
     )
     val runtimePermissionEvents = _runtimePermissionEvents.asSharedFlow()
 
-    init {
-        log(tag) { "init with options: $options" }
-        setupManager.setOptions(options)
-    }
+    val state = setupManager.moduleStates
+        .map { moduleStates ->
+            val items = SetupModule.Type.entries.mapNotNull { type ->
+                // Filter by typeFilter if provided
+                if (options.typeFilter != null && type !in options.typeFilter) {
+                    return@mapNotNull null
+                }
 
-    val state = setupManager.setupItems
-        .map { items ->
-            State(items = items)
+                val state = moduleStates[type]
+                if (state != null) {
+                    // Filter by showCompleted if set to false
+                    if (!options.showCompleted && state is SetupModule.State.Current && state.isComplete) {
+                        return@mapNotNull null
+                    }
+
+                    SetupItem(
+                        type = type,
+                        state = state,
+                        isRequired = isRequired(type),
+                        priority = type.priority,
+                    )
+                } else {
+                    log(tag) { "No state found for setup type: $type" }
+                    null
+                }
+            }.sortedWith(
+                compareBy(
+                    // First sort by completion status (incomplete first)
+                    { (it.state as? SetupModule.State.Current)?.isComplete == true },
+                    // Then by priority within each group
+                    { it.priority }
+                )
+            )
+
+            val allRequiredComplete = options.requiredTypes?.let { requiredTypes ->
+                requiredTypes.isNotEmpty() && requiredTypes.all { type ->
+                    val moduleState = moduleStates[type]
+                    (moduleState as? SetupModule.State.Current)?.isComplete == true
+                }
+            } ?: false
+
+            State(
+                items = items,
+                allRequiredComplete = allRequiredComplete
+            )
         }
         .asStateFlow()
+
+    init {
+        log(tag) { "init with options: $options" }
+    }
 
     fun refresh() = launch {
         log(tag) { "refresh()" }
@@ -79,6 +120,10 @@ class SetupViewModel @AssistedInject constructor(
         webpageTool.open(helpUrl)
     }
 
+    private fun isRequired(type: SetupModule.Type): Boolean {
+        return options.requiredTypes?.contains(type) ?: false
+    }
+
     private fun getHelpUrl(type: SetupModule.Type): String {
         val baseUrl = "https://github.com/d4rken-org/butler/wiki"
         return when (type) {
@@ -94,6 +139,7 @@ class SetupViewModel @AssistedInject constructor(
 
     data class State(
         val items: List<SetupItem> = emptyList(),
+        val allRequiredComplete: Boolean = false,
     )
 
     @AssistedFactory
@@ -101,3 +147,14 @@ class SetupViewModel @AssistedInject constructor(
         fun create(options: SetupScreenOptions): SetupViewModel
     }
 }
+
+private val SetupModule.Type.priority: Int
+    get() = when (this) {
+        SetupModule.Type.STORAGE -> 1
+        SetupModule.Type.SAF -> 2
+        SetupModule.Type.NOTIFICATION -> 3
+        SetupModule.Type.USAGE_STATS -> 4
+        SetupModule.Type.ROOT -> 5
+        SetupModule.Type.SHIZUKU -> 6
+        SetupModule.Type.INVENTORY -> 7
+    }

@@ -14,6 +14,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
+import eu.darken.butler.workspace.core.preview.PreviewData
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
@@ -29,35 +30,27 @@ class WorkspaceManagerViewModel @Inject constructor(
 
     val state = combine(
         workspaceRepo.state,
-        workspaceSettings.isButtonActionsFlipped.flow,
         workspaceSettings.showBadgeExplanation.flow,
         workspaceSettings.showButtonBehaviorExplanation.flow,
-    ) { repoState, isFlipped, showBadge, showBehavior ->
+        workspaceSettings.isButtonActionsFlipped.flow,
+    ) { repoState, showBadge, showBehavior, isButtonFlipped ->
         State(
             workspaces = repoState.infos.map { info ->
                 WorkspaceItem(
                     id = info.id,
                     type = info.type,
                     title = info.title,
-                    subtitle = getSubtitleForWorkspace(info.type),
+                    subtitle = info.subtitle,
+                    previewData = info.previewData,
                 )
             },
-            isButtonFlipped = isFlipped,
             showBadgeExplanation = showBadge,
             showButtonBehaviorExplanation = showBehavior,
             operationsCount = repoState.operationCount,
             attentionCount = repoState.attentionCount,
+            isButtonActionsFlipped = isButtonFlipped,
         )
     }.asStateFlow()
-
-    private fun getSubtitleForWorkspace(type: Workspace.Type): String {
-        return when (type) {
-            Workspace.Type.TEMPLATES -> "Workspace templates"
-            Workspace.Type.EXPLORER -> "File explorer"
-            Workspace.Type.SEARCHER -> "File search"
-            Workspace.Type.EDITOR -> "Text editor"
-        }
-    }
 
     fun closeWorkspace(id: Workspace.Id) = launch {
         workspaceRepo.execute(WorkspaceAction.Close(id))
@@ -89,10 +82,6 @@ class WorkspaceManagerViewModel @Inject constructor(
         navTo(Nav.Main.settings())
     }
 
-    fun toggleButtonFlipped() = launch {
-        val current = workspaceSettings.isButtonActionsFlipped.value()
-        workspaceSettings.isButtonActionsFlipped.update { !current }
-    }
 
     fun dismissBadgeExplanation() = launch {
         workspaceSettings.showBadgeExplanation.update { false }
@@ -109,19 +98,25 @@ class WorkspaceManagerViewModel @Inject constructor(
 
     data class State(
         val workspaces: List<WorkspaceItem> = emptyList(),
-        val isButtonFlipped: Boolean = false,
         val showBadgeExplanation: Boolean = true,
         val showButtonBehaviorExplanation: Boolean = true,
         val operationsCount: Int = 0,
         val attentionCount: Int = 0,
+        val isButtonActionsFlipped: Boolean = false,
     ) {
         val workspaceCount: Int = workspaces.size
+    }
+
+    fun toggleButtonActions() = launch {
+        val current = workspaceSettings.isButtonActionsFlipped.value()
+        workspaceSettings.isButtonActionsFlipped.value(!current)
     }
 
     data class WorkspaceItem(
         val id: Workspace.Id,
         val type: Workspace.Type,
         val title: CaString,
-        val subtitle: String,
+        val subtitle: CaString?,
+        val previewData: PreviewData? = null,
     )
 }

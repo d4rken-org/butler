@@ -9,14 +9,20 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.operations.Issue
 import eu.darken.butler.common.flow.SingleEventFlow
-import eu.darken.butler.common.ui.ViewModel3
+import eu.darken.butler.common.navigation.Nav
+import eu.darken.butler.common.navigation.NavigationController
+import eu.darken.butler.common.navigation.destSetup
+import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
+import eu.darken.butler.explorer.core.engine.locationId
+import eu.darken.butler.explorer.core.operations.OperationId
 import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemResult
@@ -25,10 +31,12 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.DeleteConfirmationResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
+import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
+import eu.darken.butler.workspace.core.permissions.PermissionState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -41,22 +49,20 @@ import kotlinx.coroutines.flow.map
 class ExplorerWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
     dispatchers: DispatcherProvider,
-    private val workspaceProvider: WorkspaceProvider,
+    navController: NavigationController,
+    workspaceProvider: WorkspaceProvider,
     private val actionProvider: DefaultActionProvider,
     private val clipboardRepo: ClipboardRepo,
-) : ViewModel3(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
-
-    enum class ViewMode {
-        LIST,
-        GRID
-    }
+) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
 
     private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
     private val viewModeFlow = MutableStateFlow(ViewMode.LIST)
     private val dialogStateFlow = MutableStateFlow<ExplorerDialogState>(ExplorerDialogState.None)
+    private val conflictStateFlow = MutableStateFlow<Issue?>(null)
+    val conflictState = conflictStateFlow
+    private var currentConflictOperationId: OperationId? = null
 
     val dialogEvents = SingleEventFlow<ExplorerDialogEvent>()
-    val scrollResetEvents = SingleEventFlow<Unit>()
 
     private val workspace: Flow<ExplorerWorkspace?> = workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
 
@@ -65,6 +71,36 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val workspaceState: Flow<ExplorerWorkspace.State> = workspace.flatMapLatest { ws ->
         ws?.current ?: MutableStateFlow(ExplorerWorkspace.State())
     }
+
+    init {
+        // Handle dialog events
+        launch {
+            dialogEvents.collect { event ->
+                handleDialogEvent(event)
+            }
+        }
+
+        // Observe pending conflicts from workspace and update UI state
+        launch {
+            workspaceState.collect { wsState ->
+                val firstConflictEntry = wsState.pendingConflicts.entries.firstOrNull()
+                if (firstConflictEntry != null) {
+                    val (operationId, awaitingInputState) = firstConflictEntry
+                    currentConflictOperationId = operationId
+                    conflictStateFlow.value = awaitingInputState.issue
+                } else {
+                    currentConflictOperationId = null
+                    conflictStateFlow.value = null
+                }
+            }
+        }
+    }
+
+    enum class ViewMode {
+        LIST,
+        GRID
+    }
+
 
     val state = combine(
         workspaceState,
@@ -89,6 +125,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
         State(
             currentLocation = wsState.currentLocation,
+            locationId = wsState.currentLocation?.locationId,
             breadcrumbs = wsState.currentBreadcrumbs ?: emptyList(),
             items = items,
             isLoading = wsState.isLoading,
@@ -101,6 +138,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             availableActions = availableActions,
             dialogState = dialogState,
             clipboardEntries = clipboard.entries,
+            permissionState = wsState.currentLocation?.permissionState ?: PermissionState(),
         )
     }.asStateFlow()
 
@@ -263,15 +301,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    init {
-        // Handle dialog events
-        launch {
-            dialogEvents.collect { event ->
-                handleDialogEvent(event)
-            }
-        }
-    }
-
     private suspend fun handleDialogEvent(event: ExplorerDialogEvent) {
         log(tag) { "handleDialogEvent($event)" }
         when (event) {
@@ -301,13 +330,15 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val currentLocation = state.first().currentLocation
         if (currentLocation is ExplorerLocation.Directory) {
             val operation = when (result.type) {
-                CreateItemType.FOLDER -> ExplorerOperation.FileOp.CreateFolder(
+                CreateItemType.FOLDER -> ExplorerOperation.FileOp.Create(
                     parentPath = currentLocation.path,
-                    name = result.name
+                    name = result.name,
+                    type = ExplorerOperation.FileOp.Create.Type.FOLDER,
                 )
-                CreateItemType.FILE -> ExplorerOperation.FileOp.CreateFile(
+                CreateItemType.FILE -> ExplorerOperation.FileOp.Create(
                     parentPath = currentLocation.path,
-                    name = result.name
+                    name = result.name,
+                    type = ExplorerOperation.FileOp.Create.Type.FILE,
                 )
             }
             getWorkspace().execute(operation)
@@ -377,8 +408,25 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         clipboardRepo.clear()
     }
 
+    fun resolveConflict(resolution: Issue.Resolution?) = launch {
+        log(tag) { "resolveConflict(): $resolution" }
+
+        val operationId = currentConflictOperationId
+        if (operationId != null) {
+            // Forward resolution to workspace
+            getWorkspace().resolveConflict(operationId, resolution)
+        } else {
+            log(tag, WARN) { "Cannot resolve conflict: no current operation ID" }
+        }
+
+        // Clear conflict UI state (it will be updated by workspace state observer if needed)
+        conflictStateFlow.value = null
+        currentConflictOperationId = null
+    }
+
     data class State(
         val currentLocation: ExplorerLocation? = null,
+        val locationId: String? = null,
         val breadcrumbs: List<ExplorerBreadcrumb> = emptyList(),
         val items: List<ExplorerItem>,
         val isLoading: Boolean,
@@ -391,12 +439,24 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val availableActions: List<ExplorerAction> = emptyList(),
         val dialogState: ExplorerDialogState = ExplorerDialogState.None,
         val clipboardEntries: List<ClipboardClip> = emptyList(),
+        val permissionState: PermissionState = PermissionState(),
     )
 
     data class ClipboardState(
         val items: Set<String>,
         val isCut: Boolean,
     )
+
+    fun navigateToSetup() = launch {
+        log(tag) { "navigateToSetup(): Opening setup for storage permissions" }
+        navTo(
+            Nav.Main.destSetup(
+                typeFilter = setOf(SetupModule.Type.STORAGE),
+                requiredTypes = setOf(SetupModule.Type.STORAGE),
+                autoCloseWhenComplete = true,
+            )
+        )
+    }
 
     @AssistedFactory
     interface Factory {

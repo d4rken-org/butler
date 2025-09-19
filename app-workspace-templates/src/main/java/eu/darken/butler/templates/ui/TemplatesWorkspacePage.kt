@@ -155,9 +155,8 @@ fun TemplatesWorkspacePage(
                     .padding(horizontal = 24.dp)
                     .padding(top = 16.dp),
                 horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(R.string.workspace_templates_choose_title),
                         style = MaterialTheme.typography.headlineMedium,

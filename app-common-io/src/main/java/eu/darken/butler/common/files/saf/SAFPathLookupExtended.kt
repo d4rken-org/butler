@@ -2,9 +2,9 @@ package eu.darken.butler.common.files.saf
 
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.APathLookupExtended
-import eu.darken.butler.common.files.Ownership
-import eu.darken.butler.common.files.Permissions
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.metadata.Ownership
+import eu.darken.butler.common.files.metadata.Permissions
 
 data class SAFPathLookupExtended(
     val lookup: SAFPathLookup,

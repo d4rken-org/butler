@@ -8,18 +8,30 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ClearAll
 import androidx.compose.material.icons.twotone.History
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.twotone.ClearAll
-import androidx.compose.material.icons.twotone.Search
+import androidx.compose.material.icons.twotone.Numbers
+import androidx.compose.material.icons.twotone.Storage
+import androidx.compose.material.icons.twotone.QueryStats
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.searcher.R
@@ -36,14 +48,18 @@ import eu.darken.butler.common.settings.SettingsSwitchItem
 fun SearcherSettingsScreen(
     state: SearcherSettingsViewModel.State,
     onNavigateUp: () -> Unit,
-    onCaseSensitiveChange: (Boolean) -> Unit,
-    onWholeWordChange: (Boolean) -> Unit,
-    onUseRegexChange: (Boolean) -> Unit,
+    onMaxSearchResultsChange: (Int) -> Unit,
     onMaxHistoryItemsChange: (Int) -> Unit,
     onSaveHistoryChange: (Boolean) -> Unit,
     onClearSearchHistory: () -> Unit,
 ) {
+    var showClearHistoryDialog by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.searcher_settings_title)) },
@@ -67,38 +83,28 @@ fun SearcherSettingsScreen(
             verticalArrangement = Arrangement.Top
         ) {
             item {
-                SettingsCategoryHeader(text = stringResource(R.string.searcher_settings_search_options))
+                SettingsCategoryHeader(text = stringResource(R.string.searcher_settings_search_performance))
             }
 
             item {
-                SettingsSwitchItem(
-                    icon = Icons.TwoTone.Search,
-                    title = stringResource(R.string.searcher_settings_case_sensitive_title),
-                    subtitle = stringResource(R.string.searcher_settings_case_sensitive_subtitle),
-                    checked = state.caseSensitive,
-                    onCheckedChange = onCaseSensitiveChange
-                )
-                SettingsDivider()
-            }
-
-            item {
-                SettingsSwitchItem(
-                    icon = Icons.TwoTone.Search,
-                    title = stringResource(R.string.searcher_settings_whole_word_title),
-                    subtitle = stringResource(R.string.searcher_settings_whole_word_subtitle),
-                    checked = state.wholeWord,
-                    onCheckedChange = onWholeWordChange
-                )
-                SettingsDivider()
-            }
-
-            item {
-                SettingsSwitchItem(
-                    icon = Icons.TwoTone.Search,
-                    title = stringResource(R.string.searcher_settings_regex_title),
-                    subtitle = stringResource(R.string.searcher_settings_regex_subtitle),
-                    checked = state.useRegex,
-                    onCheckedChange = onUseRegexChange
+                SettingsPreferenceItem(
+                    icon = Icons.TwoTone.Numbers,
+                    title = stringResource(R.string.searcher_settings_max_results_title),
+                    subtitle = stringResource(R.string.searcher_settings_max_results_subtitle),
+                    value = state.maxSearchResults.toString(),
+                    onClick = {
+                        // Cycle through common preset values
+                        val newValue = when (state.maxSearchResults) {
+                            100 -> 250
+                            250 -> 500
+                            500 -> 1000
+                            1000 -> 2500
+                            2500 -> 5000
+                            5000 -> 10000
+                            else -> 100  // Reset to default for any other value
+                        }
+                        onMaxSearchResultsChange(newValue)
+                    }
                 )
                 SettingsDivider()
             }
@@ -120,7 +126,7 @@ fun SearcherSettingsScreen(
 
             item {
                 SettingsPreferenceItem(
-                    icon = Icons.TwoTone.History,
+                    icon = Icons.TwoTone.Storage,
                     title = stringResource(R.string.searcher_settings_max_history_title),
                     subtitle = stringResource(R.string.searcher_settings_max_history_subtitle),
                     value = state.maxHistoryItems.toString(),
@@ -136,13 +142,61 @@ fun SearcherSettingsScreen(
 
             item {
                 SettingsPreferenceItem(
+                    icon = Icons.TwoTone.QueryStats,
+                    title = stringResource(R.string.searcher_settings_current_history_title),
+                    subtitle = stringResource(R.string.searcher_settings_current_history_subtitle),
+                    value = state.currentHistoryCount.toString(),
+                    onClick = { /* Read-only, no action */ }
+                )
+                SettingsDivider()
+            }
+            item {
+                SettingsPreferenceItem(
                     icon = Icons.TwoTone.ClearAll,
                     title = stringResource(R.string.searcher_settings_clear_history_title),
                     subtitle = stringResource(R.string.searcher_settings_clear_history_subtitle),
-                    onClick = onClearSearchHistory
+                    onClick = { showClearHistoryDialog = true }
                 )
             }
         }
+    }
+
+    // Clear history confirmation dialog
+    if (showClearHistoryDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearHistoryDialog = false },
+            title = {
+                Text(text = stringResource(R.string.searcher_history_clear_dialog_title))
+            },
+            text = {
+                Text(text = stringResource(R.string.searcher_history_clear_dialog_message))
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onClearSearchHistory()
+                        showClearHistoryDialog = false
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = context.getString(R.string.searcher_history_cleared_success)
+                            )
+                        }
+                    }
+                ) {
+                    Text(
+                        text = stringResource(R.string.searcher_history_clear_confirm_action),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showClearHistoryDialog = false }
+                ) {
+                    Text(text = stringResource(R.string.general_cancel_action))
+                }
+            }
+        )
     }
 }
 
@@ -152,16 +206,13 @@ private fun SearcherSettingsScreenPreview() {
     PreviewWrapper {
         SearcherSettingsScreen(
             state = SearcherSettingsViewModel.State(
-                caseSensitive = true,
-                wholeWord = false,
-                useRegex = true,
+                maxSearchResults = 1000,
                 maxHistoryItems = 15,
-                saveHistory = true
+                saveHistory = true,
+                currentHistoryCount = 7
             ),
             onNavigateUp = {},
-            onCaseSensitiveChange = {},
-            onWholeWordChange = {},
-            onUseRegexChange = {},
+            onMaxSearchResultsChange = {},
             onMaxHistoryItemsChange = {},
             onSaveHistoryChange = {},
             onClearSearchHistory = {},
@@ -179,9 +230,7 @@ fun SearcherSettingsScreenHost(vm: SearcherSettingsViewModel = hiltViewModel()) 
         SearcherSettingsScreen(
             state = vmState,
             onNavigateUp = { vm.navUp() },
-            onCaseSensitiveChange = { vm.updateCaseSensitive(it) },
-            onWholeWordChange = { vm.updateWholeWord(it) },
-            onUseRegexChange = { vm.updateUseRegex(it) },
+            onMaxSearchResultsChange = { vm.updateMaxSearchResults(it) },
             onMaxHistoryItemsChange = { vm.updateMaxHistoryItems(it) },
             onSaveHistoryChange = { vm.updateSaveHistory(it) },
             onClearSearchHistory = { vm.clearSearchHistory() },
