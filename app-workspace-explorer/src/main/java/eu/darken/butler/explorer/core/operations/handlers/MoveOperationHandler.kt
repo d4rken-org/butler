@@ -3,25 +3,26 @@ package eu.darken.butler.explorer.core.operations.handlers
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.extensions.delete
-import eu.darken.butler.common.files.operations.DeleteOperation
-import eu.darken.butler.explorer.core.engine.CopyOptions
+import eu.darken.butler.common.files.extensions.move
+import eu.darken.butler.common.files.operations.MoveOperation
+import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.explorer.core.operations.IssueHandler
 import eu.darken.butler.explorer.core.operations.OperationContext
-import eu.darken.butler.explorer.core.operations.OperationNotifier
+import eu.darken.butler.explorer.core.operations.OperationResult
+import eu.darken.butler.explorer.core.operations.OperationState
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.flow.onEach
 
 class MoveOperationHandler @AssistedInject constructor(
     @Assisted workspaceId: Workspace.Id,
     @Assisted private val issueHandler: IssueHandler,
-    @Assisted private val copyHandler: CopyOperationHandler,
     gatewaySwitch: GatewaySwitch,
     dispatcherProvider: DispatcherProvider,
 ) : BaseOperationHandler<ExplorerOperation.FileOp.Move>(
@@ -30,54 +31,54 @@ class MoveOperationHandler @AssistedInject constructor(
     dispatcherProvider,
 ) {
 
-    private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "OperationEngine", "Move")
+    private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "Operation", "Move")
 
     override suspend fun execute(
         context: OperationContext,
         operation: ExplorerOperation.FileOp.Move,
-    ): Unit = with(context) {
+    ): OperationResult.Success = with(context) {
         log(tag) { "execute(): $operation" }
 
-        // Emit hint for move operation
-        when (val first = operation.sources.firstOrNull()) {
-            is LocalPath -> first.parent() ?: operation.destination
-            else -> operation.destination
-        }
+        val operationState = OperationState.OnGoing(
+            operationId = operationId,
+            startedAt = startedAt,
+        )
 
-        // Move is copy + delete
-        copyHandler.execute(
-            context,
-            ExplorerOperation.FileOp.Copy(
-                sources = operation.sources,
-                destination = operation.destination,
-                options = CopyOptions(
-                    preserveAttributes = operation.options.preserveAttributes,
-                ),
+        operation.sources.move(
+            gateway = gatewaySwitch,
+            destination = operation.destination,
+            options = MoveOperation.Options(
+                onIssue = { issue -> issueHandler.handleIssue(context, issue) }
             )
         )
-        OperationNotifier.Hint.FilesAdded(
-            operationId = operation.operationId,
-            affectedFolder = operation.destination,
-            files = operation.sources.toList(),
-        ).run { emit(this) }
+            .onEach { moveState ->
+                when (moveState) {
+                    is MoveOperation.State.Progress<*> -> {
+                        reportBuilder.updateBytesProcessed(moveState.bytesMoved)
 
-        // Delete sources after successful copy
-        for (source in operation.sources) {
-            source.delete(
-                gateway = gatewaySwitch,
-                options = DeleteOperation.Options(
-                    recursive = true,
-                    onIssue = { issue ->
-                        issueHandler.handleIssue(context, issue)
+                        emit(
+                            operationState.copy(
+                                actionProgress = Progress.Data(
+                                    count = Progress.Count.Size(
+                                        current = moveState.bytesMoved,
+                                        max = moveState.totalBytes,
+                                    )
+                                ),
+                                bytesProcessed = moveState.bytesMoved,
+                            )
+                        )
                     }
-                )
-            ).last()
-        }
-        OperationNotifier.Hint.FilesRemoved(
-            operationId = operation.operationId,
-            affectedFolder = operation.destination,
-            files = operation.sources.toList(),
-        ).run { emit(this) }
+                    is MoveOperation.State.Result<*> -> {
+                        trackPathsRemoved(moveState.movedFiles.map { it.first })
+                        trackPathsAdded(moveState.movedFiles.map { it.second })
+                    }
+                }
+            }
+            .last()
+
+        OperationResult.Success(
+            summary = caString { "Moved ${operation.sources.size} files" }  // TODO localize
+        )
     }
 
     @AssistedFactory
@@ -85,7 +86,6 @@ class MoveOperationHandler @AssistedInject constructor(
         fun create(
             workspaceId: Workspace.Id,
             issueHandler: IssueHandler,
-            copyHandler: CopyOperationHandler,
         ): MoveOperationHandler
     }
 }

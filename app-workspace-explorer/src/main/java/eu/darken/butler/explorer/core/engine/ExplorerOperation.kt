@@ -22,38 +22,39 @@ sealed interface ExplorerOperation {
 
         data class Delete(
             override val operationId: OperationId = Uuid.random(),
-            val paths: Set<APath>,
-            val options: DeleteOptions = DeleteOptions(),
-        ) : FileOp
+            val targets: Set<APath>,
+            val options: Options = Options(),
+        ) : FileOp {
+            data class Options(
+                val skipOnError: Boolean = false,
+                val confirmPermanentDelete: Boolean = true,
+            )
+        }
 
         data class Copy(
             override val operationId: OperationId = Uuid.random(),
             val sources: Set<APath>,
             val destination: APath,
-            val options: CopyOptions = CopyOptions(),
-        ) : FileOp
+            val options: Options = Options(),
+        ) : FileOp {
+            data class Options(
+                val preserveAttributes: Boolean = true,
+                val followSymlinks: Boolean = false,
+            )
+        }
 
         data class Move(
             override val operationId: OperationId = Uuid.random(),
             val sources: Set<APath>,
             val destination: APath,
-            val options: MoveOptions = MoveOptions(),
-        ) : FileOp
+            val options: Options = Options(),
+        ) : FileOp {
+            data class Options(
+                val preserveAttributes: Boolean = true,
+            )
+        }
     }
 }
 
-data class DeleteOptions(
-    val skipOnError: Boolean = false,
-    val confirmPermanentDelete: Boolean = true,
-)
 
-data class CopyOptions(
-    val preserveAttributes: Boolean = true,
-    val preserveTimestamps: Boolean = true,
-    val followSymlinks: Boolean = false,
-)
 
-data class MoveOptions(
-    val preserveAttributes: Boolean = true,
-    val preserveTimestamps: Boolean = true,
-)

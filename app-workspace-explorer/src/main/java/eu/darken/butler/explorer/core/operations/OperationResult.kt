@@ -1,18 +1,16 @@
 package eu.darken.butler.explorer.core.operations
 
-sealed interface OperationResult {
-    val metrics: OperationMetrics
+import eu.darken.butler.common.ca.CaString
+import kotlin.coroutines.cancellation.CancellationException
 
+sealed interface OperationResult {
     data class Success(
-        override val metrics: OperationMetrics,
+        val summary: CaString,
     ) : OperationResult
 
     data class Failure(
-        override val metrics: OperationMetrics,
         val exception: Exception,
-    ) : OperationResult
-
-    data class Cancelled(
-        override val metrics: OperationMetrics,
-    ) : OperationResult
+    ) : OperationResult {
+        val isCancelled: Boolean get() = exception is CancellationException
+    }
 }

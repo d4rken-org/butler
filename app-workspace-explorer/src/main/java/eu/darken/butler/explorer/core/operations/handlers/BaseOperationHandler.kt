@@ -4,6 +4,7 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.explorer.core.operations.OperationContext
+import eu.darken.butler.explorer.core.operations.OperationResult
 import eu.darken.butler.workspace.core.Workspace
 
 /**
@@ -17,5 +18,5 @@ abstract class BaseOperationHandler<T : ExplorerOperation>(
     abstract suspend fun execute(
         context: OperationContext,
         operation: T,
-    )
+    ): OperationResult
 }

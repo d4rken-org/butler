@@ -160,48 +160,6 @@ class SAFGateway @Inject constructor(
         }
     }
 
-    override suspend fun delete(
-        targets: Set<SAFPath>,
-        options: DeleteOperation.Options<SAFPath>
-    ): Flow<DeleteOperation.Result<SAFPath>> {
-        TODO("Not yet implemented")
-//        log(TAG, VERBOSE) { "delete(recursive=$recursive): $path" }
-//
-//        val queue = LinkedList(listOf(lookup(path)))
-//
-//        while (!queue.isEmpty()) {
-//            val lookUp = queue.removeFirst()
-//
-//            if (lookUp.isDirectory) {
-//                val newBatch = try {
-//                    lookupFiles(lookUp.lookedUp)
-//                } catch (e: IOException) {
-//                    log(TAG, ERROR) { "Failed to read directory to delete $lookUp: $e" }
-//                    throw ReadException(path = path, cause = e)
-//                }
-//                queue.addAll(newBatch)
-//            } else {
-//                var success = try {
-//                    lookUp.docFile.delete()
-//                } catch (e: Exception) {
-//                    throw WriteException(path = path, cause = e)
-//                }
-//
-//                if (!success) {
-//                    success = try {
-//                        !lookUp.docFile.exists
-//                    } catch (e: IOException) {
-//                        log(TAG, ERROR) { "Failed to perform exists() check $lookUp: $e" }
-//                        throw ReadException(path = path, cause = e)
-//                    }
-//                    if (success) log(TAG, WARN) { "Tried to delete file, but it's already gone: $path" }
-//                }
-//
-//                if (!success) throw IOException("Document delete() call returned false")
-//            }
-//        }
-    }
-
     override suspend fun canWrite(path: SAFPath): Boolean = runIO {
         try {
             val docFile = findDocFile(path)
@@ -430,28 +388,74 @@ class SAFGateway @Inject constructor(
         throw UnsupportedOperationException("SAF doesn't support symlinks. createSymlink(linkPath=$linkPath, targetPath=$targetPath)")
     }
 
+    override suspend fun delete(
+        targets: Set<SAFPath>,
+        options: DeleteOperation.Options<SAFPath>
+    ): Flow<DeleteOperation.State<SAFPath>> {
+        TODO("Not yet implemented")
+//        log(TAG, VERBOSE) { "delete(recursive=$recursive): $path" }
+//
+//        val queue = LinkedList(listOf(lookup(path)))
+//
+//        while (!queue.isEmpty()) {
+//            val lookUp = queue.removeFirst()
+//
+//            if (lookUp.isDirectory) {
+//                val newBatch = try {
+//                    lookupFiles(lookUp.lookedUp)
+//                } catch (e: IOException) {
+//                    log(TAG, ERROR) { "Failed to read directory to delete $lookUp: $e" }
+//                    throw ReadException(path = path, cause = e)
+//                }
+//                queue.addAll(newBatch)
+//            } else {
+//                var success = try {
+//                    lookUp.docFile.delete()
+//                } catch (e: Exception) {
+//                    throw WriteException(path = path, cause = e)
+//                }
+//
+//                if (!success) {
+//                    success = try {
+//                        !lookUp.docFile.exists
+//                    } catch (e: IOException) {
+//                        log(TAG, ERROR) { "Failed to perform exists() check $lookUp: $e" }
+//                        throw ReadException(path = path, cause = e)
+//                    }
+//                    if (success) log(TAG, WARN) { "Tried to delete file, but it's already gone: $path" }
+//                }
+//
+//                if (!success) throw IOException("Document delete() call returned false")
+//            }
+//        }
+    }
+
     override suspend fun copy(
-        source: SAFPath,
+        sources: Set<SAFPath>,
         destination: SAFPath,
         options: CopyOperation.Options<SAFPath>
-    ): Flow<CopyOperation.Result<SAFPath>> {
+    ): Flow<CopyOperation.State<SAFPath>> {
         // TODO: Implement using DocumentFile APIs
-        // - Use DocumentFile.listFiles() for traversal
+        // - Use DocumentFile.listFiles() for traversal across all sources
         // - Use ContentResolver streams for copying
         // - Handle issues via options.onIssue callback
-        throw NotImplementedError("TODO: SAFGateway copy implementation")
+        // - Report cumulative progress across all sources
+        // - Support "Apply to All" via gateway-level state management
+        throw NotImplementedError("TODO: SAFGateway multi-source copy implementation")
     }
 
     override suspend fun move(
-        source: SAFPath,
+        sources: Set<SAFPath>,
         destination: SAFPath,
         options: MoveOperation.Options<SAFPath>
-    ): Flow<MoveOperation.Result<SAFPath>> {
+    ): Flow<MoveOperation.State<SAFPath>> {
         // TODO: Implement using DocumentFile.renameTo()
-        // - Try renameTo() for same parent directory
+        // - Try renameTo() for same parent directory across all sources
         // - Fallback to copy+delete for different parents
         // - Handle issues via options.onIssue callback
-        throw NotImplementedError("TODO: SAFGateway move implementation")
+        // - Report cumulative progress across all sources
+        // - Support "Apply to All" via gateway-level state management
+        throw NotImplementedError("TODO: SAFGateway multi-source move implementation")
     }
 
     companion object {

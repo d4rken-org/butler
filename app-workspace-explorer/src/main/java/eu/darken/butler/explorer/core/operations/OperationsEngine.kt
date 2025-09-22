@@ -15,10 +15,10 @@ import eu.darken.butler.explorer.core.operations.handlers.CreateOperationHandler
 import eu.darken.butler.explorer.core.operations.handlers.DeleteOperationHandler
 import eu.darken.butler.explorer.core.operations.handlers.MoveOperationHandler
 import eu.darken.butler.workspace.core.Workspace
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import java.util.concurrent.ConcurrentHashMap
@@ -31,7 +31,6 @@ import java.util.concurrent.ConcurrentHashMap
 class OperationsEngine @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     private val dispatcherProvider: DispatcherProvider,
-    private val operationNotifier: OperationNotifier,
     private val issueHandlerFactory: IssueHandler.Factory,
     private val copyHandlerFactory: CopyOperationHandler.Factory,
     private val moveHandlerFactory: MoveOperationHandler.Factory,
@@ -45,38 +44,45 @@ class OperationsEngine @AssistedInject constructor(
     private val activeOperations = ConcurrentHashMap<OperationId, Job>()
 
     private val copyHandler = copyHandlerFactory.create(workspaceId, issueHandler)
-    private val moveHandler = moveHandlerFactory.create(workspaceId, issueHandler, copyHandler)
+    private val moveHandler = moveHandlerFactory.create(workspaceId, issueHandler)
     private val deleteHandler = deleteHandlerFactory.create(workspaceId, issueHandler)
     private val createHandler = createHandlerFactory.create(workspaceId, issueHandler)
-
-    val hints = operationNotifier.hints
+    private val publisher = MutableSharedFlow<FileSystemEvent>()
+    val hints: Flow<FileSystemEvent> = publisher
 
     fun execute(
         operation: ExplorerOperation,
         scope: CoroutineScope,
     ): Flow<OperationState> = flow {
         log(tag, DEBUG) { "execute(): $operation" }
+
         val opCon = OperationContext(
             operationId = operation.operationId,
             emitState = { state ->
-                log(tag) { "execute(): Current state: $state" }
+                log(tag) { "execute(): State: $state" }
+                when (state) {
+                    is OperationState.AwaitingInput -> {}
+                    is OperationState.Completed -> {}
+                    is OperationState.OnGoing -> {}
+                }
                 emit(state)
             },
-            emitHint = { operationNotifier.publish(it) }
+            emitPathEvent = { event ->
+                log(tag) { "execute(): Event: $event" }
+                // TODO track affected paths for history in UI
+                publisher.emit(event)
+            }
         )
 
         try {
             activeOperations[operation.operationId] = scope.coroutineContext[Job]!!
 
-            opCon.emit(
-                OperationState.OnGoing(
-                    operationId = opCon.operationId,
-                    startedAt = opCon.startedAt,
-                )
-            )
+            OperationState.OnGoing(
+                operationId = opCon.operationId,
+                startedAt = opCon.startedAt,
+            ).run { emit(this) }
 
-            // Execute based on operation type using context extension pattern
-            with(opCon) {
+            val result = with(opCon) {
                 when (operation) {
                     is ExplorerOperation.FileOp.Copy -> {
                         copyHandler.execute(operation)
@@ -93,42 +99,31 @@ class OperationsEngine @AssistedInject constructor(
                 }
             }
 
-            emit(
-                OperationState.Completed(
-                    operationId = opCon.operationId,
-                    startedAt = opCon.startedAt,
-                    result = OperationResult.Success(
-                        metrics = opCon.getMetrics(),
-                    ),
-                )
-            )
+            log(tag, INFO) { "execute(): Completed: $result" }
 
-        } catch (e: CancellationException) {
-            log(tag, WARN) { "Operation cancelled: $operation" }
-            emit(
-                OperationState.Completed(
-                    operationId = opCon.operationId,
-                    startedAt = opCon.startedAt,
-                    result = OperationResult.Cancelled(
-                        metrics = opCon.getMetrics(),
-                    ),
-                )
-            )
-            throw e
+            OperationState.Completed(
+                operationId = opCon.operationId,
+                startedAt = opCon.startedAt,
+                result = result,
+                metrics = opCon.getMetrics(),
+            ).run { emit(this) }
         } catch (e: Exception) {
-            log(tag, ERROR) { "Operation failed: $operation - ${e.asLog()}" }
-            emit(
-                OperationState.Completed(
-                    operationId = opCon.operationId,
-                    startedAt = opCon.startedAt,
-                    result = OperationResult.Failure(
-                        metrics = opCon.getMetrics(),
-                        exception = e
-                    ),
-                )
-            )
+            val result = OperationResult.Failure(exception = e)
+
+            if (result.isCancelled) log(tag, WARN) { "execute(): Operation cancelled: $operation" }
+            else log(tag, ERROR) { "execute(): Operation failed: $operation - ${e.asLog()}" }
+
+            OperationState.Completed(
+                operationId = opCon.operationId,
+                startedAt = opCon.startedAt,
+                result = result,
+                metrics = opCon.getMetrics(),
+            ).run { emit(this) }
+
+            if (result.isCancelled) throw e
         } finally {
             activeOperations.remove(operation.operationId)
+            issueHandler.cleanupOperation(operation.operationId)
         }
     }.flowOn(dispatcherProvider.IO)
 

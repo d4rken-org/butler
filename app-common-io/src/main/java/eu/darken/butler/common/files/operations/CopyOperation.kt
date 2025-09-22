@@ -5,31 +5,33 @@ import kotlinx.coroutines.flow.Flow
 
 interface CopyOperation<P : APath> : GatewayOperation<P> {
     suspend fun copy(
-        source: P,
+        sources: Set<P>,
         destination: P,
         options: Options<P> = Options()
-    ): Flow<Result<P>>
+    ): Flow<State<P>>
 
     data class Options<P : APath>(
         val overwrite: Boolean = false,
         val preserveAttributes: Boolean = true,
         val onIssue: (suspend (Issue) -> Issue.Resolution?)? = null,
-        val onProgress: (suspend (Progress<P>) -> Unit)? = null
     )
 
-    data class Progress<P : APath>(
-        val currentSource: P,
-        val currentDestination: P,
-        val totalFiles: Int,
-        val filesProcessed: Int,
-        val totalBytes: Long,
-        val bytesCopied: Long
-    )
+    sealed interface State<P : APath> {
+        data class Progress<P : APath>(
+            val currentSource: P,
+            val currentDestination: P,
+            val totalSources: Int,
+            val sourcesCompleted: Int,
+            val totalFiles: Int,
+            val filesProcessed: Int,
+            val totalBytes: Long,
+            val bytesCopied: Long
+        ) : State<P>
 
-    data class Result<P : APath>(
-        val copiedFiles: Set<Pair<P, P>>,
-        val bytesCopied: Long,
-        val averageBytesPerSecond: Long,
-        val peakBytesPerSecond: Long,
-    )
+        data class Result<P : APath>(
+            val copiedFiles: Set<Pair<P, P>>,
+            val skippedFiles: Set<P> = emptySet(),
+            val totalBytesCopied: Long,
+        ) : State<P>
+    }
 }

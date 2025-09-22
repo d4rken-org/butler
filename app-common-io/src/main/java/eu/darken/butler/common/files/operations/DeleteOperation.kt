@@ -19,11 +19,13 @@ interface DeleteOperation<P : APath> : GatewayOperation<P> {
     sealed interface State<P : APath> {
         data class Progress<P : APath>(
             val currentTarget: P,
-            val filesDeleted: Int,
+            val pathsDeleted: Int,
+            val bytesDeleted: Long,
+            val totalBytes: Long,
         ) : State<P>
 
         data class Result<P : APath>(
-            val deletedFiles: Set<P>,
+            val deletedPaths: Set<P>,
             val deletedSize: Long,
         ) : State<P>
     }

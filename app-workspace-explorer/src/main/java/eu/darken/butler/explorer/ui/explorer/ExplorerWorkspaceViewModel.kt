@@ -352,7 +352,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         if (result.items.isNotEmpty()) {
             getWorkspace().execute(
                 ExplorerOperation.FileOp.Delete(
-                    paths = result.items,
+                    targets = result.items,
                 )
             )
             clearSelection()

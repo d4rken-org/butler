@@ -3,6 +3,7 @@ package eu.darken.butler.explorer.core.operations.handlers
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -13,13 +14,14 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.extensions.delete
 import eu.darken.butler.common.files.extensions.exists
 import eu.darken.butler.common.files.extensions.lookup
+import eu.darken.butler.common.files.extensions.move
 import eu.darken.butler.common.files.operations.DeleteOperation
 import eu.darken.butler.common.files.operations.Issue
 import eu.darken.butler.common.files.operations.MoveOperation
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.explorer.core.operations.IssueHandler
 import eu.darken.butler.explorer.core.operations.OperationContext
-import eu.darken.butler.explorer.core.operations.OperationNotifier
+import eu.darken.butler.explorer.core.operations.OperationResult
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
@@ -94,7 +96,7 @@ class CreateOperationHandler @AssistedInject constructor(
     override suspend fun execute(
         context: OperationContext,
         operation: ExplorerOperation.FileOp.Create,
-    ): Unit = with(context) {
+    ): OperationResult.Success = with(context) {
         log(tag) { "execute(): $operation" }
 
         var currentOperation = operation
@@ -139,7 +141,15 @@ class CreateOperationHandler @AssistedInject constructor(
                     // Now perform the move with the resolved destination
                     while (currentCoroutineContext().isActive) {
                         try {
-                            gatewaySwitch.move(destinationPath, resolvedPath, MoveOperation.Options()).last()
+                            // TODO: This is a workaround - gateway move operation is not yet implemented
+                            // This should perform a rename/move operation from destinationPath to resolvedPath
+                            setOf(destinationPath)
+                                .move(
+                                    gateway = gatewaySwitch,
+                                    destination = currentOperation.parentPath,
+                                    options = MoveOperation.Options(),
+                                )
+                                .last()
                             break // Move succeeded, exit loop
                         } catch (e: Exception) {
                             val moveIssue = Issue.UnknownError(
@@ -166,9 +176,7 @@ class CreateOperationHandler @AssistedInject constructor(
                                 gateway = gatewaySwitch,
                                 options = DeleteOperation.Options(
                                     recursive = true,
-                                    onIssue = { issue ->
-                                        issueHandler.handleIssue(context, issue)
-                                    }
+                                    onIssue = { issue -> issueHandler.handleIssue(context, issue) }
                                 )
                             ).last()
                             break // Delete succeeded, exit loop
@@ -225,11 +233,11 @@ class CreateOperationHandler @AssistedInject constructor(
             }
         }
 
-        OperationNotifier.Hint.FilesAdded(
-            operationId = operation.operationId,
-            affectedFolder = operation.parentPath,
-            files = listOf(destinationPath),
-        ).run { emit(this) }
+        trackPathsAdded(setOf(destinationPath))
+
+        OperationResult.Success(
+            summary = caString { "Created  $destinationPath" }  // TODO localize
+        )
     }
 
     @AssistedFactory

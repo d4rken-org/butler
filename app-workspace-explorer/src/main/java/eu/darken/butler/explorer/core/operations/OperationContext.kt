@@ -14,14 +14,11 @@ data class OperationContext(
     val operationId: OperationId,
     val startedAt: Instant = Clock.System.now(),
     private val emitState: suspend (OperationState) -> Unit,
-    private val emitHint: suspend (OperationNotifier.Hint) -> Unit,
+    private val emitPathEvent: suspend (FileSystemEvent) -> Unit,
+    val reportBuilder: OperationReport.Builder = OperationReport.Builder(startedAt),
 ) {
     suspend fun emit(state: OperationState) {
         emitState(state)
-    }
-
-    suspend fun emit(hint: OperationNotifier.Hint) {
-        emitHint(hint)
     }
 
     /**
@@ -30,27 +27,24 @@ data class OperationContext(
      */
     suspend fun <T : ExplorerOperation> BaseOperationHandler<T>.execute(
         operation: T
-    ) = execute(this@OperationContext, operation)
+    ): OperationResult = execute(this@OperationContext, operation)
 
-    suspend fun trackPath(path: APath) = {
-        TODO()
+    suspend fun trackPathsRemoved(paths: Collection<APath>) {
+        emitPathEvent(FileSystemEvent.FilesRemoved(operationId = operationId, paths = paths.toSet()))
     }
 
-    suspend fun trackPaths(paths: Collection<APath>) {
-        TODO()
+    suspend fun trackPathsAdded(paths: Collection<APath>) {
+        emitPathEvent(FileSystemEvent.FilesAdded(operationId = operationId, paths = paths.toSet()))
     }
 
-    suspend fun trackBytes(bytes: Long) {
-        TODO()
+    suspend fun trackPathsModified(paths: Collection<APath>) {
+        emitPathEvent(FileSystemEvent.FilesModified(operationId = operationId, paths = paths.toSet()))
     }
 
-    suspend fun trackBytesPerSecond(bytesPerSecond: Long) {
-        TODO()
+    suspend fun updateProgress(bytes: Long) {
+        reportBuilder.updateBytesProcessed(bytes)
     }
 
-    suspend fun trackPeakBytesPerSecond(peakBytesPerSecond: Long) {
-        TODO()
-    }
 
-    suspend fun getMetrics(): OperationMetrics = TODO()
+    suspend fun getMetrics(): OperationReport = reportBuilder.build()
 }

@@ -14,7 +14,10 @@ interface APathGateway<
     P : APath,
     PLU : APathLookup<P>,
     PLUE : APathLookupExtended<P>,
-    > : HasSharedResource<Any>, CopyOperation<P>, MoveOperation<P>, DeleteOperation<P> {
+    > : HasSharedResource<Any>,
+    CopyOperation<P>,
+    MoveOperation<P>,
+    DeleteOperation<P> {
 
     suspend fun createDir(path: P)
 

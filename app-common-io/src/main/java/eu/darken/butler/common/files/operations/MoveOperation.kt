@@ -6,27 +6,33 @@ import kotlinx.coroutines.flow.Flow
 
 interface MoveOperation<P : APath> : GatewayOperation<P> {
     suspend fun move(
-        source: P,
+        sources: Set<P>,
         destination: P,
         options: Options<P> = Options()
-    ): Flow<Result<P>>
+    ): Flow<State<P>>
 
     data class Options<P : APath>(
         val overwrite: Boolean = false,
         val onIssue: (suspend (Issue) -> Issue.Resolution?)? = null,
-        val onProgress: (suspend (Progress<P>) -> Unit)? = null
     )
 
-    data class Progress<P : APath>(
-        val currentSource: P,
-        val currentDestination: P,
-        val totalFiles: Int,
-        val filesProcessed: Int,
-    )
+    sealed interface State<P : APath> {
+        data class Progress<P : APath>(
+            val currentSource: P,
+            val currentDestination: P,
+            val totalSources: Int,
+            val sourcesCompleted: Int,
+            val totalFiles: Int,
+            val filesProcessed: Int,
+            val totalBytes: Long,
+            val bytesMoved: Long
+        ) : State<P>
 
-    data class Result<P : APath>(
-        val movedFiles: Set<Pair<P, P>>,
-        val bytesMoved: Long,
-    )
+        data class Result<P : APath>(
+            val movedFiles: Set<Pair<P, P>>,
+            val skippedFiles: Set<P> = emptySet(),
+            val bytesMoved: Long,
+        ) : State<P>
+    }
 
 }
