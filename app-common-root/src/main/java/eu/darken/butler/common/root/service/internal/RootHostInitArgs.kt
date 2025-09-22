@@ -10,6 +10,5 @@ data class RootHostInitArgs(
     val waitForDebugger: Boolean = false,
     val isDebug: Boolean = false,
     val isTrace: Boolean = false,
-    val isDryRun: Boolean = false,
     val recorderPath: String? = null
 ) : Parcelable

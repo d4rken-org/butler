@@ -83,7 +83,6 @@ class RootHost(_args: List<String>) : HasSharedResource<Any>, BaseRootHost("$TAG
 
                 Bugs.isDebug = options.isDebug
                 Bugs.isTrace = options.isTrace
-                Bugs.isDryRun = options.isDryRun
             }
             .launchIn(hostScope)
 

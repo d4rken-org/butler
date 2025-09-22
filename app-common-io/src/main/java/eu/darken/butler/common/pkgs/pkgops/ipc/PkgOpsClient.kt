@@ -50,24 +50,24 @@ class PkgOpsClient @AssistedInject constructor(
         }
     }
 
-    suspend fun clearCache(installId: InstallId, dryRun: Boolean): Boolean = try {
-        connection.clearCacheAsUser(installId.pkgId.name, installId.userHandle.handleId, dryRun)
+    suspend fun clearCache(installId: InstallId): Boolean = try {
+        connection.clearCacheAsUser(installId.pkgId.name, installId.userHandle.handleId)
     } catch (e: Exception) {
         throw e.refineException().also {
             log(TAG, ERROR) { "clearCache(installId=$installId) failed: ${it.asLog()}" }
         }
     }
 
-    suspend fun clearCache(pkgId: Pkg.Id, dryRun: Boolean): Boolean = try {
-        connection.clearCache(pkgId.name, dryRun)
+    suspend fun clearCache(pkgId: Pkg.Id): Boolean = try {
+        connection.clearCache(pkgId.name)
     } catch (e: Exception) {
         throw e.refineException().also {
             log(TAG, ERROR) { "clearCache(pkgId=$pkgId) failed: ${it.asLog()}" }
         }
     }
 
-    suspend fun trimCaches(desiredBytes: Long, storageId: String? = null, dryRun: Boolean): Boolean = try {
-        connection.trimCaches(desiredBytes, storageId, dryRun)
+    suspend fun trimCaches(desiredBytes: Long, storageId: String? = null): Boolean = try {
+        connection.trimCaches(desiredBytes, storageId)
     } catch (e: Exception) {
         throw e.refineException().also {
             log(TAG, ERROR) { "trimCaches(desiredBytes=$desiredBytes, storageId=$storageId) failed: ${it.asLog()}" }

@@ -63,10 +63,9 @@ open class App : Application(), Configuration.Provider {
         combine(
             debugSettings.isDebugMode.flow,
             debugSettings.isTraceMode.flow,
-            debugSettings.isDryRunMode.flow,
             recorderModule.state,
-        ) { isDebug, isTrace, isDryRun, recorder ->
-            log(TAG) { "isDebug=$isDebug, isTrace=$isTrace, isDryRun=$isDryRun, recorder=$recorder" }
+        ) { isDebug, isTrace, recorder ->
+            log(TAG) { "isDebug=$isDebug, isTrace=$isTrace, recorder=$recorder" }
 
             if (isDebug) {
                 Logging.install(logCatLogger)
@@ -76,7 +75,6 @@ open class App : Application(), Configuration.Provider {
 
             Bugs.isDebug = isDebug || recorder.isRecording
             Bugs.isTrace = isDebug && isTrace
-            Bugs.isDryRun = isDebug && isDryRun
         }.launchIn(appScope)
 
         bugReporter.setup(this)

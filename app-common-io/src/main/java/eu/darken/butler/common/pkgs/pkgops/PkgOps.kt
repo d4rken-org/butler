@@ -18,7 +18,6 @@ import eu.darken.butler.common.adb.canUseAdbNow
 import eu.darken.butler.common.adb.service.runModuleAction
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -308,7 +307,7 @@ class PkgOps @Inject constructor(
 
             if (rootManager.canUseRootNow() && (mode == Mode.AUTO || mode == Mode.ROOT)) {
                 log(TAG) { "clearCache($id, $mode->ROOT)" }
-                rootOps { it.clearCache(id, dryRun = Bugs.isDryRun) }
+                rootOps { it.clearCache(id) }
                 return
             }
 
@@ -334,13 +333,13 @@ class PkgOps @Inject constructor(
 
             if (adbManager.canUseAdbNow() && (mode == Mode.AUTO || mode == Mode.ADB)) {
                 log(TAG) { "trimCaches($desiredBytes, $storageId, $mode->ADB)" }
-                adbOps { it.trimCaches(desiredBytes, storageId, dryRun = Bugs.isDryRun) }
+                adbOps { it.trimCaches(desiredBytes, storageId) }
                 return
             }
 
             if (rootManager.canUseRootNow() && (mode == Mode.AUTO || mode == Mode.ROOT)) {
                 log(TAG) { "trimCaches($desiredBytes, $storageId, $mode->ROOT)" }
-                rootOps { it.trimCaches(desiredBytes, storageId, dryRun = Bugs.isDryRun) }
+                rootOps { it.trimCaches(desiredBytes, storageId) }
                 return
             }
 

@@ -6,7 +6,6 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.debug.Bugs
-import eu.darken.butler.common.debug.Bugs.isDryRun
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -27,7 +26,6 @@ import eu.darken.flowshell.core.cmd.FlowCmd
 import eu.darken.flowshell.core.cmd.execute
 import eu.darken.flowshell.core.process.FlowProcess
 import kotlinx.coroutines.runBlocking
-import java.lang.Thread.*
 import javax.inject.Inject
 
 
@@ -93,41 +91,25 @@ class PkgOpsHost @Inject constructor(
         throw e.wrapToPropagate()
     }
 
-    override fun clearCacheAsUser(packageName: String, handleId: Int, dryRun: Boolean): Boolean = try {
-        log(TAG, VERBOSE) { "clearCache(packageName=$packageName, handleId=$handleId, dryRun=$dryRun)..." }
-        if (dryRun) {
-            sleep(100)
-            true
-        } else {
+    override fun clearCacheAsUser(packageName: String, handleId: Int): Boolean = try {
+        log(TAG, VERBOSE) { "clearCache(packageName=$packageName, handleId=$handleId)..." }
             runBlocking { pm.deleteApplicationCacheFilesAsUser(packageName, handleId) }
-        }
     } catch (e: Exception) {
         log(TAG, ERROR) { "clearCache(packageName=$packageName, handleId=$handleId) failed: ${e.asLog()}" }
         throw e.wrapToPropagate()
     }
 
-    override fun clearCache(packageName: String, dryRun: Boolean): Boolean = try {
-        log(TAG, VERBOSE) { "clearCache(packageName=$packageName, dryRun=$dryRun)..." }
-        if (dryRun) {
-            sleep(100)
-            true
-        } else {
+    override fun clearCache(packageName: String): Boolean = try {
+        log(TAG, VERBOSE) { "clearCache(packageName=$packageName)..." }
             runBlocking { pm.deleteApplicationCacheFiles(packageName) }
-        }
     } catch (e: Exception) {
         log(TAG, ERROR) { "clearCache(packageName=$packageName) failed: ${e.asLog()}" }
         throw e.wrapToPropagate()
     }
 
-    override fun trimCaches(desiredBytes: Long, storageId: String?, dryRun: Boolean): Boolean = try {
-        log(TAG, VERBOSE) { "trimCaches(desiredBytes=$desiredBytes, storageId=$storageId, dryRun=$dryRun)..." }
-        if (isDryRun) {
-            log(TAG, INFO) { "DRYRUN: not executing trimCaches($desiredBytes, $storageId)" }
-            sleep(2000)
-            true
-        } else {
-            runBlocking { pm.freeStorageAndNotify(desiredBytes, storageId) }
-        }
+    override fun trimCaches(desiredBytes: Long, storageId: String?): Boolean = try {
+        log(TAG, VERBOSE) { "trimCaches(desiredBytes=$desiredBytes, storageId=$storageId)..." }
+        runBlocking { pm.freeStorageAndNotify(desiredBytes, storageId) }
     } catch (e: Exception) {
         log(TAG, ERROR) { "trimCaches(desiredBytes=$desiredBytes, storageId=$storageId) failed: ${e.asLog()}" }
         throw e.wrapToPropagate()

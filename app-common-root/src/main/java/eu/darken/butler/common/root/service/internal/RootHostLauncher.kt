@@ -97,7 +97,6 @@ class RootHostLauncher @Inject constructor(
                 waitForDebugger = options.isTrace && Debug.isDebuggerConnected(),
                 isDebug = options.isDebug,
                 isTrace = options.isTrace,
-                isDryRun = options.isDryRun,
                 recorderPath = options.recorderPath
             )
 

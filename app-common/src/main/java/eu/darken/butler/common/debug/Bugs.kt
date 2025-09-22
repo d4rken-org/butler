@@ -23,7 +23,6 @@ object Bugs {
         }
     }
 
-    var isDryRun = false
     var isDebug = false
     var isTrace = false
 
