@@ -225,7 +225,7 @@ fun PathAlreadyExistsIssueSheet(
             // Cancel button
             TextButton(
                 onClick = {
-                    onResolution(Issue.PathAlreadyExists.Resolution.Cancel)
+                    onResolution(Issue.PathAlreadyExists.Resolution.Cancel())
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {

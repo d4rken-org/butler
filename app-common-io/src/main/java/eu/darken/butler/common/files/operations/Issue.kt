@@ -33,20 +33,20 @@ sealed interface Issue {
             data class RenameSource(val newName: String) : Resolution
             data class RenameDestination(val newName: String) : Resolution
             data class Merge(val applyToAll: Boolean = false) : Resolution
-            data object Cancel : Resolution
+            data class Cancel(val error: Exception? = null) : Resolution
         }
     }
 
-
     data class InsufficientPermission(
         override val issueId: IssueId = IssueId(),
-        val source: APathLookup<APath>,
+        val source: APathLookup<APath>? = null,
         val destination: APathLookup<APath>,
         val canSkip: Boolean = false,
+        val exception: Throwable? = null,
     ) : Issue {
         sealed interface Resolution : Issue.Resolution {
             data class Skip(val applyToAll: Boolean = false) : Resolution
-            data object Cancel : Resolution
+            data class Cancel(val error: Exception? = null) : Resolution
         }
     }
 
@@ -58,7 +58,7 @@ sealed interface Issue {
     ) : Issue {
         sealed interface Resolution : Issue.Resolution {
             data class Skip(val applyToAll: Boolean = false) : Resolution
-            data object Cancel : Resolution
+            data class Cancel(val error: Exception? = null) : Resolution
         }
     }
 
@@ -74,7 +74,7 @@ sealed interface Issue {
         sealed interface Resolution : Issue.Resolution {
             data class Skip(val applyToAll: Boolean = false) : Resolution
             data class Retry(val applyToAll: Boolean = false) : Resolution
-            data object Cancel : Resolution
+            data class Cancel(val error: Exception? = null) : Resolution
         }
     }
 }

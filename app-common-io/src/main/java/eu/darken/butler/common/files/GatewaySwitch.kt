@@ -19,6 +19,8 @@ import eu.darken.butler.common.sharedresource.adoptChildResource
 import eu.darken.butler.common.storage.PathMapper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.plus
 import okio.FileHandle
@@ -190,9 +192,13 @@ class GatewaySwitch @Inject constructor(
     override suspend fun delete(
         targets: Set<APath>,
         options: DeleteOperation.Options<APath>
-    ): Flow<DeleteOperation.State<APath>> {
-        TODO("Not yet implemented")
-    }
+    ): Flow<DeleteOperation.State<APath>> = targets
+        .groupBy { it::class }.values.asFlow()
+        .flatMapConcat { group ->
+            useGateway(group.first()) {
+                delete(group.toSet(), options)
+            }
+        }
 
     override suspend fun createSymlink(linkPath: APath, targetPath: APath): Boolean {
         return useGateway(linkPath) { createSymlink(linkPath, targetPath) }

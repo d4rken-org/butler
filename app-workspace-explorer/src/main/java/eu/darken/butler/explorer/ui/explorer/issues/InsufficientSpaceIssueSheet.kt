@@ -122,7 +122,7 @@ fun InsufficientSpaceIssueSheet(
 
             TextButton(
                 onClick = {
-                    onResolution(Issue.InsufficientSpace.Resolution.Cancel)
+                    onResolution(Issue.InsufficientSpace.Resolution.Cancel())
                 },
                 modifier = Modifier.weight(1f),
             ) {

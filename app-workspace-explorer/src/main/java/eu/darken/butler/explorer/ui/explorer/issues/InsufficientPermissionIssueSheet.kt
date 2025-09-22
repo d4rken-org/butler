@@ -70,7 +70,7 @@ fun InsufficientPermissionIssueSheet(
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        PathIssueFileComparisonCard(lookup = issue.source)
+        PathIssueFileComparisonCard(lookup = issue.destination)
 
         Text(
             text = stringResource(R.string.explorer_issue_common_destination_file),
@@ -122,7 +122,7 @@ fun InsufficientPermissionIssueSheet(
 
             TextButton(
                 onClick = {
-                    onResolution(Issue.InsufficientPermission.Resolution.Cancel)
+                    onResolution(Issue.InsufficientPermission.Resolution.Cancel())
                 },
                 modifier = Modifier.weight(1f),
             ) {

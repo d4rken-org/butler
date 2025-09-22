@@ -54,22 +54,22 @@ class DeleteOperationHandler @AssistedInject constructor(
             .onEach { deleteState ->
                 when (deleteState) {
                     is DeleteOperation.State.Progress<*> -> {
-                        reportBuilder.updateBytesProcessed(deleteState.bytesDeleted)
+                        reportBuilder.updateBytesProcessed(deleteState.bytesCurrent)
 
                         emit(
                             operationState.copy(
                                 actionProgress = Progress.Data(
-                                    count = Progress.Count.Size(
-                                        current = deleteState.bytesDeleted,
-                                        max = deleteState.totalBytes,
+                                    count = Progress.Count.Counter(
+                                        current = deleteState.pathsCurrent,
+                                        max = deleteState.pathsTotal,
                                     )
                                 ),
-                                bytesProcessed = deleteState.bytesDeleted,
+                                bytesProcessed = deleteState.bytesCurrent,
                             )
                         )
                     }
                     is DeleteOperation.State.Result<*> -> {
-                        trackPathsRemoved(deleteState.deletedPaths)
+                        trackPathsRemoved(deleteState.deleted)
                     }
                 }
             }

@@ -127,7 +127,7 @@ class OperationsEngine @AssistedInject constructor(
         }
     }.flowOn(dispatcherProvider.IO)
 
-    suspend fun resolveConflict(operationId: OperationId, resolution: Issue.Resolution?) {
+    suspend fun resolveConflict(operationId: OperationId, resolution: Issue.Resolution) {
         log(tag) { "resolveConflict(): Operation $operationId: $resolution" }
         issueHandler.resolveIssue(operationId, resolution)
     }

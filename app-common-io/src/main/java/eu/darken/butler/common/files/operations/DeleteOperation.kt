@@ -12,21 +12,22 @@ interface DeleteOperation<P : APath> : GatewayOperation<P> {
 
     data class Options<P : APath>(
         val recursive: Boolean = false,
-        val ignoreMissing: Boolean = false,
-        val onIssue: (suspend (Issue) -> Issue.Resolution?)? = null,
+        val ignoreMissing: Boolean = true,
+        val onIssue: (suspend (Issue) -> Issue.Resolution)? = null,
     )
 
     sealed interface State<P : APath> {
         data class Progress<P : APath>(
-            val currentTarget: P,
-            val pathsDeleted: Int,
-            val bytesDeleted: Long,
-            val totalBytes: Long,
+            val target: P,
+            val targetSize: Long,
+            val pathsCurrent: Int,
+            val pathsTotal: Int,
+            val bytesCurrent: Long,
         ) : State<P>
 
         data class Result<P : APath>(
-            val deletedPaths: Set<P>,
-            val deletedSize: Long,
+            val deleted: Set<P>,
+            val bytesTotal: Long,
         ) : State<P>
     }
 }

@@ -251,7 +251,7 @@ fun UnknownErrorIssueSheet(
 
             TextButton(
                 onClick = {
-                    onResolution(Issue.UnknownError.Resolution.Cancel)
+                    onResolution(Issue.UnknownError.Resolution.Cancel())
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {

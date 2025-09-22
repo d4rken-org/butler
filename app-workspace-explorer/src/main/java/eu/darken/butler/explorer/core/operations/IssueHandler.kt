@@ -3,7 +3,7 @@ package eu.darken.butler.explorer.core.operations
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import eu.darken.butler.common.debug.logging.Logging
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -19,7 +19,7 @@ class IssueHandler @AssistedInject constructor(
 ) {
     private val tag = logTag("Explorer", "Workspace", "IssueHandler", workspaceId.shortTag)
 
-    private val pendingIssues = ConcurrentHashMap<OperationId, CompletableDeferred<Issue.Resolution?>>()
+    private val pendingIssues = ConcurrentHashMap<OperationId, CompletableDeferred<Issue.Resolution>>()
     private val mutex = Mutex()
 
     // Apply to All rules per operation
@@ -35,7 +35,7 @@ class IssueHandler @AssistedInject constructor(
     suspend fun handleIssue(
         context: OperationContext,
         issue: Issue,
-    ): Issue.Resolution? {
+    ): Issue.Resolution {
         log(tag) { "handleIssue(): ${context.operationId} - $issue" }
 
         // Get or create rules for this specific operation
@@ -84,7 +84,7 @@ class IssueHandler @AssistedInject constructor(
             return it
         }
 
-        val deferred = CompletableDeferred<Issue.Resolution?>()
+        val deferred = CompletableDeferred<Issue.Resolution>()
 
         mutex.withLock {
             pendingIssues[context.operationId] = deferred
@@ -99,35 +99,45 @@ class IssueHandler @AssistedInject constructor(
                 )
             )
 
-            val resolution = deferred.await()
+            val res = deferred.await()
 
             // Store "apply to all" preferences for this operation
-            resolution?.let { res ->
-                when (res) {
-                    is Issue.PathAlreadyExists.Resolution.Skip ->
-                        if (res.applyToAll) rules.skipAll = true
-                    is Issue.PathAlreadyExists.Resolution.Overwrite ->
-                        if (res.applyToAll) rules.overwriteAll = true
-                    is Issue.PathAlreadyExists.Resolution.Merge ->
-                        if (res.applyToAll) rules.mergeAllDirectories = true
+            when (res) {
+                is Issue.PathAlreadyExists.Resolution.Skip -> {
+                    if (res.applyToAll) rules.skipAll = true
+                }
+                is Issue.PathAlreadyExists.Resolution.Overwrite -> {
+                    if (res.applyToAll) rules.overwriteAll = true
+                }
+                is Issue.PathAlreadyExists.Resolution.Merge -> {
+                    if (res.applyToAll) rules.mergeAllDirectories = true
+                }
 
-                    is Issue.InsufficientPermission.Resolution.Skip ->
-                        if (res.applyToAll) rules.skipAll = true
+                is Issue.InsufficientPermission.Resolution.Skip -> {
+                    if (res.applyToAll) rules.skipAll = true
+                }
 
-                    is Issue.InsufficientSpace.Resolution.Skip ->
-                        if (res.applyToAll) rules.skipAll = true
+                is Issue.InsufficientSpace.Resolution.Skip -> {
+                    if (res.applyToAll) rules.skipAll = true
+                }
 
-                    is Issue.UnknownError.Resolution.Skip ->
-                        if (res.applyToAll) rules.skipAll = true
-                    is Issue.UnknownError.Resolution.Retry ->
-                        if (res.applyToAll) rules.retryAll = true
+                is Issue.UnknownError.Resolution.Skip -> {
+                    if (res.applyToAll) rules.skipAll = true
+                }
+                is Issue.UnknownError.Resolution.Retry -> {
+                    if (res.applyToAll) rules.retryAll = true
                 }
             }
 
-            resolution
+            res
         } catch (e: Exception) {
-            log(tag, Logging.Priority.WARN) { "Issue resolution failed: ${e.asLog()}" }
-            null
+            log(tag, WARN) { "Issue resolution failed: ${e.asLog()}" }
+            when (issue) {
+                is Issue.InsufficientPermission -> Issue.InsufficientPermission.Resolution.Cancel(error = e)
+                is Issue.InsufficientSpace -> Issue.InsufficientSpace.Resolution.Cancel(error = e)
+                is Issue.PathAlreadyExists -> Issue.PathAlreadyExists.Resolution.Cancel(error = e)
+                is Issue.UnknownError -> Issue.UnknownError.Resolution.Cancel(error = e)
+            }
         } finally {
             mutex.withLock {
                 pendingIssues.remove(context.operationId)
@@ -135,7 +145,7 @@ class IssueHandler @AssistedInject constructor(
         }
     }
 
-    suspend fun resolveIssue(operationId: OperationId, resolution: Issue.Resolution?) = mutex.withLock {
+    suspend fun resolveIssue(operationId: OperationId, resolution: Issue.Resolution) = mutex.withLock {
         log(tag) { "resolveIssue(): Operation $operationId: $resolution" }
         pendingIssues[operationId]?.complete(resolution)
     }

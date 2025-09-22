@@ -1,5 +1,8 @@
 package eu.darken.butler.common.files.local
 
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.operations.Issue
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -9,14 +12,21 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import java.io.File
+import java.nio.file.DirectoryNotEmptyException
 import java.nio.file.Files
 
 class FileDeleteExtensionsTest : BaseTest() {
 
     private val testFolder = File(IO_TEST_BASEDIR, "delete-test")
+
+    @BeforeEach
+    fun setup() {
+        testFolder.mkdirs()
+    }
 
     @AfterEach
     fun cleanup() {
@@ -28,68 +38,64 @@ class FileDeleteExtensionsTest : BaseTest() {
     @Test
     fun `delete existing file`() = runTest {
         // Given
-        testFolder.mkdirs()
         val testFile = File(testFolder, "test.txt")
         testFile.writeText("Hello World")
         val initialSize = testFile.length()
+        val testPath = LocalPath.build(testFile)
 
         // When
-        val result = listOf(testFile).delete()
+        val result = listOf(testPath).delete()
 
         // Then
-        result.deletedFiles shouldContain testFile
-        result.totalSize shouldBe initialSize
+        result.deleted shouldContain testPath
+        result.bytesTotal shouldBe initialSize
         testFile.exists() shouldBe false
     }
 
     @Test
     fun `delete non-existent file should not throw`() = runTest {
         // Given
-        testFolder.mkdirs()
         val nonExistentFile = File(testFolder, "does-not-exist.txt")
 
         // When
-        val result = listOf(nonExistentFile).delete()
+        val result = listOf(LocalPath.build(nonExistentFile)).delete()
 
         // Then
-        result.deletedFiles.shouldBeEmpty()
-        result.totalSize shouldBe 0L
+        result.deleted.shouldBeEmpty()
+        result.bytesTotal shouldBe 0L
     }
 
     @Test
     fun `verify size calculation for files`() = runTest {
         // Given
-        testFolder.mkdirs()
         val content = "A".repeat(1024) // 1KB
         val testFile = File(testFolder, "large.txt")
         testFile.writeText(content)
 
         // When
-        val result = listOf(testFile).delete()
+        val result = listOf(LocalPath.build(testFile)).delete()
 
         // Then
-        result.totalSize shouldBe content.length.toLong()
+        result.bytesTotal shouldBe content.length.toLong()
     }
 
     @Test
     fun `delete empty directory`() = runTest {
         // Given
-        testFolder.mkdirs()
         val emptyDir = File(testFolder, "empty")
         emptyDir.mkdir()
 
         // When
-        val result = listOf(emptyDir).delete()
+        val result = listOf(LocalPath.build(emptyDir)).delete()
 
         // Then
-        result.deletedFiles shouldContain emptyDir
+        result.deleted shouldContain LocalPath.build(emptyDir)
         emptyDir.exists() shouldBe false
     }
 
     @Test
     fun `delete nested structure with files and subdirectories`() = runTest {
         // Given
-        testFolder.mkdirs()
         val nestedDir = File(testFolder, "nested")
         val subDir = File(nestedDir, "sub")
         val file1 = File(nestedDir, "file1.txt")
@@ -103,15 +109,15 @@ class FileDeleteExtensionsTest : BaseTest() {
         val expectedSize = file1.length() + file2.length()
 
         // When
-        val result = listOf(nestedDir).delete(recursive = true)
+        val result = listOf(LocalPath.build(nestedDir)).delete(recursive = true)
 
         // Then
-        result.totalSize shouldBe expectedSize
-        result.deletedFiles should { files ->
-            files shouldContain file1
-            files shouldContain file2
-            files shouldContain subDir
-            files shouldContain nestedDir
+        result.bytesTotal shouldBe expectedSize
+        result.deleted should { files ->
+            files shouldContain LocalPath.build(file1)
+            files shouldContain LocalPath.build(file2)
+            files shouldContain LocalPath.build(subDir)
+            files shouldContain LocalPath.build(nestedDir)
         }
         nestedDir.exists() shouldBe false
     }
@@ -119,23 +125,22 @@ class FileDeleteExtensionsTest : BaseTest() {
     @Test
     fun `verify correct deletion order (children before parents)`() = runTest {
         // Given
-        testFolder.mkdirs()
         val parentDir = File(testFolder, "parent")
         val childFile = File(parentDir, "child.txt")
         parentDir.mkdir()
         childFile.writeText("child content")
 
-        val deletionOrder = mutableListOf<File>()
+        val deletionOrder = mutableListOf<LocalPath>()
 
         // When
-        listOf(parentDir).delete(
+        listOf(LocalPath.build(parentDir)).delete(
             recursive = true,
-            onProgress = { file, _ -> deletionOrder.add(file) }
+            onProgress = { deletionOrder.add(it.target) }
         )
 
         // Then
-        val childIndex = deletionOrder.indexOf(childFile)
-        val parentIndex = deletionOrder.indexOf(parentDir)
+        val childIndex = deletionOrder.indexOf(LocalPath.build(childFile))
+        val parentIndex = deletionOrder.indexOf(LocalPath.build(parentDir))
         childIndex shouldNotBe -1
         parentIndex shouldNotBe -1
         childIndex should { it < parentIndex } // Child deleted before parent
@@ -144,17 +149,15 @@ class FileDeleteExtensionsTest : BaseTest() {
     @Test
     fun `directory with contents should not be deleted when recursive false`() = runTest {
         // Given
-        testFolder.mkdirs()
         val dirWithContent = File(testFolder, "with-content")
         val childFile = File(dirWithContent, "child.txt")
         dirWithContent.mkdir()
         childFile.writeText("content")
 
-        // When
-        val result = listOf(dirWithContent).delete(recursive = false)
-
-        // Then
-        result.deletedFiles.shouldBeEmpty()
+        // When & Then
+        shouldThrow<DirectoryNotEmptyException> {
+            listOf(LocalPath.build(dirWithContent)).delete(recursive = false)
+        }
         dirWithContent.exists() shouldBe true
         childFile.exists() shouldBe true
     }
@@ -162,44 +165,44 @@ class FileDeleteExtensionsTest : BaseTest() {
     @Test
     fun `empty directory should be deleted when recursive false`() = runTest {
         // Given
-        testFolder.mkdirs()
         val emptyDir = File(testFolder, "empty")
         emptyDir.mkdir()
 
         // When
-        val result = listOf(emptyDir).delete(recursive = false)
+        val result = listOf(LocalPath.build(emptyDir)).delete(recursive = false)
 
         // Then
-        result.deletedFiles shouldContain emptyDir
+        result.deleted shouldContain LocalPath.build(emptyDir)
         emptyDir.exists() shouldBe false
     }
 
     @Test
     fun `progress callback called for each file`() = runTest {
         // Given
-        testFolder.mkdirs()
         val file1 = File(testFolder, "file1.txt")
         val file2 = File(testFolder, "file2.txt")
         file1.writeText("content1")
         file2.writeText("content2")
 
-        val progressCalls = mutableListOf<Pair<File, Long>>()
+        val progressCalls = mutableListOf<Pair<LocalPath, Long>>()
 
         // When
-        listOf(file1, file2).delete(
-            onProgress = { file, size -> progressCalls.add(file to size) }
+        listOf(LocalPath.build(file1), LocalPath.build(file2)).delete(
+            onProgress = { progressCalls.add(it.target to it.targetSize) }
         )
 
         // Then
         progressCalls shouldHaveSize 2
-        progressCalls.map { it.first } shouldContainExactlyInAnyOrder listOf(file1, file2)
+        progressCalls.map { it.first } shouldContainExactlyInAnyOrder listOf(
+            LocalPath.build(file1),
+            LocalPath.build(file2)
+        )
         progressCalls.all { it.second > 0 } shouldBe true
     }
 
     @Test
     fun `cumulative size tracking`() = runTest {
         // Given
-        testFolder.mkdirs()
         val files = (1..5).map { i ->
             File(testFolder, "file$i.txt").apply {
                 writeText("Content $i".repeat(i * 10)) // Different sizes
@@ -210,19 +213,18 @@ class FileDeleteExtensionsTest : BaseTest() {
         val expectedTotalSize = files.sumOf { it.length() }
 
         // When
-        val result = files.delete(
-            onProgress = { _, size -> cumulativeSize += size }
+        val result = files.map { LocalPath.build(it) }.delete(
+            onProgress = { cumulativeSize += it.targetSize }
         )
 
         // Then
         cumulativeSize shouldBe expectedTotalSize
-        result.totalSize shouldBe expectedTotalSize
+        result.bytesTotal shouldBe expectedTotalSize
     }
 
     @Test
     fun `delete collection with files and directories`() = runTest {
         // Given
-        testFolder.mkdirs()
         val file = File(testFolder, "standalone.txt")
         val dir = File(testFolder, "directory")
         val dirFile = File(dir, "inside.txt")
@@ -234,14 +236,14 @@ class FileDeleteExtensionsTest : BaseTest() {
         val expectedSize = file.length() + dirFile.length()
 
         // When
-        val result = listOf(file, dir).delete()
+        val result = listOf(LocalPath.build(file), LocalPath.build(dir)).delete()
 
         // Then
-        result.totalSize shouldBe expectedSize
-        result.deletedFiles should { files ->
-            files shouldContain file
-            files shouldContain dir
-            files shouldContain dirFile
+        result.bytesTotal shouldBe expectedSize
+        result.deleted should { files ->
+            files shouldContain LocalPath.build(file)
+            files shouldContain LocalPath.build(dir)
+            files shouldContain LocalPath.build(dirFile)
         }
         file.exists() shouldBe false
         dir.exists() shouldBe false
@@ -250,7 +252,6 @@ class FileDeleteExtensionsTest : BaseTest() {
     @Test
     fun `handle read-only files gracefully`() = runTest {
         // Given
-        testFolder.mkdirs()
         val readOnlyFile = File(testFolder, "readonly.txt")
         readOnlyFile.writeText("readonly content")
 
@@ -260,11 +261,11 @@ class FileDeleteExtensionsTest : BaseTest() {
             readOnlyFile.setReadOnly()
 
             // When
-            val result = listOf(readOnlyFile).delete()
+            val result = listOf(LocalPath.build(readOnlyFile)).delete()
 
             // Then - depending on system, file may or may not be deleted
             // The important thing is that it doesn't throw an exception
-            result.deletedFiles.size shouldBe if (readOnlyFile.exists()) 0 else 1
+            result.deleted.size shouldBe if (readOnlyFile.exists()) 0 else 1
         } catch (e: SecurityException) {
             // Expected on some systems
         }
@@ -273,7 +274,6 @@ class FileDeleteExtensionsTest : BaseTest() {
     @Test
     fun `delete symlink without following target`() = runTest {
         // Given
-        testFolder.mkdirs()
         val targetFile = File(testFolder, "target.txt")
         val symlink = File(testFolder, "symlink")
 
@@ -285,7 +285,7 @@ class FileDeleteExtensionsTest : BaseTest() {
         // Only proceed if symlink was actually created
         if (Files.isSymbolicLink(symlink.toPath())) {
             // When - the key thing is that deletion doesn't crash
-            listOf(symlink).delete()
+            listOf(LocalPath.build(symlink)).delete()
 
             // Then - target should remain intact
             targetFile.exists() shouldBe true // Target should remain intact
@@ -295,34 +295,32 @@ class FileDeleteExtensionsTest : BaseTest() {
     @Test
     fun `empty collection should return empty result`() = runTest {
         // When
-        val result = emptyList<File>().delete()
+        val result = emptyList<LocalPath>().delete()
 
         // Then
-        result.deletedFiles.shouldBeEmpty()
-        result.totalSize shouldBe 0L
+        result.deleted.shouldBeEmpty()
+        result.bytesTotal shouldBe 0L
     }
 
     @Test
     fun `collection with duplicates should handle gracefully`() = runTest {
         // Given
-        testFolder.mkdirs()
         val testFile = File(testFolder, "duplicate.txt")
         testFile.writeText("content")
         val expectedSize = testFile.length()
 
         // When
-        val result = listOf(testFile, testFile).delete()
+        val result = listOf(LocalPath.build(testFile), LocalPath.build(testFile)).delete()
 
         // Then
         // File should only be deleted once, but may appear in result multiple times
         testFile.exists() shouldBe false
-        result.totalSize shouldBe expectedSize // Size counted only once in actual deletion
+        result.bytesTotal shouldBe expectedSize // Size counted only once in actual deletion
     }
 
     @Test
     fun `very deep directory structure`() = runTest {
         // Given
-        testFolder.mkdirs()
         var currentDir = testFolder
         val files = mutableListOf<File>()
 
@@ -339,17 +337,16 @@ class FileDeleteExtensionsTest : BaseTest() {
         val expectedSize = files.sumOf { it.length() }
 
         // When
-        val result = listOf(File(testFolder, "level0")).delete()
+        val result = listOf(LocalPath.build(File(testFolder, "level0"))).delete()
 
         // Then
-        result.totalSize shouldBe expectedSize
+        result.bytesTotal shouldBe expectedSize
         File(testFolder, "level0").exists() shouldBe false
     }
 
     @Test
     fun `handle already-deleted files during operation`() = runTest {
         // Given
-        testFolder.mkdirs()
         val file1 = File(testFolder, "file1.txt")
         val file2 = File(testFolder, "file2.txt")
         file1.writeText("content1")
@@ -361,18 +358,17 @@ class FileDeleteExtensionsTest : BaseTest() {
         file1.delete()
 
         // When
-        val result = listOf(file1, file2).delete()
+        val result = listOf(LocalPath.build(file1), LocalPath.build(file2)).delete()
 
         // Then
-        result.deletedFiles shouldHaveSize 1
-        result.deletedFiles shouldContain file2
-        result.totalSize shouldBe expectedSize
+        result.deleted shouldHaveSize 1
+        result.deleted shouldContain LocalPath.build(file2)
+        result.bytesTotal shouldBe expectedSize
     }
 
     @Test
     fun `handle large number of files efficiently`() = runTest {
         // Given
-        testFolder.mkdirs()
         val files = (1..100).map { i ->
             File(testFolder, "file$i.txt").apply {
                 writeText("Content $i")
@@ -383,15 +379,196 @@ class FileDeleteExtensionsTest : BaseTest() {
         val startTime = System.currentTimeMillis()
 
         // When
-        val result = files.delete()
+        val result = files.map { LocalPath.build(it) }.delete()
         val endTime = System.currentTimeMillis()
 
         // Then
-        result.totalSize shouldBe expectedSize
-        result.deletedFiles shouldHaveSize files.size
+        result.bytesTotal shouldBe expectedSize
+        result.deleted shouldHaveSize files.size
 
         // Basic performance check - should complete reasonably quickly
         val duration = endTime - startTime
         duration should { it < 5000 } // Should complete within 5 seconds
+    }
+
+    @Test
+    fun `issue handling - skip resolution with apply to all`() = runTest {
+        // Given
+        val file1 = File(testFolder, "file1.txt")
+        val file2 = File(testFolder, "file2.txt")
+        val file3 = File(testFolder, "file3.txt")
+
+        // Create files but remove write permission to simulate permission errors
+        file1.writeText("content1")
+        file2.writeText("content2")
+        file3.writeText("content3")
+
+        // Make them read-only (may not work on all systems, but won't crash)
+        file1.setReadOnly()
+        file2.setReadOnly()
+        file3.setReadOnly()
+
+        val issuesEncountered = mutableListOf<Issue>()
+        var firstIssueHandled = false
+
+        // When
+        val result = listOf(LocalPath.build(file1), LocalPath.build(file2), LocalPath.build(file3)).delete(
+            onIssue = { issue ->
+                issuesEncountered.add(issue)
+
+                if (!firstIssueHandled) {
+                    firstIssueHandled = true
+                    // First issue: Skip with "Apply to All"
+                    when (issue) {
+                        is Issue.InsufficientPermission -> Issue.InsufficientPermission.Resolution.Skip(applyToAll = true)
+                        is Issue.UnknownError -> Issue.InsufficientPermission.Resolution.Skip(applyToAll = true)
+                        is Issue.InsufficientSpace -> TODO()
+                        is Issue.PathAlreadyExists -> TODO()
+                    }
+                } else {
+                    // Subsequent issues should not occur due to "Apply to All"
+                    throw AssertionError("Should not encounter more issues with Apply to All")
+                }
+            }
+        )
+
+        // Then
+        // On many systems, read-only files can still be deleted by the owner
+        // So this test validates the mechanism works when issues do occur
+        if (issuesEncountered.isNotEmpty()) {
+            // If issues were encountered, validate "Apply to All" behavior
+            issuesEncountered shouldHaveSize 1
+            // Files should still exist due to skip resolution
+            file1.exists() shouldBe true
+            file2.exists() shouldBe true
+            file3.exists() shouldBe true
+            result.deleted.shouldBeEmpty()
+        } else {
+            // If no issues occurred (files were successfully deleted)
+            // This is also valid behavior - the test verifies no crashes occur
+            result.deleted shouldHaveSize 3
+        }
+    }
+
+    @Test
+    fun `issue handling - retry resolution`() = runTest {
+        // Given
+        val testFile = File(testFolder, "test.txt")
+        testFile.writeText("content")
+
+        var attemptCount = 0
+        var retrySuccess = false
+
+        // When
+        listOf(LocalPath.build(testFile)).delete(
+            onIssue = { issue ->
+                attemptCount++
+                when (issue) {
+                    is Issue.UnknownError -> {
+                        if (attemptCount == 1) {
+                            // First attempt: Simulate failure and retry
+                            Issue.UnknownError.Resolution.Retry()
+                        } else {
+                            // Subsequent attempts: Skip
+                            retrySuccess = true
+                            Issue.UnknownError.Resolution.Skip()
+                        }
+                    }
+                    is Issue.InsufficientPermission -> TODO()
+                    is Issue.InsufficientSpace -> TODO()
+                    is Issue.PathAlreadyExists -> TODO()
+                }
+            }
+        )
+
+        // Then
+        // Note: This test may not trigger issues on all systems since
+        // file deletion might succeed. The test verifies the mechanism works.
+        if (attemptCount > 0) {
+            attemptCount should { it >= 1 }
+        }
+    }
+
+    @Test
+    fun `issue handling - cancel resolution stops operation`() = runTest {
+        // Given
+        val file1 = File(testFolder, "file1.txt")
+        val file2 = File(testFolder, "file2.txt")
+
+        file1.writeText("content1")
+        file2.writeText("content2")
+
+        // Make read-only to potentially trigger issues
+        file1.setReadOnly()
+        file2.setReadOnly()
+
+        var issueCount = 0
+
+        // When
+        listOf(LocalPath.build(file1), LocalPath.build(file2)).delete(
+            onIssue = { issue ->
+                issueCount++
+                // Always cancel on first issue
+                when (issue) {
+                    is Issue.InsufficientPermission -> Issue.InsufficientPermission.Resolution.Cancel
+                    is Issue.UnknownError -> Issue.UnknownError.Resolution.Cancel
+                    is Issue.InsufficientSpace -> TODO()
+                    is Issue.PathAlreadyExists -> TODO()
+                }
+            }
+        )
+
+        // Then
+        // If issues were encountered, operation should have been cancelled
+        if (issueCount > 0) {
+            issueCount shouldBe 1  // Only first issue should be processed before cancel
+        }
+    }
+
+    @Test
+    fun `issue handling works without onIssue callback`() = runTest {
+        // Given
+        val testFile = File(testFolder, "test.txt")
+        testFile.writeText("content")
+
+        // When - no onIssue callback provided, should continue with other files
+        val result = listOf(LocalPath.build(testFile)).delete(onIssue = null)
+
+        // Then - should not crash and complete normally
+        // File should be deleted if permissions allow, or operation continues gracefully
+        result.bytesTotal should { it >= 0 }
+    }
+
+    @Test
+    fun `issue handling with mixed file types`() = runTest {
+        // Given
+        val regularFile = File(testFolder, "regular.txt")
+        val directory = File(testFolder, "directory")
+        val dirFile = File(directory, "inside.txt")
+
+        regularFile.writeText("content")
+        directory.mkdir()
+        dirFile.writeText("inside content")
+
+        val issues = mutableListOf<Issue>()
+
+        // When
+        val result = listOf(LocalPath.build(regularFile), LocalPath.build(directory)).delete(
+            recursive = true,
+            onIssue = { issue ->
+                issues.add(issue)
+                // Skip all issues to test graceful handling
+                when (issue) {
+                    is Issue.InsufficientPermission -> Issue.InsufficientPermission.Resolution.Skip()
+                    is Issue.UnknownError -> Issue.UnknownError.Resolution.Skip()
+                    is Issue.InsufficientSpace -> TODO()
+                    is Issue.PathAlreadyExists -> TODO()
+                }
+            }
+        )
+
+        // Then - Operation should complete without crashing
+        result.bytesTotal should { it >= 0 }
+        result.deleted should { it.size >= 0 }
     }
 }

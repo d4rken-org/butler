@@ -1,5 +1,6 @@
 package eu.darken.butler.common.files.local
 
+import android.R.attr.*
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.adb.AdbUnavailableException
 import eu.darken.butler.common.adb.canUseAdbNow
@@ -44,6 +45,7 @@ import eu.darken.butler.common.storage.StorageEnvironment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
@@ -873,137 +875,59 @@ class LocalGateway @Inject constructor(
         }
     }
 
-
     override suspend fun delete(
         targets: Set<LocalPath>,
         options: DeleteOperation.Options<LocalPath>
+    ): Flow<DeleteOperation.State<LocalPath>> = delete(targets, options, Mode.AUTO)
+
+    suspend fun delete(
+        targets: Set<LocalPath>,
+        options: DeleteOperation.Options<LocalPath>,
+        mode: Mode,
     ): Flow<DeleteOperation.State<LocalPath>> = flow {
         log(TAG, VERBOSE) { "delete(): ${targets.size} targets" }
 
-        // Convert LocalPaths to Files
-        val files = targets.map { it.asFile() }
-        val deletedPaths = mutableSetOf<LocalPath>()
-
         try {
-            // Perform the deletion using our extension function
-            val result = files.delete(
-                recursive = true,
-                onProgress = { deletedFile, _ ->
-                    deletedPaths.add(deletedFile.toLocalPath())
+            val result = when {
+                hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
+                    log(TAG, VERBOSE) { "delete($mode->ROOT): $path" }
+                    rootOps {
+                        TODO()
+//                        val success = it.delete(targets, recursive = true)
+//                        if (!success) throw IOException("Root delete() call returned false")
+                    }
                 }
-            )
 
-            // Add any files that were deleted but didn't report progress
-            result.deletedFiles.forEach { deletedFile ->
-                deletedPaths.add(deletedFile.toLocalPath())
+                hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
+                    log(TAG, VERBOSE) { "delete($mode->ADB): $path" }
+                    adbOps {
+                        TODO()
+//                        val success = it.delete(targets, recursive = true)
+//                        if (!success) throw IOException("ADB delete() call returned false")
+                    }
+                }
+
+                mode == Mode.NORMAL || mode == Mode.AUTO -> {
+                    log(TAG, VERBOSE) { "delete($mode->NORMAL): $path" }
+                    targets.delete(
+                        recursive = options.recursive,
+                        ignoreMissing = options.ignoreMissing,
+                        onIssue = options.onIssue,
+                        onProgress = { progress -> emit(progress) }
+                    )
+                }
+
+                else -> throw IOException("No matching mode available.")
             }
 
-            // Emit final result
-            emit(
-                DeleteOperation.State.Result(
-                    deletedPaths = deletedPaths,
-                    deletedSize = result.totalSize
-                )
-            )
-
+            log(TAG, INFO) { "delete(): Finished, deleted ${result.deleted} items" }
+            emit(result)
         } catch (e: Exception) {
-            log(TAG, ERROR) { "delete(): Failed to delete files: ${e.message}" }
-            throw e
+            log(TAG, WARN) { "delete(path=$path, mode=$mode) failed." }
+            throw WriteException(message = "Deletion failed,", cause = e)
         }
-    }
-//                try {
-//            val javaFile = path.asFile()
-//
-//            // On devices without root or adb:
-//            // Determining whether if a file can't be deleted or just does not exist prevents WriteException errors.
-//            val normalCanWrite = when {
-//                mode == Mode.ROOT -> false
-//                mode == Mode.ADB -> false
-//                javaFile.canWrite() -> true
-//                // We couldn't write but it exists, so we can't write normally
-//                javaFile.exists() -> false
-//                // Does it not exist or do we lack permission? Also see `LocalGateway.exists(...)`
-//                else -> when {
-//                    // On Android 12+ Android/data isn't accessible anymore via normal java file access.
-//                    hasApiLevel(32) && storageEnvironment.publicDataDirs.any { it.isAncestorOf(path) } -> false
-//                    // If the file path is on public storage, and it wasn't Android/data then, assume true
-//                    else -> storageEnvironment.externalDirs
-//                        .firstOrNull { it.isAncestorOf(path) }
-//                        ?.asFile()
-//                        ?.canWrite() ?: false
-//                }
-//            }
-//
-//            when {
-//                mode == Mode.NORMAL || mode == Mode.AUTO && normalCanWrite -> {
-//                    log(TAG, VERBOSE) { "delete($mode->NORMAL): $path" }
-//
-//                    var success = javaFile.run {
-//                        when {
-//                            Bugs.isDryRun -> {
-//                                log(TAG, INFO) { "DRYRUN: Not deleting $javaFile" }
-//                                javaFile.canWrite()
-//                            }
-//
-//                            recursive -> deleteRecursively()
-//                            else -> delete()
-//                        }
-//                    }
-//
-//                    if (!success) {
-//                        success = !javaFile.exists()
-//                        if (success) {
-//                            log(TAG, WARN) { "Tried to delete file, but it's already gone: $path" }
-//                        } else if (!normalCanWrite) {
-//                            // This was not AUTO, but Mode.NORMAL, we don't try other modes after this
-//                            throw WriteException(path = path)
-//                        }
-//                    }
-//
-//                    if (!success) {
-//                        if (mode == Mode.AUTO && hasRoot()) {
-//                            delete(path, recursive = recursive, mode = Mode.ROOT)
-//                            return@runIO
-//                        } else {
-//                            throw IOException("delete() call returned false")
-//                        }
-//                    }
-//
-//                    if (!success) {
-//                        if (mode == Mode.AUTO && hasAdb()) {
-//                            delete(path, recursive = recursive, mode = Mode.ADB)
-//                            return@runIO
-//                        } else {
-//                            throw IOException("delete() call returned false")
-//                        }
-//                    }
-//                }
-//
-//                hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
-//                    log(TAG, VERBOSE) { "delete($mode->ROOT): $path" }
-//                    rootOps {
-//                        if (Bugs.isDryRun) log(TAG, INFO) { "DRYRUN: Not deleting (root) $javaFile" }
-//                        val success = it.delete(path, recursive = true, dryRun = Bugs.isDryRun)
-//                        if (!success) throw IOException("Root delete() call returned false")
-//                    }
-//                }
-//
-//                hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
-//                    log(TAG, VERBOSE) { "delete($mode->ADB): $path" }
-//                    adbOps {
-//                        if (Bugs.isDryRun) log(TAG, INFO) { "DRYRUN: Not deleting (adb) $javaFile" }
-//                        val success = it.delete(path, recursive = true, dryRun = Bugs.isDryRun)
-//                        if (!success) throw IOException("ADB delete() call returned false")
-//                    }
-//                }
-//
-//                else -> throw IOException("No matching mode available.")
-//            }
-//        } catch (e: IOException) {
-//            log(TAG, WARN) { "delete(path=$path, mode=$mode) failed." }
-//            throw WriteException(path = path, cause = e)
-//        }
-//    }
+    }.flowOn(dispatcherProvider.IO)
+
 
     override suspend fun copy(
         sources: Set<LocalPath>,
