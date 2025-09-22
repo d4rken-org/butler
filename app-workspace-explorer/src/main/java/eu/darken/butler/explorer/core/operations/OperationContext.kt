@@ -3,6 +3,7 @@ package eu.darken.butler.explorer.core.operations
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.explorer.core.operations.handlers.BaseOperationHandler
+import eu.darken.butler.workspace.core.operations.Operation
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -11,7 +12,7 @@ import kotlin.time.Instant
  * This avoids passing multiple parameters through operation handler chains.
  */
 data class OperationContext(
-    val operationId: OperationId,
+    val operationId: Operation.Id,
     val startedAt: Instant = Clock.System.now(),
     private val emitState: suspend (OperationState) -> Unit,
     private val emitPathEvent: suspend (FileSystemEvent) -> Unit,

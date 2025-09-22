@@ -10,6 +10,7 @@ import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.templates.core.TemplatesWorkspace
+import eu.darken.butler.workspace.core.operations.OperationsRepo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -31,6 +32,7 @@ class WorkspaceRepo @Inject constructor(
     private val searcherWorkspaceFactory: SearcherWorkspace.Factory,
     private val editorWorkspaceFactory: EditorWorkspace.Factory,
     workspaceSettings: WorkspaceSettings,
+    private val operationsRepo: OperationsRepo,
 ) : WorkspaceProvider, WorkspaceRemote {
 
     private val lock = Mutex()
@@ -56,7 +58,7 @@ class WorkspaceRepo @Inject constructor(
     }
         .setupCommonEventHandlers(TAG) { "WorkspaceState" }
         .replayingShare(appScope)
-        
+
     override val events: Flow<WorkspaceEvent> = _events
         .setupCommonEventHandlers(TAG) { "WorkspaceEvents" }
         .replayingShare(appScope)
@@ -116,10 +118,12 @@ class WorkspaceRepo @Inject constructor(
                     idToReplace = action.replace
                 )
                 log(TAG) { "New workspace created with ID $newId, emitting event" }
-                _events.emit(WorkspaceEvent.Created(
-                    workspaceId = newId,
-                    replacedId = action.replace
-                ))
+                _events.emit(
+                    WorkspaceEvent.Created(
+                        workspaceId = newId,
+                        replacedId = action.replace
+                    )
+                )
                 WorkspaceAction.Create.Result(newId)
             }
 
@@ -150,6 +154,10 @@ class WorkspaceRepo @Inject constructor(
             }
             WorkspaceAction.CloseAll -> {
                 log(TAG, INFO) { "Closing all workspaces" }
+                _workspaces.value.forEach {
+                    it.release()
+                    operationsRepo.clearWorkspaceById(it.id)
+                }
                 _workspaces.value = emptyList()
                 _events.emit(WorkspaceEvent.AllClosed)
                 WorkspaceAction.CloseAll.Result

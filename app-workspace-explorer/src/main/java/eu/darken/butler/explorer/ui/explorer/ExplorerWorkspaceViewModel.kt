@@ -28,7 +28,6 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.explorer.core.engine.locationId
-import eu.darken.butler.explorer.core.operations.OperationId
 import eu.darken.butler.explorer.core.sorting.ExplorerItemSorter
 import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
@@ -44,6 +43,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
+import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.permissions.PermissionState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,7 +70,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val dialogStateFlow = MutableStateFlow<ExplorerDialogState>(ExplorerDialogState.None)
     private val conflictStateFlow = MutableStateFlow<Issue?>(null)
     val conflictState = conflictStateFlow
-    private var currentConflictOperationId: OperationId? = null
+    private var currentConflictOperationId: Operation.Id? = null
 
     val dialogEvents = SingleEventFlow<ExplorerDialogEvent>()
 
@@ -346,11 +346,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         if (currentLocation is ExplorerLocation.Directory) {
             val operation = when (result.type) {
                 CreateItemType.FOLDER -> ExplorerOperation.FileOp.Create(
+                    operationId = Operation.Id(workspaceId = id),
                     parentPath = currentLocation.path,
                     name = result.name,
                     type = ExplorerOperation.FileOp.Create.Type.FOLDER,
                 )
                 CreateItemType.FILE -> ExplorerOperation.FileOp.Create(
+                    operationId = Operation.Id(workspaceId = id),
                     parentPath = currentLocation.path,
                     name = result.name,
                     type = ExplorerOperation.FileOp.Create.Type.FILE,
@@ -367,6 +369,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         if (result.items.isNotEmpty()) {
             getWorkspace().execute(
                 ExplorerOperation.FileOp.Delete(
+                    operationId = Operation.Id(workspaceId = id),
                     targets = result.items,
                 )
             )
@@ -381,6 +384,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val currentLocation = state.first().currentLocation as ExplorerLocation.Directory
         getWorkspace().execute(
             ExplorerOperation.FileOp.Move(
+                operationId = Operation.Id(workspaceId = id),
                 sources = setOf(result.item),
                 destination = currentLocation.path.child(result.newName),
             )
@@ -402,10 +406,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 if (currentLocation is ExplorerLocation.Directory) {
                     val operation = when (clip.mode) {
                         ClipboardClip.Paths.Mode.COPY -> ExplorerOperation.FileOp.Copy(
+                            operationId = Operation.Id(workspaceId = id),
                             sources = clip.paths.toSet(),
                             destination = currentLocation.path,
                         )
                         ClipboardClip.Paths.Mode.CUT -> ExplorerOperation.FileOp.Move(
+                            operationId = Operation.Id(workspaceId = id),
                             sources = clip.paths.toSet(),
                             destination = currentLocation.path,
                         )

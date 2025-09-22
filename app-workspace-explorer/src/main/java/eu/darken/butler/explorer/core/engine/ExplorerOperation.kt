@@ -1,15 +1,13 @@
 package eu.darken.butler.explorer.core.engine
 
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.explorer.core.operations.OperationId
-import kotlin.uuid.Uuid
+import eu.darken.butler.workspace.core.operations.Operation
 
-sealed interface ExplorerOperation {
-    val operationId: OperationId
+sealed interface ExplorerOperation : Operation {
 
     sealed interface FileOp : ExplorerOperation {
         data class Create(
-            override val operationId: OperationId = Uuid.random(),
+            override val operationId: Operation.Id,
             val parentPath: APath,
             val name: String,
             val type: Type,
@@ -21,7 +19,7 @@ sealed interface ExplorerOperation {
         }
 
         data class Delete(
-            override val operationId: OperationId = Uuid.random(),
+            override val operationId: Operation.Id,
             val targets: Set<APath>,
             val options: Options = Options(),
         ) : FileOp {
@@ -32,7 +30,7 @@ sealed interface ExplorerOperation {
         }
 
         data class Copy(
-            override val operationId: OperationId = Uuid.random(),
+            override val operationId: Operation.Id,
             val sources: Set<APath>,
             val destination: APath,
             val options: Options = Options(),
@@ -44,7 +42,7 @@ sealed interface ExplorerOperation {
         }
 
         data class Move(
-            override val operationId: OperationId = Uuid.random(),
+            override val operationId: Operation.Id,
             val sources: Set<APath>,
             val destination: APath,
             val options: Options = Options(),

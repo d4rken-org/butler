@@ -15,6 +15,7 @@ import eu.darken.butler.explorer.core.operations.handlers.CreateOperationHandler
 import eu.darken.butler.explorer.core.operations.handlers.DeleteOperationHandler
 import eu.darken.butler.explorer.core.operations.handlers.MoveOperationHandler
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.operations.Operation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -41,7 +42,7 @@ class OperationsEngine @AssistedInject constructor(
     private val issueHandler = issueHandlerFactory.create(workspaceId)
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "OperationEngine")
 
-    private val activeOperations = ConcurrentHashMap<OperationId, Job>()
+    private val activeOperations = ConcurrentHashMap<Operation.Id, Job>()
 
     private val copyHandler = copyHandlerFactory.create(workspaceId, issueHandler)
     private val moveHandler = moveHandlerFactory.create(workspaceId, issueHandler)
@@ -127,12 +128,12 @@ class OperationsEngine @AssistedInject constructor(
         }
     }.flowOn(dispatcherProvider.IO)
 
-    suspend fun resolveConflict(operationId: OperationId, resolution: Issue.Resolution) {
+    suspend fun resolveConflict(operationId: Operation.Id, resolution: Issue.Resolution) {
         log(tag) { "resolveConflict(): Operation $operationId: $resolution" }
         issueHandler.resolveIssue(operationId, resolution)
     }
 
-    fun cancelOperation(operationId: OperationId) {
+    fun cancelOperation(operationId: Operation.Id) {
         log(tag) { "cancelOperation(): $operationId" }
         activeOperations[operationId]?.cancel()
     }

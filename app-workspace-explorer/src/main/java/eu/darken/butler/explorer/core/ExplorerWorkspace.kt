@@ -16,11 +16,11 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
-import eu.darken.butler.explorer.core.operations.OperationId
 import eu.darken.butler.explorer.core.operations.OperationResult
 import eu.darken.butler.explorer.core.operations.OperationState
 import eu.darken.butler.explorer.core.operations.OperationsEngine
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
 import eu.darken.butler.workspace.core.tracker.PathAccessTracker
 import kotlinx.coroutines.CancellationException
@@ -85,9 +85,9 @@ class ExplorerWorkspace @AssistedInject constructor(
         val isLoadingExtended: Boolean = false,
         val error: Throwable? = null,
         val progress: Progress.Data? = null,
-        val activeOperations: Map<OperationId, OperationState> = emptyMap(),
+        val activeOperations: Map<Operation.Id, OperationState> = emptyMap(),
         val operationHistory: List<OperationResult> = emptyList(),
-        val pendingConflicts: Map<OperationId, OperationState.AwaitingInput> = emptyMap(),
+        val pendingConflicts: Map<Operation.Id, OperationState.AwaitingInput> = emptyMap(),
     ) {
         val canGoBack: Boolean get() = historyIndex > 0
         val canGoForward: Boolean get() = historyIndex < navigationHistory.size - 1
@@ -319,14 +319,14 @@ class ExplorerWorkspace @AssistedInject constructor(
         }
     }
 
-    fun resolveConflict(operationId: OperationId, resolution: Issue.Resolution) {
+    fun resolveConflict(operationId: Operation.Id, resolution: Issue.Resolution) {
         log(tag, INFO) { "Resolving conflict for operation $operationId: $resolution" }
         scope.launch {
             operationEngine.resolveConflict(operationId, resolution)
         }
     }
 
-    fun cancelOperation(operationId: OperationId) {
+    fun cancelOperation(operationId: Operation.Id) {
         log(tag, INFO) { "Cancelling operation: $operationId" }
         operationEngine.cancelOperation(operationId)
     }

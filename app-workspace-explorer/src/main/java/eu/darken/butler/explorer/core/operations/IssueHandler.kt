@@ -9,6 +9,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.operations.Issue
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.operations.Operation
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -19,7 +20,7 @@ class IssueHandler @AssistedInject constructor(
 ) {
     private val tag = logTag("Explorer", "Workspace", "IssueHandler", workspaceId.shortTag)
 
-    private val pendingIssues = ConcurrentHashMap<OperationId, CompletableDeferred<Issue.Resolution>>()
+    private val pendingIssues = ConcurrentHashMap<Operation.Id, CompletableDeferred<Issue.Resolution>>()
     private val mutex = Mutex()
 
     // Apply to All rules per operation
@@ -30,7 +31,7 @@ class IssueHandler @AssistedInject constructor(
         var retryAll: Boolean = false,
     )
 
-    private val operationRules = ConcurrentHashMap<OperationId, ApplyToAllRules>()
+    private val operationRules = ConcurrentHashMap<Operation.Id, ApplyToAllRules>()
 
     suspend fun handleIssue(
         context: OperationContext,
@@ -145,12 +146,12 @@ class IssueHandler @AssistedInject constructor(
         }
     }
 
-    suspend fun resolveIssue(operationId: OperationId, resolution: Issue.Resolution) = mutex.withLock {
+    suspend fun resolveIssue(operationId: Operation.Id, resolution: Issue.Resolution) = mutex.withLock {
         log(tag) { "resolveIssue(): Operation $operationId: $resolution" }
         pendingIssues[operationId]?.complete(resolution)
     }
 
-    fun cleanupOperation(operationId: OperationId) {
+    fun cleanupOperation(operationId: Operation.Id) {
         log(tag) { "cleanupOperation(): $operationId" }
         operationRules.remove(operationId)
     }
