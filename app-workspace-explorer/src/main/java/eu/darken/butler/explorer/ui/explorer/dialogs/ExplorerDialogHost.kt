@@ -36,5 +36,13 @@ fun ExplorerDialogHost(
                 onConfirm = { result -> vm?.onRename(result) }
             )
         }
+
+        is ExplorerDialogState.EditSortOptions -> {
+            SortOptionsDialog(
+                currentSortSettings = dialogState.currentSortSettings,
+                onDismiss = { vm?.dismissDialog() },
+                onConfirm = { result -> vm?.onSortOptions(result) }
+            )
+        }
     }
 }

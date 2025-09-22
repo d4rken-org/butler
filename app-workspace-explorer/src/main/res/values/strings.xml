@@ -122,6 +122,14 @@
     <string name="explorer_empty_folder_caption_14">The files have left the building</string>
     <string name="explorer_empty_folder_caption_15">Emptier than a promise from a politician</string>
 
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">Sort by</string>
+    <string name="explorer_sort_mode_name_label">Name</string>
+    <string name="explorer_sort_mode_size_label">Size</string>
+    <string name="explorer_sort_mode_modified_label">Modified date</string>
+    <string name="explorer_sort_mode_created_label">Created date</string>
+    <string name="explorer_sort_descending_label">Descending order</string>
+
     <!-- Permission Messages -->
     <string name="explorer_permission_required_title">Permission Needed</string>
     <string name="explorer_permission_storage_manage_description">Butler needs additional permission to browse this location.</string>

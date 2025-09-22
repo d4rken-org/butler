@@ -401,7 +401,7 @@ fun ExplorerWorkspacePage(
         IssueBottomSheet(
             issue = conflict,
             onResolution = { resolution -> vm?.resolveConflict(resolution) },
-            onDismiss = { vm?.resolveConflict(null) },
+            onDismiss = { },
         )
     }
 }

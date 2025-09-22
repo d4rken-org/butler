@@ -1,28 +1,35 @@
 package eu.darken.butler.explorer.ui.explorer
 
+import android.content.Context
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.datastore.value
+import eu.darken.butler.common.datastore.valueBlocking
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.operations.Issue
 import eu.darken.butler.common.flow.SingleEventFlow
+import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
+import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.explorer.core.engine.locationId
 import eu.darken.butler.explorer.core.operations.OperationId
+import eu.darken.butler.explorer.core.sorting.ExplorerItemSorter
 import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemResult
@@ -31,6 +38,7 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.DeleteConfirmationResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
+import eu.darken.butler.explorer.ui.explorer.dialogs.SortOptionsResult
 import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
@@ -39,7 +47,6 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.permissions.PermissionState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -48,11 +55,14 @@ import kotlinx.coroutines.flow.map
 @HiltViewModel(assistedFactory = ExplorerWorkspaceViewModel.Factory::class)
 class ExplorerWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
+    @ApplicationContext private val context: Context,
     dispatchers: DispatcherProvider,
     navController: NavigationController,
     workspaceProvider: WorkspaceProvider,
     private val actionProvider: DefaultActionProvider,
     private val clipboardRepo: ClipboardRepo,
+    private val explorerSettings: ExplorerSettings,
+    itemSorterFactory: ExplorerItemSorter.Factory,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
 
     private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
@@ -65,7 +75,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     val dialogEvents = SingleEventFlow<ExplorerDialogEvent>()
 
     private val workspace: Flow<ExplorerWorkspace?> = workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
-
+    private val itemSorter = itemSorterFactory.create(id)
+    private val currentSortSettings = MutableStateFlow(explorerSettings.sortSettings.valueBlocking)
     private suspend fun getWorkspace() = workspace.filterNotNull().first()
 
     private val workspaceState: Flow<ExplorerWorkspace.State> = workspace.flatMapLatest { ws ->
@@ -108,8 +119,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         viewModeFlow,
         clipboardRepo.state,
         dialogStateFlow,
-    ) { wsState, selectedItems, viewMode, clipboard, dialogState ->
-        val items = wsState.currentLocation?.items ?: emptyList()
+        currentSortSettings,
+    ) { wsState, selectedItems, viewMode, clipboard, dialogState, sortSetting ->
+        val rawItems = wsState.currentLocation?.items ?: emptyList()
+        val items = itemSorter.sortItems(rawItems, sortSetting)
 
         val selectionState = ExplorerSelectionState(
             selectedItems = selectedItems,
@@ -284,7 +297,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 selectedItemsFlow.value = emptySet()
             }
             is ExplorerAction.Common.Sort -> {
-                // TODO: Show sort options dialog/menu
+                dialogStateFlow.value = ExplorerDialogState.EditSortOptions(
+                    currentSortSettings = currentSortSettings.value
+                )
             }
             is ExplorerAction.Common.Filter -> {
                 // TODO: Show filter options dialog/menu
@@ -372,6 +387,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         )
     }
 
+    fun onSortOptions(result: SortOptionsResult) = launch {
+        log(tag) { "onSortOptions($result)" }
+        dialogStateFlow.value = ExplorerDialogState.None
+        explorerSettings.sortSettings.value(result.sortSettings)
+        currentSortSettings.value = result.sortSettings
+    }
+
     fun pasteClipboard(clip: ClipboardClip) = launch {
         log(tag) { "pasteClipboard($clip)" }
         when (clip) {
@@ -408,7 +430,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         clipboardRepo.clear()
     }
 
-    fun resolveConflict(resolution: Issue.Resolution?) = launch {
+    fun resolveConflict(resolution: Issue.Resolution) = launch {
         log(tag) { "resolveConflict(): $resolution" }
 
         val operationId = currentConflictOperationId

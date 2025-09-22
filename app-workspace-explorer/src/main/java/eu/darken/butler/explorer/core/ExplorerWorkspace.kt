@@ -319,7 +319,7 @@ class ExplorerWorkspace @AssistedInject constructor(
         }
     }
 
-    fun resolveConflict(operationId: OperationId, resolution: Issue.Resolution?) {
+    fun resolveConflict(operationId: OperationId, resolution: Issue.Resolution) {
         log(tag, INFO) { "Resolving conflict for operation $operationId: $resolution" }
         scope.launch {
             operationEngine.resolveConflict(operationId, resolution)
