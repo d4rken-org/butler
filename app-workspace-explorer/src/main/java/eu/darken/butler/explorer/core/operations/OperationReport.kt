@@ -1,5 +1,7 @@
 package eu.darken.butler.explorer.core.operations
 
+import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.explorer.core.filesystem.FileSystemEvent
 import kotlin.time.Clock
@@ -11,6 +13,11 @@ data class OperationReport(
     val averageBytesPerSecond: Long? = null,
     val peakBytesPerSecond: Long? = null,
 ) {
+
+    val summary: CaString = caString {
+        "// TODO: Summary"
+    }
+
     data class PathChange(
         val path: APath,
         val type: Type,
@@ -19,7 +26,6 @@ data class OperationReport(
             ADDED, REMOVED, MODIFIED
         }
     }
-
 
     class Builder(
         private val startTime: Instant = Clock.System.now()

@@ -1,5 +1,7 @@
 package eu.darken.butler.workspace.ui.workspaces
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -9,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -108,48 +111,52 @@ fun WorkspaceScreen(
         onScreenAction(WorkspaceScreenAction.SetPaneCount(design.maxPanes))
     }
 
-    if (!design.isSingle) {
-        AdaptiveWorkspaceLayout(
-            design = design,
-            workspaces = state.all,
-            selected = state.selected,
-            focusedId = state.focused,
-            dividerPositions = dividerPositions,
-            onDividerPositionsChange = { newPositions ->
-                dividerPositions = newPositions
-            },
-            showPaneNumbers = showPaneNumbers,
-            showPaneOverlay = showPaneOverlay,
-            onPaneMenuToggle = { isOpen ->
-                showPaneOverlay = isOpen
-                showPaneNumbers = isOpen
-            },
-            workspaceButtonState = workspaceButtonState,
-            onWorkspaceAction = onWorkspaceAction,
-            onNavToWorkspaceManager = onNavToWorkspaceManager,
-            onTabAction = onWorkspaceTabAction,
-            onScreenAction = onScreenAction,
-        )
-    } else {
-        ClassicWorkspaceContainer(
-            state = state,
-            onNavToSettings = onNavToSettings,
-            onWorkspaceAction = onWorkspaceTabAction,
-            onWorkspaceScreenAction = onScreenAction,
-            onUpgradeButler = onUpgradeButler,
-        )
-    }
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Main workspace content
+        if (!design.isSingle) {
+            AdaptiveWorkspaceLayout(
+                design = design,
+                workspaces = state.all,
+                selected = state.selected,
+                focusedId = state.focused,
+                dividerPositions = dividerPositions,
+                onDividerPositionsChange = { newPositions ->
+                    dividerPositions = newPositions
+                },
+                showPaneNumbers = showPaneNumbers,
+                showPaneOverlay = showPaneOverlay,
+                onPaneMenuToggle = { isOpen ->
+                    showPaneOverlay = isOpen
+                    showPaneNumbers = isOpen
+                },
+                workspaceButtonState = workspaceButtonState,
+                onWorkspaceAction = onWorkspaceAction,
+                onNavToWorkspaceManager = onNavToWorkspaceManager,
+                onTabAction = onWorkspaceTabAction,
+                onScreenAction = onScreenAction,
+            )
+        } else {
+            ClassicWorkspaceContainer(
+                state = state,
+                onNavToSettings = onNavToSettings,
+                onWorkspaceAction = onWorkspaceTabAction,
+                onWorkspaceScreenAction = onScreenAction,
+                onUpgradeButler = onUpgradeButler,
+            )
+        }
 
-    state.motd?.let { motd ->
-        MotdCard(
-            motd = motd,
-            onHide = { onHideMotd(motd.id) },
-            onMarkAsRead = onDismissMotd,
-            onLinkClick = onMotdLinkClick,
-            modifier = Modifier
-//                .align(Alignment.TopCenter)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-        )
+        // MOTD overlay
+        state.motd?.let { motd ->
+            MotdCard(
+                motd = motd,
+                onHide = { onHideMotd(motd.id) },
+                onMarkAsRead = onDismissMotd,
+                onLinkClick = onMotdLinkClick,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+        }
     }
 }
 

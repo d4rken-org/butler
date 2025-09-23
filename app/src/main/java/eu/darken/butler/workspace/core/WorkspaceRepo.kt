@@ -156,7 +156,7 @@ class WorkspaceRepo @Inject constructor(
                 log(TAG, INFO) { "Closing all workspaces" }
                 _workspaces.value.forEach {
                     it.release()
-                    operationsManager.clearWorkspaceById(it.id)
+                    operationsManager.removeWorkspace(it.id)
                 }
                 _workspaces.value = emptyList()
                 _events.emit(WorkspaceEvent.AllClosed)

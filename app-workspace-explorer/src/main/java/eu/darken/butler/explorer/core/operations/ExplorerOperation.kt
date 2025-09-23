@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.core.operations
 
+import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.core.operations.Operation
@@ -23,14 +24,18 @@ abstract class ExplorerOperation : Operation {
             override val startedAt: Instant,
             override val waitingSince: Instant,
             val issue: PathActionIssue,
-        ) : State, Operation.State.Waiting
+        ) : State, Operation.State.Waiting {
+            override val reason: CaString get() = issue.title
+        }
 
         data class Completed(
             override val startedAt: Instant,
             override val completedAt: Instant = Clock.System.now(),
             override val error: Throwable? = null,
             val report: OperationReport,
-        ) : State, Operation.State.Completed
+        ) : State, Operation.State.Completed {
+            override val summary: CaString get() = report.summary
+        }
     }
 
 

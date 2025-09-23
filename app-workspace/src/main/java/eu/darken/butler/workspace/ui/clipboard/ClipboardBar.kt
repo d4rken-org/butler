@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -215,12 +214,12 @@ private fun ClipboardHeaderRow(
             ) {
                 Icon(
                     imageVector = Icons.TwoTone.ExpandLess,
-                    contentDescription = stringResource(R.string.clipboard_hide),
+                    contentDescription = stringResource(R.string.clipboard_show_less),
                     modifier = Modifier.size(14.dp),
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = stringResource(R.string.clipboard_hide),
+                    text = stringResource(R.string.clipboard_show_less),
                     style = MaterialTheme.typography.labelSmall,
                 )
             }

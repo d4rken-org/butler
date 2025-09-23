@@ -53,10 +53,12 @@ interface Operation {
 
         interface Waiting : State {
             val waitingSince: Instant
+            val reason: CaString
         }
 
         interface Completed : State {
             val completedAt: Instant
+            val summary: CaString
             val error: Throwable?
         }
     }

@@ -87,7 +87,6 @@ class WorkspacesViewModel @Inject constructor(
         )
     }.asStateFlow()
 
-
     fun executeAction(
         action: WorkspaceAction,
     ) = launch {
@@ -161,6 +160,7 @@ class WorkspacesViewModel @Inject constructor(
         log(tag) { "openMotdLink($url)" }
         webpageTool.open(url)
     }
+
 
     data class State(
         private val state: WorkspaceRemote.State,

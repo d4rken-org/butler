@@ -175,7 +175,7 @@ suspend fun Collection<LocalPath>.delete(
     log(TAG, VERBOSE) { "delete(): Traversing done, deleting ${files.size} files..." }
     for (localPath in files) tryDelete(localPath)
 
-    log(TAG, VERBOSE) { "delete(): File deletio done, deleting ${dirsPost.size} directories..." }
+    log(TAG, VERBOSE) { "delete(): File deletion done, deleting ${dirsPost.size} directories..." }
     for (dir in dirsPost) tryDelete(dir)
 
     return DeleteAction.State.Result(

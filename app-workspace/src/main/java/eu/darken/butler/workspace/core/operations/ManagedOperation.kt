@@ -1,5 +1,7 @@
 package eu.darken.butler.workspace.core.operations
 
+import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -32,8 +34,12 @@ class ManagedOperation(
 
     private var job: Job? = null
 
+    val canCancel: Boolean get() = job?.isActive == true
+
+    val canPause: Boolean get() = false
+
     suspend fun execute() {
-        log(tag, INFO) { "Executing operation $id" }
+        log(tag, INFO) { "execute(): Starting operation $id" }
         val operationContext = Operation.Context(
             id = id,
             startedAt = startTime,
@@ -50,6 +56,9 @@ class ManagedOperation(
                     object : Operation.State.Completed {
                         override val startedAt: Instant = startTime
                         override val completedAt: Instant = Clock.System.now()
+                        override val summary: CaString = caString {
+                            "Unknown error" // TODO
+                        }
                         override val error: Throwable = error
                     }
                 )
@@ -58,6 +67,7 @@ class ManagedOperation(
     }
 
     fun cancel() {
+        log(tag) { "cancel()" }
         job?.cancel()
     }
 }

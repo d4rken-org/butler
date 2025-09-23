@@ -44,13 +44,18 @@ import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.permissions.PermissionState
+import eu.darken.butler.workspace.ui.operations.OperationDisplay
+import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel(assistedFactory = ExplorerWorkspaceViewModel.Factory::class)
 class ExplorerWorkspaceViewModel @AssistedInject constructor(
@@ -63,6 +68,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val clipboardRepo: ClipboardRepo,
     private val explorerSettings: ExplorerSettings,
     itemSorterFactory: ExplorerItemSorter.Factory,
+    private val operationsManager: OperationsManager,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
 
     private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
@@ -154,6 +160,29 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             permissionState = wsState.currentLocation?.permissionState ?: PermissionState(),
         )
     }.asStateFlow()
+
+    val operations = operationsManager.operations
+        .map { allOperations ->
+            allOperations
+                .filter { it.metadata.origin.workspaceId == id }
+                .map { it.toDisplayModel() }
+                .sortedWith(compareBy<OperationDisplay> { op ->
+                    // Priority: Running > Waiting (was running, needs input) > Queued > Others
+                    when (op.state) {
+                        is OperationDisplay.State.Running -> 0
+                        is OperationDisplay.State.Waiting -> 1  // Higher priority than queued
+                        is OperationDisplay.State.Queued -> 2
+                        is OperationDisplay.State.Failed -> 3
+                        is OperationDisplay.State.Completed -> 4
+                        is OperationDisplay.State.Cancelled -> 5
+                    }
+                }.thenBy { it.startedAt }) // Oldest first within each group
+        }
+        .stateIn(
+            scope = vmScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     fun navigate(item: ExplorerItem) = launch {
         log(tag) { "navigate($item)" }
@@ -478,6 +507,30 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 autoCloseWhenComplete = true,
             )
         )
+    }
+
+    fun cancelOperation(id: Operation.Id) = launch {
+        log(tag) { "cancelOperation($id)" }
+        operationsManager.cancel(id)
+    }
+
+    fun clearCompletedOperations() = launch {
+        log(tag) { "clearCompletedOperations()" }
+        operationsManager.clearCompleted()
+    }
+
+    fun onOperationClick(operation: OperationDisplay) = launch {
+        log(tag) { "onOperationClick($operation)" }
+        when (operation.state) {
+            is OperationDisplay.State.Waiting -> {
+                // Navigate or handle waiting operations
+                log(tag) { "Operation is waiting for user input" }
+            }
+            else -> {
+                // Could show operation details or do nothing
+                log(tag) { "Operation clicked: ${operation.title}" }
+            }
+        }
     }
 
     @AssistedFactory

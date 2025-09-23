@@ -16,8 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 
 /**
@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
  *
  * @param modifier Modifier for the SwipeToDismissBox
  * @param onDismiss Called when the item is dismissed
+ * @param enabled Whether swipe gestures are enabled (default: true)
  * @param dismissThreshold Fraction of the width that must be swiped to trigger dismiss (0.0 to 1.0)
  * @param backgroundShape Shape for the background (e.g., RoundedCornerShape for rounded corners)
  * @param backgroundColor Background color when swiping
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.dp
 fun SwipeToDismissItem(
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit,
+    enabled: Boolean = true,
     dismissThreshold: Float = 0.5f,
     backgroundShape: Shape = RectangleShape,
     backgroundColor: Color = MaterialTheme.colorScheme.error,
@@ -78,6 +80,7 @@ fun SwipeToDismissItem(
         state = dismissState,
         modifier = modifier,
         enableDismissFromStartToEnd = false,
+        gesturesEnabled = enabled,
         backgroundContent = {
             Box(
                 modifier = Modifier

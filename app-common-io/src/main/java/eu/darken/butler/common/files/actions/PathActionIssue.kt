@@ -22,6 +22,12 @@ sealed interface PathActionIssue : Issue {
         val canRenameDestination: Boolean = false,
         val suggestedName: String? = null,
     ) : PathActionIssue {
+        override val title: CaString = caString {
+            "// TODO: title PathAlreadyExists"
+        }
+        override val description: CaString = caString {
+            "// TODO: description PathAlreadyExists"
+        }
         sealed interface Resolution : PathActionIssue.Resolution {
             data class Skip(val applyToAll: Boolean = false) : Resolution
             data class Overwrite(val applyToAll: Boolean = false) : Resolution
@@ -39,6 +45,12 @@ sealed interface PathActionIssue : Issue {
         val canSkip: Boolean = false,
         val exception: Throwable? = null,
     ) : PathActionIssue {
+        override val title: CaString = caString {
+            "// TODO: title InsufficientPermission"
+        }
+        override val description: CaString = caString {
+            "// TODO: description InsufficientPermission"
+        }
         sealed interface Resolution : PathActionIssue.Resolution {
             data class Skip(val applyToAll: Boolean = false) : Resolution
             data class Cancel(val error: Exception? = null) : Resolution
@@ -51,6 +63,12 @@ sealed interface PathActionIssue : Issue {
         val destination: APathLookup<APath>,
         val canSkip: Boolean = false,
     ) : PathActionIssue {
+        override val title: CaString = caString {
+            "// TODO: title InsufficientSpace"
+        }
+        override val description: CaString = caString {
+            "// TODO: description InsufficientSpace"
+        }
         sealed interface Resolution : PathActionIssue.Resolution {
             data class Skip(val applyToAll: Boolean = false) : Resolution
             data class Cancel(val error: Exception? = null) : Resolution
@@ -66,6 +84,12 @@ sealed interface PathActionIssue : Issue {
         val canSkip: Boolean = false,
         val canRetry: Boolean = false,
     ) : PathActionIssue {
+        override val title: CaString = caString {
+            "// TODO: title UnknownError"
+        }
+        override val description: CaString = caString {
+            "// TODO: description UnknownError"
+        }
         sealed interface Resolution : PathActionIssue.Resolution {
             data class Skip(val applyToAll: Boolean = false) : Resolution
             data class Retry(val applyToAll: Boolean = false) : Resolution
