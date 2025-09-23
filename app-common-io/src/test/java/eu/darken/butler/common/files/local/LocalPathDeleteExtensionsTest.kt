@@ -2,6 +2,7 @@ package eu.darken.butler.common.files.local
 
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.errors.ReadException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
@@ -19,7 +20,7 @@ import java.io.File
 import java.nio.file.DirectoryNotEmptyException
 import java.nio.file.Files
 
-class FileDeleteExtensionsTest : BaseTest() {
+class LocalPathDeleteExtensionsTest : BaseTest() {
 
     private val testFolder = File(IO_TEST_BASEDIR, "delete-test")
 
@@ -44,7 +45,7 @@ class FileDeleteExtensionsTest : BaseTest() {
         val testPath = LocalPath.build(testFile)
 
         // When
-        val result = listOf(testPath).delete()
+        val result = testPath.delete()
 
         // Then
         result.deleted shouldContain testPath
@@ -53,16 +54,25 @@ class FileDeleteExtensionsTest : BaseTest() {
     }
 
     @Test
-    fun `delete non-existent file should not throw`() = runTest {
+    fun `delete non-existent file - ignore missing true`() = runTest {
         // Given
         val nonExistentFile = File(testFolder, "does-not-exist.txt")
 
         // When
-        val result = listOf(LocalPath.build(nonExistentFile)).delete()
+        val result = listOf(LocalPath.build(nonExistentFile)).delete(ignoreMissing = true)
 
         // Then
         result.deleted.shouldBeEmpty()
         result.bytesTotal shouldBe 0L
+    }
+
+    @Test
+    fun `delete non-existent file - ignore missing false`() = runTest {
+        val nonExistentFile = File(testFolder, "does-not-exist.txt")
+
+        shouldThrow<ReadException> {
+            LocalPath.build(nonExistentFile).delete(ignoreMissing = false)
+        }
     }
 
     @Test
@@ -109,7 +119,7 @@ class FileDeleteExtensionsTest : BaseTest() {
         val expectedSize = file1.length() + file2.length()
 
         // When
-        val result = listOf(LocalPath.build(nestedDir)).delete(recursive = true)
+        val result = listOf(LocalPath.build(nestedDir)).delete()
 
         // Then
         result.bytesTotal shouldBe expectedSize
@@ -134,7 +144,6 @@ class FileDeleteExtensionsTest : BaseTest() {
 
         // When
         listOf(LocalPath.build(parentDir)).delete(
-            recursive = true,
             onProgress = { deletionOrder.add(it.target) }
         )
 
@@ -337,7 +346,7 @@ class FileDeleteExtensionsTest : BaseTest() {
         val expectedSize = files.sumOf { it.length() }
 
         // When
-        val result = listOf(LocalPath.build(File(testFolder, "level0"))).delete()
+        val result = LocalPath.build(File(testFolder, "level0")).delete()
 
         // Then
         result.bytesTotal shouldBe expectedSize
@@ -358,7 +367,9 @@ class FileDeleteExtensionsTest : BaseTest() {
         file1.delete()
 
         // When
-        val result = listOf(LocalPath.build(file1), LocalPath.build(file2)).delete()
+        val result = listOf(
+            LocalPath.build(file1), LocalPath.build(file2)
+        ).delete()
 
         // Then
         result.deleted shouldHaveSize 1
@@ -514,10 +525,9 @@ class FileDeleteExtensionsTest : BaseTest() {
                 issueCount++
                 // Always cancel on first issue
                 when (issue) {
-                    is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Cancel
-                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Cancel
-                    is PathActionIssue.InsufficientSpace -> TODO()
-                    is PathActionIssue.PathAlreadyExists -> TODO()
+                    is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Cancel()
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Cancel()
+                    else -> TODO()
                 }
             }
         )
@@ -543,6 +553,446 @@ class FileDeleteExtensionsTest : BaseTest() {
         result.bytesTotal should { it >= 0 }
     }
 
+
+    // ============ RECURSIVE FLAG TESTS ============
+
+    @Test
+    fun `recursive false with empty directory should succeed`() = runTest {
+        // Given
+        val emptyDir = File(testFolder, "empty-dir")
+        emptyDir.mkdir()
+
+        // When
+        val result = LocalPath.build(emptyDir).delete(recursive = false)
+
+        // Then
+        result.deleted shouldContain LocalPath.build(emptyDir)
+        emptyDir.exists() shouldBe false
+    }
+
+    @Test
+    fun `recursive false with non-empty directory should fail`() = runTest {
+        // Given
+        val dirWithContent = File(testFolder, "dir-with-content")
+        val childFile = File(dirWithContent, "child.txt")
+        dirWithContent.mkdir()
+        childFile.writeText("content")
+
+        // When & Then
+        shouldThrow<DirectoryNotEmptyException> {
+            LocalPath.build(dirWithContent).delete(recursive = false)
+        }
+        dirWithContent.exists() shouldBe true
+        childFile.exists() shouldBe true
+    }
+
+    @Test
+    fun `recursive true with nested structure should succeed`() = runTest {
+        // Given
+        val parentDir = File(testFolder, "parent")
+        val childDir = File(parentDir, "child")
+        val grandchildDir = File(childDir, "grandchild")
+        val file1 = File(parentDir, "file1.txt")
+        val file2 = File(childDir, "file2.txt")
+        val file3 = File(grandchildDir, "file3.txt")
+
+        parentDir.mkdir()
+        childDir.mkdir()
+        grandchildDir.mkdir()
+        file1.writeText("content1")
+        file2.writeText("content2")
+        file3.writeText("content3")
+
+        val expectedSize = file1.length() + file2.length() + file3.length()
+
+        // When
+        val result = LocalPath.build(parentDir).delete(recursive = true)
+
+        // Then
+        result.bytesTotal shouldBe expectedSize
+        result.deleted should { deleted ->
+            deleted shouldContain LocalPath.build(file1)
+            deleted shouldContain LocalPath.build(file2)
+            deleted shouldContain LocalPath.build(file3)
+            deleted shouldContain LocalPath.build(grandchildDir)
+            deleted shouldContain LocalPath.build(childDir)
+            deleted shouldContain LocalPath.build(parentDir)
+        }
+        parentDir.exists() shouldBe false
+    }
+
+    @Test
+    fun `recursive flag behavior with collection of mixed content`() = runTest {
+        // Given
+        val file = File(testFolder, "standalone.txt")
+        val emptyDir = File(testFolder, "empty")
+        val dirWithContent = File(testFolder, "with-content")
+        val childFile = File(dirWithContent, "child.txt")
+
+        file.writeText("standalone")
+        emptyDir.mkdir()
+        dirWithContent.mkdir()
+        childFile.writeText("child content")
+
+        // When - recursive false should fail for directory with content
+        shouldThrow<DirectoryNotEmptyException> {
+            listOf(
+                LocalPath.build(file),
+                LocalPath.build(emptyDir),
+                LocalPath.build(dirWithContent)
+            ).delete(recursive = false)
+        }
+
+        // Then - directory with content should still exist (couldn't be deleted due to recursive=false)
+        // Note: Other files may have been deleted before the exception was thrown
+        dirWithContent.exists() shouldBe true
+        childFile.exists() shouldBe true
+    }
+
+    @Test
+    fun `recursive true vs false with same directory structure`() = runTest {
+        // Given - create two identical directory structures
+        val dir1 = File(testFolder, "test-dir-1")
+        val dir2 = File(testFolder, "test-dir-2")
+        val file1 = File(dir1, "file.txt")
+        val file2 = File(dir2, "file.txt")
+
+        dir1.mkdir()
+        dir2.mkdir()
+        file1.writeText("content")
+        file2.writeText("content")
+
+        // When - delete first with recursive=true
+        val recursiveResult = LocalPath.build(dir1).delete(recursive = true)
+
+        // And - try to delete second with recursive=false (should fail)
+        shouldThrow<DirectoryNotEmptyException> {
+            LocalPath.build(dir2).delete(recursive = false)
+        }
+
+        // Then
+        dir1.exists() shouldBe false
+        recursiveResult.deleted shouldHaveSize 2 // file and directory
+
+        dir2.exists() shouldBe true // Should still exist
+        file2.exists() shouldBe true
+    }
+
+    // ============ IGNORE MISSING FLAG TESTS ============
+
+    @Test
+    fun `ignoreMissing true with non-existent file should not throw`() = runTest {
+        // Given
+        val nonExistentFile = File(testFolder, "does-not-exist.txt")
+
+        // When
+        val result = LocalPath.build(nonExistentFile).delete(ignoreMissing = true)
+
+        // Then
+        result.deleted.shouldBeEmpty()
+        result.bytesTotal shouldBe 0L
+    }
+
+    @Test
+    fun `ignoreMissing false with non-existent file should throw`() = runTest {
+        // Given
+        val nonExistentFile = File(testFolder, "does-not-exist.txt")
+
+        // When & Then
+        shouldThrow<ReadException> {
+            LocalPath.build(nonExistentFile).delete(ignoreMissing = false)
+        }
+    }
+
+    @Test
+    fun `ignoreMissing true with mixed existing and non-existing files`() = runTest {
+        // Given
+        val existingFile = File(testFolder, "exists.txt")
+        val nonExistentFile1 = File(testFolder, "missing1.txt")
+        val nonExistentFile2 = File(testFolder, "missing2.txt")
+
+        existingFile.writeText("content")
+        val expectedSize = existingFile.length()
+
+        // When
+        val result = listOf(
+            LocalPath.build(nonExistentFile1),
+            LocalPath.build(existingFile),
+            LocalPath.build(nonExistentFile2)
+        ).delete(ignoreMissing = true)
+
+        // Then
+        result.deleted shouldContain LocalPath.build(existingFile)
+        result.deleted shouldHaveSize 1
+        result.bytesTotal shouldBe expectedSize
+        existingFile.exists() shouldBe false
+    }
+
+    @Test
+    fun `ignoreMissing false with mixed existing and non-existing files should throw on first missing`() = runTest {
+        // Given
+        val existingFile = File(testFolder, "exists.txt")
+        val nonExistentFile1 = File(testFolder, "missing1.txt")
+        val nonExistentFile2 = File(testFolder, "missing2.txt")
+
+        existingFile.writeText("content")
+
+        // When & Then
+        shouldThrow<ReadException> {
+            listOf(
+                LocalPath.build(nonExistentFile1),
+                LocalPath.build(existingFile),
+                LocalPath.build(nonExistentFile2)
+            ).delete(ignoreMissing = false)
+        }
+
+        // Then - operation should have stopped on first missing file
+        existingFile.exists() shouldBe true // Should not have been deleted
+    }
+
+    @Test
+    fun `ignoreMissing true with collection of all non-existent files`() = runTest {
+        // Given
+        val nonExistentFiles = (1..5).map { File(testFolder, "missing$it.txt") }
+
+        // When
+        val result = nonExistentFiles.map { LocalPath.build(it) }.delete(ignoreMissing = true)
+
+        // Then
+        result.deleted.shouldBeEmpty()
+        result.bytesTotal shouldBe 0L
+    }
+
+    @Test
+    fun `ignoreMissing false with collection of all non-existent files should throw`() = runTest {
+        // Given
+        val nonExistentFiles = (1..5).map { File(testFolder, "missing$it.txt") }
+
+        // When & Then
+        shouldThrow<ReadException> {
+            nonExistentFiles.map { LocalPath.build(it) }.delete(ignoreMissing = false)
+        }
+    }
+
+    @Test
+    fun `ignoreMissing behavior with directories`() = runTest {
+        // Given
+        val existingDir = File(testFolder, "existing-dir")
+        val nonExistentDir = File(testFolder, "missing-dir")
+        val fileInDir = File(existingDir, "file.txt")
+
+        existingDir.mkdir()
+        fileInDir.writeText("content")
+        val expectedSize = fileInDir.length()
+
+        // When - ignoreMissing true
+        val result = listOf(
+            LocalPath.build(nonExistentDir),
+            LocalPath.build(existingDir)
+        ).delete(ignoreMissing = true)
+
+        // Then
+        result.deleted shouldContain LocalPath.build(existingDir)
+        result.deleted shouldContain LocalPath.build(fileInDir)
+        result.bytesTotal shouldBe expectedSize
+        existingDir.exists() shouldBe false
+    }
+
+    @Test
+    fun `verify ignoreMissing flag consistency between single and collection operations`() = runTest {
+        // Given
+        val nonExistent1 = File(testFolder, "missing1.txt")
+        val nonExistent2 = File(testFolder, "missing2.txt")
+
+        // When & Then - both single and collection should behave the same with ignoreMissing=false
+        shouldThrow<ReadException> {
+            LocalPath.build(nonExistent1).delete(ignoreMissing = false)
+        }
+
+        shouldThrow<ReadException> {
+            listOf(LocalPath.build(nonExistent2)).delete(ignoreMissing = false)
+        }
+
+        // And both should succeed with ignoreMissing=true
+        val singleResult = LocalPath.build(nonExistent1).delete(ignoreMissing = true)
+        val collectionResult = listOf(LocalPath.build(nonExistent2)).delete(ignoreMissing = true)
+
+        singleResult.deleted.shouldBeEmpty()
+        collectionResult.deleted.shouldBeEmpty()
+    }
+
+    // ============ COMBINED FLAG TESTS ============
+
+    @Test
+    fun `recursive false and ignoreMissing true with mixed content`() = runTest {
+        // Given
+        val existingFile = File(testFolder, "exists.txt")
+        val nonExistentFile = File(testFolder, "missing.txt")
+        val emptyDir = File(testFolder, "empty-dir")
+        val dirWithContent = File(testFolder, "dir-with-content")
+        val childFile = File(dirWithContent, "child.txt")
+
+        existingFile.writeText("content")
+        emptyDir.mkdir()
+        dirWithContent.mkdir()
+        childFile.writeText("child content")
+
+        // When - should fail on directory with content but ignore missing files
+        shouldThrow<DirectoryNotEmptyException> {
+            listOf(
+                LocalPath.build(nonExistentFile),
+                LocalPath.build(existingFile),
+                LocalPath.build(emptyDir),
+                LocalPath.build(dirWithContent)
+            ).delete(recursive = false, ignoreMissing = true)
+        }
+
+        // Then - directory with content should still exist (couldn't be deleted due to recursive=false)
+        // Note: Other files may have been deleted before the exception was thrown
+        dirWithContent.exists() shouldBe true
+        childFile.exists() shouldBe true
+    }
+
+    @Test
+    fun `recursive true and ignoreMissing false with mixed content`() = runTest {
+        // Given
+        val existingFile = File(testFolder, "exists.txt")
+        val nonExistentFile = File(testFolder, "missing.txt")
+        val dirWithContent = File(testFolder, "dir-with-content")
+        val childFile = File(dirWithContent, "child.txt")
+
+        existingFile.writeText("content")
+        dirWithContent.mkdir()
+        childFile.writeText("child content")
+
+        // When - should fail on missing file even though recursive is true
+        shouldThrow<ReadException> {
+            listOf(
+                LocalPath.build(nonExistentFile),
+                LocalPath.build(existingFile),
+                LocalPath.build(dirWithContent)
+            ).delete(recursive = true, ignoreMissing = false)
+        }
+
+        // Then - should not have deleted anything due to missing file
+        existingFile.exists() shouldBe true
+        dirWithContent.exists() shouldBe true
+        childFile.exists() shouldBe true
+    }
+
+    @Test
+    fun `recursive true and ignoreMissing true - happy path with all combinations`() = runTest {
+        // Given
+        val existingFile = File(testFolder, "exists.txt")
+        val nonExistentFile = File(testFolder, "missing.txt")
+        val emptyDir = File(testFolder, "empty-dir")
+        val dirWithContent = File(testFolder, "dir-with-content")
+        val childFile = File(dirWithContent, "child.txt")
+
+        existingFile.writeText("content")
+        emptyDir.mkdir()
+        dirWithContent.mkdir()
+        childFile.writeText("child content")
+
+        val expectedSize = existingFile.length() + childFile.length()
+
+        // When - should succeed with both flags true
+        val result = listOf(
+            LocalPath.build(nonExistentFile),
+            LocalPath.build(existingFile),
+            LocalPath.build(emptyDir),
+            LocalPath.build(dirWithContent)
+        ).delete(recursive = true, ignoreMissing = true)
+
+        // Then - should delete everything that exists
+        result.deleted shouldContain LocalPath.build(existingFile)
+        result.deleted shouldContain LocalPath.build(emptyDir)
+        result.deleted shouldContain LocalPath.build(dirWithContent)
+        result.deleted shouldContain LocalPath.build(childFile)
+        result.bytesTotal shouldBe expectedSize
+
+        existingFile.exists() shouldBe false
+        emptyDir.exists() shouldBe false
+        dirWithContent.exists() shouldBe false
+    }
+
+    @Test
+    fun `recursive false and ignoreMissing false - strict mode`() = runTest {
+        // Given
+        val existingFile = File(testFolder, "exists.txt")
+        val nonExistentFile = File(testFolder, "missing.txt")
+        val emptyDir = File(testFolder, "empty-dir")
+
+        existingFile.writeText("content")
+        emptyDir.mkdir()
+
+        // When - should fail on missing file in strict mode
+        shouldThrow<ReadException> {
+            listOf(
+                LocalPath.build(nonExistentFile),
+                LocalPath.build(existingFile),
+                LocalPath.build(emptyDir)
+            ).delete(recursive = false, ignoreMissing = false)
+        }
+
+        // Then - nothing should be deleted
+        existingFile.exists() shouldBe true
+        emptyDir.exists() shouldBe true
+    }
+
+    @Test
+    fun `flag combinations with symbolic links`() = runTest {
+        // Given
+        val targetFile = File(testFolder, "target.txt")
+        val symlink = File(testFolder, "symlink")
+        val nonExistentSymlink = File(testFolder, "missing-symlink")
+
+        targetFile.writeText("target content")
+
+        try {
+            Files.createSymbolicLink(symlink.toPath(), targetFile.toPath())
+
+            // Only proceed if symlink was actually created
+            if (Files.isSymbolicLink(symlink.toPath())) {
+                // When - delete existing symlink and missing symlink with various flag combinations
+                val result = listOf(
+                    LocalPath.build(symlink),
+                    LocalPath.build(nonExistentSymlink)
+                ).delete(recursive = true, ignoreMissing = true)
+
+                // Then - should delete symlink but ignore missing one, target should remain
+                result.deleted shouldContain LocalPath.build(symlink)
+                targetFile.exists() shouldBe true // Target should remain intact
+            }
+        } catch (e: Exception) {
+            // Symlink creation may fail on some systems - skip test gracefully
+        }
+    }
+
+    @Test
+    fun `performance with flag combinations on large collections`() = runTest {
+        // Given
+        val files = (1..50).map { i ->
+            File(testFolder, "file$i.txt").apply {
+                writeText("Content $i")
+            }
+        }
+        val nonExistentFiles = (51..60).map { i -> File(testFolder, "missing$i.txt") }
+
+        val expectedSize = files.sumOf { it.length() }
+
+        // When - delete with various flag combinations
+        val result = (files.map { LocalPath.build(it) } + nonExistentFiles.map { LocalPath.build(it) }).delete(
+            recursive = true,
+            ignoreMissing = true
+        )
+
+        // Then - should handle large collection efficiently
+        result.deleted shouldHaveSize files.size
+        result.bytesTotal shouldBe expectedSize
+        files.forEach { it.exists() shouldBe false }
+    }
+
     @Test
     fun `issue handling with mixed file types`() = runTest {
         // Given
@@ -558,7 +1008,6 @@ class FileDeleteExtensionsTest : BaseTest() {
 
         // When
         val result = listOf(LocalPath.build(regularFile), LocalPath.build(directory)).delete(
-            recursive = true,
             onIssue = { issue ->
                 issues.add(issue)
                 // Skip all issues to test graceful handling

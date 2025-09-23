@@ -18,9 +18,16 @@ import kotlin.coroutines.cancellation.CancellationException
 
 private val TAG = logTag("Gateway", "Local", "Delete", "Extensions")
 
+suspend fun LocalPath.delete(
+    recursive: Boolean = true,
+    ignoreMissing: Boolean = true,
+    onProgress: (suspend (DeleteAction.State.Progress<LocalPath>) -> Unit)? = null,
+    onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
+) = setOf(this).delete(recursive, ignoreMissing, onProgress, onIssue)
+
 suspend fun Collection<LocalPath>.delete(
-    recursive: Boolean = false,
-    ignoreMissing: Boolean = false,
+    recursive: Boolean = true,
+    ignoreMissing: Boolean = true,
     onProgress: (suspend (DeleteAction.State.Progress<LocalPath>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
 ): DeleteAction.State.Result<LocalPath> {
