@@ -6,13 +6,13 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.actions.CopyAction
+import eu.darken.butler.common.files.actions.DeleteAction
+import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.local.LocalGateway
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
-import eu.darken.butler.common.files.operations.CopyOperation
-import eu.darken.butler.common.files.operations.DeleteOperation
-import eu.darken.butler.common.files.operations.MoveOperation
 import eu.darken.butler.common.files.saf.SAFGateway
 import eu.darken.butler.common.sharedresource.SharedResource
 import eu.darken.butler.common.sharedresource.adoptChildResource
@@ -191,8 +191,8 @@ class GatewaySwitch @Inject constructor(
 
     override suspend fun delete(
         targets: Set<APath>,
-        options: DeleteOperation.Options<APath>
-    ): Flow<DeleteOperation.State<APath>> = targets
+        options: DeleteAction.Options<APath>
+    ): Flow<DeleteAction.State<APath>> = targets
         .groupBy { it::class }.values.asFlow()
         .flatMapConcat { group ->
             useGateway(group.first()) {
@@ -241,8 +241,8 @@ class GatewaySwitch @Inject constructor(
     override suspend fun copy(
         sources: Set<APath>,
         destination: APath,
-        options: CopyOperation.Options<APath>,
-    ): Flow<CopyOperation.State<APath>> = flow {
+        options: CopyAction.Options<APath>,
+    ): Flow<CopyAction.State<APath>> = flow {
         // Group sources by gateway type for optimal processing
         val sourcesByType = sources.groupBy { it::class }
         val destinationType = destination::class
@@ -259,10 +259,10 @@ class GatewaySwitch @Inject constructor(
                         copy(sourcesGroup.toSet(), destination, options)
                     }.collect { state ->
                         when (state) {
-                            is CopyOperation.State.Progress -> {
+                            is CopyAction.State.Progress -> {
                                 emit(state.copy(bytesCopied = totalBytesProcessed + state.bytesCopied))
                             }
-                            is CopyOperation.State.Result -> {
+                            is CopyAction.State.Result -> {
                                 totalBytesProcessed += state.totalBytesCopied
                                 allCopiedFiles.addAll(state.copiedFiles)
                                 allSkippedFiles.addAll(state.skippedFiles)
@@ -277,10 +277,10 @@ class GatewaySwitch @Inject constructor(
                         performCrossGatewayCopy(source, targetPath, options)
                             .collect { state ->
                                 when (state) {
-                                    is CopyOperation.State.Progress -> {
+                                    is CopyAction.State.Progress -> {
                                         emit(state.copy(bytesCopied = totalBytesProcessed + state.bytesCopied))
                                     }
-                                    is CopyOperation.State.Result -> {
+                                    is CopyAction.State.Result -> {
                                         totalBytesProcessed += state.totalBytesCopied
                                         allCopiedFiles.addAll(state.copiedFiles)
                                         allSkippedFiles.addAll(state.skippedFiles)
@@ -293,7 +293,7 @@ class GatewaySwitch @Inject constructor(
         }
 
         emit(
-            CopyOperation.State.Result(
+            CopyAction.State.Result(
                 copiedFiles = allCopiedFiles,
                 skippedFiles = allSkippedFiles,
                 totalBytesCopied = totalBytesProcessed
@@ -304,8 +304,8 @@ class GatewaySwitch @Inject constructor(
     override suspend fun move(
         sources: Set<APath>,
         destination: APath,
-        options: MoveOperation.Options<APath>
-    ): Flow<MoveOperation.State<APath>> = flow {
+        options: MoveAction.Options<APath>
+    ): Flow<MoveAction.State<APath>> = flow {
         // Group sources by gateway type for optimal processing
         val sourcesByType = sources.groupBy { it::class }
         val destinationType = destination::class
@@ -322,10 +322,10 @@ class GatewaySwitch @Inject constructor(
                         move(sourcesGroup.toSet(), destination, options)
                     }.collect { state ->
                         when (state) {
-                            is MoveOperation.State.Progress -> {
+                            is MoveAction.State.Progress -> {
                                 emit(state.copy(bytesMoved = totalBytesMoved + state.bytesMoved))
                             }
-                            is MoveOperation.State.Result -> {
+                            is MoveAction.State.Result -> {
                                 totalBytesMoved += state.bytesMoved
                                 allMovedFiles.addAll(state.movedFiles)
                                 allSkippedFiles.addAll(state.skippedFiles)
@@ -340,10 +340,10 @@ class GatewaySwitch @Inject constructor(
                         performCrossGatewayMove(source, targetPath, options)
                             .collect { state ->
                                 when (state) {
-                                    is MoveOperation.State.Progress -> {
+                                    is MoveAction.State.Progress -> {
                                         emit(state.copy(bytesMoved = totalBytesMoved + state.bytesMoved))
                                     }
-                                    is MoveOperation.State.Result -> {
+                                    is MoveAction.State.Result -> {
                                         totalBytesMoved += state.bytesMoved
                                         allMovedFiles.addAll(state.movedFiles)
                                         allSkippedFiles.addAll(state.skippedFiles)
@@ -356,7 +356,7 @@ class GatewaySwitch @Inject constructor(
         }
 
         emit(
-            MoveOperation.State.Result(
+            MoveAction.State.Result(
                 movedFiles = allMovedFiles,
                 skippedFiles = allSkippedFiles,
                 bytesMoved = totalBytesMoved
@@ -399,8 +399,8 @@ class GatewaySwitch @Inject constructor(
     private suspend fun performCrossGatewayCopy(
         source: APath,
         target: APath,
-        options: CopyOperation.Options<APath>
-    ): Flow<CopyOperation.State<APath>> = flow {
+        options: CopyAction.Options<APath>
+    ): Flow<CopyAction.State<APath>> = flow {
         // TODO: Implement cross-gateway copy
         // - Handle file handle transfers between different gateway types
         // - Emit progress updates via options.onProgress
@@ -411,8 +411,8 @@ class GatewaySwitch @Inject constructor(
     private suspend fun performCrossGatewayMove(
         source: APath,
         target: APath,
-        options: MoveOperation.Options<APath>
-    ): Flow<MoveOperation.State<APath>> = flow {
+        options: MoveAction.Options<APath>
+    ): Flow<MoveAction.State<APath>> = flow {
         // TODO: Implement cross-gateway move (copy + delete)
         // - Copy from source to target using cross-gateway copy
         // - Delete source after successful copy

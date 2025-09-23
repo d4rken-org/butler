@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.core.operations
+package eu.darken.butler.explorer.core.filesystem
 
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.workspace.core.operations.Operation

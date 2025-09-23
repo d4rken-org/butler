@@ -4,10 +4,10 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.actions.DeleteAction
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
-import eu.darken.butler.common.files.operations.DeleteOperation
-import eu.darken.butler.common.files.operations.Issue
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import java.io.IOException
@@ -21,9 +21,9 @@ private val TAG = logTag("Gateway", "Local", "Delete", "Extensions")
 suspend fun Collection<LocalPath>.delete(
     recursive: Boolean = false,
     ignoreMissing: Boolean = false,
-    onProgress: (suspend (DeleteOperation.State.Progress<LocalPath>) -> Unit)? = null,
-    onIssue: (suspend (Issue) -> Issue.Resolution)? = null
-): DeleteOperation.State.Result<LocalPath> {
+    onProgress: (suspend (DeleteAction.State.Progress<LocalPath>) -> Unit)? = null,
+    onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
+): DeleteAction.State.Result<LocalPath> {
     log(TAG, DEBUG) {
         "delete(): Deleting $size targets (recursive=$recursive,onProgress=$onProgress, onIssue=$onIssue)"
     }
@@ -74,7 +74,7 @@ suspend fun Collection<LocalPath>.delete(
             try {
                 val size = if (target.file.isFile) target.file.length() else 0L
                 onProgress?.invoke(
-                    DeleteOperation.State.Progress(
+                    DeleteAction.State.Progress(
                         target = target,
                         targetSize = size,
                         pathsCurrent = deleted.size,
@@ -103,38 +103,38 @@ suspend fun Collection<LocalPath>.delete(
                 if (onIssue == null) throw deleteError
 
                 val issue = try {
-                    Issue.InsufficientPermission(
+                    PathActionIssue.InsufficientPermission(
                         destination = target.performLookup(),
                         exception = deleteError,
                     )
                 } catch (e: Exception) {
-                    Issue.UnknownError(exception = e)
+                    PathActionIssue.UnknownError(exception = e)
                 }
 
                 val resolution = onIssue.invoke(issue)
                 when (issue) {
-                    is Issue.InsufficientPermission -> {
-                        val permissionResolution = resolution as Issue.InsufficientPermission.Resolution
+                    is PathActionIssue.InsufficientPermission -> {
+                        val permissionResolution = resolution as PathActionIssue.InsufficientPermission.Resolution
                         when (permissionResolution) {
-                            is Issue.InsufficientPermission.Resolution.Cancel -> throw CancellationException(
+                            is PathActionIssue.InsufficientPermission.Resolution.Cancel -> throw CancellationException(
                                 "User cancelled",
                                 deleteError
                             )
-                            is Issue.InsufficientPermission.Resolution.Skip -> {
+                            is PathActionIssue.InsufficientPermission.Resolution.Skip -> {
                                 if (permissionResolution.applyToAll) skipAllPermissionIssues = true
                                 break
                             }
                         }
                     }
-                    is Issue.UnknownError -> {
-                        val unknownResolution = resolution as Issue.UnknownError.Resolution
+                    is PathActionIssue.UnknownError -> {
+                        val unknownResolution = resolution as PathActionIssue.UnknownError.Resolution
                         when (unknownResolution) {
-                            is Issue.UnknownError.Resolution.Cancel -> throw CancellationException(
+                            is PathActionIssue.UnknownError.Resolution.Cancel -> throw CancellationException(
                                 "User cancelled",
                                 deleteError
                             )
-                            is Issue.UnknownError.Resolution.Retry -> continue
-                            is Issue.UnknownError.Resolution.Skip -> break
+                            is PathActionIssue.UnknownError.Resolution.Retry -> continue
+                            is PathActionIssue.UnknownError.Resolution.Skip -> break
                         }
                     }
                     else -> throw IllegalStateException("Unexpected issue type: $issue")
@@ -144,22 +144,22 @@ suspend fun Collection<LocalPath>.delete(
                 if (onIssue == null) throw deleteError
 
                 val issue = try {
-                    Issue.UnknownError(
+                    PathActionIssue.UnknownError(
                         destination = target.performLookup(),
                         exception = deleteError
                     )
                 } catch (e: Exception) {
-                    Issue.UnknownError(exception = e)
+                    PathActionIssue.UnknownError(exception = e)
                 }
 
-                val resolution = onIssue.invoke(issue) as Issue.UnknownError.Resolution
+                val resolution = onIssue.invoke(issue) as PathActionIssue.UnknownError.Resolution
                 when (resolution) {
-                    is Issue.UnknownError.Resolution.Cancel -> throw CancellationException(
+                    is PathActionIssue.UnknownError.Resolution.Cancel -> throw CancellationException(
                         "User cancelled",
                         deleteError
                     )
-                    is Issue.UnknownError.Resolution.Retry -> continue
-                    is Issue.UnknownError.Resolution.Skip -> break
+                    is PathActionIssue.UnknownError.Resolution.Retry -> continue
+                    is PathActionIssue.UnknownError.Resolution.Skip -> break
                 }
             }
         }
@@ -171,7 +171,7 @@ suspend fun Collection<LocalPath>.delete(
     log(TAG, VERBOSE) { "delete(): File deletio done, deleting ${dirsPost.size} directories..." }
     for (dir in dirsPost) tryDelete(dir)
 
-    return DeleteOperation.State.Result(
+    return DeleteAction.State.Result(
         deleted = deleted,
         bytesTotal = bytesTotal,
     )

@@ -14,15 +14,15 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.actions.CopyAction
+import eu.darken.butler.common.files.actions.DeleteAction
+import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
-import eu.darken.butler.common.files.operations.CopyOperation
-import eu.darken.butler.common.files.operations.DeleteOperation
-import eu.darken.butler.common.files.operations.MoveOperation
 import eu.darken.butler.common.sharedresource.SharedResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -390,8 +390,8 @@ class SAFGateway @Inject constructor(
 
     override suspend fun delete(
         targets: Set<SAFPath>,
-        options: DeleteOperation.Options<SAFPath>
-    ): Flow<DeleteOperation.State<SAFPath>> {
+        options: DeleteAction.Options<SAFPath>
+    ): Flow<DeleteAction.State<SAFPath>> {
         TODO("Not yet implemented")
 //        log(TAG, VERBOSE) { "delete(recursive=$recursive): $path" }
 //
@@ -433,8 +433,8 @@ class SAFGateway @Inject constructor(
     override suspend fun copy(
         sources: Set<SAFPath>,
         destination: SAFPath,
-        options: CopyOperation.Options<SAFPath>
-    ): Flow<CopyOperation.State<SAFPath>> {
+        options: CopyAction.Options<SAFPath>
+    ): Flow<CopyAction.State<SAFPath>> {
         // TODO: Implement using DocumentFile APIs
         // - Use DocumentFile.listFiles() for traversal across all sources
         // - Use ContentResolver streams for copying
@@ -447,8 +447,8 @@ class SAFGateway @Inject constructor(
     override suspend fun move(
         sources: Set<SAFPath>,
         destination: SAFPath,
-        options: MoveOperation.Options<SAFPath>
-    ): Flow<MoveOperation.State<SAFPath>> {
+        options: MoveAction.Options<SAFPath>
+    ): Flow<MoveAction.State<SAFPath>> {
         // TODO: Implement using DocumentFile.renameTo()
         // - Try renameTo() for same parent directory across all sources
         // - Fallback to copy+delete for different parents

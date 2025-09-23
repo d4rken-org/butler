@@ -1,7 +1,7 @@
 package eu.darken.butler.common.files.local
 
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.operations.Issue
+import eu.darken.butler.common.files.actions.PathActionIssue
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
@@ -408,7 +408,7 @@ class FileDeleteExtensionsTest : BaseTest() {
         file2.setReadOnly()
         file3.setReadOnly()
 
-        val issuesEncountered = mutableListOf<Issue>()
+        val issuesEncountered = mutableListOf<PathActionIssue>()
         var firstIssueHandled = false
 
         // When
@@ -420,10 +420,14 @@ class FileDeleteExtensionsTest : BaseTest() {
                     firstIssueHandled = true
                     // First issue: Skip with "Apply to All"
                     when (issue) {
-                        is Issue.InsufficientPermission -> Issue.InsufficientPermission.Resolution.Skip(applyToAll = true)
-                        is Issue.UnknownError -> Issue.InsufficientPermission.Resolution.Skip(applyToAll = true)
-                        is Issue.InsufficientSpace -> TODO()
-                        is Issue.PathAlreadyExists -> TODO()
+                        is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip(
+                            applyToAll = true
+                        )
+                        is PathActionIssue.UnknownError -> PathActionIssue.InsufficientPermission.Resolution.Skip(
+                            applyToAll = true
+                        )
+                        is PathActionIssue.InsufficientSpace -> TODO()
+                        is PathActionIssue.PathAlreadyExists -> TODO()
                     }
                 } else {
                     // Subsequent issues should not occur due to "Apply to All"
@@ -464,19 +468,19 @@ class FileDeleteExtensionsTest : BaseTest() {
             onIssue = { issue ->
                 attemptCount++
                 when (issue) {
-                    is Issue.UnknownError -> {
+                    is PathActionIssue.UnknownError -> {
                         if (attemptCount == 1) {
                             // First attempt: Simulate failure and retry
-                            Issue.UnknownError.Resolution.Retry()
+                            PathActionIssue.UnknownError.Resolution.Retry()
                         } else {
                             // Subsequent attempts: Skip
                             retrySuccess = true
-                            Issue.UnknownError.Resolution.Skip()
+                            PathActionIssue.UnknownError.Resolution.Skip()
                         }
                     }
-                    is Issue.InsufficientPermission -> TODO()
-                    is Issue.InsufficientSpace -> TODO()
-                    is Issue.PathAlreadyExists -> TODO()
+                    is PathActionIssue.InsufficientPermission -> TODO()
+                    is PathActionIssue.InsufficientSpace -> TODO()
+                    is PathActionIssue.PathAlreadyExists -> TODO()
                 }
             }
         )
@@ -510,10 +514,10 @@ class FileDeleteExtensionsTest : BaseTest() {
                 issueCount++
                 // Always cancel on first issue
                 when (issue) {
-                    is Issue.InsufficientPermission -> Issue.InsufficientPermission.Resolution.Cancel
-                    is Issue.UnknownError -> Issue.UnknownError.Resolution.Cancel
-                    is Issue.InsufficientSpace -> TODO()
-                    is Issue.PathAlreadyExists -> TODO()
+                    is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Cancel
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Cancel
+                    is PathActionIssue.InsufficientSpace -> TODO()
+                    is PathActionIssue.PathAlreadyExists -> TODO()
                 }
             }
         )
@@ -550,7 +554,7 @@ class FileDeleteExtensionsTest : BaseTest() {
         directory.mkdir()
         dirFile.writeText("inside content")
 
-        val issues = mutableListOf<Issue>()
+        val issues = mutableListOf<PathActionIssue>()
 
         // When
         val result = listOf(LocalPath.build(regularFile), LocalPath.build(directory)).delete(
@@ -559,10 +563,10 @@ class FileDeleteExtensionsTest : BaseTest() {
                 issues.add(issue)
                 // Skip all issues to test graceful handling
                 when (issue) {
-                    is Issue.InsufficientPermission -> Issue.InsufficientPermission.Resolution.Skip()
-                    is Issue.UnknownError -> Issue.UnknownError.Resolution.Skip()
-                    is Issue.InsufficientSpace -> TODO()
-                    is Issue.PathAlreadyExists -> TODO()
+                    is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    is PathActionIssue.InsufficientSpace -> TODO()
+                    is PathActionIssue.PathAlreadyExists -> TODO()
                 }
             }
         )

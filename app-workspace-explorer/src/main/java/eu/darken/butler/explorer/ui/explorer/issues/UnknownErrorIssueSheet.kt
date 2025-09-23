@@ -45,17 +45,17 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.common.files.operations.Issue
 import eu.darken.butler.explorer.R
 import java.io.IOException
 import kotlin.time.Instant
 
 @Composable
 fun UnknownErrorIssueSheet(
-    issue: Issue.UnknownError,
-    onResolution: (Issue.UnknownError.Resolution) -> Unit,
+    issue: PathActionIssue.UnknownError,
+    onResolution: (PathActionIssue.UnknownError.Resolution) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var applyToAll by remember { mutableStateOf(false) }
@@ -209,7 +209,7 @@ fun UnknownErrorIssueSheet(
                 if (issue.canRetry) {
                     Button(
                         onClick = {
-                            onResolution(Issue.UnknownError.Resolution.Retry(applyToAll))
+                            onResolution(PathActionIssue.UnknownError.Resolution.Retry(applyToAll))
                         },
                         modifier = Modifier.weight(1f),
                     ) {
@@ -230,7 +230,7 @@ fun UnknownErrorIssueSheet(
                 if (issue.canSkip) {
                     OutlinedButton(
                         onClick = {
-                            onResolution(Issue.UnknownError.Resolution.Skip(applyToAll))
+                            onResolution(PathActionIssue.UnknownError.Resolution.Skip(applyToAll))
                         },
                         modifier = Modifier.weight(1f),
                     ) {
@@ -251,7 +251,7 @@ fun UnknownErrorIssueSheet(
 
             TextButton(
                 onClick = {
-                    onResolution(Issue.UnknownError.Resolution.Cancel())
+                    onResolution(PathActionIssue.UnknownError.Resolution.Cancel())
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {
@@ -276,7 +276,7 @@ fun UnknownErrorIssueSheet(
 private fun UnknownErrorIssueSheetIOErrorPreview() {
     PreviewWrapper {
         UnknownErrorIssueSheet(
-            issue = Issue.UnknownError(
+            issue = PathActionIssue.UnknownError(
                 source = LocalPathLookup(
                     lookedUp = LocalPath.build("/storage/emulated/0/Documents/corrupted_file.pdf"),
                     fileType = FileType.FILE,
@@ -306,7 +306,7 @@ private fun UnknownErrorIssueSheetIOErrorPreview() {
 private fun UnknownErrorIssueSheetSecurityErrorPreview() {
     PreviewWrapper {
         UnknownErrorIssueSheet(
-            issue = Issue.UnknownError(
+            issue = PathActionIssue.UnknownError(
                 source = LocalPathLookup(
                     lookedUp = LocalPath.build("/data/data/com.example.app/files/sensitive.dat"),
                     fileType = FileType.FILE,
@@ -329,7 +329,7 @@ private fun UnknownErrorIssueSheetSecurityErrorPreview() {
 private fun UnknownErrorIssueSheetUnknownErrorPreview() {
     PreviewWrapper {
         UnknownErrorIssueSheet(
-            issue = Issue.UnknownError(
+            issue = PathActionIssue.UnknownError(
                 errorMessage = "java.lang.RuntimeException: Unexpected vendor-specific error occurred".toCaString(),
                 exception = RuntimeException("Unexpected vendor-specific error occurred"),
                 canSkip = true,

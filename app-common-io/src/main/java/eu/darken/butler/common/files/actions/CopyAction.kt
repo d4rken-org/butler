@@ -1,9 +1,9 @@
-package eu.darken.butler.common.files.operations
+package eu.darken.butler.common.files.actions
 
 import eu.darken.butler.common.files.APath
 import kotlinx.coroutines.flow.Flow
 
-interface CopyOperation<P : APath> : GatewayOperation<P> {
+interface CopyAction<P : APath> : GatewayAction<P> {
     suspend fun copy(
         sources: Set<P>,
         destination: P,
@@ -13,7 +13,7 @@ interface CopyOperation<P : APath> : GatewayOperation<P> {
     data class Options<P : APath>(
         val overwrite: Boolean = false,
         val preserveAttributes: Boolean = true,
-        val onIssue: (suspend (Issue) -> Issue.Resolution?)? = null,
+        val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution?)? = null,
     )
 
     sealed interface State<P : APath> {

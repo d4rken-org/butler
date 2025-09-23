@@ -1,10 +1,10 @@
 package eu.darken.butler.common.files
 
+import eu.darken.butler.common.files.actions.CopyAction
+import eu.darken.butler.common.files.actions.DeleteAction
+import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
-import eu.darken.butler.common.files.operations.CopyOperation
-import eu.darken.butler.common.files.operations.DeleteOperation
-import eu.darken.butler.common.files.operations.MoveOperation
 import eu.darken.butler.common.sharedresource.HasSharedResource
 import kotlinx.coroutines.flow.Flow
 import okio.FileHandle
@@ -15,9 +15,9 @@ interface APathGateway<
     PLU : APathLookup<P>,
     PLUE : APathLookupExtended<P>,
     > : HasSharedResource<Any>,
-    CopyOperation<P>,
-    MoveOperation<P>,
-    DeleteOperation<P> {
+    CopyAction<P>,
+    MoveAction<P>,
+    DeleteAction<P> {
 
     suspend fun createDir(path: P)
 

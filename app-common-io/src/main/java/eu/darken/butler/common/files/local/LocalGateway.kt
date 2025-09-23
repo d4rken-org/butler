@@ -14,6 +14,9 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.actions.CopyAction
+import eu.darken.butler.common.files.actions.DeleteAction
+import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.core.local.createSymlink
 import eu.darken.butler.common.files.core.local.isReadable
 import eu.darken.butler.common.files.core.local.listFiles2
@@ -28,9 +31,6 @@ import eu.darken.butler.common.files.local.walkers.EscalatingWalker
 import eu.darken.butler.common.files.local.walkers.IndirectLocalWalker
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
-import eu.darken.butler.common.files.operations.CopyOperation
-import eu.darken.butler.common.files.operations.DeleteOperation
-import eu.darken.butler.common.files.operations.MoveOperation
 import eu.darken.butler.common.funnel.IPCFunnel
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.ipc.fileHandle
@@ -877,14 +877,14 @@ class LocalGateway @Inject constructor(
 
     override suspend fun delete(
         targets: Set<LocalPath>,
-        options: DeleteOperation.Options<LocalPath>
-    ): Flow<DeleteOperation.State<LocalPath>> = delete(targets, options, Mode.AUTO)
+        options: DeleteAction.Options<LocalPath>
+    ): Flow<DeleteAction.State<LocalPath>> = delete(targets, options, Mode.AUTO)
 
     suspend fun delete(
         targets: Set<LocalPath>,
-        options: DeleteOperation.Options<LocalPath>,
+        options: DeleteAction.Options<LocalPath>,
         mode: Mode,
-    ): Flow<DeleteOperation.State<LocalPath>> = flow {
+    ): Flow<DeleteAction.State<LocalPath>> = flow {
         log(TAG, VERBOSE) { "delete(): ${targets.size} targets" }
 
         try {
@@ -932,8 +932,8 @@ class LocalGateway @Inject constructor(
     override suspend fun copy(
         sources: Set<LocalPath>,
         destination: LocalPath,
-        options: CopyOperation.Options<LocalPath>
-    ): Flow<CopyOperation.State<LocalPath>> {
+        options: CopyAction.Options<LocalPath>
+    ): Flow<CopyAction.State<LocalPath>> {
         // TODO: Implement efficient native copy using java.nio
         // - Use Files.walk() for directory traversal across all sources
         // - Use Files.copy() with REPLACE_EXISTING based on options
@@ -946,8 +946,8 @@ class LocalGateway @Inject constructor(
     override suspend fun move(
         sources: Set<LocalPath>,
         destination: LocalPath,
-        options: MoveOperation.Options<LocalPath>
-    ): Flow<MoveOperation.State<LocalPath>> {
+        options: MoveAction.Options<LocalPath>
+    ): Flow<MoveAction.State<LocalPath>> {
         // TODO: Implement atomic move using Files.move()
         // - Try ATOMIC_MOVE first for same filesystem across all sources
         // - Fallback to copy+delete for cross-filesystem operations

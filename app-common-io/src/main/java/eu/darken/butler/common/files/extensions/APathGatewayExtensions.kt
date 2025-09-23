@@ -6,12 +6,12 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.APathLookupExtended
+import eu.darken.butler.common.files.actions.CopyAction
+import eu.darken.butler.common.files.actions.DeleteAction
+import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
-import eu.darken.butler.common.files.operations.CopyOperation
-import eu.darken.butler.common.files.operations.DeleteOperation
-import eu.darken.butler.common.files.operations.MoveOperation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onCompletion
 import okio.FileHandle
@@ -86,13 +86,13 @@ suspend fun <T : APath> T.createDirIfNecessary(gateway: APathGateway<T, out APat
 
 suspend fun <T : APath> T.delete(
     gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
-    options: DeleteOperation.Options<T>,
+    options: DeleteAction.Options<T>,
 ) = setOf(this).delete(gateway, options)
 
 suspend fun <T : APath> Collection<T>.delete(
     gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
-    options: DeleteOperation.Options<T>,
-): Flow<DeleteOperation.State<T>> {
+    options: DeleteAction.Options<T>,
+): Flow<DeleteAction.State<T>> {
     val targets = this@delete.toSet()
     return gateway
         .delete(targets = targets, options = options)
@@ -171,8 +171,8 @@ suspend fun <T : APath> T.isDirectory(gateway: APathGateway<T, out APathLookup<T
 suspend fun <T : APath> T.copy(
     gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
     destination: T,
-    options: CopyOperation.Options<T> = CopyOperation.Options(),
-): Flow<CopyOperation.State<T>> {
+    options: CopyAction.Options<T> = CopyAction.Options(),
+): Flow<CopyAction.State<T>> {
     return gateway.copy(sources = setOf(this), destination = destination, options = options)
         .onCompletion {
             log(VERBOSE) { "T.copy(destination=$destination, options=$options): Copied $this" }
@@ -182,8 +182,8 @@ suspend fun <T : APath> T.copy(
 suspend fun <T : APath> Set<T>.copy(
     gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
     destination: T,
-    options: CopyOperation.Options<T> = CopyOperation.Options(),
-): Flow<CopyOperation.State<T>> {
+    options: CopyAction.Options<T> = CopyAction.Options(),
+): Flow<CopyAction.State<T>> {
     return gateway.copy(sources = this, destination = destination, options = options)
         .onCompletion {
             log(VERBOSE) { "Set<T>.copy(destination=$destination, options=$options): Copied $this" }
@@ -193,8 +193,8 @@ suspend fun <T : APath> Set<T>.copy(
 suspend fun <T : APath> T.move(
     gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
     destination: T,
-    options: MoveOperation.Options<T> = MoveOperation.Options(),
-): Flow<MoveOperation.State<T>> {
+    options: MoveAction.Options<T> = MoveAction.Options(),
+): Flow<MoveAction.State<T>> {
     return gateway.move(sources = setOf(this), destination = destination, options = options)
         .onCompletion {
             log(VERBOSE) { "T.move(destination=$destination, options=$options): Moved $this" }
@@ -204,8 +204,8 @@ suspend fun <T : APath> T.move(
 suspend fun <T : APath> Set<T>.move(
     gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
     destination: T,
-    options: MoveOperation.Options<T> = MoveOperation.Options(),
-): Flow<MoveOperation.State<T>> {
+    options: MoveAction.Options<T> = MoveAction.Options(),
+): Flow<MoveAction.State<T>> {
     return gateway.move(sources = this, destination = destination, options = options)
         .onCompletion {
             log(VERBOSE) { "Set<T>.move(destination=$destination, options=$options): Moved $this" }

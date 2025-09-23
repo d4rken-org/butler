@@ -10,17 +10,22 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.operations.Issue
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.explorer.core.engine.ExplorerOperation
-import eu.darken.butler.explorer.core.operations.OperationResult
-import eu.darken.butler.explorer.core.operations.OperationState
-import eu.darken.butler.explorer.core.operations.OperationsEngine
+import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
+import eu.darken.butler.explorer.core.operations.DeleteOperation
+import eu.darken.butler.explorer.core.operations.ExplorerCommand
+import eu.darken.butler.explorer.core.operations.ExplorerOperation
+import eu.darken.butler.explorer.core.operations.handlers.CopyOperation
+import eu.darken.butler.explorer.core.operations.handlers.CreateOperation
+import eu.darken.butler.explorer.core.operations.handlers.MoveOperation
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
 import eu.darken.butler.workspace.core.tracker.PathAccessTracker
 import kotlinx.coroutines.CancellationException
@@ -43,9 +48,15 @@ class ExplorerWorkspace @AssistedInject constructor(
     @Assisted private val arguments: Arguments?,
     dispatcherProvider: DispatcherProvider,
     private val browsingEngineFactory: BrowsingEngine.Factory,
-    private val operationsEngineFactory: OperationsEngine.Factory,
+    private val fileSystemHinter: FileSystemHinter,
     private val breadcrumbGenerator: BreadcrumbGenerator,
     private val pathAccessTracker: PathAccessTracker,
+    private val issueHandler: IssueHandler,
+    private val operationsManager: OperationsManager,
+    private val deleteOperationFactory: DeleteOperation.Factory,
+    private val createOperationFactory: CreateOperation.Factory,
+    private val copyOperationFactory: CopyOperation.Factory,
+    private val moveOperationFactory: MoveOperation.Factory,
 ) : Workspace {
 
     private val tag = logTag("Explorer", "Workspace", id.shortTag)
@@ -53,7 +64,6 @@ class ExplorerWorkspace @AssistedInject constructor(
     private val scope = CoroutineScope(dispatcherProvider.IO + CoroutineName(tag))
 
     private val browsingEngine = browsingEngineFactory.create(id)
-    private val operationEngine = operationsEngineFactory.create(id)
 
     override val type: Workspace.Type = Workspace.Type.EXPLORER
 
@@ -72,8 +82,6 @@ class ExplorerWorkspace @AssistedInject constructor(
     val current = MutableStateFlow<State>(State())
 
     private val navigationRequests = MutableSharedFlow<ExplorerNavigation>(replay = 1)
-    private val operationRequests = MutableSharedFlow<ExplorerOperation>(replay = 1)
-
 
     data class State(
         val currentTarget: ExplorerNavigation.Target? = null,
@@ -85,9 +93,8 @@ class ExplorerWorkspace @AssistedInject constructor(
         val isLoadingExtended: Boolean = false,
         val error: Throwable? = null,
         val progress: Progress.Data? = null,
-        val activeOperations: Map<Operation.Id, OperationState> = emptyMap(),
-        val operationHistory: List<OperationResult> = emptyList(),
-        val pendingConflicts: Map<Operation.Id, OperationState.AwaitingInput> = emptyMap(),
+        val activeOperations: Map<Operation.Id, ExplorerOperation.State> = emptyMap(),
+        val pendingConflicts: Map<Operation.Id, ExplorerOperation.State.Waiting> = emptyMap(),
     ) {
         val canGoBack: Boolean get() = historyIndex > 0
         val canGoForward: Boolean get() = historyIndex < navigationHistory.size - 1
@@ -97,8 +104,8 @@ class ExplorerWorkspace @AssistedInject constructor(
 
     init {
         // TODO: Refresh directory based on hints
-        operationEngine.hints
-            .onEach { hint -> log(tag, INFO) { "Received operation hint: $hint" } }
+        fileSystemHinter.events
+            .onEach { event -> log(tag, INFO) { "Received operation hint: $event" } }
             .launchIn(scope)
 
         // Set up navigation flow processing
@@ -125,54 +132,6 @@ class ExplorerWorkspace @AssistedInject constructor(
                             isLoadingExtended = false,
                         )
                         emit(Unit)
-                    }
-                }
-            }
-            .launchIn(scope)
-
-        // Set up operation flow processing
-        operationRequests
-            .onEach { log(tag, INFO) { "New operation request: $it" } }
-            .onEach { operation ->
-                scope.launch {
-                    operationEngine.execute(
-                        operation = operation,
-                        scope = scope,
-                    ).collect { state ->
-                        // Update active operations map
-                        current.value = current.value.copy(
-                            activeOperations = if (state is OperationState.Completed) {
-                                current.value.activeOperations - operation.operationId
-                            } else {
-                                current.value.activeOperations + (operation.operationId to state)
-                            },
-                            pendingConflicts = if (state is OperationState.AwaitingInput) {
-                                current.value.pendingConflicts + (operation.operationId to state)
-                            } else {
-                                current.value.pendingConflicts - operation.operationId
-                            },
-                        )
-
-                        // Handle completed operations
-                        if (state is OperationState.Completed) {
-                            // Add to history
-                            current.value = current.value.copy(
-                                operationHistory = current.value.operationHistory + state.result
-                            )
-
-                            // Refresh on success
-                            if (state.result is OperationResult.Success) {
-                                log(tag, INFO) { "Operation successful: ${state.result}" }
-                                current.value.currentTarget?.let {
-                                    processNavigationRequest(ExplorerNavigation.Refresh)
-                                }
-                            } else if (state.result is OperationResult.Failure) {
-                                log(tag, ERROR) { "Operation failed: ${state.result}" }
-                                current.value = current.value.copy(
-                                    error = state.result.exception
-                                )
-                            }
-                        }
                     }
                 }
             }
@@ -253,12 +212,29 @@ class ExplorerWorkspace @AssistedInject constructor(
         }
     }
 
-    fun execute(operation: ExplorerOperation) {
-        log(tag) { "execute(): $operation" }
+    fun execute(command: ExplorerCommand) {
+        log(tag) { "execute(): $command" }
         scope.launch {
-            log(tag) { "execute(): Launching $operation" }
-            operationRequests.emit(operation)
-            log(tag) { "execute(): Submitted $operation" }
+            val executable = when (command) {
+                is ExplorerCommand.Delete -> deleteOperationFactory.create(
+                    workspaceId = id,
+                    command = command,
+                )
+                is ExplorerCommand.Create -> createOperationFactory.create(
+                    workspaceId = id,
+                    command = command,
+                )
+                is ExplorerCommand.Copy -> copyOperationFactory.create(
+                    workspaceId = id,
+                    command = command,
+                )
+                is ExplorerCommand.Move -> moveOperationFactory.create(
+                    workspaceId = id,
+                    command = command,
+                )
+            }
+            operationsManager.submit(executable)
+            log(tag) { "execute(): Submitted $executable" }
         }
     }
 
@@ -319,16 +295,18 @@ class ExplorerWorkspace @AssistedInject constructor(
         }
     }
 
-    fun resolveConflict(operationId: Operation.Id, resolution: Issue.Resolution) {
+    fun resolveConflict(operationId: Operation.Id, resolution: PathActionIssue.Resolution) {
         log(tag, INFO) { "Resolving conflict for operation $operationId: $resolution" }
         scope.launch {
-            operationEngine.resolveConflict(operationId, resolution)
+            issueHandler.resolveIssue(operationId, resolution)
         }
     }
 
     fun cancelOperation(operationId: Operation.Id) {
         log(tag, INFO) { "Cancelling operation: $operationId" }
-        operationEngine.cancelOperation(operationId)
+        scope.launch {
+            operationsManager.cancel(operationId)
+        }
     }
 
     override suspend fun release() {

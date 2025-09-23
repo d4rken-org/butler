@@ -1,23 +1,18 @@
-package eu.darken.butler.common.files.operations
+package eu.darken.butler.common.files.actions
 
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.error.localized
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
-import kotlin.uuid.Uuid
+import eu.darken.butler.common.issue.Issue
 
-sealed interface Issue {
-    val issueId: IssueId
+sealed interface PathActionIssue : Issue {
 
-    data class IssueId(
-        val id: Uuid = Uuid.random(),
-    )
-
-    interface Resolution
+    interface Resolution : Issue.Resolution
 
     data class PathAlreadyExists(
-        override val issueId: IssueId = IssueId(),
+        override val id: Issue.Id = Issue.Id(),
         val source: APathLookup<APath>? = null,
         val destination: APathLookup<APath>,
         val canSkip: Boolean = false,
@@ -26,8 +21,8 @@ sealed interface Issue {
         val canRenameSource: Boolean = false,
         val canRenameDestination: Boolean = false,
         val suggestedName: String? = null,
-    ) : Issue {
-        sealed interface Resolution : Issue.Resolution {
+    ) : PathActionIssue {
+        sealed interface Resolution : PathActionIssue.Resolution {
             data class Skip(val applyToAll: Boolean = false) : Resolution
             data class Overwrite(val applyToAll: Boolean = false) : Resolution
             data class RenameSource(val newName: String) : Resolution
@@ -38,40 +33,40 @@ sealed interface Issue {
     }
 
     data class InsufficientPermission(
-        override val issueId: IssueId = IssueId(),
+        override val id: Issue.Id = Issue.Id(),
         val source: APathLookup<APath>? = null,
         val destination: APathLookup<APath>,
         val canSkip: Boolean = false,
         val exception: Throwable? = null,
-    ) : Issue {
-        sealed interface Resolution : Issue.Resolution {
+    ) : PathActionIssue {
+        sealed interface Resolution : PathActionIssue.Resolution {
             data class Skip(val applyToAll: Boolean = false) : Resolution
             data class Cancel(val error: Exception? = null) : Resolution
         }
     }
 
     data class InsufficientSpace(
-        override val issueId: IssueId = IssueId(),
+        override val id: Issue.Id = Issue.Id(),
         val source: APathLookup<APath>,
         val destination: APathLookup<APath>,
         val canSkip: Boolean = false,
-    ) : Issue {
-        sealed interface Resolution : Issue.Resolution {
+    ) : PathActionIssue {
+        sealed interface Resolution : PathActionIssue.Resolution {
             data class Skip(val applyToAll: Boolean = false) : Resolution
             data class Cancel(val error: Exception? = null) : Resolution
         }
     }
 
     data class UnknownError(
-        override val issueId: IssueId = IssueId(),
+        override val id: Issue.Id = Issue.Id(),
         val source: APathLookup<APath>? = null,
         val destination: APathLookup<APath>? = null,
         val exception: Throwable,
         val errorMessage: CaString = caString { exception.localized(it).description.get(it) },
         val canSkip: Boolean = false,
         val canRetry: Boolean = false,
-    ) : Issue {
-        sealed interface Resolution : Issue.Resolution {
+    ) : PathActionIssue {
+        sealed interface Resolution : PathActionIssue.Resolution {
             data class Skip(val applyToAll: Boolean = false) : Resolution
             data class Retry(val applyToAll: Boolean = false) : Resolution
             data class Cancel(val error: Exception? = null) : Resolution

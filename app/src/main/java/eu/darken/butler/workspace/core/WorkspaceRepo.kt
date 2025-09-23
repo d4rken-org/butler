@@ -10,7 +10,7 @@ import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.templates.core.TemplatesWorkspace
-import eu.darken.butler.workspace.core.operations.OperationsRepo
+import eu.darken.butler.workspace.core.operations.OperationsManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -32,7 +32,7 @@ class WorkspaceRepo @Inject constructor(
     private val searcherWorkspaceFactory: SearcherWorkspace.Factory,
     private val editorWorkspaceFactory: EditorWorkspace.Factory,
     workspaceSettings: WorkspaceSettings,
-    private val operationsRepo: OperationsRepo,
+    private val operationsManager: OperationsManager,
 ) : WorkspaceProvider, WorkspaceRemote {
 
     private val lock = Mutex()
@@ -156,7 +156,7 @@ class WorkspaceRepo @Inject constructor(
                 log(TAG, INFO) { "Closing all workspaces" }
                 _workspaces.value.forEach {
                     it.release()
-                    operationsRepo.clearWorkspaceById(it.id)
+                    operationsManager.clearWorkspaceById(it.id)
                 }
                 _workspaces.value = emptyList()
                 _events.emit(WorkspaceEvent.AllClosed)

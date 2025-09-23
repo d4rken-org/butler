@@ -29,16 +29,16 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.common.files.operations.Issue
 import eu.darken.butler.explorer.R
 import kotlin.time.Instant
 
 @Composable
 fun InsufficientSpaceIssueSheet(
-    issue: Issue.InsufficientSpace,
-    onResolution: (Issue.InsufficientSpace.Resolution) -> Unit,
+    issue: PathActionIssue.InsufficientSpace,
+    onResolution: (PathActionIssue.InsufficientSpace.Resolution) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var applyToAll by remember { mutableStateOf(false) }
@@ -102,7 +102,7 @@ fun InsufficientSpaceIssueSheet(
             if (issue.canSkip) {
                 OutlinedButton(
                     onClick = {
-                        onResolution(Issue.InsufficientSpace.Resolution.Skip(applyToAll))
+                        onResolution(PathActionIssue.InsufficientSpace.Resolution.Skip(applyToAll))
                     },
                     modifier = Modifier.weight(1f),
                 ) {
@@ -122,7 +122,7 @@ fun InsufficientSpaceIssueSheet(
 
             TextButton(
                 onClick = {
-                    onResolution(Issue.InsufficientSpace.Resolution.Cancel())
+                    onResolution(PathActionIssue.InsufficientSpace.Resolution.Cancel())
                 },
                 modifier = Modifier.weight(1f),
             ) {
@@ -147,7 +147,7 @@ fun InsufficientSpaceIssueSheet(
 private fun InsufficientSpaceIssueSheetPreview() {
     PreviewWrapper {
         InsufficientSpaceIssueSheet(
-            issue = Issue.InsufficientSpace(
+            issue = PathActionIssue.InsufficientSpace(
                 source = LocalPathLookup(
                     lookedUp = LocalPath.build("/storage/emulated/0/Movies/large_video.mp4"),
                     fileType = FileType.FILE,

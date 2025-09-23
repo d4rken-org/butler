@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.core.operations
 
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.explorer.core.filesystem.FileSystemEvent
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -78,13 +79,13 @@ data class OperationReport(
                         peak = peakBytesPerSecond ?: 0L
                     )
                 } else {
-                    SpeedInfo.UNCHANGED
+                    SpeedInfo()
                 }
             } else {
                 // First update
                 lastUpdateTime = currentTime
                 lastBytesProcessed = bytesProcessed
-                SpeedInfo.NONE
+                SpeedInfo()
             }
         }
 
@@ -102,4 +103,10 @@ data class OperationReport(
             )
         }
     }
+
+    data class SpeedInfo(
+        val current: Long = 0,
+        val average: Long = 0,
+        val peak: Long = 0,
+    )
 }

@@ -1,10 +1,10 @@
-package eu.darken.butler.common.files.operations
+package eu.darken.butler.common.files.actions
 
 import eu.darken.butler.common.files.APath
 import kotlinx.coroutines.flow.Flow
 
 
-interface MoveOperation<P : APath> : GatewayOperation<P> {
+interface MoveAction<P : APath> : GatewayAction<P> {
     suspend fun move(
         sources: Set<P>,
         destination: P,
@@ -13,7 +13,7 @@ interface MoveOperation<P : APath> : GatewayOperation<P> {
 
     data class Options<P : APath>(
         val overwrite: Boolean = false,
-        val onIssue: (suspend (Issue) -> Issue.Resolution?)? = null,
+        val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution?)? = null,
     )
 
     sealed interface State<P : APath> {

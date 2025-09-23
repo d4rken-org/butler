@@ -1,10 +1,10 @@
-package eu.darken.butler.common.files.operations
+package eu.darken.butler.common.files.actions
 
 import eu.darken.butler.common.files.APath
 import kotlinx.coroutines.flow.Flow
 
 
-interface DeleteOperation<P : APath> : GatewayOperation<P> {
+interface DeleteAction<P : APath> : GatewayAction<P> {
     suspend fun delete(
         targets: Set<P>,
         options: Options<P> = Options()
@@ -13,7 +13,7 @@ interface DeleteOperation<P : APath> : GatewayOperation<P> {
     data class Options<P : APath>(
         val recursive: Boolean = false,
         val ignoreMissing: Boolean = true,
-        val onIssue: (suspend (Issue) -> Issue.Resolution)? = null,
+        val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
     )
 
     sealed interface State<P : APath> {

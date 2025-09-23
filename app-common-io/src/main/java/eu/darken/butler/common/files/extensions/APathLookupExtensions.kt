@@ -6,8 +6,8 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.APathLookupExtended
+import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.common.files.operations.DeleteOperation
 import kotlinx.coroutines.flow.Flow
 import okio.FileHandle
 
@@ -37,7 +37,7 @@ suspend fun <P : APath, PL : APathLookup<P>> PL.exists(
 
 suspend fun <P : APath, PL : APathLookup<P>, PLE : APathLookupExtended<P>> PL.delete(
     gateway: APathGateway<P, PL, PLE>,
-    options: DeleteOperation.Options<P>,
+    options: DeleteAction.Options<P>,
 ) = setOf(this).delete(
     gateway = gateway,
     options = options
@@ -45,7 +45,7 @@ suspend fun <P : APath, PL : APathLookup<P>, PLE : APathLookupExtended<P>> PL.de
 
 suspend fun <P : APath, PL : APathLookup<P>, PLE : APathLookupExtended<P>> Collection<PL>.delete(
     gateway: APathGateway<P, PL, PLE>,
-    options: DeleteOperation.Options<P>,
+    options: DeleteAction.Options<P>,
 ) = this.map { it.lookedUp }.delete(
     gateway = gateway,
     options = options
