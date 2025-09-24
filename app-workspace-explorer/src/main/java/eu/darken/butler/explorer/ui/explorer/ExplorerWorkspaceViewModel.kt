@@ -514,6 +514,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         operationsManager.cancel(id)
     }
 
+    fun dismissOperation(id: Operation.Id) = launch {
+        log(tag) { "dismissOperation($id)" }
+        operationsManager.remove(id)
+    }
+
     fun clearCompletedOperations() = launch {
         log(tag) { "clearCompletedOperations()" }
         operationsManager.clearCompleted()

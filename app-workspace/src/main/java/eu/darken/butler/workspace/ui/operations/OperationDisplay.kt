@@ -5,6 +5,7 @@ import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Instant
 
 data class OperationDisplay(
@@ -48,10 +49,16 @@ fun ManagedOperation.toDisplayModel(): OperationDisplay {
             is Operation.State.Waiting -> OperationDisplay.State.Waiting(reason = state.reason)
             is Operation.State.Completed -> {
                 val errorValue = state.error
-                if (errorValue != null) {
-                    OperationDisplay.State.Failed(summary = state.summary)
-                } else {
-                    OperationDisplay.State.Completed(summary = state.summary)
+                when {
+                    errorValue is CancellationException -> {
+                        OperationDisplay.State.Cancelled
+                    }
+                    errorValue != null -> {
+                        OperationDisplay.State.Failed(summary = state.summary)
+                    }
+                    else -> {
+                        OperationDisplay.State.Completed(summary = state.summary)
+                    }
                 }
             }
             else -> throw IllegalStateException("Unknown state: $state")

@@ -376,6 +376,7 @@ fun ExplorerWorkspacePage(
                     OperationsBar(
                         operations = operations,
                         onCancelOperation = { id -> vm?.cancelOperation(id) },
+                        onDismissOperation = { id -> vm?.dismissOperation(id) },
                         onOperationClick = { operation -> vm?.onOperationClick(operation) },
                         onClearCompleted = { vm?.clearCompletedOperations() },
                         initialExpanded = initialOperationsExpanded,

@@ -34,7 +34,13 @@ class ManagedOperation(
 
     private var job: Job? = null
 
-    val canCancel: Boolean get() = job?.isActive == true
+    val canCancel: Boolean
+        get() = when (state.value) {
+            is Operation.State.Queued -> true  // Can cancel before it starts
+            is Operation.State.Active -> job?.isActive == true  // Can cancel if running
+            is Operation.State.Waiting -> job?.isActive == true  // Can cancel if waiting
+            else -> false  // Cannot cancel completed/failed/cancelled
+        }
 
     val canPause: Boolean get() = false
 

@@ -8,20 +8,24 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +47,7 @@ import kotlin.time.Clock
 fun OperationsBar(
     operations: List<OperationDisplay>,
     onCancelOperation: (Operation.Id) -> Unit,
+    onDismissOperation: (Operation.Id) -> Unit,
     onOperationClick: (OperationDisplay) -> Unit,
     onClearCompleted: () -> Unit,
     modifier: Modifier = Modifier,
@@ -108,14 +113,58 @@ fun OperationsBar(
                         items = visibleOps,
                         key = { _, operation -> operation.id.longTag }
                     ) { index, operation ->
+                        // Determine if operation is dismissible vs cancellable
+                        val canDismiss = when (operation.state) {
+                            is OperationDisplay.State.Completed,
+                            is OperationDisplay.State.Failed,
+                            is OperationDisplay.State.Cancelled -> true
+                            else -> false
+                        }
+
+                        val canCancel = operation.canCancel && !canDismiss
+
                         SwipeToDismissItem(
-                            enabled = operation.canCancel,
-                            onDismiss = { onCancelOperation(operation.id) },
+                            enabled = canCancel || canDismiss,
+                            onDismiss = {
+                                when {
+                                    canCancel -> onCancelOperation(operation.id)
+                                    canDismiss -> onDismissOperation(operation.id)
+                                    else -> { /* Should not happen */
+                                    }
+                                }
+                            },
+                            backgroundColor = if (canCancel) {
+                                MaterialTheme.colorScheme.errorContainer  // Softer red for cancel
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant  // Neutral for dismiss
+                            },
+                            contentColor = if (canCancel) {
+                                MaterialTheme.colorScheme.onErrorContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
                             dismissContent = {
-                                Icon(
-                                    imageVector = Icons.Default.Cancel,
-                                    contentDescription = stringResource(R.string.operations_cancel_operation),
-                                )
+                                if (canCancel) {
+                                    Text(
+                                        text = stringResource(R.string.operations_cancel_operation),
+                                        style = MaterialTheme.typography.labelMedium,
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Icon(
+                                        imageVector = Icons.Default.Cancel,
+                                        contentDescription = stringResource(R.string.operations_cancel_operation),
+                                    )
+                                } else {
+                                    Text(
+                                        text = stringResource(eu.darken.butler.common.R.string.general_dismiss_action),
+                                        style = MaterialTheme.typography.labelMedium,
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Icon(
+                                        imageVector = Icons.TwoTone.Close,
+                                        contentDescription = stringResource(eu.darken.butler.common.R.string.general_dismiss_action),
+                                    )
+                                }
                             }
                         ) {
                             OperationEntryRow(
@@ -172,6 +221,7 @@ private fun OperationsBarPreview() {
         OperationsBar(
             operations = operations,
             onCancelOperation = {},
+            onDismissOperation = {},
             onOperationClick = {},
             onClearCompleted = {},
         )
