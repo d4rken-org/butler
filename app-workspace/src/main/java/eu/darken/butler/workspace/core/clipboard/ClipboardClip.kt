@@ -12,7 +12,7 @@ sealed interface ClipboardClip {
     val clippedAt: Instant
 
     data class Paths(
-        override val id: Uuid = Uuid.Companion.random(),
+        override val id: Uuid = Uuid.random(),
         override val clippedAt: Instant = Clock.System.now(),
         override val origin: Workspace.Id,
         val mode: Mode,

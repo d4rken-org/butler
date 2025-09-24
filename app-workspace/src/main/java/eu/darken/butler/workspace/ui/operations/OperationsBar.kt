@@ -17,15 +17,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,6 +58,9 @@ fun OperationsBar(
     var isExpanded by remember(operations.size > 1) {
         mutableStateOf(initialExpanded)
     }
+
+    // State for cancel confirmation dialog
+    var pendingCancelId by remember { mutableStateOf<Operation.Id?>(null) }
 
     AnimatedVisibility(
         visible = operations.isNotEmpty(),
@@ -124,52 +128,30 @@ fun OperationsBar(
                         val canCancel = operation.canCancel && !canDismiss
 
                         SwipeToDismissItem(
-                            enabled = canCancel || canDismiss,
+                            enabled = canDismiss,
                             onDismiss = {
-                                when {
-                                    canCancel -> onCancelOperation(operation.id)
-                                    canDismiss -> onDismissOperation(operation.id)
-                                    else -> { /* Should not happen */
-                                    }
-                                }
+                                onDismissOperation(operation.id)
                             },
-                            backgroundColor = if (canCancel) {
-                                MaterialTheme.colorScheme.errorContainer  // Softer red for cancel
-                            } else {
-                                MaterialTheme.colorScheme.surfaceVariant  // Neutral for dismiss
-                            },
-                            contentColor = if (canCancel) {
-                                MaterialTheme.colorScheme.onErrorContainer
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            },
+                            backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             dismissContent = {
-                                if (canCancel) {
-                                    Text(
-                                        text = stringResource(R.string.operations_cancel_operation),
-                                        style = MaterialTheme.typography.labelMedium,
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Icon(
-                                        imageVector = Icons.Default.Cancel,
-                                        contentDescription = stringResource(R.string.operations_cancel_operation),
-                                    )
-                                } else {
-                                    Text(
-                                        text = stringResource(eu.darken.butler.common.R.string.general_dismiss_action),
-                                        style = MaterialTheme.typography.labelMedium,
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Icon(
-                                        imageVector = Icons.TwoTone.Close,
-                                        contentDescription = stringResource(eu.darken.butler.common.R.string.general_dismiss_action),
-                                    )
-                                }
+                                Text(
+                                    text = stringResource(eu.darken.butler.common.R.string.general_dismiss_action),
+                                    style = MaterialTheme.typography.labelMedium,
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(
+                                    imageVector = Icons.TwoTone.Close,
+                                    contentDescription = stringResource(eu.darken.butler.common.R.string.general_dismiss_action),
+                                )
                             }
                         ) {
                             OperationEntryRow(
                                 operation = operation,
-                                onClick = { onOperationClick(operation) },
+                                onRowClick = { onOperationClick(operation) },
+                                onActionClick = if (canCancel) {
+                                    { pendingCancelId = operation.id }
+                                } else null,
                             )
                         }
 
@@ -184,6 +166,32 @@ fun OperationsBar(
                 }
             }
         }
+    }
+
+    // Cancel confirmation dialog
+    pendingCancelId?.let { operationId ->
+        AlertDialog(
+            onDismissRequest = { pendingCancelId = null },
+            title = { Text(stringResource(R.string.operations_cancel_dialog_title)) },
+            text = { Text(stringResource(R.string.operations_cancel_dialog_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        pendingCancelId = null
+                        onCancelOperation(operationId)
+                    }
+                ) {
+                    Text(stringResource(R.string.operations_cancel_dialog_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { pendingCancelId = null }
+                ) {
+                    Text(stringResource(eu.darken.butler.common.R.string.general_cancel_action))
+                }
+            }
+        )
     }
 }
 

@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.core.operations.handlers
+package eu.darken.butler.explorer.core.operations
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.DriveFileMove
@@ -11,8 +11,6 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.explorer.core.operations.ExplorerCommand
-import eu.darken.butler.explorer.core.operations.ExplorerOperation
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
@@ -36,7 +34,7 @@ class MoveOperation @AssistedInject constructor(
         override val description = caString { "Move selected files" } // TODO
     }
 
-    override suspend fun execute(
+    override fun perform(
         operationContext: Operation.Context
     ): Flow<State> = flow {
         log(tag) { "execute(): $command" }

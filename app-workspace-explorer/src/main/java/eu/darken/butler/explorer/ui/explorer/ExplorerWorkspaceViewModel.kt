@@ -45,6 +45,8 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.operations.operationsForWorkspace
+import eu.darken.butler.workspace.core.operations.withStateUpdates
 import eu.darken.butler.workspace.core.permissions.PermissionState
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
@@ -161,12 +163,15 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         )
     }.asStateFlow()
 
-    val operations = operationsManager.operations
-        .map { allOperations ->
-            allOperations
-                .filter { it.metadata.origin.workspaceId == id }
-                .map { it.toDisplayModel() }
-                .sortedWith(compareBy<OperationDisplay> { op ->
+    val operations = operationsManager
+        .operationsForWorkspace(id)
+        .withStateUpdates()
+        .map { managedOps ->
+            managedOps.map { it.toDisplayModel() }
+        }
+        .map { displayOps ->
+            displayOps.sortedWith(
+                compareBy<OperationDisplay> { op ->
                     // Priority: Running > Waiting (was running, needs input) > Queued > Others
                     when (op.state) {
                         is OperationDisplay.State.Running -> 0
@@ -176,7 +181,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         is OperationDisplay.State.Completed -> 4
                         is OperationDisplay.State.Cancelled -> 5
                     }
-                }.thenBy { it.startedAt }) // Oldest first within each group
+                }.thenBy { it.startedAt } // Oldest first within each group
+            )
         }
         .stateIn(
             scope = vmScope,

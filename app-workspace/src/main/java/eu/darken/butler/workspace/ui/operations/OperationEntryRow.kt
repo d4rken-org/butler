@@ -12,14 +12,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Cancel
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
@@ -27,20 +30,22 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.progress.Progress
+import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.operations.Operation
 import kotlin.time.Clock
 
 @Composable
 fun OperationEntryRow(
     operation: OperationDisplay,
-    onClick: () -> Unit,
+    onRowClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onActionClick: (() -> Unit)? = null,
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            .clickable { onClick() }
+            .clickable { onRowClick() }
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -115,10 +120,25 @@ fun OperationEntryRow(
             }
         }
 
-        OperationStateIndicator(
-            state = operation.state,
-            modifier = Modifier.size(24.dp)
-        )
+        // Show action button for active operations if they can be cancelled, otherwise show state indicator
+        if (operation.state is OperationDisplay.State.Running && onActionClick != null) {
+            IconButton(
+                onClick = onActionClick,
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.TwoTone.Cancel,
+                    contentDescription = stringResource(R.string.operations_cancel_operation),
+                    modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
+        } else {
+            OperationStateIndicator(
+                state = operation.state,
+                modifier = Modifier.size(24.dp)
+            )
+        }
     }
 }
 
@@ -141,7 +161,8 @@ private fun OperationEntryRowCounterPreview() {
                 ),
                 startedAt = Clock.System.now(),
             ),
-            onClick = {},
+            onRowClick = {},
+            onActionClick = {},
         )
     }
 }
@@ -165,7 +186,8 @@ private fun OperationEntryRowPercentPreview() {
                 ),
                 startedAt = Clock.System.now(),
             ),
-            onClick = {},
+            onRowClick = {},
+            onActionClick = {},
         )
     }
 }
@@ -189,7 +211,8 @@ private fun OperationEntryRowSizePreview() {
                 ),
                 startedAt = Clock.System.now(),
             ),
-            onClick = {},
+            onRowClick = {},
+            onActionClick = {},
         )
     }
 }
@@ -213,7 +236,8 @@ private fun OperationEntryRowIndeterminatePreview() {
                 ),
                 startedAt = Clock.System.now(),
             ),
-            onClick = {},
+            onRowClick = {},
+            onActionClick = {},
         )
     }
 }
@@ -231,7 +255,8 @@ private fun OperationEntryRowCompletedPreview() {
                 state = OperationDisplay.State.Completed("Successfully completed".toCaString()),
                 startedAt = Clock.System.now(),
             ),
-            onClick = {},
+            onRowClick = {},
+            onActionClick = {},
         )
     }
 }

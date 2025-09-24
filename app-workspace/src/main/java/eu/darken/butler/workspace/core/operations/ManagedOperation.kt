@@ -18,10 +18,12 @@ import kotlin.time.Instant
 class ManagedOperation(
     val id: Operation.Id,
     private val operation: Operation,
-    private val scope: CoroutineScope,
+    parentScope: CoroutineScope,
 ) {
     val tag = logTag("Workspace", "Operations", "ManagedOperation", id.shortTag)
     private val startTime = Clock.System.now()
+
+    private val scope = CoroutineScope(parentScope.coroutineContext + Job())
 
     private val _state = MutableStateFlow<Operation.State>(
         Operation.State.Queued(
@@ -32,26 +34,25 @@ class ManagedOperation(
 
     val metadata: Operation.Metadata = operation.metadata
 
-    private var job: Job? = null
-
     val canCancel: Boolean
         get() = when (state.value) {
             is Operation.State.Queued -> true  // Can cancel before it starts
-            is Operation.State.Active -> job?.isActive == true  // Can cancel if running
-            is Operation.State.Waiting -> job?.isActive == true  // Can cancel if waiting
+            is Operation.State.Active -> scope.coroutineContext[Job]?.isActive == true  // Can cancel if running
+            is Operation.State.Waiting -> scope.coroutineContext[Job]?.isActive == true  // Can cancel if waiting
             else -> false  // Cannot cancel completed/failed/cancelled
         }
 
     val canPause: Boolean get() = false
 
-    suspend fun execute() {
-        log(tag, INFO) { "execute(): Starting operation $id" }
+    fun start() {
+        log(tag, INFO) { "start(): Starting operation $id" }
         val operationContext = Operation.Context(
             id = id,
             startedAt = startTime,
         )
-        job = operation
-            .execute(operationContext)
+
+        operation
+            .perform(operationContext)
             .onEach { state ->
                 log(tag, VERBOSE) { "Operation $id state: $state" }
                 _state.emit(state)
@@ -74,6 +75,6 @@ class ManagedOperation(
 
     fun cancel() {
         log(tag) { "cancel()" }
-        job?.cancel()
+        scope.coroutineContext[Job]?.cancel()
     }
 }

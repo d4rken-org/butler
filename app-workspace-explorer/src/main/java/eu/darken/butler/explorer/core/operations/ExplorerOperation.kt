@@ -10,7 +10,7 @@ import kotlin.time.Instant
 
 abstract class ExplorerOperation : Operation {
 
-    abstract override suspend fun execute(operationContext: Operation.Context): Flow<State>
+    abstract override fun perform(operationContext: Operation.Context): Flow<State>
 
     sealed interface State : Operation.State {
         data class Active(

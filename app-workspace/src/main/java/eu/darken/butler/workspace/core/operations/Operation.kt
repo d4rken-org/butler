@@ -17,12 +17,14 @@ interface Operation {
     @Parcelize
     @TypeParceler<Uuid, UuidParceler>
     data class Id(
-        val operationId: Uuid = Uuid.random(),
+        val id: Uuid = Uuid.random(),
     ) : Parcelable {
         val shortTag: String
-            get() = operationId.toString().take(4)
+            get() = id.toString().take(4)
         val longTag: String
-            get() = operationId.toString()
+            get() = id.toString()
+
+        override fun toString(): String = "Operation.Id($shortTag)"
     }
 
     interface Metadata {
@@ -68,5 +70,5 @@ interface Operation {
         val startedAt: Instant,
     )
 
-    suspend fun execute(operationContext: Context): Flow<State>
+    fun perform(operationContext: Context): Flow<State>
 }

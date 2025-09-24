@@ -8,7 +8,16 @@ interface Issue {
     val title: CaString
     val description: CaString
 
-    data class Id(val id: Uuid = Uuid.Companion.random())
+    data class Id(
+        val id: Uuid = Uuid.random()
+    ) {
+        val shortTag: String
+            get() = id.toString().take(4)
+        val longTag: String
+            get() = id.toString()
+
+        override fun toString(): String = "Issue.Id($shortTag)"
+    }
 
     interface Resolution
 }

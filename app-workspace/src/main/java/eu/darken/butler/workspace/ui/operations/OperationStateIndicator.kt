@@ -9,7 +9,6 @@ import androidx.compose.material.icons.twotone.CheckCircle
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.Pause
 import androidx.compose.material.icons.twotone.PauseCircle
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -37,9 +36,11 @@ fun OperationStateIndicator(
             )
         }
         is OperationDisplay.State.Running -> {
-            CircularProgressIndicator(
+            Icon(
+                imageVector = Icons.TwoTone.PauseCircle,
+                contentDescription = stringResource(R.string.operations_state_running),
                 modifier = modifier,
-                strokeWidth = 2.dp,
+                tint = MaterialTheme.colorScheme.primary,
             )
         }
         is OperationDisplay.State.Waiting -> {
