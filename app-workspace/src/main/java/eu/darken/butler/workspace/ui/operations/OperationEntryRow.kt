@@ -50,7 +50,6 @@ fun OperationEntryRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // Operation type icon
         Icon(
             imageVector = operation.icon,
             contentDescription = null,
@@ -59,18 +58,22 @@ fun OperationEntryRow(
         )
 
         Column(modifier = Modifier.weight(1f)) {
-            // Title
             Text(
-                text = operation.title.asComposable(),
+                text = when (operation.state) {
+                    is OperationDisplay.State.Running -> operation.state.primaryProgress.primary.asComposable()
+                    else -> operation.title.asComposable()
+                },
                 style = MaterialTheme.typography.titleSmall,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-
-            // Description
-            operation.description?.let { description ->
+            val secondaryText = when (operation.state) {
+                is OperationDisplay.State.Running -> operation.state.primaryProgress.secondary.asComposable()
+                else -> operation.description?.asComposable()
+            }
+            if (secondaryText != null) {
                 Text(
-                    text = description.asComposable(),
+                    text = secondaryText,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -78,7 +81,6 @@ fun OperationEntryRow(
                 )
             }
 
-            // Progress bar
             val progressData = (operation.state as? OperationDisplay.State.Running)?.primaryProgress
             progressData?.let { progressData ->
                 Spacer(modifier = Modifier.height(2.dp))

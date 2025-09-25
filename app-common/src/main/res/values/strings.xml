@@ -127,6 +127,8 @@
     <string name="general_rename_action">Rename</string>
     <string name="general_retry_action">Retry</string>
 
+    <string name="general_result_user_cancel_msg">User has cancelled the operation.</string>
+
     <string name="general_list_select_all_action">Select all</string>
 
     <string name="general_path_label">Path</string>

@@ -1,17 +1,22 @@
 package eu.darken.butler.workspace.core.operations
 
+import eu.darken.butler.common.R
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -64,17 +69,30 @@ class ManagedOperation(
                         override val startedAt: Instant = startTime
                         override val completedAt: Instant = Clock.System.now()
                         override val summary: CaString = caString {
-                            "Unknown error" // TODO
+                            it.getString(R.string.general_error_label) + " (${error.toString()})"
                         }
                         override val error: Throwable = error
                     }
                 )
+            }
+            .onCompletion { cause ->
+                if (cause is CancellationException) {
+                    log(tag, INFO) { "Operation $id was cancelled" }
+                    _state.emit(
+                        object : Operation.State.Completed {
+                            override val startedAt: Instant = startTime
+                            override val completedAt: Instant = Clock.System.now()
+                            override val summary: CaString = R.string.general_result_user_cancel_msg.toCaString()
+                            override val error: Throwable = cause
+                        }
+                    )
+                }
             }
             .launchIn(scope)
     }
 
     fun cancel() {
         log(tag) { "cancel()" }
-        scope.coroutineContext[Job]?.cancel()
+        scope.cancel()
     }
 }
