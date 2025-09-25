@@ -101,20 +101,20 @@ private fun FileOptionsContent(
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp)
-            .padding(bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         // Header with file info
         FileInfoHeader(item = item)
 
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         // Action options
         Text(
             text = stringResource(R.string.explorer_file_options_actions),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(vertical = 8.dp)
+            modifier = Modifier.padding(vertical = 4.dp)
         )
 
         // Determine if file is text-editable
@@ -145,7 +145,7 @@ private fun FileOptionsContent(
             onClick = onShare
         )
 
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         FileActionRow(
             icon = Icons.TwoTone.ContentCopy,
@@ -168,7 +168,7 @@ private fun FileOptionsContent(
             onClick = onRename
         )
 
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         FileActionRow(
             icon = Icons.TwoTone.Delete,
@@ -194,7 +194,7 @@ private fun FileInfoHeader(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp),
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
@@ -249,7 +249,7 @@ private fun FileActionRow(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(vertical = 12.dp, horizontal = 8.dp),
+            .padding(vertical = 8.dp, horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(

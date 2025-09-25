@@ -32,7 +32,7 @@ abstract class ExplorerOperation : Operation {
             override val startedAt: Instant,
             override val completedAt: Instant = Clock.System.now(),
             override val error: Throwable? = null,
-            val report: OperationReport,
+            override val report: OperationReport,
         ) : State, Operation.State.Completed {
             override val summary: CaString get() = report.summary
         }

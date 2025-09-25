@@ -216,12 +216,6 @@ fun OperationsBar(
                         selectedOperationId = null
                     }
                 } else null,
-                onGoToFolder = if (operation.state is OperationDisplay.State.Completed) {
-                    {
-                        // TODO: Navigate to result folder
-                        selectedOperationId = null
-                    }
-                } else null,
             )
         }
     }
@@ -254,7 +248,12 @@ private fun OperationsBarPreview() {
                 icon = Icons.TwoTone.Delete,
                 state = OperationDisplay.State.Completed(
                     summary = "Success".toCaString(),
-                    completedAt = Clock.System.now()
+                    completedAt = Clock.System.now(),
+                    report = object : Operation.Report {
+                        override val title = "Operation Complete".toCaString()
+                        override val summary = "Success".toCaString()
+                        override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                    }
                 ),
                 canCancel = false,
                 startedAt = Clock.System.now(),

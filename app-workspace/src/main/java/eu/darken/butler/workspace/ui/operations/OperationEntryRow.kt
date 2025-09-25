@@ -12,17 +12,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Cancel
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
@@ -30,7 +27,6 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.progress.Progress
-import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.operations.Operation
 import kotlin.time.Clock
 
@@ -122,25 +118,11 @@ fun OperationEntryRow(
             }
         }
 
-        // Show action button for active operations if they can be cancelled, otherwise show state indicator
-        if (operation.state is OperationDisplay.State.Running && onActionClick != null) {
-            IconButton(
-                onClick = onActionClick,
-                modifier = Modifier.size(24.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.TwoTone.Cancel,
-                    contentDescription = stringResource(R.string.operations_cancel_operation),
-                    modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.error
-                )
-            }
-        } else {
-            OperationStateIndicator(
-                state = operation.state,
-                modifier = Modifier.size(24.dp)
-            )
-        }
+        OperationActionIndicator(
+            state = operation.state,
+            modifier = Modifier.size(24.dp),
+            onAction = if (operation.state is OperationDisplay.State.Running) onActionClick else null
+        )
     }
 }
 
@@ -256,7 +238,12 @@ private fun OperationEntryRowCompletedPreview() {
                 icon = Icons.TwoTone.Delete,
                 state = OperationDisplay.State.Completed(
                     summary = "Successfully completed".toCaString(),
-                    completedAt = Clock.System.now()
+                    completedAt = Clock.System.now(),
+                    report = object : Operation.Report {
+                        override val title = "Operation Complete".toCaString()
+                        override val summary = "Successfully completed".toCaString()
+                        override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                    }
                 ),
                 startedAt = Clock.System.now(),
             ),

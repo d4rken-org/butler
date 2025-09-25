@@ -17,6 +17,7 @@ import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.delete
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.filesystem.FileSystemEvent
 import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
@@ -85,7 +86,12 @@ class DeleteOperation @AssistedInject constructor(
                         )
                     }
                     is DeleteAction.State.Result<*> -> {
+                        val event = FileSystemEvent.Removed(
+                            operationId = operationContext.id,
+                            paths = deleteState.deleted,
+                        )
                         fileSystemHinter.trackPathsRemoved(deleteState.deleted)
+                        reportBuilder.addPathEvent(event)
                     }
                 }
             }

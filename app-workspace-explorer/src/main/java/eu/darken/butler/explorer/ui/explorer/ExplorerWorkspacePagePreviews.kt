@@ -259,6 +259,10 @@ fun ExplorerWorkspacePageWithAllBarsPreview() {
             state = OperationDisplay.State.Completed(
                 summary = "Successfully completed".toCaString(),
                 completedAt = Clock.System.now(),
+                report = object : Operation.Report {
+                    override val summary = "Successfully completed".toCaString()
+                    override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                }
             ),
             canCancel = false,
             startedAt = Clock.System.now() - 5.minutes,
@@ -393,6 +397,10 @@ fun ExplorerWorkspacePageWithExpandedBarsPreview() {
             state = OperationDisplay.State.Completed(
                 summary = "Successfully completed".toCaString(),
                 completedAt = Clock.System.now(),
+                report = object : Operation.Report {
+                    override val summary = "Successfully completed".toCaString()
+                    override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                }
             ),
             canCancel = false,
             startedAt = Clock.System.now() - 5.minutes,

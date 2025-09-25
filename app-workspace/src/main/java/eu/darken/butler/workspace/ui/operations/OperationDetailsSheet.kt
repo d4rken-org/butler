@@ -1,20 +1,28 @@
 package eu.darken.butler.workspace.ui.operations
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.Delete
-import androidx.compose.material.icons.twotone.FolderOpen
+import androidx.compose.material.icons.twotone.ExpandLess
+import androidx.compose.material.icons.twotone.ExpandMore
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,12 +35,17 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.CaString
@@ -40,6 +53,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.operations.Operation
@@ -54,7 +68,6 @@ fun OperationDetailsSheet(
     modifier: Modifier = Modifier,
     onCancel: (() -> Unit)? = null,
     onCopyError: (() -> Unit)? = null,
-    onGoToFolder: (() -> Unit)? = null,
 ) {
     val isInPreview = LocalInspectionMode.current
 
@@ -67,7 +80,6 @@ fun OperationDetailsSheet(
                 operation = operation,
                 onCancel = onCancel,
                 onCopyError = onCopyError,
-                onGoToFolder = onGoToFolder,
             )
         }
     } else {
@@ -81,7 +93,6 @@ fun OperationDetailsSheet(
                 operation = operation,
                 onCancel = onCancel,
                 onCopyError = onCopyError,
-                onGoToFolder = onGoToFolder,
             )
         }
     }
@@ -92,11 +103,11 @@ private fun OperationDetailsContent(
     operation: OperationDisplay,
     onCancel: (() -> Unit)? = null,
     onCopyError: (() -> Unit)? = null,
-    onGoToFolder: (() -> Unit)? = null,
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp)
             .padding(top = 8.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -134,13 +145,34 @@ private fun OperationDetailsContent(
             }
         }
 
-        // Actions Section
-        OperationActionsSection(
-            operation = operation,
-            onCancel = onCancel,
-            onCopyError = onCopyError,
-            onGoToFolder = onGoToFolder,
-        )
+        // Affected Files Section (for completed operations with affected paths)
+        val affectedPaths = when (operation.state) {
+            is OperationDisplay.State.Completed -> operation.state.report.affectedPaths
+            is OperationDisplay.State.Failed -> operation.state.report?.affectedPaths ?: emptyList()
+            is OperationDisplay.State.Cancelled -> operation.state.report?.affectedPaths ?: emptyList()
+            else -> emptyList()
+        }
+
+        if (affectedPaths.isNotEmpty()) {
+            OperationAffectedFilesSection(
+                affectedPaths = affectedPaths,
+            )
+        }
+
+        // Actions Section - only show if there are available actions
+        val hasActions = when (operation.state) {
+            is OperationDisplay.State.Running -> onCancel != null
+            is OperationDisplay.State.Failed -> onCopyError != null
+            else -> false
+        }
+
+        if (hasActions) {
+            OperationActionsSection(
+                operation = operation,
+                onCancel = onCancel,
+                onCopyError = onCopyError,
+            )
+        }
     }
 }
 
@@ -428,7 +460,6 @@ private fun OperationActionsSection(
     operation: OperationDisplay,
     onCancel: (() -> Unit)? = null,
     onCopyError: (() -> Unit)? = null,
-    onGoToFolder: (() -> Unit)? = null,
 ) {
     Card(
         colors = CardDefaults.cardColors(
@@ -472,22 +503,6 @@ private fun OperationActionsSection(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(stringResource(R.string.operations_cancel_operation))
-                            }
-                        }
-                    }
-                    is OperationDisplay.State.Completed -> {
-                        if (onGoToFolder != null) {
-                            OutlinedButton(
-                                onClick = onGoToFolder,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.TwoTone.FolderOpen,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(stringResource(R.string.operations_details_go_to_folder))
                             }
                         }
                     }
@@ -554,7 +569,7 @@ private fun OperationOverviewSection(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "Status",
+                        text = stringResource(R.string.operations_details_status),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -562,7 +577,7 @@ private fun OperationOverviewSection(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        OperationStateIndicator(
+                        OperationActionIndicator(
                             state = operation.state,
                             modifier = Modifier.size(16.dp)
                         )
@@ -639,12 +654,146 @@ private fun OperationOverviewSection(
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }
+
+                // Result/Summary row (for completed/failed/cancelled operations with reports)
+                val reportSummary = when (operation.state) {
+                    is OperationDisplay.State.Completed -> operation.state.report.summary
+                    is OperationDisplay.State.Failed -> operation.state.report?.summary
+                    is OperationDisplay.State.Cancelled -> operation.state.report?.summary
+                    else -> null
+                }
+
+                if (reportSummary != null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.operations_details_result),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = reportSummary.asComposable(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.End,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OperationAffectedFilesSection(
+    affectedPaths: Collection<Operation.Report.PathChange>,
+) {
+    var isExpanded by remember { mutableStateOf(false) }
+
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Clickable section title with expand/collapse
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { isExpanded = !isExpanded }
+                    .padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(
+                        R.string.operations_details_affected_files_with_count,
+                        affectedPaths.size
+                    ).uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontFamily = FontFamily.Monospace,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
+                Icon(
+                    imageVector = if (isExpanded) Icons.TwoTone.ExpandLess else Icons.TwoTone.ExpandMore,
+                    contentDescription = if (isExpanded) "Collapse" else "Expand",
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            // Only show divider when expanded
+            AnimatedVisibility(visible = isExpanded) {
+                Column {
+                    HorizontalDivider(
+                        thickness = 0.5.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Expandable file list
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 300.dp),
+                    ) {
+                        items(affectedPaths.toList()) { pathChange ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    text = when (pathChange.type) {
+                                        Operation.Report.PathChange.Type.ADDED -> stringResource(R.string.operations_details_path_added_marker)
+                                        Operation.Report.PathChange.Type.REMOVED -> stringResource(R.string.operations_details_path_removed_marker)
+                                        Operation.Report.PathChange.Type.MODIFIED -> stringResource(R.string.operations_details_path_modified_marker)
+                                    },
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontFamily = FontFamily.Monospace,
+                                    color = when (pathChange.type) {
+                                        Operation.Report.PathChange.Type.ADDED -> MaterialTheme.colorScheme.primary
+                                        Operation.Report.PathChange.Type.REMOVED -> MaterialTheme.colorScheme.error
+                                        Operation.Report.PathChange.Type.MODIFIED -> MaterialTheme.colorScheme.secondary
+                                    },
+                                    modifier = Modifier.width(16.dp)
+                                )
+
+                                Text(
+                                    text = pathChange.path.userReadablePath.asComposable(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontFamily = FontFamily.Monospace,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.MiddleEllipsis,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 }
 
 // Helper functions
+private fun createMockReport(
+    affectedPaths: List<Operation.Report.PathChange> = emptyList()
+): Operation.Report = object : Operation.Report {
+    override val summary = "Completed successfully".toCaString()
+    override val affectedPaths = affectedPaths
+}
+
 private fun formatRelativeTime(instant: kotlin.time.Instant): String {
     val duration = Clock.System.now() - instant
     return when {
@@ -715,12 +864,79 @@ private fun OperationDetailsSheetFailedPreview() {
                 icon = Icons.TwoTone.Delete,
                 state = OperationDisplay.State.Failed(
                     summary = "Insufficient space".toCaString(),
-                    completedAt = Clock.System.now()
+                    completedAt = Clock.System.now(),
+                    report = createMockReport()
                 ),
                 startedAt = Clock.System.now() - 5.minutes,
             ),
             onDismiss = {},
             onCopyError = {},
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun OperationDetailsSheetCompletedWithFilesPreview() {
+    PreviewWrapper {
+        OperationDetailsSheet(
+            operation = OperationDisplay(
+                id = Operation.Id(),
+                title = "Delete operation".toCaString(),
+                description = "Completed successfully".toCaString(),
+                icon = Icons.TwoTone.Delete,
+                state = OperationDisplay.State.Completed(
+                    summary = "Successfully deleted 15 items".toCaString(),
+                    completedAt = Clock.System.now(),
+                    report = createMockReport(
+                        affectedPaths = listOf(
+                            Operation.Report.PathChange(
+                                path = RawPath.build("/home", "user", "documents", "file1.txt"),
+                                type = Operation.Report.PathChange.Type.REMOVED
+                            ),
+                            Operation.Report.PathChange(
+                                path = RawPath.build("/home", "user", "documents", "file2.pdf"),
+                                type = Operation.Report.PathChange.Type.REMOVED
+                            ),
+                            Operation.Report.PathChange(
+                                path = RawPath.build("/home", "user", "downloads", "temp"),
+                                type = Operation.Report.PathChange.Type.REMOVED
+                            ),
+                            Operation.Report.PathChange(
+                                path = RawPath.build("/home", "user", "backup", "copy1.txt"),
+                                type = Operation.Report.PathChange.Type.ADDED
+                            ),
+                            Operation.Report.PathChange(
+                                path = RawPath.build("/home", "user", "config.xml"),
+                                type = Operation.Report.PathChange.Type.MODIFIED
+                            ),
+                            Operation.Report.PathChange(
+                                path = RawPath.build("/home", "user", "old", "archive.zip"),
+                                type = Operation.Report.PathChange.Type.REMOVED
+                            ),
+                            Operation.Report.PathChange(
+                                path = RawPath.build(
+                                    "/storage",
+                                    "emulated",
+                                    "0",
+                                    "Android",
+                                    "data",
+                                    "com.example.app",
+                                    "cache",
+                                    "temp.log"
+                                ),
+                                type = Operation.Report.PathChange.Type.REMOVED
+                            ),
+                            Operation.Report.PathChange(
+                                path = RawPath.build("/sdcard", "Pictures", "Screenshots", "screenshot_1.png"),
+                                type = Operation.Report.PathChange.Type.REMOVED
+                            ),
+                        )
+                    )
+                ),
+                startedAt = Clock.System.now() - 3.minutes,
+            ),
+            onDismiss = {},
         )
     }
 }

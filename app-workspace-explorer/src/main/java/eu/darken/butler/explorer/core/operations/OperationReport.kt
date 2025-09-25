@@ -2,33 +2,23 @@ package eu.darken.butler.explorer.core.operations
 
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
-import eu.darken.butler.common.files.APath
 import eu.darken.butler.explorer.core.filesystem.FileSystemEvent
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.Operation.Report.*
 import kotlin.time.Clock
 import kotlin.time.Instant
 
 data class OperationReport(
-    val affectedPaths: Collection<PathChange>,
+    override val affectedPaths: Collection<PathChange>,
+    val affectedFiles: Int? = null,
+    val affectedDirectories: Int? = null,
     val bytesProcessed: Long? = null,
     val averageBytesPerSecond: Long? = null,
     val peakBytesPerSecond: Long? = null,
 ) : Operation.Report {
 
-    override val title: CaString = caString {
-        "// TODO: Title"
-    }
     override val summary: CaString = caString {
         "// TODO: Summary"
-    }
-
-    data class PathChange(
-        val path: APath,
-        val type: Type,
-    ) {
-        enum class Type {
-            ADDED, REMOVED, MODIFIED
-        }
     }
 
     class Builder(
@@ -39,9 +29,9 @@ data class OperationReport(
         fun addPathEvent(event: FileSystemEvent) {
             affectedPaths.addAll(
                 when (event) {
-                    is FileSystemEvent.FilesAdded -> event.paths.map { PathChange(it, PathChange.Type.ADDED) }
-                    is FileSystemEvent.FilesModified -> event.paths.map { PathChange(it, PathChange.Type.MODIFIED) }
-                    is FileSystemEvent.FilesRemoved -> event.paths.map { PathChange(it, PathChange.Type.REMOVED) }
+                    is FileSystemEvent.Added -> event.paths.map { PathChange(it, PathChange.Type.ADDED) }
+                    is FileSystemEvent.Modified -> event.paths.map { PathChange(it, PathChange.Type.MODIFIED) }
+                    is FileSystemEvent.Removed -> event.paths.map { PathChange(it, PathChange.Type.REMOVED) }
                 }
             )
         }

@@ -167,7 +167,7 @@ class CreateOperation @AssistedInject constructor(
 
         // Add to report
         reportBuilder.addPathEvent(
-            FileSystemEvent.FilesAdded(
+            FileSystemEvent.Added(
                 operationId = operationContext.id,
                 paths = setOf(destinationPath)
             )

@@ -27,9 +27,22 @@ data class OperationDisplay(
         ) : State
 
         data class Waiting(val reason: CaString) : State
-        data class Completed(val summary: CaString, val completedAt: Instant) : State
-        data class Failed(val summary: CaString, val completedAt: Instant) : State
-        data class Cancelled(val completedAt: Instant) : State
+        data class Completed(
+            val summary: CaString,
+            val completedAt: Instant,
+            val report: Operation.Report,
+        ) : State
+
+        data class Failed(
+            val summary: CaString,
+            val completedAt: Instant,
+            val report: Operation.Report?,
+        ) : State
+
+        data class Cancelled(
+            val completedAt: Instant,
+            val report: Operation.Report?,
+        ) : State
     }
 }
 
@@ -54,13 +67,24 @@ fun ManagedOperation.toDisplayModel(): OperationDisplay {
                 val errorValue = state.error
                 when {
                     errorValue?.causes?.any { it is CancellationException } == true -> {
-                        OperationDisplay.State.Cancelled(completedAt = state.completedAt)
+                        OperationDisplay.State.Cancelled(
+                            completedAt = state.completedAt,
+                            report = state.report,
+                        )
                     }
                     errorValue != null -> {
-                        OperationDisplay.State.Failed(summary = state.summary, completedAt = state.completedAt)
+                        OperationDisplay.State.Failed(
+                            summary = state.summary,
+                            completedAt = state.completedAt,
+                            report = state.report,
+                        )
                     }
                     else -> {
-                        OperationDisplay.State.Completed(summary = state.summary, completedAt = state.completedAt)
+                        OperationDisplay.State.Completed(
+                            summary = state.summary,
+                            completedAt = state.completedAt,
+                            report = state.report!!,
+                        )
                     }
                 }
             }

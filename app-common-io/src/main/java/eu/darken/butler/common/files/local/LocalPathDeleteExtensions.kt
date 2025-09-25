@@ -9,7 +9,9 @@ import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
+import eu.darken.butler.common.io.R
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import java.io.IOException
 import java.nio.file.Files
@@ -86,7 +88,6 @@ suspend fun Collection<LocalPath>.delete(
             while (currentCoroutineContext().isActive) {
                 try {
                     val size = if (target.file.isFile) target.file.length() else 0L
-                    itemsProcessed++
 
                     onProgress?.invoke(
                         DeleteAction.State.Progress(
@@ -101,7 +102,7 @@ suspend fun Collection<LocalPath>.delete(
                                     R.string.general_delete_progress_processing_content.toCaString()
                                 },
                                 count = eu.darken.butler.common.progress.Progress.Count.Counter(
-                                    current = index + 1,
+                                    current = index,
                                     max = this@delete.size
                                 )
                             ),
@@ -119,10 +120,11 @@ suspend fun Collection<LocalPath>.delete(
                             } else null
                         )
                     )
-                    delay(500) // FIXME Just for testing
-//                Files.delete(target.file.toPath()) // FIXME Just for testing
+                    delay(50) // FIXME Just for testing
+//                Files.delete(target.file.toPath()) // FIXME Just for testing.
                     bytesTotal += size
                     deleted += target
+                    itemsProcessed++
                     break
                 } catch (e: NoSuchFileException) {
                     log(TAG, WARN) { "delete(): File doesn't exist: $target" }

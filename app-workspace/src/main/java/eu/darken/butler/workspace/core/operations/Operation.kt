@@ -3,6 +3,7 @@ package eu.darken.butler.workspace.core.operations
 import android.os.Parcelable
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.parcel.UuidParceler
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.core.Workspace
@@ -68,8 +69,17 @@ interface Operation {
     }
 
     interface Report {
-        val title: CaString
         val summary: CaString
+        val affectedPaths: Collection<PathChange>
+
+        data class PathChange(
+            val path: APath,
+            val type: Type,
+        ) {
+            enum class Type {
+                ADDED, REMOVED, MODIFIED
+            }
+        }
     }
 
     data class Context(

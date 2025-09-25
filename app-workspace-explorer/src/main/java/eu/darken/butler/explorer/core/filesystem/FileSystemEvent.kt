@@ -9,19 +9,19 @@ sealed class FileSystemEvent {
     abstract val operationId: Operation.Id
     abstract val timestamp: Instant
 
-    data class FilesAdded(
+    data class Added(
         override val operationId: Operation.Id,
         override val timestamp: Instant = Clock.System.now(),
         val paths: Set<APath>,
     ) : FileSystemEvent()
 
-    data class FilesRemoved(
+    data class Removed(
         override val operationId: Operation.Id,
         override val timestamp: Instant = Clock.System.now(),
         val paths: Set<APath>,
     ) : FileSystemEvent()
 
-    data class FilesModified(
+    data class Modified(
         override val operationId: Operation.Id,
         override val timestamp: Instant = Clock.System.now(),
         val paths: Set<APath>,
