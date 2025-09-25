@@ -252,7 +252,10 @@ private fun OperationEntryRowCompletedPreview() {
                 title = "Delete operation".toCaString(),
                 description = "Successfully deleted 5 files".toCaString(),
                 icon = Icons.TwoTone.Delete,
-                state = OperationDisplay.State.Completed("Successfully completed".toCaString()),
+                state = OperationDisplay.State.Completed(
+                    summary = "Successfully completed".toCaString(),
+                    completedAt = Clock.System.now()
+                ),
                 startedAt = Clock.System.now(),
             ),
             onRowClick = {},

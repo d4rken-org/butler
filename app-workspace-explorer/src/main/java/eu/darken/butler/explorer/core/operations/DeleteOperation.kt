@@ -14,7 +14,6 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.delete
-import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
@@ -69,12 +68,8 @@ class DeleteOperation @AssistedInject constructor(
 
                         emit(
                             operationState.copy(
-                                primaryProgress = Progress.Data(
-                                    count = Progress.Count.Counter(
-                                        current = deleteState.pathsCurrent,
-                                        max = deleteState.pathsTotal,
-                                    )
-                                ),
+                                primaryProgress = deleteState.primaryProgress,
+                                secondaryProgress = deleteState.secondaryProgress,
                                 bytesProcessed = deleteState.bytesCurrent,
                             )
                         )

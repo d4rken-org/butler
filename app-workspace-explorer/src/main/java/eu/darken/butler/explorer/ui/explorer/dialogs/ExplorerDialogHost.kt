@@ -44,5 +44,20 @@ fun ExplorerDialogHost(
                 onConfirm = { result -> vm?.onSortOptions(result) }
             )
         }
+
+        is ExplorerDialogState.FileOptions -> {
+            FileOptionsBottomSheet(
+                item = dialogState.item,
+                onDismiss = { vm?.dismissDialog() },
+                onOpenInEditor = { vm?.openFileInEditor(dialogState.item) },
+                onOpenWith = { vm?.openFileWith(dialogState.item) },
+                onShare = { vm?.shareFile(dialogState.item) },
+                onCopy = { vm?.copyFile(dialogState.item) },
+                onCut = { vm?.cutFile(dialogState.item) },
+                onRename = { vm?.renameFile(dialogState.item) },
+                onDelete = { vm?.deleteFile(dialogState.item) },
+                onProperties = { vm?.showFileProperties(dialogState.item) },
+            )
+        }
     }
 }

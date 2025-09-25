@@ -63,7 +63,7 @@ fun OperationsBar(
     var pendingCancelId by remember { mutableStateOf<Operation.Id?>(null) }
 
     // State for operation details sheet
-    var selectedOperation by remember { mutableStateOf<OperationDisplay?>(null) }
+    var selectedOperationId by remember { mutableStateOf<Operation.Id?>(null) }
 
     AnimatedVisibility(
         visible = operations.isNotEmpty(),
@@ -151,7 +151,7 @@ fun OperationsBar(
                         ) {
                             OperationEntryRow(
                                 operation = operation,
-                                onRowClick = { selectedOperation = operation },
+                                onRowClick = { selectedOperationId = operation.id },
                                 onActionClick = if (canCancel) {
                                     { pendingCancelId = operation.id }
                                 } else null,
@@ -198,29 +198,32 @@ fun OperationsBar(
     }
 
     // Operation details sheet
-    selectedOperation?.let { operation ->
-        OperationDetailsSheet(
-            operation = operation,
-            onDismiss = { selectedOperation = null },
-            onCancel = if (operation.canCancel && operation.state is OperationDisplay.State.Running) {
-                {
-                    selectedOperation = null
-                    pendingCancelId = operation.id
-                }
-            } else null,
-            onCopyError = if (operation.state is OperationDisplay.State.Failed) {
-                {
-                    // TODO: Copy error details to clipboard
-                    selectedOperation = null
-                }
-            } else null,
-            onGoToFolder = if (operation.state is OperationDisplay.State.Completed) {
-                {
-                    // TODO: Navigate to result folder
-                    selectedOperation = null
-                }
-            } else null,
-        )
+    selectedOperationId?.let { operationId ->
+        val currentOperation = operations.find { it.id == operationId }
+        currentOperation?.let { operation ->
+            OperationDetailsSheet(
+                operation = operation,
+                onDismiss = { selectedOperationId = null },
+                onCancel = if (operation.canCancel && operation.state is OperationDisplay.State.Running) {
+                    {
+                        selectedOperationId = null
+                        pendingCancelId = operation.id
+                    }
+                } else null,
+                onCopyError = if (operation.state is OperationDisplay.State.Failed) {
+                    {
+                        // TODO: Copy error details to clipboard
+                        selectedOperationId = null
+                    }
+                } else null,
+                onGoToFolder = if (operation.state is OperationDisplay.State.Completed) {
+                    {
+                        // TODO: Navigate to result folder
+                        selectedOperationId = null
+                    }
+                } else null,
+            )
+        }
     }
 }
 
@@ -249,7 +252,10 @@ private fun OperationsBarPreview() {
                 title = "Copy operation".toCaString(),
                 description = null,
                 icon = Icons.TwoTone.Delete,
-                state = OperationDisplay.State.Completed("Success".toCaString()),
+                state = OperationDisplay.State.Completed(
+                    summary = "Success".toCaString(),
+                    completedAt = Clock.System.now()
+                ),
                 canCancel = false,
                 startedAt = Clock.System.now(),
             ),

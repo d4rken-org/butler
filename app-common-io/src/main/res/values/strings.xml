@@ -1,0 +1,7 @@
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">Deleting \'%1$s\'</string>
+    <string name="general_delete_progress_processing_main">Deleting target…</string>
+    <string name="general_delete_progress_processing_content">Deleting directory content…</string>
+    <string name="general_delete_progress_items_in_folder">Deleting items in \'%1$s\'</string>
+</resources>

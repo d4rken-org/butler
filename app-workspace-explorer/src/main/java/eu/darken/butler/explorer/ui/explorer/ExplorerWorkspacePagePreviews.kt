@@ -256,7 +256,10 @@ fun ExplorerWorkspacePageWithAllBarsPreview() {
             title = "Copy operation".toCaString(),
             description = "3 files copied".toCaString(),
             icon = Icons.TwoTone.ContentCopy,
-            state = OperationDisplay.State.Completed("Successfully completed".toCaString()),
+            state = OperationDisplay.State.Completed(
+                summary = "Successfully completed".toCaString(),
+                completedAt = Clock.System.now(),
+            ),
             canCancel = false,
             startedAt = Clock.System.now() - 5.minutes,
         ),
@@ -387,7 +390,10 @@ fun ExplorerWorkspacePageWithExpandedBarsPreview() {
             title = "Copy operation".toCaString(),
             description = "3 files copied".toCaString(),
             icon = Icons.TwoTone.ContentCopy,
-            state = OperationDisplay.State.Completed("Successfully completed".toCaString()),
+            state = OperationDisplay.State.Completed(
+                summary = "Successfully completed".toCaString(),
+                completedAt = Clock.System.now(),
+            ),
             canCancel = false,
             startedAt = Clock.System.now() - 5.minutes,
         ),

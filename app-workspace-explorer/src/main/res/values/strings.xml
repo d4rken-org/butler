@@ -137,4 +137,23 @@
     <string name="explorer_permission_generic_description">Butler needs additional permission to browse this location.</string>
     <string name="explorer_permission_setup_action">Open Setup</string>
 
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">Actions</string>
+    <string name="explorer_file_action_open_in_editor">Open in Editor</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">Edit in Butler\'s text editor</string>
+    <string name="explorer_file_action_open_with">Open With</string>
+    <string name="explorer_file_action_open_with_subtitle">Choose an external app to open</string>
+    <string name="explorer_file_action_share">Share</string>
+    <string name="explorer_file_action_share_subtitle">Share via installed apps</string>
+    <string name="explorer_file_action_copy">Copy</string>
+    <string name="explorer_file_action_copy_subtitle">Copy to clipboard for pasting</string>
+    <string name="explorer_file_action_cut">Cut</string>
+    <string name="explorer_file_action_cut_subtitle">Move to clipboard for pasting</string>
+    <string name="explorer_file_action_rename">Rename</string>
+    <string name="explorer_file_action_rename_subtitle">Change the file name</string>
+    <string name="explorer_file_action_delete">Delete</string>
+    <string name="explorer_file_action_delete_subtitle">Permanently remove this file</string>
+    <string name="explorer_file_action_properties">Properties</string>
+    <string name="explorer_file_action_properties_subtitle">View detailed file information</string>
+
 </resources>

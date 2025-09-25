@@ -20,8 +20,8 @@ interface DeleteAction<P : APath> : GatewayAction<P> {
         data class Progress<P : APath>(
             val target: P,
             val targetSize: Long,
-            val pathsCurrent: Int,
-            val pathsTotal: Int,
+            val primaryProgress: eu.darken.butler.common.progress.Progress.Data,
+            val secondaryProgress: eu.darken.butler.common.progress.Progress.Data? = null,
             val bytesCurrent: Long,
         ) : State<P>
 

@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.ui.operations
 
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.error.causes
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
@@ -26,9 +27,9 @@ data class OperationDisplay(
         ) : State
 
         data class Waiting(val reason: CaString) : State
-        data class Completed(val summary: CaString) : State
-        data class Failed(val summary: CaString) : State
-        data object Cancelled : State
+        data class Completed(val summary: CaString, val completedAt: Instant) : State
+        data class Failed(val summary: CaString, val completedAt: Instant) : State
+        data class Cancelled(val completedAt: Instant) : State
     }
 }
 
@@ -52,14 +53,14 @@ fun ManagedOperation.toDisplayModel(): OperationDisplay {
             is Operation.State.Completed -> {
                 val errorValue = state.error
                 when {
-                    errorValue is CancellationException -> {
-                        OperationDisplay.State.Cancelled
+                    errorValue?.causes?.any { it is CancellationException } == true -> {
+                        OperationDisplay.State.Cancelled(completedAt = state.completedAt)
                     }
                     errorValue != null -> {
-                        OperationDisplay.State.Failed(summary = state.summary)
+                        OperationDisplay.State.Failed(summary = state.summary, completedAt = state.completedAt)
                     }
                     else -> {
-                        OperationDisplay.State.Completed(summary = state.summary)
+                        OperationDisplay.State.Completed(summary = state.summary, completedAt = state.completedAt)
                     }
                 }
             }

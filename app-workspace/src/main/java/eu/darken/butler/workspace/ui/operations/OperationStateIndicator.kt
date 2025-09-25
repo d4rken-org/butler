@@ -20,6 +20,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.R
+import kotlin.time.Clock
 
 @Composable
 fun OperationStateIndicator(
@@ -94,15 +95,23 @@ private fun OperationStateIndicatorPreview() {
                 modifier = Modifier.size(24.dp)
             )
             OperationStateIndicator(
-                state = OperationDisplay.State.Completed("Done".toCaString()),
+                state = OperationDisplay.State.Completed(
+                    summary = "Done".toCaString(),
+                    completedAt = Clock.System.now()
+                ),
                 modifier = Modifier.size(24.dp)
             )
             OperationStateIndicator(
-                state = OperationDisplay.State.Failed("Error".toCaString()),
+                state = OperationDisplay.State.Failed(
+                    summary = "Error".toCaString(),
+                    completedAt = Clock.System.now()
+                ),
                 modifier = Modifier.size(24.dp)
             )
             OperationStateIndicator(
-                state = OperationDisplay.State.Cancelled,
+                state = OperationDisplay.State.Cancelled(
+                    completedAt = Clock.System.now()
+                ),
                 modifier = Modifier.size(24.dp)
             )
         }

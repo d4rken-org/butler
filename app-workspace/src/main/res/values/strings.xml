@@ -49,7 +49,7 @@
     <string name="operations_details_progress">Progress</string>
     <string name="operations_details_error">Error Details</string>
     <string name="operations_details_actions">Actions</string>
-    <string name="operations_details_state">Status</string>
+    <string name="operations_details_overview">Overview</string>
     <string name="operations_details_go_to_folder">Go to Folder</string>
     <string name="operations_details_copy_error">Copy Error Details</string>
 </resources>

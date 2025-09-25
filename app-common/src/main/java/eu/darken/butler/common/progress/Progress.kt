@@ -31,6 +31,8 @@ interface Progress {
         val current: Long
         val max: Long
         val displayValue: CaString
+        val percentage: Float
+            get() = if (max > 0) current / max.toFloat() else 0f
 
         data class Percent(override val current: Long, override val max: Long) : Count {
 

@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer
 
 import android.content.Context
+import android.content.Intent
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -24,6 +25,7 @@ import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.explorer.core.ExplorerWorkspace
+import eu.darken.butler.explorer.core.FileIntentHelper
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.locationId
@@ -40,7 +42,9 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortOptionsResult
 import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceProvider
+import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.operations.Operation
@@ -67,8 +71,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     dispatchers: DispatcherProvider,
     navController: NavigationController,
     workspaceProvider: WorkspaceProvider,
+    private val workspaceRemote: WorkspaceRemote,
     private val actionProvider: DefaultActionProvider,
     private val clipboardRepo: ClipboardRepo,
+    private val fileIntentHelper: FileIntentHelper,
     private val explorerSettings: ExplorerSettings,
     itemSorterFactory: ExplorerItemSorter.Factory,
     private val operationsManager: OperationsManager,
@@ -179,8 +185,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         is OperationDisplay.State.Waiting -> 1  // Higher priority than queued
                         is OperationDisplay.State.Queued -> 2
                         is OperationDisplay.State.Failed -> 3
-                        is OperationDisplay.State.Completed -> 4
-                        is OperationDisplay.State.Cancelled -> 5
+                        is OperationDisplay.State.Cancelled -> 4
+                        is OperationDisplay.State.Completed -> 5
                     }
                 }.thenBy { it.startedAt } // Oldest first within each group
             )
@@ -200,7 +206,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     clearSelection()
                 }
                 is ExplorerItem.FileItem -> {
-                    // TODO Open file?
+                    dialogStateFlow.value = ExplorerDialogState.FileOptions(item)
                 }
             }
             is ExplorerItem.Shortcut -> {
@@ -350,6 +356,132 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 getWorkspace().navigate(ExplorerNavigation.Refresh)
             }
         }
+    }
+
+    // File action handlers
+    fun openFileInEditor(item: ExplorerItem.FileItem) = launch {
+        log(tag) { "openFileInEditor(${item.lookup.name})" }
+        dismissDialog()
+
+        // Create editor workspace arguments via reflection to avoid direct dependency
+        try {
+            val editorArgsClass = Class.forName("eu.darken.butler.editor.core.EditorWorkspace\$Arguments")
+            val constructor = editorArgsClass.getConstructor(
+                eu.darken.butler.common.files.APath::class.java,
+                Long::class.java,
+                Long::class.java,
+                Boolean::class.java,
+                Int::class.java,
+                String::class.java
+            )
+            val editorArguments = constructor.newInstance(
+                item.lookup.lookedUp, // filePath
+                null, // chunkSize - use default
+                null, // memoryLimit - use default
+                false, // isReadOnly
+                null, // goToLine
+                null // searchQuery
+            ) as Workspace.Arguments
+
+            val action = WorkspaceAction.Create(
+                type = Workspace.Type.EDITOR,
+                arguments = editorArguments
+            )
+
+            workspaceRemote.execute(action)
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to create editor workspace: ${e.message}" }
+            // TODO: Show error message to user
+        }
+    }
+
+    fun openFileWith(item: ExplorerItem.FileItem) = launch {
+        log(tag) { "openFileWith(${item.lookup.name})" }
+        dismissDialog()
+
+        val intent = fileIntentHelper.openFileWith(item)
+        if (intent != null && fileIntentHelper.canHandleIntent(intent)) {
+            try {
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                log(tag, ERROR) { "Failed to open file with external app: ${e.message}" }
+                // TODO: Show error message to user
+            }
+        } else {
+            log(tag, WARN) { "No app found to open file: ${item.lookup.name}" }
+            // TODO: Show "no app found" message to user
+        }
+    }
+
+    fun shareFile(item: ExplorerItem.FileItem) = launch {
+        log(tag) { "shareFile(${item.lookup.name})" }
+        dismissDialog()
+
+        val intent = fileIntentHelper.shareFile(item)
+        if (intent != null) {
+            try {
+                val chooserIntent = Intent.createChooser(intent, "Share ${item.lookup.name}")
+                chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(chooserIntent)
+            } catch (e: Exception) {
+                log(tag, ERROR) { "Failed to share file: ${e.message}" }
+                // TODO: Show error message to user
+            }
+        } else {
+            log(tag, WARN) { "Failed to create share intent for: ${item.lookup.name}" }
+            // TODO: Show error message to user
+        }
+    }
+
+    fun copyFile(item: ExplorerItem.FileItem) = launch {
+        log(tag) { "copyFile(${item.lookup.name})" }
+        dismissDialog()
+
+        val clip = ClipboardClip.Paths(
+            mode = ClipboardClip.Paths.Mode.COPY,
+            origin = getWorkspace().id,
+            paths = listOf(item.lookup.lookedUp),
+        )
+        clipboardRepo.add(clip)
+    }
+
+    fun cutFile(item: ExplorerItem.FileItem) = launch {
+        log(tag) { "cutFile(${item.lookup.name})" }
+        dismissDialog()
+
+        val clip = ClipboardClip.Paths(
+            mode = ClipboardClip.Paths.Mode.CUT,
+            origin = getWorkspace().id,
+            paths = listOf(item.lookup.lookedUp),
+        )
+        clipboardRepo.add(clip)
+    }
+
+    fun renameFile(item: ExplorerItem.FileItem) = launch {
+        log(tag) { "renameFile(${item.lookup.name})" }
+        dismissDialog()
+
+        val event = ExplorerDialogEvent.ShowRename(
+            item = item.lookup.lookedUp,
+        )
+        dialogEvents.emit(event)
+    }
+
+    fun deleteFile(item: ExplorerItem.FileItem) = launch {
+        log(tag) { "deleteFile(${item.lookup.name})" }
+        dismissDialog()
+
+        dialogEvents.emit(
+            ExplorerDialogEvent.ShowDeleteConfirmation(
+                items = setOf(item.lookup.lookedUp)
+            )
+        )
+    }
+
+    fun showFileProperties(item: ExplorerItem.FileItem) = launch {
+        log(tag) { "showFileProperties(${item.lookup.name})" }
+        dismissDialog()
+        // TODO: Implement file properties dialog
     }
 
     private suspend fun handleDialogEvent(event: ExplorerDialogEvent) {

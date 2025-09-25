@@ -9,9 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.ContentCopy
@@ -20,7 +18,6 @@ import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -61,9 +58,7 @@ fun OperationDetailsSheet(
 
     if (isInPreview) {
         Card(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = modifier.fillMaxWidth(),
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
         ) {
             OperationDetailsContent(
@@ -77,9 +72,8 @@ fun OperationDetailsSheet(
         ModalBottomSheet(
             onDismissRequest = onDismiss,
             sheetState = rememberModalBottomSheetState(
-                skipPartiallyExpanded = false
+                skipPartiallyExpanded = true
             ),
-            modifier = modifier,
         ) {
             OperationDetailsContent(
                 operation = operation,
@@ -101,9 +95,8 @@ private fun OperationDetailsContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp)
-            .padding(top = 16.dp, bottom = 32.dp),
+            .padding(top = 8.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // Header Section
@@ -111,29 +104,31 @@ private fun OperationDetailsContent(
             operation = operation
         )
 
-        // State Section
-        OperationStateSection(
-            state = operation.state,
+        // Overview Section
+        OperationOverviewSection(
+            operation = operation,
         )
 
-        HorizontalDivider()
+        // Check if we have middle content sections
+        val hasMiddleContent = operation.state is OperationDisplay.State.Running ||
+            operation.state is OperationDisplay.State.Failed
 
-        // Progress Section (for running operations)
-        if (operation.state is OperationDisplay.State.Running) {
-            OperationCombinedProgressSection(
-                primaryProgress = operation.state.primaryProgress,
-                secondaryProgress = operation.state.secondaryProgress,
-            )
+        if (hasMiddleContent) {
+            // Progress Section (for running operations)
+            if (operation.state is OperationDisplay.State.Running) {
+                OperationCombinedProgressSection(
+                    primaryProgress = operation.state.primaryProgress,
+                    secondaryProgress = operation.state.secondaryProgress,
+                )
+            }
+
+            // Error Section (for failed operations)
+            if (operation.state is OperationDisplay.State.Failed) {
+                OperationErrorSection(
+                    state = operation.state,
+                )
+            }
         }
-
-        // Error Section (for failed operations)
-        if (operation.state is OperationDisplay.State.Failed) {
-            OperationErrorSection(
-                state = operation.state,
-            )
-        }
-
-        HorizontalDivider()
 
         // Actions Section
         OperationActionsSection(
@@ -168,7 +163,7 @@ private fun OperationDetailsHeader(
             Text(
                 text = operation.title.asComposable(),
                 style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
 
@@ -178,6 +173,8 @@ private fun OperationDetailsHeader(
                     text = description.asComposable(),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
@@ -191,7 +188,7 @@ private fun OperationCombinedProgressSection(
     secondaryProgress: Progress.Data?,
 ) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Text(
             text = stringResource(R.string.operations_details_progress),
@@ -201,14 +198,14 @@ private fun OperationCombinedProgressSection(
 
         Card(
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                containerColor = MaterialTheme.colorScheme.surface
             )
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 // Primary Progress
                 OperationProgressDisplay(
@@ -238,10 +235,6 @@ private fun OperationProgressDisplay(
         is Progress.Count.Percent,
         is Progress.Count.Counter,
         is Progress.Count.Size -> {
-            val fraction = if (count.max > 0) {
-                count.current / count.max.toFloat()
-            } else 0f
-
             // Primary text and percentage
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -262,7 +255,7 @@ private fun OperationProgressDisplay(
 
             // Progress bar
             LinearProgressIndicator(
-                progress = { fraction },
+                progress = { count.percentage },
                 modifier = Modifier
                     .fillMaxWidth()
                     .then(
@@ -309,7 +302,7 @@ private fun OperationErrorSection(
     state: OperationDisplay.State.Failed,
 ) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Text(
             text = stringResource(R.string.operations_details_error),
@@ -320,15 +313,15 @@ private fun OperationErrorSection(
 
         Card(
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f)
+                containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
             ),
             shape = RoundedCornerShape(12.dp)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Text(
                     text = state.summary.asComposable(),
@@ -348,7 +341,7 @@ private fun OperationActionsSection(
     onGoToFolder: (() -> Unit)? = null,
 ) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Text(
             text = stringResource(R.string.operations_details_actions),
@@ -418,44 +411,154 @@ private fun OperationActionsSection(
 }
 
 @Composable
-private fun OperationStateSection(
-    state: OperationDisplay.State,
+private fun OperationOverviewSection(
+    operation: OperationDisplay,
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    Column(
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Text(
-            text = stringResource(R.string.operations_details_state),
+            text = stringResource(R.string.operations_details_overview),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Medium,
-            modifier = Modifier.weight(1f)
         )
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            )
         ) {
-            OperationStateIndicator(
-                state = state,
-                modifier = Modifier.size(20.dp)
-            )
-            Text(
-                text = when (state) {
-                    is OperationDisplay.State.Queued -> stringResource(R.string.operations_state_queued)
-                    is OperationDisplay.State.Running -> stringResource(R.string.operations_state_running)
-                    is OperationDisplay.State.Waiting -> stringResource(R.string.operations_state_waiting)
-                    is OperationDisplay.State.Completed -> stringResource(R.string.operations_state_completed)
-                    is OperationDisplay.State.Failed -> stringResource(R.string.operations_state_failed)
-                    is OperationDisplay.State.Cancelled -> stringResource(R.string.operations_state_cancelled)
-                },
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                // Status row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Status",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OperationStateIndicator(
+                            state = operation.state,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = when (operation.state) {
+                                is OperationDisplay.State.Queued -> stringResource(R.string.operations_state_queued)
+                                is OperationDisplay.State.Running -> stringResource(R.string.operations_state_running)
+                                is OperationDisplay.State.Waiting -> stringResource(R.string.operations_state_waiting)
+                                is OperationDisplay.State.Completed -> stringResource(R.string.operations_state_completed)
+                                is OperationDisplay.State.Failed -> stringResource(R.string.operations_state_failed)
+                                is OperationDisplay.State.Cancelled -> stringResource(R.string.operations_state_cancelled)
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
+
+                // Timing row - show different info based on operation state
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = when (operation.state) {
+                            is OperationDisplay.State.Completed,
+                            is OperationDisplay.State.Failed,
+                            is OperationDisplay.State.Cancelled -> "Completed"
+                            else -> stringResource(R.string.operations_details_started_at)
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = when (operation.state) {
+                            is OperationDisplay.State.Completed -> formatRelativeTime(operation.state.completedAt)
+                            is OperationDisplay.State.Failed -> formatRelativeTime(operation.state.completedAt)
+                            is OperationDisplay.State.Cancelled -> formatRelativeTime(operation.state.completedAt)
+                            else -> formatRelativeTime(operation.startedAt)
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+
+                // Duration row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = stringResource(R.string.operations_details_duration),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = when (operation.state) {
+                            is OperationDisplay.State.Queued -> "Not started"
+                            is OperationDisplay.State.Running,
+                            is OperationDisplay.State.Waiting -> formatDuration(operation.startedAt)
+                            is OperationDisplay.State.Completed -> formatFinalDuration(
+                                operation.startedAt,
+                                operation.state.completedAt
+                            )
+                            is OperationDisplay.State.Failed -> formatFinalDuration(
+                                operation.startedAt,
+                                operation.state.completedAt
+                            )
+                            is OperationDisplay.State.Cancelled -> formatFinalDuration(
+                                operation.startedAt,
+                                operation.state.completedAt
+                            )
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
         }
     }
 }
 
 // Helper functions
+private fun formatRelativeTime(instant: kotlin.time.Instant): String {
+    val duration = Clock.System.now() - instant
+    return when {
+        duration.inWholeMinutes < 1 -> "Just now"
+        duration.inWholeMinutes < 60 -> "${duration.inWholeMinutes}m ago"
+        duration.inWholeHours < 24 -> "${duration.inWholeHours}h ago"
+        else -> "${duration.inWholeDays}d ago"
+    }
+}
+
+private fun formatDuration(startedAt: kotlin.time.Instant): String {
+    val duration = Clock.System.now() - startedAt
+    return when {
+        duration.inWholeMinutes < 1 -> "${duration.inWholeSeconds}s"
+        duration.inWholeHours < 1 -> "${duration.inWholeMinutes}m ${duration.inWholeSeconds % 60}s"
+        else -> "${duration.inWholeHours}h ${duration.inWholeMinutes % 60}m"
+    }
+}
+
+private fun formatFinalDuration(startedAt: kotlin.time.Instant, completedAt: kotlin.time.Instant): String {
+    val duration = completedAt - startedAt
+    return when {
+        duration.inWholeMinutes < 1 -> "${duration.inWholeSeconds}s"
+        duration.inWholeHours < 1 -> "${duration.inWholeMinutes}m ${duration.inWholeSeconds % 60}s"
+        else -> "${duration.inWholeHours}h ${duration.inWholeMinutes % 60}m"
+    }
+}
 
 @Preview2
 @Composable
@@ -497,7 +600,10 @@ private fun OperationDetailsSheetFailedPreview() {
                 title = "Copy operation".toCaString(),
                 description = "Failed to copy files".toCaString(),
                 icon = Icons.TwoTone.Delete,
-                state = OperationDisplay.State.Failed("Insufficient space".toCaString()),
+                state = OperationDisplay.State.Failed(
+                    summary = "Insufficient space".toCaString(),
+                    completedAt = Clock.System.now()
+                ),
                 startedAt = Clock.System.now() - 5.minutes,
             ),
             onDismiss = {},

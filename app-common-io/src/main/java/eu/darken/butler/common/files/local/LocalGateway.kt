@@ -42,6 +42,7 @@ import eu.darken.butler.common.root.service.runModuleAction
 import eu.darken.butler.common.sharedresource.SharedResource
 import eu.darken.butler.common.sharedresource.keepResourcesAlive
 import eu.darken.butler.common.storage.StorageEnvironment
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -923,8 +924,9 @@ class LocalGateway @Inject constructor(
             log(TAG, INFO) { "delete(): Finished, deleted ${result.deleted} items" }
             emit(result)
         } catch (e: Exception) {
-            log(TAG, WARN) { "delete(path=$path, mode=$mode) failed." }
-            throw WriteException(message = "Deletion failed,", cause = e)
+            log(TAG, WARN) { "delete(path=$path, mode=$mode) failed ($e)" }
+            if (e is CancellationException) throw e
+            else throw WriteException(message = "Deletion failed,", cause = e)
         }
     }.flowOn(dispatcherProvider.IO)
 
