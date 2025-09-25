@@ -20,7 +20,8 @@ data class OperationDisplay(
     sealed interface State {
         data object Queued : State
         data class Running(
-            val progress: Progress.Data = Progress.Data(),
+            val primaryProgress: Progress.Data = Progress.Data(),
+            val secondaryProgress: Progress.Data? = null,
             val canPause: Boolean = false,
         ) : State
 
@@ -43,7 +44,8 @@ fun ManagedOperation.toDisplayModel(): OperationDisplay {
         state = when (state) {
             is Operation.State.Queued -> OperationDisplay.State.Queued
             is Operation.State.Active -> OperationDisplay.State.Running(
-                progress = state.progress,
+                primaryProgress = state.primaryProgress,
+                secondaryProgress = state.secondaryProgress,
                 canPause = canPause,
             )
             is Operation.State.Waiting -> OperationDisplay.State.Waiting(reason = state.reason)
@@ -65,4 +67,3 @@ fun ManagedOperation.toDisplayModel(): OperationDisplay {
         },
     )
 }
-

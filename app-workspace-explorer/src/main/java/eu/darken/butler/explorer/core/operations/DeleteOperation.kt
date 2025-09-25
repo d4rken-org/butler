@@ -42,7 +42,7 @@ class DeleteOperation @AssistedInject constructor(
         override val description = caString { "Delete selected files" } // TODO
     }
 
-    override suspend fun execute(
+    override fun perform(
         operationContext: Operation.Context
     ): Flow<State> = flow {
         log(tag) { "execute(): $command" }
@@ -69,7 +69,7 @@ class DeleteOperation @AssistedInject constructor(
 
                         emit(
                             operationState.copy(
-                                actionProgress = Progress.Data(
+                                primaryProgress = Progress.Data(
                                     count = Progress.Count.Counter(
                                         current = deleteState.pathsCurrent,
                                         max = deleteState.pathsTotal,

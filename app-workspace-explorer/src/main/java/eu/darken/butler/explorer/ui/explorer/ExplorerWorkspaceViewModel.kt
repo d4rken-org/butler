@@ -56,6 +56,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
@@ -88,7 +89,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private suspend fun getWorkspace() = workspace.filterNotNull().first()
 
     private val workspaceState: Flow<ExplorerWorkspace.State> = workspace.flatMapLatest { ws ->
-        ws?.current ?: MutableStateFlow(ExplorerWorkspace.State())
+        ws?.state ?: flowOf(ExplorerWorkspace.State())
     }
 
     init {

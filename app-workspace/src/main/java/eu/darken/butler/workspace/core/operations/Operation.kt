@@ -50,7 +50,8 @@ interface Operation {
         ) : State
 
         interface Active : State {
-            val progress: Progress.Data
+            val primaryProgress: Progress.Data
+            val secondaryProgress: Progress.Data?
         }
 
         interface Waiting : State {

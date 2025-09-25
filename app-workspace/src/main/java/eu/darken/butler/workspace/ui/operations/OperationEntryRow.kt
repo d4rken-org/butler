@@ -79,7 +79,7 @@ fun OperationEntryRow(
             }
 
             // Progress bar
-            val progressData = (operation.state as? OperationDisplay.State.Running)?.progress
+            val progressData = (operation.state as? OperationDisplay.State.Running)?.primaryProgress
             progressData?.let { progressData ->
                 Spacer(modifier = Modifier.height(2.dp))
 
@@ -153,7 +153,7 @@ private fun OperationEntryRowCounterPreview() {
                 description = "Removing selected items".toCaString(),
                 icon = Icons.TwoTone.Delete,
                 state = OperationDisplay.State.Running(
-                    progress = Progress.Data(
+                    primaryProgress = Progress.Data(
                         primary = "Deleting files".toCaString(),
                         secondary = "Processing item 3 of 4".toCaString(),
                         count = Progress.Count.Counter(3, 4)
@@ -178,7 +178,7 @@ private fun OperationEntryRowPercentPreview() {
                 description = "Copying to backup folder".toCaString(),
                 icon = Icons.TwoTone.Delete,
                 state = OperationDisplay.State.Running(
-                    progress = Progress.Data(
+                    primaryProgress = Progress.Data(
                         primary = "Copying files".toCaString(),
                         secondary = "Processing...".toCaString(),
                         count = Progress.Count.Percent(75, 100)
@@ -203,7 +203,7 @@ private fun OperationEntryRowSizePreview() {
                 description = "Transferring video files".toCaString(),
                 icon = Icons.TwoTone.Delete,
                 state = OperationDisplay.State.Running(
-                    progress = Progress.Data(
+                    primaryProgress = Progress.Data(
                         primary = "Moving files".toCaString(),
                         secondary = "Transferring data...".toCaString(),
                         count = Progress.Count.Size(1024 * 1024 * 250, 1024 * 1024 * 500) // 250MB/500MB
@@ -228,7 +228,7 @@ private fun OperationEntryRowIndeterminatePreview() {
                 description = "Analyzing directory structure".toCaString(),
                 icon = Icons.TwoTone.Delete,
                 state = OperationDisplay.State.Running(
-                    progress = Progress.Data(
+                    primaryProgress = Progress.Data(
                         primary = "Scanning".toCaString(),
                         secondary = "Please wait...".toCaString(),
                         count = Progress.Count.Indeterminate()

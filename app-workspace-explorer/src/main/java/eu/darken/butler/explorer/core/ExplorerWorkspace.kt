@@ -11,6 +11,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
@@ -26,18 +27,21 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.operations.operationsForWorkspace
+import eu.darken.butler.workspace.core.operations.withStateTypeUpdates
 import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
 import eu.darken.butler.workspace.core.tracker.PathAccessTracker
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
@@ -67,19 +71,26 @@ class ExplorerWorkspace @AssistedInject constructor(
 
     override val type: Workspace.Type = Workspace.Type.EXPLORER
 
-    override val info: MutableStateFlow<Workspace.Info> = MutableStateFlow(
+    private val _state = DynamicStateFlow<State>(loggingTag = tag, parentScope = scope) {
+        State()
+    }
+    val state: Flow<State> = _state.flow
+
+    override val info: Flow<Workspace.Info> = _state.flow.map { state ->
         Workspace.Info(
             id = id,
             type = type,
             title = when {
+                state.currentLocation != null -> state.currentLocation.toString().toCaString()
                 Bugs.isDebug -> "Explorer ${id.shortTag}".toCaString()
                 else -> R.string.explorer_title.toCaString()
             },
             previewData = ExplorerPreviewData(),
+            operationCount = state.operationCount,
+            attentionCount = state.attentionCount,
         )
-    )
+    }
 
-    val current = MutableStateFlow<State>(State())
 
     private val navigationRequests = MutableSharedFlow<ExplorerNavigation>(replay = 1)
 
@@ -95,11 +106,11 @@ class ExplorerWorkspace @AssistedInject constructor(
         val progress: Progress.Data? = null,
         val activeOperations: Map<Operation.Id, ExplorerOperation.State> = emptyMap(),
         val pendingConflicts: Map<Operation.Id, ExplorerOperation.State.Waiting> = emptyMap(),
+        val operationCount: Int = 0,
+        val attentionCount: Int = 0,
     ) {
         val canGoBack: Boolean get() = historyIndex > 0
         val canGoForward: Boolean get() = historyIndex < navigationHistory.size - 1
-        val hasActiveOperations: Boolean get() = activeOperations.isNotEmpty()
-        val hasPendingConflicts: Boolean get() = pendingConflicts.isNotEmpty()
     }
 
     init {
@@ -118,22 +129,58 @@ class ExplorerWorkspace @AssistedInject constructor(
                         emit(Unit)
                     } catch (e: CancellationException) {
                         log(tag, INFO) { "Navigation cancelled" }
-                        current.value = current.value.copy(
-                            isLoading = false,
-                            isLoadingExtended = false,
-                        )
+                        _state.updateBlocking {
+                            copy(
+                                isLoading = false,
+                                isLoadingExtended = false,
+                            )
+                        }
                         throw e  // Re-throw to maintain cancellation semantics
                     } catch (e: Exception) {
                         // Handle all other exceptions here to prevent flow termination
                         log(tag, ERROR) { "Navigation failed: $e" }
-                        current.value = current.value.copy(
-                            error = e,
-                            isLoading = false,
-                            isLoadingExtended = false,
-                        )
+                        _state.updateBlocking {
+                            copy(
+                                error = e,
+                                isLoading = false,
+                                isLoadingExtended = false,
+                            )
+                        }
                         emit(Unit)
                     }
                 }
+            }
+            .launchIn(scope)
+
+        // Track operation counts for this workspace
+        operationsManager.operationsForWorkspace(id).withStateTypeUpdates()
+            .onEach { operations ->
+                var operationCount = 0
+                var attentionCount = 0
+
+                operations.forEach { operation ->
+                    val state = operation.state.value
+                    when (state) {
+                        is Operation.State.Queued -> operationCount++
+                        is Operation.State.Active -> operationCount++
+                        is Operation.State.Waiting -> {
+                            operationCount++
+                            attentionCount++
+                        }
+                        is Operation.State.Completed -> {
+                            if (state.error != null && state.error !is CancellationException) {
+                                attentionCount++
+                            }
+                        }
+                    }
+                }
+                _state.updateBlocking {
+                    copy(
+                        operationCount = operationCount,
+                        attentionCount = attentionCount
+                    )
+                }
+                log(tag, VERBOSE) { "Updated operation counts: active=$operationCount, attention=$attentionCount" }
             }
             .launchIn(scope)
 
@@ -141,7 +188,9 @@ class ExplorerWorkspace @AssistedInject constructor(
         scope.launch {
             log(tag, INFO) { "Loading initial data... ($arguments)" }
             try {
-                current.value = current.value.copy(isLoading = true)
+                _state.updateBlocking {
+                    copy(isLoading = true)
+                }
 
                 val startPath = arguments?.startPath
                 if (startPath != null) {
@@ -151,10 +200,12 @@ class ExplorerWorkspace @AssistedInject constructor(
                 }
             } catch (e: Exception) {
                 log(tag, ERROR) { "Failed to initialize: $e" }
-                current.value = current.value.copy(
-                    isLoading = false,
-                    error = e
-                )
+                _state.updateBlocking {
+                    copy(
+                        isLoading = false,
+                        error = e
+                    )
+                }
             }
         }
     }
@@ -168,37 +219,43 @@ class ExplorerWorkspace @AssistedInject constructor(
             }
 
             is ExplorerNavigation.Back -> {
-                val currentHistory = current.value.navigationHistory
-                val currentIndex = current.value.historyIndex
+                val currentHistory = _state.value().navigationHistory
+                val currentIndex = _state.value().historyIndex
 
                 if (currentIndex > 0) {
                     val targetLocation = currentHistory[currentIndex - 1]
                     loadTarget(targetLocation, addToHistory = false)
-                    current.value = current.value.copy(historyIndex = currentIndex - 1)
+                    _state.updateBlocking {
+                        copy(historyIndex = currentIndex - 1)
+                    }
                 }
             }
             is ExplorerNavigation.Forward -> {
-                val currentHistory = current.value.navigationHistory
-                val currentIndex = current.value.historyIndex
+                val currentHistory = _state.value().navigationHistory
+                val currentIndex = _state.value().historyIndex
 
                 if (currentIndex < currentHistory.size - 1) {
                     val targetLocation = currentHistory[currentIndex + 1]
                     loadTarget(targetLocation, addToHistory = false)
-                    current.value = current.value.copy(historyIndex = currentIndex + 1)
+                    _state.updateBlocking {
+                        copy(historyIndex = currentIndex + 1)
+                    }
                 }
             }
             is ExplorerNavigation.Refresh -> {
-                current.value.currentTarget?.let { target ->
+                _state.value().currentTarget?.let { target ->
                     loadTarget(target, addToHistory = false)
                 }
             }
             is ExplorerNavigation.Cancel -> {
                 // Just reset the loading state, flatMapLatest will have already cancelled the previous operation
                 log(tag, INFO) { "Navigation cancel request processed" }
-                current.value = current.value.copy(
-                    isLoading = false,
-                    isLoadingExtended = false,
-                )
+                _state.updateBlocking {
+                    copy(
+                        isLoading = false,
+                        isLoadingExtended = false,
+                    )
+                }
             }
         }
     }
@@ -240,58 +297,66 @@ class ExplorerWorkspace @AssistedInject constructor(
 
     private suspend fun loadTarget(target: ExplorerNavigation.Target, addToHistory: Boolean) {
         log(tag, INFO) { "loadTarget($target, $addToHistory)" }
-        current.value = current.value.copy(
-            currentTarget = target,
-            isLoading = true,
-            error = null
-        )
+        _state.updateBlocking {
+            copy(
+                currentTarget = target,
+                isLoading = true,
+                error = null
+            )
+        }
         try {
             browsingEngine.loadLocation(target).collectIndexed { index, location ->
                 if (index == 0) {
                     val newHistory = if (addToHistory) {
-                        val currentHistory = current.value.navigationHistory
-                        val currentIndex = current.value.historyIndex
+                        val currentHistory = _state.value().navigationHistory
+                        val currentIndex = _state.value().historyIndex
 
                         // Remove forward history when navigating to new location
                         val trimmedHistory = currentHistory.take(currentIndex + 1)
                         trimmedHistory + target
                     } else {
-                        current.value.navigationHistory
+                        _state.value().navigationHistory
                     }
 
                     val breadcrumbs = breadcrumbGenerator.getBreadcrumbs(location)
                     log(tag) { "loadTarget(): Generated breadcrumbs: $breadcrumbs" }
-
-                    current.value = current.value.copy(
-                        currentLocation = location,
-                        currentBreadcrumbs = breadcrumbs,
-                        isLoading = false,
-                        navigationHistory = newHistory,
-                        historyIndex = if (addToHistory) newHistory.size - 1 else current.value.historyIndex
-                    )
+                    _state.updateBlocking {
+                        copy(
+                            currentLocation = location,
+                            currentBreadcrumbs = breadcrumbs,
+                            isLoading = false,
+                            navigationHistory = newHistory,
+                            historyIndex = if (addToHistory) newHistory.size - 1 else historyIndex
+                        )
+                    }
 
                     // Track path access for shortcuts (only for new navigations to directories)
                     if (addToHistory && target is ExplorerNavigation.Target.Directory) {
                         pathAccessTracker.trackPathAccess(target.path)
                     }
-
-                    val newTitle = location.toString().toCaString()
-                    info.value = info.value.copy(title = newTitle)
                 } else {
-                    current.value = current.value.copy(
-                        currentLocation = location,
-                    )
+                    _state.updateBlocking {
+                        copy(
+                            currentLocation = location,
+                        )
+                    }
                 }
             }
-            current.value = current.value.copy(isLoadingExtended = false)
+            _state.updateBlocking {
+                copy(isLoadingExtended = false)
+            }
         } catch (e: Exception) {
             log(tag, ERROR) { "loadTarget(): Failed to navigate to $target: $e" }
-            current.value = current.value.copy(error = e)
+            _state.updateBlocking {
+                copy(error = e)
+            }
         } finally {
-            current.value = current.value.copy(
-                isLoading = false,
-                isLoadingExtended = false,
-            )
+            _state.updateBlocking {
+                copy(
+                    isLoading = false,
+                    isLoadingExtended = false,
+                )
+            }
         }
     }
 

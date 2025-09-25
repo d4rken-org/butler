@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.core.operations
 
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -29,5 +30,23 @@ fun Flow<List<ManagedOperation>>.withStateUpdates(): Flow<List<ManagedOperation>
         when {
             operations.isEmpty() -> flowOf(operations)
             else -> kotlinCombine(operations.map { it.state }) { _ -> operations }
+        }
+    }
+
+/**
+ * Observes state type changes for a collection of operations.
+ * Emits only when any operation's state TYPE changes (not on progress updates).
+ * More efficient for operation counting as it filters out progress updates within active states.
+ * @return Flow that emits the operation list whenever any state type changes
+ */
+fun Flow<List<ManagedOperation>>.withStateTypeUpdates(): Flow<List<ManagedOperation>> =
+    flatMapLatest { operations ->
+        when {
+            operations.isEmpty() -> flowOf(operations)
+            else -> kotlinCombine(
+                operations.map { operation ->
+                    operation.state.map { it::class }.distinctUntilChanged()
+                }
+            ) { _ -> operations }
         }
     }

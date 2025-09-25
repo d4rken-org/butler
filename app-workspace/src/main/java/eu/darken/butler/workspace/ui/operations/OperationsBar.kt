@@ -62,6 +62,9 @@ fun OperationsBar(
     // State for cancel confirmation dialog
     var pendingCancelId by remember { mutableStateOf<Operation.Id?>(null) }
 
+    // State for operation details sheet
+    var selectedOperation by remember { mutableStateOf<OperationDisplay?>(null) }
+
     AnimatedVisibility(
         visible = operations.isNotEmpty(),
         modifier = modifier,
@@ -148,7 +151,7 @@ fun OperationsBar(
                         ) {
                             OperationEntryRow(
                                 operation = operation,
-                                onRowClick = { onOperationClick(operation) },
+                                onRowClick = { selectedOperation = operation },
                                 onActionClick = if (canCancel) {
                                     { pendingCancelId = operation.id }
                                 } else null,
@@ -193,6 +196,32 @@ fun OperationsBar(
             }
         )
     }
+
+    // Operation details sheet
+    selectedOperation?.let { operation ->
+        OperationDetailsSheet(
+            operation = operation,
+            onDismiss = { selectedOperation = null },
+            onCancel = if (operation.canCancel && operation.state is OperationDisplay.State.Running) {
+                {
+                    selectedOperation = null
+                    pendingCancelId = operation.id
+                }
+            } else null,
+            onCopyError = if (operation.state is OperationDisplay.State.Failed) {
+                {
+                    // TODO: Copy error details to clipboard
+                    selectedOperation = null
+                }
+            } else null,
+            onGoToFolder = if (operation.state is OperationDisplay.State.Completed) {
+                {
+                    // TODO: Navigate to result folder
+                    selectedOperation = null
+                }
+            } else null,
+        )
+    }
 }
 
 @Preview2
@@ -206,7 +235,7 @@ private fun OperationsBarPreview() {
                 description = "3 files remaining".toCaString(),
                 icon = Icons.TwoTone.Delete,
                 state = OperationDisplay.State.Running(
-                    progress = Progress.Data(
+                    primaryProgress = Progress.Data(
                         primary = "Deleting files".toCaString(),
                         secondary = "Processing files...".toCaString(),
                         count = Progress.Count.Percent(6, 10)

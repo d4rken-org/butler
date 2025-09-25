@@ -55,7 +55,7 @@ class OperationsManager @Inject constructor(
         stateObservers[id] = stateObserver
         _operations.update { it + managed }
 
-        log(TAG) { "submit(): Starting $id" }
+        log(TAG, VERBOSE) { "submit(): Starting $id" }
         managed.start()
         log(TAG) { "submit(): Started $id" }
 
@@ -66,7 +66,7 @@ class OperationsManager @Inject constructor(
         log(TAG, INFO) { "cancel(): Cancelling $id" }
         val operation = _operations.value.find { it.id == id }
         if (operation == null) log(TAG, WARN) { "cancel(): Operation not found $id" }
-        else log(TAG, INFO) { "cancel(): Cancelling $operation" }
+        else log(TAG, VERBOSE) { "cancel(): Cancelling $operation" }
         operation?.cancel()
     }
 
@@ -79,7 +79,7 @@ class OperationsManager @Inject constructor(
         _operations.update { ops ->
             val target = ops.find { it.id == id }
             if (target == null) log(TAG, WARN) { "remove(): Can't find operation $id" }
-            else log(TAG) { "remove(): Removing $target" }
+            else log(TAG, VERBOSE) { "remove(): Removing $target" }
             ops - listOfNotNull(target)
         }
     }
@@ -90,7 +90,7 @@ class OperationsManager @Inject constructor(
             ops.filter { op ->
                 val isCompleted = op.state.value is Operation.State.Completed
                 if (isCompleted) {
-                    log(TAG) { "clearCompleted(): Clearing $op" }
+                    log(TAG, VERBOSE) { "clearCompleted(): Clearing $op" }
                     stateObservers[op.id]?.cancel()
                     stateObservers.remove(op.id)
                 }
@@ -105,7 +105,7 @@ class OperationsManager @Inject constructor(
             val fromWorkspace = ops.filter { op -> op.metadata.origin.workspaceId == id }
             log(TAG) { "removeWorkspace(): Removing ${fromWorkspace.size} operations" }
             fromWorkspace.forEach {
-                log(TAG) { "removeWorkspace(): Cancelling $it" }
+                log(TAG, VERBOSE) { "removeWorkspace(): Cancelling $it" }
                 it.cancel()
                 stateObservers[it.id]?.cancel()
                 stateObservers.remove(it.id)

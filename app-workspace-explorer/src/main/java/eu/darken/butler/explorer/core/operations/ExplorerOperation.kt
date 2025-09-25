@@ -15,8 +15,8 @@ abstract class ExplorerOperation : Operation {
     sealed interface State : Operation.State {
         data class Active(
             override val startedAt: Instant,
-            override val progress: Progress.Data = Progress.Data(),
-            val actionProgress: Progress.Data? = null,
+            override val primaryProgress: Progress.Data = Progress.Data(),
+            override val secondaryProgress: Progress.Data? = null,
             val bytesProcessed: Long? = null,
         ) : State, Operation.State.Active
 

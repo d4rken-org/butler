@@ -242,7 +242,7 @@ fun ExplorerWorkspacePageWithAllBarsPreview() {
             description = "5 files remaining".toCaString(),
             icon = Icons.TwoTone.Delete,
             state = OperationDisplay.State.Running(
-                progress = Progress.Data(
+                primaryProgress = Progress.Data(
                     primary = "Deleting files".toCaString(),
                     secondary = "Processing files...".toCaString(),
                     count = Progress.Count.Counter(13, 20)
@@ -266,7 +266,7 @@ fun ExplorerWorkspacePageWithAllBarsPreview() {
             description = null,
             icon = Icons.TwoTone.Delete,
             state = OperationDisplay.State.Running(
-                progress = Progress.Data(
+                primaryProgress = Progress.Data(
                     primary = "Moving documents".toCaString(),
                     secondary = "Transferring data...".toCaString(),
                     count = Progress.Count.Size(1024 * 1024 * 5, 1024 * 1024 * 15) // 5MB/15MB
@@ -373,7 +373,7 @@ fun ExplorerWorkspacePageWithExpandedBarsPreview() {
             description = "5 files remaining".toCaString(),
             icon = Icons.TwoTone.Delete,
             state = OperationDisplay.State.Running(
-                progress = Progress.Data(
+                primaryProgress = Progress.Data(
                     primary = "Deleting files".toCaString(),
                     secondary = "Processing files...".toCaString(),
                     count = Progress.Count.Counter(13, 20)
@@ -397,7 +397,7 @@ fun ExplorerWorkspacePageWithExpandedBarsPreview() {
             description = null,
             icon = Icons.TwoTone.ContentCut,
             state = OperationDisplay.State.Running(
-                progress = Progress.Data(
+                primaryProgress = Progress.Data(
                     primary = "Moving documents".toCaString(),
                     secondary = "Transferring data...".toCaString(),
                     count = Progress.Count.Size(1024 * 1024 * 5, 1024 * 1024 * 15) // 5MB/15MB

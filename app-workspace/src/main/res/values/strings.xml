@@ -42,4 +42,14 @@
     <string name="operations_cancel_dialog_title">Cancel operation?</string>
     <string name="operations_cancel_dialog_message">Are you sure you want to cancel this operation? This action cannot be undone.</string>
     <string name="operations_cancel_dialog_confirm">Cancel operation</string>
+    <string name="operations_details_timeline">Timeline</string>
+    <string name="operations_details_started_at">Started</string>
+    <string name="operations_details_duration">Duration</string>
+    <string name="operations_details_completed_at">Completed</string>
+    <string name="operations_details_progress">Progress</string>
+    <string name="operations_details_error">Error Details</string>
+    <string name="operations_details_actions">Actions</string>
+    <string name="operations_details_state">Status</string>
+    <string name="operations_details_go_to_folder">Go to Folder</string>
+    <string name="operations_details_copy_error">Copy Error Details</string>
 </resources>
