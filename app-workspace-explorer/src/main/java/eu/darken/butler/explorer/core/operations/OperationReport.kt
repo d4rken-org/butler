@@ -4,6 +4,7 @@ import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.explorer.core.filesystem.FileSystemEvent
+import eu.darken.butler.workspace.core.operations.Operation
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -12,9 +13,12 @@ data class OperationReport(
     val bytesProcessed: Long? = null,
     val averageBytesPerSecond: Long? = null,
     val peakBytesPerSecond: Long? = null,
-) {
+) : Operation.Report {
 
-    val summary: CaString = caString {
+    override val title: CaString = caString {
+        "// TODO: Title"
+    }
+    override val summary: CaString = caString {
         "// TODO: Summary"
     }
 

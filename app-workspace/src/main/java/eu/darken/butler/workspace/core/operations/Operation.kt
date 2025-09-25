@@ -62,8 +62,14 @@ interface Operation {
         interface Completed : State {
             val completedAt: Instant
             val summary: CaString
+            val report: Report?
             val error: Throwable?
         }
+    }
+
+    interface Report {
+        val title: CaString
+        val summary: CaString
     }
 
     data class Context(

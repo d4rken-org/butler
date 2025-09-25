@@ -7,6 +7,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.flow.throttleLatest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 
 class ManagedOperation(
@@ -58,6 +60,9 @@ class ManagedOperation(
 
         operation
             .perform(operationContext)
+            .throttleLatest(250.milliseconds) {
+                it is Operation.State.Active
+            }
             .onEach { state ->
                 log(tag, VERBOSE) { "Operation $id state: $state" }
                 _state.emit(state)
@@ -71,6 +76,7 @@ class ManagedOperation(
                         override val summary: CaString = caString {
                             it.getString(R.string.general_error_label) + " (${error.toString()})"
                         }
+                        override val report: Operation.Report? = null
                         override val error: Throwable = error
                     }
                 )
@@ -83,6 +89,7 @@ class ManagedOperation(
                             override val startedAt: Instant = startTime
                             override val completedAt: Instant = Clock.System.now()
                             override val summary: CaString = R.string.general_result_user_cancel_msg.toCaString()
+                            override val report: Operation.Report? = null
                             override val error: Throwable = cause
                         }
                     )
