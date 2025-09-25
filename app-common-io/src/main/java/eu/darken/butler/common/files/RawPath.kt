@@ -24,6 +24,9 @@ data class RawPath(
         throw NotImplementedError()
     }
 
+    override val parent: APath?
+        get() = throw NotImplementedError()
+
     companion object {
         fun build(base: File, vararg crumbs: String): RawPath = build(base.path, *crumbs)
 

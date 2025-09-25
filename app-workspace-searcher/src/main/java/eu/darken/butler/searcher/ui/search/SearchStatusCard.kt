@@ -79,7 +79,7 @@ fun SearchStatusCard(
                         text = if (state.isSearching) {
                             state.searchState.progress?.let { progress ->
                                 val folderName = when (val path = progress.currentPath) {
-                                    is LocalPath -> path.parent()?.name ?: path.name
+                                    is LocalPath -> path.parent?.name ?: path.name
                                     else -> path.name
                                 }
                                 stringResource(R.string.searcher_progress_searching_in, folderName)

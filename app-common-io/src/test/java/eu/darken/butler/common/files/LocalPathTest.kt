@@ -129,9 +129,9 @@ class LocalPathTest : BaseTest() {
 
     @Test
     fun `parent generation`() {
-        LocalPath.build("a", "b", "c").parent() shouldBe LocalPath.build("a", "b")
-        LocalPath.build("a").parent() shouldBe LocalPath.build()
-        LocalPath.build().parent() shouldBe null
+        LocalPath.build("a", "b", "c").parent shouldBe LocalPath.build("a", "b")
+        LocalPath.build("a").parent shouldBe LocalPath.build()
+        LocalPath.build().parent shouldBe null
     }
 
     @Test

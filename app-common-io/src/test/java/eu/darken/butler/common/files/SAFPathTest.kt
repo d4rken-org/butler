@@ -182,4 +182,11 @@ class SAFPathTest : BaseTest() {
             "seg2",
         ).userReadablePath.get(mockk()) shouldBe "/storage/3135-3132/seg1/seg2"
     }
+
+    @Test
+    fun `parent generation`() {
+        SAFPath.build(testUri, "a", "b", "c").parent shouldBe SAFPath.build(testUri, "a", "b")
+        SAFPath.build(testUri, "a").parent shouldBe SAFPath.build(testUri)
+        SAFPath.build(testUri).parent shouldBe null
+    }
 }
