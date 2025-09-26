@@ -5,6 +5,7 @@ import eu.darken.butler.common.files.APathLookupExtended
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
+import kotlin.time.Instant
 
 data class SAFPathLookupExtended(
     val lookup: SAFPathLookup,
@@ -17,4 +18,7 @@ data class SAFPathLookupExtended(
     override val permissions: Permissions? by lazy {
         fstat?.let { Permissions(it.st_mode) }
     }
+
+    // TODO support basic attributes and get creation time?
+    override val createdAt: Instant? = null
 }

@@ -16,7 +16,6 @@ import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.explorer.R
@@ -98,7 +97,7 @@ class BrowsingEngine @AssistedInject constructor(
                 displayIcon = Icons.TwoTone.Code,
                 displayName = R.string.explorer_nav_root.toCaString(),
                 target = ExplorerNavigation.Target.Directory(
-                    LocalPath.Companion.build(Environment.getRootDirectory())
+                    LocalPath.build(Environment.getRootDirectory())
                 ),
             ),
             ExplorerItem.Shortcut(
@@ -106,7 +105,7 @@ class BrowsingEngine @AssistedInject constructor(
                 displayIcon = Icons.TwoTone.Storage,
                 displayName = R.string.explorer_nav_internal_storage.toCaString(),
                 target = ExplorerNavigation.Target.Directory(
-                    LocalPath.Companion.build(Environment.getExternalStorageDirectory())
+                    LocalPath.build(Environment.getExternalStorageDirectory())
                 ),
             ),
         )
@@ -131,64 +130,14 @@ class BrowsingEngine @AssistedInject constructor(
         )
     }
 
-    private suspend fun getContent(path: APath): List<ExplorerItem.PathItem> = withContext(Dispatchers.IO) {
-        log(tag) { "getContent(): Loading content: $path" }
-
-        // First stage: Load basic file info quickly
-        val basicLookups = gatewaySwitch.lookupFiles(path)
-        log(tag) { "getContent(): ${basicLookups.size} lookups" }
-
-        val fileClassifier = FileTypeClassifier()
-
-        // Convert to ExplorerPathItem with basic info
-        basicLookups.map { lookup ->
-            fileClassifier.classify(lookup).also {
-                if (Bugs.isDebug) log(tag, VERBOSE) { "${lookup.path} -> $it" }
-            }
-        }
-    }
-
-    private suspend fun getContentExtended(path: APath): List<ExplorerItem.PathItem> = withContext(Dispatchers.IO) {
-        // Second stage: Load extended info with permissions/ownership
-        val extendedLookups = gatewaySwitch.lookupFilesExtended(path)
-        val fileClassifier = FileTypeClassifier()
-
-        // Convert to ExplorerPathItem with extended info
-        extendedLookups.map { extendedLookup ->
-            val basicItem = fileClassifier.classify(extendedLookup)
-            basicItem.withExtendedData(
-                ownership = extendedLookup.ownership,
-                permissions = extendedLookup.permissions
-            )
-        }
-    }
-
-    private suspend fun getDirectory(
-        path: APath,
-        parent: ExplorerNavigation.Target? = null
+    private suspend fun getPeek(
+        current: ExplorerLocation.Directory
     ): ExplorerLocation.Directory = withContext(Dispatchers.IO) {
-        log(tag) { "getDirectory(): Loading directory: $path - $parent" }
-        val items = getContent(path)
+        log(tag) { "getPeek(): Loading peek for  ${current.path}" }
 
-        // Calculate directory info
-        var fileCount = 0
-        var directoryCount = 0
-        var totalSize = 0L
-
-        items.forEach { item ->
-            when (item) {
-                is ExplorerItem.DirectoryItem -> directoryCount++
-                is ExplorerItem.FileItem -> {
-                    fileCount++
-                    totalSize += item.lookup.size
-                }
-            }
-        }
-        log(tag) { "getDirectory(): Directory info: $fileCount files, $directoryCount directories, $totalSize bytes" }
-        // Get volume info if path is LocalPath
-        val volumeInfo = if (path is LocalPath) {
+        val volumeInfo = if (current.path is LocalPath) {
             try {
-                val stat = StatFs(path.path)
+                val stat = StatFs(current.path.path)
                 Pair(stat.availableBytes, stat.totalBytes)
             } catch (e: Exception) {
                 null
@@ -198,20 +147,96 @@ class BrowsingEngine @AssistedInject constructor(
         }
 
         val info = ExplorerLocation.Directory.Info(
-            fileCount = fileCount,
-            directoryCount = directoryCount,
-            totalSize = if (totalSize > 0) totalSize else null,
             volumeFreeSpace = volumeInfo?.first,
             volumeTotalSpace = volumeInfo?.second,
-            isWritable = true,
         )
 
+        val items = gatewaySwitch.listFiles(current.path).map {
+            ExplorerItem.Peek(it)
+        }
+        log(tag) { "getPeek(): Peeked ${items.size} items" }
+
         ExplorerLocation.Directory(
-            path = path,
-            parent = parent,
+            path = current.path,
+            parent = current.parent,
             items = items,
             info = info,
-            permissionState = checkLocationPermissions(ExplorerNavigation.Target.Directory(path)),
+            permissionState = checkLocationPermissions(ExplorerNavigation.Target.Directory(current.path)),
+        )
+    }
+
+    private suspend fun getDirectory(
+        current: ExplorerLocation.Directory
+    ): ExplorerLocation.Directory = withContext(Dispatchers.IO) {
+        log(tag) { "getDirectory(): Loading directory: ${current.path}" }
+
+        val basicLookups = gatewaySwitch.lookupFiles(current.path)
+        log(tag) { "getContent(): ${basicLookups.size} lookups" }
+
+        val fileClassifier = FileTypeClassifier()
+
+        // Convert to ExplorerPathItem with basic info
+        val items = basicLookups.map { lookup ->
+            fileClassifier.classify(lookup).also {
+                if (Bugs.isDebug) log(tag, VERBOSE) { "${lookup.path} -> $it" }
+            }
+        }
+
+        // Calculate directory info
+        var fileCount = 0
+        var directoryCount = 0
+        var totalSize = 0L
+
+        items.forEach { item ->
+            when (item) {
+                is ExplorerItem.Directory -> directoryCount++
+                is ExplorerItem.File -> {
+                    fileCount++
+                    totalSize += item.lookup.size
+                }
+            }
+        }
+        log(tag) { "getDirectory(): Directory info: $fileCount files, $directoryCount directories, $totalSize bytes" }
+
+        current.copy(
+            items = items,
+            info = current.info!!.copy(
+                fileCount = fileCount,
+                directoryCount = directoryCount,
+                totalSize = if (totalSize > 0) totalSize else null,
+                isWritable = true,
+            ),
+        )
+    }
+
+
+    private suspend fun getContentExtended(
+        current: ExplorerLocation.Directory
+    ): ExplorerLocation.Directory = withContext(Dispatchers.IO) {
+        // Second stage: Load extended info with permissions/ownership
+        val extendedLookups = gatewaySwitch.lookupFilesExtended(current.path).associateBy { it.path }
+        val fileClassifier = FileTypeClassifier()
+
+        current.copy(
+            items = current.items.map { item ->
+                if (item is ExplorerItem.Lookup) {
+                    val extendedLookup = extendedLookups[item.path.path]
+                    if (extendedLookup != null) {
+                        val basicItem = fileClassifier.classify(extendedLookup)
+                        basicItem.withExtendedData(
+                            ownership = extendedLookup.ownership,
+                            permissions = extendedLookup.permissions,
+                            createdAt = extendedLookup.createdAt,
+                        )
+                    } else {
+                        item
+                    }
+
+                } else {
+                    item
+                }
+
+            }
         )
     }
 
@@ -237,11 +262,19 @@ class BrowsingEngine @AssistedInject constructor(
                         return@flow
                     }
 
-                    val firstPass = getDirectory(target.path)
-                    emit(firstPass)
+                    var currentState = ExplorerLocation.Directory(
+                        path = target.path,
+                        permissionState = checkLocationPermissions(ExplorerNavigation.Target.Directory(target.path)),
+                    )
 
-                    val secondPass = getContentExtended(target.path)
-                    emit(firstPass.copy(items = secondPass))
+                    currentState = getPeek(currentState)
+                    emit(currentState)
+
+                    currentState = getDirectory(currentState)
+                    emit(currentState)
+
+                    currentState = getContentExtended(currentState)
+                    emit(currentState)
                 }
             }
         }

@@ -30,12 +30,13 @@ import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 object MockDataProvider {
-    
+
     private fun createMockLookup(
         name: String,
         path: String = "/test/$name",
         size: Long = 1024L,
         fileType: FileType = FileType.FILE,
+        createdAt: Instant = Instant.parse("2023-10-10T10:30:00Z"),
         modifiedAt: Instant = Instant.parse("2023-10-15T10:30:00Z"),
         target: RawPath? = null
     ): APathLookup<*> {
@@ -55,7 +56,7 @@ object MockDataProvider {
             childCount = childCount
         )
     }
-    
+
     fun createMockSymbolicLink(
         name: String = "shortcut",
         targetPath: String? = "/home/user/target/file.txt",
@@ -81,16 +82,23 @@ object MockDataProvider {
                 userName = "aUser",
                 groupName = "aGroup",
             ),
-            permissions = Permissions(mode = 755)
+            permissions = Permissions(mode = 755),
+            createdAt = Instant.parse("2023-10-10T10:30:00Z"),
         )
     }
 
-    fun createAllFileTypes(): List<ExplorerItem.PathItem> {
+    fun createMockPeek(name: String = "loading.txt"): ExplorerItem.Peek {
+        return ExplorerItem.Peek(
+            path = RawPath.build("/home/user/$name")
+        )
+    }
+
+    fun createAllFileTypes(): List<ExplorerItem.Lookup> {
         return listOf(
             createMockDirectory(),
             createMockSymbolicLink(),
             createMockSymbolicLink("broken_link", isBroken = true),
-            createMockRegularFile()
+            createMockRegularFile(),
         )
     }
 

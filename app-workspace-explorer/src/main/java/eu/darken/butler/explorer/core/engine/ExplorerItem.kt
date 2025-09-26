@@ -2,7 +2,7 @@ package eu.darken.butler.explorer.core.engine
 
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
-import eu.darken.butler.common.ca.caString
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
@@ -10,6 +10,7 @@ import eu.darken.butler.explorer.core.ExplorerNavigation
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.time.Instant
 
 sealed interface ExplorerItem {
     val displayName: CaString
@@ -24,34 +25,49 @@ sealed interface ExplorerItem {
         override val id: String get() = shortcutId
     }
 
-    sealed interface PathItem : ExplorerItem {
+    sealed interface Path : ExplorerItem {
+        val path: APath
+
+        override val id: String get() = path.path
+        override val displayName: CaString get() = path.userReadableName
+    }
+
+    sealed interface Lookup : Path {
         val lookup: APathLookup<*>
         val ownership: Ownership?
         val permissions: Permissions?
+        val createdAt: Instant?
 
+        override val path: APath get() = lookup.lookedUp
         override val id: String get() = lookup.path
-        override val displayName: CaString get() = caString { lookup.name }
+        override val displayName: CaString get() = lookup.userReadableName
 
-        fun withExtendedData(ownership: Ownership?, permissions: Permissions?): PathItem
+        fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?): Path
     }
 
-    sealed interface DirectoryItem : PathItem {
+    sealed interface Directory : Lookup {
         val childCount: Int?
     }
 
-    sealed interface FileItem : PathItem {
+    sealed interface File : Lookup {
         val mimeType: String
     }
+
+    data class Peek(
+        override val path: APath,
+    ) : Path
 
     data class RegularDirectory(
         override val lookup: APathLookup<*>,
         override val ownership: Ownership? = null,
         override val permissions: Permissions? = null,
+        override val createdAt: Instant? = null,
         override val childCount: Int? = null
-    ) : DirectoryItem {
-        override fun withExtendedData(ownership: Ownership?, permissions: Permissions?) = copy(
+    ) : Directory {
+        override fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?) = copy(
             ownership = ownership,
-            permissions = permissions
+            permissions = permissions,
+            createdAt = createdAt
         )
     }
 
@@ -59,11 +75,13 @@ sealed interface ExplorerItem {
         override val lookup: APathLookup<*>,
         override val mimeType: String,
         override val ownership: Ownership? = null,
-        override val permissions: Permissions? = null
-    ) : FileItem {
-        override fun withExtendedData(ownership: Ownership?, permissions: Permissions?) = copy(
+        override val permissions: Permissions? = null,
+        override val createdAt: Instant? = null,
+    ) : File {
+        override fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?) = copy(
             ownership = ownership,
-            permissions = permissions
+            permissions = permissions,
+            createdAt = createdAt
         )
     }
 
@@ -72,12 +90,14 @@ sealed interface ExplorerItem {
         override val mimeType: String,
         override val ownership: Ownership? = null,
         override val permissions: Permissions? = null,
+        override val createdAt: Instant? = null,
         val targetPath: String? = null,
         val isBroken: Boolean = false
-    ) : FileItem {
-        override fun withExtendedData(ownership: Ownership?, permissions: Permissions?) = copy(
+    ) : File {
+        override fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?) = copy(
             ownership = ownership,
-            permissions = permissions
+            permissions = permissions,
+            createdAt = createdAt
         )
     }
 }

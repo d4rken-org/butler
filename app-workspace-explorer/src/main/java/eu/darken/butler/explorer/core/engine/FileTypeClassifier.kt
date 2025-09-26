@@ -6,26 +6,24 @@ import java.util.Locale
 
 class FileTypeClassifier {
 
-    fun classify(lookup: APathLookup<*>): ExplorerItem.PathItem {
-        return when (lookup.fileType) {
-            FileType.DIRECTORY -> ExplorerItem.RegularDirectory(
-                lookup = lookup,
-            )
-            FileType.SYMBOLIC_LINK -> ExplorerItem.SymbolicLink(
-                lookup = lookup,
-                mimeType = getMimeType(lookup.name),
-                targetPath = lookup.target?.path,
-                isBroken = lookup.target == null
-            )
-            FileType.FILE -> classifyFile(lookup)
-            else -> ExplorerItem.RegularFile(
-                lookup = lookup,
-                mimeType = getMimeType(lookup.name)
-            )
-        }
+    fun classify(lookup: APathLookup<*>): ExplorerItem.Lookup = when (lookup.fileType) {
+        FileType.DIRECTORY -> ExplorerItem.RegularDirectory(
+            lookup = lookup,
+        )
+        FileType.SYMBOLIC_LINK -> ExplorerItem.SymbolicLink(
+            lookup = lookup,
+            mimeType = getMimeType(lookup.name),
+            targetPath = lookup.target?.path,
+            isBroken = lookup.target == null
+        )
+        FileType.FILE -> classifyFile(lookup)
+        else -> ExplorerItem.RegularFile(
+            lookup = lookup,
+            mimeType = getMimeType(lookup.name)
+        )
     }
 
-    private fun classifyFile(lookup: APathLookup<*>): ExplorerItem.PathItem {
+    private fun classifyFile(lookup: APathLookup<*>): ExplorerItem.Lookup {
         val mimeType = getMimeType(lookup.name)
 
         return when {

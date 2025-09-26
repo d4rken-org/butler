@@ -16,6 +16,7 @@
     <string name="explorer_file_archive_content_desc">Archive</string>
     <string name="explorer_file_document_content_desc">Document</string>
     <string name="explorer_file_folder_content_desc">Folder</string>
+    <string name="explorer_file_peek_content_desc">Loading file information</string>
 
     <!-- File Row UI Strings -->
     <string name="explorer_file_shortcut_label">Shortcut</string>
@@ -69,6 +70,7 @@
 
     <!-- Status Messages -->
     <string name="explorer_loading">Loading…</string>
+    <string name="explorer_file_peek_loading_text">Loading…</string>
     <string name="explorer_navigation_cancelled">Navigation cancelled</string>
 
     <!-- Issue Messages -->

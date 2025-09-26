@@ -38,13 +38,13 @@ sealed interface ExplorerLocation {
     data class Directory(
         val path: APath,
         val parent: ExplorerNavigation.Target? = null,
-        override val items: List<ExplorerItem.PathItem> = emptyList(),
+        override val items: List<ExplorerItem> = emptyList(),
         override val info: Info? = null,
         override val permissionState: PermissionState = PermissionState(),
     ) : ExplorerLocation {
         data class Info(
-            val fileCount: Int,
-            val directoryCount: Int,
+            val fileCount: Int? = null,
+            val directoryCount: Int? = null,
             val totalSize: Long? = null,
             val volumeFreeSpace: Long? = null,
             val volumeTotalSpace: Long? = null,

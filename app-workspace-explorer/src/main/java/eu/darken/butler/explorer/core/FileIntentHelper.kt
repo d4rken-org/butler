@@ -21,7 +21,7 @@ class FileIntentHelper @Inject constructor(
 ) {
     private val tag = logTag("FileIntentHelper")
 
-    fun openFileWith(item: ExplorerItem.FileItem): Intent? {
+    fun openFileWith(item: ExplorerItem.File): Intent? {
         log(tag) { "openFileWith(${item.lookup.name})" }
 
         return try {
@@ -38,7 +38,7 @@ class FileIntentHelper @Inject constructor(
         }
     }
 
-    fun shareFile(item: ExplorerItem.FileItem): Intent? {
+    fun shareFile(item: ExplorerItem.File): Intent? {
         log(tag) { "shareFile(${item.lookup.name})" }
 
         return try {
@@ -57,7 +57,7 @@ class FileIntentHelper @Inject constructor(
         }
     }
 
-    fun shareFiles(items: List<ExplorerItem.FileItem>): Intent? {
+    fun shareFiles(items: List<ExplorerItem.File>): Intent? {
         log(tag) { "shareFiles(${items.size} items)" }
 
         return try {

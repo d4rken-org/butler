@@ -127,8 +127,8 @@ fun ExplorerWorkspacePageWithSelectionPreview() {
         items = mockFileItems,
         isLoading = false,
         selectionState = ExplorerSelectionState(
-            selectedItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path),
-            selectableItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path),
+            selectedItems = setOf(mockFileItems[0].path.path, mockFileItems[2].path.path),
+            selectableItems = setOf(mockFileItems[0].path.path, mockFileItems[2].path.path),
         ),
         availableActions = listOf(
             ExplorerAction.Common.Sort(),
@@ -204,11 +204,11 @@ fun ExplorerWorkspacePageGridModeWithSelectionPreview() {
         items = mockFileItems,
         isLoading = false,
         selectionState = ExplorerSelectionState(
-            selectedItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path),
+            selectedItems = setOf(mockFileItems[0].path.path, mockFileItems[2].path.path),
             selectableItems = setOf(
-                mockFileItems[0].lookup.path,
-                mockFileItems[2].lookup.path,
-                mockFileItems[3].lookup.path
+                mockFileItems[0].path.path,
+                mockFileItems[2].path.path,
+                mockFileItems[3].path.path
             ),
         ),
         viewMode = ExplorerWorkspaceViewModel.ViewMode.GRID,
@@ -271,8 +271,8 @@ fun ExplorerWorkspacePageWithAllBarsPreview() {
             ExplorerAction.Common.Filter(isEnabled = true),
         ),
         selectionState = ExplorerSelectionState(
-            selectedItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path),
-            selectableItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path),
+            selectedItems = setOf(mockFileItems[0].path.path, mockFileItems[2].path.path),
+            selectableItems = setOf(mockFileItems[0].path.path, mockFileItems[2].path.path),
         ),
         isLoading = false,
     )
@@ -331,8 +331,8 @@ fun ExplorerWorkspacePageWithExpandedBarsPreview() {
             ExplorerAction.Common.Filter(isEnabled = true),
         ),
         selectionState = ExplorerSelectionState(
-            selectedItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path),
-            selectableItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path),
+            selectedItems = setOf(mockFileItems[0].path.path, mockFileItems[2].path.path),
+            selectableItems = setOf(mockFileItems[0].path.path, mockFileItems[2].path.path),
         ),
         isLoading = false,
     )

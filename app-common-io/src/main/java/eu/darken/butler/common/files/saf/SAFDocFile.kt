@@ -88,6 +88,10 @@ data class SAFDocFile(
     val lastModified: Instant
         get() = Instant.fromEpochMilliseconds(queryForLong(DocumentsContract.Document.COLUMN_LAST_MODIFIED) ?: 0)
 
+    // TODO can we get creation date from somewhere?
+    val createdAt: Instant
+        get() = Instant.fromEpochMilliseconds(0)
+
     val length: Long
         get() = queryForLong(DocumentsContract.Document.COLUMN_SIZE) ?: 0
 

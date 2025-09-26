@@ -15,6 +15,8 @@ import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.funnel.IPCFunnel
 import eu.darken.butler.common.pkgs.pkgops.LibcoreTool
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.attribute.BasicFileAttributes
 import kotlin.time.Instant
 
 
@@ -77,10 +79,21 @@ fun LocalPath.performLookupExtended(
         Ownership(uid, gid, userName, groupName)
     }
 
+    val basicAttributes = try {
+        Files.readAttributes(
+            file.toPath(),
+            BasicFileAttributes::class.java
+        )
+    } catch (e: Exception) {
+        log(LocalGateway.TAG, WARN) { "BasicFileAttributes failed on $this: ${e.asLog()}" }
+        null
+    }
+
     return LocalPathLookupExtended(
         lookup = lookup,
         ownership = ownership,
         permissions = fstat?.let { Permissions(it.st_mode) },
+        createdAt = basicAttributes?.let { Instant.fromEpochMilliseconds(it.creationTime().toMillis()) }
     )
 }
 

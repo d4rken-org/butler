@@ -51,9 +51,11 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.issues.ErrorSnackbar
 import eu.darken.butler.explorer.ui.explorer.issues.IssueBottomSheet
-import eu.darken.butler.explorer.ui.explorer.items.grid.PathItemGrid
+import eu.darken.butler.explorer.ui.explorer.items.grid.LookupItemGrid
+import eu.darken.butler.explorer.ui.explorer.items.grid.PeekGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.ShortcutGrid
-import eu.darken.butler.explorer.ui.explorer.items.row.PathItemRow
+import eu.darken.butler.explorer.ui.explorer.items.row.LookupItemRow
+import eu.darken.butler.explorer.ui.explorer.items.row.PeekRow
 import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
 import eu.darken.butler.explorer.ui.explorer.permissions.PermissionRequestCard
 import eu.darken.butler.workspace.core.Workspace
@@ -285,7 +287,7 @@ fun ExplorerWorkspacePage(
                             ) {
                                 items(mainState.items) { item ->
                                     when (item) {
-                                        is ExplorerItem.PathItem -> PathItemRow(
+                                        is ExplorerItem.Lookup -> LookupItemRow(
                                             item = item,
                                             isSelected = mainState.selectionState.selectedItems.contains(item.id),
                                             onToggleSelection = { vm?.toggleItemSelection(item) },
@@ -299,6 +301,11 @@ fun ExplorerWorkspacePage(
                                             onLongClick = { vm?.toggleItemSelection(item) },
                                             showSelection = mainState.selectionState.selectedItems.isNotEmpty()
                                         )
+
+                                        is ExplorerItem.Peek -> PeekRow(
+                                            item = item
+                                        )
+
                                         is ExplorerItem.Shortcut -> ShortcutRow(
                                             item = item,
                                             onClick = { vm?.navigate(item) },
@@ -331,9 +338,9 @@ fun ExplorerWorkspacePage(
                             ) {
                                 items(mainState.items) { item ->
                                     when (item) {
-                                        is ExplorerItem.PathItem -> PathItemGrid(
+                                        is ExplorerItem.Lookup -> LookupItemGrid(
                                             item = item,
-                                            isSelected = mainState.selectionState.selectedItems.contains(item.lookup.path),
+                                            isSelected = mainState.selectionState.selectedItems.contains(item.path.path),
                                             onToggleSelection = { vm?.toggleItemSelection(item) },
                                             onClick = {
                                                 if (mainState.selectionState.selectedItems.isNotEmpty()) {
@@ -348,6 +355,10 @@ fun ExplorerWorkspacePage(
                                         is ExplorerItem.Shortcut -> ShortcutGrid(
                                             item = item,
                                             onClick = { vm?.navigate(item) },
+                                        )
+
+                                        is ExplorerItem.Peek -> PeekGrid(
+                                            item = item
                                         )
                                     }
                                 }

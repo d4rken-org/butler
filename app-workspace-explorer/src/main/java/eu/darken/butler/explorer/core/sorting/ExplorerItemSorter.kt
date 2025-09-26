@@ -26,12 +26,12 @@ class ExplorerItemSorter @AssistedInject constructor(
         log(tag, VERBOSE) { "sortItems: ${items.size} items with settings=$sortSettings" }
 
         val shortcuts = mutableListOf<ExplorerItem.Shortcut>()
-        val pathItems = mutableListOf<ExplorerItem.PathItem>()
+        val pathItems = mutableListOf<ExplorerItem.Path>()
 
         items.forEach { item ->
             when (item) {
                 is ExplorerItem.Shortcut -> shortcuts.add(item)
-                is ExplorerItem.PathItem -> pathItems.add(item)
+                is ExplorerItem.Path -> pathItems.add(item)
             }
         }
 
@@ -46,13 +46,13 @@ class ExplorerItemSorter @AssistedInject constructor(
 
     private fun sortPathItems(
         context: Context,
-        pathItems: List<ExplorerItem.PathItem>,
+        pathItems: List<ExplorerItem.Path>,
         sortSettings: SortSettings,
-    ): List<ExplorerItem.PathItem> {
+    ): List<ExplorerItem.Path> {
         if (pathItems.isEmpty()) return pathItems
 
-        val directories = pathItems.filterIsInstance<ExplorerItem.DirectoryItem>()
-        val files = pathItems.filterIsInstance<ExplorerItem.FileItem>()
+        val directories = pathItems.filterIsInstance<ExplorerItem.Directory>()
+        val files = pathItems.filterIsInstance<ExplorerItem.File>()
 
         val sortedDirectories = applySortMode(context, directories, sortSettings)
         val sortedFiles = applySortMode(context, files, sortSettings)
@@ -64,7 +64,7 @@ class ExplorerItemSorter @AssistedInject constructor(
         }
     }
 
-    private fun <T : ExplorerItem.PathItem> applySortMode(
+    private fun <T : ExplorerItem.Path> applySortMode(
         context: Context,
         items: List<T>,
         sortSettings: SortSettings,
@@ -74,30 +74,36 @@ class ExplorerItemSorter @AssistedInject constructor(
                 NaturalSortComparator.compare(a.displayName.get(context), b.displayName.get(context))
             }
             SortSettings.Mode.SIZE -> items.sortedWith { a, b ->
-                val sizeA = a.lookup.size ?: 0L
-                val sizeB = b.lookup.size ?: 0L
-                sizeA.compareTo(sizeB)
+                if (a is ExplorerItem.Lookup && b is ExplorerItem.Lookup) {
+                    val sizeA = a.lookup.size
+                    val sizeB = b.lookup.size
+                    sizeA.compareTo(sizeB)
+                } else {
+                    0
+                }
             }
             SortSettings.Mode.MODIFIED_AT -> items.sortedWith { a, b ->
-                val timeA = a.lookup.modifiedAt
-                val timeB = b.lookup.modifiedAt
-                when {
-                    timeA == null && timeB == null -> 0
-                    timeA == null -> -1
-                    timeB == null -> 1
-                    else -> timeA.compareTo(timeB)
+                if (a is ExplorerItem.Lookup && b is ExplorerItem.Lookup) {
+                    val timeA = a.lookup.modifiedAt
+                    val timeB = b.lookup.modifiedAt
+                    timeA.compareTo(timeB)
+                } else {
+                    0
                 }
             }
             SortSettings.Mode.CREATED_AT -> {
-                log(tag, WARN) { "CREATED_AT sort mode not supported, falling back to MODIFIED_AT" }
                 items.sortedWith { a, b ->
-                    val timeA = a.lookup.modifiedAt
-                    val timeB = b.lookup.modifiedAt
-                    when {
-                        timeA == null && timeB == null -> 0
-                        timeA == null -> -1
-                        timeB == null -> 1
-                        else -> timeA.compareTo(timeB)
+                    if (a is ExplorerItem.Lookup && b is ExplorerItem.Lookup) {
+                        val timeA = a.createdAt
+                        val timeB = b.createdAt
+                        when {
+                            timeA == null && timeB == null -> 0
+                            timeA == null -> -1
+                            timeB == null -> 1
+                            else -> timeA.compareTo(timeB)
+                        }
+                    } else {
+                        0
                     }
                 }
             }

@@ -16,5 +16,5 @@ sealed interface ExplorerDialogState {
 
     data class EditSortOptions(val currentSortSettings: SortSettings) : ExplorerDialogState
 
-    data class FileOptions(val item: ExplorerItem.FileItem) : ExplorerDialogState
+    data class FileOptions(val item: ExplorerItem.File) : ExplorerDialogState
 }

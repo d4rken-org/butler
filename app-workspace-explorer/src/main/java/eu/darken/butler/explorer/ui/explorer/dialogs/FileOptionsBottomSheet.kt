@@ -49,7 +49,7 @@ import java.util.Date
 
 @Composable
 fun FileOptionsBottomSheet(
-    item: ExplorerItem.FileItem,
+    item: ExplorerItem.File,
     onDismiss: () -> Unit,
     onOpenInEditor: () -> Unit,
     onOpenWith: () -> Unit,
@@ -84,7 +84,7 @@ fun FileOptionsBottomSheet(
 
 @Composable
 private fun FileOptionsContent(
-    item: ExplorerItem.FileItem,
+    item: ExplorerItem.File,
     onOpenInEditor: () -> Unit,
     onOpenWith: () -> Unit,
     onShare: () -> Unit,
@@ -189,7 +189,7 @@ private fun FileOptionsContent(
 
 @Composable
 private fun FileInfoHeader(
-    item: ExplorerItem.FileItem
+    item: ExplorerItem.File
 ) {
     Row(
         modifier = Modifier

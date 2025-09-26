@@ -7,10 +7,12 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import kotlinx.parcelize.Parcelize
+import kotlin.time.Instant
 
 @Parcelize
 data class LocalPathLookupExtended(
     val lookup: LocalPathLookup,
     override val ownership: Ownership?,
     override val permissions: Permissions?,
+    override val createdAt: Instant?,
 ) : APathLookupExtended<LocalPath>, APathLookup<LocalPath> by lookup, Parcelable

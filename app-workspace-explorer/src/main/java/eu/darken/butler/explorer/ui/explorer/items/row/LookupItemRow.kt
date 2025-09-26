@@ -1,10 +1,9 @@
-package eu.darken.butler.explorer.ui.explorer.items.grid
+package eu.darken.butler.explorer.ui.explorer.items.row
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -13,9 +12,9 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
-fun PathItemGrid(
+fun LookupItemRow(
     modifier: Modifier = Modifier,
-    item: ExplorerItem.PathItem,
+    item: ExplorerItem.Lookup,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
@@ -23,49 +22,47 @@ fun PathItemGrid(
     showSelection: Boolean = false,
 ) {
     when (item) {
-        is ExplorerItem.RegularDirectory -> DirectoryGrid(
-            modifier = modifier,
+        is ExplorerItem.RegularDirectory -> DirectoryRow(
             item = item,
             isSelected = isSelected,
             onToggleSelection = onToggleSelection,
             onClick = onClick,
             onLongClick = onLongClick,
             showSelection = showSelection,
+            modifier = modifier
         )
 
-        is ExplorerItem.SymbolicLink -> SymlinkFileGrid(
-            modifier = modifier,
+        is ExplorerItem.SymbolicLink -> SymlinkFileRow(
             item = item,
             isSelected = isSelected,
             onToggleSelection = onToggleSelection,
             onClick = onClick,
             onLongClick = onLongClick,
             showSelection = showSelection,
+            modifier = modifier
         )
 
-        is ExplorerItem.RegularFile -> RegularFileGrid(
-            modifier = modifier,
+        is ExplorerItem.RegularFile -> RegularFileRow(
             item = item,
             isSelected = isSelected,
             onToggleSelection = onToggleSelection,
             onClick = onClick,
             onLongClick = onLongClick,
             showSelection = showSelection,
+            modifier = modifier
         )
     }
 }
 
 @Preview2
 @Composable
-private fun PathItemGridPreview() {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
+private fun FileItemRowsPreview() {
+    LazyColumn(
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(MockDataProvider.createAllFileTypes()) { item ->
-            PathItemGrid(
+            LookupItemRow(
                 item = item,
                 isSelected = false,
                 onToggleSelection = {},
@@ -78,15 +75,13 @@ private fun PathItemGridPreview() {
 
 @Preview2
 @Composable
-private fun PathItemGridWithSelectionPreview() {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
+private fun FileItemRowsWithSelectionPreview() {
+    LazyColumn(
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(MockDataProvider.createAllFileTypes()) { item ->
-            PathItemGrid(
+            LookupItemRow(
                 item = item,
                 isSelected = item is ExplorerItem.RegularDirectory,
                 onToggleSelection = {},
