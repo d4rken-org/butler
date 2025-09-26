@@ -26,13 +26,11 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
-import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import java.text.DateFormat
 import java.util.Date
-import kotlin.time.Instant
 
 @Composable
 fun PathIssueFileComparisonCard(
@@ -97,12 +95,7 @@ fun PathIssueFileComparisonCard(
 private fun PathIssueFileComparisonCardFilePreview() {
     PreviewWrapper {
         PathIssueFileComparisonCard(
-            lookup = LocalPathLookup(
-                lookedUp = LocalPath.build("/storage/emulated/0/Download/documentname.pdf"),
-                fileType = FileType.FILE,
-                size = 1024 * 1024 * 5, // 5MB
-                modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000), // 1 day ago
-            ),
+            lookup = MockDataProvider.createMockPdfFile("documentname.pdf", sizeMB = 5, hoursAgo = 24),
         )
     }
 }
@@ -113,11 +106,10 @@ private fun PathIssueFileComparisonCardFilePreview() {
 private fun PathIssueFileComparisonCardEmptyFilePreview() {
     PreviewWrapper {
         PathIssueFileComparisonCard(
-            lookup = LocalPathLookup(
-                lookedUp = LocalPath.build("/storage/emulated/0/Download/very-long-documentname-that-ellipsizes.pdf"),
-                fileType = FileType.FILE,
-                size = 0L,
-                modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000), // 1 day ago
+            lookup = MockDataProvider.createMockLocalPathLookup(
+                path = "/storage/emulated/0/Download/very-long-documentname-that-ellipsizes.pdf",
+                sizeKB = 0,
+                hoursAgo = 24
             ),
         )
     }
@@ -128,11 +120,11 @@ private fun PathIssueFileComparisonCardEmptyFilePreview() {
 private fun PathIssueFileComparisonCardFolderPreview() {
     PreviewWrapper {
         PathIssueFileComparisonCard(
-            lookup = LocalPathLookup(
-                lookedUp = LocalPath.build("/storage/emulated/0/Pictures/Vacation"),
+            lookup = MockDataProvider.createMockLocalPathLookup(
+                path = "/storage/emulated/0/Pictures/Vacation",
                 fileType = FileType.DIRECTORY,
-                size = 0,
-                modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000), // 1 hour ago
+                sizeKB = 0,
+                hoursAgo = 1
             ),
         )
     }

@@ -33,12 +33,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
-import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.explorer.R
-import kotlin.time.Instant
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
 fun PathAlreadyExistsIssueSheet(
@@ -277,25 +275,13 @@ fun PathAlreadyExistsIssueSheet(
 private fun PathAlreadyExistsIssueSheetFilePreview() {
     PreviewWrapper {
         PathAlreadyExistsIssueSheet(
-            issue = PathActionIssue.PathAlreadyExists(
-                destination = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Download/document.pdf"),
-                    fileType = FileType.FILE,
-                    size = 1024 * 1024 * 3, // 3MB
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000), // 1 day ago
-                    target = null,
-                ),
-                source = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Desktop/document.pdf"),
-                    fileType = FileType.FILE,
-                    size = 1024 * 1024 * 5, // 5MB - newer, larger file
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000), // 1 hour ago
-                    target = null,
-                ),
-                canSkip = true,
-                canOverwrite = true,
-                canRenameSource = true,
-                canMerge = false,
+            issue = MockDataProvider.createMockPathExistsIssue(
+                source = MockDataProvider.createMockPdfFile("document.pdf", sizeMB = 5, hoursAgo = 1),
+                destination = MockDataProvider.createMockLocalPathLookup(
+                    path = "/storage/emulated/0/Download/document.pdf",
+                    sizeKB = 3 * 1024,
+                    hoursAgo = 24
+                )
             ),
             onResolution = {},
         )
@@ -308,22 +294,16 @@ private fun PathAlreadyExistsIssueSheetRenameOptionsPreview() {
     PreviewWrapper {
         PathAlreadyExistsIssueSheet(
             issue = PathActionIssue.PathAlreadyExists(
-                destination = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Downloads/document.pdf"),
-                    fileType = FileType.FILE,
-                    size = 1024 * 1024 * 2, // 2MB
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000), // 1 day ago
-                ),
-                source = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Desktop/document.pdf"),
-                    fileType = FileType.FILE,
-                    size = 1024 * 1024 * 3, // 3MB
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000), // 1 hour ago
+                destination = MockDataProvider.createMockPdfFile("document.pdf", sizeMB = 2, hoursAgo = 24),
+                source = MockDataProvider.createMockLocalPathLookup(
+                    path = "/storage/emulated/0/Desktop/document.pdf",
+                    sizeKB = 3 * 1024,
+                    hoursAgo = 1
                 ),
                 canSkip = true,
                 canOverwrite = true,
                 canRenameSource = true,
-                canRenameDestination = true, // Show both rename options
+                canRenameDestination = true,
                 canMerge = false,
             ),
             onResolution = {},
@@ -337,24 +317,22 @@ private fun PathAlreadyExistsIssueSheetFolderPreview() {
     PreviewWrapper {
         PathAlreadyExistsIssueSheet(
             issue = PathActionIssue.PathAlreadyExists(
-                destination = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Pictures/Vacation"),
+                destination = MockDataProvider.createMockLocalPathLookup(
+                    path = "/storage/emulated/0/Pictures/Vacation",
                     fileType = FileType.DIRECTORY,
-                    size = 0,
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000 * 7), // 1 week ago
-                    target = null,
+                    sizeKB = 0,
+                    hoursAgo = 168 // 1 week
                 ),
-                source = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Desktop/Vacation"),
+                source = MockDataProvider.createMockLocalPathLookup(
+                    path = "/storage/emulated/0/Desktop/Vacation",
                     fileType = FileType.DIRECTORY,
-                    size = 0,
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000), // 1 hour ago
-                    target = null,
+                    sizeKB = 0,
+                    hoursAgo = 1
                 ),
                 canSkip = true,
                 canOverwrite = true,
                 canRenameSource = true,
-                canMerge = true, // Directory can be merged
+                canMerge = true,
             ),
             onResolution = {},
         )

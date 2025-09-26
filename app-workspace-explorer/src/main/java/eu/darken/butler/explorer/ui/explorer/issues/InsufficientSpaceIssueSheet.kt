@@ -28,12 +28,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
-import eu.darken.butler.common.files.local.LocalPathLookup
-import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.explorer.R
-import kotlin.time.Instant
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
 fun InsufficientSpaceIssueSheet(
@@ -147,20 +144,7 @@ fun InsufficientSpaceIssueSheet(
 private fun InsufficientSpaceIssueSheetPreview() {
     PreviewWrapper {
         InsufficientSpaceIssueSheet(
-            issue = PathActionIssue.InsufficientSpace(
-                source = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Movies/large_video.mp4"),
-                    fileType = FileType.FILE,
-                    size = 1024L * 1024L * 1024L * 4L, // 4GB large file
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000), // 1 hour ago
-                ),
-                destination = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/external/large_video.mp4"),
-                    fileType = FileType.FILE,
-                    size = 123,
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
-                ),
-            ),
+            issue = MockDataProvider.createMockInsufficientSpaceIssue(),
             onResolution = {},
         )
     }

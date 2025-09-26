@@ -40,17 +40,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
-import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
-import eu.darken.butler.common.files.local.LocalPathLookup
-import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.explorer.R
-import java.io.IOException
-import kotlin.time.Instant
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
 fun UnknownErrorIssueSheet(
@@ -276,25 +271,13 @@ fun UnknownErrorIssueSheet(
 private fun UnknownErrorIssueSheetIOErrorPreview() {
     PreviewWrapper {
         UnknownErrorIssueSheet(
-            issue = PathActionIssue.UnknownError(
-                source = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Documents/corrupted_file.pdf"),
-                    fileType = FileType.FILE,
-                    size = 1024 * 512, // 512KB
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000), // 1 hour ago
-                    target = null,
+            issue = MockDataProvider.createMockUnknownErrorIssue(
+                source = MockDataProvider.createMockPdfFile("corrupted_file.pdf", sizeMB = 1),
+                destination = MockDataProvider.createMockLocalPathLookup(
+                    path = "/storage/emulated/0/Backup/corrupted_file.pdf",
+                    sizeKB = 0
                 ),
-                destination = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Backup/corrupted_file.pdf"),
-                    fileType = FileType.FILE,
-                    size = 0,
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
-                    target = null,
-                ),
-                exception = IOException("Input/output error"),
-                errorMessage = "java.io.IOException: Input/output error".toCaString(),
-                canSkip = true,
-                canRetry = true,
+                errorType = MockDataProvider.ErrorType.IO
             ),
             onResolution = {},
         )
@@ -306,18 +289,14 @@ private fun UnknownErrorIssueSheetIOErrorPreview() {
 private fun UnknownErrorIssueSheetSecurityErrorPreview() {
     PreviewWrapper {
         UnknownErrorIssueSheet(
-            issue = PathActionIssue.UnknownError(
-                source = LocalPathLookup(
-                    lookedUp = LocalPath.build("/data/data/com.example.app/files/sensitive.dat"),
-                    fileType = FileType.FILE,
-                    size = 1024 * 256, // 256KB
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000), // 1 day ago
-                    target = null,
+            issue = MockDataProvider.createMockUnknownErrorIssue(
+                source = MockDataProvider.createMockLocalPathLookup(
+                    path = "/data/data/com.example.app/files/sensitive.dat",
+                    sizeKB = 256,
+                    hoursAgo = 24
                 ),
-                exception = SecurityException("Permission denied for this operation"),
-                errorMessage = "java.lang.SecurityException: Permission denied for this operation".toCaString(),
-                canSkip = true,
-                canRetry = false,
+                errorType = MockDataProvider.ErrorType.SECURITY,
+                canRetry = false
             ),
             onResolution = {},
         )
@@ -329,12 +308,7 @@ private fun UnknownErrorIssueSheetSecurityErrorPreview() {
 private fun UnknownErrorIssueSheetUnknownErrorPreview() {
     PreviewWrapper {
         UnknownErrorIssueSheet(
-            issue = PathActionIssue.UnknownError(
-                errorMessage = "java.lang.RuntimeException: Unexpected vendor-specific error occurred".toCaString(),
-                exception = RuntimeException("Unexpected vendor-specific error occurred"),
-                canSkip = true,
-                canRetry = true,
-            ),
+            issue = MockDataProvider.createMockUnknownErrorIssue(errorType = MockDataProvider.ErrorType.UNKNOWN),
             onResolution = {},
         )
     }
