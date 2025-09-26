@@ -12,6 +12,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.flow.DynamicStateFlow
+import eu.darken.butler.common.flow.shareLatest
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.R
@@ -25,10 +26,12 @@ import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.explorer.core.operations.MoveOperation
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
+import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
-import eu.darken.butler.workspace.core.operations.withStateTypeUpdates
+import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
+import eu.darken.butler.workspace.core.operations.withStateUpdates
 import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
 import eu.darken.butler.workspace.core.tracker.PathAccessTracker
 import kotlinx.coroutines.CancellationException
@@ -38,6 +41,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collectIndexed
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
@@ -71,23 +75,56 @@ class ExplorerWorkspace @AssistedInject constructor(
 
     override val type: Workspace.Type = Workspace.Type.EXPLORER
 
-    private val _state = DynamicStateFlow<State>(loggingTag = tag, parentScope = scope) {
+    private val _state = DynamicStateFlow<State>(parentScope = scope) {
         State()
     }
     val state: Flow<State> = _state.flow
 
-    override val info: Flow<Workspace.Info> = _state.flow.map { state ->
+    data class OperationsState(
+        val operations: Collection<ManagedOperation> = emptySet(),
+        val states: Map<Operation.Id, Operation.State> = emptyMap(),
+        val pendingConflicts: Map<Operation.Id, Issue>,
+    )
+
+    val operations: Flow<OperationsState> = operationsManager.operationsForWorkspace(id)
+        .withStateUpdates()
+        .map { operations ->
+            OperationsState(
+                operations = operations,
+                states = operations.associate { it.id to it.state.value },
+                pendingConflicts = operations.map { it to it.state.value }
+                    .filter { it.second is Operation.State.Waiting }
+                    .associate {
+                        val waitingState = it.second as Operation.State.Waiting
+                        it.first.id to waitingState.issue
+                    },
+            )
+        }
+        .shareLatest(scope)
+
+    override val info: Flow<Workspace.Info> = combine(
+        _state.flow,
+        operationsManager.operationsForWorkspace(id).withOnlyStateChanges()
+    ) { state, operations ->
+        val states = operations.map { it.id to it.state.value }
+        val activeOperations: Int = states.count { it.second !is Operation.State.Completed }
+        val attentionCount: Int = states.count {
+            val value = it.second
+            if (value is Operation.State.Waiting) return@count true
+            if (value is Operation.State.Completed && value.error != null) return@count true
+            return@count false
+        }
         Workspace.Info(
             id = id,
             type = type,
             title = when {
-                state.currentLocation != null -> state.currentLocation.toString().toCaString()
+                state.currentTarget != null -> state.currentTarget.label
                 Bugs.isDebug -> "Explorer ${id.shortTag}".toCaString()
                 else -> R.string.explorer_title.toCaString()
             },
             previewData = ExplorerPreviewData(),
-            operationCount = state.activeOperations,
-            attentionCount = state.attentionCount,
+            operationCount = activeOperations,
+            attentionCount = attentionCount,
         )
     }
 
@@ -104,21 +141,7 @@ class ExplorerWorkspace @AssistedInject constructor(
         val isLoadingExtended: Boolean = false,
         val error: Throwable? = null,
         val progress: Progress.Data? = null,
-        val operationStates: Map<Operation.Id, Operation.State> = emptyMap(),
     ) {
-        val activeOperations: Int = operationStates.count { it !is Operation.State.Completed }
-        val attentionCount: Int = operationStates.count {
-            val value = it.value
-            if (value is Operation.State.Waiting) return@count true
-            if (value is Operation.State.Completed && value.error != null) return@count true
-            return@count false
-        }
-        val pendingConflicts: Map<Operation.Id, Issue> = operationStates
-            .filterValues { it is Operation.State.Waiting }
-            .mapValues { (_, value) ->
-                value as Operation.State.Waiting
-                value.issue
-            }
         val canGoBack: Boolean get() = historyIndex > 0
         val canGoForward: Boolean get() = historyIndex < navigationHistory.size - 1
     }
@@ -158,17 +181,6 @@ class ExplorerWorkspace @AssistedInject constructor(
                         }
                         emit(Unit)
                     }
-                }
-            }
-            .launchIn(scope)
-
-        operationsManager.operationsForWorkspace(id)
-            .withStateTypeUpdates()
-            .onEach { operations ->
-                val operationStates = operations.associate { it.id to it.state.value }
-                log(tag, VERBOSE) { "Updating operation states" }
-                _state.updateBlocking {
-                    copy(operationStates = operationStates)
                 }
             }
             .launchIn(scope)

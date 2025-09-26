@@ -21,6 +21,7 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
+import kotlinx.coroutines.flow.flowOf
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.uuid.Uuid
@@ -73,9 +74,11 @@ fun ExplorerWorkspacePagePreview() {
     )
     PreviewWrapper {
         ExplorerWorkspacePage(
-            state = mockState,
+            mainStateSource = flowOf(mockState),
+            workspaceStateSource = flowOf(null),
+            clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
+            operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
             vm = null,
-            workspaceButtonState = null,
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
         )
@@ -93,9 +96,11 @@ fun ExplorerWorkspacePageLoadingPreview() {
     )
     PreviewWrapper {
         ExplorerWorkspacePage(
-            state = mockState,
+            mainStateSource = flowOf(mockState),
+            workspaceStateSource = flowOf(null),
+            clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
+            operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
             vm = null,
-            workspaceButtonState = null,
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
         )
@@ -113,9 +118,11 @@ fun ExplorerWorkspacePageEmptyPreview() {
     )
     PreviewWrapper {
         ExplorerWorkspacePage(
-            state = mockState,
+            mainStateSource = flowOf(mockState),
+            workspaceStateSource = flowOf(null),
+            clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
+            operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
             vm = null,
-            workspaceButtonState = null,
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
         )
@@ -142,9 +149,11 @@ fun ExplorerWorkspacePageWithSelectionPreview() {
     )
     PreviewWrapper {
         ExplorerWorkspacePage(
-            state = mockState,
+            mainStateSource = flowOf(mockState),
+            workspaceStateSource = flowOf(null),
+            clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
+            operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
             vm = null,
-            workspaceButtonState = null,
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
         )
@@ -177,9 +186,11 @@ fun ExplorerWorkspacePageGridModePreview() {
     )
     PreviewWrapper {
         ExplorerWorkspacePage(
-            state = mockState,
+            mainStateSource = flowOf(mockState),
+            workspaceStateSource = flowOf(null),
+            clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
+            operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
             vm = null,
-            workspaceButtonState = null,
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
         )
@@ -220,9 +231,11 @@ fun ExplorerWorkspacePageGridModeWithSelectionPreview() {
     )
     PreviewWrapper {
         ExplorerWorkspacePage(
-            state = mockState,
+            mainStateSource = flowOf(mockState),
+            workspaceStateSource = flowOf(null),
+            clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
+            operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
             vm = null,
-            workspaceButtonState = null,
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
         )
@@ -235,83 +248,87 @@ fun ExplorerWorkspacePageWithAllBarsPreview() {
     val mockFileItems = MockDataProvider.createAllFileTypes()
 
     // Mock operations
-    val mockOperations = listOf(
-        OperationDisplay(
-            id = Operation.Id(),
-            title = "Deleting files".toCaString(),
-            description = "5 files remaining".toCaString(),
-            icon = Icons.TwoTone.Delete,
-            state = OperationDisplay.State.Running(
-                primaryProgress = Progress.Data(
-                    primary = "Deleting files".toCaString(),
-                    secondary = "Processing files...".toCaString(),
-                    count = Progress.Count.Counter(13, 20)
-                )
+    val mockOperations = ExplorerWorkspaceViewModel.OperationsState(
+        operations = listOf(
+            OperationDisplay(
+                id = Operation.Id(),
+                title = "Deleting files".toCaString(),
+                description = "5 files remaining".toCaString(),
+                icon = Icons.TwoTone.Delete,
+                state = OperationDisplay.State.Running(
+                    primaryProgress = Progress.Data(
+                        primary = "Deleting files".toCaString(),
+                        secondary = "Processing files...".toCaString(),
+                        count = Progress.Count.Counter(13, 20)
+                    )
+                ),
+                canCancel = true,
+                startedAt = Clock.System.now() - 2.minutes,
             ),
-            canCancel = true,
-            startedAt = Clock.System.now() - 2.minutes,
-        ),
-        OperationDisplay(
-            id = Operation.Id(),
-            title = "Copy operation".toCaString(),
-            description = "3 files copied".toCaString(),
-            icon = Icons.TwoTone.ContentCopy,
-            state = OperationDisplay.State.Completed(
-                summary = "Successfully completed".toCaString(),
-                completedAt = Clock.System.now(),
-                report = object : Operation.Report {
-                    override val summary = "Successfully completed".toCaString()
-                    override val affectedPaths = emptyList<Operation.Report.PathChange>()
-                }
+            OperationDisplay(
+                id = Operation.Id(),
+                title = "Copy operation".toCaString(),
+                description = "3 files copied".toCaString(),
+                icon = Icons.TwoTone.ContentCopy,
+                state = OperationDisplay.State.Completed(
+                    summary = "Successfully completed".toCaString(),
+                    completedAt = Clock.System.now(),
+                    report = object : Operation.Report {
+                        override val summary = "Successfully completed".toCaString()
+                        override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                    }
+                ),
+                canCancel = false,
+                startedAt = Clock.System.now() - 5.minutes,
             ),
-            canCancel = false,
-            startedAt = Clock.System.now() - 5.minutes,
-        ),
-        OperationDisplay(
-            id = Operation.Id(),
-            title = "Move documents".toCaString(),
-            description = "Move documents description".toCaString(),
-            icon = Icons.TwoTone.Delete,
-            state = OperationDisplay.State.Running(
-                primaryProgress = Progress.Data(
-                    primary = "Moving documents".toCaString(),
-                    secondary = "Transferring data...".toCaString(),
-                    count = Progress.Count.Size(1024 * 1024 * 5, 1024 * 1024 * 15) // 5MB/15MB
-                )
+            OperationDisplay(
+                id = Operation.Id(),
+                title = "Move documents".toCaString(),
+                description = "Move documents description".toCaString(),
+                icon = Icons.TwoTone.Delete,
+                state = OperationDisplay.State.Running(
+                    primaryProgress = Progress.Data(
+                        primary = "Moving documents".toCaString(),
+                        secondary = "Transferring data...".toCaString(),
+                        count = Progress.Count.Size(1024 * 1024 * 5, 1024 * 1024 * 15) // 5MB/15MB
+                    )
+                ),
+                canCancel = true,
+                startedAt = Clock.System.now() - 1.minutes,
             ),
-            canCancel = true,
-            startedAt = Clock.System.now() - 1.minutes,
-        ),
+        )
     )
 
     // Mock clipboard entries
-    val mockClipboardEntries = listOf(
-        ClipboardClip.Paths(
-            origin = Workspace.Id(Uuid.random()),
-            mode = ClipboardClip.Paths.Mode.COPY,
-            paths = listOf(
-                LocalPath.build("/storage/emulated/0/Pictures/photo1.jpg"),
-                LocalPath.build("/storage/emulated/0/Pictures/photo2.jpg"),
-                LocalPath.build("/storage/emulated/0/Pictures/photo3.jpg"),
+    val mockClipboardEntries = ExplorerWorkspaceViewModel.ClipboardState(
+        entries = listOf(
+            ClipboardClip.Paths(
+                origin = Workspace.Id(Uuid.random()),
+                mode = ClipboardClip.Paths.Mode.COPY,
+                paths = listOf(
+                    LocalPath.build("/storage/emulated/0/Pictures/photo1.jpg"),
+                    LocalPath.build("/storage/emulated/0/Pictures/photo2.jpg"),
+                    LocalPath.build("/storage/emulated/0/Pictures/photo3.jpg"),
+                ),
+                clippedAt = Clock.System.now() - 5.minutes,
             ),
-            clippedAt = Clock.System.now() - 5.minutes,
-        ),
-        ClipboardClip.Paths(
-            origin = Workspace.Id(Uuid.random()),
-            mode = ClipboardClip.Paths.Mode.CUT,
-            paths = listOf(
-                LocalPath.build("/storage/emulated/0/Documents/report.pdf"),
+            ClipboardClip.Paths(
+                origin = Workspace.Id(Uuid.random()),
+                mode = ClipboardClip.Paths.Mode.CUT,
+                paths = listOf(
+                    LocalPath.build("/storage/emulated/0/Documents/report.pdf"),
+                ),
+                clippedAt = Clock.System.now() - 2.minutes,
             ),
-            clippedAt = Clock.System.now() - 2.minutes,
-        ),
-        ClipboardClip.Paths(
-            origin = Workspace.Id(Uuid.random()),
-            mode = ClipboardClip.Paths.Mode.COPY,
-            paths = listOf(
-                LocalPath.build("/storage/emulated/0/Downloads/app.apk"),
+            ClipboardClip.Paths(
+                origin = Workspace.Id(Uuid.random()),
+                mode = ClipboardClip.Paths.Mode.COPY,
+                paths = listOf(
+                    LocalPath.build("/storage/emulated/0/Downloads/app.apk"),
+                ),
+                clippedAt = Clock.System.now() - 1.minutes,
             ),
-            clippedAt = Clock.System.now() - 1.minutes,
-        ),
+        )
     )
 
     val mockState = ExplorerWorkspaceViewModel.State(
@@ -351,18 +368,18 @@ fun ExplorerWorkspacePageWithAllBarsPreview() {
             selectedItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path),
             selectableItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path),
         ),
-        clipboardEntries = mockClipboardEntries,
         isLoading = false,
     )
 
     PreviewWrapper {
         ExplorerWorkspacePage(
-            state = mockState,
+            mainStateSource = flowOf(mockState),
+            clipboardStateSource = flowOf(mockClipboardEntries),
+            operationsStateSource = flowOf(mockOperations),
+            workspaceStateSource = flowOf(null),
             vm = null,
-            workspaceButtonState = WorkspaceButtonViewModel.State(),
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
-            operations = mockOperations,
         )
     }
 }
@@ -373,83 +390,87 @@ fun ExplorerWorkspacePageWithExpandedBarsPreview() {
     val mockFileItems = MockDataProvider.createAllFileTypes()
 
     // Mock operations
-    val mockOperations = listOf(
-        OperationDisplay(
-            id = Operation.Id(),
-            title = "Deleting files".toCaString(),
-            description = "5 files remaining".toCaString(),
-            icon = Icons.TwoTone.Delete,
-            state = OperationDisplay.State.Running(
-                primaryProgress = Progress.Data(
-                    primary = "Deleting files".toCaString(),
-                    secondary = "Processing files...".toCaString(),
-                    count = Progress.Count.Counter(13, 20)
-                )
+    val mockOperations = ExplorerWorkspaceViewModel.OperationsState(
+        operations = listOf(
+            OperationDisplay(
+                id = Operation.Id(),
+                title = "Deleting files".toCaString(),
+                description = "5 files remaining".toCaString(),
+                icon = Icons.TwoTone.Delete,
+                state = OperationDisplay.State.Running(
+                    primaryProgress = Progress.Data(
+                        primary = "Deleting files".toCaString(),
+                        secondary = "Processing files...".toCaString(),
+                        count = Progress.Count.Counter(13, 20)
+                    )
+                ),
+                canCancel = true,
+                startedAt = Clock.System.now() - 2.minutes,
             ),
-            canCancel = true,
-            startedAt = Clock.System.now() - 2.minutes,
-        ),
-        OperationDisplay(
-            id = Operation.Id(),
-            title = "Copy operation".toCaString(),
-            description = "3 files copied".toCaString(),
-            icon = Icons.TwoTone.ContentCopy,
-            state = OperationDisplay.State.Completed(
-                summary = "Successfully completed".toCaString(),
-                completedAt = Clock.System.now(),
-                report = object : Operation.Report {
-                    override val summary = "Successfully completed".toCaString()
-                    override val affectedPaths = emptyList<Operation.Report.PathChange>()
-                }
+            OperationDisplay(
+                id = Operation.Id(),
+                title = "Copy operation".toCaString(),
+                description = "3 files copied".toCaString(),
+                icon = Icons.TwoTone.ContentCopy,
+                state = OperationDisplay.State.Completed(
+                    summary = "Successfully completed".toCaString(),
+                    completedAt = Clock.System.now(),
+                    report = object : Operation.Report {
+                        override val summary = "Successfully completed".toCaString()
+                        override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                    }
+                ),
+                canCancel = false,
+                startedAt = Clock.System.now() - 5.minutes,
             ),
-            canCancel = false,
-            startedAt = Clock.System.now() - 5.minutes,
-        ),
-        OperationDisplay(
-            id = Operation.Id(),
-            title = "Move documents".toCaString(),
-            description = "Move documents description".toCaString(),
-            icon = Icons.TwoTone.ContentCut,
-            state = OperationDisplay.State.Running(
-                primaryProgress = Progress.Data(
-                    primary = "Moving documents".toCaString(),
-                    secondary = "Transferring data...".toCaString(),
-                    count = Progress.Count.Size(1024 * 1024 * 5, 1024 * 1024 * 15) // 5MB/15MB
-                )
+            OperationDisplay(
+                id = Operation.Id(),
+                title = "Move documents".toCaString(),
+                description = "Move documents description".toCaString(),
+                icon = Icons.TwoTone.ContentCut,
+                state = OperationDisplay.State.Running(
+                    primaryProgress = Progress.Data(
+                        primary = "Moving documents".toCaString(),
+                        secondary = "Transferring data...".toCaString(),
+                        count = Progress.Count.Size(1024 * 1024 * 5, 1024 * 1024 * 15) // 5MB/15MB
+                    )
+                ),
+                canCancel = true,
+                startedAt = Clock.System.now() - 1.minutes,
             ),
-            canCancel = true,
-            startedAt = Clock.System.now() - 1.minutes,
-        ),
+        )
     )
 
     // Mock clipboard entries
-    val mockClipboardEntries = listOf(
-        ClipboardClip.Paths(
-            origin = Workspace.Id(Uuid.random()),
-            mode = ClipboardClip.Paths.Mode.COPY,
-            paths = listOf(
-                LocalPath.build("/storage/emulated/0/Pictures/photo1.jpg"),
-                LocalPath.build("/storage/emulated/0/Pictures/photo2.jpg"),
-                LocalPath.build("/storage/emulated/0/Pictures/photo3.jpg"),
+    val mockClipboardEntries = ExplorerWorkspaceViewModel.ClipboardState(
+        entries = listOf(
+            ClipboardClip.Paths(
+                origin = Workspace.Id(Uuid.random()),
+                mode = ClipboardClip.Paths.Mode.COPY,
+                paths = listOf(
+                    LocalPath.build("/storage/emulated/0/Pictures/photo1.jpg"),
+                    LocalPath.build("/storage/emulated/0/Pictures/photo2.jpg"),
+                    LocalPath.build("/storage/emulated/0/Pictures/photo3.jpg"),
+                ),
+                clippedAt = Clock.System.now() - 5.minutes,
             ),
-            clippedAt = Clock.System.now() - 5.minutes,
-        ),
-        ClipboardClip.Paths(
-            origin = Workspace.Id(Uuid.random()),
-            mode = ClipboardClip.Paths.Mode.CUT,
-            paths = listOf(
-                LocalPath.build("/storage/emulated/0/Documents/report.pdf"),
+            ClipboardClip.Paths(
+                origin = Workspace.Id(Uuid.random()),
+                mode = ClipboardClip.Paths.Mode.CUT,
+                paths = listOf(
+                    LocalPath.build("/storage/emulated/0/Documents/report.pdf"),
+                ),
+                clippedAt = Clock.System.now() - 2.minutes,
             ),
-            clippedAt = Clock.System.now() - 2.minutes,
-        ),
-        ClipboardClip.Paths(
-            origin = Workspace.Id(Uuid.random()),
-            mode = ClipboardClip.Paths.Mode.COPY,
-            paths = listOf(
-                LocalPath.build("/storage/emulated/0/Downloads/app.apk"),
+            ClipboardClip.Paths(
+                origin = Workspace.Id(Uuid.random()),
+                mode = ClipboardClip.Paths.Mode.COPY,
+                paths = listOf(
+                    LocalPath.build("/storage/emulated/0/Downloads/app.apk"),
+                ),
+                clippedAt = Clock.System.now() - 1.minutes,
             ),
-            clippedAt = Clock.System.now() - 1.minutes,
-        ),
+        )
     )
 
     val mockState = ExplorerWorkspaceViewModel.State(
@@ -489,18 +510,18 @@ fun ExplorerWorkspacePageWithExpandedBarsPreview() {
             selectedItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path),
             selectableItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path),
         ),
-        clipboardEntries = mockClipboardEntries,
         isLoading = false,
     )
 
     PreviewWrapper {
         ExplorerWorkspacePage(
-            state = mockState,
+            mainStateSource = flowOf(mockState),
+            clipboardStateSource = flowOf(mockClipboardEntries),
+            operationsStateSource = flowOf(mockOperations),
+            workspaceStateSource = flowOf(WorkspaceButtonViewModel.State()),
             vm = null,
-            workspaceButtonState = WorkspaceButtonViewModel.State(),
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
-            operations = mockOperations,
             initialOperationsExpanded = true,
             initialClipboardExpanded = true,
         )

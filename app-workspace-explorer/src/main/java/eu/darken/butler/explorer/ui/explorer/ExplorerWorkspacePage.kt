@@ -45,9 +45,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
-import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
@@ -67,6 +65,7 @@ import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
+import kotlinx.coroutines.flow.Flow
 
 @Composable
 fun ExplorerWorkspacePageHost(
@@ -80,38 +79,38 @@ fun ExplorerWorkspacePageHost(
 ) {
     ErrorEventHandler(vm)
 
-    val workspaceButtonState by workspaceButtonVm.state.collectAsState(null)
-    val operations by vm.operations.collectAsState()
-
-    val state by waitForState(vm.state)
-    log(vm.tag) { "Compose state: ${state?.items?.size} items" }
-
-    state?.let { state ->
-        ExplorerWorkspacePage(
-            design = design,
-            state = state,
-            vm = vm,
-            workspaceButtonState = workspaceButtonState,
-            onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
-            onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
-            operations = operations,
-        )
-    }
+    ExplorerWorkspacePage(
+        design = design,
+        mainStateSource = vm.state,
+        clipboardStateSource = vm.clipboard,
+        operationsStateSource = vm.operations,
+        workspaceStateSource = workspaceButtonVm.state,
+        vm = vm,
+        onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
+        onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExplorerWorkspacePage(
     design: WorkspaceDesign = WorkspaceDesign(),
-    state: ExplorerWorkspaceViewModel.State,
+    mainStateSource: Flow<ExplorerWorkspaceViewModel.State>,
+    operationsStateSource: Flow<ExplorerWorkspaceViewModel.OperationsState>,
+    clipboardStateSource: Flow<ExplorerWorkspaceViewModel.ClipboardState>,
+    workspaceStateSource: Flow<WorkspaceButtonViewModel.State?>,
     vm: ExplorerWorkspaceViewModel? = null,
-    workspaceButtonState: WorkspaceButtonViewModel.State?,
     onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
-    operations: List<OperationDisplay> = emptyList(),
     initialOperationsExpanded: Boolean = false,
     initialClipboardExpanded: Boolean = false,
 ) {
+    val mainState by mainStateSource.collectAsState(ExplorerWorkspaceViewModel.State())
+    val operationsState by operationsStateSource.collectAsState(ExplorerWorkspaceViewModel.OperationsState())
+    val clipboardState by clipboardStateSource.collectAsState(ExplorerWorkspaceViewModel.ClipboardState())
+    val workspaceButtonState by workspaceStateSource.collectAsState(null)
+
+
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
     val listState = rememberLazyListState()
@@ -135,9 +134,9 @@ fun ExplorerWorkspacePage(
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
 
-    LaunchedEffect(state.locationId) {
-        if (state.locationId != null) {
-            if (state.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
+    LaunchedEffect(mainState.locationId) {
+        if (mainState.locationId != null) {
+            if (mainState.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
                 listState.animateScrollToItem(0)
             } else {
                 gridState.animateScrollToItem(0)
@@ -150,10 +149,21 @@ fun ExplorerWorkspacePage(
     // Set the bottom bar height for scroll behavior
     bottomBarScrollBehavior.state.setHeight(64.dp)
 
+    // Derived states for stable recomposition
+    val hasOperations by remember {
+        derivedStateOf { operationsState.operations.isNotEmpty() }
+    }
+    val hasClipboard by remember {
+        derivedStateOf { clipboardState.entries.isNotEmpty() }
+    }
+    val hasActions by remember {
+        derivedStateOf { mainState.availableActions.isNotEmpty() }
+    }
+
     // Track action bar visibility for clipboard animations
     val isActionBarHidden by remember {
         derivedStateOf {
-            bottomBarScrollBehavior.state.collapsedFraction > 0.1f || state.availableActions.isEmpty()
+            bottomBarScrollBehavior.state.collapsedFraction > 0.1f || !hasActions
         }
     }
 
@@ -191,7 +201,7 @@ fun ExplorerWorkspacePage(
             },
             topBar = {
                 ExplorerTopBar(
-                    breadcrumbs = state.breadcrumbs,
+                    breadcrumbs = mainState.breadcrumbs,
                     scrollBehavior = scrollBehavior,
                     onBreadcrumbClick = { target -> vm?.navigate(target) },
                     onNavigateToPath = { path -> vm?.navigateToPathString(path) },
@@ -209,20 +219,20 @@ fun ExplorerWorkspacePage(
             ) {
                 // InfoBar moved to top
                 ExplorerInfoBar(
-                    info = state.currentLocation?.info,
-                    selectedCount = state.selectionState.selectedItems.size,
+                    info = mainState.currentLocation?.info,
+                    selectedCount = mainState.selectionState.selectedItems.size,
                 )
 
-                if (state.permissionState.needsPermissions) {
+                if (mainState.permissionState.needsPermissions) {
                     // Show permission request card when permissions are missing
                     PermissionRequestCard(
-                        permissionState = state.permissionState,
+                        permissionState = mainState.permissionState,
                         onNavigateToSetup = {
                             vm?.navigateToSetup()
                         },
                         modifier = Modifier.fillMaxSize(),
                     )
-                } else if (state.isLoading) {
+                } else if (mainState.isLoading) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -235,7 +245,7 @@ fun ExplorerWorkspacePage(
                             modifier = Modifier.padding(top = 16.dp)
                         )
                     }
-                } else if (state.items.isEmpty()) {
+                } else if (mainState.items.isEmpty()) {
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
@@ -252,7 +262,7 @@ fun ExplorerWorkspacePage(
                     Box(
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        if (state.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
+                        if (mainState.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
                             LazyColumn(
                                 state = listState,
                                 modifier = Modifier
@@ -265,31 +275,29 @@ fun ExplorerWorkspacePage(
                                     end = 12.dp,
                                     top = 12.dp,
                                     bottom = run {
-                                        val actionBarHeight =
-                                            if (state.availableActions.isNotEmpty()) 64.dp else 0.dp // 48dp + 16dp padding
-                                        val clipboardHeight =
-                                            if (state.clipboardEntries.isNotEmpty()) 88.dp else 0.dp // ~80dp + 8dp padding
+                                        val actionBarHeight = if (hasActions) 64.dp else 0.dp // 48dp + 16dp padding
+                                        val clipboardHeight = if (hasClipboard) 88.dp else 0.dp // ~80dp + 8dp padding
                                         val operationsHeight =
-                                            if (operations.isNotEmpty()) 80.dp else 0.dp // Operations bar height + padding
+                                            if (hasOperations) 80.dp else 0.dp // Operations bar height + padding
                                         actionBarHeight + clipboardHeight + operationsHeight + 12.dp // Extra space
                                     }
                                 )
                             ) {
-                                items(state.items) { item ->
+                                items(mainState.items) { item ->
                                     when (item) {
                                         is ExplorerItem.PathItem -> PathItemRow(
                                             item = item,
-                                            isSelected = state.selectionState.selectedItems.contains(item.id),
+                                            isSelected = mainState.selectionState.selectedItems.contains(item.id),
                                             onToggleSelection = { vm?.toggleItemSelection(item) },
                                             onClick = {
-                                                if (state.selectionState.selectedItems.isNotEmpty()) {
+                                                if (mainState.selectionState.selectedItems.isNotEmpty()) {
                                                     vm?.toggleItemSelection(item)
                                                 } else {
                                                     vm?.navigate(item)
                                                 }
                                             },
                                             onLongClick = { vm?.toggleItemSelection(item) },
-                                            showSelection = state.selectionState.selectedItems.isNotEmpty()
+                                            showSelection = mainState.selectionState.selectedItems.isNotEmpty()
                                         )
                                         is ExplorerItem.Shortcut -> ShortcutRow(
                                             item = item,
@@ -313,31 +321,29 @@ fun ExplorerWorkspacePage(
                                     end = 2.dp,
                                     top = 2.dp,
                                     bottom = run {
-                                        val actionBarHeight =
-                                            if (state.availableActions.isNotEmpty()) 64.dp else 0.dp // 48dp + 16dp padding
-                                        val clipboardHeight =
-                                            if (state.clipboardEntries.isNotEmpty()) 88.dp else 0.dp // ~80dp + 8dp padding
+                                        val actionBarHeight = if (hasActions) 64.dp else 0.dp // 48dp + 16dp padding
+                                        val clipboardHeight = if (hasClipboard) 88.dp else 0.dp // ~80dp + 8dp padding
                                         val operationsHeight =
-                                            if (operations.isNotEmpty()) 80.dp else 0.dp // Operations bar height + padding
+                                            if (hasOperations) 80.dp else 0.dp // Operations bar height + padding
                                         actionBarHeight + clipboardHeight + operationsHeight + 2.dp // Extra space
                                     }
                                 )
                             ) {
-                                items(state.items) { item ->
+                                items(mainState.items) { item ->
                                     when (item) {
                                         is ExplorerItem.PathItem -> PathItemGrid(
                                             item = item,
-                                            isSelected = state.selectionState.selectedItems.contains(item.lookup.path),
+                                            isSelected = mainState.selectionState.selectedItems.contains(item.lookup.path),
                                             onToggleSelection = { vm?.toggleItemSelection(item) },
                                             onClick = {
-                                                if (state.selectionState.selectedItems.isNotEmpty()) {
+                                                if (mainState.selectionState.selectedItems.isNotEmpty()) {
                                                     vm?.toggleItemSelection(item)
                                                 } else {
                                                     vm?.navigate(item)
                                                 }
                                             },
                                             onLongClick = { vm?.toggleItemSelection(item) },
-                                            showSelection = state.selectionState.selectedItems.isNotEmpty()
+                                            showSelection = mainState.selectionState.selectedItems.isNotEmpty()
                                         )
                                         is ExplorerItem.Shortcut -> ShortcutGrid(
                                             item = item,
@@ -348,7 +354,7 @@ fun ExplorerWorkspacePage(
                             }
                         }
 
-                        if (state.isLoadingExtended) {
+                        if (mainState.isLoadingExtended) {
                             Box(
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
@@ -368,7 +374,7 @@ fun ExplorerWorkspacePage(
 
         // Floating Operations and Clipboard Bars Container
         AnimatedVisibility(
-            visible = operations.isNotEmpty() || state.clipboardEntries.isNotEmpty(),
+            visible = hasOperations || hasClipboard,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(
@@ -387,12 +393,12 @@ fun ExplorerWorkspacePage(
             ) {
                 // Operations Bar (top)
                 AnimatedVisibility(
-                    visible = operations.isNotEmpty(),
+                    visible = hasOperations,
                     enter = slideInVertically(animationSpec = tween(150)) { it },
                     exit = slideOutVertically(animationSpec = tween(150)) { it },
                 ) {
                     OperationsBar(
-                        operations = operations,
+                        operations = operationsState.operations,
                         onCancelOperation = { id -> vm?.cancelOperation(id) },
                         onDismissOperation = { id -> vm?.dismissOperation(id) },
                         onOperationClick = { operation ->
@@ -401,7 +407,7 @@ fun ExplorerWorkspacePage(
                                     vm?.showConflictSheet()
                                 }
                                 else -> {
-                                    operationDialogState = OperationDialogState.OperationDetails(operation)
+                                    operationDialogState = OperationDialogState.OperationDetails(operation.id)
                                 }
                             }
                         },
@@ -412,12 +418,12 @@ fun ExplorerWorkspacePage(
 
                 // Clipboard Bar (bottom)
                 AnimatedVisibility(
-                    visible = state.clipboardEntries.isNotEmpty(),
+                    visible = hasClipboard,
                     enter = slideInVertically(animationSpec = tween(150)) { it },
                     exit = slideOutVertically(animationSpec = tween(150)) { it },
                 ) {
                     ClipboardBar(
-                        clipboardEntries = state.clipboardEntries,
+                        clipboardEntries = clipboardState.entries,
                         onPasteClick = { clip -> vm?.pasteClipboard(clip) },
                         onRemoveClick = { clip -> vm?.removeClipboardEntry(clip) },
                         onEntryClick = { clip ->
@@ -431,7 +437,7 @@ fun ExplorerWorkspacePage(
         }
 
         // Floating Bottom ActionBar
-        if (state.availableActions.isNotEmpty()) {
+        if (hasActions) {
             ExplorerActionBar(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -441,18 +447,19 @@ fun ExplorerWorkspacePage(
                         alpha = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 0f else 1f
                         translationY = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 64.dp.toPx() else 0f
                     },
-                actions = state.availableActions,
+                actions = mainState.availableActions,
                 onActionClick = { action -> vm?.executeAction(action) },
             )
         }
 
         ExplorerDialogHost(
-            dialogState = state.dialogState,
+            dialogState = mainState.dialogState,
             vm = vm
         )
 
         OperationDialogHost(
             dialogState = operationDialogState,
+            operations = operationsState.operations,
             onDismissDialog = { operationDialogState = OperationDialogState.None },
             onCancelOperation = { vm?.cancelOperation(it) },
             onCopyError = { vm?.copyError(it) }

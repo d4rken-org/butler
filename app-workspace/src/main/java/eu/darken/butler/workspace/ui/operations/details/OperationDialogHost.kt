@@ -7,6 +7,7 @@ import eu.darken.butler.workspace.ui.operations.OperationDisplay
 @Composable
 fun OperationDialogHost(
     dialogState: OperationDialogState,
+    operations: List<OperationDisplay>,
     onDismissDialog: () -> Unit,
     onCancelOperation: ((Operation.Id) -> Unit)? = null,
     onCopyError: ((Operation.Id) -> Unit)? = null,
@@ -17,22 +18,30 @@ fun OperationDialogHost(
         }
 
         is OperationDialogState.OperationDetails -> {
-            OperationDetailsSheet(
-                operation = dialogState.operation,
-                onDismiss = onDismissDialog,
-                onCancel = if (dialogState.operation.canCancel && dialogState.operation.state is OperationDisplay.State.Running) {
-                    {
-                        onDismissDialog()
-                        onCancelOperation?.invoke(dialogState.operation.id)
-                    }
-                } else null,
-                onCopyError = if (dialogState.operation.state is OperationDisplay.State.Failed) {
-                    {
-                        onCopyError?.invoke(dialogState.operation.id)
-                        onDismissDialog()
-                    }
-                } else null,
-            )
+            // Find the current operation from the operations list
+            val currentOperation = operations.find { it.id == dialogState.operationId }
+
+            if (currentOperation != null) {
+                OperationDetailsSheet(
+                    operation = currentOperation,
+                    onDismiss = onDismissDialog,
+                    onCancel = if (currentOperation.canCancel && currentOperation.state is OperationDisplay.State.Running) {
+                        {
+                            onDismissDialog()
+                            onCancelOperation?.invoke(currentOperation.id)
+                        }
+                    } else null,
+                    onCopyError = if (currentOperation.state is OperationDisplay.State.Failed) {
+                        {
+                            onCopyError?.invoke(currentOperation.id)
+                            onDismissDialog()
+                        }
+                    } else null,
+                )
+            } else {
+                // Operation not found, dismiss the dialog
+                onDismissDialog()
+            }
         }
     }
 }

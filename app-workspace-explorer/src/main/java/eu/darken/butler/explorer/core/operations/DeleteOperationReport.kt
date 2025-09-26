@@ -18,19 +18,19 @@ data class DeleteOperationReport(
 
     override val summary: CaString = caString {
         buildString {
-            if (deletedDirectories >= 0) {
+            if (deletedFiles > 0) {
                 append(
                     it.getQuantityString2(R.plurals.explorer_operation_report_files_deleted, deletedFiles)
                 )
                 append(" ")
             }
-            if (deletedFiles >= 0) {
+            if (deletedDirectories > 0) {
                 append(
                     it.getQuantityString2(R.plurals.explorer_operation_report_directories_deleted, deletedDirectories)
                 )
                 append(" ")
             }
-            if (bytesFreed >= 0) {
+            if (bytesFreed > 0) {
                 append(
                     it.getQuantityString2(
                         R.plurals.explorer_operation_report_bytes_freed,

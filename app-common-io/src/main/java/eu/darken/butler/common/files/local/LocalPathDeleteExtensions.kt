@@ -81,39 +81,40 @@ suspend fun Collection<LocalPath>.delete(
         val totalItemsForTarget = files.size + dirsPost.size
         var itemsProcessed = 0
 
+        fun createProgress(target: LocalPathLookup) = DeleteAction.State.Progress(
+            target = target,
+            bytesCurrent = bytesTotal,
+            primaryProgress = eu.darken.butler.common.progress.Progress.Data(
+                primary = R.string.general_delete_progress_title.toCaString(currentTopLevel.name),
+                secondary = if (target == currentTopLevel) {
+                    R.string.general_delete_progress_processing_main.toCaString()
+                } else {
+                    R.string.general_delete_progress_processing_content.toCaString()
+                },
+                count = eu.darken.butler.common.progress.Progress.Count.Counter(
+                    current = index,
+                    max = this@delete.size
+                )
+            ),
+            secondaryProgress = if (totalItemsForTarget > 1) {
+                eu.darken.butler.common.progress.Progress.Data(
+                    primary = R.string.general_delete_progress_items_in_folder.toCaString(
+                        currentTopLevel.name
+                    ),
+                    secondary = target.userReadablePath,
+                    count = eu.darken.butler.common.progress.Progress.Count.Percent(
+                        current = itemsProcessed,
+                        max = totalItemsForTarget
+                    )
+                )
+            } else null
+        )
+
         suspend fun tryDelete(target: LocalPathLookup) {
+            log(TAG, VERBOSE) { "tryDelete(): $target" }
             while (currentCoroutineContext().isActive) {
                 try {
-                    onProgress?.invoke(
-                        DeleteAction.State.Progress(
-                            target = target,
-                            bytesCurrent = bytesTotal,
-                            primaryProgress = eu.darken.butler.common.progress.Progress.Data(
-                                primary = R.string.general_delete_progress_title.toCaString(currentTopLevel.name),
-                                secondary = if (target == currentTopLevel) {
-                                    R.string.general_delete_progress_processing_main.toCaString()
-                                } else {
-                                    R.string.general_delete_progress_processing_content.toCaString()
-                                },
-                                count = eu.darken.butler.common.progress.Progress.Count.Counter(
-                                    current = index,
-                                    max = this@delete.size
-                                )
-                            ),
-                            secondaryProgress = if (totalItemsForTarget > 1) {
-                                eu.darken.butler.common.progress.Progress.Data(
-                                    primary = R.string.general_delete_progress_items_in_folder.toCaString(
-                                        currentTopLevel.name
-                                    ),
-                                    secondary = target.userReadablePath,
-                                    count = eu.darken.butler.common.progress.Progress.Count.Counter(
-                                        current = itemsProcessed,
-                                        max = totalItemsForTarget
-                                    )
-                                )
-                            } else null
-                        )
-                    )
+                    onProgress?.invoke(createProgress(target))
                     Files.delete(target.lookedUp.file.toPath())
                     bytesTotal += size
                     deleted += target
@@ -124,6 +125,7 @@ suspend fun Collection<LocalPath>.delete(
 
                     if (issueSkippAllPermission) {
                         log(TAG, INFO) { "Skipping permission issue (apply-to-all): $target" }
+                        itemsProcessed++
                         break
                     }
 
@@ -133,6 +135,7 @@ suspend fun Collection<LocalPath>.delete(
                     val issue = PathActionIssue.InsufficientPermission(
                         destination = target,
                         exception = deleteError,
+                        canSkip = true,
                     )
 
                     when (val resolution = onIssue.invoke(issue) as PathActionIssue.InsufficientPermission.Resolution) {
@@ -142,6 +145,7 @@ suspend fun Collection<LocalPath>.delete(
                         )
                         is PathActionIssue.InsufficientPermission.Resolution.Skip -> {
                             if (resolution.applyToAll) issueSkippAllPermission = true
+                            itemsProcessed++
                             break
                         }
                     }
@@ -150,6 +154,7 @@ suspend fun Collection<LocalPath>.delete(
 
                     if (issueSkippAllUnknown) {
                         log(TAG, INFO) { "Skipping unknown issue (apply-to-all): $target" }
+                        itemsProcessed++
                         break
                     }
 
@@ -163,9 +168,12 @@ suspend fun Collection<LocalPath>.delete(
 
                     val issue = PathActionIssue.UnknownError(
                         destination = target,
-                        exception = deleteError
+                        exception = deleteError,
+                        canRetry = true,
+                        canSkip = true
                     )
 
+                    log(TAG, VERBOSE) { "delete(): Invoking issue handler: $issue" }
                     when (val resolution = onIssue.invoke(issue) as PathActionIssue.UnknownError.Resolution) {
                         is PathActionIssue.UnknownError.Resolution.Cancel -> throw CancellationException(
                             "User cancelled",
@@ -174,9 +182,12 @@ suspend fun Collection<LocalPath>.delete(
                         is PathActionIssue.UnknownError.Resolution.Retry -> continue
                         is PathActionIssue.UnknownError.Resolution.Skip -> {
                             if (resolution.applyToAll) issueSkippAllUnknown = true
+                            itemsProcessed++
                             break
                         }
                     }
+                } finally {
+                    onProgress?.invoke(createProgress(target))
                 }
             }
         }

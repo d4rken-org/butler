@@ -52,22 +52,21 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
-import eu.darken.butler.workspace.core.operations.operationsForWorkspace
-import eu.darken.butler.workspace.core.operations.withStateUpdates
 import eu.darken.butler.workspace.core.permissions.PermissionState
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 
 @HiltViewModel(assistedFactory = ExplorerWorkspaceViewModel.Factory::class)
 class ExplorerWorkspaceViewModel @AssistedInject constructor(
@@ -98,27 +97,32 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     val dialogEvents = SingleEventFlow<ExplorerDialogEvent>()
 
-    private val workspace: Flow<ExplorerWorkspace?> = workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
+    private val workspaceSource: Flow<ExplorerWorkspace?> =
+        workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
     private val itemSorter = itemSorterFactory.create(id)
     private val currentSortSettings = MutableStateFlow(explorerSettings.sortSettings.valueBlocking)
-    private suspend fun getWorkspace() = workspace.filterNotNull().first()
+    private suspend fun getWorkspace() = workspaceSource.filterNotNull().first()
 
-    private val workspaceState: Flow<ExplorerWorkspace.State> = workspace.flatMapLatest { ws ->
+    private val workspaceState: Flow<ExplorerWorkspace.State> = workspaceSource.flatMapLatest { ws ->
         ws?.state ?: flowOf(ExplorerWorkspace.State())
     }
 
     init {
         // Handle dialog events
-        launch {
-            dialogEvents.collect { event ->
+        dialogEvents
+            .onEach { event ->
                 handleDialogEvent(event)
             }
-        }
+            .launchInViewModel()
 
         // Observe pending conflicts from workspace and update UI state
-        launch {
-            workspaceState.collect { wsState ->
-                val firstConflictEntry = wsState.pendingConflicts.entries.firstOrNull()
+        workspaceSource
+            .filterNotNull()
+            .flatMapLatest { it.operations }
+            .map { it.pendingConflicts }
+            .distinctUntilChanged()
+            .onEach { conflicts ->
+                val firstConflictEntry = conflicts.entries.firstOrNull()
                 if (firstConflictEntry != null) {
                     val (operationId, awaitingInputState) = firstConflictEntry
                     currentConflictOperationId = operationId
@@ -128,7 +132,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     issueStateFlow.value = null
                 }
             }
-        }
+            .launchInViewModel()
     }
 
     enum class ViewMode {
@@ -136,15 +140,30 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         GRID
     }
 
+    data class State(
+        val currentLocation: ExplorerLocation? = null,
+        val locationId: String? = null,
+        val breadcrumbs: List<ExplorerBreadcrumb> = emptyList(),
+        val items: List<ExplorerItem> = emptyList(),
+        val isLoading: Boolean = true,
+        val isLoadingExtended: Boolean = false,
+        val error: Throwable? = null,
+        val selectionState: ExplorerSelectionState = ExplorerSelectionState(),
+        val viewMode: ViewMode = ViewMode.LIST,
+        val canGoBack: Boolean = false,
+        val canGoForward: Boolean = false,
+        val availableActions: List<ExplorerAction> = emptyList(),
+        val dialogState: ExplorerDialogState = ExplorerDialogState.None,
+        val permissionState: PermissionState = PermissionState(),
+    )
 
     val state = combine(
         workspaceState,
         selectedItemsFlow,
         viewModeFlow,
-        clipboardRepo.state,
         dialogStateFlow,
         currentSortSettings,
-    ) { wsState, selectedItems, viewMode, clipboard, dialogState, sortSetting ->
+    ) { wsState, selectedItems, viewMode, dialogState, sortSetting ->
         val rawItems = wsState.currentLocation?.items ?: emptyList()
         val items = itemSorter.sortItems(rawItems, sortSetting)
 
@@ -174,37 +193,45 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             canGoForward = wsState.canGoForward,
             availableActions = availableActions,
             dialogState = dialogState,
-            clipboardEntries = clipboard.entries,
             permissionState = wsState.currentLocation?.permissionState ?: PermissionState(),
         )
     }.asStateFlow()
 
-    val operations = operationsManager
-        .operationsForWorkspace(id)
-        .withStateUpdates()
-        .map { managedOps ->
-            managedOps.map { it.toDisplayModel() }
+    val clipboard = clipboardRepo.state
+        .map { repoState -> ClipboardState(entries = repoState.entries) }
+        .asStateFlow()
+
+    data class ClipboardState(
+        val entries: List<ClipboardClip> = emptyList(),
+    )
+
+    data class OperationsState(
+        val operations: List<OperationDisplay> = emptyList(),
+    )
+
+    val operations = workspaceSource
+        .filterNotNull()
+        .flatMapLatest { it.operations }
+        .map { opsState ->
+            val ops = opsState.operations
+                .map { it.toDisplayModel() }
+                .sortedWith(
+                    compareBy<OperationDisplay> { op ->
+                        // Priority: Running > Waiting (was running, needs input) > Queued > Others
+                        when (op.state) {
+                            is OperationDisplay.State.Running -> 0
+                            is OperationDisplay.State.Waiting -> 1  // Higher priority than queued
+                            is OperationDisplay.State.Queued -> 2
+                            is OperationDisplay.State.Failed -> 3
+                            is OperationDisplay.State.Cancelled -> 4
+                            is OperationDisplay.State.Completed -> 5
+                        }
+                    }.thenBy { it.startedAt } // Oldest first within each group
+                )
+            OperationsState(operations = ops)
         }
-        .map { displayOps ->
-            displayOps.sortedWith(
-                compareBy<OperationDisplay> { op ->
-                    // Priority: Running > Waiting (was running, needs input) > Queued > Others
-                    when (op.state) {
-                        is OperationDisplay.State.Running -> 0
-                        is OperationDisplay.State.Waiting -> 1  // Higher priority than queued
-                        is OperationDisplay.State.Queued -> 2
-                        is OperationDisplay.State.Failed -> 3
-                        is OperationDisplay.State.Cancelled -> 4
-                        is OperationDisplay.State.Completed -> 5
-                    }
-                }.thenBy { it.startedAt } // Oldest first within each group
-            )
-        }
-        .stateIn(
-            scope = vmScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+        .onStart { emit(OperationsState()) }
+        .asStateFlow()
 
     fun navigate(item: ExplorerItem) = launch {
         log(tag) { "navigate($item)" }
@@ -631,29 +658,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             log(tag, WARN) { "Cannot show conflict sheet: no current conflict" }
         }
     }
-
-    data class State(
-        val currentLocation: ExplorerLocation? = null,
-        val locationId: String? = null,
-        val breadcrumbs: List<ExplorerBreadcrumb> = emptyList(),
-        val items: List<ExplorerItem>,
-        val isLoading: Boolean,
-        val isLoadingExtended: Boolean = false,
-        val error: Throwable? = null,
-        val selectionState: ExplorerSelectionState = ExplorerSelectionState(),
-        val viewMode: ViewMode = ViewMode.LIST,
-        val canGoBack: Boolean = false,
-        val canGoForward: Boolean = false,
-        val availableActions: List<ExplorerAction> = emptyList(),
-        val dialogState: ExplorerDialogState = ExplorerDialogState.None,
-        val clipboardEntries: List<ClipboardClip> = emptyList(),
-        val permissionState: PermissionState = PermissionState(),
-    )
-
-    data class ClipboardState(
-        val items: Set<String>,
-        val isCut: Boolean,
-    )
 
     fun navigateToSetup() = launch {
         log(tag) { "navigateToSetup(): Opening setup for storage permissions" }

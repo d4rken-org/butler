@@ -13,7 +13,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
-import eu.darken.butler.workspace.core.operations.withStateTypeUpdates
+import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
 import eu.darken.butler.workspace.core.preview.EditorPreviewData
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -108,14 +108,13 @@ class EditorWorkspace @AssistedInject constructor(
         log(tag, INFO) { "Initialized with file: ${filePath?.name ?: "No file"}" }
 
         // Track operation counts for this workspace
-        operationsManager.operationsForWorkspace(id).withStateTypeUpdates()
+        operationsManager.operationsForWorkspace(id).withOnlyStateChanges()
             .onEach { operations ->
                 var operationCount = 0
                 var attentionCount = 0
 
                 operations.forEach { operation ->
-                    val state = operation.state.value
-                    when (state) {
+                    when (val state = operation.state.value) {
                         is Operation.State.Queued -> operationCount++
                         is Operation.State.Active -> operationCount++
                         is Operation.State.Waiting -> {

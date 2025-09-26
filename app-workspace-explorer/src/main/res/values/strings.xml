@@ -39,8 +39,8 @@
     <string name="explorer_action_deselect_all">Deselect All</string>
 
     <!-- Navigation -->
-    <string name="explorer_nav_device">Device</string>
     <string name="explorer_nav_home">Home</string>
+    <string name="explorer_nav_device">Device</string>
     <string name="explorer_nav_root">Root</string>
     <string name="explorer_nav_internal_storage">Internal public storage</string>
 
