@@ -14,14 +14,15 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.actions.CopyAction
+import eu.darken.butler.common.files.actions.DeleteAction
+import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
-import eu.darken.butler.common.files.operations.CopyOperation
-import eu.darken.butler.common.files.operations.MoveOperation
 import eu.darken.butler.common.sharedresource.SharedResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -156,47 +157,6 @@ class SAFGateway @Inject constructor(
             docFile.exists
         } catch (e: Exception) {
             throw ReadException(path = path, cause = e)
-        }
-    }
-
-    suspend fun delete(path: SAFPath) = delete(path, recursive = false)
-
-    override suspend fun delete(path: SAFPath, recursive: Boolean) = runIO {
-
-        log(TAG, VERBOSE) { "delete(recursive=$recursive): $path" }
-
-        val queue = LinkedList(listOf(lookup(path)))
-
-        while (!queue.isEmpty()) {
-            val lookUp = queue.removeFirst()
-
-            if (lookUp.isDirectory) {
-                val newBatch = try {
-                    lookupFiles(lookUp.lookedUp)
-                } catch (e: IOException) {
-                    log(TAG, ERROR) { "Failed to read directory to delete $lookUp: $e" }
-                    throw ReadException(path = path, cause = e)
-                }
-                queue.addAll(newBatch)
-            } else {
-                var success = try {
-                    lookUp.docFile.delete()
-                } catch (e: Exception) {
-                    throw WriteException(path = path, cause = e)
-                }
-
-                if (!success) {
-                    success = try {
-                        !lookUp.docFile.exists
-                    } catch (e: IOException) {
-                        log(TAG, ERROR) { "Failed to perform exists() check $lookUp: $e" }
-                        throw ReadException(path = path, cause = e)
-                    }
-                    if (success) log(TAG, WARN) { "Tried to delete file, but it's already gone: $path" }
-                }
-
-                if (!success) throw IOException("Document delete() call returned false")
-            }
         }
     }
 
@@ -428,28 +388,74 @@ class SAFGateway @Inject constructor(
         throw UnsupportedOperationException("SAF doesn't support symlinks. createSymlink(linkPath=$linkPath, targetPath=$targetPath)")
     }
 
+    override suspend fun delete(
+        targets: Set<SAFPath>,
+        options: DeleteAction.Options<SAFPath>
+    ): Flow<DeleteAction.State<SAFPath, SAFPathLookup>> {
+        TODO("Not yet implemented")
+//        log(TAG, VERBOSE) { "delete(recursive=$recursive): $path" }
+//
+//        val queue = LinkedList(listOf(lookup(path)))
+//
+//        while (!queue.isEmpty()) {
+//            val lookUp = queue.removeFirst()
+//
+//            if (lookUp.isDirectory) {
+//                val newBatch = try {
+//                    lookupFiles(lookUp.lookedUp)
+//                } catch (e: IOException) {
+//                    log(TAG, ERROR) { "Failed to read directory to delete $lookUp: $e" }
+//                    throw ReadException(path = path, cause = e)
+//                }
+//                queue.addAll(newBatch)
+//            } else {
+//                var success = try {
+//                    lookUp.docFile.delete()
+//                } catch (e: Exception) {
+//                    throw WriteException(path = path, cause = e)
+//                }
+//
+//                if (!success) {
+//                    success = try {
+//                        !lookUp.docFile.exists
+//                    } catch (e: IOException) {
+//                        log(TAG, ERROR) { "Failed to perform exists() check $lookUp: $e" }
+//                        throw ReadException(path = path, cause = e)
+//                    }
+//                    if (success) log(TAG, WARN) { "Tried to delete file, but it's already gone: $path" }
+//                }
+//
+//                if (!success) throw IOException("Document delete() call returned false")
+//            }
+//        }
+    }
+
     override suspend fun copy(
-        source: SAFPath,
+        sources: Set<SAFPath>,
         destination: SAFPath,
-        options: CopyOperation.Options
-    ): Flow<CopyOperation.Result> = flow {
+        options: CopyAction.Options<SAFPath>
+    ): Flow<CopyAction.State<SAFPath>> {
         // TODO: Implement using DocumentFile APIs
-        // - Use DocumentFile.listFiles() for traversal
+        // - Use DocumentFile.listFiles() for traversal across all sources
         // - Use ContentResolver streams for copying
         // - Handle issues via options.onIssue callback
-        throw NotImplementedError("TODO: SAFGateway copy implementation")
+        // - Report cumulative progress across all sources
+        // - Support "Apply to All" via gateway-level state management
+        throw NotImplementedError("TODO: SAFGateway multi-source copy implementation")
     }
 
     override suspend fun move(
-        source: SAFPath,
+        sources: Set<SAFPath>,
         destination: SAFPath,
-        options: MoveOperation.Options
-    ): Flow<MoveOperation.Result> = flow {
+        options: MoveAction.Options<SAFPath>
+    ): Flow<MoveAction.State<SAFPath>> {
         // TODO: Implement using DocumentFile.renameTo()
-        // - Try renameTo() for same parent directory
+        // - Try renameTo() for same parent directory across all sources
         // - Fallback to copy+delete for different parents
         // - Handle issues via options.onIssue callback
-        throw NotImplementedError("TODO: SAFGateway move implementation")
+        // - Report cumulative progress across all sources
+        // - Support "Apply to All" via gateway-level state management
+        throw NotImplementedError("TODO: SAFGateway multi-source move implementation")
     }
 
     companion object {

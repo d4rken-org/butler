@@ -199,12 +199,11 @@ class FileOpsHost @Inject constructor(
         throw e.wrapToPropagate()
     }
 
-    override fun delete(path: LocalPath, recursive: Boolean, dryRun: Boolean): Boolean = try {
-        log(TAG, VERBOSE) { "delete($path,recursive=$recursive,dryRun=$dryRun)..." }
+    override fun delete(path: LocalPath, recursive: Boolean): Boolean = try {
+        log(TAG, VERBOSE) { "delete($path,recursive=$recursive)..." }
         val javaFile = path.asFile()
 
         var success = when {
-            dryRun -> javaFile.canWrite()
             recursive -> javaFile.deleteRecursively()
             else -> javaFile.delete()
         }
@@ -216,7 +215,7 @@ class FileOpsHost @Inject constructor(
 
         success
     } catch (e: Exception) {
-        log(TAG, ERROR) { "delete(path=$path,recursive=$recursive,dryRun=$dryRun) failed\n${e.asLog()}" }
+        log(TAG, ERROR) { "delete(path=$path,recursive=$recursive) failed\n${e.asLog()}" }
         throw e.wrapToPropagate()
     }
 

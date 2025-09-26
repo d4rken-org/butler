@@ -6,11 +6,14 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.APathLookupExtended
-import eu.darken.butler.common.files.errors.PathException
+import eu.darken.butler.common.files.actions.CopyAction
+import eu.darken.butler.common.files.actions.DeleteAction
+import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.onCompletion
 import okio.FileHandle
 import okio.IOException
 import kotlin.time.Instant
@@ -81,46 +84,21 @@ suspend fun <T : APath> T.createDirIfNecessary(gateway: APathGateway<T, out APat
     return this
 }
 
-suspend fun <T : APath> T.delete(
-    gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
-    recursive: Boolean = false,
-) {
-    gateway.delete(
-        this,
-        recursive = recursive
-    )
-    log(VERBOSE) { "APath.delete(recursive=$recursive): Deleted $this" }
-}
+suspend fun <P : APath, PL : APathLookup<P>> P.delete(
+    gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
+    options: DeleteAction.Options<P>,
+) = setOf(this).delete(gateway, options)
 
-suspend fun <T : APath> T.deleteWalk(
-    gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
-    filter: (APathLookup<*>) -> Boolean = { true }
-) {
-    try {
-        val lookup = gateway.lookup(this)
-
-        if (lookup.isDirectory) {
-            gateway.listFiles(this).forEach {
-                it.deleteWalk(gateway, filter) // Recursion enter
-            }
+suspend fun <P : APath, PL : APathLookup<P>> Collection<P>.delete(
+    gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
+    options: DeleteAction.Options<P>,
+): Flow<DeleteAction.State<P, PL>> {
+    val targets = this@delete.toSet()
+    return gateway
+        .delete(targets = targets, options = options)
+        .onCompletion {
+            log(VERBOSE) { "Collection<APath>.delete(options=$options): Deleted $targets" }
         }
-
-        if (!filter(lookup)) {
-            log(VERBOSE) { "Skipped due to filter: $this" }
-            return
-        }
-    } catch (e: PathException) {
-        val exists = gateway.exists(this)
-        if (!exists) {
-            log(WARN) { "Path failed to delete, but no longer exists: $this" }
-            return
-        } else {
-            throw e
-        }
-    }
-
-    // Recursion exit
-    this.delete(gateway, recursive = false)
 }
 
 suspend fun <T : APath> T.file(
@@ -188,4 +166,48 @@ suspend fun <T : APath> T.isFile(gateway: APathGateway<T, out APathLookup<T>, ou
 
 suspend fun <T : APath> T.isDirectory(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): Boolean {
     return gateway.lookup(this).fileType == FileType.DIRECTORY
+}
+
+suspend fun <T : APath> T.copy(
+    gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
+    destination: T,
+    options: CopyAction.Options<T> = CopyAction.Options(),
+): Flow<CopyAction.State<T>> {
+    return gateway.copy(sources = setOf(this), destination = destination, options = options)
+        .onCompletion {
+            log(VERBOSE) { "T.copy(destination=$destination, options=$options): Copied $this" }
+        }
+}
+
+suspend fun <T : APath> Set<T>.copy(
+    gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
+    destination: T,
+    options: CopyAction.Options<T> = CopyAction.Options(),
+): Flow<CopyAction.State<T>> {
+    return gateway.copy(sources = this, destination = destination, options = options)
+        .onCompletion {
+            log(VERBOSE) { "Set<T>.copy(destination=$destination, options=$options): Copied $this" }
+        }
+}
+
+suspend fun <T : APath> T.move(
+    gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
+    destination: T,
+    options: MoveAction.Options<T> = MoveAction.Options(),
+): Flow<MoveAction.State<T>> {
+    return gateway.move(sources = setOf(this), destination = destination, options = options)
+        .onCompletion {
+            log(VERBOSE) { "T.move(destination=$destination, options=$options): Moved $this" }
+        }
+}
+
+suspend fun <T : APath> Set<T>.move(
+    gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
+    destination: T,
+    options: MoveAction.Options<T> = MoveAction.Options(),
+): Flow<MoveAction.State<T>> {
+    return gateway.move(sources = this, destination = destination, options = options)
+        .onCompletion {
+            log(VERBOSE) { "Set<T>.move(destination=$destination, options=$options): Moved $this" }
+        }
 }

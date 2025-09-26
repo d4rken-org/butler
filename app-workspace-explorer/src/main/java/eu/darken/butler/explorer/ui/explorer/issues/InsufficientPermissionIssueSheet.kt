@@ -29,16 +29,16 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.common.files.operations.Issue
 import eu.darken.butler.explorer.R
 import kotlin.time.Instant
 
 @Composable
 fun InsufficientPermissionIssueSheet(
-    issue: Issue.InsufficientPermission,
-    onResolution: (Issue.InsufficientPermission.Resolution) -> Unit,
+    issue: PathActionIssue.InsufficientPermission,
+    onResolution: (PathActionIssue.InsufficientPermission.Resolution) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var applyToAll by remember { mutableStateOf(false) }
@@ -70,7 +70,7 @@ fun InsufficientPermissionIssueSheet(
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        PathIssueFileComparisonCard(lookup = issue.source)
+        PathIssueFileComparisonCard(lookup = issue.destination)
 
         Text(
             text = stringResource(R.string.explorer_issue_common_destination_file),
@@ -102,7 +102,7 @@ fun InsufficientPermissionIssueSheet(
             if (issue.canSkip) {
                 OutlinedButton(
                     onClick = {
-                        onResolution(Issue.InsufficientPermission.Resolution.Skip(applyToAll))
+                        onResolution(PathActionIssue.InsufficientPermission.Resolution.Skip(applyToAll))
                     },
                     modifier = Modifier.weight(1f),
                 ) {
@@ -122,7 +122,7 @@ fun InsufficientPermissionIssueSheet(
 
             TextButton(
                 onClick = {
-                    onResolution(Issue.InsufficientPermission.Resolution.Cancel)
+                    onResolution(PathActionIssue.InsufficientPermission.Resolution.Cancel())
                 },
                 modifier = Modifier.weight(1f),
             ) {
@@ -147,7 +147,7 @@ fun InsufficientPermissionIssueSheet(
 private fun InsufficientPermissionConflictSheetPreview() {
     PreviewWrapper {
         InsufficientPermissionIssueSheet(
-            issue = Issue.InsufficientPermission(
+            issue = PathActionIssue.InsufficientPermission(
                 source = LocalPathLookup(
                     lookedUp = LocalPath.build("/storage/emulated/0/Download/document.pdf"),
                     fileType = FileType.FILE,

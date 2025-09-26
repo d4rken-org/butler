@@ -11,6 +11,7 @@ import eu.darken.butler.common.files.extensions.removePrefix
 import eu.darken.butler.common.files.extensions.segs
 import eu.darken.butler.common.files.extensions.startsWith
 import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.saf.SAFDocFile
 import eu.darken.butler.common.files.saf.SAFPathLookup
 import io.kotest.assertions.throwables.shouldThrow

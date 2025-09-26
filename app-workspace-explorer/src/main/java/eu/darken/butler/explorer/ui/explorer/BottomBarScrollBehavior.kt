@@ -21,12 +21,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
-import androidx.compose.ui.unit.dp
-import kotlin.math.abs
+import eu.darken.butler.explorer.ui.explorer.BottomBarScrollState.Companion.Saver
 import kotlinx.coroutines.CancellationException
+import kotlin.math.abs
 
 /**
  * A scroll behavior for bottom bars that mimics the behavior of Material3's top bar scroll behaviors.
@@ -75,20 +74,18 @@ class BottomBarScrollBehavior(
 
         override suspend fun onPreFling(available: Velocity): Velocity {
             val toFling = available.y
-            val consumed = when {
+            when {
                 toFling < 0 -> {
                     // Any downward fling -> immediately hide
                     state.heightOffset = state.heightOffsetLimit
-                    available.y
                 }
                 toFling > 0 -> {
                     // Any upward fling -> immediately show
                     state.heightOffset = 0f
-                    available.y
                 }
-                else -> 0f
             }
-            return Velocity(0f, consumed)
+            // Don't consume fling velocity - let the list handle it for smooth scrolling
+            return Velocity.Zero
         }
 
         override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
@@ -269,7 +266,7 @@ fun rememberBottomBarScrollBehavior(
 @ExperimentalMaterial3Api
 @Composable
 fun rememberBottomBarScrollState(): BottomBarScrollState {
-    return rememberSaveable(saver = BottomBarScrollState.Saver) {
+    return rememberSaveable(saver = Saver) {
         BottomBarScrollState()
     }
 }

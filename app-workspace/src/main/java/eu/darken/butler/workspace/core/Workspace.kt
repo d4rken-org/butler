@@ -35,6 +35,8 @@ interface Workspace {
             get() = id.toString().take(4)
         val longTag: String
             get() = id.toString()
+
+        override fun toString(): String = "Workspace.Id($shortTag)"
     }
 
     interface Arguments : Parcelable {

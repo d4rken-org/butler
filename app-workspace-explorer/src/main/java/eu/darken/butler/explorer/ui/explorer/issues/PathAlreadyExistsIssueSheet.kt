@@ -34,16 +34,16 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.common.files.operations.Issue
 import eu.darken.butler.explorer.R
 import kotlin.time.Instant
 
 @Composable
 fun PathAlreadyExistsIssueSheet(
-    issue: Issue.PathAlreadyExists,
-    onResolution: (Issue.PathAlreadyExists.Resolution) -> Unit,
+    issue: PathActionIssue.PathAlreadyExists,
+    onResolution: (PathActionIssue.PathAlreadyExists.Resolution) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var applyToAll by remember { mutableStateOf(false) }
@@ -117,7 +117,7 @@ fun PathAlreadyExistsIssueSheet(
                 if (issue.canSkip) {
                     Button(
                         onClick = {
-                            onResolution(Issue.PathAlreadyExists.Resolution.Skip(applyToAll))
+                            onResolution(PathActionIssue.PathAlreadyExists.Resolution.Skip(applyToAll))
                         },
                         modifier = Modifier.weight(1f),
                     ) {
@@ -138,7 +138,7 @@ fun PathAlreadyExistsIssueSheet(
                 if (isDirectory && issue.canMerge) {
                     OutlinedButton(
                         onClick = {
-                            onResolution(Issue.PathAlreadyExists.Resolution.Merge(applyToAll))
+                            onResolution(PathActionIssue.PathAlreadyExists.Resolution.Merge(applyToAll))
                         },
                         modifier = Modifier.weight(1f),
                     ) {
@@ -157,7 +157,7 @@ fun PathAlreadyExistsIssueSheet(
                 } else if (issue.canOverwrite) {
                     OutlinedButton(
                         onClick = {
-                            onResolution(Issue.PathAlreadyExists.Resolution.Overwrite(applyToAll))
+                            onResolution(PathActionIssue.PathAlreadyExists.Resolution.Overwrite(applyToAll))
                         },
                         modifier = Modifier.weight(1f),
                     ) {
@@ -225,7 +225,7 @@ fun PathAlreadyExistsIssueSheet(
             // Cancel button
             TextButton(
                 onClick = {
-                    onResolution(Issue.PathAlreadyExists.Resolution.Cancel)
+                    onResolution(PathActionIssue.PathAlreadyExists.Resolution.Cancel())
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {
@@ -251,7 +251,7 @@ fun PathAlreadyExistsIssueSheet(
             currentName = nameToRename,
             dialogTitle = stringResource(R.string.explorer_rename_dialog_title_new),
             onConfirm = { newName ->
-                onResolution(Issue.PathAlreadyExists.Resolution.RenameSource(newName))
+                onResolution(PathActionIssue.PathAlreadyExists.Resolution.RenameSource(newName))
                 showRenameNewDialog = false
             },
             onDismiss = { showRenameNewDialog = false },
@@ -264,7 +264,7 @@ fun PathAlreadyExistsIssueSheet(
             currentName = issue.destination.name,
             dialogTitle = stringResource(R.string.explorer_rename_dialog_title_existing),
             onConfirm = { newName ->
-                onResolution(Issue.PathAlreadyExists.Resolution.RenameDestination(newName))
+                onResolution(PathActionIssue.PathAlreadyExists.Resolution.RenameDestination(newName))
                 showRenameExistingDialog = false
             },
             onDismiss = { showRenameExistingDialog = false },
@@ -277,7 +277,7 @@ fun PathAlreadyExistsIssueSheet(
 private fun PathAlreadyExistsIssueSheetFilePreview() {
     PreviewWrapper {
         PathAlreadyExistsIssueSheet(
-            issue = Issue.PathAlreadyExists(
+            issue = PathActionIssue.PathAlreadyExists(
                 destination = LocalPathLookup(
                     lookedUp = LocalPath.build("/storage/emulated/0/Download/document.pdf"),
                     fileType = FileType.FILE,
@@ -307,7 +307,7 @@ private fun PathAlreadyExistsIssueSheetFilePreview() {
 private fun PathAlreadyExistsIssueSheetRenameOptionsPreview() {
     PreviewWrapper {
         PathAlreadyExistsIssueSheet(
-            issue = Issue.PathAlreadyExists(
+            issue = PathActionIssue.PathAlreadyExists(
                 destination = LocalPathLookup(
                     lookedUp = LocalPath.build("/storage/emulated/0/Downloads/document.pdf"),
                     fileType = FileType.FILE,
@@ -336,7 +336,7 @@ private fun PathAlreadyExistsIssueSheetRenameOptionsPreview() {
 private fun PathAlreadyExistsIssueSheetFolderPreview() {
     PreviewWrapper {
         PathAlreadyExistsIssueSheet(
-            issue = Issue.PathAlreadyExists(
+            issue = PathActionIssue.PathAlreadyExists(
                 destination = LocalPathLookup(
                     lookedUp = LocalPath.build("/storage/emulated/0/Pictures/Vacation"),
                     fileType = FileType.DIRECTORY,

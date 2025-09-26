@@ -76,6 +76,13 @@ data class SAFPath(
         return build(this.treeRoot, *this.segments.toTypedArray(), *segments)
     }
 
+    override val parent: SAFPath?
+        get() = when {
+            segments.isEmpty() -> null
+            segments.size == 1 -> build(treeRoot)
+            else -> build(treeRoot, *segments.dropLast(1).toTypedArray())
+        }
+
     override fun toString(): String = "SAFPath(treeRoot=$treeRoot, segments=$segments)"
 
     companion object {

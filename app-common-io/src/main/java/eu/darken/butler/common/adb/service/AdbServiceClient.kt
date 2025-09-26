@@ -53,7 +53,6 @@ class AdbServiceClient @Inject constructor(
         val optionsInitial = AdbHostOptions(
             isDebug = debugSettings.isDebugMode.value(),
             isTrace = debugSettings.isTraceMode.value(),
-            isDryRun = debugSettings.isDryRunMode.value(),
             recorderPath = debugSettings.recorderPath.value(),
         )
 
@@ -69,14 +68,12 @@ class AdbServiceClient @Inject constructor(
         combine(
             debugSettings.isDebugMode.flow,
             debugSettings.isTraceMode.flow,
-            debugSettings.isDryRunMode.flow,
             debugSettings.recorderPath.flow,
             lastInternal.filterNotNull(),
-        ) { isDebug, isTrace, isDryRun, recorderPath, lastConnection ->
+        ) { isDebug, isTrace, recorderPath, lastConnection ->
             val optionsDynamic = AdbHostOptions(
                 isDebug = isDebug,
                 isTrace = isTrace,
-                isDryRun = isDryRun,
                 recorderPath = recorderPath,
             )
             log(TAG) { "Updating debug settings: $optionsDynamic" }

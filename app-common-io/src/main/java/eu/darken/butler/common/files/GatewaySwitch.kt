@@ -6,18 +6,21 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.actions.CopyAction
+import eu.darken.butler.common.files.actions.DeleteAction
+import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.local.LocalGateway
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
-import eu.darken.butler.common.files.operations.CopyOperation
-import eu.darken.butler.common.files.operations.MoveOperation
 import eu.darken.butler.common.files.saf.SAFGateway
 import eu.darken.butler.common.sharedresource.SharedResource
 import eu.darken.butler.common.sharedresource.adoptChildResource
 import eu.darken.butler.common.storage.PathMapper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.plus
 import okio.FileHandle
@@ -186,9 +189,16 @@ class GatewaySwitch @Inject constructor(
         return useGateway(path) { file(path, readWrite) }
     }
 
-    override suspend fun delete(path: APath, recursive: Boolean) {
-        return useGateway(path) { delete(path, recursive = recursive) }
-    }
+    override suspend fun delete(
+        targets: Set<APath>,
+        options: DeleteAction.Options<APath>
+    ): Flow<DeleteAction.State<APath, APathLookup<APath>>> = targets
+        .groupBy { it::class }.values.asFlow()
+        .flatMapConcat { group ->
+            useGateway(group.first()) {
+                delete(group.toSet(), options)
+            }
+        }
 
     override suspend fun createSymlink(linkPath: APath, targetPath: APath): Boolean {
         return useGateway(linkPath) { createSymlink(linkPath, targetPath) }
@@ -229,50 +239,168 @@ class GatewaySwitch @Inject constructor(
     }
 
     override suspend fun copy(
-        source: APath,
+        sources: Set<APath>,
         destination: APath,
-        options: CopyOperation.Options,
-    ): Flow<CopyOperation.Result> = flow {
-        when {
-            // Same gateway type - use native implementation
-            source::class == destination::class -> {
-                useGateway(source) {
-                    copy(source, destination, options)
-                }.collect { emit(it) }
-            }
-            // Cross-gateway copy
-            else -> {
-                performCrossGatewayCopy(source, destination, options)
-                    .collect { emit(it) }
+        options: CopyAction.Options<APath>,
+    ): Flow<CopyAction.State<APath>> = flow {
+        // Group sources by gateway type for optimal processing
+        val sourcesByType = sources.groupBy { it::class }
+        val destinationType = destination::class
+
+        var totalBytesProcessed = 0L
+        val allCopiedFiles = mutableSetOf<Pair<APath, APath>>()
+        val allSkippedFiles = mutableSetOf<APath>()
+
+        for ((sourceType, sourcesGroup) in sourcesByType) {
+            when {
+                // Same gateway type - use native batch implementation
+                sourceType == destinationType -> {
+                    useGateway(sourcesGroup.first()) {
+                        copy(sourcesGroup.toSet(), destination, options)
+                    }.collect { state ->
+                        when (state) {
+                            is CopyAction.State.Progress -> {
+                                emit(state.copy(bytesCopied = totalBytesProcessed + state.bytesCopied))
+                            }
+                            is CopyAction.State.Result -> {
+                                totalBytesProcessed += state.totalBytesCopied
+                                allCopiedFiles.addAll(state.copiedFiles)
+                                allSkippedFiles.addAll(state.skippedFiles)
+                            }
+                        }
+                    }
+                }
+                // Cross-gateway copy - process individually
+                else -> {
+                    for (source in sourcesGroup) {
+                        val targetPath = destination.child(source.name)
+                        performCrossGatewayCopy(source, targetPath, options)
+                            .collect { state ->
+                                when (state) {
+                                    is CopyAction.State.Progress -> {
+                                        emit(state.copy(bytesCopied = totalBytesProcessed + state.bytesCopied))
+                                    }
+                                    is CopyAction.State.Result -> {
+                                        totalBytesProcessed += state.totalBytesCopied
+                                        allCopiedFiles.addAll(state.copiedFiles)
+                                        allSkippedFiles.addAll(state.skippedFiles)
+                                    }
+                                }
+                            }
+                    }
+                }
             }
         }
+
+        emit(
+            CopyAction.State.Result(
+                copiedFiles = allCopiedFiles,
+                skippedFiles = allSkippedFiles,
+                totalBytesCopied = totalBytesProcessed
+            )
+        )
     }
 
     override suspend fun move(
-        source: APath,
+        sources: Set<APath>,
         destination: APath,
-        options: MoveOperation.Options
-    ): Flow<MoveOperation.Result> = flow {
-        when {
-            // Same gateway type - try atomic move first
-            source::class == destination::class -> {
-                useGateway(source) {
-                    move(source, destination, options)
-                }.collect { emit(it) }
-            }
-            // Cross-gateway move: copy then delete
-            else -> {
-                performCrossGatewayMove(source, destination, options)
-                    .collect { emit(it) }
+        options: MoveAction.Options<APath>
+    ): Flow<MoveAction.State<APath>> = flow {
+        // Group sources by gateway type for optimal processing
+        val sourcesByType = sources.groupBy { it::class }
+        val destinationType = destination::class
+
+        var totalBytesMoved = 0L
+        val allMovedFiles = mutableSetOf<Pair<APath, APath>>()
+        val allSkippedFiles = mutableSetOf<APath>()
+
+        for ((sourceType, sourcesGroup) in sourcesByType) {
+            when {
+                // Same gateway type - use native batch implementation
+                sourceType == destinationType -> {
+                    useGateway(sourcesGroup.first()) {
+                        move(sourcesGroup.toSet(), destination, options)
+                    }.collect { state ->
+                        when (state) {
+                            is MoveAction.State.Progress -> {
+                                emit(state.copy(bytesMoved = totalBytesMoved + state.bytesMoved))
+                            }
+                            is MoveAction.State.Result -> {
+                                totalBytesMoved += state.bytesMoved
+                                allMovedFiles.addAll(state.movedFiles)
+                                allSkippedFiles.addAll(state.skippedFiles)
+                            }
+                        }
+                    }
+                }
+                // Cross-gateway move - process individually
+                else -> {
+                    for (source in sourcesGroup) {
+                        val targetPath = destination.child(source.name)
+                        performCrossGatewayMove(source, targetPath, options)
+                            .collect { state ->
+                                when (state) {
+                                    is MoveAction.State.Progress -> {
+                                        emit(state.copy(bytesMoved = totalBytesMoved + state.bytesMoved))
+                                    }
+                                    is MoveAction.State.Result -> {
+                                        totalBytesMoved += state.bytesMoved
+                                        allMovedFiles.addAll(state.movedFiles)
+                                        allSkippedFiles.addAll(state.skippedFiles)
+                                    }
+                                }
+                            }
+                    }
+                }
             }
         }
+
+        emit(
+            MoveAction.State.Result(
+                movedFiles = allMovedFiles,
+                skippedFiles = allSkippedFiles,
+                bytesMoved = totalBytesMoved
+            )
+        )
     }
+
+
+//    suspend fun <T : APath> T.deleteWalk(
+//        gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
+//        filter: (APathLookup<*>) -> Boolean = { true }
+//    ) {
+//        try {
+//            val lookup = gateway.lookup(this)
+//
+//            if (lookup.isDirectory) {
+//                gateway.listFiles(this).forEach {
+//                    it.deleteWalk(gateway, filter) // Recursion enter
+//                }
+//            }
+//
+//            if (!filter(lookup)) {
+//                log(VERBOSE) { "Skipped due to filter: $this" }
+//                return
+//            }
+//        } catch (e: PathException) {
+//            val exists = gateway.exists(this)
+//            if (!exists) {
+//                log(WARN) { "Path failed to delete, but no longer exists: $this" }
+//                return
+//            } else {
+//                throw e
+//            }
+//        }
+//
+//        // Recursion exit
+//        this.delete(gateway, recursive = false)
+//    }
 
     private suspend fun performCrossGatewayCopy(
         source: APath,
         target: APath,
-        options: CopyOperation.Options
-    ): Flow<CopyOperation.Result> = flow {
+        options: CopyAction.Options<APath>
+    ): Flow<CopyAction.State<APath>> = flow {
         // TODO: Implement cross-gateway copy
         // - Handle file handle transfers between different gateway types
         // - Emit progress updates via options.onProgress
@@ -283,8 +411,8 @@ class GatewaySwitch @Inject constructor(
     private suspend fun performCrossGatewayMove(
         source: APath,
         target: APath,
-        options: MoveOperation.Options
-    ): Flow<MoveOperation.Result> = flow {
+        options: MoveAction.Options<APath>
+    ): Flow<MoveAction.State<APath>> = flow {
         // TODO: Implement cross-gateway move (copy + delete)
         // - Copy from source to target using cross-gateway copy
         // - Delete source after successful copy

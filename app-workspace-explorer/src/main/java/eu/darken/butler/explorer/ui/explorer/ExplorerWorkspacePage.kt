@@ -44,19 +44,11 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
-import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.core.ExplorerBreadcrumb
-import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
-import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.issues.ErrorSnackbar
 import eu.darken.butler.explorer.ui.explorer.issues.IssueBottomSheet
@@ -65,12 +57,12 @@ import eu.darken.butler.explorer.ui.explorer.items.grid.ShortcutGrid
 import eu.darken.butler.explorer.ui.explorer.items.row.PathItemRow
 import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
 import eu.darken.butler.explorer.ui.explorer.permissions.PermissionRequestCard
-import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.clipboard.ClipboardBar
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.operations.OperationsBar
 
 @Composable
 fun ExplorerWorkspacePageHost(
@@ -85,6 +77,7 @@ fun ExplorerWorkspacePageHost(
     ErrorEventHandler(vm)
 
     val workspaceButtonState by workspaceButtonVm.state.collectAsState(null)
+    val operations by vm.operations.collectAsState()
 
     val state by waitForState(vm.state)
     log(vm.tag) { "Compose state: ${state?.items?.size} items" }
@@ -97,6 +90,7 @@ fun ExplorerWorkspacePageHost(
             workspaceButtonState = workspaceButtonState,
             onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
             onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
+            operations = operations,
         )
     }
 }
@@ -110,6 +104,9 @@ fun ExplorerWorkspacePage(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
+    operations: List<eu.darken.butler.workspace.ui.operations.OperationDisplay> = emptyList(),
+    initialOperationsExpanded: Boolean = false,
+    initialClipboardExpanded: Boolean = false,
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
@@ -254,7 +251,9 @@ fun ExplorerWorkspacePage(
                                             if (state.availableActions.isNotEmpty()) 64.dp else 0.dp // 48dp + 16dp padding
                                         val clipboardHeight =
                                             if (state.clipboardEntries.isNotEmpty()) 88.dp else 0.dp // ~80dp + 8dp padding
-                                        actionBarHeight + clipboardHeight + 12.dp // Extra space
+                                        val operationsHeight =
+                                            if (operations.isNotEmpty()) 80.dp else 0.dp // Operations bar height + padding
+                                        actionBarHeight + clipboardHeight + operationsHeight + 12.dp // Extra space
                                     }
                                 )
                             ) {
@@ -300,7 +299,9 @@ fun ExplorerWorkspacePage(
                                             if (state.availableActions.isNotEmpty()) 64.dp else 0.dp // 48dp + 16dp padding
                                         val clipboardHeight =
                                             if (state.clipboardEntries.isNotEmpty()) 88.dp else 0.dp // ~80dp + 8dp padding
-                                        actionBarHeight + clipboardHeight + 2.dp // Extra space
+                                        val operationsHeight =
+                                            if (operations.isNotEmpty()) 80.dp else 0.dp // Operations bar height + padding
+                                        actionBarHeight + clipboardHeight + operationsHeight + 2.dp // Extra space
                                     }
                                 )
                             ) {
@@ -347,9 +348,9 @@ fun ExplorerWorkspacePage(
             }
         }
 
-        // Floating ClipboardBar
+        // Floating Operations and Clipboard Bars Container
         AnimatedVisibility(
-            visible = state.clipboardEntries.isNotEmpty(),
+            visible = operations.isNotEmpty() || state.clipboardEntries.isNotEmpty(),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(
@@ -363,15 +364,43 @@ fun ExplorerWorkspacePage(
             enter = slideInVertically(animationSpec = tween(150)) { it },
             exit = slideOutVertically(animationSpec = tween(150)) { it },
         ) {
-            ClipboardBar(
-                clipboardEntries = state.clipboardEntries,
-                onPasteClick = { clip -> vm?.pasteClipboard(clip) },
-                onRemoveClick = { clip -> vm?.removeClipboardEntry(clip) },
-                onEntryClick = { clip ->
-                    // TODO: Show detailed clipboard info dialog with file details, navigation options, and preview
-                },
-                onClearAll = { vm?.clearAllClipboard() },
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Operations Bar (top)
+                AnimatedVisibility(
+                    visible = operations.isNotEmpty(),
+                    enter = slideInVertically(animationSpec = tween(150)) { it },
+                    exit = slideOutVertically(animationSpec = tween(150)) { it },
+                ) {
+                    OperationsBar(
+                        operations = operations,
+                        onCancelOperation = { id -> vm?.cancelOperation(id) },
+                        onDismissOperation = { id -> vm?.dismissOperation(id) },
+                        onOperationClick = { operation -> vm?.onOperationClick(operation) },
+                        onClearCompleted = { vm?.clearCompletedOperations() },
+                        initialExpanded = initialOperationsExpanded,
+                    )
+                }
+
+                // Clipboard Bar (bottom)
+                AnimatedVisibility(
+                    visible = state.clipboardEntries.isNotEmpty(),
+                    enter = slideInVertically(animationSpec = tween(150)) { it },
+                    exit = slideOutVertically(animationSpec = tween(150)) { it },
+                ) {
+                    ClipboardBar(
+                        clipboardEntries = state.clipboardEntries,
+                        onPasteClick = { clip -> vm?.pasteClipboard(clip) },
+                        onRemoveClick = { clip -> vm?.removeClipboardEntry(clip) },
+                        onEntryClick = { clip ->
+                            // TODO: Show detailed clipboard info dialog with file details, navigation options, and preview
+                        },
+                        onClearAll = { vm?.clearAllClipboard() },
+                        initialExpanded = initialClipboardExpanded,
+                    )
+                }
+            }
         }
 
         // Floating Bottom ActionBar
@@ -401,214 +430,11 @@ fun ExplorerWorkspacePage(
         IssueBottomSheet(
             issue = conflict,
             onResolution = { resolution -> vm?.resolveConflict(resolution) },
-            onDismiss = { vm?.resolveConflict(null) },
+            onDismiss = { },
         )
     }
 }
 
-@Preview2
-@Composable
-fun ExplorerWorkspacePagePreview() {
-    val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(
-            path = LocalPath.build("/storage/emulated/0"),
-            items = MockDataProvider.createAllFileTypes(),
-            info = ExplorerLocation.Directory.Info(
-                fileCount = 15,
-                directoryCount = 5,
-                totalSize = 1024L * 1024L * 250L,
-                volumeFreeSpace = 1024L * 1024L * 1024L * 50L,
-                volumeTotalSpace = 1024L * 1024L * 1024L * 128L,
-                isWritable = true,
-            )
-        ),
-        breadcrumbs = listOf(
-            ExplorerBreadcrumb(
-                label = R.string.explorer_nav_home.toCaString(),
-                target = ExplorerNavigation.Target.Home
-            ),
-            ExplorerBreadcrumb(
-                label = R.string.explorer_nav_device.toCaString(),
-                target = ExplorerNavigation.Target.Device
-            ),
-            ExplorerBreadcrumb(
-                label = "storage".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage"))
-            ),
-            ExplorerBreadcrumb(
-                label = "emulated".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated"))
-            ),
-            ExplorerBreadcrumb(
-                label = "0".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0"))
-            )
-        ),
-        items = MockDataProvider.createAllFileTypes(),
-        availableActions = listOf(
-            ExplorerAction.Directory.Create(isEnabled = false),
-            ExplorerAction.Common.Sort(),
-            ExplorerAction.Common.Filter(isEnabled = false),
-        ),
-        isLoading = false,
-    )
-    PreviewWrapper {
-        ExplorerWorkspacePage(
-            state = mockState,
-            vm = null,
-            workspaceButtonState = null,
-            onWorkspaceAction = {},
-            onNavToWorkspaceManager = {},
-        )
-    }
-}
-
-@Preview2
-@Composable
-fun ExplorerWorkspacePageLoadingPreview() {
-    val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(LocalPath.build("/storage/emulated/0")),
-        breadcrumbs = emptyList(),
-        items = emptyList(),
-        isLoading = true,
-    )
-    PreviewWrapper {
-        ExplorerWorkspacePage(
-            state = mockState,
-            vm = null,
-            workspaceButtonState = null,
-            onWorkspaceAction = {},
-            onNavToWorkspaceManager = {},
-        )
-    }
-}
-
-@Preview2
-@Composable
-fun ExplorerWorkspacePageEmptyPreview() {
-    val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(LocalPath.build("/empty/folder")),
-        breadcrumbs = emptyList(),
-        items = emptyList(),
-        isLoading = false,
-    )
-    PreviewWrapper {
-        ExplorerWorkspacePage(
-            state = mockState,
-            vm = null,
-            workspaceButtonState = null,
-            onWorkspaceAction = {},
-            onNavToWorkspaceManager = {},
-        )
-    }
-}
-
-@Preview2
-@Composable
-fun ExplorerWorkspacePageWithSelectionPreview() {
-    val mockFileItems = MockDataProvider.createAllFileTypes()
-    val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(LocalPath.build("/storage/emulated/0")),
-        breadcrumbs = emptyList(),
-        items = mockFileItems,
-        isLoading = false,
-        selectionState = ExplorerSelectionState(
-            selectedItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path),
-            selectableItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path),
-        ),
-        availableActions = listOf(
-            ExplorerAction.Common.Sort(),
-            ExplorerAction.Common.Filter(isEnabled = false),
-        ),
-    )
-    PreviewWrapper {
-        ExplorerWorkspacePage(
-            state = mockState,
-            vm = null,
-            workspaceButtonState = null,
-            onWorkspaceAction = {},
-            onNavToWorkspaceManager = {},
-        )
-    }
-}
-
-@Preview2
-@Composable
-fun ExplorerWorkspacePageGridModePreview() {
-    val mockBreadcrumbs = listOf(
-        ExplorerBreadcrumb(
-            label = "Home".toCaString(),
-            target = ExplorerNavigation.Target.Home
-        ),
-        ExplorerBreadcrumb(
-            label = "Pictures".toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0/Pictures"))
-        )
-    )
-    val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(LocalPath.build("/storage/emulated/0/Pictures")),
-        breadcrumbs = mockBreadcrumbs,
-        items = MockDataProvider.createAllFileTypes(),
-        isLoading = false,
-        viewMode = ExplorerWorkspaceViewModel.ViewMode.GRID,
-        availableActions = listOf(
-            ExplorerAction.Common.Sort(),
-            ExplorerAction.Common.Filter(isEnabled = false),
-        ),
-    )
-    PreviewWrapper {
-        ExplorerWorkspacePage(
-            state = mockState,
-            vm = null,
-            workspaceButtonState = null,
-            onWorkspaceAction = {},
-            onNavToWorkspaceManager = {},
-        )
-    }
-}
-
-@Preview2
-@Composable
-fun ExplorerWorkspacePageGridModeWithSelectionPreview() {
-    val mockFileItems = MockDataProvider.createAllFileTypes()
-    val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(LocalPath.build("/storage/emulated/0/Downloads")),
-        breadcrumbs = listOf(
-            ExplorerBreadcrumb(
-                label = R.string.explorer_nav_device.toCaString(),
-                target = ExplorerNavigation.Target.Device
-            ),
-            ExplorerBreadcrumb(
-                label = "Downloads".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0/Downloads"))
-            )
-        ),
-        items = mockFileItems,
-        isLoading = false,
-        selectionState = ExplorerSelectionState(
-            selectedItems = setOf(mockFileItems[0].lookup.path, mockFileItems[2].lookup.path),
-            selectableItems = setOf(
-                mockFileItems[0].lookup.path,
-                mockFileItems[2].lookup.path,
-                mockFileItems[3].lookup.path
-            ),
-        ),
-        viewMode = ExplorerWorkspaceViewModel.ViewMode.GRID,
-        availableActions = listOf(
-            ExplorerAction.Common.Sort(),
-            ExplorerAction.Common.Filter(isEnabled = false),
-        ),
-    )
-    PreviewWrapper {
-        ExplorerWorkspacePage(
-            state = mockState,
-            vm = null,
-            workspaceButtonState = null,
-            onWorkspaceAction = {},
-            onNavToWorkspaceManager = {},
-        )
-    }
-}
 
 
 

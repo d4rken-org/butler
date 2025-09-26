@@ -2,6 +2,7 @@ package eu.darken.butler.common.files
 
 import eu.darken.butler.common.files.core.local.tryMkFile
 import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.serialization.SerializationIOModule
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -128,9 +129,9 @@ class LocalPathTest : BaseTest() {
 
     @Test
     fun `parent generation`() {
-        LocalPath.build("a", "b", "c").parent() shouldBe LocalPath.build("a", "b")
-        LocalPath.build("a").parent() shouldBe LocalPath.build()
-        LocalPath.build().parent() shouldBe null
+        LocalPath.build("a", "b", "c").parent shouldBe LocalPath.build("a", "b")
+        LocalPath.build("a").parent shouldBe LocalPath.build()
+        LocalPath.build().parent shouldBe null
     }
 
     @Test

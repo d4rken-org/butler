@@ -8,6 +8,5 @@ import kotlinx.parcelize.Parcelize
 data class AdbHostOptions(
     val isDebug: Boolean = BuildConfigWrap.DEBUG,
     val isTrace: Boolean = false,
-    val isDryRun: Boolean = false,
     val recorderPath: String? = null
 ) : Parcelable

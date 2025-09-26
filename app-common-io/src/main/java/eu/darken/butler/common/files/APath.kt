@@ -12,6 +12,7 @@ import kotlinx.serialization.Serializable
 sealed interface APath : Parcelable {
     val path: String
     val name: String
+    val parent: APath?
 
     val userReadablePath: CaString
         get() = path.toCaString()

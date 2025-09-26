@@ -145,12 +145,7 @@ data class SAFDocFile(
     }
 
     fun delete(): Boolean = try {
-        if (Bugs.isDryRun) {
-            log(SAFGateway.TAG, INFO) { "DRYRUN: Not deleting $uri" }
-            exists
-        } else {
-            DocumentsContract.deleteDocument(resolver, uri)
-        }
+        DocumentsContract.deleteDocument(resolver, uri)
     } catch (e: IllegalArgumentException) {
         if (e.message?.contains(FileNotFoundException::class.simpleName!!) == true) false else throw e
     }

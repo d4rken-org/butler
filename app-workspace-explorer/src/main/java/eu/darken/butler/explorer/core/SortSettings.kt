@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SortSettings(
     @SerialName("mode") val mode: Mode = Mode.NAME,
-    @SerialName("reversed") val reversed: Boolean = true,
+    @SerialName("reversed") val reversed: Boolean = false,
 ) {
     @Serializable
     enum class Mode {

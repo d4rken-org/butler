@@ -1,28 +1,36 @@
 package eu.darken.butler.explorer.ui.explorer
 
+import android.content.Context
+import android.content.Intent
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.datastore.value
+import eu.darken.butler.common.datastore.valueBlocking
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.operations.Issue
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.flow.SingleEventFlow
+import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
+import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.explorer.core.ExplorerWorkspace
+import eu.darken.butler.explorer.core.FileIntentHelper
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.explorer.core.engine.ExplorerOperation
 import eu.darken.butler.explorer.core.engine.locationId
-import eu.darken.butler.explorer.core.operations.OperationId
+import eu.darken.butler.explorer.core.operations.ExplorerCommand
+import eu.darken.butler.explorer.core.sorting.ExplorerItemSorter
 import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemResult
@@ -31,45 +39,63 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.DeleteConfirmationResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
+import eu.darken.butler.explorer.ui.explorer.dialogs.SortOptionsResult
 import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceProvider
+import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
+import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.operations.operationsForWorkspace
+import eu.darken.butler.workspace.core.operations.withStateUpdates
 import eu.darken.butler.workspace.core.permissions.PermissionState
+import eu.darken.butler.workspace.ui.operations.OperationDisplay
+import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel(assistedFactory = ExplorerWorkspaceViewModel.Factory::class)
 class ExplorerWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
+    @ApplicationContext private val context: Context,
     dispatchers: DispatcherProvider,
     navController: NavigationController,
     workspaceProvider: WorkspaceProvider,
+    private val workspaceRemote: WorkspaceRemote,
     private val actionProvider: DefaultActionProvider,
     private val clipboardRepo: ClipboardRepo,
+    private val fileIntentHelper: FileIntentHelper,
+    private val explorerSettings: ExplorerSettings,
+    itemSorterFactory: ExplorerItemSorter.Factory,
+    private val operationsManager: OperationsManager,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
 
     private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
     private val viewModeFlow = MutableStateFlow(ViewMode.LIST)
     private val dialogStateFlow = MutableStateFlow<ExplorerDialogState>(ExplorerDialogState.None)
-    private val conflictStateFlow = MutableStateFlow<Issue?>(null)
+    private val conflictStateFlow = MutableStateFlow<PathActionIssue?>(null)
     val conflictState = conflictStateFlow
-    private var currentConflictOperationId: OperationId? = null
+    private var currentConflictOperationId: Operation.Id? = null
 
     val dialogEvents = SingleEventFlow<ExplorerDialogEvent>()
 
     private val workspace: Flow<ExplorerWorkspace?> = workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
-
+    private val itemSorter = itemSorterFactory.create(id)
+    private val currentSortSettings = MutableStateFlow(explorerSettings.sortSettings.valueBlocking)
     private suspend fun getWorkspace() = workspace.filterNotNull().first()
 
     private val workspaceState: Flow<ExplorerWorkspace.State> = workspace.flatMapLatest { ws ->
-        ws?.current ?: MutableStateFlow(ExplorerWorkspace.State())
+        ws?.state ?: flowOf(ExplorerWorkspace.State())
     }
 
     init {
@@ -108,8 +134,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         viewModeFlow,
         clipboardRepo.state,
         dialogStateFlow,
-    ) { wsState, selectedItems, viewMode, clipboard, dialogState ->
-        val items = wsState.currentLocation?.items ?: emptyList()
+        currentSortSettings,
+    ) { wsState, selectedItems, viewMode, clipboard, dialogState, sortSetting ->
+        val rawItems = wsState.currentLocation?.items ?: emptyList()
+        val items = itemSorter.sortItems(rawItems, sortSetting)
 
         val selectionState = ExplorerSelectionState(
             selectedItems = selectedItems,
@@ -142,6 +170,33 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         )
     }.asStateFlow()
 
+    val operations = operationsManager
+        .operationsForWorkspace(id)
+        .withStateUpdates()
+        .map { managedOps ->
+            managedOps.map { it.toDisplayModel() }
+        }
+        .map { displayOps ->
+            displayOps.sortedWith(
+                compareBy<OperationDisplay> { op ->
+                    // Priority: Running > Waiting (was running, needs input) > Queued > Others
+                    when (op.state) {
+                        is OperationDisplay.State.Running -> 0
+                        is OperationDisplay.State.Waiting -> 1  // Higher priority than queued
+                        is OperationDisplay.State.Queued -> 2
+                        is OperationDisplay.State.Failed -> 3
+                        is OperationDisplay.State.Cancelled -> 4
+                        is OperationDisplay.State.Completed -> 5
+                    }
+                }.thenBy { it.startedAt } // Oldest first within each group
+            )
+        }
+        .stateIn(
+            scope = vmScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     fun navigate(item: ExplorerItem) = launch {
         log(tag) { "navigate($item)" }
         when (item) {
@@ -151,7 +206,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     clearSelection()
                 }
                 is ExplorerItem.FileItem -> {
-                    // TODO Open file?
+                    dialogStateFlow.value = ExplorerDialogState.FileOptions(item)
                 }
             }
             is ExplorerItem.Shortcut -> {
@@ -284,7 +339,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 selectedItemsFlow.value = emptySet()
             }
             is ExplorerAction.Common.Sort -> {
-                // TODO: Show sort options dialog/menu
+                dialogStateFlow.value = ExplorerDialogState.EditSortOptions(
+                    currentSortSettings = currentSortSettings.value
+                )
             }
             is ExplorerAction.Common.Filter -> {
                 // TODO: Show filter options dialog/menu
@@ -299,6 +356,132 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 getWorkspace().navigate(ExplorerNavigation.Refresh)
             }
         }
+    }
+
+    // File action handlers
+    fun openFileInEditor(item: ExplorerItem.FileItem) = launch {
+        log(tag) { "openFileInEditor(${item.lookup.name})" }
+        dismissDialog()
+
+        // Create editor workspace arguments via reflection to avoid direct dependency
+        try {
+            val editorArgsClass = Class.forName("eu.darken.butler.editor.core.EditorWorkspace\$Arguments")
+            val constructor = editorArgsClass.getConstructor(
+                eu.darken.butler.common.files.APath::class.java,
+                Long::class.java,
+                Long::class.java,
+                Boolean::class.java,
+                Int::class.java,
+                String::class.java
+            )
+            val editorArguments = constructor.newInstance(
+                item.lookup.lookedUp, // filePath
+                null, // chunkSize - use default
+                null, // memoryLimit - use default
+                false, // isReadOnly
+                null, // goToLine
+                null // searchQuery
+            ) as Workspace.Arguments
+
+            val action = WorkspaceAction.Create(
+                type = Workspace.Type.EDITOR,
+                arguments = editorArguments
+            )
+
+            workspaceRemote.execute(action)
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to create editor workspace: ${e.message}" }
+            // TODO: Show error message to user
+        }
+    }
+
+    fun openFileWith(item: ExplorerItem.FileItem) = launch {
+        log(tag) { "openFileWith(${item.lookup.name})" }
+        dismissDialog()
+
+        val intent = fileIntentHelper.openFileWith(item)
+        if (intent != null && fileIntentHelper.canHandleIntent(intent)) {
+            try {
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                log(tag, ERROR) { "Failed to open file with external app: ${e.message}" }
+                // TODO: Show error message to user
+            }
+        } else {
+            log(tag, WARN) { "No app found to open file: ${item.lookup.name}" }
+            // TODO: Show "no app found" message to user
+        }
+    }
+
+    fun shareFile(item: ExplorerItem.FileItem) = launch {
+        log(tag) { "shareFile(${item.lookup.name})" }
+        dismissDialog()
+
+        val intent = fileIntentHelper.shareFile(item)
+        if (intent != null) {
+            try {
+                val chooserIntent = Intent.createChooser(intent, "Share ${item.lookup.name}")
+                chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(chooserIntent)
+            } catch (e: Exception) {
+                log(tag, ERROR) { "Failed to share file: ${e.message}" }
+                // TODO: Show error message to user
+            }
+        } else {
+            log(tag, WARN) { "Failed to create share intent for: ${item.lookup.name}" }
+            // TODO: Show error message to user
+        }
+    }
+
+    fun copyFile(item: ExplorerItem.FileItem) = launch {
+        log(tag) { "copyFile(${item.lookup.name})" }
+        dismissDialog()
+
+        val clip = ClipboardClip.Paths(
+            mode = ClipboardClip.Paths.Mode.COPY,
+            origin = getWorkspace().id,
+            paths = listOf(item.lookup.lookedUp),
+        )
+        clipboardRepo.add(clip)
+    }
+
+    fun cutFile(item: ExplorerItem.FileItem) = launch {
+        log(tag) { "cutFile(${item.lookup.name})" }
+        dismissDialog()
+
+        val clip = ClipboardClip.Paths(
+            mode = ClipboardClip.Paths.Mode.CUT,
+            origin = getWorkspace().id,
+            paths = listOf(item.lookup.lookedUp),
+        )
+        clipboardRepo.add(clip)
+    }
+
+    fun renameFile(item: ExplorerItem.FileItem) = launch {
+        log(tag) { "renameFile(${item.lookup.name})" }
+        dismissDialog()
+
+        val event = ExplorerDialogEvent.ShowRename(
+            item = item.lookup.lookedUp,
+        )
+        dialogEvents.emit(event)
+    }
+
+    fun deleteFile(item: ExplorerItem.FileItem) = launch {
+        log(tag) { "deleteFile(${item.lookup.name})" }
+        dismissDialog()
+
+        dialogEvents.emit(
+            ExplorerDialogEvent.ShowDeleteConfirmation(
+                items = setOf(item.lookup.lookedUp)
+            )
+        )
+    }
+
+    fun showFileProperties(item: ExplorerItem.FileItem) = launch {
+        log(tag) { "showFileProperties(${item.lookup.name})" }
+        dismissDialog()
+        // TODO: Implement file properties dialog
     }
 
     private suspend fun handleDialogEvent(event: ExplorerDialogEvent) {
@@ -330,15 +513,15 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val currentLocation = state.first().currentLocation
         if (currentLocation is ExplorerLocation.Directory) {
             val operation = when (result.type) {
-                CreateItemType.FOLDER -> ExplorerOperation.FileOp.Create(
+                CreateItemType.FOLDER -> ExplorerCommand.Create(
                     parentPath = currentLocation.path,
                     name = result.name,
-                    type = ExplorerOperation.FileOp.Create.Type.FOLDER,
+                    type = ExplorerCommand.Create.Type.FOLDER,
                 )
-                CreateItemType.FILE -> ExplorerOperation.FileOp.Create(
+                CreateItemType.FILE -> ExplorerCommand.Create(
                     parentPath = currentLocation.path,
                     name = result.name,
-                    type = ExplorerOperation.FileOp.Create.Type.FILE,
+                    type = ExplorerCommand.Create.Type.FILE,
                 )
             }
             getWorkspace().execute(operation)
@@ -351,9 +534,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
         if (result.items.isNotEmpty()) {
             getWorkspace().execute(
-                ExplorerOperation.FileOp.Delete(
-                    paths = result.items,
-                    recursive = true
+                ExplorerCommand.Delete(
+                    targets = result.items,
                 )
             )
             clearSelection()
@@ -364,12 +546,20 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "onRename($result)" }
         dialogStateFlow.value = ExplorerDialogState.None
 
+        val currentLocation = state.first().currentLocation as ExplorerLocation.Directory
         getWorkspace().execute(
-            ExplorerOperation.FileOp.Rename(
-                path = result.item,
-                newName = result.newName
+            ExplorerCommand.Move(
+                sources = setOf(result.item),
+                destination = currentLocation.path.child(result.newName),
             )
         )
+    }
+
+    fun onSortOptions(result: SortOptionsResult) = launch {
+        log(tag) { "onSortOptions($result)" }
+        dialogStateFlow.value = ExplorerDialogState.None
+        explorerSettings.sortSettings.value(result.sortSettings)
+        currentSortSettings.value = result.sortSettings
     }
 
     fun pasteClipboard(clip: ClipboardClip) = launch {
@@ -379,11 +569,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 val currentLocation = state.first().currentLocation
                 if (currentLocation is ExplorerLocation.Directory) {
                     val operation = when (clip.mode) {
-                        ClipboardClip.Paths.Mode.COPY -> ExplorerOperation.FileOp.Copy(
+                        ClipboardClip.Paths.Mode.COPY -> ExplorerCommand.Copy(
                             sources = clip.paths.toSet(),
                             destination = currentLocation.path,
                         )
-                        ClipboardClip.Paths.Mode.CUT -> ExplorerOperation.FileOp.Move(
+                        ClipboardClip.Paths.Mode.CUT -> ExplorerCommand.Move(
                             sources = clip.paths.toSet(),
                             destination = currentLocation.path,
                         )
@@ -408,7 +598,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         clipboardRepo.clear()
     }
 
-    fun resolveConflict(resolution: Issue.Resolution?) = launch {
+    fun resolveConflict(resolution: PathActionIssue.Resolution) = launch {
         log(tag) { "resolveConflict(): $resolution" }
 
         val operationId = currentConflictOperationId
@@ -456,6 +646,35 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 autoCloseWhenComplete = true,
             )
         )
+    }
+
+    fun cancelOperation(id: Operation.Id) = launch {
+        log(tag) { "cancelOperation($id)" }
+        operationsManager.cancel(id)
+    }
+
+    fun dismissOperation(id: Operation.Id) = launch {
+        log(tag) { "dismissOperation($id)" }
+        operationsManager.remove(id)
+    }
+
+    fun clearCompletedOperations() = launch {
+        log(tag) { "clearCompletedOperations()" }
+        operationsManager.clearCompleted()
+    }
+
+    fun onOperationClick(operation: OperationDisplay) = launch {
+        log(tag) { "onOperationClick($operation)" }
+        when (operation.state) {
+            is OperationDisplay.State.Waiting -> {
+                // Navigate or handle waiting operations
+                log(tag) { "Operation is waiting for user input" }
+            }
+            else -> {
+                // Could show operation details or do nothing
+                log(tag) { "Operation clicked: ${operation.title}" }
+            }
+        }
     }
 
     @AssistedFactory

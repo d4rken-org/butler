@@ -8,7 +8,6 @@ import android.content.pm.PackageManager.*
 import android.content.pm.SharedLibraryInfo
 import android.graphics.drawable.Drawable
 import android.os.RemoteException
-import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -26,7 +25,7 @@ fun PackageManager.getPackageInfo2(
     flags: Int = 0
 ): PackageInfo? = try {
     getPackageInfo(pkgId.name, flags)
-} catch (_: PackageManager.NameNotFoundException) {
+} catch (_: NameNotFoundException) {
     null
 }
 
@@ -92,10 +91,10 @@ fun PackageManager.toggleSelfComponent(
     setComponentEnabledSetting(
         component,
         when {
-            enabled -> PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-            else -> PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+            enabled -> COMPONENT_ENABLED_STATE_ENABLED
+            else -> COMPONENT_ENABLED_STATE_DISABLED
         },
-        PackageManager.DONT_KILL_APP
+        DONT_KILL_APP
     )
 }
 
@@ -116,11 +115,6 @@ suspend fun PackageManager.freeStorageAndNotify(
     return withTimeout(timeout) {
         suspendCancellableCoroutine { continuation ->
             try {
-                if (Bugs.isDryRun) {
-                    continuation.resume(true)
-                    return@suspendCancellableCoroutine
-                }
-
                 freeStorageAndNotifyMethod.invoke(
                     packageManager,
                     storageId,

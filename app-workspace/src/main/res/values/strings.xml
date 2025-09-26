@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Clipboard -->
-    <string name="clipboard_hide">Hide clipboard</string>
+    <string name="clipboard_show_less">Show less</string>
     <string name="clipboard_clear_all">Clear All</string>
     <string name="clipboard_show_more">Show more</string>
     <string name="clipboard_show_more_items">Show more (%d items)</string>
@@ -22,4 +22,40 @@
     <string name="workspace_searcher_label">Searcher</string>
     <string name="workspace_editor_label">Editor</string>
     <string name="workspace_templates_label">Templates</string>
+
+    <!-- Operations -->
+    <string name="operations_header_running">%1$d of %2$d operations running</string>
+    <string name="operations_header_completed">%d operations completed</string>
+    <string name="operations_clear_completed">Clear completed</string>
+    <string name="operations_show_more">Show more</string>
+    <string name="operations_show_more_items">Show more (%d operations)</string>
+    <string name="operations_show_less">Show less</string>
+    <string name="operations_expand">Expand operations</string>
+    <string name="operations_collapse">Collapse operations</string>
+    <string name="operations_state_queued">Queued</string>
+    <string name="operations_state_running">Running</string>
+    <string name="operations_state_waiting">Waiting for input</string>
+    <string name="operations_state_completed">Completed</string>
+    <string name="operations_state_failed">Failed</string>
+    <string name="operations_state_cancelled">Cancelled</string>
+    <string name="operations_cancel_operation">Cancel operation</string>
+    <string name="operations_cancel_dialog_title">Cancel operation?</string>
+    <string name="operations_cancel_dialog_message">Are you sure you want to cancel this operation? This action cannot be undone.</string>
+    <string name="operations_cancel_dialog_confirm">Cancel operation</string>
+    <string name="operations_details_timeline">Timeline</string>
+    <string name="operations_details_started_at">Started</string>
+    <string name="operations_details_duration">Duration</string>
+    <string name="operations_details_completed_at">Completed</string>
+    <string name="operations_details_progress">Progress</string>
+    <string name="operations_details_error">Error Details</string>
+    <string name="operations_details_actions">Actions</string>
+    <string name="operations_details_overview">Overview</string>
+    <string name="operations_details_go_to_folder">Go to Folder</string>
+    <string name="operations_details_copy_error">Copy Error Details</string>
+    <string name="operations_details_status">Status</string>
+    <string name="operations_details_result">Result</string>
+    <string name="operations_details_affected_files_with_count">Affected files (%d)</string>
+    <string name="operations_details_path_added_marker">A</string>
+    <string name="operations_details_path_removed_marker">D</string>
+    <string name="operations_details_path_modified_marker">M</string>
 </resources>

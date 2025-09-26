@@ -87,7 +87,6 @@ class AdbHost(
 
                 Bugs.isDebug = options.isDebug
                 Bugs.isTrace = options.isTrace
-                Bugs.isDryRun = options.isDryRun
             }
             .launchIn(hostScope)
     }

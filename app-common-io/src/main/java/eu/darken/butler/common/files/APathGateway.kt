@@ -1,9 +1,10 @@
 package eu.darken.butler.common.files
 
+import eu.darken.butler.common.files.actions.CopyAction
+import eu.darken.butler.common.files.actions.DeleteAction
+import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
-import eu.darken.butler.common.files.operations.CopyOperation
-import eu.darken.butler.common.files.operations.MoveOperation
 import eu.darken.butler.common.sharedresource.HasSharedResource
 import kotlinx.coroutines.flow.Flow
 import okio.FileHandle
@@ -11,9 +12,12 @@ import kotlin.time.Instant
 
 interface APathGateway<
     P : APath,
-    PLU : APathLookup<P>,
-    PLUE : APathLookupExtended<P>,
-    > : HasSharedResource<Any>, CopyOperation<P>, MoveOperation<P> {
+    PL : APathLookup<P>,
+    PLE : APathLookupExtended<P>,
+    > : HasSharedResource<Any>,
+    CopyAction<P>,
+    MoveAction<P>,
+    DeleteAction<P, PL> {
 
     suspend fun createDir(path: P)
 
@@ -21,16 +25,16 @@ interface APathGateway<
 
     suspend fun listFiles(path: P): Collection<P>
 
-    suspend fun lookup(path: P): PLU
+    suspend fun lookup(path: P): PL
 
-    suspend fun lookupFiles(path: P): Collection<PLU>
+    suspend fun lookupFiles(path: P): Collection<PL>
 
-    suspend fun lookupFilesExtended(path: P): Collection<PLUE>
+    suspend fun lookupFilesExtended(path: P): Collection<PLE>
 
     suspend fun walk(
         path: P,
-        options: WalkOptions<P, PLU> = WalkOptions()
-    ): Flow<PLU>
+        options: WalkOptions<P, PL> = WalkOptions()
+    ): Flow<PL>
 
     data class WalkOptions<P : APath, PLU : APathLookup<P>>(
         val pathDoesNotContain: Set<String>? = null,
@@ -43,7 +47,7 @@ interface APathGateway<
 
     suspend fun du(
         path: P,
-        options: DuOptions<P, PLU> = DuOptions()
+        options: DuOptions<P, PL> = DuOptions()
     ): Long
 
     data class DuOptions<P : APath, PLU : APathLookup<P>>(
@@ -58,8 +62,6 @@ interface APathGateway<
 
     suspend fun file(path: P, readWrite: Boolean): FileHandle
 
-    suspend fun delete(path: P, recursive: Boolean)
-
     suspend fun createSymlink(linkPath: P, targetPath: P): Boolean
 
     suspend fun setModifiedAt(path: P, modifiedAt: Instant): Boolean
@@ -67,16 +69,4 @@ interface APathGateway<
     suspend fun setPermissions(path: P, permissions: Permissions): Boolean
 
     suspend fun setOwnership(path: P, ownership: Ownership): Boolean
-
-    override suspend fun copy(
-        source: P,
-        destination: P,
-        options: CopyOperation.Options
-    ): Flow<CopyOperation.Result>
-
-    override suspend fun move(
-        source: P,
-        destination: P,
-        options: MoveOperation.Options
-    ): Flow<MoveOperation.Result>
 }

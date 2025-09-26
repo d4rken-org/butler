@@ -10,7 +10,12 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.operations.operationsForWorkspace
+import eu.darken.butler.workspace.core.operations.withStateTypeUpdates
 import eu.darken.butler.workspace.core.preview.EditorPreviewData
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -18,6 +23,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
@@ -27,6 +34,7 @@ class EditorWorkspace @AssistedInject constructor(
     @Assisted private val arguments: Arguments?,
     private val editorEngine: EditorEngine,
     private val editorSettings: EditorSettings,
+    private val operationsManager: OperationsManager,
 ) : Workspace {
 
     private val tag = logTag("Editor","Workspace",  id.shortTag)
@@ -98,12 +106,43 @@ class EditorWorkspace @AssistedInject constructor(
 
     init {
         log(tag, INFO) { "Initialized with file: ${filePath?.name ?: "No file"}" }
-        
+
+        // Track operation counts for this workspace
+        operationsManager.operationsForWorkspace(id).withStateTypeUpdates()
+            .onEach { operations ->
+                var operationCount = 0
+                var attentionCount = 0
+
+                operations.forEach { operation ->
+                    val state = operation.state.value
+                    when (state) {
+                        is Operation.State.Queued -> operationCount++
+                        is Operation.State.Active -> operationCount++
+                        is Operation.State.Waiting -> {
+                            operationCount++
+                            attentionCount++
+                        }
+                        is Operation.State.Completed -> {
+                            if (state.error != null && state.error !is CancellationException) {
+                                attentionCount++
+                            }
+                        }
+                    }
+                }
+
+                _info.value = _info.value.copy(
+                    operationCount = operationCount,
+                    attentionCount = attentionCount
+                )
+                log(tag, VERBOSE) { "Updated operation counts: active=$operationCount, attention=$attentionCount" }
+            }
+            .launchIn(workspaceScope)
+
         // Initialize editor engine
         workspaceScope.launch {
             editorEngine.initialize(filePath, isReadOnly)
         }
-        
+
         // Update title based on file info
         workspaceScope.launch {
             fileInfo.collect { info ->
