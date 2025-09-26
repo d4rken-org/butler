@@ -1,11 +1,18 @@
 package eu.darken.butler.explorer.ui.explorer.items.row
 
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import android.text.format.DateUtils
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import kotlin.time.Instant
 
-// TODO: This would use a proper date formatter in a real implementation
+@Composable
 fun formatDate(timestamp: Instant): String {
-    return SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(timestamp.toEpochMilliseconds()))
+    return DateUtils.formatDateTime(
+        LocalContext.current,
+        timestamp.toEpochMilliseconds(),
+        DateUtils.FORMAT_SHOW_YEAR or
+            DateUtils.FORMAT_SHOW_DATE or
+            DateUtils.FORMAT_SHOW_TIME or
+            DateUtils.FORMAT_ABBREV_ALL
+    )
 }

@@ -54,6 +54,8 @@ internal fun RegularFileRow(
             item.ownership?.let { owner ->
                 append(" • ")
                 append(owner.userName ?: owner.userId)
+                append(" | ")
+                append(owner.groupName ?: owner.groupId)
             }
         }
     )

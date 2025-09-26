@@ -3,6 +3,8 @@ package eu.darken.butler.explorer.ui.explorer.preview
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.metadata.Ownership
+import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import kotlin.time.Instant
 
@@ -51,6 +53,14 @@ object MockDataProvider {
         return ExplorerItem.RegularFile(
             lookup = createMockLookup(name, "/home/user/$name", 4_096L),
             mimeType = "text/plain",
+        ).withExtendedData(
+            ownership = Ownership(
+                userId = 123,
+                groupId = 456,
+                userName = "aUser",
+                groupName = "aGroup",
+            ),
+            permissions = Permissions(mode = 755)
         )
     }
 
