@@ -26,7 +26,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
@@ -145,7 +144,6 @@ private fun PermissionSetupCardPreview() {
                     SetupRequirement(
                         permission = Permission.MANAGE_EXTERNAL_STORAGE,
                         isRequired = true,
-                        description = "Grant access to manage all files on device storage".toCaString(),
                     )
                 ),
                 hasSufficientPermissions = false,

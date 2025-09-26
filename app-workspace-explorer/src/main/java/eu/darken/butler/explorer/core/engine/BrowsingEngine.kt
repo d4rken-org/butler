@@ -156,19 +156,18 @@ class BrowsingEngine @AssistedInject constructor(
         }
         log(tag) { "getPeek(): Peeked ${items.size} items" }
 
-        ExplorerLocation.Directory(
+        current.copy(
             path = current.path,
             parent = current.parent,
             items = items,
             info = info,
-            permissionState = checkLocationPermissions(ExplorerNavigation.Target.Directory(current.path)),
         )
     }
 
-    private suspend fun getDirectory(
+    private suspend fun getContent(
         current: ExplorerLocation.Directory
     ): ExplorerLocation.Directory = withContext(Dispatchers.IO) {
-        log(tag) { "getDirectory(): Loading directory: ${current.path}" }
+        log(tag) { "getContent(): Loading content: ${current.path}" }
 
         val basicLookups = gatewaySwitch.lookupFiles(current.path)
         log(tag) { "getContent(): ${basicLookups.size} lookups" }
@@ -196,7 +195,7 @@ class BrowsingEngine @AssistedInject constructor(
                 }
             }
         }
-        log(tag) { "getDirectory(): Directory info: $fileCount files, $directoryCount directories, $totalSize bytes" }
+        log(tag) { "getContent(): Directory info: $fileCount files, $directoryCount directories, $totalSize bytes" }
 
         current.copy(
             items = items,
@@ -213,7 +212,8 @@ class BrowsingEngine @AssistedInject constructor(
     private suspend fun getContentExtended(
         current: ExplorerLocation.Directory
     ): ExplorerLocation.Directory = withContext(Dispatchers.IO) {
-        // Second stage: Load extended info with permissions/ownership
+        log(tag) { "getContentExtended(): Loading content extended: ${current.path}" }
+
         val extendedLookups = gatewaySwitch.lookupFilesExtended(current.path).associateBy { it.path }
         val fileClassifier = FileTypeClassifier()
 
@@ -270,7 +270,7 @@ class BrowsingEngine @AssistedInject constructor(
                     currentState = getPeek(currentState)
                     emit(currentState)
 
-                    currentState = getDirectory(currentState)
+                    currentState = getContent(currentState)
                     emit(currentState)
 
                     currentState = getContentExtended(currentState)

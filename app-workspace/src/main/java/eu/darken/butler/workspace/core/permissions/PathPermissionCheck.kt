@@ -3,7 +3,6 @@ package eu.darken.butler.workspace.core.permissions
 import android.content.Context
 import android.os.Environment
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -15,6 +14,7 @@ import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.workspace.core.setup.SetupStateProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
@@ -58,7 +58,6 @@ class PathPermissionCheck @Inject constructor(
         val requirement = SetupRequirement(
             permission = requiredPermission,
             isRequired = true,
-            description = eu.darken.butler.common.R.string.common_permission_storage_manage_description.toCaString(),
         )
 
         return PermissionState(
@@ -70,13 +69,40 @@ class PathPermissionCheck @Inject constructor(
 
     fun monitor(path: APath): Flow<PermissionState> = setupStateProvider.state
         .map { providerState ->
-          providerState.modules.values.filterIsInstance<SetupModule.State.Current>().map { it.type to it.isComplete }
+            // Only get relevant modules for path permissions
+            val relevantModules = providerState.modules.values
+                .filterIsInstance<SetupModule.State.Current>()
+                .filter { module ->
+                    module.type in setOf(
+                        SetupModule.Type.STORAGE,
+                        SetupModule.Type.ROOT,
+                        SetupModule.Type.SHIZUKU
+                    )
+                }
+
+            // Create a map of module states
+            val moduleStates = relevantModules.associate { it.type to it.isComplete }
+
+            // Return the states along with a stability flag
+            // We consider it stable when all expected modules are present
+            val hasAllModules = setOf(
+                SetupModule.Type.STORAGE,
+                SetupModule.Type.ROOT,
+                SetupModule.Type.SHIZUKU
+            ).all { type -> moduleStates.containsKey(type) }
+
+            Pair(moduleStates, hasAllModules)
         }
         .distinctUntilChanged()
-        .onEach { log(TAG, VERBOSE) { "Setup state changed: $it" } }
+        .filter { pair -> pair.second } // Only emit when we have all modules
+        .onEach { pair ->
+            log(TAG, VERBOSE) { "Relevant setup state: ${pair.first}" }
+        }
         .map { check(path) }
         .distinctUntilChanged()
-        .onEach { log(TAG, INFO) { "Permission state for $path: $it" } }
+        .onEach { permissionState ->
+            log(TAG, INFO) { "Permission state for $path: $permissionState" }
+        }
 
     companion object {
         private val TAG = logTag("Permission", "PathChecker")

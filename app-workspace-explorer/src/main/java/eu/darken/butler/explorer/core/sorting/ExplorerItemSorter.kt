@@ -51,6 +51,7 @@ class ExplorerItemSorter @AssistedInject constructor(
     ): List<ExplorerItem.Path> {
         if (pathItems.isEmpty()) return pathItems
 
+        val peeks = pathItems.filterIsInstance<ExplorerItem.Peek>()
         val directories = pathItems.filterIsInstance<ExplorerItem.Directory>()
         val files = pathItems.filterIsInstance<ExplorerItem.File>()
 
@@ -58,9 +59,9 @@ class ExplorerItemSorter @AssistedInject constructor(
         val sortedFiles = applySortMode(context, files, sortSettings)
 
         return if (sortSettings.reversed) {
-            sortedFiles.reversed() + sortedDirectories.reversed()
+            peeks + sortedFiles.reversed() + sortedDirectories.reversed()
         } else {
-            sortedDirectories + sortedFiles
+            peeks + sortedDirectories + sortedFiles
         }
     }
 

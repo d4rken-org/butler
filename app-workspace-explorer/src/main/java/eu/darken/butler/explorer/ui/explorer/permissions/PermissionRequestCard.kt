@@ -9,9 +9,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.FolderOff
 import androidx.compose.material.icons.twotone.Storage
-import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -24,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.permissions.Permission
@@ -130,7 +129,6 @@ private fun PermissionRequestCardPreview() {
                     SetupRequirement(
                         permission = Permission.MANAGE_EXTERNAL_STORAGE,
                         isRequired = true,
-                        description = "Access files and folders".toCaString(),
                     )
                 ),
                 hasSufficientPermissions = false,
