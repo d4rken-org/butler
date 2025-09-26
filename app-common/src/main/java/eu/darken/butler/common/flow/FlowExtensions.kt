@@ -74,7 +74,7 @@ fun <T> Flow<T>.takeUntilAfter(predicate: suspend (T) -> Boolean) = transformWhi
     !fullfilled // We keep emitting until condition is fullfilled = true
 }
 
-fun <T> Flow<T>.setupCommonEventHandlers(tag: String, identifier: () -> String) = this
+fun <T> Flow<T>.setupCommonEventHandlers(tag: String, enabled: Boolean = true, identifier: () -> String) = this
     .onStart { log(tag, VERBOSE) { "${identifier()}.onStart()" } }
     .onEach { log(tag, VERBOSE) { "${identifier()}.onEach(): $it" } }
     .onCompletion { log(tag, VERBOSE) { "${identifier()}.onCompletion()" } }

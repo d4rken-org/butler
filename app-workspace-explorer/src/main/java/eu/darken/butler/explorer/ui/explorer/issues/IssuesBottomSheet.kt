@@ -4,10 +4,11 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.issue.Issue
 
 @Composable
 fun IssueBottomSheet(
-    issue: PathActionIssue,
+    issue: Issue,
     onResolution: (PathActionIssue.Resolution) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -34,6 +35,7 @@ fun IssueBottomSheet(
                 issue = issue,
                 onResolution = onResolution,
             )
+            else -> throw IllegalArgumentException("Unknown issue type: $issue")
         }
     }
 }

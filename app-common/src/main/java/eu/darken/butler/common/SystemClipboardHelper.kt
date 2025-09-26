@@ -14,7 +14,7 @@ import javax.inject.Singleton
 import kotlin.concurrent.withLock
 
 @Singleton
-class ClipboardHelper @Inject constructor(
+class SystemClipboardHelper @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private val clipboard: ClipboardManager by lazy {
@@ -45,6 +45,6 @@ class ClipboardHelper @Inject constructor(
     }
 
     companion object {
-        private val TAG = logTag("ClipboardHelper")
+        private val TAG = logTag("SystemClipboardHelper")
     }
 }

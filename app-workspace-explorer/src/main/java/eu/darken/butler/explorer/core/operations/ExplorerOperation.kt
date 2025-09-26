@@ -24,8 +24,8 @@ abstract class ExplorerOperation : Operation {
 
         data class Waiting(
             override val startedAt: Instant,
-            override val waitingSince: Instant,
-            val issue: PathActionIssue,
+            override val waitingSince: Instant = Clock.System.now(),
+            override val issue: PathActionIssue,
         ) : State, Operation.State.Waiting {
             override val reason: CaString get() = issue.title
         }

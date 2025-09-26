@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui.operations
+package eu.darken.butler.workspace.ui.operations.details
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
@@ -56,8 +56,11 @@ import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.ui.operations.OperationDisplay
+import eu.darken.butler.workspace.ui.operations.bar.OperationActionIndicator
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Instant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -793,7 +796,7 @@ private fun createMockReport(
     override val affectedPaths = affectedPaths
 }
 
-private fun formatRelativeTime(instant: kotlin.time.Instant): String {
+private fun formatRelativeTime(instant: Instant): String {
     val duration = Clock.System.now() - instant
     return when {
         duration.inWholeMinutes < 1 -> "Just now"
@@ -803,7 +806,7 @@ private fun formatRelativeTime(instant: kotlin.time.Instant): String {
     }
 }
 
-private fun formatDuration(startedAt: kotlin.time.Instant): String {
+private fun formatDuration(startedAt: Instant): String {
     val duration = Clock.System.now() - startedAt
     return when {
         duration.inWholeMinutes < 1 -> "${duration.inWholeSeconds}s"
@@ -812,7 +815,7 @@ private fun formatDuration(startedAt: kotlin.time.Instant): String {
     }
 }
 
-private fun formatFinalDuration(startedAt: kotlin.time.Instant, completedAt: kotlin.time.Instant): String {
+private fun formatFinalDuration(startedAt: Instant, completedAt: Instant): String {
     val duration = completedAt - startedAt
     return when {
         duration.inWholeMinutes < 1 -> "${duration.inWholeSeconds}s"

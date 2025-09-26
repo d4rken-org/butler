@@ -4,6 +4,7 @@ import android.os.Parcelable
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.parcel.UuidParceler
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.core.Workspace
@@ -32,7 +33,7 @@ interface Operation {
         val origin: Origin
         val icon: ImageVector
         val title: CaString
-        val description: CaString?
+        val description: CaString
 
         sealed interface Origin {
             val workspaceId: Workspace.Id
@@ -58,6 +59,7 @@ interface Operation {
         interface Waiting : State {
             val waitingSince: Instant
             val reason: CaString
+            val issue: Issue
         }
 
         interface Completed : State {

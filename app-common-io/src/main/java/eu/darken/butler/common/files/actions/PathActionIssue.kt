@@ -92,7 +92,7 @@ sealed interface PathActionIssue : Issue {
         }
         sealed interface Resolution : PathActionIssue.Resolution {
             data class Skip(val applyToAll: Boolean = false) : Resolution
-            data class Retry(val applyToAll: Boolean = false) : Resolution
+            data object Retry : Resolution
             data class Cancel(val error: Exception? = null) : Resolution
         }
     }

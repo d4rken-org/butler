@@ -270,7 +270,7 @@ fun ExplorerWorkspacePageWithAllBarsPreview() {
         OperationDisplay(
             id = Operation.Id(),
             title = "Move documents".toCaString(),
-            description = null,
+            description = "Move documents description".toCaString(),
             icon = Icons.TwoTone.Delete,
             state = OperationDisplay.State.Running(
                 primaryProgress = Progress.Data(
@@ -408,7 +408,7 @@ fun ExplorerWorkspacePageWithExpandedBarsPreview() {
         OperationDisplay(
             id = Operation.Id(),
             title = "Move documents".toCaString(),
-            description = null,
+            description = "Move documents description".toCaString(),
             icon = Icons.TwoTone.ContentCut,
             state = OperationDisplay.State.Running(
                 primaryProgress = Progress.Data(

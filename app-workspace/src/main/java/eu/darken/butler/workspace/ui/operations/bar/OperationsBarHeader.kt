@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui.operations
+package eu.darken.butler.workspace.ui.operations.bar
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

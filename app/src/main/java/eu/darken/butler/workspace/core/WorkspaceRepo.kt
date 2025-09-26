@@ -1,6 +1,7 @@
 package eu.darken.butler.workspace.core
 
 import eu.darken.butler.common.coroutine.AppScope
+import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -56,11 +57,11 @@ class WorkspaceRepo @Inject constructor(
             isButtonActionsFlipped = isButtonFlipped,
         )
     }
-        .setupCommonEventHandlers(TAG) { "WorkspaceState" }
+        .setupCommonEventHandlers(TAG, enabled = Bugs.isTrace) { "WorkspaceState" }
         .replayingShare(appScope)
 
     override val events: Flow<WorkspaceEvent> = _events
-        .setupCommonEventHandlers(TAG) { "WorkspaceEvents" }
+        .setupCommonEventHandlers(TAG, enabled = Bugs.isDebug) { "WorkspaceEvents" }
         .replayingShare(appScope)
 
     private fun create(

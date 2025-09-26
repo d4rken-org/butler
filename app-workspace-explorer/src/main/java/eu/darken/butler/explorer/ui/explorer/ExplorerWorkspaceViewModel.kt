@@ -7,6 +7,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.darken.butler.common.SystemClipboardHelper
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.datastore.valueBlocking
@@ -17,6 +18,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine
+import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.destSetup
@@ -49,14 +51,17 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.operations.get
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
 import eu.darken.butler.workspace.core.operations.withStateUpdates
 import eu.darken.butler.workspace.core.permissions.PermissionState
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -78,14 +83,18 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val explorerSettings: ExplorerSettings,
     itemSorterFactory: ExplorerItemSorter.Factory,
     private val operationsManager: OperationsManager,
+    private val systemClipboardHelper: SystemClipboardHelper,
+    private val copyErrorTool: CopyErrorTool,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
 
     private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
     private val viewModeFlow = MutableStateFlow(ViewMode.LIST)
     private val dialogStateFlow = MutableStateFlow<ExplorerDialogState>(ExplorerDialogState.None)
-    private val conflictStateFlow = MutableStateFlow<PathActionIssue?>(null)
-    val conflictState = conflictStateFlow
+    private val issueStateFlow = MutableStateFlow<Issue?>(null)
+    val issueState = issueStateFlow
     private var currentConflictOperationId: Operation.Id? = null
+    private val showIssueSheetFlow = MutableSharedFlow<Unit>()
+    val showIssueSheetEvent = showIssueSheetFlow.asSharedFlow()
 
     val dialogEvents = SingleEventFlow<ExplorerDialogEvent>()
 
@@ -113,10 +122,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 if (firstConflictEntry != null) {
                     val (operationId, awaitingInputState) = firstConflictEntry
                     currentConflictOperationId = operationId
-                    conflictStateFlow.value = awaitingInputState.issue
+                    issueStateFlow.value = awaitingInputState
                 } else {
                     currentConflictOperationId = null
-                    conflictStateFlow.value = null
+                    issueStateFlow.value = null
                 }
             }
         }
@@ -610,8 +619,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
 
         // Clear conflict UI state (it will be updated by workspace state observer if needed)
-        conflictStateFlow.value = null
+        issueStateFlow.value = null
         currentConflictOperationId = null
+    }
+
+    fun showConflictSheet() = launch {
+        log(tag) { "showConflictSheet(): Requesting to show conflict sheet" }
+        if (issueStateFlow.value != null) {
+            showIssueSheetFlow.emit(Unit)
+        } else {
+            log(tag, WARN) { "Cannot show conflict sheet: no current conflict" }
+        }
     }
 
     data class State(
@@ -648,6 +666,18 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         )
     }
 
+    fun copyError(id: Operation.Id) = launch {
+        log(tag) { "copyError($id)" }
+        val operation = operationsManager.get(id)
+        if (operation == null) {
+            log(tag, ERROR) { "Operation with id $id not found" }
+            return@launch
+        }
+        copyErrorTool.formatError(operation)?.let {
+            systemClipboardHelper.copyToClipboard(it)
+        }
+    }
+
     fun cancelOperation(id: Operation.Id) = launch {
         log(tag) { "cancelOperation($id)" }
         operationsManager.cancel(id)
@@ -663,19 +693,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         operationsManager.clearCompleted()
     }
 
-    fun onOperationClick(operation: OperationDisplay) = launch {
-        log(tag) { "onOperationClick($operation)" }
-        when (operation.state) {
-            is OperationDisplay.State.Waiting -> {
-                // Navigate or handle waiting operations
-                log(tag) { "Operation is waiting for user input" }
-            }
-            else -> {
-                // Could show operation details or do nothing
-                log(tag) { "Operation clicked: ${operation.title}" }
-            }
-        }
-    }
 
     @AssistedFactory
     interface Factory {

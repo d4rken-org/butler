@@ -41,6 +41,7 @@ class IssueHandler @Inject constructor(
         operationId: Operation.Id,
         issue: Issue
     ): Issue.Resolution {
+        log(TAG, INFO) { "handleIssue(): $operationId - $issue" }
         val deferred = CompletableDeferred<Issue.Resolution>()
         pendingResolutions[operationId] = deferred
 
@@ -52,7 +53,10 @@ class IssueHandler @Inject constructor(
         _pendingIssues.update { it + (operationId to pending) }
 
         try {
-            return deferred.await()
+            log(TAG, VERBOSE) { "handleIssue(): Awaiting resolution of ${issue.id}$" }
+            return deferred.await().also { resolution ->
+                log(TAG, VERBOSE) { "handleIssue(): Resolved: ${issue.id}$ - $resolution" }
+            }
         } catch (e: CancellationException) {
             log(TAG, DEBUG) { "Operation $operationId cancelled while waiting for issue resolution" }
             throw e

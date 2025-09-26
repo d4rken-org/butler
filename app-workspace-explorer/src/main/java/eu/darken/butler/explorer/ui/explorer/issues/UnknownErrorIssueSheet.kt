@@ -209,7 +209,7 @@ fun UnknownErrorIssueSheet(
                 if (issue.canRetry) {
                     Button(
                         onClick = {
-                            onResolution(PathActionIssue.UnknownError.Resolution.Retry(applyToAll))
+                            onResolution(PathActionIssue.UnknownError.Resolution.Retry)
                         },
                         modifier = Modifier.weight(1f),
                     ) {

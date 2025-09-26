@@ -12,6 +12,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.flow.DynamicStateFlow
+import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
@@ -21,7 +22,6 @@ import eu.darken.butler.explorer.core.operations.CopyOperation
 import eu.darken.butler.explorer.core.operations.CreateOperation
 import eu.darken.butler.explorer.core.operations.DeleteOperation
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
-import eu.darken.butler.explorer.core.operations.ExplorerOperation
 import eu.darken.butler.explorer.core.operations.MoveOperation
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
@@ -86,7 +86,7 @@ class ExplorerWorkspace @AssistedInject constructor(
                 else -> R.string.explorer_title.toCaString()
             },
             previewData = ExplorerPreviewData(),
-            operationCount = state.operationCount,
+            operationCount = state.activeOperations,
             attentionCount = state.attentionCount,
         )
     }
@@ -104,11 +104,21 @@ class ExplorerWorkspace @AssistedInject constructor(
         val isLoadingExtended: Boolean = false,
         val error: Throwable? = null,
         val progress: Progress.Data? = null,
-        val activeOperations: Map<Operation.Id, ExplorerOperation.State> = emptyMap(),
-        val pendingConflicts: Map<Operation.Id, ExplorerOperation.State.Waiting> = emptyMap(),
-        val operationCount: Int = 0,
-        val attentionCount: Int = 0,
+        val operationStates: Map<Operation.Id, Operation.State> = emptyMap(),
     ) {
+        val activeOperations: Int = operationStates.count { it !is Operation.State.Completed }
+        val attentionCount: Int = operationStates.count {
+            val value = it.value
+            if (value is Operation.State.Waiting) return@count true
+            if (value is Operation.State.Completed && value.error != null) return@count true
+            return@count false
+        }
+        val pendingConflicts: Map<Operation.Id, Issue> = operationStates
+            .filterValues { it is Operation.State.Waiting }
+            .mapValues { (_, value) ->
+                value as Operation.State.Waiting
+                value.issue
+            }
         val canGoBack: Boolean get() = historyIndex > 0
         val canGoForward: Boolean get() = historyIndex < navigationHistory.size - 1
     }
@@ -152,35 +162,14 @@ class ExplorerWorkspace @AssistedInject constructor(
             }
             .launchIn(scope)
 
-        // Track operation counts for this workspace
-        operationsManager.operationsForWorkspace(id).withStateTypeUpdates()
+        operationsManager.operationsForWorkspace(id)
+            .withStateTypeUpdates()
             .onEach { operations ->
-                var operationCount = 0
-                var attentionCount = 0
-
-                operations.forEach { operation ->
-                    val state = operation.state.value
-                    when (state) {
-                        is Operation.State.Queued -> operationCount++
-                        is Operation.State.Active -> operationCount++
-                        is Operation.State.Waiting -> {
-                            operationCount++
-                            attentionCount++
-                        }
-                        is Operation.State.Completed -> {
-                            if (state.error != null && state.error !is CancellationException) {
-                                attentionCount++
-                            }
-                        }
-                    }
-                }
+                val operationStates = operations.associate { it.id to it.state.value }
+                log(tag, VERBOSE) { "Updating operation states" }
                 _state.updateBlocking {
-                    copy(
-                        operationCount = operationCount,
-                        attentionCount = attentionCount
-                    )
+                    copy(operationStates = operationStates)
                 }
-                log(tag, VERBOSE) { "Updated operation counts: active=$operationCount, attention=$attentionCount" }
             }
             .launchIn(scope)
 

@@ -37,6 +37,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -62,7 +63,10 @@ import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.clipboard.ClipboardBar
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
-import eu.darken.butler.workspace.ui.operations.OperationsBar
+import eu.darken.butler.workspace.ui.operations.OperationDisplay
+import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
+import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
+import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 
 @Composable
 fun ExplorerWorkspacePageHost(
@@ -104,7 +108,7 @@ fun ExplorerWorkspacePage(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
-    operations: List<eu.darken.butler.workspace.ui.operations.OperationDisplay> = emptyList(),
+    operations: List<OperationDisplay> = emptyList(),
     initialOperationsExpanded: Boolean = false,
     initialClipboardExpanded: Boolean = false,
 ) {
@@ -115,7 +119,21 @@ fun ExplorerWorkspacePage(
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Observe conflict state
-    val conflictState by (vm?.conflictState?.collectAsState() ?: remember { mutableStateOf(null) })
+    val issueState by (vm?.issueState?.collectAsState() ?: remember { mutableStateOf(null) })
+    var showIssueSheet by remember { mutableStateOf(false) }
+
+    // Automatically show conflict sheet when conflictState becomes non-null
+    LaunchedEffect(issueState) {
+        if (issueState != null) showIssueSheet = true
+    }
+
+    // Listen for requests to show conflict sheet
+    LaunchedEffect(vm) {
+        vm?.showIssueSheetEvent?.collect { showIssueSheet = true }
+    }
+
+    // Operation dialog state
+    var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
 
     LaunchedEffect(state.locationId) {
         if (state.locationId != null) {
@@ -377,7 +395,16 @@ fun ExplorerWorkspacePage(
                         operations = operations,
                         onCancelOperation = { id -> vm?.cancelOperation(id) },
                         onDismissOperation = { id -> vm?.dismissOperation(id) },
-                        onOperationClick = { operation -> vm?.onOperationClick(operation) },
+                        onOperationClick = { operation ->
+                            when (operation.state) {
+                                is OperationDisplay.State.Waiting -> {
+                                    vm?.showConflictSheet()
+                                }
+                                else -> {
+                                    operationDialogState = OperationDialogState.OperationDetails(operation)
+                                }
+                            }
+                        },
                         onClearCompleted = { vm?.clearCompletedOperations() },
                         initialExpanded = initialOperationsExpanded,
                     )
@@ -423,14 +450,21 @@ fun ExplorerWorkspacePage(
             dialogState = state.dialogState,
             vm = vm
         )
+
+        OperationDialogHost(
+            dialogState = operationDialogState,
+            onDismissDialog = { operationDialogState = OperationDialogState.None },
+            onCancelOperation = { vm?.cancelOperation(it) },
+            onCopyError = { vm?.copyError(it) }
+        )
     }
 
     // Show conflict bottom sheet when needed
-    conflictState?.let { conflict ->
+    if (issueState != null && showIssueSheet) {
         IssueBottomSheet(
-            issue = conflict,
+            issue = issueState!!,
             onResolution = { resolution -> vm?.resolveConflict(resolution) },
-            onDismiss = { },
+            onDismiss = { showIssueSheet = false },
         )
     }
 }

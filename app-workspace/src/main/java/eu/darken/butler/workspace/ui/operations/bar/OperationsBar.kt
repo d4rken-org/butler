@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui.operations
+package eu.darken.butler.workspace.ui.operations.bar
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
@@ -42,6 +43,7 @@ import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.ui.SwipeToDismissItem
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import kotlin.time.Clock
 
 @Composable
@@ -61,9 +63,6 @@ fun OperationsBar(
 
     // State for cancel confirmation dialog
     var pendingCancelId by remember { mutableStateOf<Operation.Id?>(null) }
-
-    // State for operation details sheet
-    var selectedOperationId by remember { mutableStateOf<Operation.Id?>(null) }
 
     AnimatedVisibility(
         visible = operations.isNotEmpty(),
@@ -112,7 +111,7 @@ fun OperationsBar(
 
                 LazyColumn(
                     modifier = Modifier
-                        .heightIn(max = if (visibleOps.size > 1) 240.dp else androidx.compose.ui.unit.Dp.Unspecified)
+                        .heightIn(max = if (visibleOps.size > 1) 240.dp else Dp.Unspecified)
                         .fillMaxWidth(),
                     userScrollEnabled = visibleOps.size > 4  // Only enable scroll when needed
                 ) {
@@ -151,7 +150,7 @@ fun OperationsBar(
                         ) {
                             OperationEntryRow(
                                 operation = operation,
-                                onRowClick = { selectedOperationId = operation.id },
+                                onRowClick = { onOperationClick(operation) },
                                 onActionClick = if (canCancel) {
                                     { pendingCancelId = operation.id }
                                 } else null,
@@ -197,28 +196,6 @@ fun OperationsBar(
         )
     }
 
-    // Operation details sheet
-    selectedOperationId?.let { operationId ->
-        val currentOperation = operations.find { it.id == operationId }
-        currentOperation?.let { operation ->
-            OperationDetailsSheet(
-                operation = operation,
-                onDismiss = { selectedOperationId = null },
-                onCancel = if (operation.canCancel && operation.state is OperationDisplay.State.Running) {
-                    {
-                        selectedOperationId = null
-                        pendingCancelId = operation.id
-                    }
-                } else null,
-                onCopyError = if (operation.state is OperationDisplay.State.Failed) {
-                    {
-                        // TODO: Copy error details to clipboard
-                        selectedOperationId = null
-                    }
-                } else null,
-            )
-        }
-    }
 }
 
 @Preview2
@@ -244,7 +221,7 @@ private fun OperationsBarPreview() {
             OperationDisplay(
                 id = Operation.Id(),
                 title = "Copy operation".toCaString(),
-                description = null,
+                description = "Copy operation description".toCaString(),
                 icon = Icons.TwoTone.Delete,
                 state = OperationDisplay.State.Completed(
                     summary = "Success".toCaString(),

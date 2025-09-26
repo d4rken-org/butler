@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui.operations
+package eu.darken.butler.workspace.ui.operations.bar
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,6 +22,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import kotlin.time.Clock
 
 @Composable

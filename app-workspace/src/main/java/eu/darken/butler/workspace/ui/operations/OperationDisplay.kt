@@ -14,7 +14,7 @@ data class OperationDisplay(
     val startedAt: Instant,
     val icon: ImageVector,
     val title: CaString,
-    val description: CaString?,
+    val description: CaString,
     val state: State = State.Queued,
     val canCancel: Boolean = false,
 ) {

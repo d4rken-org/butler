@@ -24,7 +24,7 @@ import kotlin.time.Instant
 
 class ManagedOperation(
     val id: Operation.Id,
-    private val operation: Operation,
+    val operation: Operation,
     parentScope: CoroutineScope,
 ) {
     val tag = logTag("Workspace", "Operations", "ManagedOperation", id.shortTag)

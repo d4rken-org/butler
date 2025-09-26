@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
+import kotlin.time.Clock
 
 class DeleteOperation @AssistedInject constructor(
     @Assisted workspaceId: Workspace.Id,
@@ -70,6 +71,13 @@ class DeleteOperation @AssistedInject constructor(
                 options = DeleteAction.Options(
                     recursive = true,
                     onIssue = { issue ->
+                        emit(
+                            State.Waiting(
+                                startedAt = operationContext.startedAt,
+                                waitingSince = Clock.System.now(),
+                                issue = issue,
+                            )
+                        )
                         issueHandler.handleIssue(operationContext.id, issue) as PathActionIssue.Resolution
                     }
                 )
