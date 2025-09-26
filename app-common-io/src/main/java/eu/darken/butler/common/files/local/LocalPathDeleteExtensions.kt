@@ -7,12 +7,10 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
-import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.io.R
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import java.io.IOException
 import java.nio.file.Files
@@ -41,19 +39,16 @@ suspend fun Collection<LocalPath>.delete(
     val deleted = linkedSetOf<LocalPathLookup>()
     var bytesTotal = 0L
 
-    // Apply-to-all state management
-    var skipAllPermissionIssues = false
+    var issueSkippAllPermission = false
+    var issueSkippAllUnknown = false
 
-    // Process each original target separately for cleaner progress tracking
     this.forEachIndexed { index, currentTopLevel ->
         log(TAG, VERBOSE) { "delete(): Processing target ${index + 1}/${this.size}: $currentTopLevel" }
 
-        // Collect all items for this specific target
         val toVisit = ArrayDeque<LocalPath>().apply { add(currentTopLevel) }
         val files = ArrayDeque<LocalPathLookup>()
         val dirsPost = ArrayDeque<LocalPathLookup>()
 
-        // Traverse this target's tree
         while (toVisit.isNotEmpty() && currentCoroutineContext().isActive) {
             val localPath = toVisit.removeFirst()
             val lookup = localPath.performLookup()
@@ -89,7 +84,6 @@ suspend fun Collection<LocalPath>.delete(
         suspend fun tryDelete(target: LocalPathLookup) {
             while (currentCoroutineContext().isActive) {
                 try {
-
                     onProgress?.invoke(
                         DeleteAction.State.Progress(
                             target = target,
@@ -120,92 +114,73 @@ suspend fun Collection<LocalPath>.delete(
                             } else null
                         )
                     )
-                    delay(50) // FIXME Just for testing
-//                Files.delete(target.file.toPath()) // FIXME Just for testing.
+                    Files.delete(target.lookedUp.file.toPath())
                     bytesTotal += size
                     deleted += target
                     itemsProcessed++
                     break
-                } catch (e: NoSuchFileException) {
-                    log(TAG, WARN) { "delete(): File doesn't exist: $target" }
-                    if (ignoreMissing) break else throw ReadException(path = target.lookedUp, cause = e)
-
                 } catch (securityError: SecurityException) {
                     log(TAG, ERROR) { "delete(): Security exception on $target: $securityError" }
 
-                    if (skipAllPermissionIssues) {
+                    if (issueSkippAllPermission) {
                         log(TAG, INFO) { "Skipping permission issue (apply-to-all): $target" }
                         break
                     }
 
                     val deleteError = WriteException(path = target.lookedUp, cause = securityError)
-
                     if (onIssue == null) throw deleteError
 
-                    val issue = try {
-                        PathActionIssue.InsufficientPermission(
-                            destination = target,
-                            exception = deleteError,
-                        )
-                    } catch (e: Exception) {
-                        PathActionIssue.UnknownError(exception = e)
-                    }
+                    val issue = PathActionIssue.InsufficientPermission(
+                        destination = target,
+                        exception = deleteError,
+                    )
 
-                    val resolution = onIssue.invoke(issue)
-                    when (issue) {
-                        is PathActionIssue.InsufficientPermission -> {
-                            val permissionResolution = resolution as PathActionIssue.InsufficientPermission.Resolution
-                            when (permissionResolution) {
-                                is PathActionIssue.InsufficientPermission.Resolution.Cancel -> throw CancellationException(
-                                    "User cancelled",
-                                    deleteError
-                                )
-                                is PathActionIssue.InsufficientPermission.Resolution.Skip -> {
-                                    if (permissionResolution.applyToAll) skipAllPermissionIssues = true
-                                    break
-                                }
-                            }
+                    when (val resolution = onIssue.invoke(issue) as PathActionIssue.InsufficientPermission.Resolution) {
+                        is PathActionIssue.InsufficientPermission.Resolution.Cancel -> throw CancellationException(
+                            "User cancelled",
+                            deleteError
+                        )
+                        is PathActionIssue.InsufficientPermission.Resolution.Skip -> {
+                            if (resolution.applyToAll) issueSkippAllPermission = true
+                            break
                         }
-                        is PathActionIssue.UnknownError -> {
-                            val unknownResolution = resolution as PathActionIssue.UnknownError.Resolution
-                            when (unknownResolution) {
-                                is PathActionIssue.UnknownError.Resolution.Cancel -> throw CancellationException(
-                                    "User cancelled",
-                                    deleteError
-                                )
-                                is PathActionIssue.UnknownError.Resolution.Retry -> continue
-                                is PathActionIssue.UnknownError.Resolution.Skip -> break
-                            }
-                        }
-                        else -> throw IllegalStateException("Unexpected issue type: $issue")
                     }
                 } catch (deleteError: Exception) {
                     log(TAG, ERROR) { "delete(): Failed to delete $target: $deleteError" }
-                    if (onIssue == null) throw deleteError
 
-                    val issue = try {
-                        PathActionIssue.UnknownError(
-                            destination = target,
-                            exception = deleteError
-                        )
-                    } catch (e: Exception) {
-                        PathActionIssue.UnknownError(exception = e)
+                    if (issueSkippAllUnknown) {
+                        log(TAG, INFO) { "Skipping unknown issue (apply-to-all): $target" }
+                        break
                     }
 
-                    val resolution = onIssue.invoke(issue) as PathActionIssue.UnknownError.Resolution
-                    when (resolution) {
+                    if (deleteError is NoSuchFileException) {
+                        log(TAG, WARN) { "delete(): File doesn't exist: $target" }
+                        if (ignoreMissing) break
+                    }
+
+                    val deleteError = WriteException(path = target.lookedUp, cause = deleteError)
+                    if (onIssue == null) throw deleteError
+
+                    val issue = PathActionIssue.UnknownError(
+                        destination = target,
+                        exception = deleteError
+                    )
+
+                    when (val resolution = onIssue.invoke(issue) as PathActionIssue.UnknownError.Resolution) {
                         is PathActionIssue.UnknownError.Resolution.Cancel -> throw CancellationException(
                             "User cancelled",
                             deleteError
                         )
                         is PathActionIssue.UnknownError.Resolution.Retry -> continue
-                        is PathActionIssue.UnknownError.Resolution.Skip -> break
+                        is PathActionIssue.UnknownError.Resolution.Skip -> {
+                            if (resolution.applyToAll) issueSkippAllUnknown = true
+                            break
+                        }
                     }
                 }
             }
         }
 
-        // Delete files and directories for this target
         log(TAG, VERBOSE) { "delete(): Deleting ${files.size} files for target: $currentTopLevel" }
         for (localPath in files) tryDelete(localPath)
 
