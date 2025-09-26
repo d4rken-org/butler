@@ -74,9 +74,9 @@ interface Operation {
 
         data class PathChange(
             val path: APath,
-            val type: Type,
+            val change: Change,
         ) {
-            enum class Type {
+            enum class Change {
                 ADDED, REMOVED, MODIFIED
             }
         }

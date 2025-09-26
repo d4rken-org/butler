@@ -391,7 +391,7 @@ class SAFGateway @Inject constructor(
     override suspend fun delete(
         targets: Set<SAFPath>,
         options: DeleteAction.Options<SAFPath>
-    ): Flow<DeleteAction.State<SAFPath>> {
+    ): Flow<DeleteAction.State<SAFPath, SAFPathLookup>> {
         TODO("Not yet implemented")
 //        log(TAG, VERBOSE) { "delete(recursive=$recursive): $path" }
 //

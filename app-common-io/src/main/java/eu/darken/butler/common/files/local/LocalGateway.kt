@@ -879,13 +879,13 @@ class LocalGateway @Inject constructor(
     override suspend fun delete(
         targets: Set<LocalPath>,
         options: DeleteAction.Options<LocalPath>
-    ): Flow<DeleteAction.State<LocalPath>> = delete(targets, options, Mode.AUTO)
+    ): Flow<DeleteAction.State<LocalPath, LocalPathLookup>> = delete(targets, options, Mode.AUTO)
 
     suspend fun delete(
         targets: Set<LocalPath>,
         options: DeleteAction.Options<LocalPath>,
         mode: Mode,
-    ): Flow<DeleteAction.State<LocalPath>> = flow {
+    ): Flow<DeleteAction.State<LocalPath, LocalPathLookup>> = flow {
         log(TAG, VERBOSE) { "delete(): ${targets.size} targets" }
 
         try {

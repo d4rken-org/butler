@@ -192,7 +192,7 @@ class GatewaySwitch @Inject constructor(
     override suspend fun delete(
         targets: Set<APath>,
         options: DeleteAction.Options<APath>
-    ): Flow<DeleteAction.State<APath>> = targets
+    ): Flow<DeleteAction.State<APath, APathLookup<APath>>> = targets
         .groupBy { it::class }.values.asFlow()
         .flatMapConcat { group ->
             useGateway(group.first()) {

@@ -45,7 +45,6 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.CaString
@@ -283,8 +282,7 @@ private fun OperationProgressDisplay(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(if (isPrimary) 8.dp else 6.dp)
     ) {
-        val count = progressData.count
-        when (count) {
+        when (val count = progressData.count) {
             is Progress.Count.Percent,
             is Progress.Count.Counter,
             is Progress.Count.Size -> {
@@ -664,23 +662,24 @@ private fun OperationOverviewSection(
                 }
 
                 if (reportSummary != null) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Top,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.operations_details_result),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            text = reportSummary.asComposable(),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.End,
-                        )
-                    }
+                    // Add spacing before result section
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Result label
+                    Text(
+                        text = stringResource(R.string.operations_details_result),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+
+                    // Result text with full width
+                    Text(
+                        text = reportSummary.asComposable(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 2.dp),
+                    )
                 }
             }
         }
@@ -753,17 +752,17 @@ private fun OperationAffectedFilesSection(
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 Text(
-                                    text = when (pathChange.type) {
-                                        Operation.Report.PathChange.Type.ADDED -> stringResource(R.string.operations_details_path_added_marker)
-                                        Operation.Report.PathChange.Type.REMOVED -> stringResource(R.string.operations_details_path_removed_marker)
-                                        Operation.Report.PathChange.Type.MODIFIED -> stringResource(R.string.operations_details_path_modified_marker)
+                                    text = when (pathChange.change) {
+                                        Operation.Report.PathChange.Change.ADDED -> stringResource(R.string.operations_details_path_added_marker)
+                                        Operation.Report.PathChange.Change.REMOVED -> stringResource(R.string.operations_details_path_removed_marker)
+                                        Operation.Report.PathChange.Change.MODIFIED -> stringResource(R.string.operations_details_path_modified_marker)
                                     },
                                     style = MaterialTheme.typography.labelSmall,
                                     fontFamily = FontFamily.Monospace,
-                                    color = when (pathChange.type) {
-                                        Operation.Report.PathChange.Type.ADDED -> MaterialTheme.colorScheme.primary
-                                        Operation.Report.PathChange.Type.REMOVED -> MaterialTheme.colorScheme.error
-                                        Operation.Report.PathChange.Type.MODIFIED -> MaterialTheme.colorScheme.secondary
+                                    color = when (pathChange.change) {
+                                        Operation.Report.PathChange.Change.ADDED -> MaterialTheme.colorScheme.primary
+                                        Operation.Report.PathChange.Change.REMOVED -> MaterialTheme.colorScheme.error
+                                        Operation.Report.PathChange.Change.MODIFIED -> MaterialTheme.colorScheme.secondary
                                     },
                                     modifier = Modifier.width(16.dp)
                                 )
@@ -892,27 +891,27 @@ private fun OperationDetailsSheetCompletedWithFilesPreview() {
                         affectedPaths = listOf(
                             Operation.Report.PathChange(
                                 path = RawPath.build("/home", "user", "documents", "file1.txt"),
-                                type = Operation.Report.PathChange.Type.REMOVED
+                                change = Operation.Report.PathChange.Change.REMOVED
                             ),
                             Operation.Report.PathChange(
                                 path = RawPath.build("/home", "user", "documents", "file2.pdf"),
-                                type = Operation.Report.PathChange.Type.REMOVED
+                                change = Operation.Report.PathChange.Change.REMOVED
                             ),
                             Operation.Report.PathChange(
                                 path = RawPath.build("/home", "user", "downloads", "temp"),
-                                type = Operation.Report.PathChange.Type.REMOVED
+                                change = Operation.Report.PathChange.Change.REMOVED
                             ),
                             Operation.Report.PathChange(
                                 path = RawPath.build("/home", "user", "backup", "copy1.txt"),
-                                type = Operation.Report.PathChange.Type.ADDED
+                                change = Operation.Report.PathChange.Change.ADDED
                             ),
                             Operation.Report.PathChange(
                                 path = RawPath.build("/home", "user", "config.xml"),
-                                type = Operation.Report.PathChange.Type.MODIFIED
+                                change = Operation.Report.PathChange.Change.MODIFIED
                             ),
                             Operation.Report.PathChange(
                                 path = RawPath.build("/home", "user", "old", "archive.zip"),
-                                type = Operation.Report.PathChange.Type.REMOVED
+                                change = Operation.Report.PathChange.Change.REMOVED
                             ),
                             Operation.Report.PathChange(
                                 path = RawPath.build(
@@ -925,11 +924,11 @@ private fun OperationDetailsSheetCompletedWithFilesPreview() {
                                     "cache",
                                     "temp.log"
                                 ),
-                                type = Operation.Report.PathChange.Type.REMOVED
+                                change = Operation.Report.PathChange.Change.REMOVED
                             ),
                             Operation.Report.PathChange(
                                 path = RawPath.build("/sdcard", "Pictures", "Screenshots", "screenshot_1.png"),
-                                type = Operation.Report.PathChange.Type.REMOVED
+                                change = Operation.Report.PathChange.Change.REMOVED
                             ),
                         )
                     )

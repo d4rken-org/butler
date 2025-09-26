@@ -9,13 +9,13 @@ import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.io.R
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import java.io.IOException
 import java.nio.file.Files
-import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -24,21 +24,21 @@ private val TAG = logTag("Gateway", "Local", "Delete", "Extensions")
 suspend fun LocalPath.delete(
     recursive: Boolean = true,
     ignoreMissing: Boolean = true,
-    onProgress: (suspend (DeleteAction.State.Progress<LocalPath>) -> Unit)? = null,
+    onProgress: (suspend (DeleteAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
 ) = setOf(this).delete(recursive, ignoreMissing, onProgress, onIssue)
 
 suspend fun Collection<LocalPath>.delete(
     recursive: Boolean = true,
     ignoreMissing: Boolean = true,
-    onProgress: (suspend (DeleteAction.State.Progress<LocalPath>) -> Unit)? = null,
+    onProgress: (suspend (DeleteAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): DeleteAction.State.Result<LocalPath> {
+): DeleteAction.State.Result<LocalPath, LocalPathLookup> {
     log(TAG, DEBUG) {
         "delete(): Deleting $size targets (recursive=$recursive,onProgress=$onProgress, onIssue=$onIssue)"
     }
 
-    val deleted = linkedSetOf<LocalPath>()
+    val deleted = linkedSetOf<LocalPathLookup>()
     var bytesTotal = 0L
 
     // Apply-to-all state management
@@ -50,49 +50,49 @@ suspend fun Collection<LocalPath>.delete(
 
         // Collect all items for this specific target
         val toVisit = ArrayDeque<LocalPath>().apply { add(currentTopLevel) }
-        val files = ArrayDeque<LocalPath>()
-        val dirsPost = ArrayDeque<LocalPath>()
+        val files = ArrayDeque<LocalPathLookup>()
+        val dirsPost = ArrayDeque<LocalPathLookup>()
 
         // Traverse this target's tree
         while (toVisit.isNotEmpty() && currentCoroutineContext().isActive) {
             val localPath = toVisit.removeFirst()
-            val p = localPath.file.toPath()
+            val lookup = localPath.performLookup()
 
-            val isDir = Files.isDirectory(p, LinkOption.NOFOLLOW_LINKS)
-            val isSymlink = Files.isSymbolicLink(p)
-
-            if (!isDir || isSymlink) {
-                files.addLast(localPath)
-                continue
-            }
-
-            if (!recursive) {
-                files.addLast(localPath)
-                continue
+            when (lookup.fileType) {
+                FileType.SYMBOLIC_LINK, FileType.FILE -> {
+                    files.addLast(lookup)
+                    continue
+                }
+                FileType.DIRECTORY -> {
+                    if (!recursive) {
+                        files.addLast(lookup)
+                        continue
+                    }
+                }
+                FileType.UNKNOWN -> throw IllegalStateException("Unknown file type: $lookup")
             }
 
             try {
+                val p = localPath.file.toPath()
                 Files.newDirectoryStream(p).use { ds ->
                     for (child in ds) toVisit.addLast(LocalPath.build(child.toFile()))
                 }
             } catch (e: IOException) {
-                log(TAG, WARN) { "Cannot list directory: $localPath - ${e.message}" }
+                log(TAG, WARN) { "Cannot list directory: $lookup - ${e.message}" }
             }
-            dirsPost.addFirst(localPath)
+            dirsPost.addFirst(lookup)
         }
 
         val totalItemsForTarget = files.size + dirsPost.size
         var itemsProcessed = 0
 
-        suspend fun tryDelete(target: LocalPath) {
+        suspend fun tryDelete(target: LocalPathLookup) {
             while (currentCoroutineContext().isActive) {
                 try {
-                    val size = if (target.file.isFile) target.file.length() else 0L
 
                     onProgress?.invoke(
                         DeleteAction.State.Progress(
                             target = target,
-                            targetSize = size,
                             bytesCurrent = bytesTotal,
                             primaryProgress = eu.darken.butler.common.progress.Progress.Data(
                                 primary = R.string.general_delete_progress_title.toCaString(currentTopLevel.name),
@@ -128,7 +128,7 @@ suspend fun Collection<LocalPath>.delete(
                     break
                 } catch (e: NoSuchFileException) {
                     log(TAG, WARN) { "delete(): File doesn't exist: $target" }
-                    if (ignoreMissing) break else throw ReadException(path = target, cause = e)
+                    if (ignoreMissing) break else throw ReadException(path = target.lookedUp, cause = e)
 
                 } catch (securityError: SecurityException) {
                     log(TAG, ERROR) { "delete(): Security exception on $target: $securityError" }
@@ -138,13 +138,13 @@ suspend fun Collection<LocalPath>.delete(
                         break
                     }
 
-                    val deleteError = WriteException(path = target, cause = securityError)
+                    val deleteError = WriteException(path = target.lookedUp, cause = securityError)
 
                     if (onIssue == null) throw deleteError
 
                     val issue = try {
                         PathActionIssue.InsufficientPermission(
-                            destination = target.performLookup(),
+                            destination = target,
                             exception = deleteError,
                         )
                     } catch (e: Exception) {
@@ -185,7 +185,7 @@ suspend fun Collection<LocalPath>.delete(
 
                     val issue = try {
                         PathActionIssue.UnknownError(
-                            destination = target.performLookup(),
+                            destination = target,
                             exception = deleteError
                         )
                     } catch (e: Exception) {
@@ -215,6 +215,5 @@ suspend fun Collection<LocalPath>.delete(
 
     return DeleteAction.State.Result(
         deleted = deleted,
-        bytesTotal = bytesTotal,
     )
 }

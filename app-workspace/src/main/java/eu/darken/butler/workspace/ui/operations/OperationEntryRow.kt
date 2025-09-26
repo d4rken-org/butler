@@ -81,8 +81,7 @@ fun OperationEntryRow(
             progressData?.let { progressData ->
                 Spacer(modifier = Modifier.height(2.dp))
 
-                val count = progressData.count
-                when (count) {
+                when (val count = progressData.count) {
                     is Progress.Count.Percent,
                     is Progress.Count.Counter,
                     is Progress.Count.Size -> {
@@ -240,7 +239,6 @@ private fun OperationEntryRowCompletedPreview() {
                     summary = "Successfully completed".toCaString(),
                     completedAt = Clock.System.now(),
                     report = object : Operation.Report {
-                        override val title = "Operation Complete".toCaString()
                         override val summary = "Successfully completed".toCaString()
                         override val affectedPaths = emptyList<Operation.Report.PathChange>()
                     }

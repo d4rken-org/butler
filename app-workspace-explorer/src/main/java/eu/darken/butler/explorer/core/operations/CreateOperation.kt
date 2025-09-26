@@ -16,7 +16,6 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.delete
-import eu.darken.butler.explorer.core.filesystem.FileSystemEvent
 import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
@@ -51,7 +50,7 @@ class CreateOperation @AssistedInject constructor(
     ): Flow<State> = flow {
         log(tag) { "execute(): $command" }
 
-        val reportBuilder = OperationReport.Builder()
+        val reportBuilder = CreateOperationReport.Builder()
 
         var currentCommand = command
         var destinationPath: APath
@@ -163,15 +162,15 @@ class CreateOperation @AssistedInject constructor(
         }
 
         // Track the created path
-        fileSystemHinter.trackPathsAdded(setOf(destinationPath))
+//        fileSystemHinter.trackPathsAdded(setOf(destinationPath))
 
         // Add to report
-        reportBuilder.addPathEvent(
-            FileSystemEvent.Added(
-                operationId = operationContext.id,
-                paths = setOf(destinationPath)
-            )
-        )
+//        reportBuilder.addPathEvent(
+//            FileSystemEvent.Added(
+//                operationId = operationContext.id,
+//                paths = setOf(destinationPath)
+//            )
+//        )
 
         emit(
             State.Completed(

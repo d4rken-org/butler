@@ -18,7 +18,7 @@ data class OperationReport(
 ) : Operation.Report {
 
     override val summary: CaString = caString {
-        "// TODO: Summary"
+        "$affectedDirectories directors and $affectedFiles were deleted. $bytesProcessed bytes freed."
     }
 
     class Builder(
@@ -27,11 +27,17 @@ data class OperationReport(
         private val affectedPaths = mutableListOf<PathChange>()
 
         fun addPathEvent(event: FileSystemEvent) {
+
             affectedPaths.addAll(
                 when (event) {
-                    is FileSystemEvent.Added -> event.paths.map { PathChange(it, PathChange.Type.ADDED) }
-                    is FileSystemEvent.Modified -> event.paths.map { PathChange(it, PathChange.Type.MODIFIED) }
-                    is FileSystemEvent.Removed -> event.paths.map { PathChange(it, PathChange.Type.REMOVED) }
+                    is FileSystemEvent.Added -> event.paths.map { PathChange(it.lookedUp, PathChange.Change.ADDED) }
+                    is FileSystemEvent.Modified -> event.paths.map {
+                        PathChange(
+                            it.lookedUp,
+                            PathChange.Change.MODIFIED
+                        )
+                    }
+                    is FileSystemEvent.Removed -> event.paths.map { PathChange(it.lookedUp, PathChange.Change.REMOVED) }
                 }
             )
         }

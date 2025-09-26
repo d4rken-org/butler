@@ -84,15 +84,15 @@ suspend fun <T : APath> T.createDirIfNecessary(gateway: APathGateway<T, out APat
     return this
 }
 
-suspend fun <T : APath> T.delete(
-    gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
-    options: DeleteAction.Options<T>,
+suspend fun <P : APath, PL : APathLookup<P>> P.delete(
+    gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
+    options: DeleteAction.Options<P>,
 ) = setOf(this).delete(gateway, options)
 
-suspend fun <T : APath> Collection<T>.delete(
-    gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
-    options: DeleteAction.Options<T>,
-): Flow<DeleteAction.State<T>> {
+suspend fun <P : APath, PL : APathLookup<P>> Collection<P>.delete(
+    gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
+    options: DeleteAction.Options<P>,
+): Flow<DeleteAction.State<P, PL>> {
     val targets = this@delete.toSet()
     return gateway
         .delete(targets = targets, options = options)

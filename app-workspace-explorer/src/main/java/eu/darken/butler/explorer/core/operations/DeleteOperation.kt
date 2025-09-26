@@ -11,6 +11,8 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
@@ -60,7 +62,7 @@ class DeleteOperation @AssistedInject constructor(
         val operationState = State.Active(
             startedAt = operationContext.startedAt,
         )
-        val reportBuilder = OperationReport.Builder()
+        val reportBuilder = DeleteOperationReport.Builder()
 
         command.targets
             .delete(
@@ -74,9 +76,7 @@ class DeleteOperation @AssistedInject constructor(
             )
             .onEach { deleteState ->
                 when (deleteState) {
-                    is DeleteAction.State.Progress<*> -> {
-                        reportBuilder.updateBytesProcessed(deleteState.bytesCurrent)
-
+                    is DeleteAction.State.Progress<APath, APathLookup<APath>> -> {
                         emit(
                             operationState.copy(
                                 primaryProgress = deleteState.primaryProgress,
@@ -85,13 +85,15 @@ class DeleteOperation @AssistedInject constructor(
                             )
                         )
                     }
-                    is DeleteAction.State.Result<*> -> {
-                        val event = FileSystemEvent.Removed(
-                            operationId = operationContext.id,
-                            paths = deleteState.deleted,
-                        )
+                    is DeleteAction.State.Result<APath, APathLookup<APath>> -> {
                         fileSystemHinter.trackPathsRemoved(deleteState.deleted)
-                        reportBuilder.addPathEvent(event)
+                        reportBuilder.addPathEvent(
+                            FileSystemEvent.Removed(
+                                operationId = operationContext.id,
+                                paths = deleteState.deleted,
+                            )
+                        )
+                        reportBuilder.setBytesFreed(deleteState.deleted.sumOf { it.size })
                     }
                 }
             }

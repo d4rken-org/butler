@@ -43,6 +43,7 @@ fun LocalPath.performLookup(): LocalPathLookup {
 
     return LocalPathLookup(
         fileType = type,
+
         lookedUp = this,
         size = file.length(),
         modifiedAt = Instant.fromEpochMilliseconds(file.lastModified()),

@@ -162,4 +162,17 @@
         <item quantity="one">Delete %1$d item from \"%2$s\".</item>
         <item quantity="other">Delete %1$d items from \"%2$s\".</item>
     </plurals>
+
+    <plurals name="explorer_operation_report_bytes_freed">
+        <item quantity="one">"%s freed.</item>
+        <item quantity="other">%s freed.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_deleted">
+        <item quantity="one">"%d directory deleted.</item>
+        <item quantity="other">%d directories deleted.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_deleted">
+        <item quantity="one">%d file deleted.</item>
+        <item quantity="other">%d files deleted.</item>
+    </plurals>
 </resources>

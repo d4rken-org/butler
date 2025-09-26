@@ -3,7 +3,7 @@ package eu.darken.butler.explorer.core.filesystem
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.APathLookup
 import kotlinx.coroutines.flow.MutableSharedFlow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -17,15 +17,15 @@ class FileSystemHinter @Inject constructor() {
         events.emit(event)
     }
 
-    suspend fun trackPathsRemoved(paths: Collection<APath>) {
+    suspend fun trackPathsRemoved(paths: Collection<APathLookup<*>>) {
 //        emitPathEvent(FileSystemEvent.FilesRemoved(operationId = operationId, paths = paths.toSet()))
     }
 
-    suspend fun trackPathsAdded(paths: Collection<APath>) {
+    suspend fun trackPathsAdded(paths: Collection<APathLookup<*>>) {
 //        emitPathEvent(FileSystemEvent.FilesAdded(operationId = operationId, paths = paths.toSet()))
     }
 
-    suspend fun trackPathsModified(paths: Collection<APath>) {
+    suspend fun trackPathsModified(paths: Collection<APathLookup<*>>) {
 //        emitPathEvent(FileSystemEvent.FilesModified(operationId = operationId, paths = paths.toSet()))
     }
 

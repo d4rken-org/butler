@@ -10,6 +10,8 @@ import kotlin.time.Instant
 
 abstract class ExplorerOperation : Operation {
 
+    interface Report : Operation.Report
+
     abstract override fun perform(operationContext: Operation.Context): Flow<State>
 
     sealed interface State : Operation.State {
@@ -32,7 +34,7 @@ abstract class ExplorerOperation : Operation {
             override val startedAt: Instant,
             override val completedAt: Instant = Clock.System.now(),
             override val error: Throwable? = null,
-            override val report: OperationReport,
+            override val report: Report,
         ) : State, Operation.State.Completed {
             override val summary: CaString get() = report.summary
         }

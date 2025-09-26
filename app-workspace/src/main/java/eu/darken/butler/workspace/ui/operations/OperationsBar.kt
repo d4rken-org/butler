@@ -250,7 +250,6 @@ private fun OperationsBarPreview() {
                     summary = "Success".toCaString(),
                     completedAt = Clock.System.now(),
                     report = object : Operation.Report {
-                        override val title = "Operation Complete".toCaString()
                         override val summary = "Success".toCaString()
                         override val affectedPaths = emptyList<Operation.Report.PathChange>()
                     }
