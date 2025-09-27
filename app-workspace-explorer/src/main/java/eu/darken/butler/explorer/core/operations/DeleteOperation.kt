@@ -58,7 +58,7 @@ class DeleteOperation @AssistedInject constructor(
     override fun perform(
         operationContext: Operation.Context
     ): Flow<State> = flow {
-        log(tag) { "execute(): $command" }
+        log(tag) { "perform(): $command" }
 
         val operationState = State.Active(
             startedAt = operationContext.startedAt,

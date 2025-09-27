@@ -10,7 +10,7 @@ sealed interface ExplorerCommand {
     ) : ExplorerCommand {
         enum class Type {
             FILE,
-            FOLDER,
+            DIRECTORY,
         }
     }
 

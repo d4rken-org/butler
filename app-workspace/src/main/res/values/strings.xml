@@ -8,10 +8,24 @@
     <string name="clipboard_paste">Paste</string>
     <string name="clipboard_copy">Copy</string>
     <string name="clipboard_cut">Cut</string>
-    <string name="clipboard_items_count">%d items</string>
-    <string name="clipboard_from">from %s</string>
-    <string name="clipboard_origin">Origin: Tab %s</string>
-    
+    <string name="clipboard_origin">Origin: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="one">Copy %d item</item>
+        <item quantity="other">Copy %d items</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="one">%d item from %s</item>
+        <item quantity="other">%d items from %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="one">Move %d item</item>
+        <item quantity="other">Move %d items</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="one">%d item from %s</item>
+        <item quantity="other">%d items from %s</item>
+    </plurals>
+
     <!-- Tab Button Behavior -->
     <string name="workspace_tab_button_behavior_tip">Tip: Tab Button Behavior</string>
     <string name="workspace_tab_button_behavior_flipped_description">• Click: Add new tab\n• Long click: Open tab manager</string>

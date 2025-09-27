@@ -7,9 +7,6 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.explorer.core.ExplorerNavigation
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import kotlin.time.Instant
 
 sealed interface ExplorerItem {
@@ -100,10 +97,4 @@ sealed interface ExplorerItem {
             createdAt = createdAt
         )
     }
-}
-
-
-// TODO: This would use a proper date formatter in a real implementation
-private fun formatDate(timestamp: Long): String {
-    return SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(timestamp))
 }

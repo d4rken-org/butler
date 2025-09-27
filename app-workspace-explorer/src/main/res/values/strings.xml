@@ -45,6 +45,29 @@
     <string name="explorer_nav_root">Root</string>
     <string name="explorer_nav_internal_storage">Internal public storage</string>
 
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_selected_count">
+        <item quantity="one">%d selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
+    <plurals name="explorer_infobar_folders_count">
+        <item quantity="one">%d folder</item>
+        <item quantity="other">%d folders</item>
+    </plurals>
+    <plurals name="explorer_infobar_files_count">
+        <item quantity="one">%d file</item>
+        <item quantity="other">%d files</item>
+    </plurals>
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="one">%d shortcut</item>
+        <item quantity="other">%d shortcuts</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="one">%d location</item>
+        <item quantity="other">%d locations</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">%1$s free</string>
+
     <!-- Dialogs -->
     <string name="explorer_dialog_delete_title_single">Delete item?</string>
     <plurals name="explorer_dialog_delete_title_multiple">
@@ -177,4 +200,21 @@
         <item quantity="one">%d file deleted.</item>
         <item quantity="other">%d files deleted.</item>
     </plurals>
+
+    <string name="explorer_operation_create_title_directory">Folder creation</string>
+    <string name="explorer_operation_create_description_directory">Create folder \"%1$s\" at \"%2$s\"</string>
+    <string name="explorer_operation_create_title_file">File creation</string>
+    <string name="explorer_operation_create_description_file">Create file \"%1$s\" at \"%2$s\"</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="explorer_clipboard_info_overview">Overview</string>
+    <string name="explorer_clipboard_info_operation">Operation</string>
+    <string name="explorer_clipboard_info_items">Items</string>
+    <string name="explorer_clipboard_info_source">Source</string>
+    <string name="explorer_clipboard_info_workspace">Workspace</string>
+    <string name="explorer_clipboard_info_time">Time</string>
+    <string name="explorer_clipboard_info_items_with_count">Items (%1$d)</string>
+    <string name="explorer_clipboard_info_actions">Actions</string>
+    <string name="explorer_clipboard_info_go_to_source">Go to Source</string>
+    <string name="explorer_clipboard_info_remove">Remove from Clipboard</string>
 </resources>

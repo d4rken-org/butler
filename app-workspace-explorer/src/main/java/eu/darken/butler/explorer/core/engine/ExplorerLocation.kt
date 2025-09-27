@@ -29,7 +29,7 @@ sealed interface ExplorerLocation {
         override val permissionState: PermissionState = PermissionState(),
     ) : ExplorerLocation {
         data class Info(
-            val storageCount: Int,
+            val locationCount: Int,
             val totalCapacity: Long? = null,
             val usedSpace: Long? = null,
         ) : LocationInfo

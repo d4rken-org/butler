@@ -59,5 +59,16 @@ fun ExplorerDialogHost(
                 onProperties = { vm?.showFileProperties(dialogState.item) },
             )
         }
+
+        is ExplorerDialogState.ClipboardInfo -> {
+            ClipboardInfoBottomSheet(
+                clip = dialogState.clip,
+                onDismiss = { vm?.dismissDialog() },
+                onNavigateToSource = { vm?.navigateToClipboardSource(dialogState.clip) },
+                onPaste = { vm?.pasteClipboard(dialogState.clip) },
+                onRemove = { vm?.removeClipboardEntry(dialogState.clip) },
+                onCopyPath = { path -> vm?.copyPathToSystemClipboard(path) }
+            )
+        }
     }
 }

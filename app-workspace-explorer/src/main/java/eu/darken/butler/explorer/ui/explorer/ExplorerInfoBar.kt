@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,88 +48,107 @@ fun ExplorerInfoBar(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-            // Selection chip (always first when present)
-            if (selectedCount > 0) {
-                InfoChip(
-                    icon = Icons.TwoTone.CheckBox,
-                    label = "$selectedCount selected",
-                    isAccented = true,
-                )
-            }
+        // Selection chip (always first when present)
+        if (selectedCount > 0) {
+            InfoChip(
+                icon = Icons.TwoTone.CheckBox,
+                label = pluralStringResource(R.plurals.explorer_infobar_selected_count, selectedCount, selectedCount),
+                isAccented = true,
+            )
+        }
 
-            when (info) {
-                is ExplorerLocation.Directory.Info -> {
-                    if (selectedCount == 0) {
-                        if (info.directoryCount != null && info.directoryCount > 0) {
-                            InfoChip(
-                                icon = Icons.TwoTone.Folder,
-                                label = "${info.directoryCount} folders",
-                            )
-                        }
-                        if (info.fileCount != null && info.fileCount > 0) {
-                            InfoChip(
-                                icon = Icons.TwoTone.Description,
-                                label = "${info.fileCount} files",
-                            )
-                        }
-                        if (info.directoryCount == 0 && info.fileCount == 0) {
-                            InfoChip(
-                                icon = Icons.TwoTone.Folder,
-                                label = stringResource(R.string.explorer_empty_folder_label),
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    if (info.totalSize != null && selectedCount == 0) {
+        when (info) {
+            is ExplorerLocation.Directory.Info -> {
+                if (selectedCount == 0) {
+                    if (info.directoryCount != null && info.directoryCount > 0) {
                         InfoChip(
-                            icon = Icons.TwoTone.Storage,
-                            label = formatFileSize(info.totalSize),
+                            icon = Icons.TwoTone.Folder,
+                            label = pluralStringResource(
+                                R.plurals.explorer_infobar_folders_count,
+                                info.directoryCount,
+                                info.directoryCount
+                            ),
                         )
                     }
-
-                    if (info.volumeFreeSpace != null) {
+                    if (info.fileCount != null && info.fileCount > 0) {
                         InfoChip(
-                            icon = Icons.TwoTone.Storage,
-                            label = "${formatFileSize(info.volumeFreeSpace)} free",
+                            icon = Icons.TwoTone.Description,
+                            label = pluralStringResource(
+                                R.plurals.explorer_infobar_files_count,
+                                info.fileCount,
+                                info.fileCount
+                            ),
+                        )
+                    }
+                    if (info.directoryCount == 0 && info.fileCount == 0) {
+                        InfoChip(
+                            icon = Icons.TwoTone.Folder,
+                            label = stringResource(R.string.explorer_empty_folder_label),
                         )
                     }
                 }
 
-                is ExplorerLocation.Home.Info -> {
-                    InfoChip(
-                        icon = Icons.TwoTone.Home,
-                        label = "${info.shortcutCount} shortcuts",
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    if (info.totalDeviceStorage != null && info.usedStorage != null) {
-                        val freeSpace = info.totalDeviceStorage - info.usedStorage
-                        InfoChip(
-                            icon = Icons.TwoTone.Storage,
-                            label = "${formatFileSize(freeSpace)} free",
-                        )
-                    }
-                }
+                Spacer(modifier = Modifier.weight(1f))
 
-                is ExplorerLocation.Device.Info -> {
+                if (info.totalSize != null && selectedCount == 0) {
                     InfoChip(
                         icon = Icons.TwoTone.Storage,
-                        label = "${info.storageCount} storage",
+                        label = formatFileSize(info.totalSize),
                     )
-                    Spacer(modifier = Modifier.weight(1f))
-                    if (info.totalCapacity != null && info.usedSpace != null) {
-                        val freeSpace = info.totalCapacity - info.usedSpace
-                        InfoChip(
-                            icon = Icons.TwoTone.Storage,
-                            label = "${formatFileSize(freeSpace)} free",
-                        )
-                    }
                 }
 
-                null -> {
-                    // No info available, just show spacer
+                if (info.volumeFreeSpace != null) {
+                    InfoChip(
+                        icon = Icons.TwoTone.Storage,
+                        label = stringResource(
+                            R.string.explorer_infobar_storage_free,
+                            formatFileSize(info.volumeFreeSpace)
+                        ),
+                    )
                 }
+            }
+
+            is ExplorerLocation.Home.Info -> {
+                InfoChip(
+                    icon = Icons.TwoTone.Home,
+                    label = pluralStringResource(
+                        R.plurals.explorer_infobar_shortcuts_count,
+                        info.shortcutCount,
+                        info.shortcutCount
+                    ),
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                if (info.totalDeviceStorage != null && info.usedStorage != null) {
+                    val freeSpace = info.totalDeviceStorage - info.usedStorage
+                    InfoChip(
+                        icon = Icons.TwoTone.Storage,
+                        label = stringResource(R.string.explorer_infobar_storage_free, formatFileSize(freeSpace)),
+                    )
+                }
+            }
+
+            is ExplorerLocation.Device.Info -> {
+                InfoChip(
+                    icon = Icons.TwoTone.Storage,
+                    label = pluralStringResource(
+                        R.plurals.explorer_infobar_location_count,
+                        info.locationCount,
+                        info.locationCount
+                    ),
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                if (info.totalCapacity != null && info.usedSpace != null) {
+                    val freeSpace = info.totalCapacity - info.usedSpace
+                    InfoChip(
+                        icon = Icons.TwoTone.Storage,
+                        label = stringResource(R.string.explorer_infobar_storage_free, formatFileSize(freeSpace)),
+                    )
+                }
+            }
+
+            null -> {
+                // No info available, just show spacer
+            }
         }
     }
 }
@@ -250,7 +270,7 @@ private fun ExplorerInfoBarDevicePreview() {
     PreviewWrapper {
         ExplorerInfoBar(
             info = ExplorerLocation.Device.Info(
-                storageCount = 2,
+                locationCount = 2,
                 totalCapacity = 1024L * 1024L * 1024L * 256L,
                 usedSpace = 1024L * 1024L * 1024L * 120L,
             ),

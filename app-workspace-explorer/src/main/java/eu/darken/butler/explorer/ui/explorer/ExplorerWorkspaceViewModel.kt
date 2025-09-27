@@ -557,7 +557,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 CreateItemType.FOLDER -> ExplorerCommand.Create(
                     parentPath = currentLocation.path,
                     name = result.name,
-                    type = ExplorerCommand.Create.Type.FOLDER,
+                    type = ExplorerCommand.Create.Type.DIRECTORY,
                 )
                 CreateItemType.FILE -> ExplorerCommand.Create(
                     parentPath = currentLocation.path,
@@ -605,6 +605,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun pasteClipboard(clip: ClipboardClip) = launch {
         log(tag) { "pasteClipboard($clip)" }
+        dismissDialog()
         when (clip) {
             is ClipboardClip.Paths -> {
                 val currentLocation = state.first().currentLocation
@@ -631,6 +632,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun removeClipboardEntry(clip: ClipboardClip) = launch {
         log(tag) { "removeClipboardEntry($clip)" }
+        dismissDialog()
         clipboardRepo.remove(clip.id)
     }
 
@@ -700,6 +702,33 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun clearCompletedOperations() = launch {
         log(tag) { "clearCompletedOperations()" }
         operationsManager.clearCompleted()
+    }
+
+    fun showClipboardInfo(clip: ClipboardClip) {
+        log(tag) { "showClipboardInfo($clip)" }
+        dialogStateFlow.value = ClipboardInfo(clip)
+    }
+
+    fun navigateToClipboardSource(clip: ClipboardClip) = launch {
+        log(tag) { "navigateToClipboardSource($clip)" }
+        dismissDialog()
+
+        when (clip) {
+            is ClipboardClip.Paths -> {
+                if (clip.paths.isNotEmpty()) {
+                    val firstPath = clip.paths.first()
+                    val parentPath = firstPath.parent
+                    if (parentPath != null) {
+                        getWorkspace().navigate(Directory(parentPath))
+                    }
+                }
+            }
+        }
+    }
+
+    fun copyPathToSystemClipboard(path: String) = launch {
+        log(tag) { "copyPathToSystemClipboard($path)" }
+        systemClipboardHelper.copyToClipboard(path)
     }
 
 

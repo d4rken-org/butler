@@ -118,7 +118,7 @@ class BrowsingEngine @AssistedInject constructor(
         }
 
         val info = ExplorerLocation.Device.Info(
-            storageCount = storageLocations.size,
+            locationCount = storageLocations.size,
             totalCapacity = stat?.totalBytes,
             usedSpace = stat?.let { it.totalBytes - it.availableBytes },
         )

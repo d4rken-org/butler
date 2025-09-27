@@ -57,6 +57,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.common.ui.SwipeToDismissItem
@@ -367,7 +368,7 @@ private fun ClipboardEntry(
 
                             // Title text (takes most space)
                             Text(
-                                text = formatClipboardTitle(entry),
+                                text = entry.title.asComposable(),
                                 style = MaterialTheme.typography.bodyMedium,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -399,7 +400,7 @@ private fun ClipboardEntry(
                             Spacer(modifier = Modifier.width(6.dp))
 
                             Text(
-                                text = formatClipboardSubtitle(entry),
+                                text = entry.description.asComposable(),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
@@ -459,7 +460,7 @@ private fun ClipboardEntry(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                text = formatClipboardTitle(entry),
+                                text = entry.title.asComposable(),
                                 style = MaterialTheme.typography.bodyMedium,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -476,7 +477,7 @@ private fun ClipboardEntry(
 
                         // Simple subtitle
                         Text(
-                            text = formatClipboardSubtitle(entry),
+                            text = entry.description.asComposable(),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
@@ -499,36 +500,6 @@ private fun ClipboardEntry(
             }
         }
     }
-}
-
-
-@Composable
-private fun formatClipboardTitle(entry: ClipboardClip.Paths): String {
-    val action = when (entry.mode) {
-        ClipboardClip.Paths.Mode.COPY -> stringResource(R.string.clipboard_copy)
-        ClipboardClip.Paths.Mode.CUT -> stringResource(R.string.clipboard_cut)
-    }
-
-    val count = entry.paths.size
-    return when {
-        count == 1 -> "$action ${entry.paths.first().name}"
-        count > 1 -> stringResource(R.string.clipboard_items_count, count).let { "$action $it" }
-        else -> action
-    }
-}
-
-@Composable
-private fun formatClipboardSubtitle(entry: ClipboardClip.Paths): String {
-    if (entry.paths.isEmpty()) return ""
-
-    val firstPath = entry.paths.first()
-    val parentName = if (firstPath.segments.size > 1) {
-        firstPath.segments[firstPath.segments.size - 2]
-    } else {
-        "/"
-    }
-
-    return stringResource(R.string.clipboard_from, parentName)
 }
 
 @Preview2
