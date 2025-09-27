@@ -28,7 +28,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -64,6 +66,27 @@ fun OperationsBar(
     // State for cancel confirmation dialog
     var pendingCancelId by remember { mutableStateOf<Operation.Id?>(null) }
 
+    // State for cascading clear completed animation
+    var clearCompletedAnimationTrigger by remember { mutableLongStateOf(0L) }
+
+    // Handle cascading clear completed animation
+    LaunchedEffect(clearCompletedAnimationTrigger) {
+        if (clearCompletedAnimationTrigger > 0L) {
+            val completedOps = operations.filter { op ->
+                when (op.state) {
+                    is OperationDisplay.State.Completed,
+                    is OperationDisplay.State.Failed,
+                    is OperationDisplay.State.Cancelled -> true
+                    else -> false
+                }
+            }
+            // Wait for all swipe animations to complete before clearing
+            val totalAnimationTime = (completedOps.size * 300L) + 800L
+            kotlinx.coroutines.delay(totalAnimationTime)
+            onClearCompleted()
+        }
+    }
+
     AnimatedVisibility(
         visible = operations.isNotEmpty(),
         modifier = modifier,
@@ -94,7 +117,7 @@ fun OperationsBar(
                         runningCount = operations.count { it.state is OperationDisplay.State.Running },
                         isExpanded = isExpanded,
                         onExpandClick = { isExpanded = !isExpanded },
-                        onClearCompleted = onClearCompleted,
+                        onClearCompleted = { clearCompletedAnimationTrigger = System.currentTimeMillis() },
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 32.dp),
@@ -129,6 +152,18 @@ fun OperationsBar(
 
                         val canCancel = operation.canCancel && !canDismiss
 
+                        // Calculate dismiss delay for cascading animation
+                        val completedOpsBeforeThis = operations.take(operations.indexOf(operation))
+                            .count { op ->
+                                when (op.state) {
+                                    is OperationDisplay.State.Completed,
+                                    is OperationDisplay.State.Failed,
+                                    is OperationDisplay.State.Cancelled -> true
+                                    else -> false
+                                }
+                            }
+                        val dismissDelay = if (canDismiss) completedOpsBeforeThis * 300L else 0L
+
                         SwipeToDismissItem(
                             enabled = canDismiss,
                             onDismiss = {
@@ -136,6 +171,8 @@ fun OperationsBar(
                             },
                             backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
                             contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            programmaticDismissTrigger = clearCompletedAnimationTrigger,
+                            programmaticDismissDelay = dismissDelay,
                             dismissContent = {
                                 Text(
                                     text = stringResource(eu.darken.butler.common.R.string.general_dismiss_action),
