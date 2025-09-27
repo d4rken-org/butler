@@ -8,7 +8,6 @@ import java.text.DecimalFormatSymbols
 import java.util.Locale
 import kotlin.math.roundToInt
 
-object ByteFormatter {
     fun stripSizeUnit(formattedSize: String): Double? {
         val ds = DecimalFormatSymbols(Locale.getDefault()).decimalSeparator
         val match = Regex("^(\\d+(?:$ds\\d+)?)\\s*?.+\$").matchEntire(formattedSize) ?: return null
@@ -40,4 +39,3 @@ object ByteFormatter {
     fun formatFileSize(bytes: Long, shortFormat: Boolean = true): String {
         return formatFileSize(context = LocalContext.current, bytes = bytes, shortFormat = shortFormat)
     }
-}

@@ -32,15 +32,14 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.RawPath
+import eu.darken.butler.common.formatRelativeTime
+import eu.darken.butler.common.ui.SwipeToDismissItem
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchHistory
 import eu.darken.butler.searcher.core.SearchQuery
-import eu.darken.butler.searcher.ui.search.rows.formatRelativeTime
-import eu.darken.butler.common.ui.SwipeToDismissItem
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Instant
 
 fun LazyListScope.searchHistorySection(
     searchHistory: List<SearchHistory.SearchHistoryItem>,

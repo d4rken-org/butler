@@ -1,7 +1,6 @@
 package eu.darken.butler.searcher.ui.search.rows
 
 import eu.darken.butler.common.files.metadata.FileType
-import kotlin.time.Clock
 import kotlin.time.Instant
 
 data class FileRowData(
@@ -42,15 +41,4 @@ fun determineFileRowType(fileName: String): FileRowType {
 }
 
 // Note: formatFileSize moved to ByteFormatter in app-common module
-
-fun formatRelativeTime(instant: Instant): String {
-    val now = Clock.System.now()
-    val duration = instant - now
-    // TODO localize
-    return when {
-        duration.inWholeDays > 0 -> "${duration.inWholeDays} days ago"
-        duration.inWholeHours > 0 -> "${duration.inWholeHours} hours ago"
-        duration.inWholeMinutes > 0 -> "${duration.inWholeMinutes} minutes ago"
-        else -> "Just now"
-    }
-}
+// Note: formatRelativeTime moved to TimeFormatting in app-common module

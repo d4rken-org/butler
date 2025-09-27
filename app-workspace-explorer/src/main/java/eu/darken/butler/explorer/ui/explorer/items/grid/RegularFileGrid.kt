@@ -10,8 +10,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import eu.darken.butler.common.ByteFormatter
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
@@ -43,7 +43,7 @@ internal fun RegularFileGrid(
             )
         },
         primaryText = item.displayName.get(LocalContext.current),
-        secondaryText = ByteFormatter.formatFileSize(item.lookup.size)
+        secondaryText = formatFileSize(item.lookup.size)
     )
 }
 

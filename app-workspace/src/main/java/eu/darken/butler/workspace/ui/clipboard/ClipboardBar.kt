@@ -1,6 +1,5 @@
 package eu.darken.butler.workspace.ui.clipboard
 
-import android.icu.text.RelativeDateTimeFormatter
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
@@ -59,11 +58,11 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.common.ui.SwipeToDismissItem
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
-import java.util.Locale
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.uuid.Uuid
@@ -377,7 +376,7 @@ private fun ClipboardEntry(
 
                             // Timestamp
                             Text(
-                                text = formatTimestamp(entry.clippedAt),
+                                text = formatRelativeTime(entry.clippedAt),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(start = 8.dp, end = 8.dp),
@@ -468,7 +467,7 @@ private fun ClipboardEntry(
                             )
 
                             Text(
-                                text = formatTimestamp(entry.clippedAt),
+                                text = formatRelativeTime(entry.clippedAt),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(start = 8.dp, end = 8.dp),
@@ -530,34 +529,6 @@ private fun formatClipboardSubtitle(entry: ClipboardClip.Paths): String {
     }
 
     return stringResource(R.string.clipboard_from, parentName)
-}
-
-private fun formatTimestamp(instant: kotlin.time.Instant): String {
-    val formatter = RelativeDateTimeFormatter.getInstance(Locale.getDefault())
-    val duration = Clock.System.now() - instant
-
-    return when {
-        duration.inWholeMinutes < 1 -> formatter.format(
-            0.0,
-            RelativeDateTimeFormatter.Direction.LAST,
-            RelativeDateTimeFormatter.RelativeUnit.MINUTES
-        )
-        duration.inWholeMinutes < 60 -> formatter.format(
-            duration.inWholeMinutes.toDouble(),
-            RelativeDateTimeFormatter.Direction.LAST,
-            RelativeDateTimeFormatter.RelativeUnit.MINUTES
-        )
-        duration.inWholeHours < 24 -> formatter.format(
-            duration.inWholeHours.toDouble(),
-            RelativeDateTimeFormatter.Direction.LAST,
-            RelativeDateTimeFormatter.RelativeUnit.HOURS
-        )
-        else -> formatter.format(
-            duration.inWholeDays.toDouble(),
-            RelativeDateTimeFormatter.Direction.LAST,
-            RelativeDateTimeFormatter.RelativeUnit.DAYS
-        )
-    }
 }
 
 @Preview2

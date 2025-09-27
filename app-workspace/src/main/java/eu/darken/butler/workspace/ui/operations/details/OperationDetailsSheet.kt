@@ -53,6 +53,8 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.files.RawPath
+import eu.darken.butler.common.formatDuration
+import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.operations.Operation
@@ -60,7 +62,6 @@ import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.bar.OperationActionIndicator
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Instant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -638,19 +639,10 @@ private fun OperationOverviewSection(
                         text = when (operation.state) {
                             is OperationDisplay.State.Queued -> "Not started"
                             is OperationDisplay.State.Running,
-                            is OperationDisplay.State.Waiting -> formatDuration(operation.startedAt)
-                            is OperationDisplay.State.Completed -> formatFinalDuration(
-                                operation.startedAt,
-                                operation.state.completedAt
-                            )
-                            is OperationDisplay.State.Failed -> formatFinalDuration(
-                                operation.startedAt,
-                                operation.state.completedAt
-                            )
-                            is OperationDisplay.State.Cancelled -> formatFinalDuration(
-                                operation.startedAt,
-                                operation.state.completedAt
-                            )
+                            is OperationDisplay.State.Waiting -> formatDuration(Clock.System.now() - operation.startedAt)
+                            is OperationDisplay.State.Completed -> formatDuration(operation.state.completedAt - operation.startedAt)
+                            is OperationDisplay.State.Failed -> formatDuration(operation.state.completedAt - operation.startedAt)
+                            is OperationDisplay.State.Cancelled -> formatDuration(operation.state.completedAt - operation.startedAt)
                         },
                         style = MaterialTheme.typography.bodyMedium,
                     )
@@ -794,34 +786,6 @@ private fun createMockReport(
 ): Operation.Report = object : Operation.Report {
     override val summary = "Completed successfully".toCaString()
     override val affectedPaths = affectedPaths
-}
-
-private fun formatRelativeTime(instant: Instant): String {
-    val duration = Clock.System.now() - instant
-    return when {
-        duration.inWholeMinutes < 1 -> "Just now"
-        duration.inWholeMinutes < 60 -> "${duration.inWholeMinutes}m ago"
-        duration.inWholeHours < 24 -> "${duration.inWholeHours}h ago"
-        else -> "${duration.inWholeDays}d ago"
-    }
-}
-
-private fun formatDuration(startedAt: Instant): String {
-    val duration = Clock.System.now() - startedAt
-    return when {
-        duration.inWholeMinutes < 1 -> "${duration.inWholeSeconds}s"
-        duration.inWholeHours < 1 -> "${duration.inWholeMinutes}m ${duration.inWholeSeconds % 60}s"
-        else -> "${duration.inWholeHours}h ${duration.inWholeMinutes % 60}m"
-    }
-}
-
-private fun formatFinalDuration(startedAt: Instant, completedAt: Instant): String {
-    val duration = completedAt - startedAt
-    return when {
-        duration.inWholeMinutes < 1 -> "${duration.inWholeSeconds}s"
-        duration.inWholeHours < 1 -> "${duration.inWholeMinutes}m ${duration.inWholeSeconds % 60}s"
-        else -> "${duration.inWholeHours}h ${duration.inWholeMinutes % 60}m"
-    }
 }
 
 @Preview2

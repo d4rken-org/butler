@@ -1,6 +1,6 @@
 package eu.darken.butler.explorer.core.operations
 
-import eu.darken.butler.common.ByteFormatter
+import android.text.format.Formatter.*
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.files.extensions.isDirectory
@@ -35,7 +35,7 @@ data class DeleteOperationReport(
                     it.getQuantityString2(
                         R.plurals.explorer_operation_report_bytes_freed,
                         bytesFreed.toInt(),
-                        ByteFormatter.formatFileSize(it, bytesFreed)
+                        formatFileSize(it, bytesFreed)
                     )
                 )
             }

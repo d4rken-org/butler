@@ -27,9 +27,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import eu.darken.butler.common.ByteFormatter
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 
@@ -84,14 +84,14 @@ fun ExplorerInfoBar(
                     if (info.totalSize != null && selectedCount == 0) {
                         InfoChip(
                             icon = Icons.TwoTone.Storage,
-                            label = ByteFormatter.formatFileSize(info.totalSize),
+                            label = formatFileSize(info.totalSize),
                         )
                     }
 
                     if (info.volumeFreeSpace != null) {
                         InfoChip(
                             icon = Icons.TwoTone.Storage,
-                            label = "${ByteFormatter.formatFileSize(info.volumeFreeSpace)} free",
+                            label = "${formatFileSize(info.volumeFreeSpace)} free",
                         )
                     }
                 }
@@ -106,7 +106,7 @@ fun ExplorerInfoBar(
                         val freeSpace = info.totalDeviceStorage - info.usedStorage
                         InfoChip(
                             icon = Icons.TwoTone.Storage,
-                            label = "${ByteFormatter.formatFileSize(freeSpace)} free",
+                            label = "${formatFileSize(freeSpace)} free",
                         )
                     }
                 }
@@ -121,7 +121,7 @@ fun ExplorerInfoBar(
                         val freeSpace = info.totalCapacity - info.usedSpace
                         InfoChip(
                             icon = Icons.TwoTone.Storage,
-                            label = "${ByteFormatter.formatFileSize(freeSpace)} free",
+                            label = "${formatFileSize(freeSpace)} free",
                         )
                     }
                 }

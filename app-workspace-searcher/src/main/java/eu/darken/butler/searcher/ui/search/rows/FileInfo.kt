@@ -9,19 +9,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import eu.darken.butler.common.ByteFormatter
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.formatFileSize
+import eu.darken.butler.common.formatRelativeTime
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun FileInfo(
+    modifier: Modifier = Modifier,
     data: FileRowData,
     showPath: Boolean = true,
     showMetadata: Boolean = false,
-    modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier,
@@ -47,7 +48,7 @@ fun FileInfo(
         val isDirectory = data.fileType == FileType.DIRECTORY
         val details = buildString {
             if (!isDirectory && data.size != null) {
-                append(ByteFormatter.formatFileSize(data.size))
+                append(formatFileSize(data.size))
             }
             if (data.modifiedAt != null) {
                 if (isNotEmpty()) append(" • ")
