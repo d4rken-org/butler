@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer.dialogs
+package eu.darken.butler.workspace.ui.clipboard
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
@@ -55,13 +55,12 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.formatRelativeTime
-import eu.darken.butler.explorer.R
+import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.uuid.Uuid
-import eu.darken.butler.workspace.R as WorkspaceR
 
 @Composable
 fun ClipboardInfoBottomSheet(
@@ -216,7 +215,7 @@ private fun ClipboardOverviewSection(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = stringResource(R.string.explorer_clipboard_info_overview).uppercase(),
+                text = stringResource(R.string.clipboard_info_overview).uppercase(),
                 style = MaterialTheme.typography.labelMedium,
                 fontFamily = FontFamily.Monospace,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -237,14 +236,14 @@ private fun ClipboardOverviewSection(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = stringResource(R.string.explorer_clipboard_info_operation),
+                        text = stringResource(R.string.clipboard_info_operation),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text(
                         text = when (clip.mode) {
-                            ClipboardClip.Paths.Mode.COPY -> stringResource(WorkspaceR.string.clipboard_copy)
-                            ClipboardClip.Paths.Mode.CUT -> stringResource(WorkspaceR.string.clipboard_cut)
+                            ClipboardClip.Paths.Mode.COPY -> stringResource(R.string.clipboard_copy)
+                            ClipboardClip.Paths.Mode.CUT -> stringResource(R.string.clipboard_cut)
                         },
                         style = MaterialTheme.typography.bodyMedium,
                     )
@@ -257,7 +256,7 @@ private fun ClipboardOverviewSection(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = stringResource(R.string.explorer_clipboard_info_items),
+                        text = stringResource(R.string.clipboard_info_items),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -279,7 +278,7 @@ private fun ClipboardOverviewSection(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = stringResource(R.string.explorer_clipboard_info_source),
+                            text = stringResource(R.string.clipboard_info_source),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -292,14 +291,31 @@ private fun ClipboardOverviewSection(
                     }
                 }
 
-                // Copied timestamp
+                // Origin workspace
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = stringResource(R.string.explorer_clipboard_info_time),
+                        text = stringResource(R.string.clipboard_info_workspace),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = clip.origin.shortTag,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+
+                // Time timestamp
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = stringResource(R.string.clipboard_info_time),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -342,7 +358,7 @@ private fun ClipboardFilesSection(
             ) {
                 Text(
                     text = stringResource(
-                        R.string.explorer_clipboard_info_items_with_count,
+                        R.string.clipboard_info_items_with_count,
                         paths.size
                     ).uppercase(),
                     style = MaterialTheme.typography.labelMedium,
@@ -444,7 +460,7 @@ private fun ClipboardActionsSection(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = stringResource(R.string.explorer_clipboard_info_actions).uppercase(),
+                text = stringResource(R.string.clipboard_info_actions).uppercase(),
                 style = MaterialTheme.typography.labelMedium,
                 fontFamily = FontFamily.Monospace,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -470,7 +486,7 @@ private fun ClipboardActionsSection(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.explorer_clipboard_info_go_to_source))
+                        Text(stringResource(R.string.clipboard_info_go_to_source))
                     }
                 }
 
@@ -485,7 +501,7 @@ private fun ClipboardActionsSection(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(WorkspaceR.string.clipboard_paste))
+                        Text(stringResource(R.string.clipboard_paste))
                     }
                 }
             }
@@ -501,13 +517,12 @@ private fun ClipboardActionsSection(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.explorer_clipboard_info_remove))
+                    Text(stringResource(R.string.clipboard_info_remove))
                 }
             }
         }
     }
 }
-
 
 private fun getPathIcon(path: eu.darken.butler.common.files.APath): ImageVector {
     // Simple heuristic - in a real implementation, you'd use file type detection

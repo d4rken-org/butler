@@ -26,6 +26,18 @@
         <item quantity="other">%d items from %s</item>
     </plurals>
 
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">Overview</string>
+    <string name="clipboard_info_operation">Operation</string>
+    <string name="clipboard_info_items">Items</string>
+    <string name="clipboard_info_source">Source</string>
+    <string name="clipboard_info_workspace">Workspace</string>
+    <string name="clipboard_info_time">Time</string>
+    <string name="clipboard_info_items_with_count">Items (%1$d)</string>
+    <string name="clipboard_info_actions">Actions</string>
+    <string name="clipboard_info_go_to_source">Go to Source</string>
+    <string name="clipboard_info_remove">Remove from Clipboard</string>
+
     <!-- Tab Button Behavior -->
     <string name="workspace_tab_button_behavior_tip">Tip: Tab Button Behavior</string>
     <string name="workspace_tab_button_behavior_flipped_description">• Click: Add new tab\n• Long click: Open tab manager</string>

@@ -2,6 +2,7 @@ package eu.darken.butler.explorer.ui.explorer.dialogs
 
 import androidx.compose.runtime.Composable
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
+import eu.darken.butler.workspace.ui.clipboard.ClipboardInfoBottomSheet
 
 @Composable
 fun ExplorerDialogHost(
