@@ -45,7 +45,9 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
@@ -131,11 +133,11 @@ class ExplorerWorkspace @AssistedInject constructor(
     private val navigationRequests = MutableSharedFlow<ExplorerNavigation>(replay = 1)
 
     data class State(
-        val currentTarget: ExplorerNavigation.Target? = null,
         val historyIndex: Int = 0,
         val navigationHistory: List<ExplorerNavigation.Target> = emptyList(),
-        val currentBreadcrumbs: List<ExplorerBreadcrumb>? = null,
+        val currentTarget: ExplorerNavigation.Target? = null,
         val currentLocation: ExplorerLocation? = null,
+        val currentBreadcrumbs: List<ExplorerBreadcrumb>? = null,
         val error: Throwable? = null,
     ) {
         val canGoBack: Boolean get() = historyIndex > 0
@@ -231,7 +233,7 @@ class ExplorerWorkspace @AssistedInject constructor(
             is ExplorerNavigation.Refresh -> {
                 _state.value().currentTarget?.let { target ->
                     loadTarget(target, addToHistory = false)
-                }
+                } ?: log(tag, WARN) { "Current target was null" }
             }
             is ExplorerNavigation.Cancel -> {
                 // Just reset the loading state, flatMapLatest will have already cancelled the previous operation
@@ -248,42 +250,51 @@ class ExplorerWorkspace @AssistedInject constructor(
 
     private suspend fun loadTarget(target: ExplorerNavigation.Target, addToHistory: Boolean) {
         log(tag, INFO) { "loadTarget($target, $addToHistory)" }
-        browsingEngine.loadLocation(target).collectIndexed { index, state ->
-            if (index == 0) {
-                val newHistory = if (addToHistory) {
+        _state.updateBlocking {
+            copy(currentTarget = target)
+        }
+        browsingEngine.loadLocation(target)
+            .onStart {
+                if (addToHistory) {
+                    log(tag) { "loadTarget(): Updating history" }
+
                     val currentHistory = _state.value().navigationHistory
                     val currentIndex = _state.value().historyIndex
 
                     // Remove forward history when navigating to new location
                     val trimmedHistory = currentHistory.take(currentIndex + 1)
-                    trimmedHistory + target
-                } else {
-                    _state.value().navigationHistory
-                }
+                    val newHistory = trimmedHistory + target
 
-                _state.updateBlocking {
-                    copy(
-                        navigationHistory = newHistory,
-                        historyIndex = if (addToHistory) newHistory.size - 1 else historyIndex
-                    )
+                    _state.updateBlocking {
+                        log(tag) { "loadTarget(): Old history: index=$historyIndex history=$navigationHistory" }
+                        copy(
+                            navigationHistory = newHistory,
+                            historyIndex = newHistory.size - 1
+                        ).apply {
+                            log(tag) { "loadTarget(): New history: index=$historyIndex history=$navigationHistory" }
+                        }
+                    }
                 }
-
+            }
+            .onCompletion { error ->
                 // Track path access for shortcuts (only for new navigations to directories)
                 if (addToHistory && target is ExplorerNavigation.Target.Directory) {
                     pathAccessTracker.trackPathAccess(target.path)
                 }
             }
+            .collectIndexed { index, state ->
+                log(tag) { "loadTarget(): Emission index#$index" }
 
-            val breadcrumbs = breadcrumbGenerator.getBreadcrumbs(state)
-            log(tag) { "loadTarget(): Generated breadcrumbs: $breadcrumbs" }
+                val breadcrumbs = breadcrumbGenerator.getBreadcrumbs(state)
+                log(tag) { "loadTarget(): Generated breadcrumbs: $breadcrumbs" }
 
-            _state.updateBlocking {
-                copy(
-                    currentBreadcrumbs = breadcrumbs,
-                    currentLocation = state,
-                )
+                _state.updateBlocking {
+                    copy(
+                        currentBreadcrumbs = breadcrumbs,
+                        currentLocation = state,
+                    )
+                }
             }
-        }
     }
 
     fun navigate(request: ExplorerNavigation) {

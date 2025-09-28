@@ -241,8 +241,9 @@ fun ExplorerWorkspacePage(
                     selectedCount = mainState.selectionState.selectedItems.size,
                 )
 
+                val mainStateSnap = mainState
                 when {
-                    mainState.permissionState.needsPermissions -> {
+                    mainStateSnap.permissionState.needsPermissions -> {
                         // Show permission request card when permissions are missing
                         PermissionRequestCard(
                             permissionState = mainState.permissionState,
@@ -252,7 +253,7 @@ fun ExplorerWorkspacePage(
                             modifier = Modifier.fillMaxSize(),
                         )
                     }
-                    mainState.items == null -> {
+                    mainStateSnap.items == null -> {
                         Column(
                             modifier = Modifier.fillMaxSize(),
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -269,7 +270,7 @@ fun ExplorerWorkspacePage(
                             )
                         }
                     }
-                    mainState.items?.isEmpty() == true -> {
+                    mainStateSnap.items.isEmpty() -> {
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -287,7 +288,7 @@ fun ExplorerWorkspacePage(
                         Box(
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            if (mainState.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
+                            if (mainStateSnap.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
                                 LazyColumn(
                                     state = listState,
                                     modifier = Modifier
@@ -309,21 +310,21 @@ fun ExplorerWorkspacePage(
                                         }
                                     )
                                 ) {
-                                    items(mainState.items!!) { item ->
+                                    items(mainStateSnap.items) { item ->
                                         when (item) {
                                             is ExplorerItem.Lookup -> LookupItemRow(
                                                 item = item,
-                                                isSelected = mainState.selectionState.selectedItems.contains(item.id),
+                                                isSelected = mainStateSnap.selectionState.selectedItems.contains(item.id),
                                                 onToggleSelection = { vm?.toggleItemSelection(item) },
                                                 onClick = {
-                                                    if (mainState.selectionState.selectedItems.isNotEmpty()) {
+                                                    if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
                                                         vm?.toggleItemSelection(item)
                                                     } else {
                                                         vm?.navigate(item)
                                                     }
                                                 },
                                                 onLongClick = { vm?.toggleItemSelection(item) },
-                                                showSelection = mainState.selectionState.selectedItems.isNotEmpty()
+                                                showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty()
                                             )
 
                                             is ExplorerItem.Peek -> PeekRow(
@@ -361,21 +362,21 @@ fun ExplorerWorkspacePage(
                                         }
                                     )
                                 ) {
-                                    items(mainState.items!!) { item ->
+                                    items(mainStateSnap.items) { item ->
                                         when (item) {
                                             is ExplorerItem.Lookup -> LookupItemGrid(
                                                 item = item,
-                                                isSelected = mainState.selectionState.selectedItems.contains(item.path.path),
+                                                isSelected = mainStateSnap.selectionState.selectedItems.contains(item.path.path),
                                                 onToggleSelection = { vm?.toggleItemSelection(item) },
                                                 onClick = {
-                                                    if (mainState.selectionState.selectedItems.isNotEmpty()) {
+                                                    if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
                                                         vm?.toggleItemSelection(item)
                                                     } else {
                                                         vm?.navigate(item)
                                                     }
                                                 },
                                                 onLongClick = { vm?.toggleItemSelection(item) },
-                                                showSelection = mainState.selectionState.selectedItems.isNotEmpty()
+                                                showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty()
                                             )
                                             is ExplorerItem.Shortcut -> ShortcutGrid(
                                                 item = item,

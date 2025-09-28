@@ -20,7 +20,6 @@ import eu.darken.butler.workspace.core.permissions.PathPermissionCheck
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import java.io.IOException
 
 class DirectoryLocationLoader @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
@@ -177,7 +176,7 @@ class DirectoryLocationLoader @AssistedInject constructor(
 
         val extendedLookups = gatewaySwitch.lookupFilesExtended(targetPath).associateBy { it.path }
         val fileClassifier = FileTypeClassifier()
-        throw IOException("Test")
+        
         val items = state.items!!.map { item ->
             val extendedLookup = extendedLookups[item.path.path]
             if (extendedLookup != null) {

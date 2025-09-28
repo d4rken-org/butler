@@ -758,10 +758,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun copyNavigationError() = launch {
         log(tag) { "copyNavigationError()" }
-        val error = workspaceState.first().error
-        if (error != null) {
-            val errorText = formatNavigationError(error)
-            systemClipboardHelper.copyToClipboard(errorText)
+        workspaceState.first().error?.let { throwable ->
+            systemClipboardHelper.copyToClipboard(formatNavigationError(throwable))
         }
     }
 
@@ -774,7 +772,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "dismissNavigationError()" }
         // Simply triggering any navigation request will clear the error state
         // We use Cancel as it's the least intrusive option
-        getWorkspace().navigate(ExplorerNavigation.Cancel)
+        getWorkspace().navigate(ExplorerNavigation.Back)
     }
 
     private fun formatNavigationError(error: Throwable): String {
