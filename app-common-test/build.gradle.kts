@@ -28,6 +28,12 @@ android {
             setupTestLogging()
         }
     }
+
+    packaging {
+        resources {
+            excludes.add("META-INF/*")
+        }
+    }
 }
 
 dependencies {
