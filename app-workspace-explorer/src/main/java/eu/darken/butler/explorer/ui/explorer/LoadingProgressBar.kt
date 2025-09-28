@@ -21,6 +21,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,6 +36,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.progress.Progress
+import kotlinx.coroutines.delay
 
 @Composable
 fun LoadingProgressBar(
@@ -38,8 +44,19 @@ fun LoadingProgressBar(
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var shouldShowProgress by remember { mutableStateOf(false) }
+
+    LaunchedEffect(progress) {
+        if (progress != null) {
+            delay(1000) // Wait 1 second
+            shouldShowProgress = true
+        } else {
+            shouldShowProgress = false
+        }
+    }
+
     AnimatedVisibility(
-        visible = progress != null,
+        visible = progress != null && shouldShowProgress,
         modifier = modifier,
         enter = slideInVertically { -it } + fadeIn(),
         exit = slideOutVertically { -it } + fadeOut(),
