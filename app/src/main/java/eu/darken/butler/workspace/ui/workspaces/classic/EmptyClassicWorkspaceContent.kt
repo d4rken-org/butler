@@ -205,7 +205,7 @@ internal fun EmptyClassicWorkspaceContent(
                         }
                         Icon(
                             imageVector = Icons.TwoTone.Stars,
-                            contentDescription = stringResource(R.string.upgrade_prompt_upgrade_action),
+                            contentDescription = stringResource(eu.darken.butler.common.R.string.general_upgrade_action),
                             tint = MaterialTheme.colorScheme.onTertiaryContainer
                         )
                     }

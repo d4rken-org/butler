@@ -22,6 +22,8 @@ import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.destSetup
+import eu.darken.butler.common.navigation.settings
+import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -45,6 +47,8 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.*
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortOptionsResult
 import eu.darken.butler.setup.core.SetupModule
+import eu.darken.butler.upgrade.UpgradeRepo
+import eu.darken.butler.upgrade.isPro
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceProvider
@@ -86,6 +90,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val operationsManager: OperationsManager,
     private val systemClipboardHelper: SystemClipboardHelper,
     private val copyErrorTool: CopyErrorTool,
+    private val upgradeRepo: UpgradeRepo,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
 
     private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
@@ -155,6 +160,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val availableActions: List<ExplorerAction> = emptyList(),
         val dialogState: ExplorerDialogState = None,
         val permissionState: PermissionState = PermissionState(),
+        val isPro: Boolean = false,
     )
 
     val state = combine(
@@ -163,7 +169,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         viewModeFlow,
         dialogStateFlow,
         currentSortSettings,
-    ) { wsState, selectedItems, viewMode, dialogState, sortSetting ->
+        upgradeRepo.upgradeInfo,
+    ) { wsState, selectedItems, viewMode, dialogState, sortSetting, upgradeInfo ->
         val rawItems = wsState.currentLocation?.items ?: emptyList()
         val items = itemSorter.sortItems(rawItems, sortSetting)
 
@@ -191,6 +198,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             availableActions = availableActions,
             dialogState = dialogState,
             permissionState = wsState.currentLocation?.permissionState ?: PermissionState(),
+            isPro = upgradeInfo.isUpgraded,
         )
     }.asStateFlow()
 
@@ -726,6 +734,16 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         systemClipboardHelper.copyToClipboard(path)
     }
 
+    fun onButlerIconClick() = launch {
+        log(tag) { "onButlerIconClick()" }
+        if (upgradeRepo.isPro()) {
+            log(tag) { "User has Pro - opening settings" }
+            navTo(Nav.Main.settings())
+        } else {
+            log(tag) { "User doesn't have Pro - opening upgrade screen" }
+            navTo(Nav.Main.upgrade())
+        }
+    }
 
     @AssistedFactory
     interface Factory {
