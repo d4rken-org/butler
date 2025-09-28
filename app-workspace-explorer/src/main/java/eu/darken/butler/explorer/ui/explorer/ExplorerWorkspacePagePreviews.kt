@@ -102,6 +102,7 @@ fun ExplorerWorkspacePageEmptyPreview() {
     val mockState = ExplorerWorkspaceViewModel.State(
         currentLocation = ExplorerLocation.Directory(
             path = LocalPath.build("/empty/folder"),
+            items = emptyList(),
             progress = null,
         ),
         breadcrumbs = emptyList(),
@@ -173,53 +174,6 @@ fun ExplorerWorkspacePageGridModePreview() {
         ),
         breadcrumbs = mockBreadcrumbs,
         items = MockDataProvider.createAllFileTypes(),
-        viewMode = ExplorerWorkspaceViewModel.ViewMode.GRID,
-        availableActions = listOf(
-            ExplorerAction.Common.Sort(),
-            ExplorerAction.Common.Filter(isEnabled = false),
-        ),
-    )
-    PreviewWrapper {
-        ExplorerWorkspacePage(
-            mainStateSource = flowOf(mockState),
-            workspaceStateSource = flowOf(null),
-            clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
-            operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
-            vm = null,
-            onWorkspaceAction = {},
-            onNavToWorkspaceManager = {},
-        )
-    }
-}
-
-@Preview2
-@Composable
-fun ExplorerWorkspacePageGridModeWithSelectionPreview() {
-    val mockFileItems = MockDataProvider.createAllFileTypes()
-    val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(
-            path = LocalPath.build("/storage/emulated/0/Downloads"),
-            progress = null,
-        ),
-        breadcrumbs = listOf(
-            ExplorerBreadcrumb(
-                label = R.string.explorer_navigation_device.toCaString(),
-                target = ExplorerNavigation.Target.Device
-            ),
-            ExplorerBreadcrumb(
-                label = "Downloads".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0/Downloads"))
-            )
-        ),
-        items = mockFileItems,
-        selectionState = ExplorerSelectionState(
-            selectedItems = setOf(mockFileItems[0].path.path, mockFileItems[2].path.path),
-            selectableItems = setOf(
-                mockFileItems[0].path.path,
-                mockFileItems[2].path.path,
-                mockFileItems[3].path.path
-            ),
-        ),
         viewMode = ExplorerWorkspaceViewModel.ViewMode.GRID,
         availableActions = listOf(
             ExplorerAction.Common.Sort(),

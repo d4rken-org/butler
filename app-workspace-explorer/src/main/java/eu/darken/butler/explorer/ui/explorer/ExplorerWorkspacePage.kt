@@ -21,7 +21,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -41,11 +40,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import eu.darken.butler.common.Slogans
+import eu.darken.butler.common.compose.ButlerIcon
+import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.error.ErrorEventHandler
-import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
@@ -220,152 +220,172 @@ fun ExplorerWorkspacePage(
                     .padding(top = paddingValues.calculateTopPadding())
             ) {
                 // Loading progress bar
-                LoadingProgressBar(
-                    progress = mainState.currentLocation?.progress,
-                    onCancel = { vm?.navigate(ExplorerNavigation.Cancel) },
-                )
+                mainState.progress?.let {
+                    LoadingProgressBar(
+                        progress = it,
+                        onCancel = { vm?.navigate(ExplorerNavigation.Cancel) },
+                    )
+                }
 
-                // InfoBar moved to top
+                mainState.error?.let { error ->
+                    NavigationErrorCard(
+                        error = error,
+                        onCopyError = { vm?.copyNavigationError() },
+                        onRetry = { vm?.retryNavigation() },
+                        onDismiss = { vm?.dismissNavigationError() },
+                    )
+                }
+
                 ExplorerInfoBar(
-                    info = mainState.currentLocation?.info,
+                    info = mainState.info,
                     selectedCount = mainState.selectionState.selectedItems.size,
                 )
 
-                if (mainState.permissionState.needsPermissions) {
-                    // Show permission request card when permissions are missing
-                    PermissionRequestCard(
-                        permissionState = mainState.permissionState,
-                        onNavigateToSetup = {
-                            vm?.navigateToSetup()
-                        },
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                } else if (mainState.currentLocation?.items == null) {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        CircularProgressIndicator()
-                        Text(
-                            text = stringResource(R.string.explorer_loading),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(top = 16.dp)
+                when {
+                    mainState.permissionState.needsPermissions -> {
+                        // Show permission request card when permissions are missing
+                        PermissionRequestCard(
+                            permissionState = mainState.permissionState,
+                            onNavigateToSetup = {
+                                vm?.navigateToSetup()
+                            },
+                            modifier = Modifier.fillMaxSize(),
                         )
                     }
-                } else if (mainState.items.isEmpty()) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .nestedScroll(scrollBehavior.nestedScrollConnection)
-                            .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection)
-                    ) {
-                        item {
-                            EmptyFolderState(
-                                modifier = Modifier.fillMaxSize()
+                    mainState.items == null -> {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            val randomSlogan = remember { Slogans.random }
+                            ButlerIcon(
+                                size = 120.dp,
+                            )
+                            Text(
+                                text = randomSlogan.asComposable(),
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(top = 16.dp)
                             )
                         }
                     }
-                } else {
-                    Box(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        if (mainState.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
-                            LazyColumn(
-                                state = listState,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .nestedScroll(scrollBehavior.nestedScrollConnection)
-                                    .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
-                                verticalArrangement = Arrangement.spacedBy(4.dp),
-                                contentPadding = PaddingValues(
-                                    start = 12.dp,
-                                    end = 12.dp,
-                                    top = 12.dp,
-                                    bottom = run {
-                                        val actionBarHeight = if (hasActions) 64.dp else 0.dp // 48dp + 16dp padding
-                                        val clipboardHeight = if (hasClipboard) 88.dp else 0.dp // ~80dp + 8dp padding
-                                        val operationsHeight =
-                                            if (hasOperations) 80.dp else 0.dp // Operations bar height + padding
-                                        actionBarHeight + clipboardHeight + operationsHeight + 12.dp // Extra space
-                                    }
+                    mainState.items?.isEmpty() == true -> {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .nestedScroll(scrollBehavior.nestedScrollConnection)
+                                .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection)
+                        ) {
+                            item {
+                                EmptyFolderState(
+                                    modifier = Modifier.fillMaxSize()
                                 )
-                            ) {
-                                items(mainState.items) { item ->
-                                    when (item) {
-                                        is ExplorerItem.Lookup -> LookupItemRow(
-                                            item = item,
-                                            isSelected = mainState.selectionState.selectedItems.contains(item.id),
-                                            onToggleSelection = { vm?.toggleItemSelection(item) },
-                                            onClick = {
-                                                if (mainState.selectionState.selectedItems.isNotEmpty()) {
-                                                    vm?.toggleItemSelection(item)
-                                                } else {
-                                                    vm?.navigate(item)
-                                                }
-                                            },
-                                            onLongClick = { vm?.toggleItemSelection(item) },
-                                            showSelection = mainState.selectionState.selectedItems.isNotEmpty()
-                                        )
+                            }
+                        }
+                    }
+                    else -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            if (mainState.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
+                                LazyColumn(
+                                    state = listState,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .nestedScroll(scrollBehavior.nestedScrollConnection)
+                                        .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                                    contentPadding = PaddingValues(
+                                        start = 12.dp,
+                                        end = 12.dp,
+                                        top = 12.dp,
+                                        bottom = run {
+                                            val actionBarHeight = if (hasActions) 64.dp else 0.dp // 48dp + 16dp padding
+                                            val clipboardHeight =
+                                                if (hasClipboard) 88.dp else 0.dp // ~80dp + 8dp padding
+                                            val operationsHeight =
+                                                if (hasOperations) 80.dp else 0.dp // Operations bar height + padding
+                                            actionBarHeight + clipboardHeight + operationsHeight + 12.dp // Extra space
+                                        }
+                                    )
+                                ) {
+                                    items(mainState.items!!) { item ->
+                                        when (item) {
+                                            is ExplorerItem.Lookup -> LookupItemRow(
+                                                item = item,
+                                                isSelected = mainState.selectionState.selectedItems.contains(item.id),
+                                                onToggleSelection = { vm?.toggleItemSelection(item) },
+                                                onClick = {
+                                                    if (mainState.selectionState.selectedItems.isNotEmpty()) {
+                                                        vm?.toggleItemSelection(item)
+                                                    } else {
+                                                        vm?.navigate(item)
+                                                    }
+                                                },
+                                                onLongClick = { vm?.toggleItemSelection(item) },
+                                                showSelection = mainState.selectionState.selectedItems.isNotEmpty()
+                                            )
 
-                                        is ExplorerItem.Peek -> PeekRow(
-                                            item = item
-                                        )
+                                            is ExplorerItem.Peek -> PeekRow(
+                                                item = item
+                                            )
 
-                                        is ExplorerItem.Shortcut -> ShortcutRow(
-                                            item = item,
-                                            onClick = { vm?.navigate(item) },
-                                        )
+                                            is ExplorerItem.Shortcut -> ShortcutRow(
+                                                item = item,
+                                                onClick = { vm?.navigate(item) },
+                                            )
+                                        }
                                     }
                                 }
-                            }
-                        } else {
-                            LazyVerticalGrid(
-                                state = gridState,
-                                columns = GridCells.Adaptive(minSize = 120.dp),
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .nestedScroll(scrollBehavior.nestedScrollConnection)
-                                    .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
-                                verticalArrangement = Arrangement.spacedBy(2.dp),
-                                horizontalArrangement = Arrangement.spacedBy(2.dp),
-                                contentPadding = PaddingValues(
-                                    start = 2.dp,
-                                    end = 2.dp,
-                                    top = 2.dp,
-                                    bottom = run {
-                                        val actionBarHeight = if (hasActions) 64.dp else 0.dp // 48dp + 16dp padding
-                                        val clipboardHeight = if (hasClipboard) 88.dp else 0.dp // ~80dp + 8dp padding
-                                        val operationsHeight =
-                                            if (hasOperations) 80.dp else 0.dp // Operations bar height + padding
-                                        actionBarHeight + clipboardHeight + operationsHeight + 2.dp // Extra space
-                                    }
-                                )
-                            ) {
-                                items(mainState.items) { item ->
-                                    when (item) {
-                                        is ExplorerItem.Lookup -> LookupItemGrid(
-                                            item = item,
-                                            isSelected = mainState.selectionState.selectedItems.contains(item.path.path),
-                                            onToggleSelection = { vm?.toggleItemSelection(item) },
-                                            onClick = {
-                                                if (mainState.selectionState.selectedItems.isNotEmpty()) {
-                                                    vm?.toggleItemSelection(item)
-                                                } else {
-                                                    vm?.navigate(item)
-                                                }
-                                            },
-                                            onLongClick = { vm?.toggleItemSelection(item) },
-                                            showSelection = mainState.selectionState.selectedItems.isNotEmpty()
-                                        )
-                                        is ExplorerItem.Shortcut -> ShortcutGrid(
-                                            item = item,
-                                            onClick = { vm?.navigate(item) },
-                                        )
+                            } else {
+                                LazyVerticalGrid(
+                                    state = gridState,
+                                    columns = GridCells.Adaptive(minSize = 120.dp),
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .nestedScroll(scrollBehavior.nestedScrollConnection)
+                                        .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
+                                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                                    contentPadding = PaddingValues(
+                                        start = 2.dp,
+                                        end = 2.dp,
+                                        top = 2.dp,
+                                        bottom = run {
+                                            val actionBarHeight = if (hasActions) 64.dp else 0.dp // 48dp + 16dp padding
+                                            val clipboardHeight =
+                                                if (hasClipboard) 88.dp else 0.dp // ~80dp + 8dp padding
+                                            val operationsHeight =
+                                                if (hasOperations) 80.dp else 0.dp // Operations bar height + padding
+                                            actionBarHeight + clipboardHeight + operationsHeight + 2.dp // Extra space
+                                        }
+                                    )
+                                ) {
+                                    items(mainState.items!!) { item ->
+                                        when (item) {
+                                            is ExplorerItem.Lookup -> LookupItemGrid(
+                                                item = item,
+                                                isSelected = mainState.selectionState.selectedItems.contains(item.path.path),
+                                                onToggleSelection = { vm?.toggleItemSelection(item) },
+                                                onClick = {
+                                                    if (mainState.selectionState.selectedItems.isNotEmpty()) {
+                                                        vm?.toggleItemSelection(item)
+                                                    } else {
+                                                        vm?.navigate(item)
+                                                    }
+                                                },
+                                                onLongClick = { vm?.toggleItemSelection(item) },
+                                                showSelection = mainState.selectionState.selectedItems.isNotEmpty()
+                                            )
+                                            is ExplorerItem.Shortcut -> ShortcutGrid(
+                                                item = item,
+                                                onClick = { vm?.navigate(item) },
+                                            )
 
-                                        is ExplorerItem.Peek -> PeekGrid(
-                                            item = item
-                                        )
+                                            is ExplorerItem.Peek -> PeekGrid(
+                                                item = item
+                                            )
+                                        }
                                     }
                                 }
                             }

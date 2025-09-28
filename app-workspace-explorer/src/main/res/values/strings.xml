@@ -211,4 +211,9 @@
     <string name="explorer_operation_create_description_directory">Create folder \"%1$s\" at \"%2$s\"</string>
     <string name="explorer_operation_create_title_file">File creation</string>
     <string name="explorer_operation_create_description_file">Create file \"%1$s\" at \"%2$s\"</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">Navigation Failed</string>
+    <string name="explorer_navigation_error_copy_action">Copy error</string>
+    <string name="explorer_navigation_error_retry_action">Retry</string>
 </resources>

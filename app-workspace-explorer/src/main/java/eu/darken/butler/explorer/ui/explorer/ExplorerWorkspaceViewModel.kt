@@ -2,11 +2,13 @@ package eu.darken.butler.explorer.ui.explorer
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.SystemClipboardHelper
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
@@ -148,10 +150,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     data class State(
-        val currentLocation: ExplorerLocation? = null,
+        internal val currentLocation: ExplorerLocation? = null,
         val locationId: String? = null,
         val breadcrumbs: List<ExplorerBreadcrumb> = emptyList(),
-        val items: List<ExplorerItem> = emptyList(),
+        val items: List<ExplorerItem>? = null,
         val error: Throwable? = null,
         val selectionState: ExplorerSelectionState = ExplorerSelectionState(),
         val viewMode: ViewMode = ViewMode.LIST,
@@ -161,7 +163,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val dialogState: ExplorerDialogState = None,
         val permissionState: PermissionState = PermissionState(),
         val isPro: Boolean = false,
-    )
+    ) {
+        val progress = currentLocation?.progress
+        val info = currentLocation?.info
+    }
 
     val state = combine(
         workspaceState,
@@ -171,12 +176,16 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         currentSortSettings,
         upgradeRepo.upgradeInfo,
     ) { wsState, selectedItems, viewMode, dialogState, sortSetting, upgradeInfo ->
-        val rawItems = wsState.currentLocation?.items ?: emptyList()
-        val items = itemSorter.sortItems(rawItems, sortSetting)
+        val items = wsState.currentLocation?.items
+            ?.let { itemSorter.sortItems(it, sortSetting) }
 
         val selectionState = ExplorerSelectionState(
             selectedItems = selectedItems,
-            selectableItems = items.filter { it is ExplorerItem.Path }.map { it.id }.toSet(),
+            selectableItems = items
+                ?.filter { it is ExplorerItem.Path }
+                ?.map { it.id }
+                ?.toSet()
+                ?: emptySet(),
         )
 
         val availableActions = wsState.currentLocation?.let {
@@ -191,6 +200,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             locationId = wsState.currentLocation?.locationId,
             breadcrumbs = wsState.currentBreadcrumbs ?: emptyList(),
             items = items,
+            error = wsState.error,
             selectionState = selectionState,
             viewMode = viewMode,
             canGoBack = wsState.canGoBack,
@@ -308,6 +318,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun executeAction(action: ExplorerAction) = launch {
         log(tag) { "executeAction(${action::class.simpleName})" }
         val stateSnap = state.first()
+        if (stateSnap.items == null) return@launch
         when (action) {
             is ExplorerAction.Directory.Create -> {
                 dialogEvents.emit(ExplorerDialogEvent.ShowCreateItem)
@@ -743,6 +754,43 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             log(tag) { "User doesn't have Pro - opening upgrade screen" }
             navTo(Nav.Main.upgrade())
         }
+    }
+
+    fun copyNavigationError() = launch {
+        log(tag) { "copyNavigationError()" }
+        val error = workspaceState.first().error
+        if (error != null) {
+            val errorText = formatNavigationError(error)
+            systemClipboardHelper.copyToClipboard(errorText)
+        }
+    }
+
+    fun retryNavigation() = launch {
+        log(tag) { "retryNavigation()" }
+        getWorkspace().navigate(ExplorerNavigation.Refresh)
+    }
+
+    fun dismissNavigationError() = launch {
+        log(tag) { "dismissNavigationError()" }
+        // Simply triggering any navigation request will clear the error state
+        // We use Cancel as it's the least intrusive option
+        getWorkspace().navigate(ExplorerNavigation.Cancel)
+    }
+
+    private fun formatNavigationError(error: Throwable): String {
+        return """
+            # Navigation Error
+            * `${Build.FINGERPRINT}`
+            * `${BuildConfigWrap.VERSION_DESCRIPTION}`
+            * WorkspaceID: `${id.longTag}`
+
+            ## Error
+            ${error.message ?: error.javaClass.simpleName}
+
+            ```java
+            ${error.stackTraceToString()}
+            ```
+        """.trimIndent()
     }
 
     @AssistedFactory

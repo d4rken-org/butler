@@ -85,7 +85,6 @@ fun UpgradeStatusScreen(
             // Mascot
             ButlerIcon(
                 size = 120.dp,
-                contentDescription = stringResource(eu.darken.butler.common.R.string.butler_mascot_description)
             )
 
             // App name

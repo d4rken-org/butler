@@ -164,21 +164,29 @@ class ExplorerWorkspace @AssistedInject constructor(
             .flatMapLatest { request ->
                 flow<Unit> {
                     _state.updateBlocking {
-                        copy(error = null, currentLocation = null)
+                        copy(error = null)
                     }
                     try {
                         processNavigationRequest(request)
-                        emit(Unit)
-                    } catch (e: CancellationException) {
-                        log(tag, INFO) { "Navigation cancelled" }
-                        throw e  // Re-throw to maintain cancellation semantics
                     } catch (e: Exception) {
-                        // Handle all other exceptions here to prevent flow termination
-                        log(tag, ERROR) { "Navigation failed: $e" }
-                        _state.updateBlocking {
-                            copy(error = e)
+                        when (e) {
+                            is CancellationException -> {
+                                log(tag, INFO) { "Navigation cancelled" }
+                                _state.updateBlocking {
+                                    copy(currentLocation = null)
+                                }
+                                throw e
+                            }
+                            else -> {
+                                log(tag, ERROR) { "Navigation failed: $e" }
+                                _state.updateBlocking {
+                                    copy(
+                                        currentLocation = null,
+                                        error = e,
+                                    )
+                                }
+                            }
                         }
-                        emit(Unit)
                     }
                 }
             }
@@ -228,6 +236,12 @@ class ExplorerWorkspace @AssistedInject constructor(
             is ExplorerNavigation.Cancel -> {
                 // Just reset the loading state, flatMapLatest will have already cancelled the previous operation
                 log(tag, INFO) { "Navigation cancel request processed" }
+                _state.updateBlocking {
+                    copy(
+                        currentLocation = null,
+                        error = null
+                    )
+                }
             }
         }
     }
