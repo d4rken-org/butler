@@ -1,20 +1,25 @@
 package eu.darken.butler.explorer.core.engine
 
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.workspace.core.permissions.PermissionState
 
 sealed interface ExplorerLocation {
-    val items: List<ExplorerItem>
+    val items: List<ExplorerItem>?
     val info: LocationInfo?
     val permissionState: PermissionState
+    val progress: Progress.Data?
+
+    val isLoading: Boolean get() = progress != null
 
     sealed interface LocationInfo
 
     data class Home(
-        override val items: List<ExplorerItem>,
+        override val items: List<ExplorerItem>? = null,
         override val info: Info? = null,
         override val permissionState: PermissionState = PermissionState(),
+        override val progress: Progress.Data? = Progress.Data(),
     ) : ExplorerLocation {
         data class Info(
             val shortcutCount: Int,
@@ -24,9 +29,10 @@ sealed interface ExplorerLocation {
     }
 
     data class Device(
-        override val items: List<ExplorerItem>,
+        override val items: List<ExplorerItem>? = null,
         override val info: Info? = null,
         override val permissionState: PermissionState = PermissionState(),
+        override val progress: Progress.Data? = Progress.Data(),
     ) : ExplorerLocation {
         data class Info(
             val locationCount: Int,
@@ -36,11 +42,12 @@ sealed interface ExplorerLocation {
     }
 
     data class Directory(
-        val path: APath,
-        val parent: ExplorerNavigation.Target? = null,
-        override val items: List<ExplorerItem> = emptyList(),
+        override val items: List<ExplorerItem>? = null,
         override val info: Info? = null,
         override val permissionState: PermissionState = PermissionState(),
+        override val progress: Progress.Data? = Progress.Data(),
+        val path: APath,
+        val parent: ExplorerNavigation.Target? = null,
     ) : ExplorerLocation {
         data class Info(
             val fileCount: Int? = null,

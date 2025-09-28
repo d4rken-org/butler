@@ -9,6 +9,7 @@ import eu.darken.butler.common.files.APathLookupExtended
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
+import eu.darken.butler.common.files.metadata.FileSystemInfo
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
@@ -166,6 +167,10 @@ suspend fun <T : APath> T.isFile(gateway: APathGateway<T, out APathLookup<T>, ou
 
 suspend fun <T : APath> T.isDirectory(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): Boolean {
     return gateway.lookup(this).fileType == FileType.DIRECTORY
+}
+
+suspend fun <T : APath> T.getFileSystemInfo(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): FileSystemInfo {
+    return gateway.getInfo(this)
 }
 
 suspend fun <T : APath> T.copy(

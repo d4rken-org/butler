@@ -14,7 +14,6 @@ import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.flow.shareLatest
 import eu.darken.butler.common.issue.Issue
-import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
@@ -56,8 +55,8 @@ class ExplorerWorkspace @AssistedInject constructor(
     @Assisted private val arguments: Arguments?,
     dispatcherProvider: DispatcherProvider,
     private val browsingEngineFactory: BrowsingEngine.Factory,
-    private val fileSystemHinter: FileSystemHinter,
     private val breadcrumbGenerator: BreadcrumbGenerator,
+    private val fileSystemHinter: FileSystemHinter,
     private val pathAccessTracker: PathAccessTracker,
     private val issueHandler: IssueHandler,
     private val operationsManager: OperationsManager,
@@ -133,66 +132,21 @@ class ExplorerWorkspace @AssistedInject constructor(
 
     data class State(
         val currentTarget: ExplorerNavigation.Target? = null,
-        val currentLocation: ExplorerLocation? = null,
-        val currentBreadcrumbs: List<ExplorerBreadcrumb>? = null,
-        val navigationHistory: List<ExplorerNavigation.Target> = emptyList(),
         val historyIndex: Int = 0,
-        val isLoading: Boolean = false,
-        val isLoadingExtended: Boolean = false,
+        val navigationHistory: List<ExplorerNavigation.Target> = emptyList(),
+        val currentBreadcrumbs: List<ExplorerBreadcrumb>? = null,
+        val currentLocation: ExplorerLocation? = null,
         val error: Throwable? = null,
-        val progress: Progress.Data? = null,
     ) {
         val canGoBack: Boolean get() = historyIndex > 0
         val canGoForward: Boolean get() = historyIndex < navigationHistory.size - 1
     }
 
     init {
-        // TODO: Refresh directory based on hints
-        fileSystemHinter.events
-            .onEach { event -> log(tag, INFO) { "Received operation hint: $event" } }
-            .launchIn(scope)
-
-        // Set up navigation flow processing
-        navigationRequests
-            .onEach { log(tag, INFO) { "New navigation request: $it" } }
-            .flatMapLatest { request ->
-                flow<Unit> {
-                    try {
-                        processNavigationRequest(request)
-                        emit(Unit)
-                    } catch (e: CancellationException) {
-                        log(tag, INFO) { "Navigation cancelled" }
-                        _state.updateBlocking {
-                            copy(
-                                isLoading = false,
-                                isLoadingExtended = false,
-                            )
-                        }
-                        throw e  // Re-throw to maintain cancellation semantics
-                    } catch (e: Exception) {
-                        // Handle all other exceptions here to prevent flow termination
-                        log(tag, ERROR) { "Navigation failed: $e" }
-                        _state.updateBlocking {
-                            copy(
-                                error = e,
-                                isLoading = false,
-                                isLoadingExtended = false,
-                            )
-                        }
-                        emit(Unit)
-                    }
-                }
-            }
-            .launchIn(scope)
-
         // Load initial location
         scope.launch {
             log(tag, INFO) { "Loading initial data... ($arguments)" }
             try {
-                _state.updateBlocking {
-                    copy(isLoading = true)
-                }
-
                 val startPath = arguments?.startPath
                 if (startPath != null) {
                     navigationRequests.emit(ExplorerNavigation.Target.Directory(startPath))
@@ -201,22 +155,45 @@ class ExplorerWorkspace @AssistedInject constructor(
                 }
             } catch (e: Exception) {
                 log(tag, ERROR) { "Failed to initialize: $e" }
-                _state.updateBlocking {
-                    copy(
-                        isLoading = false,
-                        error = e
-                    )
-                }
+                Bugs.report(e)
             }
         }
+
+        navigationRequests
+            .onEach { log(tag, INFO) { "New navigation request: $it" } }
+            .flatMapLatest { request ->
+                flow<Unit> {
+                    _state.updateBlocking {
+                        copy(error = null, currentLocation = null)
+                    }
+                    try {
+                        processNavigationRequest(request)
+                        emit(Unit)
+                    } catch (e: CancellationException) {
+                        log(tag, INFO) { "Navigation cancelled" }
+                        throw e  // Re-throw to maintain cancellation semantics
+                    } catch (e: Exception) {
+                        // Handle all other exceptions here to prevent flow termination
+                        log(tag, ERROR) { "Navigation failed: $e" }
+                        _state.updateBlocking {
+                            copy(error = e)
+                        }
+                        emit(Unit)
+                    }
+                }
+            }
+            .launchIn(scope)
+
+        fileSystemHinter.events
+            .onEach { event -> browsingEngine.hint(event) }
+            .launchIn(scope)
     }
 
-    private suspend fun processNavigationRequest(target: ExplorerNavigation) {
-        log(tag, INFO) { "Processing navigation target: $target" }
-
-        when (target) {
+    private suspend fun processNavigationRequest(request: ExplorerNavigation) {
+        log(tag, INFO) { "Processing navigation request: $request" }
+        when (request) {
             is ExplorerNavigation.Target -> {
-                loadTarget(target, addToHistory = true)
+                loadTarget(request, addToHistory = true)
             }
 
             is ExplorerNavigation.Back -> {
@@ -251,12 +228,46 @@ class ExplorerWorkspace @AssistedInject constructor(
             is ExplorerNavigation.Cancel -> {
                 // Just reset the loading state, flatMapLatest will have already cancelled the previous operation
                 log(tag, INFO) { "Navigation cancel request processed" }
+            }
+        }
+    }
+
+    private suspend fun loadTarget(target: ExplorerNavigation.Target, addToHistory: Boolean) {
+        log(tag, INFO) { "loadTarget($target, $addToHistory)" }
+        browsingEngine.loadLocation(target).collectIndexed { index, state ->
+            if (index == 0) {
+                val newHistory = if (addToHistory) {
+                    val currentHistory = _state.value().navigationHistory
+                    val currentIndex = _state.value().historyIndex
+
+                    // Remove forward history when navigating to new location
+                    val trimmedHistory = currentHistory.take(currentIndex + 1)
+                    trimmedHistory + target
+                } else {
+                    _state.value().navigationHistory
+                }
+
                 _state.updateBlocking {
                     copy(
-                        isLoading = false,
-                        isLoadingExtended = false,
+                        navigationHistory = newHistory,
+                        historyIndex = if (addToHistory) newHistory.size - 1 else historyIndex
                     )
                 }
+
+                // Track path access for shortcuts (only for new navigations to directories)
+                if (addToHistory && target is ExplorerNavigation.Target.Directory) {
+                    pathAccessTracker.trackPathAccess(target.path)
+                }
+            }
+
+            val breadcrumbs = breadcrumbGenerator.getBreadcrumbs(state)
+            log(tag) { "loadTarget(): Generated breadcrumbs: $breadcrumbs" }
+
+            _state.updateBlocking {
+                copy(
+                    currentBreadcrumbs = breadcrumbs,
+                    currentLocation = state,
+                )
             }
         }
     }
@@ -296,71 +307,6 @@ class ExplorerWorkspace @AssistedInject constructor(
         }
     }
 
-    private suspend fun loadTarget(target: ExplorerNavigation.Target, addToHistory: Boolean) {
-        log(tag, INFO) { "loadTarget($target, $addToHistory)" }
-        _state.updateBlocking {
-            copy(
-                currentTarget = target,
-                isLoading = true,
-                error = null
-            )
-        }
-        try {
-            browsingEngine.loadLocation(target).collectIndexed { index, location ->
-                if (index == 0) {
-                    val newHistory = if (addToHistory) {
-                        val currentHistory = _state.value().navigationHistory
-                        val currentIndex = _state.value().historyIndex
-
-                        // Remove forward history when navigating to new location
-                        val trimmedHistory = currentHistory.take(currentIndex + 1)
-                        trimmedHistory + target
-                    } else {
-                        _state.value().navigationHistory
-                    }
-
-                    val breadcrumbs = breadcrumbGenerator.getBreadcrumbs(location)
-                    log(tag) { "loadTarget(): Generated breadcrumbs: $breadcrumbs" }
-                    _state.updateBlocking {
-                        copy(
-                            currentLocation = location,
-                            currentBreadcrumbs = breadcrumbs,
-                            isLoading = false,
-                            navigationHistory = newHistory,
-                            historyIndex = if (addToHistory) newHistory.size - 1 else historyIndex
-                        )
-                    }
-
-                    // Track path access for shortcuts (only for new navigations to directories)
-                    if (addToHistory && target is ExplorerNavigation.Target.Directory) {
-                        pathAccessTracker.trackPathAccess(target.path)
-                    }
-                } else {
-                    _state.updateBlocking {
-                        copy(
-                            currentLocation = location,
-                        )
-                    }
-                }
-            }
-            _state.updateBlocking {
-                copy(isLoadingExtended = false)
-            }
-        } catch (e: Exception) {
-            log(tag, ERROR) { "loadTarget(): Failed to navigate to $target: $e" }
-            _state.updateBlocking {
-                copy(error = e)
-            }
-        } finally {
-            _state.updateBlocking {
-                copy(
-                    isLoading = false,
-                    isLoadingExtended = false,
-                )
-            }
-        }
-    }
-
     fun resolveConflict(operationId: Operation.Id, resolution: PathActionIssue.Resolution) {
         log(tag, INFO) { "Resolving conflict for operation $operationId: $resolution" }
         scope.launch {
@@ -379,7 +325,6 @@ class ExplorerWorkspace @AssistedInject constructor(
         log(tag, INFO) { "release()" }
         scope.cancel()
     }
-
 
     @Parcelize
     data class Arguments(

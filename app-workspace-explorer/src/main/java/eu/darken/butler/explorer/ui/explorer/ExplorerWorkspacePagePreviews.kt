@@ -28,7 +28,8 @@ fun ExplorerWorkspacePagePreview() {
                 volumeFreeSpace = 1024L * 1024L * 1024L * 50L,
                 volumeTotalSpace = 1024L * 1024L * 1024L * 128L,
                 isWritable = true,
-            )
+            ),
+            progress = null,
         ),
         breadcrumbs = listOf(
             ExplorerBreadcrumb(
@@ -58,7 +59,6 @@ fun ExplorerWorkspacePagePreview() {
             ExplorerAction.Common.Sort(),
             ExplorerAction.Common.Filter(isEnabled = false),
         ),
-        isLoading = false,
     )
     PreviewWrapper {
         ExplorerWorkspacePage(
@@ -77,10 +77,11 @@ fun ExplorerWorkspacePagePreview() {
 @Composable
 fun ExplorerWorkspacePageLoadingPreview() {
     val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(LocalPath.build("/storage/emulated/0")),
+        currentLocation = ExplorerLocation.Directory(
+            path = LocalPath.build("/storage/emulated/0"),
+        ),
         breadcrumbs = emptyList(),
         items = emptyList(),
-        isLoading = true,
     )
     PreviewWrapper {
         ExplorerWorkspacePage(
@@ -99,10 +100,12 @@ fun ExplorerWorkspacePageLoadingPreview() {
 @Composable
 fun ExplorerWorkspacePageEmptyPreview() {
     val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(LocalPath.build("/empty/folder")),
+        currentLocation = ExplorerLocation.Directory(
+            path = LocalPath.build("/empty/folder"),
+            progress = null,
+        ),
         breadcrumbs = emptyList(),
         items = emptyList(),
-        isLoading = false,
     )
     PreviewWrapper {
         ExplorerWorkspacePage(
@@ -122,10 +125,12 @@ fun ExplorerWorkspacePageEmptyPreview() {
 fun ExplorerWorkspacePageWithSelectionPreview() {
     val mockFileItems = MockDataProvider.createAllFileTypes()
     val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(LocalPath.build("/storage/emulated/0")),
+        currentLocation = ExplorerLocation.Directory(
+            path = LocalPath.build("/storage/emulated/0"),
+            progress = null,
+        ),
         breadcrumbs = emptyList(),
         items = mockFileItems,
-        isLoading = false,
         selectionState = ExplorerSelectionState(
             selectedItems = setOf(mockFileItems[0].path.path, mockFileItems[2].path.path),
             selectableItems = setOf(mockFileItems[0].path.path, mockFileItems[2].path.path),
@@ -162,10 +167,12 @@ fun ExplorerWorkspacePageGridModePreview() {
         )
     )
     val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(LocalPath.build("/storage/emulated/0/Pictures")),
+        currentLocation = ExplorerLocation.Directory(
+            path = LocalPath.build("/storage/emulated/0/Pictures"),
+            progress = null,
+        ),
         breadcrumbs = mockBreadcrumbs,
         items = MockDataProvider.createAllFileTypes(),
-        isLoading = false,
         viewMode = ExplorerWorkspaceViewModel.ViewMode.GRID,
         availableActions = listOf(
             ExplorerAction.Common.Sort(),
@@ -190,7 +197,10 @@ fun ExplorerWorkspacePageGridModePreview() {
 fun ExplorerWorkspacePageGridModeWithSelectionPreview() {
     val mockFileItems = MockDataProvider.createAllFileTypes()
     val mockState = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(LocalPath.build("/storage/emulated/0/Downloads")),
+        currentLocation = ExplorerLocation.Directory(
+            path = LocalPath.build("/storage/emulated/0/Downloads"),
+            progress = null,
+        ),
         breadcrumbs = listOf(
             ExplorerBreadcrumb(
                 label = R.string.explorer_nav_device.toCaString(),
@@ -202,7 +212,6 @@ fun ExplorerWorkspacePageGridModeWithSelectionPreview() {
             )
         ),
         items = mockFileItems,
-        isLoading = false,
         selectionState = ExplorerSelectionState(
             selectedItems = setOf(mockFileItems[0].path.path, mockFileItems[2].path.path),
             selectableItems = setOf(
@@ -248,7 +257,8 @@ fun ExplorerWorkspacePageWithAllBarsPreview() {
                 volumeFreeSpace = 1024L * 1024L * 1024L * 32L,
                 volumeTotalSpace = 1024L * 1024L * 1024L * 128L,
                 isWritable = true,
-            )
+            ),
+            progress = null,
         ),
         breadcrumbs = listOf(
             ExplorerBreadcrumb(
@@ -274,7 +284,6 @@ fun ExplorerWorkspacePageWithAllBarsPreview() {
             selectedItems = setOf(mockFileItems[0].path.path, mockFileItems[2].path.path),
             selectableItems = setOf(mockFileItems[0].path.path, mockFileItems[2].path.path),
         ),
-        isLoading = false,
     )
 
     PreviewWrapper {
@@ -308,7 +317,8 @@ fun ExplorerWorkspacePageWithExpandedBarsPreview() {
                 volumeFreeSpace = 1024L * 1024L * 1024L * 32L,
                 volumeTotalSpace = 1024L * 1024L * 1024L * 128L,
                 isWritable = true,
-            )
+            ),
+            progress = null,
         ),
         breadcrumbs = listOf(
             ExplorerBreadcrumb(
@@ -334,7 +344,6 @@ fun ExplorerWorkspacePageWithExpandedBarsPreview() {
             selectedItems = setOf(mockFileItems[0].path.path, mockFileItems[2].path.path),
             selectableItems = setOf(mockFileItems[0].path.path, mockFileItems[2].path.path),
         ),
-        isLoading = false,
     )
 
     PreviewWrapper {

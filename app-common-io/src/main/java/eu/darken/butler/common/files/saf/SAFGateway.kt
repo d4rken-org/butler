@@ -21,6 +21,7 @@ import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
+import eu.darken.butler.common.files.metadata.FileSystemInfo
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.sharedresource.SharedResource
@@ -386,6 +387,10 @@ class SAFGateway @Inject constructor(
 
     override suspend fun createSymlink(linkPath: SAFPath, targetPath: SAFPath): Boolean {
         throw UnsupportedOperationException("SAF doesn't support symlinks. createSymlink(linkPath=$linkPath, targetPath=$targetPath)")
+    }
+
+    override suspend fun getInfo(path: SAFPath): FileSystemInfo {
+        TODO("Not yet implemented")
     }
 
     override suspend fun delete(

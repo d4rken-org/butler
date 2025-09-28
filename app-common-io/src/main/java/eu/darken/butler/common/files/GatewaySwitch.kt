@@ -11,6 +11,7 @@ import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.local.LocalGateway
+import eu.darken.butler.common.files.metadata.FileSystemInfo
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.saf.SAFGateway
@@ -236,6 +237,10 @@ class GatewaySwitch @Inject constructor(
         is LocalPath -> mapper.toSAFPath(this) ?: throw ReadException("Can't map to SAF", this)
         is SAFPath -> mapper.toLocalPath(this) ?: throw ReadException("Can't map to LOCAL", this)
         is RawPath -> throw UnsupportedOperationException("Alternative mapping for RAW not available")
+    }
+
+    override suspend fun getInfo(path: APath): FileSystemInfo {
+        return useGateway(path) { getInfo(path) }
     }
 
     override suspend fun copy(

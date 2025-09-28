@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -234,7 +233,7 @@ fun ExplorerWorkspacePage(
                         },
                         modifier = Modifier.fillMaxSize(),
                     )
-                } else if (mainState.isLoading) {
+                } else if (mainState.currentLocation?.items == null) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -362,20 +361,6 @@ fun ExplorerWorkspacePage(
                                         )
                                     }
                                 }
-                            }
-                        }
-
-                        if (mainState.isLoadingExtended) {
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .padding(16.dp)
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
-                                    strokeWidth = 2.dp,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
                             }
                         }
                     }

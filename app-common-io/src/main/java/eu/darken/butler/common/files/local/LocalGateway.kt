@@ -1,6 +1,7 @@
 package eu.darken.butler.common.files.local
 
 import android.R.attr.*
+import android.os.StatFs
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.adb.AdbUnavailableException
 import eu.darken.butler.common.adb.canUseAdbNow
@@ -29,6 +30,7 @@ import eu.darken.butler.common.files.local.ipc.FileOpsClient
 import eu.darken.butler.common.files.local.walkers.DirectLocalWalker
 import eu.darken.butler.common.files.local.walkers.EscalatingWalker
 import eu.darken.butler.common.files.local.walkers.IndirectLocalWalker
+import eu.darken.butler.common.files.metadata.FileSystemInfo
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.funnel.IPCFunnel
@@ -874,6 +876,19 @@ class LocalGateway @Inject constructor(
             log(TAG, WARN) { "setOwnership(path=$path, ownership=$ownership, mode=$mode) failed." }
             throw WriteException(path = path, cause = e)
         }
+    }
+
+    override suspend fun getInfo(path: LocalPath): FileSystemInfo {
+        val statFs = try {
+            StatFs(path.path)
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "getInfo(): Failed on $path: ${e.asLog()}" }
+            null
+        }
+        return FileSystemInfo(
+            freeSpace = statFs?.availableBytes,
+            totalSpace = statFs?.totalBytes,
+        )
     }
 
     override suspend fun delete(

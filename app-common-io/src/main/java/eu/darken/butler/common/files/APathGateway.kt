@@ -2,6 +2,7 @@ package eu.darken.butler.common.files
 
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
+import eu.darken.butler.common.files.actions.FileSystemAction
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
@@ -17,7 +18,8 @@ interface APathGateway<
     > : HasSharedResource<Any>,
     CopyAction<P>,
     MoveAction<P>,
-    DeleteAction<P, PL> {
+    DeleteAction<P, PL>,
+    FileSystemAction<P> {
 
     suspend fun createDir(path: P)
 
