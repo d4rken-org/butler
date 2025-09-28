@@ -144,7 +144,7 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
 
         // When
         listOf(LocalPath.build(parentDir)).delete(
-            onProgress = { deletionOrder.add(it.target) }
+            onProgress = { deletionOrder.add(it.target.lookedUp) }
         )
 
         // Then
@@ -197,7 +197,7 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
 
         // When
         listOf(LocalPath.build(file1), LocalPath.build(file2)).delete(
-            onProgress = { progressCalls.add(it.target to it.targetSize) }
+            onProgress = { progressCalls.add(it.target.lookedUp to it.target.size) }
         )
 
         // Then
@@ -223,7 +223,7 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
 
         // When
         val result = files.map { LocalPath.build(it) }.delete(
-            onProgress = { cumulativeSize += it.targetSize }
+            onProgress = { cumulativeSize += it.target.size }
         )
 
         // Then
@@ -482,7 +482,7 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
                     is PathActionIssue.UnknownError -> {
                         if (attemptCount == 1) {
                             // First attempt: Simulate failure and retry
-                            PathActionIssue.UnknownError.Resolution.Retry()
+                            PathActionIssue.UnknownError.Resolution.Retry
                         } else {
                             // Subsequent attempts: Skip
                             retrySuccess = true

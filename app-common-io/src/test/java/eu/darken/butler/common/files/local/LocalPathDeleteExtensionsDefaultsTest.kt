@@ -33,7 +33,7 @@ class LocalPathDeleteExtensionsDefaultsTest : BaseTest() {
         // Given
         val mockFile = mockk<File>()
         val testPath = LocalPath.build(mockFile)
-        val mockResult = mockk<DeleteAction.State.Result<LocalPath>>()
+        val mockResult = mockk<DeleteAction.State.Result<LocalPath, LocalPathLookup>>()
 
         // Mock the collection delete function to return a result
         coEvery {
@@ -65,8 +65,8 @@ class LocalPathDeleteExtensionsDefaultsTest : BaseTest() {
         // Given
         val mockFile = mockk<File>()
         val testPath = LocalPath.build(mockFile)
-        val mockResult = mockk<DeleteAction.State.Result<LocalPath>>()
-        val mockProgress: (suspend (DeleteAction.State.Progress<LocalPath>) -> Unit) = mockk()
+        val mockResult = mockk<DeleteAction.State.Result<LocalPath, LocalPathLookup>>()
+        val mockProgress: (suspend (DeleteAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit) = mockk()
         val mockIssueHandler: (suspend (PathActionIssue) -> PathActionIssue.Resolution) = mockk()
 
         coEvery {
@@ -104,7 +104,7 @@ class LocalPathDeleteExtensionsDefaultsTest : BaseTest() {
         val mockFile1 = mockk<File>()
         val mockFile2 = mockk<File>()
         val testPaths = listOf(LocalPath.build(mockFile1), LocalPath.build(mockFile2))
-        val mockResult = mockk<DeleteAction.State.Result<LocalPath>>()
+        val mockResult = mockk<DeleteAction.State.Result<LocalPath, LocalPathLookup>>()
 
         // Mock the actual collection delete implementation
         coEvery {
@@ -138,7 +138,7 @@ class LocalPathDeleteExtensionsDefaultsTest : BaseTest() {
 
         val mockFile = mockk<File>()
         val testPath = LocalPath.build(mockFile)
-        val mockResult = mockk<DeleteAction.State.Result<LocalPath>>()
+        val mockResult = mockk<DeleteAction.State.Result<LocalPath, LocalPathLookup>>()
 
         coEvery {
             any<Collection<LocalPath>>().delete(
@@ -169,7 +169,7 @@ class LocalPathDeleteExtensionsDefaultsTest : BaseTest() {
         // Given
         val mockFile = mockk<File>()
         val testPath = LocalPath.build(mockFile)
-        val mockResult = mockk<DeleteAction.State.Result<LocalPath>>()
+        val mockResult = mockk<DeleteAction.State.Result<LocalPath, LocalPathLookup>>()
 
         coEvery {
             setOf(testPath).delete(
