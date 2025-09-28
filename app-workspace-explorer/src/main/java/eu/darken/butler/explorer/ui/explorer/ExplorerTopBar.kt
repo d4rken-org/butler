@@ -66,7 +66,7 @@ fun ExplorerTopBar(
 fun ExplorerTopBarPreview() {
     val mockBreadcrumbs = listOf(
         ExplorerBreadcrumb(
-            label = R.string.explorer_nav_home.toCaString(),
+            label = R.string.explorer_navigation_home.toCaString(),
             icon = Icons.TwoTone.Home,
             target = ExplorerNavigation.Target.Home,
             preferIcon = true,

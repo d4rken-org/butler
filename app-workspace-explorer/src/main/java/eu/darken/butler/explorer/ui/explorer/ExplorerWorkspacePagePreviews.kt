@@ -33,11 +33,11 @@ fun ExplorerWorkspacePagePreview() {
         ),
         breadcrumbs = listOf(
             ExplorerBreadcrumb(
-                label = R.string.explorer_nav_home.toCaString(),
+                label = R.string.explorer_navigation_home.toCaString(),
                 target = ExplorerNavigation.Target.Home
             ),
             ExplorerBreadcrumb(
-                label = R.string.explorer_nav_device.toCaString(),
+                label = R.string.explorer_navigation_device.toCaString(),
                 target = ExplorerNavigation.Target.Device
             ),
             ExplorerBreadcrumb(
@@ -203,7 +203,7 @@ fun ExplorerWorkspacePageGridModeWithSelectionPreview() {
         ),
         breadcrumbs = listOf(
             ExplorerBreadcrumb(
-                label = R.string.explorer_nav_device.toCaString(),
+                label = R.string.explorer_navigation_device.toCaString(),
                 target = ExplorerNavigation.Target.Device
             ),
             ExplorerBreadcrumb(
@@ -262,11 +262,11 @@ fun ExplorerWorkspacePageWithAllBarsPreview() {
         ),
         breadcrumbs = listOf(
             ExplorerBreadcrumb(
-                label = R.string.explorer_nav_home.toCaString(),
+                label = R.string.explorer_navigation_home.toCaString(),
                 target = ExplorerNavigation.Target.Home
             ),
             ExplorerBreadcrumb(
-                label = R.string.explorer_nav_device.toCaString(),
+                label = R.string.explorer_navigation_device.toCaString(),
                 target = ExplorerNavigation.Target.Device
             ),
             ExplorerBreadcrumb(
@@ -322,11 +322,11 @@ fun ExplorerWorkspacePageWithExpandedBarsPreview() {
         ),
         breadcrumbs = listOf(
             ExplorerBreadcrumb(
-                label = R.string.explorer_nav_home.toCaString(),
+                label = R.string.explorer_navigation_home.toCaString(),
                 target = ExplorerNavigation.Target.Home
             ),
             ExplorerBreadcrumb(
-                label = R.string.explorer_nav_device.toCaString(),
+                label = R.string.explorer_navigation_device.toCaString(),
                 target = ExplorerNavigation.Target.Device
             ),
             ExplorerBreadcrumb(

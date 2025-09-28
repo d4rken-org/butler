@@ -44,7 +44,7 @@ class HomeLocationLoader @Inject constructor(
             ExplorerItem.Shortcut(
                 shortcutId = "device",
                 displayIcon = Icons.TwoTone.PhoneAndroid,
-                displayName = R.string.explorer_nav_device.toCaString(),
+                displayName = R.string.explorer_navigation_device.toCaString(),
                 target = ExplorerNavigation.Target.Device,
             ),
         )

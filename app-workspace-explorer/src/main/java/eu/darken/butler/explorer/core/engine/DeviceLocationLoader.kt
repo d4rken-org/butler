@@ -47,7 +47,7 @@ class DeviceLocationLoader @Inject constructor(
             ExplorerItem.Shortcut(
                 shortcutId = "device-root",
                 displayIcon = Icons.TwoTone.Code,
-                displayName = R.string.explorer_nav_root.toCaString(),
+                displayName = R.string.explorer_navigation_root.toCaString(),
                 target = ExplorerNavigation.Target.Directory(
                     LocalPath.build(Environment.getRootDirectory())
                 ),
@@ -55,7 +55,7 @@ class DeviceLocationLoader @Inject constructor(
             ExplorerItem.Shortcut(
                 shortcutId = "device-internal-public",
                 displayIcon = Icons.TwoTone.Storage,
-                displayName = R.string.explorer_nav_internal_storage.toCaString(),
+                displayName = R.string.explorer_navigation_internal_storage.toCaString(),
                 target = ExplorerNavigation.Target.Directory(
                     LocalPath.build(Environment.getExternalStorageDirectory())
                 ),

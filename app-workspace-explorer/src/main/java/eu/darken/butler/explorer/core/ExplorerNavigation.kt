@@ -10,11 +10,11 @@ sealed interface ExplorerNavigation {
         val label: CaString
 
         data object Home : Target {
-            override val label: CaString = R.string.explorer_nav_home.toCaString()
+            override val label: CaString = R.string.explorer_navigation_home.toCaString()
         }
 
         data object Device : Target {
-            override val label: CaString = R.string.explorer_nav_device.toCaString()
+            override val label: CaString = R.string.explorer_navigation_device.toCaString()
         }
 
         data class Directory(val path: APath) : Target {

@@ -42,7 +42,7 @@ sealed interface ExplorerLocation {
     }
 
     data class Directory(
-        override val items: List<ExplorerItem>? = null,
+        override val items: List<ExplorerItem.Path>? = null,
         override val info: Info? = null,
         override val permissionState: PermissionState = PermissionState(),
         override val progress: Progress.Data? = Progress.Data(),

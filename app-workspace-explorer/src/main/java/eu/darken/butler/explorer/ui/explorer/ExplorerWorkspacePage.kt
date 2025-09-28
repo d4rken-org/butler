@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.issues.ErrorSnackbar
@@ -218,6 +219,12 @@ fun ExplorerWorkspacePage(
                     .fillMaxSize()
                     .padding(top = paddingValues.calculateTopPadding())
             ) {
+                // Loading progress bar
+                LoadingProgressBar(
+                    progress = mainState.currentLocation?.progress,
+                    onCancel = { vm?.navigate(ExplorerNavigation.Cancel) },
+                )
+
                 // InfoBar moved to top
                 ExplorerInfoBar(
                     info = mainState.currentLocation?.info,

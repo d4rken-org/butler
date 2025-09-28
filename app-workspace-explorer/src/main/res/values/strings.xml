@@ -40,10 +40,17 @@
     <string name="explorer_action_deselect_all">Deselect All</string>
 
     <!-- Navigation -->
-    <string name="explorer_nav_home">Home</string>
-    <string name="explorer_nav_device">Device</string>
-    <string name="explorer_nav_root">Root</string>
-    <string name="explorer_nav_internal_storage">Internal public storage</string>
+    <string name="explorer_navigation_home">Home</string>
+    <string name="explorer_navigation_device">Device</string>
+    <string name="explorer_navigation_root">Root</string>
+    <string name="explorer_navigation_internal_storage">Internal public storage</string>
+
+    <string name="explorer_loader_progress_directory_loading">Browsing %s</string>
+    <string name="explorer_loader_progress_directory_permissions">Checking permissions</string>
+    <string name="explorer_loader_progress_directory_filesystem">Retrieving filesystem info</string>
+    <string name="explorer_loader_progress_directory_content">Loading folder content</string>
+    <string name="explorer_loader_progress_directory_content_details">Loading content details</string>
+    <string name="explorer_loader_progress_directory_content_extended">Loading extended content details</string>
 
     <!-- InfoBar -->
     <plurals name="explorer_infobar_selected_count">
@@ -94,7 +101,6 @@
     <!-- Status Messages -->
     <string name="explorer_loading">Loading…</string>
     <string name="explorer_file_peek_loading_text">Loading…</string>
-    <string name="explorer_navigation_cancelled">Navigation cancelled</string>
 
     <!-- Issue Messages -->
     <string name="explorer_issue_collision_title_file">File already exists</string>

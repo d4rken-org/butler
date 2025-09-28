@@ -6,9 +6,8 @@ import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material.icons.twotone.PhoneAndroid
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.RawPath
-import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import javax.inject.Inject
 
 class BreadcrumbGenerator @Inject constructor() {
@@ -59,14 +58,14 @@ class BreadcrumbGenerator @Inject constructor() {
     companion object {
 
         val DEVICE = ExplorerBreadcrumb(
-            label = R.string.explorer_nav_device.toCaString(),
+            label = R.string.explorer_navigation_device.toCaString(),
             icon = Icons.TwoTone.PhoneAndroid,
             target = ExplorerNavigation.Target.Device,
             preferIcon = true,
         )
 
         val HOME = ExplorerBreadcrumb(
-            label = R.string.explorer_nav_home.toCaString(),
+            label = R.string.explorer_navigation_home.toCaString(),
             icon = Icons.TwoTone.Home,
             target = ExplorerNavigation.Target.Home,
             preferIcon = true,
