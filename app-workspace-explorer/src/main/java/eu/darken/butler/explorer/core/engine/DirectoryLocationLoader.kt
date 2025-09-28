@@ -17,7 +17,6 @@ import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.permissions.PathPermissionCheck
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -64,7 +63,6 @@ class DirectoryLocationLoader @AssistedInject constructor(
 
         suspend fun emitState() {
             emit(currentState)
-            delay(1000)
         }
 
         val targetPath: APath get() = currentState.path
