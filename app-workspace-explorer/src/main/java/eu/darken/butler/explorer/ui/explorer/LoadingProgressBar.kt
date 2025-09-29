@@ -48,7 +48,7 @@ fun LoadingProgressBar(
 
     LaunchedEffect(progress) {
         if (progress != null) {
-            delay(1000) // Wait 1 second
+            delay(250) // Wait 1 second
             shouldShowProgress = true
         } else {
             shouldShowProgress = false
@@ -75,7 +75,7 @@ fun LoadingProgressBar(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     // Progress indicator
@@ -99,6 +99,7 @@ fun LoadingProgressBar(
                         )
                         if (progressData.secondary != CaString.EMPTY) {
                             Text(
+                                modifier = Modifier.padding(top = 4.dp),
                                 text = progressData.secondary.get(LocalContext.current),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,

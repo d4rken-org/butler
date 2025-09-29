@@ -176,7 +176,7 @@ class DirectoryLocationLoader @AssistedInject constructor(
 
         val extendedLookups = gatewaySwitch.lookupFilesExtended(targetPath).associateBy { it.path }
         val fileClassifier = FileTypeClassifier()
-        
+
         val items = state.items!!.map { item ->
             val extendedLookup = extendedLookups[item.path.path]
             if (extendedLookup != null) {

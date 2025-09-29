@@ -117,19 +117,18 @@ fun EmptyFolderState(
 
                 Text(
                 text = title ?: defaultTitle,
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(top = 24.dp)
                 )
 
-                // Static caption (no animation to prevent jumping)
                 Text(
                     text = displayCaption,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(top = 12.dp)
+                    modifier = Modifier.padding(top = 4.dp)
                 )
             }
         }
