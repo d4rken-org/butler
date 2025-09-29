@@ -46,6 +46,17 @@ fun ExplorerDialogHost(
             )
         }
 
+        is ExplorerDialogState.FilterOptions -> {
+            FilterOptionsDialog(
+                includePattern = dialogState.includePattern,
+                excludePattern = dialogState.excludePattern,
+                fileTypeFilter = dialogState.fileTypeFilter,
+                useRegexPatterns = dialogState.useRegexPatterns,
+                onDismiss = { vm?.dismissDialog() },
+                onConfirm = { result -> vm?.onFilterOptions(result) }
+            )
+        }
+
         is ExplorerDialogState.FileOptions -> {
             FileOptionsBottomSheet(
                 item = dialogState.item,

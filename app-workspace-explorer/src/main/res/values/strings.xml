@@ -5,6 +5,8 @@
     <string name="explorer_subtitle">Browse files and directories</string>
     <string name="explorer_settings_title">Explorer Settings</string>
     <string name="explorer_settings_file_display">File Display</string>
+    <string name="explorer_settings_filter_regex_title">Advanced wildcard matching</string>
+    <string name="explorer_settings_filter_regex_desc">Use regex patterns in filters in include/exclude filters.</string>
 
     <!-- File Row Content Descriptions -->
     <string name="explorer_file_apk_content_desc">APK file</string>
@@ -160,6 +162,19 @@
     <string name="explorer_sort_mode_modified_label">Modified date</string>
     <string name="explorer_sort_mode_created_label">Created date</string>
     <string name="explorer_sort_descending_label">Descending order</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">File type</string>
+    <string name="explorer_filter_type_all">All</string>
+    <string name="explorer_filter_type_files">Files only</string>
+    <string name="explorer_filter_type_folders">Folders only</string>
+    <string name="explorer_filter_include_label">Include pattern</string>
+    <string name="explorer_filter_include_placeholder_simple">e.g., vacation, report, IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">e.g., .*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">Exclude pattern</string>
+    <string name="explorer_filter_exclude_placeholder_simple">e.g., tmp, cache, old</string>
+    <string name="explorer_filter_exclude_placeholder_regex">e.g., ^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 Enable regex patterns in Settings</string>
 
     <!-- Permission Messages -->
     <string name="explorer_permission_required_title">Permission Needed</string>

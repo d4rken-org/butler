@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.twotone.FilterList
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -19,12 +19,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.settings.SettingsCategoryHeader
+import eu.darken.butler.common.settings.SettingsSwitchItem
 import eu.darken.butler.common.ui.waitForState
 
 @Composable
 fun ExplorerSettingsScreen(
     state: ExplorerSettingsViewModel.State,
     onNavigateUp: () -> Unit,
+    onToggleRegexPatterns: (Boolean) -> Unit,
 ) {
 
     Scaffold(
@@ -53,6 +55,16 @@ fun ExplorerSettingsScreen(
             item {
                 SettingsCategoryHeader(text = stringResource(eu.darken.butler.explorer.R.string.explorer_settings_file_display))
             }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.FilterList,
+                    title = stringResource(eu.darken.butler.explorer.R.string.explorer_settings_filter_regex_title),
+                    subtitle = stringResource(eu.darken.butler.explorer.R.string.explorer_settings_filter_regex_desc),
+                    checked = state.useRegexPatterns,
+                    onCheckedChange = onToggleRegexPatterns,
+                )
+            }
         }
     }
 
@@ -69,6 +81,7 @@ fun ExplorerSettingsScreenHost(vm: ExplorerSettingsViewModel = hiltViewModel()) 
         ExplorerSettingsScreen(
             state = vmState,
             onNavigateUp = { vm.navUp() },
+            onToggleRegexPatterns = { vm.toggleRegexPatterns(it) },
         )
     }
 }

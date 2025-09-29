@@ -16,5 +16,7 @@ sealed interface ExplorerDialogEvent {
         val item: APath,
     ) : ExplorerDialogEvent
 
+    data object ShowFilterOptions : ExplorerDialogEvent
+
     data object Dismiss : ExplorerDialogEvent
 }

@@ -18,3 +18,4 @@ build/
 .kotlin/errors
 worktree-*
 /hs_err_*.log
+.claude/tmp

@@ -2,6 +2,7 @@ package eu.darken.butler.explorer.ui.settings
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
@@ -17,20 +18,25 @@ class ExplorerSettingsViewModel
 constructor(
     dispatcherProvider: DispatcherProvider,
     navigationController: NavigationController,
-    explorerSettings: ExplorerSettings,
+    private val explorerSettings: ExplorerSettings,
 ) : ViewModel4(dispatcherProvider, logTag("Explorer", "Settings","Screen","VM"), navigationController) {
 
     val state = combine(
         explorerSettings.sortSettings.flow,
-        flowOf(Unit),
-    ) { sortSettings, _ ->
+        explorerSettings.useRegexPatterns.flow,
+    ) { sortSettings, useRegexPatterns ->
         State(
             sortSettings = sortSettings,
+            useRegexPatterns = useRegexPatterns,
         )
     }.asStateFlow()
 
+    fun toggleRegexPatterns(enabled: Boolean) = launch {
+        explorerSettings.useRegexPatterns.value(enabled)
+    }
 
     data class State(
         val sortSettings: SortSettings,
+        val useRegexPatterns: Boolean,
     )
 }

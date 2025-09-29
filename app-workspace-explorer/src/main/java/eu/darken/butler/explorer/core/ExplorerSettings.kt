@@ -25,9 +25,11 @@ class ExplorerSettings @Inject constructor(
         get() = context.dataStore
 
     val sortSettings = dataStore.createValue("explorer.sort.default", SortSettings(), json)
+    val useRegexPatterns = dataStore.createValue("explorer.filter.regex.enabled", false)
 
     override val mapper = PreferenceStoreMapper(
         sortSettings,
+        useRegexPatterns,
     )
 
     companion object {

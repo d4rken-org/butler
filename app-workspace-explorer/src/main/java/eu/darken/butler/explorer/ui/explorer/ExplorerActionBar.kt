@@ -1,11 +1,16 @@
 package eu.darken.butler.explorer.ui.explorer
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Stars
@@ -80,19 +85,34 @@ fun ExplorerActionBar(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 visibleActions.forEach { action ->
-                    IconButton(
-                        onClick = { onActionClick(action) },
-                        enabled = action.isEnabled,
-                    ) {
-                        Icon(
-                            imageVector = action.icon,
-                            contentDescription = action.label.get(LocalContext.current),
-                            tint = when {
-                                !action.isEnabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                                action.isDestructive -> MaterialTheme.colorScheme.error
-                                else -> LocalContentColor.current
-                            }
-                        )
+                    Box {
+                        IconButton(
+                            onClick = { onActionClick(action) },
+                            enabled = action.isEnabled,
+                        ) {
+                            Icon(
+                                imageVector = action.icon,
+                                contentDescription = action.label.get(LocalContext.current),
+                                tint = when {
+                                    !action.isEnabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                    action.isDestructive -> MaterialTheme.colorScheme.error
+                                    else -> LocalContentColor.current
+                                }
+                            )
+                        }
+
+                        if (action.badge) {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .offset(x = (-8).dp, y = 8.dp)
+                                    .size(8.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.primary,
+                                        shape = CircleShape
+                                    )
+                            )
+                        }
                     }
                 }
             }
@@ -106,7 +126,7 @@ fun ExplorerBottomBarNormalModePreview() {
     val mockActions = listOf(
         ExplorerAction.Directory.Create(),
         ExplorerAction.Common.Sort(),
-        ExplorerAction.Common.Filter(),
+        ExplorerAction.Common.Filter(badge = true),
         ExplorerAction.Common.ToggleView(),
     )
 

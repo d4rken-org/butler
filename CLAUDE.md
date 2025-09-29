@@ -45,6 +45,26 @@ Butler uses a workspace concept similar to browser tabs with 4 main workspace ty
 ./gradlew connectedAndroidTest
 ```
 
+### Debugging
+
+#### Taking Screenshots via ADB
+
+When debugging UI issues, layout problems, or visual elements:
+
+```bash
+# Take screenshot and save to project's temporary folder
+mkdir -p .claude/tmp && adb shell screencap -p > .claude/tmp/screenshot.png
+
+# Then read the file to view it
+# (Claude Code can view images directly)
+```
+
+Use cases:
+- Verifying UI element positioning (badges, overlays, spacing)
+- Checking visual appearance of components
+- Confirming layout issues before/after fixes
+- Documenting visual bugs
+
 ### Fastlane Deployment
 
 ```bash

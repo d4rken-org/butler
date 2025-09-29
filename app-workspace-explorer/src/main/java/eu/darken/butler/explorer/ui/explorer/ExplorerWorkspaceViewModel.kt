@@ -32,6 +32,7 @@ import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerNavigation.Target.*
 import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.explorer.core.ExplorerWorkspace
+import eu.darken.butler.explorer.core.PatternMatcher
 import eu.darken.butler.explorer.core.FileIntentHelper
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
@@ -47,6 +48,7 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.*
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
+import eu.darken.butler.explorer.ui.explorer.dialogs.FilterOptionsResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortOptionsResult
 import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.upgrade.UpgradeRepo
@@ -99,6 +101,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val viewModeFlow = MutableStateFlow(ViewMode.LIST)
     private val dialogStateFlow = MutableStateFlow<ExplorerDialogState>(None)
     private val issueStateFlow = MutableStateFlow<Issue?>(null)
+
+    // Filter state
+    private val includePatternFlow = MutableStateFlow("")
+    private val excludePatternFlow = MutableStateFlow("")
+    private val fileTypeFilterFlow = MutableStateFlow(FileTypeFilter.ALL)
     val issueState = issueStateFlow
     private var currentConflictOperationId: Operation.Id? = null
     private val showIssueSheetFlow = MutableSharedFlow<Unit>()
@@ -149,6 +156,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         GRID
     }
 
+    enum class FileTypeFilter {
+        ALL,
+        FILES_ONLY,
+        FOLDERS_ONLY
+    }
+
     data class State(
         internal val currentLocation: ExplorerLocation? = null,
         val locationId: String? = null,
@@ -163,6 +176,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val dialogState: ExplorerDialogState = None,
         val permissionState: PermissionState = PermissionState(),
         val isPro: Boolean = false,
+        val includePattern: String = "",
+        val excludePattern: String = "",
+        val fileTypeFilter: FileTypeFilter = FileTypeFilter.ALL,
+        val useRegexPatterns: Boolean = false,
     ) {
         val progress = currentLocation?.progress
         val info = currentLocation?.info
@@ -175,9 +192,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         dialogStateFlow,
         currentSortSettings,
         upgradeRepo.upgradeInfo,
-    ) { wsState, selectedItems, viewMode, dialogState, sortSetting, upgradeInfo ->
+        includePatternFlow,
+        excludePatternFlow,
+        fileTypeFilterFlow,
+        explorerSettings.useRegexPatterns.flow,
+    ) { wsState, selectedItems, viewMode, dialogState, sortSetting, upgradeInfo, includePattern, excludePattern, fileTypeFilter, useRegexPatterns ->
         val items = wsState.currentLocation?.items
             ?.let { itemSorter.sortItems(it, sortSetting) }
+            ?.let { sortedItems -> applyFilters(sortedItems, includePattern, excludePattern, fileTypeFilter, useRegexPatterns) }
 
         val selectionState = ExplorerSelectionState(
             selectedItems = selectedItems,
@@ -192,7 +214,22 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             actionProvider.getActions(
                 location = it,
                 selectionState = selectionState,
-            )
+            ).map { action ->
+                // Add badge to Filter action if filters are active
+                if (action is ExplorerAction.Common.Filter) {
+                    val hasActiveFilters = fileTypeFilter != FileTypeFilter.ALL
+                            || includePattern.isNotBlank()
+                            || excludePattern.isNotBlank()
+
+                    if (hasActiveFilters) {
+                        action.copy(badge = true)
+                    } else {
+                        action
+                    }
+                } else {
+                    action
+                }
+            }
         } ?: emptyList()
 
         State(
@@ -209,8 +246,52 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             dialogState = dialogState,
             permissionState = wsState.currentLocation?.permissionState ?: PermissionState(),
             isPro = upgradeInfo.isUpgraded,
+            includePattern = includePattern,
+            excludePattern = excludePattern,
+            fileTypeFilter = fileTypeFilter,
+            useRegexPatterns = useRegexPatterns,
         )
     }.asStateFlow()
+
+    private fun applyFilters(
+        items: List<ExplorerItem>,
+        includePattern: String,
+        excludePattern: String,
+        fileTypeFilter: FileTypeFilter,
+        useRegexPatterns: Boolean,
+    ): List<ExplorerItem> {
+        return items.filter { item ->
+            val itemName = when (item) {
+                is ExplorerItem.Path -> item.path.name
+                else -> return@filter true // Keep non-path items (like peek items)
+            }
+
+            // Apply exclude pattern first
+            if (excludePattern.isNotBlank()) {
+                val excludeRegex = PatternMatcher.toRegexPattern(excludePattern, useRegexPatterns)
+                if (PatternMatcher.matches(itemName, excludeRegex)) {
+                    return@filter false
+                }
+            }
+
+            // Apply include pattern
+            if (includePattern.isNotBlank()) {
+                val includeRegex = PatternMatcher.toRegexPattern(includePattern, useRegexPatterns)
+                if (!PatternMatcher.matches(itemName, includeRegex)) {
+                    return@filter false
+                }
+            }
+
+            // Apply file type filter
+            when (fileTypeFilter) {
+                FileTypeFilter.FILES_ONLY -> if (item is ExplorerItem.Directory) return@filter false
+                FileTypeFilter.FOLDERS_ONLY -> if (item is ExplorerItem.File) return@filter false
+                FileTypeFilter.ALL -> {} // No filtering needed
+            }
+
+            true
+        }
+    }
 
     val clipboard = clipboardRepo.state
         .map { repoState -> ClipboardState(entries = repoState.entries) }
@@ -399,7 +480,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 )
             }
             is ExplorerAction.Common.Filter -> {
-                // TODO: Show filter options dialog/menu
+                dialogStateFlow.value = ExplorerDialogState.FilterOptions(
+                    includePattern = includePatternFlow.value,
+                    excludePattern = excludePatternFlow.value,
+                    fileTypeFilter = fileTypeFilterFlow.value,
+                    useRegexPatterns = explorerSettings.useRegexPatterns.valueBlocking,
+                )
             }
             is ExplorerAction.Common.ToggleView -> {
                 viewModeFlow.value = when (viewModeFlow.value) {
@@ -551,6 +637,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerDialogEvent.ShowRename -> {
                 dialogStateFlow.value = Rename(event.item)
             }
+            is ExplorerDialogEvent.ShowFilterOptions -> {
+                dialogStateFlow.value = ExplorerDialogState.FilterOptions(
+                    includePattern = includePatternFlow.value,
+                    excludePattern = excludePatternFlow.value,
+                    fileTypeFilter = fileTypeFilterFlow.value,
+                    useRegexPatterns = explorerSettings.useRegexPatterns.valueBlocking,
+                )
+            }
             is ExplorerDialogEvent.Dismiss -> {
                 dialogStateFlow.value = None
             }
@@ -615,6 +709,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         dialogStateFlow.value = None
         explorerSettings.sortSettings.value(result.sortSettings)
         currentSortSettings.value = result.sortSettings
+    }
+
+    fun onFilterOptions(result: FilterOptionsResult) = launch {
+        log(tag) { "onFilterOptions($result)" }
+        dialogStateFlow.value = None
+        includePatternFlow.value = result.includePattern
+        excludePatternFlow.value = result.excludePattern
+        fileTypeFilterFlow.value = result.fileTypeFilter
     }
 
     fun pasteClipboard(clip: ClipboardClip) = launch {

@@ -3,6 +3,7 @@ package eu.darken.butler.explorer.ui.explorer.dialogs
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel.FileTypeFilter
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 
 sealed interface ExplorerDialogState {
@@ -16,6 +17,13 @@ sealed interface ExplorerDialogState {
     data class Rename(val item: APath) : ExplorerDialogState
 
     data class EditSortOptions(val currentSortSettings: SortSettings) : ExplorerDialogState
+
+    data class FilterOptions(
+        val includePattern: String,
+        val excludePattern: String,
+        val fileTypeFilter: FileTypeFilter,
+        val useRegexPatterns: Boolean,
+    ) : ExplorerDialogState
 
     data class FileOptions(val item: ExplorerItem.File) : ExplorerDialogState
 

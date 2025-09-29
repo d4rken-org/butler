@@ -29,7 +29,7 @@ sealed interface ExplorerAction {
     val isEnabled: Boolean get() = true
     val isDestructive: Boolean get() = false
     val group: Group get() = Group.PRIMARY
-    val badge: String? get() = null
+    val badge: Boolean get() = false
 
     enum class Group {
         PRIMARY,
@@ -57,6 +57,7 @@ sealed interface ExplorerAction {
         data class Filter(
             override val isEnabled: Boolean = true,
             override val group: Group = Group.SECONDARY,
+            override val badge: Boolean = false,
         ) : Common {
             override val icon = Icons.TwoTone.FilterList
             override val label = R.string.explorer_action_filter.toCaString()
