@@ -22,11 +22,9 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,7 +41,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.Slogans
-import eu.darken.butler.common.compose.ButlerIcon
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -249,21 +246,11 @@ fun ExplorerWorkspacePage(
                             )
                         }
                         mainStateSnap.items == null -> {
-                            Column(
+                            val randomSlogan = remember { Slogans.random }
+                            EmptyState(
                                 modifier = Modifier.fillMaxSize(),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                val randomSlogan = remember { Slogans.random }
-                                ButlerIcon(
-                                    size = 120.dp,
-                                )
-                                Text(
-                                    text = randomSlogan.asComposable(),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    modifier = Modifier.padding(top = 16.dp)
-                                )
-                            }
+                                slogan = randomSlogan.asComposable()
+                            )
                         }
                         mainStateSnap.items.isEmpty() -> {
                             EmptyFolderState(

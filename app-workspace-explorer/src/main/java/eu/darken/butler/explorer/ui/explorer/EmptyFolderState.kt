@@ -35,8 +35,9 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.R
 import kotlinx.coroutines.delay
 
@@ -45,10 +46,11 @@ fun EmptyFolderState(
     modifier: Modifier = Modifier,
     icon: ImageVector = Icons.TwoTone.FolderOpen,
     title: String? = null,
-    caption: String? = null
+    caption: String? = null,
+    initiallyVisible: Boolean = false
 ) {
     val defaultTitle = stringResource(R.string.explorer_empty_folder_title)
-    var visible by remember { mutableStateOf(false) }
+    var visible by remember { mutableStateOf(initiallyVisible) }
 
     // Get caption from resources or use provided one
     val displayCaption = caption ?: getFunnyCaption()
@@ -157,21 +159,24 @@ private fun getFunnyCaption(): String {
     return captions.random()
 }
 
-@Preview(showBackground = true)
+@Preview2
 @Composable
-fun EmptyFolderStatePreview() {
-    MaterialTheme {
-        EmptyFolderState()
+private fun EmptyFolderStatePreview() {
+    PreviewWrapper {
+        EmptyFolderState(
+            initiallyVisible = true
+        )
     }
 }
 
-@Preview(showBackground = true)
+@Preview2
 @Composable
-fun EmptyFolderStateCustomPreview() {
-    MaterialTheme {
+private fun EmptyFolderStateCustomPreview() {
+    PreviewWrapper {
         EmptyFolderState(
             title = stringResource(R.string.explorer_empty_search_title),
-            caption = stringResource(R.string.explorer_empty_search_caption)
+            caption = stringResource(R.string.explorer_empty_search_caption),
+            initiallyVisible = true
         )
     }
 }
