@@ -101,6 +101,7 @@ fun FilterOptionsDialog(
                             }
                         )
                     },
+                    singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
 
@@ -119,6 +120,7 @@ fun FilterOptionsDialog(
                             }
                         )
                     },
+                    singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
 
