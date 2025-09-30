@@ -235,6 +235,24 @@
         <item quantity="other">%d items skipped.</item>
     </plurals>
 
+    <string name="explorer_operation_copy_title">Copy operation</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="one">Copy %1$d item to \"%2$s\".</item>
+        <item quantity="other">Copy %1$d items to \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="one">%d file copied.</item>
+        <item quantity="other">%d files copied.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="one">%d directory copied.</item>
+        <item quantity="other">%d directories copied.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="one">%s copied.</item>
+        <item quantity="other">%s copied.</item>
+    </plurals>
+
     <string name="explorer_operation_create_title_directory">Folder creation</string>
     <string name="explorer_operation_create_description_directory">Create folder \"%1$s\" at \"%2$s\"</string>
     <string name="explorer_operation_create_title_file">File creation</string>

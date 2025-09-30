@@ -173,25 +173,25 @@ suspend fun <T : APath> T.getFileSystemInfo(gateway: APathGateway<T, out APathLo
     return gateway.getInfo(this)
 }
 
-suspend fun <T : APath> T.copy(
-    gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
-    destination: T,
-    options: CopyAction.Options<T> = CopyAction.Options(),
-): Flow<CopyAction.State<T>> {
+suspend fun <P : APath, PL : APathLookup<P>> P.copy(
+    gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
+    destination: P,
+    options: CopyAction.Options<P> = CopyAction.Options(),
+): Flow<CopyAction.State<P, PL>> {
     return gateway.copy(sources = setOf(this), destination = destination, options = options)
         .onCompletion {
-            log(VERBOSE) { "T.copy(destination=$destination, options=$options): Copied $this" }
+            log(VERBOSE) { "P.copy(destination=$destination, options=$options): Copied $this" }
         }
 }
 
-suspend fun <T : APath> Set<T>.copy(
-    gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
-    destination: T,
-    options: CopyAction.Options<T> = CopyAction.Options(),
-): Flow<CopyAction.State<T>> {
+suspend fun <P : APath, PL : APathLookup<P>> Set<P>.copy(
+    gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
+    destination: P,
+    options: CopyAction.Options<P> = CopyAction.Options(),
+): Flow<CopyAction.State<P, PL>> {
     return gateway.copy(sources = this, destination = destination, options = options)
         .onCompletion {
-            log(VERBOSE) { "Set<T>.copy(destination=$destination, options=$options): Copied $this" }
+            log(VERBOSE) { "Set<P>.copy(destination=$destination, options=$options): Copied $this" }
         }
 }
 

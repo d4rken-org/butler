@@ -66,17 +66,16 @@ fun OperationEntryRow(
             )
             val secondaryText = when (operation.state) {
                 is OperationDisplay.State.Running -> operation.state.primaryProgress.secondary.asComposable()
-                else -> operation.description?.asComposable()
+                is OperationDisplay.State.Completed -> operation.state.summary.asComposable()
+                else -> operation.description.asComposable()
             }
-            if (secondaryText != null) {
-                Text(
-                    text = secondaryText,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+            Text(
+                text = secondaryText,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
 
             val progressData = (operation.state as? OperationDisplay.State.Running)?.primaryProgress
             progressData?.let { progressData ->

@@ -896,7 +896,7 @@ class LocalGateway @Inject constructor(
         options: DeleteAction.Options<LocalPath>
     ): Flow<DeleteAction.State<LocalPath, LocalPathLookup>> = delete(targets, options, Mode.AUTO)
 
-    suspend fun delete(
+    fun delete(
         targets: Set<LocalPath>,
         options: DeleteAction.Options<LocalPath>,
         mode: Mode,
@@ -950,15 +950,56 @@ class LocalGateway @Inject constructor(
         sources: Set<LocalPath>,
         destination: LocalPath,
         options: CopyAction.Options<LocalPath>
-    ): Flow<CopyAction.State<LocalPath>> {
-        // TODO: Implement efficient native copy using java.nio
-        // - Use Files.walk() for directory traversal across all sources
-        // - Use Files.copy() with REPLACE_EXISTING based on options
-        // - Handle issues via options.onIssue callback
-        // - Report cumulative progress across all sources
-        // - Support "Apply to All" via gateway-level state management
-        throw NotImplementedError("TODO: LocalGateway multi-source copy implementation")
-    }
+    ): Flow<CopyAction.State<LocalPath, LocalPathLookup>> = copy(sources, destination, options, Mode.AUTO)
+
+    fun copy(
+        sources: Set<LocalPath>,
+        destination: LocalPath,
+        options: CopyAction.Options<LocalPath>,
+        mode: Mode = Mode.AUTO
+    ): Flow<CopyAction.State<LocalPath, LocalPathLookup>> = flow {
+        log(TAG, VERBOSE) { "copy(): ${sources.size} sources to $destination" }
+
+        try {
+            val result = when {
+                hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
+                    log(TAG, VERBOSE) { "copy($mode->ROOT): To $destination" }
+                    rootOps {
+                        TODO()
+//                        val success = it.delete(targets, recursive = true)
+//                        if (!success) throw IOException("Root delete() call returned false")
+                    }
+                }
+
+                hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
+                    log(TAG, VERBOSE) { "copy($mode->ADB): To $destination" }
+                    adbOps {
+                        TODO()
+//                        val success = it.delete(targets, recursive = true)
+//                        if (!success) throw IOException("ADB delete() call returned false")
+                    }
+                }
+
+                mode == Mode.NORMAL || mode == Mode.AUTO -> {
+                    log(TAG, VERBOSE) { "copy($mode->NORMAL): To $destination" }
+                    sources.copy(
+                        destination,
+                        onIssue = options.onIssue,
+                        onProgress = { progress -> emit(progress) }
+                    )
+                }
+
+                else -> throw IOException("No matching mode available.")
+            }
+
+            log(TAG, INFO) { "copy(): Finished, copied ${result.copied} items" }
+            emit(result)
+        } catch (e: Exception) {
+            log(TAG, WARN) { "copy(): mode=$mode, sources=${sources.size}, destination=$destination failed ($e)" }
+            if (e is CancellationException) throw e
+            else throw WriteException(message = "Copy failed,", cause = e)
+        }
+    }.flowOn(dispatcherProvider.IO)
 
     override suspend fun move(
         sources: Set<LocalPath>,

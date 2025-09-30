@@ -85,7 +85,6 @@ class CreateOperation @AssistedInject constructor(
             val issue = PathActionIssue.PathAlreadyExists(
                 destination = gatewaySwitch.lookup(destinationPath),
                 canRenameSource = true,
-                canRenameDestination = true,
                 canOverwrite = true,
             )
             log(tag) { "perform(): Issue: $issue" }

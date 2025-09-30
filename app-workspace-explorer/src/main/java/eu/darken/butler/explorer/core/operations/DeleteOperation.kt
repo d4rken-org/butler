@@ -59,7 +59,7 @@ class DeleteOperation @AssistedInject constructor(
     ): Flow<State> = flow {
         log(tag) { "perform(): $command" }
 
-        val operationState = State.Active(
+        var stateActive = State.Active(
             startedAt = operationContext.startedAt,
         )
         val reportBuilder = DeleteOperationReport.Builder()
@@ -84,13 +84,11 @@ class DeleteOperation @AssistedInject constructor(
             .onEach { deleteState ->
                 when (deleteState) {
                     is DeleteAction.State.Progress<APath, APathLookup<APath>> -> {
-                        emit(
-                            operationState.copy(
-                                primaryProgress = deleteState.primaryProgress,
-                                secondaryProgress = deleteState.secondaryProgress,
-                                bytesProcessed = deleteState.bytesCurrent,
-                            )
+                        stateActive = stateActive.copy(
+                            primaryProgress = deleteState.primaryProgress,
+                            secondaryProgress = deleteState.secondaryProgress,
                         )
+                        emit(stateActive)
                     }
                     is DeleteAction.State.Result<APath, APathLookup<APath>> -> {
                         fileSystemHinter.trackPathsRemoved(deleteState.deleted)

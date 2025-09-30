@@ -439,7 +439,7 @@ class SAFGateway @Inject constructor(
         sources: Set<SAFPath>,
         destination: SAFPath,
         options: CopyAction.Options<SAFPath>
-    ): Flow<CopyAction.State<SAFPath>> {
+    ): Flow<CopyAction.State<SAFPath, SAFPathLookup>> {
         // TODO: Implement using DocumentFile APIs
         // - Use DocumentFile.listFiles() for traversal across all sources
         // - Use ContentResolver streams for copying
