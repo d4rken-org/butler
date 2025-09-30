@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -178,12 +179,17 @@ fun UnknownErrorIssueSheet(
         // Apply to all checkbox (if skipping is allowed)
         if (issue.canSkip) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .toggleable(
+                        value = applyToAll,
+                        onValueChange = { applyToAll = it }
+                    ),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Checkbox(
                     checked = applyToAll,
-                    onCheckedChange = { applyToAll = it },
+                    onCheckedChange = null,
                 )
                 Text(
                     text = stringResource(R.string.explorer_issue_apply_all),

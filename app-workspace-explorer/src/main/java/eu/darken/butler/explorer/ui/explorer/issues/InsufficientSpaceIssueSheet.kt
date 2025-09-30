@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Cancel
 import androidx.compose.material.icons.twotone.SkipNext
@@ -78,12 +79,17 @@ fun InsufficientSpaceIssueSheet(
 
         if (issue.canSkip) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .toggleable(
+                        value = applyToAll,
+                        onValueChange = { applyToAll = it }
+                    ),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Checkbox(
                     checked = applyToAll,
-                    onCheckedChange = { applyToAll = it },
+                    onCheckedChange = null,
                 )
                 Text(
                     text = stringResource(R.string.explorer_issue_apply_all),
