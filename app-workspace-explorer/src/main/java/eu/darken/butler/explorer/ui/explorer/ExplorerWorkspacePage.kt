@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -262,7 +263,11 @@ fun ExplorerWorkspacePage(
                                 modifier = Modifier.fillMaxSize()
                             ) {
                                 if (mainStateSnap.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
-                                    LazyColumn(
+                                    PullToRefreshBox(
+                                        isRefreshing = mainStateSnap.progress != null,
+                                        onRefresh = { vm?.retryNavigation() }
+                                    ) {
+                                        LazyColumn(
                                         state = listState,
                                         modifier = Modifier
                                             .fillMaxSize()
@@ -314,8 +319,13 @@ fun ExplorerWorkspacePage(
                                             }
                                         }
                                     }
+                                    }
                                 } else {
-                                    LazyVerticalGrid(
+                                    PullToRefreshBox(
+                                        isRefreshing = mainStateSnap.progress != null,
+                                        onRefresh = { vm?.retryNavigation() }
+                                    ) {
+                                        LazyVerticalGrid(
                                         state = gridState,
                                         columns = GridCells.Adaptive(minSize = 120.dp),
                                         modifier = Modifier
@@ -367,6 +377,7 @@ fun ExplorerWorkspacePage(
                                                 )
                                             }
                                         }
+                                    }
                                     }
                                 }
                             }
