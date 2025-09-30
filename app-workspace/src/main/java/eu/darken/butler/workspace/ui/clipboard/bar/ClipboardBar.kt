@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui.clipboard
+package eu.darken.butler.workspace.ui.clipboard.bar
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -64,6 +64,7 @@ import eu.darken.butler.common.ui.SwipeToDismissItem
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import kotlinx.coroutines.delay
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.uuid.Uuid
@@ -92,7 +93,7 @@ fun ClipboardBar(
         if (clearAllAnimationTrigger > 0L) {
             // Wait for all swipe animations to complete before clearing
             val totalAnimationTime = (clipboardEntries.size * 300L) + 800L
-            kotlinx.coroutines.delay(totalAnimationTime)
+            delay(totalAnimationTime)
             onClearAll()
         }
     }
@@ -335,7 +336,8 @@ private fun ClipboardEntry(
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceContainerHighest)
             .clickable { onEntryClick() }
-            .padding(horizontal = 16.dp, vertical = if (showOrigin) 8.dp else 4.dp),
+            .padding(vertical = if (showOrigin) 8.dp else 4.dp)
+            .padding(start = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         when (entry) {

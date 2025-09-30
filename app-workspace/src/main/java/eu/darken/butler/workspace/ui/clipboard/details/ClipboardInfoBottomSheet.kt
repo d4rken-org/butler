@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.ui.clipboard
+package eu.darken.butler.workspace.ui.clipboard.details
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.workspace.R
@@ -331,7 +332,7 @@ private fun ClipboardOverviewSection(
 
 @Composable
 private fun ClipboardFilesSection(
-    paths: List<eu.darken.butler.common.files.APath>,
+    paths: List<APath>,
     onCopyPath: ((String) -> Unit)? = null,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
@@ -524,7 +525,7 @@ private fun ClipboardActionsSection(
     }
 }
 
-private fun getPathIcon(path: eu.darken.butler.common.files.APath): ImageVector {
+private fun getPathIcon(path: APath): ImageVector {
     // Simple heuristic - in a real implementation, you'd use file type detection
     return if (path.name.contains('.')) {
         Icons.AutoMirrored.TwoTone.InsertDriveFile
