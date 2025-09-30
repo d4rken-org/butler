@@ -11,12 +11,11 @@ class DeviceActionProvider @Inject constructor() : ExplorerActionProvider {
         selectionState: ExplorerSelectionState,
     ): List<ExplorerAction> {
         val actions = mutableListOf<ExplorerAction>()
-        
+
         actions.add(ExplorerAction.Common.Refresh())
         actions.add(ExplorerAction.Common.Sort())
-        actions.add(ExplorerAction.Common.Filter())
         actions.add(ExplorerAction.Common.ToggleView())
-        
+
         return actions
     }
 }
