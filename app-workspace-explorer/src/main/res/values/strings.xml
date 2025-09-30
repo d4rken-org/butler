@@ -40,6 +40,7 @@
     <string name="explorer_action_paste">Paste</string>
     <string name="explorer_action_select_all">Select All</string>
     <string name="explorer_action_deselect_all">Deselect All</string>
+    <string name="explorer_action_more">More options</string>
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Home</string>

@@ -494,8 +494,6 @@ fun ExplorerWorkspacePage(
                     },
                 actions = mainState.availableActions,
                 onActionClick = { action -> vm?.executeAction(action) },
-                onButlerIconClick = { vm?.onButlerIconClick() },
-                isPro = mainState.isPro,
             )
         }
 
