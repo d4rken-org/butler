@@ -306,7 +306,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                             is OperationDisplay.State.Cancelled -> 4
                             is OperationDisplay.State.Completed -> 5
                         }
-                    }.thenBy { it.startedAt } // Oldest first within each group
+                    }.thenByDescending { it.startedAt } // Newest first within each group
                 )
             OperationsState(operations = ops)
         }

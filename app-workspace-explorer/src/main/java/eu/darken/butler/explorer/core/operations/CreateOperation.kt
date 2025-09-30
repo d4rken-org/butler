@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
@@ -16,6 +17,7 @@ import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.delete
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.filesystem.FileSystemEvent
 import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
@@ -26,6 +28,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.isActive
+import kotlin.time.Clock
 
 class CreateOperation @AssistedInject constructor(
     @Assisted workspaceId: Workspace.Id,
@@ -45,16 +48,26 @@ class CreateOperation @AssistedInject constructor(
             ExplorerCommand.Create.Type.FILE -> R.string.explorer_operation_create_title_file
             ExplorerCommand.Create.Type.DIRECTORY -> R.string.explorer_operation_create_title_directory
         }.toCaString()
-        override val description = when (command.type) {
-            ExplorerCommand.Create.Type.FILE -> R.string.explorer_operation_create_description_file
-            ExplorerCommand.Create.Type.DIRECTORY -> R.string.explorer_operation_create_description_directory
-        }.toCaString(command.name, command.parentPath)
+        override val description = caString {
+            it.getString(
+                when (command.type) {
+                    ExplorerCommand.Create.Type.FILE -> R.string.explorer_operation_create_description_file
+                    ExplorerCommand.Create.Type.DIRECTORY -> R.string.explorer_operation_create_description_directory
+                },
+                command.name, command.parentPath.userReadablePath.get(it)
+            )
+        }
     }
 
     override fun perform(
         operationContext: Operation.Context
     ): Flow<State> = flow {
         log(tag) { "perform(): $command" }
+
+        val operationState = State.Active(
+            startedAt = operationContext.startedAt,
+        )
+        emit(operationState)
 
         val reportBuilder = CreateOperationReport.Builder()
 
@@ -72,14 +85,21 @@ class CreateOperation @AssistedInject constructor(
             val issue = PathActionIssue.PathAlreadyExists(
                 destination = gatewaySwitch.lookup(destinationPath),
                 canRenameSource = true,
-                canRenameDestination = false,
+                canRenameDestination = true,
                 canOverwrite = true,
             )
-            log(tag) { "execute(): Issue: $issue" }
+            log(tag) { "perform(): Issue: $issue" }
 
-            val resolution =
-                issueHandler.handleIssue(operationContext.id, issue) as PathActionIssue.PathAlreadyExists.Resolution
-            log(tag) { "execute(): Issue: $issue - Resolution: $resolution" }
+            State.Waiting(
+                startedAt = operationContext.startedAt,
+                issue = issue,
+            ).run { emit(this) }
+
+            val resolution = issueHandler.handleIssue(
+                operationId = operationContext.id,
+                issue = issue
+            ) as PathActionIssue.PathAlreadyExists.Resolution
+            log(tag) { "perform(): Issue: $issue - Resolution: $resolution" }
 
             when (resolution) {
                 is PathActionIssue.PathAlreadyExists.Resolution.RenameSource -> {
@@ -90,20 +110,24 @@ class CreateOperation @AssistedInject constructor(
                 is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
                     while (currentCoroutineContext().isActive) {
                         try {
-                            setOf(destinationPath)
-                                .delete(
-                                    gateway = gatewaySwitch,
-                                    options = DeleteAction.Options(
-                                        recursive = true,
-                                        onIssue = { issue ->
-                                            issueHandler.handleIssue(
-                                                operationContext.id,
-                                                issue
-                                            ) as PathActionIssue.Resolution
-                                        }
-                                    )
+                            destinationPath.delete(
+                                gateway = gatewaySwitch,
+                                options = DeleteAction.Options(
+                                    recursive = true,
+                                    onIssue = { issue ->
+                                        State.Waiting(
+                                            startedAt = operationContext.startedAt,
+                                            waitingSince = Clock.System.now(),
+                                            issue = issue,
+                                        ).run { emit(this) }
+
+                                        issueHandler.handleIssue(
+                                            operationContext.id,
+                                            issue
+                                        ) as PathActionIssue.Resolution
+                                    }
                                 )
-                                .last()
+                            ).last()
                             break // Delete succeeded, exit loop
                         } catch (e: Exception) {
                             val deleteIssue = PathActionIssue.UnknownError(
@@ -113,10 +137,17 @@ class CreateOperation @AssistedInject constructor(
                                 canRetry = true,
                                 canSkip = false,
                             )
-                            when (issueHandler.handleIssue(
-                                operationContext.id,
-                                deleteIssue
-                            ) as PathActionIssue.UnknownError.Resolution) {
+
+                            State.Waiting(
+                                startedAt = operationContext.startedAt,
+                                waitingSince = Clock.System.now(),
+                                issue = deleteIssue,
+                            ).run { emit(this) }
+                            val resolution = issueHandler.handleIssue(
+                                operationId = operationContext.id,
+                                issue = deleteIssue
+                            ) as PathActionIssue.UnknownError.Resolution
+                            when (resolution) {
                                 is PathActionIssue.UnknownError.Resolution.Retry -> continue
                                 is PathActionIssue.UnknownError.Resolution.Cancel -> throw CancellationException("Operation cancelled")
                                 is PathActionIssue.UnknownError.Resolution.Skip -> throw IllegalStateException("canSkip = false")
@@ -156,10 +187,19 @@ class CreateOperation @AssistedInject constructor(
                     canRetry = true,
                     canSkip = false,
                 )
-                when (issueHandler.handleIssue(
-                    operationContext.id,
-                    createIssue
-                ) as PathActionIssue.UnknownError.Resolution) {
+
+                State.Waiting(
+                    startedAt = operationContext.startedAt,
+                    waitingSince = Clock.System.now(),
+                    issue = createIssue,
+                ).run { emit(this) }
+
+                val resolution = issueHandler.handleIssue(
+                    operationId = operationContext.id,
+                    issue = createIssue
+                ) as PathActionIssue.UnknownError.Resolution
+
+                when (resolution) {
                     is PathActionIssue.UnknownError.Resolution.Retry -> continue
                     is PathActionIssue.UnknownError.Resolution.Cancel -> throw CancellationException("Operation cancelled")
                     is PathActionIssue.UnknownError.Resolution.Skip -> throw IllegalStateException("canSkip = false")
@@ -167,23 +207,19 @@ class CreateOperation @AssistedInject constructor(
             }
         }
 
-        // Track the created path
-//        fileSystemHinter.trackPathsAdded(setOf(destinationPath))
+        val createdLookup = gatewaySwitch.lookup(destinationPath)
+        fileSystemHinter.trackPathsAdded(setOf(createdLookup))
 
-        // Add to report
-//        reportBuilder.addPathEvent(
-//            FileSystemEvent.Added(
-//                operationId = operationContext.id,
-//                paths = setOf(destinationPath)
-//            )
-//        )
+        FileSystemEvent.Added(
+            operationId = operationContext.id,
+            paths = setOf(createdLookup)
+        ).run { reportBuilder.addPathEvent(this) }
 
-        emit(
-            State.Completed(
-                startedAt = operationContext.startedAt,
-                report = reportBuilder.build()
-            )
-        )
+
+        State.Completed(
+            startedAt = operationContext.startedAt,
+            report = reportBuilder.build()
+        ).run { emit(this) }
     }
 
     @AssistedFactory
