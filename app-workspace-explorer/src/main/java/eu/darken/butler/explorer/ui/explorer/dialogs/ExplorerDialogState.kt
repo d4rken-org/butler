@@ -3,7 +3,7 @@ package eu.darken.butler.explorer.ui.explorer.dialogs
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.engine.ExplorerItem
-import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel.FileTypeFilter
+import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 
 sealed interface ExplorerDialogState {

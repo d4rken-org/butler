@@ -1,6 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer.dialogs
 
-import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel.FileTypeFilter
+import eu.darken.butler.explorer.core.FileTypeFilter
 
 data class FilterOptionsResult(
     val includePattern: String,

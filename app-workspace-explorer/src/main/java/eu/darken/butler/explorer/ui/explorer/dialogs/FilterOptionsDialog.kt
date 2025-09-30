@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel.FileTypeFilter
+import eu.darken.butler.explorer.core.FileTypeFilter
 
 @Composable
 fun FilterOptionsDialog(
@@ -123,7 +123,7 @@ fun FilterOptionsDialog(
                 )
 
                 if (!useRegexPatterns) {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = stringResource(R.string.explorer_filter_regex_hint),
                         style = MaterialTheme.typography.labelMedium,

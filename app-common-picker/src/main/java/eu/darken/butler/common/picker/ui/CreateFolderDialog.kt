@@ -17,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
 
 @Composable
 fun CreateFolderDialog(
@@ -63,5 +65,16 @@ fun CreateFolderDialog(
     
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
+    }
+}
+
+@Preview2
+@Composable
+private fun CreateFolderDialogPreview() {
+    PreviewWrapper {
+        CreateFolderDialog(
+            onConfirm = {},
+            onDismiss = {}
+        )
     }
 }
