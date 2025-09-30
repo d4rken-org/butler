@@ -8,6 +8,7 @@
 	  "Bash(ls:*)",
 	  "Bash(grep:*)",
 	  "Bash(rg:*)",
+	  "Bash(./.claude/scripts/screenshot.sh:*)",
 	  "WebSearch",
 	  "WebFetch(domain:support.google.com)",
 	  "WebFetch(domain:github.com)",
