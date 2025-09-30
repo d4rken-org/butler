@@ -19,7 +19,6 @@ abstract class ExplorerOperation : Operation {
             override val startedAt: Instant,
             override val primaryProgress: Progress.Data = Progress.Data(),
             override val secondaryProgress: Progress.Data? = null,
-            val bytesProcessed: Long? = null,
         ) : State, Operation.State.Active
 
         data class Waiting(

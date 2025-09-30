@@ -13,6 +13,7 @@ import eu.darken.butler.common.io.R
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import java.io.IOException
+import java.nio.file.DirectoryNotEmptyException
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import kotlin.coroutines.cancellation.CancellationException
@@ -38,7 +39,6 @@ suspend fun Collection<LocalPath>.delete(
 
     val deleted = linkedSetOf<LocalPathLookup>()
     val skipped = linkedSetOf<LocalPathLookup>()
-    var bytesTotal = 0L
 
     var issueSkippAllPermission = false
     var issueSkippAllUnknown = false
@@ -52,7 +52,15 @@ suspend fun Collection<LocalPath>.delete(
 
         while (toVisit.isNotEmpty() && currentCoroutineContext().isActive) {
             val localPath = toVisit.removeFirst()
-            val lookup = localPath.performLookup()
+            val lookup = try {
+                localPath.performLookup()
+            } catch (e: Exception) {
+                if (ignoreMissing && e is NoSuchFileException) {
+                    log(TAG, VERBOSE) { "Skipping missing file (ignoreMissing=true): $localPath" }
+                    continue
+                }
+                throw e
+            }
 
             when (lookup.fileType) {
                 FileType.SYMBOLIC_LINK, FileType.FILE -> {
@@ -84,7 +92,6 @@ suspend fun Collection<LocalPath>.delete(
 
         fun createProgress(target: LocalPathLookup) = DeleteAction.State.Progress(
             target = target,
-            bytesCurrent = bytesTotal,
             primaryProgress = eu.darken.butler.common.progress.Progress.Data(
                 primary = R.string.general_delete_progress_title.toCaString(currentTopLevel.name),
                 secondary = if (target == currentTopLevel) {
@@ -117,7 +124,6 @@ suspend fun Collection<LocalPath>.delete(
                 try {
                     onProgress?.invoke(createProgress(target))
                     Files.delete(target.lookedUp.file.toPath())
-                    bytesTotal += size
                     deleted += target
                     itemsProcessed++
                     break
@@ -147,7 +153,7 @@ suspend fun Collection<LocalPath>.delete(
                         is PathActionIssue.InsufficientPermission.Resolution.Skip -> {
                             if (resolution.applyToAll) issueSkippAllPermission = true
                             itemsProcessed++
-                            skipped.add(target)
+                            skipped += target
                             break
                         }
                     }
@@ -163,6 +169,11 @@ suspend fun Collection<LocalPath>.delete(
                     if (deleteError is NoSuchFileException) {
                         log(TAG, WARN) { "delete(): File doesn't exist: $target" }
                         if (ignoreMissing) break
+                    }
+
+                    if (deleteError is DirectoryNotEmptyException && onIssue == null) {
+                        log(TAG, WARN) { "delete(): Directory not empty: $target" }
+                        throw deleteError
                     }
 
                     val deleteError = WriteException(path = target.lookedUp, cause = deleteError)
@@ -185,7 +196,7 @@ suspend fun Collection<LocalPath>.delete(
                         is PathActionIssue.UnknownError.Resolution.Skip -> {
                             if (resolution.applyToAll) issueSkippAllUnknown = true
                             itemsProcessed++
-                            skipped.add(target)
+                            skipped += target
                             break
                         }
                     }
