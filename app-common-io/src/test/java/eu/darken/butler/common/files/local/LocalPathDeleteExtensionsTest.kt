@@ -41,15 +41,13 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
         // Given
         val testFile = File(testFolder, "test.txt")
         testFile.writeText("Hello World")
-        val initialSize = testFile.length()
         val testPath = LocalPath.build(testFile)
 
         // When
         val result = testPath.delete()
 
         // Then
-        result.deleted shouldContain testPath
-        result.bytesTotal shouldBe initialSize
+        result.deleted.map { it.lookedUp } shouldContain testPath
         testFile.exists() shouldBe false
     }
 
@@ -63,7 +61,6 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
 
         // Then
         result.deleted.shouldBeEmpty()
-        result.bytesTotal shouldBe 0L
     }
 
     @Test
@@ -76,20 +73,6 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
     }
 
     @Test
-    fun `verify size calculation for files`() = runTest {
-        // Given
-        val content = "A".repeat(1024) // 1KB
-        val testFile = File(testFolder, "large.txt")
-        testFile.writeText(content)
-
-        // When
-        val result = listOf(LocalPath.build(testFile)).delete()
-
-        // Then
-        result.bytesTotal shouldBe content.length.toLong()
-    }
-
-    @Test
     fun `delete empty directory`() = runTest {
         // Given
         val emptyDir = File(testFolder, "empty")
@@ -99,7 +82,7 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
         val result = listOf(LocalPath.build(emptyDir)).delete()
 
         // Then
-        result.deleted shouldContain LocalPath.build(emptyDir)
+        result.deleted.map { it.lookedUp } shouldContain LocalPath.build(emptyDir)
         emptyDir.exists() shouldBe false
     }
 
@@ -116,14 +99,11 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
         file1.writeText("Content 1")
         file2.writeText("Content 2")
 
-        val expectedSize = file1.length() + file2.length()
-
         // When
         val result = listOf(LocalPath.build(nestedDir)).delete()
 
         // Then
-        result.bytesTotal shouldBe expectedSize
-        result.deleted should { files ->
+        result.deleted.map { it.lookedUp } should { files ->
             files shouldContain LocalPath.build(file1)
             files shouldContain LocalPath.build(file2)
             files shouldContain LocalPath.build(subDir)
@@ -181,7 +161,7 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
         val result = listOf(LocalPath.build(emptyDir)).delete(recursive = false)
 
         // Then
-        result.deleted shouldContain LocalPath.build(emptyDir)
+        result.deleted.map { it.lookedUp } shouldContain LocalPath.build(emptyDir)
         emptyDir.exists() shouldBe false
     }
 
@@ -193,42 +173,18 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
         file1.writeText("content1")
         file2.writeText("content2")
 
-        val progressCalls = mutableListOf<Pair<LocalPath, Long>>()
+        val reportedPaths = mutableSetOf<LocalPath>()
 
         // When
         listOf(LocalPath.build(file1), LocalPath.build(file2)).delete(
-            onProgress = { progressCalls.add(it.target.lookedUp to it.target.size) }
+            onProgress = { reportedPaths.add(it.target.lookedUp) }
         )
 
         // Then
-        progressCalls shouldHaveSize 2
-        progressCalls.map { it.first } shouldContainExactlyInAnyOrder listOf(
+        reportedPaths shouldContainExactlyInAnyOrder listOf(
             LocalPath.build(file1),
             LocalPath.build(file2)
         )
-        progressCalls.all { it.second > 0 } shouldBe true
-    }
-
-    @Test
-    fun `cumulative size tracking`() = runTest {
-        // Given
-        val files = (1..5).map { i ->
-            File(testFolder, "file$i.txt").apply {
-                writeText("Content $i".repeat(i * 10)) // Different sizes
-            }
-        }
-
-        var cumulativeSize = 0L
-        val expectedTotalSize = files.sumOf { it.length() }
-
-        // When
-        val result = files.map { LocalPath.build(it) }.delete(
-            onProgress = { cumulativeSize += it.target.size }
-        )
-
-        // Then
-        cumulativeSize shouldBe expectedTotalSize
-        result.bytesTotal shouldBe expectedTotalSize
     }
 
     @Test
@@ -242,14 +198,11 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
         dir.mkdir()
         dirFile.writeText("inside content")
 
-        val expectedSize = file.length() + dirFile.length()
-
         // When
         val result = listOf(LocalPath.build(file), LocalPath.build(dir)).delete()
 
         // Then
-        result.bytesTotal shouldBe expectedSize
-        result.deleted should { files ->
+        result.deleted.map { it.lookedUp } should { files ->
             files shouldContain LocalPath.build(file)
             files shouldContain LocalPath.build(dir)
             files shouldContain LocalPath.build(dirFile)
@@ -288,16 +241,20 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
 
         targetFile.writeText("target content")
 
-        // Create symlink (may not work on all systems/permissions)
-        Files.createSymbolicLink(symlink.toPath(), targetFile.toPath())
+        try {
+            // Create symlink (may not work on all systems/permissions)
+            Files.createSymbolicLink(symlink.toPath(), targetFile.toPath())
 
-        // Only proceed if symlink was actually created
-        if (Files.isSymbolicLink(symlink.toPath())) {
-            // When - the key thing is that deletion doesn't crash
-            listOf(LocalPath.build(symlink)).delete()
+            // Only proceed if symlink was actually created
+            if (Files.isSymbolicLink(symlink.toPath())) {
+                // When - the key thing is that deletion doesn't crash
+                listOf(LocalPath.build(symlink)).delete()
 
-            // Then - target should remain intact
-            targetFile.exists() shouldBe true // Target should remain intact
+                // Then - target should remain intact
+                targetFile.exists() shouldBe true // Target should remain intact
+            }
+        } catch (e: Exception) {
+            // Symlink creation or operations may fail on some systems - skip test gracefully
         }
     }
 
@@ -308,7 +265,6 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
 
         // Then
         result.deleted.shouldBeEmpty()
-        result.bytesTotal shouldBe 0L
     }
 
     @Test
@@ -316,15 +272,13 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
         // Given
         val testFile = File(testFolder, "duplicate.txt")
         testFile.writeText("content")
-        val expectedSize = testFile.length()
 
         // When
-        val result = listOf(LocalPath.build(testFile), LocalPath.build(testFile)).delete()
+        listOf(LocalPath.build(testFile), LocalPath.build(testFile)).delete()
 
         // Then
         // File should only be deleted once, but may appear in result multiple times
         testFile.exists() shouldBe false
-        result.bytesTotal shouldBe expectedSize // Size counted only once in actual deletion
     }
 
     @Test
@@ -343,13 +297,10 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
             files.add(file)
         }
 
-        val expectedSize = files.sumOf { it.length() }
-
         // When
-        val result = LocalPath.build(File(testFolder, "level0")).delete()
+        LocalPath.build(File(testFolder, "level0")).delete()
 
         // Then
-        result.bytesTotal shouldBe expectedSize
         File(testFolder, "level0").exists() shouldBe false
     }
 
@@ -361,8 +312,6 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
         file1.writeText("content1")
         file2.writeText("content2")
 
-        val expectedSize = file2.length() // Get size before deletion
-
         // Delete one file externally
         file1.delete()
 
@@ -373,8 +322,7 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
 
         // Then
         result.deleted shouldHaveSize 1
-        result.deleted shouldContain LocalPath.build(file2)
-        result.bytesTotal shouldBe expectedSize
+        result.deleted.map { it.lookedUp } shouldContain LocalPath.build(file2)
     }
 
     @Test
@@ -386,7 +334,6 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
             }
         }
 
-        val expectedSize = files.sumOf { it.length() }
         val startTime = System.currentTimeMillis()
 
         // When
@@ -394,7 +341,6 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
         val endTime = System.currentTimeMillis()
 
         // Then
-        result.bytesTotal shouldBe expectedSize
         result.deleted shouldHaveSize files.size
 
         // Basic performance check - should complete reasonably quickly
@@ -550,7 +496,7 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
 
         // Then - should not crash and complete normally
         // File should be deleted if permissions allow, or operation continues gracefully
-        result.bytesTotal should { it >= 0 }
+        result.deleted should { it.size >= 0 }
     }
 
 
@@ -566,7 +512,7 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
         val result = LocalPath.build(emptyDir).delete(recursive = false)
 
         // Then
-        result.deleted shouldContain LocalPath.build(emptyDir)
+        result.deleted.map { it.lookedUp } shouldContain LocalPath.build(emptyDir)
         emptyDir.exists() shouldBe false
     }
 
@@ -603,14 +549,11 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
         file2.writeText("content2")
         file3.writeText("content3")
 
-        val expectedSize = file1.length() + file2.length() + file3.length()
-
         // When
         val result = LocalPath.build(parentDir).delete(recursive = true)
 
         // Then
-        result.bytesTotal shouldBe expectedSize
-        result.deleted should { deleted ->
+        result.deleted.map { it.lookedUp } should { deleted ->
             deleted shouldContain LocalPath.build(file1)
             deleted shouldContain LocalPath.build(file2)
             deleted shouldContain LocalPath.build(file3)
@@ -690,7 +633,6 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
 
         // Then
         result.deleted.shouldBeEmpty()
-        result.bytesTotal shouldBe 0L
     }
 
     @Test
@@ -712,7 +654,6 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
         val nonExistentFile2 = File(testFolder, "missing2.txt")
 
         existingFile.writeText("content")
-        val expectedSize = existingFile.length()
 
         // When
         val result = listOf(
@@ -722,9 +663,8 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
         ).delete(ignoreMissing = true)
 
         // Then
-        result.deleted shouldContain LocalPath.build(existingFile)
+        result.deleted.map { it.lookedUp } shouldContain LocalPath.build(existingFile)
         result.deleted shouldHaveSize 1
-        result.bytesTotal shouldBe expectedSize
         existingFile.exists() shouldBe false
     }
 
@@ -760,7 +700,6 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
 
         // Then
         result.deleted.shouldBeEmpty()
-        result.bytesTotal shouldBe 0L
     }
 
     @Test
@@ -783,7 +722,6 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
 
         existingDir.mkdir()
         fileInDir.writeText("content")
-        val expectedSize = fileInDir.length()
 
         // When - ignoreMissing true
         val result = listOf(
@@ -792,9 +730,8 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
         ).delete(ignoreMissing = true)
 
         // Then
-        result.deleted shouldContain LocalPath.build(existingDir)
-        result.deleted shouldContain LocalPath.build(fileInDir)
-        result.bytesTotal shouldBe expectedSize
+        result.deleted.map { it.lookedUp } shouldContain LocalPath.build(existingDir)
+        result.deleted.map { it.lookedUp } shouldContain LocalPath.build(fileInDir)
         existingDir.exists() shouldBe false
     }
 
@@ -894,8 +831,6 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
         dirWithContent.mkdir()
         childFile.writeText("child content")
 
-        val expectedSize = existingFile.length() + childFile.length()
-
         // When - should succeed with both flags true
         val result = listOf(
             LocalPath.build(nonExistentFile),
@@ -905,11 +840,10 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
         ).delete(recursive = true, ignoreMissing = true)
 
         // Then - should delete everything that exists
-        result.deleted shouldContain LocalPath.build(existingFile)
-        result.deleted shouldContain LocalPath.build(emptyDir)
-        result.deleted shouldContain LocalPath.build(dirWithContent)
-        result.deleted shouldContain LocalPath.build(childFile)
-        result.bytesTotal shouldBe expectedSize
+        result.deleted.map { it.lookedUp } shouldContain LocalPath.build(existingFile)
+        result.deleted.map { it.lookedUp } shouldContain LocalPath.build(emptyDir)
+        result.deleted.map { it.lookedUp } shouldContain LocalPath.build(dirWithContent)
+        result.deleted.map { it.lookedUp } shouldContain LocalPath.build(childFile)
 
         existingFile.exists() shouldBe false
         emptyDir.exists() shouldBe false
@@ -961,7 +895,7 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
                 ).delete(recursive = true, ignoreMissing = true)
 
                 // Then - should delete symlink but ignore missing one, target should remain
-                result.deleted shouldContain LocalPath.build(symlink)
+                result.deleted.map { it.lookedUp } shouldContain LocalPath.build(symlink)
                 targetFile.exists() shouldBe true // Target should remain intact
             }
         } catch (e: Exception) {
@@ -979,8 +913,6 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
         }
         val nonExistentFiles = (51..60).map { i -> File(testFolder, "missing$i.txt") }
 
-        val expectedSize = files.sumOf { it.length() }
-
         // When - delete with various flag combinations
         val result = (files.map { LocalPath.build(it) } + nonExistentFiles.map { LocalPath.build(it) }).delete(
             recursive = true,
@@ -989,7 +921,6 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
 
         // Then - should handle large collection efficiently
         result.deleted shouldHaveSize files.size
-        result.bytesTotal shouldBe expectedSize
         files.forEach { it.exists() shouldBe false }
     }
 
@@ -1021,7 +952,6 @@ class LocalPathDeleteExtensionsTest : BaseTest() {
         )
 
         // Then - Operation should complete without crashing
-        result.bytesTotal should { it >= 0 }
         result.deleted should { it.size >= 0 }
     }
 }

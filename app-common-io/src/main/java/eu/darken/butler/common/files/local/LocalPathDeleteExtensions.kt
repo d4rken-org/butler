@@ -15,6 +15,7 @@ import kotlinx.coroutines.isActive
 import java.io.IOException
 import java.nio.file.DirectoryNotEmptyException
 import java.nio.file.Files
+import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -52,10 +53,18 @@ suspend fun Collection<LocalPath>.delete(
 
         while (toVisit.isNotEmpty() && currentCoroutineContext().isActive) {
             val localPath = toVisit.removeFirst()
+
+            // Check file existence first when ignoreMissing is enabled
+            // Use NOFOLLOW_LINKS to check symlink itself, not its target
+            if (ignoreMissing && !Files.exists(localPath.file.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+                log(TAG, VERBOSE) { "Skipping missing file (ignoreMissing=true): $localPath" }
+                continue
+            }
+
             val lookup = try {
                 localPath.performLookup()
-            } catch (e: Exception) {
-                if (ignoreMissing && e is NoSuchFileException) {
+            } catch (e: NoSuchFileException) {
+                if (ignoreMissing) {
                     log(TAG, VERBOSE) { "Skipping missing file (ignoreMissing=true): $localPath" }
                     continue
                 }
