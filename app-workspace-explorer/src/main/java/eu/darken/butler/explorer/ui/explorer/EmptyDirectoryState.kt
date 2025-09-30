@@ -42,7 +42,7 @@ import eu.darken.butler.explorer.R
 import kotlinx.coroutines.delay
 
 @Composable
-fun EmptyFolderState(
+fun EmptyDirectoryState(
     modifier: Modifier = Modifier,
     icon: ImageVector = Icons.TwoTone.FolderOpen,
     title: String? = null,
@@ -161,9 +161,9 @@ private fun getFunnyCaption(): String {
 
 @Preview2
 @Composable
-private fun EmptyFolderStatePreview() {
+private fun EmptyDirectoryStatePreview() {
     PreviewWrapper {
-        EmptyFolderState(
+        EmptyDirectoryState(
             initiallyVisible = true
         )
     }
@@ -171,9 +171,9 @@ private fun EmptyFolderStatePreview() {
 
 @Preview2
 @Composable
-private fun EmptyFolderStateCustomPreview() {
+private fun EmptyDirectoryStateCustomPreview() {
     PreviewWrapper {
-        EmptyFolderState(
+        EmptyDirectoryState(
             title = stringResource(R.string.explorer_empty_search_title),
             caption = stringResource(R.string.explorer_empty_search_caption),
             initiallyVisible = true
