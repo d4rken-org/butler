@@ -115,68 +115,73 @@ fun PathAlreadyExistsIssueSheet(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            // Primary row: Skip and Merge/Overwrite
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                if (issue.canSkip) {
-                    Button(
-                        onClick = {
-                            onResolution(PathActionIssue.PathAlreadyExists.Resolution.Skip(applyToAll))
-                        },
-                        modifier = Modifier.weight(1f),
+            // Primary action: Skip
+            if (issue.canSkip) {
+                Button(
+                    onClick = {
+                        onResolution(PathActionIssue.PathAlreadyExists.Resolution.Skip(applyToAll))
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(
-                                imageVector = Icons.TwoTone.SkipNext,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                            )
-                            Text(stringResource(R.string.explorer_issue_common_skip))
-                        }
+                        Icon(
+                            imageVector = Icons.TwoTone.SkipNext,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Text(stringResource(R.string.explorer_issue_common_skip))
                     }
                 }
+            }
 
-                if (isDirectory && issue.canMerge) {
-                    OutlinedButton(
-                        onClick = {
-                            onResolution(PathActionIssue.PathAlreadyExists.Resolution.Merge(applyToAll))
-                        },
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
+            // Secondary actions: Merge and/or Overwrite
+            if ((isDirectory && issue.canMerge) || issue.canOverwrite) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    if (isDirectory && issue.canMerge) {
+                        OutlinedButton(
+                            onClick = {
+                                onResolution(PathActionIssue.PathAlreadyExists.Resolution.Merge(applyToAll))
+                            },
+                            modifier = Modifier.weight(1f),
                         ) {
-                            Icon(
-                                imageVector = Icons.TwoTone.FolderZip,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                            )
-                            Text(stringResource(R.string.explorer_issue_collision_merge))
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.TwoTone.FolderZip,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                                Text(stringResource(R.string.explorer_issue_collision_merge))
+                            }
                         }
                     }
-                } else if (issue.canOverwrite) {
-                    OutlinedButton(
-                        onClick = {
-                            onResolution(PathActionIssue.PathAlreadyExists.Resolution.Overwrite(applyToAll))
-                        },
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
+
+                    if (issue.canOverwrite) {
+                        OutlinedButton(
+                            onClick = {
+                                onResolution(PathActionIssue.PathAlreadyExists.Resolution.Overwrite(applyToAll))
+                            },
+                            modifier = Modifier.weight(1f),
                         ) {
-                            Icon(
-                                imageVector = Icons.TwoTone.SaveAs,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                            )
-                            Text(stringResource(R.string.explorer_issue_collision_overwrite))
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.TwoTone.SaveAs,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                                Text(stringResource(R.string.explorer_issue_collision_overwrite))
+                            }
                         }
                     }
                 }
@@ -312,7 +317,6 @@ private fun PathAlreadyExistsIssueSheetRenameOptionsPreview() {
                 canOverwrite = true,
                 canRenameSource = true,
                 canRenameDestination = true,
-                canMerge = false,
             ),
             onResolution = {},
         )
@@ -338,9 +342,10 @@ private fun PathAlreadyExistsIssueSheetFolderPreview() {
                     hoursAgo = 1
                 ),
                 canSkip = true,
+                canMerge = true,
                 canOverwrite = true,
                 canRenameSource = true,
-                canMerge = true,
+                canRenameDestination = true,
             ),
             onResolution = {},
         )
