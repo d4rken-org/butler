@@ -81,11 +81,13 @@ fun InsufficientSpaceIssueSheet(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(vertical = 4.dp)
                     .toggleable(
                         value = applyToAll,
                         onValueChange = { applyToAll = it }
                     ),
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Checkbox(
                     checked = applyToAll,
