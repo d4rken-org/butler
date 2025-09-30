@@ -229,6 +229,10 @@
         <item quantity="one">%d directory created.</item>
         <item quantity="other">%d directories created.</item>
     </plurals>
+    <plurals name="explorer_operation_report_skipped_items">
+        <item quantity="one">"%d item skipped.</item>
+        <item quantity="other">%d items skipped.</item>
+    </plurals>
 
     <string name="explorer_operation_create_title_directory">Folder creation</string>
     <string name="explorer_operation_create_description_directory">Create folder \"%1$s\" at \"%2$s\"</string>

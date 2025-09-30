@@ -19,7 +19,6 @@ import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.delete
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.core.filesystem.FileSystemEvent
 import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
@@ -95,12 +94,8 @@ class DeleteOperation @AssistedInject constructor(
                     }
                     is DeleteAction.State.Result<APath, APathLookup<APath>> -> {
                         fileSystemHinter.trackPathsRemoved(deleteState.deleted)
-                        reportBuilder.addPathEvent(
-                            FileSystemEvent.Removed(
-                                operationId = operationContext.id,
-                                paths = deleteState.deleted,
-                            )
-                        )
+                        reportBuilder.setDeletions(deleteState.deleted)
+                        reportBuilder.setSkipped(deleteState.deleted)
                         reportBuilder.setBytesFreed(deleteState.deleted.sumOf { it.size })
                     }
                 }

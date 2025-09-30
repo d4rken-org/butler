@@ -27,6 +27,7 @@ interface DeleteAction<P : APath, PL : APathLookup<P>> : GatewayAction<P> {
 
         data class Result<P : APath, PL : APathLookup<P>>(
             val deleted: Set<PL>,
+            val skipped: Set<PL>,
         ) : State<P, PL> {
             val bytesTotal: Long get() = deleted.sumOf { it.size }
         }

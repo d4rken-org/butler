@@ -37,6 +37,7 @@ suspend fun Collection<LocalPath>.delete(
     }
 
     val deleted = linkedSetOf<LocalPathLookup>()
+    val skipped = linkedSetOf<LocalPathLookup>()
     var bytesTotal = 0L
 
     var issueSkippAllPermission = false
@@ -146,6 +147,7 @@ suspend fun Collection<LocalPath>.delete(
                         is PathActionIssue.InsufficientPermission.Resolution.Skip -> {
                             if (resolution.applyToAll) issueSkippAllPermission = true
                             itemsProcessed++
+                            skipped.add(target)
                             break
                         }
                     }
@@ -183,6 +185,7 @@ suspend fun Collection<LocalPath>.delete(
                         is PathActionIssue.UnknownError.Resolution.Skip -> {
                             if (resolution.applyToAll) issueSkippAllUnknown = true
                             itemsProcessed++
+                            skipped.add(target)
                             break
                         }
                     }
@@ -201,5 +204,6 @@ suspend fun Collection<LocalPath>.delete(
 
     return DeleteAction.State.Result(
         deleted = deleted,
+        skipped = skipped,
     )
 }
