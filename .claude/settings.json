@@ -9,6 +9,7 @@
 	  "Bash(grep:*)",
 	  "Bash(rg:*)",
 	  "Bash(./.claude/scripts/screenshot.sh:*)",
+	  "Bash(git log:*)",
 	  "WebSearch",
 	  "WebFetch(domain:support.google.com)",
 	  "WebFetch(domain:github.com)",
