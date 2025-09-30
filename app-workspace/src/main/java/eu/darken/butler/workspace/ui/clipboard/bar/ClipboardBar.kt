@@ -11,37 +11,22 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.ClearAll
 import androidx.compose.material.icons.twotone.Close
-import androidx.compose.material.icons.twotone.ContentCopy
-import androidx.compose.material.icons.twotone.ContentCut
-import androidx.compose.material.icons.twotone.ContentPaste
-import androidx.compose.material.icons.twotone.ExpandLess
-import androidx.compose.material.icons.twotone.ExpandMore
-import androidx.compose.material.icons.twotone.FolderOpen
-import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,15 +38,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.common.ui.SwipeToDismissItem
-import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import kotlinx.coroutines.delay
@@ -136,7 +117,7 @@ fun ClipboardBar(
                     exit = shrinkVertically(shrinkTowards = Alignment.Bottom) + fadeOut(animationSpec = tween(300))
                 ) {
                     Column {
-                        ClipboardHeaderRow(
+                        ClipboardBarHeader(
                             isExpanded = isExpanded,
                             entryCount = clipboardEntries.size,
                             onExpandClick = { isExpanded = !isExpanded },
@@ -188,98 +169,6 @@ fun ClipboardBar(
 }
 
 @Composable
-private fun ClipboardHeaderRow(
-    modifier: Modifier = Modifier,
-    isExpanded: Boolean,
-    entryCount: Int,
-    onExpandClick: () -> Unit,
-    onClearAllClick: () -> Unit = {},
-) {
-    if (isExpanded) {
-        // Expanded mode: Two buttons spanning full width
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            // Collapse button (extends to meet clear all button)
-            TextButton(
-                onClick = onExpandClick,
-                modifier = Modifier
-                    .height(32.dp)
-                    .weight(1f),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.TwoTone.ExpandLess,
-                    contentDescription = stringResource(R.string.clipboard_show_less),
-                    modifier = Modifier.size(14.dp),
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = stringResource(R.string.clipboard_show_less),
-                    style = MaterialTheme.typography.labelSmall,
-                )
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // Clear All button
-            TextButton(
-                onClick = onClearAllClick,
-                modifier = Modifier
-                    .height(32.dp)
-                    .weight(1f),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.TwoTone.ClearAll,
-                    contentDescription = null,
-                    modifier = Modifier.size(14.dp),
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = stringResource(R.string.clipboard_clear_all),
-                    style = MaterialTheme.typography.labelSmall,
-                )
-            }
-        }
-    } else {
-        // Collapsed mode: Single expand button fills full width
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            TextButton(
-                onClick = onExpandClick,
-                modifier = Modifier
-                    .height(32.dp)
-                    .fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.TwoTone.ExpandMore,
-                    contentDescription = stringResource(R.string.clipboard_show_more),
-                    modifier = Modifier.size(14.dp),
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = stringResource(R.string.clipboard_show_more_items, entryCount),
-                    style = MaterialTheme.typography.labelSmall,
-                )
-            }
-        }
-    }
-}
-
-@Composable
 private fun SwipeToDismissEntry(
     modifier: Modifier = Modifier,
     entry: ClipboardClip,
@@ -314,193 +203,12 @@ private fun SwipeToDismissEntry(
             )
         }
     ) {
-        ClipboardEntry(
+        ClipboardEntryRow(
             entry = entry,
             onPasteClick = onPasteClick,
             onEntryClick = onEntryClick,
             showOrigin = showOrigin,
         )
-    }
-}
-
-@Composable
-private fun ClipboardEntry(
-    modifier: Modifier = Modifier,
-    entry: ClipboardClip,
-    onPasteClick: () -> Unit,
-    onEntryClick: () -> Unit,
-    showOrigin: Boolean = false,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            .clickable { onEntryClick() }
-            .padding(vertical = if (showOrigin) 8.dp else 4.dp)
-            .padding(start = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        when (entry) {
-            is ClipboardClip.Paths -> {
-                if (showOrigin) {
-                    // EXPANDED MODE: Detailed design with icons for each row
-                    Column(
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        // First text row: Copy/Cut icon + Title + Timestamp
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            // Copy/Cut Icon (smaller)
-                            Icon(
-                                imageVector = when (entry.mode) {
-                                    ClipboardClip.Paths.Mode.COPY -> Icons.TwoTone.ContentCopy
-                                    ClipboardClip.Paths.Mode.CUT -> Icons.TwoTone.ContentCut
-                                },
-                                contentDescription = entry.mode.name,
-                                modifier = Modifier.size(12.dp),
-                                tint = when (entry.mode) {
-                                    ClipboardClip.Paths.Mode.COPY -> MaterialTheme.colorScheme.primary
-                                    ClipboardClip.Paths.Mode.CUT -> MaterialTheme.colorScheme.tertiary
-                                }
-                            )
-
-                            Spacer(modifier = Modifier.width(6.dp))
-
-                            // Title text (takes most space)
-                            Text(
-                                text = entry.title.asComposable(),
-                                style = MaterialTheme.typography.bodyMedium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f),
-                            )
-
-                            // Timestamp
-                            Text(
-                                text = formatRelativeTime(entry.clippedAt),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(start = 8.dp, end = 8.dp),
-                            )
-                        }
-
-                        // Second text row: Folder icon + Subtitle
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            // Source/From Icon
-                            Icon(
-                                imageVector = Icons.TwoTone.FolderOpen,
-                                contentDescription = null,
-                                modifier = Modifier.size(12.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-
-                            Spacer(modifier = Modifier.width(6.dp))
-
-                            Text(
-                                text = entry.description.asComposable(),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-
-                        // Third text row: Workspace icon + Origin
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            // Workspace Icon
-                            Icon(
-                                imageVector = Icons.TwoTone.Workspaces,
-                                contentDescription = null,
-                                modifier = Modifier.size(12.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                            )
-
-                            Spacer(modifier = Modifier.width(6.dp))
-
-                            Text(
-                                text = stringResource(R.string.clipboard_origin, entry.origin.shortTag),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                    }
-                } else {
-                    // COLLAPSED MODE: Simple design without individual icons
-                    Icon(
-                        imageVector = when (entry.mode) {
-                            ClipboardClip.Paths.Mode.COPY -> Icons.TwoTone.ContentCopy
-                            ClipboardClip.Paths.Mode.CUT -> Icons.TwoTone.ContentCut
-                        },
-                        contentDescription = entry.mode.name,
-                        modifier = Modifier.size(20.dp),
-                        tint = when (entry.mode) {
-                            ClipboardClip.Paths.Mode.COPY -> MaterialTheme.colorScheme.primary
-                            ClipboardClip.Paths.Mode.CUT -> MaterialTheme.colorScheme.tertiary
-                        }
-                    )
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    Column(
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        // Title + Timestamp row
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = entry.title.asComposable(),
-                                style = MaterialTheme.typography.bodyMedium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f),
-                            )
-
-                            Text(
-                                text = formatRelativeTime(entry.clippedAt),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(start = 8.dp, end = 8.dp),
-                            )
-                        }
-
-                        // Simple subtitle
-                        Text(
-                            text = entry.description.asComposable(),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
-
-                // Paste button
-                IconButton(
-                    onClick = onPasteClick
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.ContentPaste,
-                        contentDescription = stringResource(R.string.clipboard_paste),
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                }
-            }
-        }
     }
 }
 
