@@ -709,7 +709,7 @@ private fun OperationAffectedFilesSection(
             ) {
                 Text(
                     text = stringResource(
-                        R.string.operations_details_affected_files_with_count,
+                        R.string.operations_details_affected_paths_with_count,
                         affectedPaths.size
                     ).uppercase(),
                     style = MaterialTheme.typography.labelMedium,

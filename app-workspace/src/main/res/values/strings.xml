@@ -80,7 +80,7 @@
     <string name="operations_details_copy_error">Copy Error Details</string>
     <string name="operations_details_status">Status</string>
     <string name="operations_details_result">Result</string>
-    <string name="operations_details_affected_files_with_count">Affected files (%d)</string>
+    <string name="operations_details_affected_paths_with_count">Affected paths (%d)</string>
     <string name="operations_details_path_added_marker">A</string>
     <string name="operations_details_path_removed_marker">D</string>
     <string name="operations_details_path_modified_marker">M</string>
