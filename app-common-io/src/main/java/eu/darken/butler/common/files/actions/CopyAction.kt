@@ -14,6 +14,7 @@ interface CopyAction<P : APath, PL : APathLookup<P>> : GatewayAction<P> {
     data class Options<P : APath>(
         val overwrite: Boolean = false,
         val preserveAttributes: Boolean = true,
+        val followSymlinks: Boolean = false,
         val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
     )
 

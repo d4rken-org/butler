@@ -70,6 +70,7 @@ class CopyOperation @AssistedInject constructor(
                 destination = command.destination,
                 options = CopyAction.Options(
                     preserveAttributes = command.options.preserveAttributes,
+                    followSymlinks = command.options.followSymlinks,
                     onIssue = { issue ->
                         emit(
                             State.Waiting(

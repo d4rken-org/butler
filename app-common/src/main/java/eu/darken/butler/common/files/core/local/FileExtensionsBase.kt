@@ -89,18 +89,37 @@ fun File.listFiles2(): List<File> {
 }
 
 fun File.isSymbolicLink(): Boolean {
-    return readLink() != null
+    return try {
+        java.nio.file.Files.isSymbolicLink(this.toPath())
+    } catch (e: Exception) {
+        false
+    }
 }
 
 fun File.createSymlink(target: File): Boolean {
-    Os.symlink(target.path, this.path)
-    return this.exists()
+    return try {
+        java.nio.file.Files.createSymbolicLink(this.toPath(), target.toPath())
+        this.exists()
+    } catch (e: Exception) {
+        // Fallback to OS API if NIO fails
+        try {
+            Os.symlink(target.path, this.path)
+            this.exists()
+        } catch (e2: Exception) {
+            false
+        }
+    }
 }
 
 fun File.readLink(): String? = try {
-    Os.readlink(this.path)
+    java.nio.file.Files.readSymbolicLink(this.toPath()).toString()
 } catch (e: Exception) {
-    null
+    // Fallback to OS API if NIO fails
+    try {
+        Os.readlink(this.path)
+    } catch (e2: Exception) {
+        null
+    }
 }
 
 fun File.isReadable(): Boolean = try {

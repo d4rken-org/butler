@@ -24,17 +24,19 @@ private val TAG = logTag("Gateway", "Local", "Copy", "Extensions")
 
 suspend fun LocalPath.copy(
     destination: LocalPath,
+    options: CopyAction.Options<LocalPath> = CopyAction.Options(),
     onProgress: (suspend (CopyAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-) = setOf(this).copy(destination, onProgress, onIssue)
+) = setOf(this).copy(destination, options, onProgress, onIssue)
 
 suspend fun Collection<LocalPath>.copy(
     destination: LocalPath,
+    options: CopyAction.Options<LocalPath> = CopyAction.Options(),
     onProgress: (suspend (CopyAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
 ): CopyAction.State.Result<LocalPath, LocalPathLookup> {
     log(TAG, DEBUG) {
-        "copy(): Copying $size targets to $destination (onProgress=$onProgress, onIssue=$onIssue)"
+        "copy(): Copying $size targets to $destination (options=$options, onProgress=$onProgress, onIssue=$onIssue)"
     }
 
     val copied = linkedSetOf<Pair<LocalPath, LocalPath>>()
@@ -50,6 +52,68 @@ suspend fun Collection<LocalPath>.copy(
     // Ensure destination directory exists
     if (!Files.exists(destination.file.toPath())) {
         Files.createDirectories(destination.file.toPath())
+    }
+
+    // Calculate total size needed and check available space
+    log(TAG, DEBUG) { "Calculating total size needed for copy operation..." }
+    var totalSizeNeeded = 0L
+    for (source in this) {
+        try {
+            if (Files.isDirectory(source.file.toPath())) {
+                Files.walk(source.file.toPath()).use { stream ->
+                    stream.forEach { path ->
+                        if (Files.isRegularFile(path)) {
+                            totalSizeNeeded += Files.size(path)
+                        }
+                    }
+                }
+            } else {
+                totalSizeNeeded += Files.size(source.file.toPath())
+            }
+        } catch (e: IOException) {
+            log(TAG, WARN) { "Could not calculate size for $source: ${e.message}" }
+        }
+    }
+
+    val availableSpace = Files.getFileStore(destination.file.toPath()).usableSpace
+    log(TAG, DEBUG) { "Space check: need $totalSizeNeeded bytes, available $availableSpace bytes" }
+
+    if (totalSizeNeeded > availableSpace) {
+        log(TAG, WARN) { "Insufficient space: need $totalSizeNeeded, have $availableSpace" }
+        val spaceError = WriteException(
+            path = destination,
+            cause = IOException("Insufficient space: need $totalSizeNeeded bytes, available $availableSpace bytes")
+        )
+        if (onIssue != null) {
+            // Create a temporary lookup for the source (collection)
+            val sourceLookup = if (this.size == 1) {
+                this.first().performLookup()
+            } else {
+                destination.performLookup() // Use destination as placeholder for multiple sources
+            }
+
+            val issue = PathActionIssue.InsufficientSpace(
+                source = sourceLookup,
+                destination = destination.performLookup(),
+                canSkip = false,
+            )
+            when (val resolution = onIssue.invoke(issue) as PathActionIssue.InsufficientSpace.Resolution) {
+                is PathActionIssue.InsufficientSpace.Resolution.Skip -> {
+                    // User chose to skip - return early with empty result
+                    return CopyAction.State.Result(
+                        copied = emptySet(),
+                        skipped = this.toSet(),
+                        bytesCopied = 0L,
+                    )
+                }
+                is PathActionIssue.InsufficientSpace.Resolution.Cancel -> throw CancellationException(
+                    "Insufficient space",
+                    spaceError
+                )
+            }
+        } else {
+            throw spaceError
+        }
     }
 
     this.forEachIndexed { index, currentTopLevel ->
@@ -78,7 +142,40 @@ suspend fun Collection<LocalPath>.copy(
             val destinationPath = LocalPath.build(File(destination.file, cleanRelativePath))
 
             when (lookup.fileType) {
-                FileType.SYMBOLIC_LINK, FileType.FILE -> {
+                FileType.SYMBOLIC_LINK -> {
+                    if (options.followSymlinks) {
+                        // Follow the symlink and treat as whatever it points to
+                        try {
+                            val targetPath = Files.readSymbolicLink(localPath.file.toPath())
+                            val resolvedPath = localPath.file.toPath().parent.resolve(targetPath).normalize()
+                            if (Files.isDirectory(resolvedPath)) {
+                                // It's a directory symlink - treat as directory
+                                dirs.addLast(lookup to destinationPath)
+                                // Traverse the resolved directory, but add children as if they're under the symlink
+                                Files.newDirectoryStream(resolvedPath).use { ds ->
+                                    for (child in ds) {
+                                        // Create path relative to symlink location, not resolved location
+                                        val childName = child.fileName.toString()
+                                        val symlinkChild = LocalPath.build(File(localPath.file, childName))
+                                        toVisit.addLast(symlinkChild)
+                                    }
+                                }
+                            } else {
+                                // It's a file symlink - treat as file
+                                files.addLast(lookup to destinationPath)
+                            }
+                        } catch (e: IOException) {
+                            log(TAG, WARN) { "Cannot resolve symlink: $lookup - ${e.message}" }
+                            // If we can't resolve it, copy the link as-is
+                            files.addLast(lookup to destinationPath)
+                        }
+                    } else {
+                        // Don't follow symlink - copy it as-is (treat as file)
+                        files.addLast(lookup to destinationPath)
+                    }
+                    continue
+                }
+                FileType.FILE -> {
                     files.addLast(lookup to destinationPath)
                     continue
                 }
@@ -339,7 +436,32 @@ suspend fun Collection<LocalPath>.copy(
                         }
                     }
 
-                    Files.createDirectories(dest.file.toPath())
+                    // Create directory or symlink depending on source type and options
+                    if (sourceLookup.fileType == FileType.SYMBOLIC_LINK && !options.followSymlinks) {
+                        // Copy directory symlink as symlink (not the directory it points to)
+                        val sourcePath = sourceLookup.lookedUp.file.toPath()
+                        val linkTarget = Files.readSymbolicLink(sourcePath)
+
+                        // Preserve whether target is absolute or relative
+                        val newTarget = if (linkTarget.isAbsolute) {
+                            // Keep absolute paths as absolute
+                            linkTarget
+                        } else {
+                            // For relative paths, adjust relative to destination location
+                            val absoluteTarget = sourcePath.parent.resolve(linkTarget).normalize()
+                            dest.file.toPath().parent.relativize(absoluteTarget)
+                        }
+
+                        // Delete destination if it exists (createSymbolicLink doesn't support REPLACE_EXISTING)
+                        if (Files.exists(dest.file.toPath())) {
+                            Files.delete(dest.file.toPath())
+                        }
+                        Files.createSymbolicLink(dest.file.toPath(), newTarget)
+                    } else {
+                        // Create actual directory
+                        Files.createDirectories(dest.file.toPath())
+                    }
+
                     copied.add(sourceLookup.lookedUp to dest)
                     itemsProcessed++
                     break
@@ -505,12 +627,49 @@ suspend fun Collection<LocalPath>.copy(
                     }
 
                     // Perform the copy
-                    Files.copy(
-                        sourceLookup.lookedUp.file.toPath(),
-                        dest.file.toPath(),
-                        StandardCopyOption.REPLACE_EXISTING,
-                        StandardCopyOption.COPY_ATTRIBUTES
-                    )
+                    val sourcePath = sourceLookup.lookedUp.file.toPath()
+
+                    if (sourceLookup.fileType == FileType.SYMBOLIC_LINK) {
+                        if (options.followSymlinks) {
+                            // Follow the symlink and copy the target content
+                            val targetPath = Files.readSymbolicLink(sourcePath).let { target ->
+                                sourcePath.parent.resolve(target).normalize()
+                            }
+                            Files.copy(
+                                targetPath,
+                                dest.file.toPath(),
+                                StandardCopyOption.REPLACE_EXISTING,
+                                StandardCopyOption.COPY_ATTRIBUTES
+                            )
+                        } else {
+                            // Copy the symlink itself (not the target)
+                            val linkTarget = Files.readSymbolicLink(sourcePath)
+
+                            // Preserve whether target is absolute or relative
+                            val newTarget = if (linkTarget.isAbsolute) {
+                                // Keep absolute paths as absolute
+                                linkTarget
+                            } else {
+                                // For relative paths, adjust relative to destination location
+                                val absoluteTarget = sourcePath.parent.resolve(linkTarget).normalize()
+                                dest.file.toPath().parent.relativize(absoluteTarget)
+                            }
+
+                            // Delete destination if it exists (createSymbolicLink doesn't support REPLACE_EXISTING)
+                            if (Files.exists(dest.file.toPath())) {
+                                Files.delete(dest.file.toPath())
+                            }
+                            Files.createSymbolicLink(dest.file.toPath(), newTarget)
+                        }
+                    } else {
+                        // Regular file copy
+                        Files.copy(
+                            sourcePath,
+                            dest.file.toPath(),
+                            StandardCopyOption.REPLACE_EXISTING,
+                            StandardCopyOption.COPY_ATTRIBUTES
+                        )
+                    }
 
                     bytesCopied += sourceLookup.size
                     copied.add(sourceLookup.lookedUp to dest)
