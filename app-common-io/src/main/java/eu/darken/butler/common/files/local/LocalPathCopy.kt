@@ -168,6 +168,7 @@ internal class LocalPathCopy(
                                         lookup, destinationPath, item.source
                                     )
                                 )
+                                totalSizeNeeded += lookup.size
                                 Files.newDirectoryStream(resolvedPath).use { ds ->
                                     for (child in ds) {
                                         val childName = child.fileName.toString()
@@ -217,6 +218,7 @@ internal class LocalPathCopy(
                             lookup, destinationPath, item.source
                         )
                     )
+                    totalSizeNeeded += lookup.size
                 }
                 FileType.UNKNOWN -> throw IllegalStateException("Unknown file type: $lookup")
             }
