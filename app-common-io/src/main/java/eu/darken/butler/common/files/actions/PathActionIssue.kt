@@ -61,7 +61,6 @@ sealed interface PathActionIssue : Issue {
         override val id: Issue.Id = Issue.Id(),
         val source: APathLookup<APath>,
         val destination: APathLookup<APath>,
-        val canSkip: Boolean = false,
     ) : PathActionIssue {
         override val title: CaString = caString {
             "// TODO: title InsufficientSpace"
@@ -70,7 +69,7 @@ sealed interface PathActionIssue : Issue {
             "// TODO: description InsufficientSpace"
         }
         sealed interface Resolution : PathActionIssue.Resolution {
-            data class Skip(val applyToAll: Boolean = false) : Resolution
+            data object Retry : Resolution
             data class Cancel(val error: Exception? = null) : Resolution
         }
     }

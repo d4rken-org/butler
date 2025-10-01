@@ -4,6 +4,8 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.ReadException
+import eu.darken.butler.common.files.errors.WriteException
+import eu.darken.butler.common.files.metadata.FileType
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
@@ -11,6 +13,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldContain
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -786,6 +789,122 @@ class LocalPathCopyExtensionsTest : BaseTest() {
         // Then
         nonExistentDest.exists() shouldBe true
         File(nonExistentDest, "file.txt").exists() shouldBe true
+    }
+
+    @Test
+    fun `copy should fail when destination exists but is a file`() = runTest {
+        // Given
+        val sourceFile = File(sourceFolder, "source.txt")
+        sourceFile.writeText("content")
+
+        val destinationFile = File(testFolder, "dest-file.txt")
+        destinationFile.writeText("I'm a file, not a directory")
+
+        // When/Then
+        val exception = shouldThrow<WriteException> {
+            LocalPath.build(sourceFile).copy(LocalPath.build(destinationFile))
+        }
+
+        // Verify the exception is about the destination path
+        exception.path shouldBe LocalPath.build(destinationFile)
+        // Verify the cause mentions it's not a directory
+        exception.cause?.message shouldContain "not a directory"
+    }
+
+    @Test
+    fun `destination file conflict can be resolved by overwriting`() = runTest {
+        // Given
+        val sourceFile = File(sourceFolder, "source.txt")
+        sourceFile.writeText("content")
+
+        val destinationFile = File(testFolder, "dest-directory")
+        destinationFile.writeText("I'm a file blocking directory creation")
+
+        // When
+        var issueEncountered = false
+        val result = LocalPath.build(sourceFile).copy(
+            LocalPath.build(destinationFile),
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        issueEncountered = true
+                        issue.destination.fileType shouldBe FileType.FILE
+                        PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    }
+                    else -> throw IllegalStateException("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then
+        issueEncountered shouldBe true
+        destinationFile.isDirectory shouldBe true
+        File(destinationFile, "source.txt").exists() shouldBe true
+        result.copied shouldHaveSize 1
+    }
+
+    @Test
+    fun `destination file conflict can be resolved by renaming file`() = runTest {
+        // Given
+        val sourceFile = File(sourceFolder, "source.txt")
+        sourceFile.writeText("content")
+
+        val destinationFile = File(testFolder, "dest-directory")
+        destinationFile.writeText("I'm a file blocking directory creation")
+
+        // When
+        var issueEncountered = false
+        val result = LocalPath.build(sourceFile).copy(
+            LocalPath.build(destinationFile),
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        issueEncountered = true
+                        PathActionIssue.PathAlreadyExists.Resolution.RenameDestination("dest-directory.old")
+                    }
+                    else -> throw IllegalStateException("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then
+        issueEncountered shouldBe true
+        File(testFolder, "dest-directory.old").apply {
+            exists() shouldBe true
+            isFile shouldBe true
+            readText() shouldBe "I'm a file blocking directory creation"
+        }
+        destinationFile.isDirectory shouldBe true
+        File(destinationFile, "source.txt").exists() shouldBe true
+        result.copied shouldHaveSize 1
+    }
+
+    @Test
+    fun `copy should fail when destination creation fails due to permissions`() = runTest {
+        // Given
+        val sourceFile = File(sourceFolder, "source.txt")
+        sourceFile.writeText("content")
+
+        val readOnlyParent = File(testFolder, "readonly-parent")
+        readOnlyParent.mkdirs()
+        readOnlyParent.setReadOnly()
+
+        val destinationInReadOnly = File(readOnlyParent, "dest-folder")
+
+        try {
+            // When/Then
+            val exception = shouldThrow<WriteException> {
+                LocalPath.build(sourceFile).copy(LocalPath.build(destinationInReadOnly))
+            }
+
+            // Verify the exception is about the destination path
+            exception.path shouldBe LocalPath.build(destinationInReadOnly)
+            // Verify it's an IO error (permission or creation failure)
+            exception.cause shouldNotBe null
+        } finally {
+            // Cleanup - restore write permissions
+            readOnlyParent.setWritable(true)
+        }
     }
 
     @Test
