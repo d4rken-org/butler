@@ -36,6 +36,7 @@ internal class LocalPathCopy(
     private var issueMergeAllPathExists = false
     private var issueSkippAllPermission = false
     private var issueSkippAllUnknown = false
+    private var issueSkipAllDirectoryListing = false
 
     // Track renamed and skipped directories across all sources
     private val skippedSourceDirs = mutableSetOf<LocalPath>()
@@ -168,7 +169,29 @@ internal class LocalPathCopy(
                         }
                     }
                 } catch (e: IOException) {
-                    log(TAG, WARN) { "Cannot list directory: $lookup - ${e.message}" }
+                    log(TAG, ERROR) { "processScan(): Cannot list directory: $lookup - ${e.message}" }
+
+                    if (issueSkipAllDirectoryListing) {
+                        log(TAG, INFO) { "Skipping directory listing (apply-to-all): $lookup" }
+                        return
+                    }
+
+                    val readError = ReadException(
+                        message = "Cannot list directory",
+                        path = lookup.lookedUp,
+                        cause = e
+                    )
+                    if (onIssue == null) throw readError
+
+                    val issue = PathActionIssue.UnknownError(
+                        destination = lookup,
+                        exception = readError,
+                        canRetry = true,
+                        canSkip = true
+                    )
+
+                    // Queue issue resolution to be processed next (suspend function required)
+                    workQueue.addFirst(WorkItem.ResolveIssue(issue, item, readError))
                 }
             }
             FileType.FILE -> {
@@ -196,7 +219,29 @@ internal class LocalPathCopy(
                                     }
                                 }
                             } catch (e: IOException) {
-                                log(TAG, WARN) { "Cannot list directory: $lookup - ${e.message}" }
+                                log(TAG, ERROR) { "processScan(): Cannot list directory: $lookup - ${e.message}" }
+
+                                if (issueSkipAllDirectoryListing) {
+                                    log(TAG, INFO) { "Skipping directory listing (apply-to-all): $lookup" }
+                                    return
+                                }
+
+                                val readError = ReadException(
+                                    message = "Cannot list directory",
+                                    path = lookup.lookedUp,
+                                    cause = e
+                                )
+                                if (onIssue == null) throw readError
+
+                                val issue = PathActionIssue.UnknownError(
+                                    destination = lookup,
+                                    exception = readError,
+                                    canRetry = true,
+                                    canSkip = true
+                                )
+
+                                // Queue issue resolution to be processed next (suspend function required)
+                                workQueue.addFirst(WorkItem.ResolveIssue(issue, item, readError))
                             }
                         } else {
                             workQueue.addLast(WorkItem.CopyFile(lookup, destinationPath, item.topLevelSource))
@@ -683,14 +728,26 @@ internal class LocalPathCopy(
                         workQueue.addFirst(item.originalItem)
                     }
                     is PathActionIssue.UnknownError.Resolution.Skip -> {
-                        if (res.applyToAll) issueSkippAllUnknown = true
-                        val sourceLookup = when (val orig = item.originalItem) {
-                            is WorkItem.CreateDirectory -> orig.sourceLookup
-                            is WorkItem.CopyFile -> orig.sourceLookup
-                            else -> error("Unexpected original item type")
+                        when (val orig = item.originalItem) {
+                            is WorkItem.ScanSource -> {
+                                // Directory listing failure - skip this directory and its contents
+                                if (res.applyToAll) issueSkipAllDirectoryListing = true
+                                log(TAG, INFO) { "Skipping directory scan: ${orig.source}" }
+                                // No need to increment itemsProcessed or add to skipped
+                                // The CreateDirectory work item will still be processed
+                            }
+                            is WorkItem.CreateDirectory -> {
+                                if (res.applyToAll) issueSkippAllUnknown = true
+                                skipped.add(orig.sourceLookup.lookedUp)
+                                itemsProcessed++
+                            }
+                            is WorkItem.CopyFile -> {
+                                if (res.applyToAll) issueSkippAllUnknown = true
+                                skipped.add(orig.sourceLookup.lookedUp)
+                                itemsProcessed++
+                            }
+                            else -> error("Unexpected original item type: ${orig::class.simpleName}")
                         }
-                        skipped.add(sourceLookup.lookedUp)
-                        itemsProcessed++
                     }
                 }
             }
