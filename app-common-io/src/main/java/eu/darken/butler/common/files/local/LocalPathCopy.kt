@@ -166,7 +166,7 @@ internal class LocalPathCopy(
                 totalItems++
 
                 // List and queue children
-                Files.newDirectoryStream(item.source.file.toPath()).use { ds ->
+                Files.newDirectoryStream(item.source.toNioPath()).use { ds ->
                     for (child in ds) {
                         val childPath = LocalPath.build(child.toFile())
                         // Maintain displayPath mapping for children
@@ -192,8 +192,8 @@ internal class LocalPathCopy(
             FileType.SYMBOLIC_LINK -> {
                 if (options.followSymlinks) {
                     try {
-                        val targetPath = Files.readSymbolicLink(item.source.file.toPath())
-                        val resolvedPath = item.source.file.toPath().parent.resolve(targetPath).normalize()
+                        val targetPath = Files.readSymbolicLink(item.source.toNioPath())
+                        val resolvedPath = item.source.toNioPath().parent.resolve(targetPath).normalize()
                         if (Files.isDirectory(resolvedPath)) {
                             workQueue.addLast(WorkItem.CreateDirectory(lookup, destinationPath, item.topLevelSource))
                             totalSizeNeeded += lookup.size
@@ -286,7 +286,7 @@ internal class LocalPathCopy(
             onProgress?.invoke(createProgress(sourceLookup, dest))
 
             // Check if destination already exists
-            if (Files.exists(dest.file.toPath())) {
+            if (Files.exists(dest.toNioPath())) {
                 val destLookup = dest.performLookup()
 
                 // Directory-directory conflict
@@ -342,7 +342,7 @@ internal class LocalPathCopy(
 
                     if (issueOverwriteAllPathExists) {
                         log(TAG, INFO) { "Overwriting file with directory (overwrite apply-to-all): $dest" }
-                        Files.delete(dest.file.toPath())
+                        Files.delete(dest.toNioPath())
                     } else {
                         val existsError = WriteException(path = dest, cause = FileAlreadyExistsException(dest.path))
                         if (onIssue == null) throw existsError
@@ -365,20 +365,20 @@ internal class LocalPathCopy(
 
             // Create directory or symlink
             if (sourceLookup.fileType == FileType.SYMBOLIC_LINK && !options.followSymlinks) {
-                val sourcePath = sourceLookup.lookedUp.file.toPath()
+                val sourcePath = sourceLookup.lookedUp.toNioPath()
                 val linkTarget = Files.readSymbolicLink(sourcePath)
                 val newTarget = if (linkTarget.isAbsolute) {
                     linkTarget
                 } else {
                     val absoluteTarget = sourcePath.parent.resolve(linkTarget).normalize()
-                    dest.file.toPath().parent.relativize(absoluteTarget)
+                    dest.toNioPath().parent.relativize(absoluteTarget)
                 }
-                if (Files.exists(dest.file.toPath())) {
-                    Files.delete(dest.file.toPath())
+                if (Files.exists(dest.toNioPath())) {
+                    Files.delete(dest.toNioPath())
                 }
-                Files.createSymbolicLink(dest.file.toPath(), newTarget)
+                Files.createSymbolicLink(dest.toNioPath(), newTarget)
             } else {
-                Files.createDirectories(dest.file.toPath())
+                Files.createDirectories(dest.toNioPath())
             }
 
             copied.add(sourceLookup.lookedUp to dest)
@@ -396,7 +396,7 @@ internal class LocalPathCopy(
             val writeError = WriteException(path = dest, cause = e)
             if (onIssue == null) throw writeError
 
-            val destLookup = if (Files.exists(dest.file.toPath())) dest.performLookup() else sourceLookup
+            val destLookup = if (Files.exists(dest.toNioPath())) dest.performLookup() else sourceLookup
             val issue = PathActionIssue.InsufficientPermission(
                 destination = destLookup,
                 exception = writeError,
@@ -417,7 +417,7 @@ internal class LocalPathCopy(
             val writeError = WriteException(path = dest, cause = e)
             if (onIssue == null) throw writeError
 
-            val destLookup = if (Files.exists(dest.file.toPath())) dest.performLookup() else sourceLookup
+            val destLookup = if (Files.exists(dest.toNioPath())) dest.performLookup() else sourceLookup
             val issue = PathActionIssue.UnknownError(
                 destination = destLookup,
                 exception = writeError,
@@ -453,12 +453,12 @@ internal class LocalPathCopy(
 
             // Ensure parent directory exists
             val parentPath = dest.file.parentFile?.let { LocalPath.build(it) }
-            if (parentPath != null && !Files.exists(parentPath.file.toPath())) {
-                Files.createDirectories(parentPath.file.toPath())
+            if (parentPath != null && !Files.exists(parentPath.toNioPath())) {
+                Files.createDirectories(parentPath.toNioPath())
             }
 
             // Check if destination already exists
-            if (Files.exists(dest.file.toPath())) {
+            if (Files.exists(dest.toNioPath())) {
                 if (issueSkipAllPathExists) {
                     log(TAG, INFO) { "Skipping existing file (skip apply-to-all): $dest" }
                     skipped.add(sourceLookup.lookedUp)
@@ -488,7 +488,7 @@ internal class LocalPathCopy(
             }
 
             // Perform the copy
-            val sourcePath = sourceLookup.lookedUp.file.toPath()
+            val sourcePath = sourceLookup.lookedUp.toNioPath()
 
             if (sourceLookup.fileType == FileType.SYMBOLIC_LINK) {
                 if (options.followSymlinks) {
@@ -497,7 +497,7 @@ internal class LocalPathCopy(
                     }
                     Files.copy(
                         targetPath,
-                        dest.file.toPath(),
+                        dest.toNioPath(),
                         StandardCopyOption.REPLACE_EXISTING,
                         StandardCopyOption.COPY_ATTRIBUTES
                     )
@@ -507,17 +507,17 @@ internal class LocalPathCopy(
                         linkTarget
                     } else {
                         val absoluteTarget = sourcePath.parent.resolve(linkTarget).normalize()
-                        dest.file.toPath().parent.relativize(absoluteTarget)
+                        dest.toNioPath().parent.relativize(absoluteTarget)
                     }
-                    if (Files.exists(dest.file.toPath())) {
-                        Files.delete(dest.file.toPath())
+                    if (Files.exists(dest.toNioPath())) {
+                        Files.delete(dest.toNioPath())
                     }
-                    Files.createSymbolicLink(dest.file.toPath(), newTarget)
+                    Files.createSymbolicLink(dest.toNioPath(), newTarget)
                 }
             } else {
                 Files.copy(
                     sourcePath,
-                    dest.file.toPath(),
+                    dest.toNioPath(),
                     StandardCopyOption.REPLACE_EXISTING,
                     StandardCopyOption.COPY_ATTRIBUTES
                 )
@@ -560,7 +560,7 @@ internal class LocalPathCopy(
             val writeError = WriteException(path = dest, cause = copyError)
             if (onIssue == null) throw writeError
 
-            val destLookup = if (Files.exists(dest.file.toPath())) dest.performLookup() else sourceLookup
+            val destLookup = if (Files.exists(dest.toNioPath())) dest.performLookup() else sourceLookup
             val issue = PathActionIssue.UnknownError(
                 destination = destLookup,
                 exception = writeError,
@@ -603,21 +603,21 @@ internal class LocalPathCopy(
                         when (val orig = item.originalItem) {
                             is WorkItem.CreateDirectory -> {
                                 val dest = orig.dest
-                                if (Files.exists(dest.file.toPath())) {
-                                    if (Files.isDirectory(dest.file.toPath())) {
+                                if (Files.exists(dest.toNioPath())) {
+                                    if (Files.isDirectory(dest.toNioPath())) {
                                         deleteRecursively(dest)
                                     } else {
-                                        Files.delete(dest.file.toPath())
+                                        Files.delete(dest.toNioPath())
                                     }
                                 }
                             }
                             is WorkItem.CopyFile -> {
                                 val dest = orig.dest
-                                if (Files.exists(dest.file.toPath())) {
-                                    if (Files.isDirectory(dest.file.toPath())) {
+                                if (Files.exists(dest.toNioPath())) {
+                                    if (Files.isDirectory(dest.toNioPath())) {
                                         deleteRecursively(dest)
                                     } else {
-                                        Files.delete(dest.file.toPath())
+                                        Files.delete(dest.toNioPath())
                                     }
                                 }
                             }
@@ -634,7 +634,7 @@ internal class LocalPathCopy(
                         when (val orig = item.originalItem) {
                             is WorkItem.CreateDirectory -> {
                                 val newDestPath = LocalPath.build(File(orig.dest.file.parentFile!!, res.newName))
-                                Files.createDirectories(newDestPath.file.toPath())
+                                Files.createDirectories(newDestPath.toNioPath())
                                 copied.add(orig.sourceLookup.lookedUp to newDestPath)
                                 renamedSourceDirs[orig.sourceLookup.lookedUp] = newDestPath
                                 itemsProcessed++
@@ -642,8 +642,8 @@ internal class LocalPathCopy(
                             is WorkItem.CopyFile -> {
                                 val newDestPath = LocalPath.build(File(orig.dest.file.parentFile!!, res.newName))
                                 Files.copy(
-                                    orig.sourceLookup.lookedUp.file.toPath(),
-                                    newDestPath.file.toPath(),
+                                    orig.sourceLookup.lookedUp.toNioPath(),
+                                    newDestPath.toNioPath(),
                                     StandardCopyOption.COPY_ATTRIBUTES
                                 )
                                 bytesCopied += orig.sourceLookup.size
@@ -660,7 +660,7 @@ internal class LocalPathCopy(
                                 val dest =
                                     if (orig is WorkItem.CreateDirectory) orig.dest else (orig as WorkItem.CopyFile).dest
                                 val newDestPath = LocalPath.build(File(dest.file.parentFile!!, res.newName))
-                                Files.move(dest.file.toPath(), newDestPath.file.toPath())
+                                Files.move(dest.toNioPath(), newDestPath.toNioPath())
                                 workQueue.addFirst(orig)
                             }
                             else -> error("Unexpected original item type")
@@ -713,13 +713,13 @@ internal class LocalPathCopy(
 
     private suspend fun ensureDestinationExists() {
         try {
-            if (!Files.exists(destination.file.toPath())) {
-                Files.createDirectories(destination.file.toPath())
+            if (!Files.exists(destination.toNioPath())) {
+                Files.createDirectories(destination.toNioPath())
                 log(TAG) { "Destination directory created: $destination" }
                 return
             }
 
-            if (Files.isDirectory(destination.file.toPath())) {
+            if (Files.isDirectory(destination.toNioPath())) {
                 log(TAG) { "Destination is an existing directory: $destination" }
                 return
             }
@@ -746,12 +746,12 @@ internal class LocalPathCopy(
             when (val resolution = onIssue.invoke(issue) as PathActionIssue.PathAlreadyExists.Resolution) {
                 is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
                     log(TAG, INFO) { "Overwriting file at destination: $destination" }
-                    Files.delete(destination.file.toPath())
+                    Files.delete(destination.toNioPath())
                 }
                 is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
                     log(TAG, INFO) { "Renaming existing file: $destination -> ${resolution.newName}" }
                     val newDestPath = LocalPath.build(File(destination.file.parentFile!!, resolution.newName))
-                    Files.move(destination.file.toPath(), newDestPath.file.toPath())
+                    Files.move(destination.toNioPath(), newDestPath.toNioPath())
                 }
                 is PathActionIssue.PathAlreadyExists.Resolution.Cancel -> throw CancellationException(
                     "User cancelled",
@@ -764,7 +764,7 @@ internal class LocalPathCopy(
                 }
             }
 
-            Files.createDirectories(destination.file.toPath())
+            Files.createDirectories(destination.toNioPath())
         } catch (e: Exception) {
             throw WriteException(path = destination, cause = e)
         }
@@ -805,9 +805,9 @@ internal class LocalPathCopy(
     )
 
     private fun deleteRecursively(path: LocalPath) {
-        if (!Files.exists(path.file.toPath())) return
+        if (!Files.exists(path.toNioPath())) return
 
-        Files.walk(path.file.toPath())
+        Files.walk(path.toNioPath())
             .sorted(Comparator.reverseOrder())
             .forEach { Files.deleteIfExists(it) }
     }

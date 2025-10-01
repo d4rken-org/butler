@@ -24,7 +24,7 @@ import eu.darken.butler.common.files.core.local.listFiles2
 import eu.darken.butler.common.files.core.local.parentsInclusive
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
-import eu.darken.butler.common.files.extensions.asFile
+import eu.darken.butler.common.files.extensions.toFile
 import eu.darken.butler.common.files.io.callbacks
 import eu.darken.butler.common.files.local.ipc.FileOpsClient
 import eu.darken.butler.common.files.local.walkers.DirectLocalWalker
@@ -103,7 +103,7 @@ class LocalGateway @Inject constructor(
 
     suspend fun createDir(path: LocalPath, mode: Mode = Mode.AUTO): Unit = runIO {
         try {
-            val file = path.asFile()
+            val file = path.toFile()
 
             if (mode == Mode.NORMAL || mode == Mode.AUTO) {
                 if (file.exists() && file.isFile) {
@@ -160,7 +160,7 @@ class LocalGateway @Inject constructor(
     suspend fun createFile(path: LocalPath, mode: Mode = Mode.AUTO): Unit = runIO {
         try {
             if (mode == Mode.NORMAL || mode == Mode.AUTO) {
-                val file = path.asFile()
+                val file = path.toFile()
 
                 if (file.exists()) {
                     throw IOException("Path exists already")
@@ -223,7 +223,7 @@ class LocalGateway @Inject constructor(
 
     suspend fun lookup(path: LocalPath, mode: Mode = Mode.AUTO): LocalPathLookup = runIO {
         try {
-            val javaFile = path.asFile()
+            val javaFile = path.toFile()
             val canRead = if (mode == Mode.ROOT) {
                 false
             } else {
@@ -263,7 +263,7 @@ class LocalGateway @Inject constructor(
 
     suspend fun listFiles(path: LocalPath, mode: Mode = Mode.AUTO): Collection<LocalPath> = runIO {
         try {
-            val javaFile = path.asFile()
+            val javaFile = path.toFile()
             val nonRootList: List<File>? = try {
                 when (mode) {
                     Mode.ROOT -> null
@@ -305,7 +305,7 @@ class LocalGateway @Inject constructor(
 
     suspend fun lookupFiles(path: LocalPath, mode: Mode = Mode.AUTO): Collection<LocalPathLookup> = runIO {
         try {
-            val javaFile = path.asFile()
+            val javaFile = path.toFile()
             val nonRootList = try {
                 when (mode) {
                     Mode.ROOT -> null
@@ -355,7 +355,7 @@ class LocalGateway @Inject constructor(
     suspend fun lookupFilesExtended(path: LocalPath, mode: Mode = Mode.AUTO): Collection<LocalPathLookupExtended> =
         runIO {
             try {
-                val javaFile = path.asFile()
+                val javaFile = path.toFile()
                 val nonRootList = try {
                     when (mode) {
                         Mode.ROOT -> null
@@ -409,7 +409,7 @@ class LocalGateway @Inject constructor(
         mode: Mode = Mode.AUTO,
     ): Flow<LocalPathLookup> = runIO {
         try {
-            val javaFile = path.asFile()
+            val javaFile = path.toFile()
             val canRead = when (mode) {
                 Mode.AUTO, Mode.NORMAL -> if (javaFile.canRead()) {
                     try {
@@ -502,7 +502,7 @@ class LocalGateway @Inject constructor(
         mode: Mode = Mode.AUTO,
     ): Long = runIO {
         try {
-            val javaFile = path.asFile()
+            val javaFile = path.toFile()
             val canRead = when (mode) {
                 Mode.AUTO, Mode.NORMAL -> if (javaFile.canRead()) {
                     try {
@@ -560,7 +560,7 @@ class LocalGateway @Inject constructor(
 
     suspend fun exists(path: LocalPath, mode: Mode = Mode.AUTO): Boolean = runIO {
         try {
-            val javaFile = path.asFile()
+            val javaFile = path.toFile()
             val javaFileParent = javaFile.parentFile
 
             val canCheckNormal = when (mode) {
@@ -576,7 +576,7 @@ class LocalGateway @Inject constructor(
                     // If the file path is on public storage, and it wasn't Android/data then, assume true
                     else -> storageEnvironment.externalDirs
                         .firstOrNull { it.isAncestorOf(path) }
-                        ?.asFile()
+                        ?.toFile()
                         ?.canRead() ?: false
                 }
             }
@@ -609,7 +609,7 @@ class LocalGateway @Inject constructor(
 
     suspend fun canWrite(path: LocalPath, mode: Mode = Mode.AUTO): Boolean = runIO {
         try {
-            val file = path.asFile()
+            val file = path.toFile()
             val canNormalWrite = when (mode) {
                 Mode.ROOT -> false
                 Mode.ADB -> false
@@ -644,7 +644,7 @@ class LocalGateway @Inject constructor(
 
     suspend fun canRead(path: LocalPath, mode: Mode = Mode.AUTO): Boolean = runIO {
         try {
-            val file = path.asFile()
+            val file = path.toFile()
             val canNormalOpen = when (mode) {
                 Mode.ROOT -> false
                 Mode.ADB -> false
@@ -681,7 +681,7 @@ class LocalGateway @Inject constructor(
 
     suspend fun file(path: LocalPath, readWrite: Boolean, mode: Mode = Mode.AUTO): FileHandle = runIO {
         try {
-            val file = path.asFile()
+            val file = path.toFile()
             val canNormalOpen = when (mode) {
                 Mode.ROOT -> false
                 Mode.ADB -> false
@@ -735,8 +735,8 @@ class LocalGateway @Inject constructor(
 
     suspend fun createSymlink(linkPath: LocalPath, targetPath: LocalPath, mode: Mode = Mode.AUTO): Boolean = runIO {
         try {
-            val linkPathJava = linkPath.asFile()
-            val targetPathJava = targetPath.asFile()
+            val linkPathJava = linkPath.toFile()
+            val targetPathJava = targetPath.toFile()
             val canNormalWrite = when (mode) {
                 Mode.ROOT -> false
                 Mode.ADB -> false

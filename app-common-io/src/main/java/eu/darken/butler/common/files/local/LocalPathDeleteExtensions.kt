@@ -56,7 +56,7 @@ suspend fun Collection<LocalPath>.delete(
 
             // Check file existence first when ignoreMissing is enabled
             // Use NOFOLLOW_LINKS to check symlink itself, not its target
-            if (ignoreMissing && !Files.exists(localPath.file.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+            if (ignoreMissing && !Files.exists(localPath.toNioPath(), LinkOption.NOFOLLOW_LINKS)) {
                 log(TAG, VERBOSE) { "Skipping missing file (ignoreMissing=true): $localPath" }
                 continue
             }
@@ -86,7 +86,7 @@ suspend fun Collection<LocalPath>.delete(
             }
 
             try {
-                val p = localPath.file.toPath()
+                val p = localPath.toNioPath()
                 Files.newDirectoryStream(p).use { ds ->
                     for (child in ds) toVisit.addLast(LocalPath.build(child.toFile()))
                 }
@@ -132,7 +132,7 @@ suspend fun Collection<LocalPath>.delete(
             while (currentCoroutineContext().isActive) {
                 try {
                     onProgress?.invoke(createProgress(target))
-                    Files.delete(target.lookedUp.file.toPath())
+                    Files.delete(target.lookedUp.toNioPath())
                     deleted += target
                     itemsProcessed++
                     break

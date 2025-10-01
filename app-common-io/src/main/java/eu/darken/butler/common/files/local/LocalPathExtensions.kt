@@ -9,7 +9,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.core.local.readLink
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.extensions.Segments
-import eu.darken.butler.common.files.extensions.asFile
+import eu.darken.butler.common.files.extensions.toFile
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.funnel.IPCFunnel
@@ -32,13 +32,15 @@ fun LocalPath.relativeSegmentsTo(child: LocalPath): Array<String> {
 fun LocalPath.toCrumbs(): List<LocalPath> {
     val crumbs = mutableListOf<LocalPath>()
     crumbs.add(this)
-    var parent = this.asFile().parentFile
+    var parent = this.toFile().parentFile
     while (parent != null) {
         crumbs.add(0, LocalPath.build(parent))
         parent = parent.parentFile
     }
     return crumbs
 }
+
+fun LocalPath.toNioPath(): java.nio.file.Path = file.toPath()
 
 fun LocalPath.performLookup(): LocalPathLookup {
     val type = file.getAPathFileType() ?: throw ReadException("Does not exist or can't be read", this)
@@ -98,8 +100,8 @@ fun LocalPath.performLookupExtended(
 }
 
 fun LocalPath.isAncestorOf(child: LocalPath): Boolean {
-    val parentPath = this.asFile().path
-    val childPath = child.asFile().path
+    val parentPath = this.toFile().path
+    val childPath = child.toFile().path
 
     return when {
         parentPath.length >= childPath.length -> false

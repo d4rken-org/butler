@@ -23,7 +23,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.extensions.asFile
+import eu.darken.butler.common.files.extensions.toFile
 import eu.darken.butler.common.funnel.IPCFunnel
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.permissions.Permission
@@ -223,7 +223,7 @@ class PkgOps @Inject constructor(
 
     suspend fun viewArchive(path: APath, flags: Int = 0): PkgArchive? = ipcFunnel.use {
         // TODO Can we support SAF here?
-        val jFile = path.asFile()
+        val jFile = path.toFile()
         if (!jFile.exists()) return@use null
 
         packageManager.getPackageArchiveInfo(path.path, flags)?.let {

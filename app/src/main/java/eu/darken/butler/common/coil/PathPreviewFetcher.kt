@@ -17,7 +17,7 @@ import eu.darken.butler.common.MimeTypeTool
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.extensions.asFile
+import eu.darken.butler.common.files.extensions.toFile
 import eu.darken.butler.common.files.extensions.extension
 import eu.darken.butler.common.files.iconRes
 import eu.darken.butler.common.files.metadata.FileType
@@ -59,7 +59,7 @@ class PathPreviewFetcher @Inject constructor(
             }
 
             mimeType == "application/octet-stream" && data.lookedUp.extension == "apk" && data.lookedUp is LocalPath -> {
-                val file = data.lookedUp.asFile()
+                val file = data.lookedUp.toFile()
 
                 val iconDrawable = file
                     .takeIf { it.canRead() }

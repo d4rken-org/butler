@@ -21,7 +21,7 @@ fun APath.crumbsTo(child: APath): Array<String> {
 @Suppress("UNCHECKED_CAST")
 fun <P : APath> P.childCast(vararg segments: String): P = child(*segments) as P
 
-fun APath.asFile(): File = when (this) {
+fun APath.toFile(): File = when (this) {
     is LocalPath -> this.file
     else -> File(this.path)
 }

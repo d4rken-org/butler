@@ -6,7 +6,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.core.local.listFiles2
-import eu.darken.butler.common.files.extensions.asFile
+import eu.darken.butler.common.files.extensions.toFile
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
 import eu.darken.butler.common.files.local.LocalPathLookup
@@ -38,7 +38,7 @@ class DirectLocalWalker(
             val lookUp = queue.removeFirst()
 
             val newBatch = try {
-                lookUp.lookedUp.asFile()
+                lookUp.lookedUp.toFile()
                     .listFiles2()
                     .map { it.toLocalPath().performLookup() }
             } catch (e: Exception) {

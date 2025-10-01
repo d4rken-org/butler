@@ -7,7 +7,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.core.local.listFiles2
-import eu.darken.butler.common.files.extensions.asFile
+import eu.darken.butler.common.files.extensions.toFile
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
 import eu.darken.butler.common.files.local.LocalGateway
@@ -54,7 +54,7 @@ class EscalatingWalker(
             when {
                 item.targetMode == LocalGateway.Mode.NORMAL -> {
                     try {
-                        item.target.lookedUp.asFile()
+                        item.target.lookedUp.toFile()
                             .listFiles2()
                             .map { it.toLocalPath().performLookup() }
                             .filter {

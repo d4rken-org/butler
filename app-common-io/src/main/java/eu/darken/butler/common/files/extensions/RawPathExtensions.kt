@@ -15,8 +15,8 @@ fun RawPath.crumbsTo(child: RawPath): Array<String> {
 
 
 fun RawPath.isAncestorOf(child: RawPath): Boolean {
-    val parentPath = this.asFile().absolutePath
-    val childPath = child.asFile().absolutePath
+    val parentPath = this.toFile().absolutePath
+    val childPath = child.toFile().absolutePath
 
     return childPath.startsWith(parentPath + File.separator)
 }

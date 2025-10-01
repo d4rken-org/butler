@@ -10,7 +10,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.core.local.createSymlink
 import eu.darken.butler.common.files.core.local.listFiles2
-import eu.darken.butler.common.files.extensions.asFile
+import eu.darken.butler.common.files.extensions.toFile
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.LocalPathLookupExtended
 import eu.darken.butler.common.files.local.performLookup
@@ -43,11 +43,11 @@ class FileOpsHost @Inject constructor(
     private val ipcFunnel: IPCFunnel,
 ) : FileOpsConnection.Stub(), IpcHostModule {
 
-    private fun listFiles(path: LocalPath): List<LocalPath> = path.asFile().listFiles2().map { LocalPath.build(it) }
+    private fun listFiles(path: LocalPath): List<LocalPath> = path.toFile().listFiles2().map { LocalPath.build(it) }
 
     override fun listFilesStream(path: LocalPath): RemoteInputStream = try {
         if (Bugs.isTrace) log(TAG, VERBOSE) { "listFilesStream($path)..." }
-        val result = path.asFile().listFiles2().map { LocalPath.build(it) }
+        val result = path.toFile().listFiles2().map { LocalPath.build(it) }
         if (Bugs.isTrace) log(TAG, VERBOSE) { "listFilesStream($path) ${result.size} items read, now streaming" }
         result.toRemoteInputStream()
     } catch (e: Exception) {
@@ -131,7 +131,7 @@ class FileOpsHost @Inject constructor(
 
     override fun du(path: LocalPath): Long = try {
         if (Bugs.isTrace) log(TAG, VERBOSE) { "du($path)..." }
-        runBlocking { path.asFile().walkTopDown().map { it.length() }.sum() }
+        runBlocking { path.toFile().walkTopDown().map { it.length() }.sum() }
     } catch (e: Exception) {
         log(TAG, ERROR) { "exists(path=$path) failed\n${e.asLog()}" }
         throw e.wrapToPropagate()
@@ -139,7 +139,7 @@ class FileOpsHost @Inject constructor(
 
     override fun file(path: LocalPath, readWrite: Boolean): RemoteFileHandle = try {
         if (Bugs.isTrace) log(TAG, VERBOSE) { "file($path, $readWrite)..." }
-        path.asFile().fileHandle(readWrite).remoteFileHandle()
+        path.toFile().fileHandle(readWrite).remoteFileHandle()
     } catch (e: Exception) {
         log(TAG, ERROR) { "file(path=$path) failed\n${e.asLog()}" }
         throw e.wrapToPropagate()
@@ -147,7 +147,7 @@ class FileOpsHost @Inject constructor(
 
     override fun mkdirs(path: LocalPath): Boolean = try {
         if (Bugs.isTrace) log(TAG, VERBOSE) { "mkdirs($path)..." }
-        path.asFile().mkdirs()
+        path.toFile().mkdirs()
     } catch (e: Exception) {
         log(TAG, ERROR) { "mkdirs(path=$path) failed\n${e.asLog()}" }
         throw e.wrapToPropagate()
@@ -155,7 +155,7 @@ class FileOpsHost @Inject constructor(
 
     override fun createNewFile(path: LocalPath): Boolean = try {
         if (Bugs.isTrace) log(TAG, VERBOSE) { "createNewFile($path)..." }
-        val file = path.asFile()
+        val file = path.toFile()
 
         if (file.exists() && file.isDirectory) {
             throw IOException("Can't create file, path exists and is directory: $path")
@@ -177,7 +177,7 @@ class FileOpsHost @Inject constructor(
 
     override fun canRead(path: LocalPath): Boolean = try {
         if (Bugs.isTrace) log(TAG, VERBOSE) { "canRead($path)..." }
-        path.asFile().canRead()
+        path.toFile().canRead()
     } catch (e: Exception) {
         log(TAG, ERROR) { "path(path=$path) failed\n${e.asLog()}" }
         throw e.wrapToPropagate()
@@ -185,7 +185,7 @@ class FileOpsHost @Inject constructor(
 
     override fun canWrite(path: LocalPath): Boolean = try {
         if (Bugs.isTrace) log(TAG, VERBOSE) { "canWrite($path)..." }
-        path.asFile().canWrite()
+        path.toFile().canWrite()
     } catch (e: Exception) {
         log(TAG, ERROR) { "canWrite(path=$path) failed\n${e.asLog()}" }
         throw e.wrapToPropagate()
@@ -193,7 +193,7 @@ class FileOpsHost @Inject constructor(
 
     override fun exists(path: LocalPath): Boolean = try {
         if (Bugs.isTrace) log(TAG, VERBOSE) { "exists($path)..." }
-        path.asFile().exists()
+        path.toFile().exists()
     } catch (e: Exception) {
         log(TAG, ERROR) { "exists(path=$path) failed\n${e.asLog()}" }
         throw e.wrapToPropagate()
@@ -201,7 +201,7 @@ class FileOpsHost @Inject constructor(
 
     override fun delete(path: LocalPath, recursive: Boolean): Boolean = try {
         log(TAG, VERBOSE) { "delete($path,recursive=$recursive)..." }
-        val javaFile = path.asFile()
+        val javaFile = path.toFile()
 
         var success = when {
             recursive -> javaFile.deleteRecursively()
@@ -221,7 +221,7 @@ class FileOpsHost @Inject constructor(
 
     override fun createSymlink(linkPath: LocalPath, targetPath: LocalPath): Boolean = try {
         if (Bugs.isTrace) log(TAG, VERBOSE) { "createSymlink($linkPath,$targetPath)..." }
-        linkPath.asFile().createSymlink(targetPath.asFile())
+        linkPath.toFile().createSymlink(targetPath.toFile())
     } catch (e: Exception) {
         log(TAG, ERROR) { "createSymlink(linkPath=$linkPath, targetPath=$targetPath) failed\n${e.asLog()}" }
         throw e.wrapToPropagate()
@@ -229,7 +229,7 @@ class FileOpsHost @Inject constructor(
 
     override fun setModifiedAt(path: LocalPath, modifiedAt: Long): Boolean = try {
         if (Bugs.isTrace) log(TAG, VERBOSE) { "setModifiedAt($path,$modifiedAt)..." }
-        path.asFile().setLastModified(modifiedAt)
+        path.toFile().setLastModified(modifiedAt)
     } catch (e: Exception) {
         log(TAG, ERROR) { "setModifiedAt(path=$path, modifiedAt=$modifiedAt) failed\n${e.asLog()}" }
         throw e.wrapToPropagate()
@@ -237,7 +237,7 @@ class FileOpsHost @Inject constructor(
 
     override fun setPermissions(path: LocalPath, permissions: Permissions): Boolean = try {
         if (Bugs.isTrace) log(TAG, VERBOSE) { "setPermissions($path,$permissions)..." }
-        path.asFile().setPermissions(permissions)
+        path.toFile().setPermissions(permissions)
     } catch (e: Exception) {
         log(TAG, ERROR) { "setModifiedAt(path=$path, permissions=$permissions) failed\n${e.asLog()}" }
         throw e.wrapToPropagate()
@@ -245,7 +245,7 @@ class FileOpsHost @Inject constructor(
 
     override fun setOwnership(path: LocalPath, ownership: Ownership): Boolean = try {
         if (Bugs.isTrace) log(TAG, VERBOSE) { "setPermissions($path,$ownership)..." }
-        path.asFile().setOwnership(ownership)
+        path.toFile().setOwnership(ownership)
     } catch (e: Exception) {
         log(TAG, ERROR) { "setModifiedAt(path=$path, ownership=$ownership) failed\n${e.asLog()}" }
         throw e.wrapToPropagate()
