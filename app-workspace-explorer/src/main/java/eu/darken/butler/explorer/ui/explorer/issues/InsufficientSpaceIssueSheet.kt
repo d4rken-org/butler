@@ -6,11 +6,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Cancel
-import androidx.compose.material.icons.twotone.SkipNext
-import androidx.compose.material3.Checkbox
+import androidx.compose.material.icons.twotone.Refresh
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -18,10 +16,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -32,6 +26,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.common.R as CommonR
 
 @Composable
 fun InsufficientSpaceIssueSheet(
@@ -39,8 +34,6 @@ fun InsufficientSpaceIssueSheet(
     onResolution: (PathActionIssue.InsufficientSpace.Resolution) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var applyToAll by remember { mutableStateOf(false) }
-
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -77,51 +70,26 @@ fun InsufficientSpaceIssueSheet(
         )
         PathIssueFileComparisonCard(lookup = issue.destination)
 
-        if (issue.canSkip) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-                    .toggleable(
-                        value = applyToAll,
-                        onValueChange = { applyToAll = it }
-                    ),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Checkbox(
-                    checked = applyToAll,
-                    onCheckedChange = null,
-                )
-                Text(
-                    text = stringResource(R.string.explorer_issue_apply_all),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-        }
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (issue.canSkip) {
-                OutlinedButton(
-                    onClick = {
-                        onResolution(PathActionIssue.InsufficientSpace.Resolution.Skip(applyToAll))
-                    },
-                    modifier = Modifier.weight(1f),
+            OutlinedButton(
+                onClick = {
+                    onResolution(PathActionIssue.InsufficientSpace.Resolution.Retry)
+                },
+                modifier = Modifier.weight(1f),
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            imageVector = Icons.TwoTone.SkipNext,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Text(stringResource(R.string.explorer_issue_common_skip))
-                    }
+                    Icon(
+                        imageVector = Icons.TwoTone.Refresh,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text(stringResource(CommonR.string.general_retry_action))
                 }
             }
 

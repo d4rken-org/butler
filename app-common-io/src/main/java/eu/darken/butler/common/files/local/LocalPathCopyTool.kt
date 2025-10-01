@@ -37,28 +37,111 @@ internal class LocalPathCopyTool(
     private var issueSkippAllPermission = false
     private var issueSkippAllUnknown = false
 
+    // Track renamed and skipped directories across all sources
+    private val skippedSourceDirs = mutableSetOf<LocalPath>()
+    private val renamedSourceDirs = mutableMapOf<LocalPath, LocalPath>()
+
     // Temporary state for current source being processed
     private var currentTopLevel: LocalPath? = null
     private var currentItemsProcessed = 0
     private var currentTotalItems = 0
 
-    private data class SourceCopyData(
-        val source: LocalPath,
-        val dirs: List<Pair<LocalPathLookup, LocalPath>>,
-        val files: List<Pair<LocalPathLookup, LocalPath>>,
-        val skippedSourceDirs: Set<LocalPath>,
-        val renamedSourceDirs: Map<LocalPath, LocalPath>,
-        val totalSize: Long
-    )
+    // Total accumulated size from all scans
+    private var totalSizeNeeded = 0L
+
+    /**
+     * Sealed hierarchy of work items for the copy queue
+     */
+    private sealed class WorkItem {
+        /**
+         * Scan a source directory tree and queue create/copy items
+         */
+        data class ScanSource(
+            val source: LocalPath,
+            val sourceIndex: Int,
+            val totalSources: Int
+        ) : WorkItem()
+
+        /**
+         * Check if sufficient disk space is available
+         */
+        data object CheckSpace : WorkItem()
+
+        /**
+         * Create a directory at the destination
+         */
+        data class CreateDirectory(
+            val sourceLookup: LocalPathLookup,
+            val dest: LocalPath,
+            val sourceIndex: Int,
+            val totalSources: Int,
+            val topLevelSource: LocalPath
+        ) : WorkItem()
+
+        /**
+         * Copy a file to the destination
+         */
+        data class CopyFile(
+            val sourceLookup: LocalPathLookup,
+            val dest: LocalPath,
+            val sourceIndex: Int,
+            val totalSources: Int,
+            val topLevelSource: LocalPath
+        ) : WorkItem()
+
+        /**
+         * Resolve an issue that occurred during processing
+         */
+        data class ResolveIssue(
+            val issue: PathActionIssue,
+            val originalItem: WorkItem,
+            val exception: Exception
+        ) : WorkItem()
+    }
 
     suspend fun execute(): CopyAction.State.Result<LocalPath, LocalPathLookup> {
         ensureDestinationExists()
 
-        val allSourceData = analyzeAllSources()
-        val totalSizeNeeded = allSourceData.sumOf { it.totalSize }
+        val workQueue = ArrayDeque<WorkItem>()
 
-        checkSpaceAvailable(totalSizeNeeded)
-        copyAllSources(allSourceData)
+        // Initialize queue with scan items for each source
+        sources.forEachIndexed { index, source ->
+            workQueue.addLast(WorkItem.ScanSource(source, index, sources.size))
+        }
+
+        var scansCompleted = 0
+
+        // Process work queue
+        while (workQueue.isNotEmpty() && currentCoroutineContext().isActive) {
+            when (val item = workQueue.removeFirst()) {
+                is WorkItem.ScanSource -> {
+                    processScan(item, workQueue)
+                    scansCompleted++
+
+                    // After all scans complete, inject space check before first create/copy
+                    if (scansCompleted == sources.size) {
+                        val insertIndex = workQueue.indexOfFirst {
+                            it is WorkItem.CreateDirectory || it is WorkItem.CopyFile
+                        }
+                        if (insertIndex >= 0) {
+                            workQueue.add(insertIndex, WorkItem.CheckSpace)
+                        }
+                    }
+                }
+                is WorkItem.CheckSpace -> {
+                    processSpaceCheck()
+                }
+                is WorkItem.CreateDirectory -> {
+                    processCreateDirectory(item, workQueue)
+                }
+                is WorkItem.CopyFile -> {
+                    processCopyFile(item, workQueue)
+                }
+                is WorkItem.ResolveIssue -> {
+                    processResolveIssue(item, workQueue)
+                }
+            }
+        }
 
         return CopyAction.State.Result(
             copied = copied,
@@ -67,183 +150,94 @@ internal class LocalPathCopyTool(
         )
     }
 
-    private suspend fun ensureDestinationExists() {
-        try {
-            // Check if destination exists
-            if (Files.exists(destination.file.toPath())) {
-                // Verify it's a directory, not a file
-                if (!Files.isDirectory(destination.file.toPath())) {
-                    val existsError = WriteException(
-                        path = destination,
-                        cause = FileAlreadyExistsException(destination.path)
-                    )
+    private fun processScan(item: WorkItem.ScanSource, workQueue: ArrayDeque<WorkItem>) {
+        log(TAG, VERBOSE) { "Scanning source ${item.sourceIndex + 1}/${item.totalSources}: ${item.source}" }
 
-                    // If no issue handler, throw immediately (backward compatibility)
-                    if (onIssue == null) {
-                        throw WriteException(
-                            path = destination,
-                            cause = IOException("Destination exists but is not a directory: ${destination.path}")
-                        )
-                    }
+        val toVisit = ArrayDeque<LocalPath>().apply { add(item.source) }
+        val discoveredItems = mutableListOf<WorkItem>()
 
-                    // Ask user what to do - a file exists where we need a directory
-                    val destLookup = destination.performLookup()
-                    val sourceLookup = sources.first().performLookup()
-
-                    val issue = PathActionIssue.PathAlreadyExists(
-                        source = sourceLookup,
-                        destination = destLookup,
-                        canSkip = false,
-                        canOverwrite = true,
-                        canRenameDestination = true,
-                        canRenameSource = false,
-                        canMerge = false,
-                        suggestedName = generateUniqueName(destination.name, destination.file.parentFile!!),
-                    )
-
-                    when (val resolution = onIssue.invoke(issue) as PathActionIssue.PathAlreadyExists.Resolution) {
-                        is PathActionIssue.PathAlreadyExists.Resolution.Cancel -> throw CancellationException(
-                            "User cancelled",
-                            existsError
-                        )
-                        is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
-                            log(TAG, INFO) { "Overwriting file at destination: $destination" }
-                            Files.delete(destination.file.toPath())
-                            // File deleted, fall through to create directory
-                        }
-                        is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
-                            log(TAG, INFO) { "Renaming existing file: $destination -> ${resolution.newName}" }
-                            val newDestPath = LocalPath.build(File(destination.file.parentFile!!, resolution.newName))
-                            Files.move(destination.file.toPath(), newDestPath.file.toPath())
-                            // File renamed, fall through to create directory
-                        }
-                        is PathActionIssue.PathAlreadyExists.Resolution.Skip,
-                        is PathActionIssue.PathAlreadyExists.Resolution.RenameSource,
-                        is PathActionIssue.PathAlreadyExists.Resolution.Merge -> {
-                            throw CancellationException("Invalid resolution for destination conflict", existsError)
-                        }
-                    }
-                    // After handling file conflict, create the directory
-                    Files.createDirectories(destination.file.toPath())
-                    return
-                } else {
-                    // Destination exists and is a directory - good!
-                    return
-                }
-            }
-
-            // Create destination directory
-            Files.createDirectories(destination.file.toPath())
-
-        } catch (e: SecurityException) {
-            // Permission denied
-            throw WriteException(
-                path = destination,
-                cause = IOException("Cannot create destination directory (permission denied): ${destination.path}", e)
-            )
-        } catch (e: WriteException) {
-            // Re-throw our own exceptions
-            throw e
-        } catch (e: CancellationException) {
-            // Re-throw cancellation
-            throw e
-        } catch (e: IOException) {
-            // Other IO errors (disk full, invalid path, etc.)
-            throw WriteException(
-                path = destination,
-                cause = IOException("Cannot create destination directory: ${destination.path}", e)
-            )
-        }
-    }
-
-    private fun analyzeAllSources(): List<SourceCopyData> {
-        val allSourceData = mutableListOf<SourceCopyData>()
-
-        sources.forEachIndexed { index, currentTopLevel ->
-            val sourceData = analyzeSingleSource(currentTopLevel, index, sources.size)
-            allSourceData.add(sourceData)
-        }
-
-        return allSourceData
-    }
-
-    private fun analyzeSingleSource(source: LocalPath, index: Int, total: Int): SourceCopyData {
-        log(TAG, VERBOSE) { "Analyzing target ${index + 1}/$total: $source" }
-
-        var sourceSize = 0L
-        val toVisit = ArrayDeque<LocalPath>().apply { add(source) }
-        val dirs = ArrayDeque<Pair<LocalPathLookup, LocalPath>>()
-        val files = ArrayDeque<Pair<LocalPathLookup, LocalPath>>()
-        val skippedSourceDirs = mutableSetOf<LocalPath>()
-        val renamedSourceDirs = mutableMapOf<LocalPath, LocalPath>()
-
-        // Build lists of directories and files to copy
+        // Build lists of directories and files to queue
         while (toVisit.isNotEmpty()) {
             val localPath = toVisit.removeFirst()
             val lookup = localPath.performLookup()
 
-            val relativePath = if (localPath == source) {
-                source.name
+            val relativePath = if (localPath == item.source) {
+                item.source.name
             } else {
-                val segments = source.crumbsTo(localPath)
-                source.name + "/" + segments.joinToString("/")
+                val segments = item.source.crumbsTo(localPath)
+                item.source.name + "/" + segments.joinToString("/")
             }
 
-            // Ensure relativePath doesn't start with separator (would make it absolute)
             val cleanRelativePath = relativePath.trimStart('/')
             val destinationPath = LocalPath.build(File(destination.file, cleanRelativePath))
 
             when (lookup.fileType) {
                 FileType.SYMBOLIC_LINK -> {
                     if (options.followSymlinks) {
-                        // Follow the symlink and treat as whatever it points to
                         try {
                             val targetPath = Files.readSymbolicLink(localPath.file.toPath())
                             val resolvedPath = localPath.file.toPath().parent.resolve(targetPath).normalize()
                             if (Files.isDirectory(resolvedPath)) {
-                                // It's a directory symlink - treat as directory
-                                dirs.addLast(lookup to destinationPath)
-                                // Traverse the resolved directory, but add children as if they're under the symlink
+                                discoveredItems.add(
+                                    WorkItem.CreateDirectory(
+                                        lookup, destinationPath, item.sourceIndex, item.totalSources, item.source
+                                    )
+                                )
                                 Files.newDirectoryStream(resolvedPath).use { ds ->
                                     for (child in ds) {
-                                        // Create path relative to symlink location, not resolved location
                                         val childName = child.fileName.toString()
                                         val symlinkChild = LocalPath.build(File(localPath.file, childName))
                                         toVisit.addLast(symlinkChild)
                                     }
                                 }
                             } else {
-                                // It's a file symlink - treat as file
-                                files.addLast(lookup to destinationPath)
-                                sourceSize += lookup.size
+                                discoveredItems.add(
+                                    WorkItem.CopyFile(
+                                        lookup, destinationPath, item.sourceIndex, item.totalSources, item.source
+                                    )
+                                )
+                                totalSizeNeeded += lookup.size
                             }
                         } catch (e: IOException) {
                             log(TAG, WARN) { "Cannot resolve symlink: $lookup - ${e.message}" }
-                            // If we can't resolve it, copy the link as-is
-                            files.addLast(lookup to destinationPath)
-                            sourceSize += lookup.size
+                            discoveredItems.add(
+                                WorkItem.CopyFile(
+                                    lookup, destinationPath, item.sourceIndex, item.totalSources, item.source
+                                )
+                            )
+                            totalSizeNeeded += lookup.size
                         }
                     } else {
-                        // Don't follow symlink - copy it as-is (treat as file)
-                        files.addLast(lookup to destinationPath)
-                        sourceSize += lookup.size
+                        discoveredItems.add(
+                            WorkItem.CopyFile(
+                                lookup, destinationPath, item.sourceIndex, item.totalSources, item.source
+                            )
+                        )
+                        totalSizeNeeded += lookup.size
                     }
                     continue
                 }
                 FileType.FILE -> {
-                    files.addLast(lookup to destinationPath)
-                    sourceSize += lookup.size
+                    discoveredItems.add(
+                        WorkItem.CopyFile(
+                            lookup, destinationPath, item.sourceIndex, item.totalSources, item.source
+                        )
+                    )
+                    totalSizeNeeded += lookup.size
                     continue
                 }
                 FileType.DIRECTORY -> {
-                    dirs.addLast(lookup to destinationPath)
+                    discoveredItems.add(
+                        WorkItem.CreateDirectory(
+                            lookup, destinationPath, item.sourceIndex, item.totalSources, item.source
+                        )
+                    )
                 }
                 FileType.UNKNOWN -> throw IllegalStateException("Unknown file type: $lookup")
             }
 
             try {
-                val p = localPath.file.toPath()
-                Files.newDirectoryStream(p).use { ds ->
+                Files.newDirectoryStream(localPath.file.toPath()).use { ds ->
                     for (child in ds) toVisit.addLast(LocalPath.build(child.toFile()))
                 }
             } catch (e: IOException) {
@@ -251,18 +245,15 @@ internal class LocalPathCopyTool(
             }
         }
 
-        return SourceCopyData(
-            source = source,
-            dirs = dirs.toList(),
-            files = files.toList(),
-            skippedSourceDirs = skippedSourceDirs,
-            renamedSourceDirs = renamedSourceDirs,
-            totalSize = sourceSize
-        )
+        // Add discovered items to queue: directories first, then files
+        val directories = discoveredItems.filterIsInstance<WorkItem.CreateDirectory>()
+        val files = discoveredItems.filterIsInstance<WorkItem.CopyFile>()
+        workQueue.addAll(directories)
+        workQueue.addAll(files)
     }
 
-    private suspend fun checkSpaceAvailable(totalSizeNeeded: Long) {
-        while (true) {
+    private suspend fun processSpaceCheck() {
+        while (currentCoroutineContext().isActive) {
             val availableSpace = Files.getFileStore(destination.file.toPath()).usableSpace
             log(TAG, DEBUG) { "Space check: need $totalSizeNeeded bytes, available $availableSpace bytes" }
 
@@ -273,11 +264,10 @@ internal class LocalPathCopyTool(
                     cause = IOException("Insufficient space: need $totalSizeNeeded bytes, available $availableSpace bytes")
                 )
                 if (onIssue != null) {
-                    // Create a temporary lookup for the source (collection)
                     val sourceLookup = if (sources.size == 1) {
                         sources.first().performLookup()
                     } else {
-                        destination.performLookup() // Use destination as placeholder for multiple sources
+                        destination.performLookup()
                     }
 
                     val issue = PathActionIssue.InsufficientSpace(
@@ -298,87 +288,543 @@ internal class LocalPathCopyTool(
                     throw spaceError
                 }
             } else {
-                // Space is sufficient, exit loop
                 break
             }
         }
     }
 
-    private suspend fun copyAllSources(allSourceData: List<SourceCopyData>) {
-        allSourceData.forEachIndexed { index, sourceData ->
-            copySingleSource(sourceData, index, allSourceData.size)
+    private suspend fun processCreateDirectory(item: WorkItem.CreateDirectory, workQueue: ArrayDeque<WorkItem>) {
+        // Set current state for progress reporting
+        if (currentTopLevel != item.topLevelSource) {
+            currentTopLevel = item.topLevelSource
+            currentTotalItems = workQueue.count {
+                (it is WorkItem.CreateDirectory || it is WorkItem.CopyFile) &&
+                    (it as? WorkItem.CreateDirectory)?.topLevelSource == item.topLevelSource ||
+                    (it as? WorkItem.CopyFile)?.topLevelSource == item.topLevelSource
+            } + 1 // +1 for current item
+            currentItemsProcessed = 0
+        }
+
+        // Adjust destination if parent was renamed
+        val adjustedDest = adjustDestinationForRenames(item.dest, item.sourceLookup.lookedUp)
+
+        val sourceLookup = item.sourceLookup
+        val dest = adjustedDest
+
+        log(TAG, VERBOSE) { "tryCreateDirectory(): $sourceLookup -> $dest" }
+
+        try {
+            onProgress?.invoke(createProgress(sourceLookup, dest, item.sourceIndex, item.totalSources))
+
+            // Check if destination already exists
+            if (Files.exists(dest.file.toPath())) {
+                val destLookup = dest.performLookup()
+
+                // Directory-directory conflict
+                if (destLookup.fileType == FileType.DIRECTORY) {
+                    if (issueSkipAllPathExists) {
+                        log(TAG, INFO) { "Skipping directory merge (skip apply-to-all): $dest" }
+                        skipped.add(sourceLookup.lookedUp)
+                        skippedSourceDirs.add(sourceLookup.lookedUp)
+                        currentItemsProcessed++
+                        return
+                    }
+
+                    if (issueMergeAllPathExists) {
+                        log(TAG, INFO) { "Merging directory (merge apply-to-all): $dest" }
+                        currentItemsProcessed++
+                        return
+                    }
+
+                    if (issueOverwriteAllPathExists) {
+                        log(TAG, INFO) { "Overwriting directory (overwrite apply-to-all): $dest" }
+                        deleteRecursively(dest)
+                    } else {
+                        val existsError = WriteException(path = dest, cause = FileAlreadyExistsException(dest.path))
+                        if (onIssue == null) {
+                            log(TAG, VERBOSE) { "Directory already exists, auto-merging (no issue handler): $dest" }
+                            currentItemsProcessed++
+                            return
+                        }
+
+                        val issue = PathActionIssue.PathAlreadyExists(
+                            source = sourceLookup,
+                            destination = destLookup,
+                            canSkip = true,
+                            canOverwrite = true,
+                            canMerge = true,
+                            canRenameSource = true,
+                            canRenameDestination = true,
+                            suggestedName = generateUniqueName(dest.name, dest.file.parentFile!!),
+                        )
+
+                        workQueue.addFirst(WorkItem.ResolveIssue(issue, item, existsError))
+                        return
+                    }
+                } else {
+                    // File-directory conflict
+                    if (issueSkipAllPathExists) {
+                        log(TAG, INFO) { "Skipping file-directory conflict (skip apply-to-all): $dest" }
+                        skipped.add(sourceLookup.lookedUp)
+                        skippedSourceDirs.add(sourceLookup.lookedUp)
+                        currentItemsProcessed++
+                        return
+                    }
+
+                    if (issueOverwriteAllPathExists) {
+                        log(TAG, INFO) { "Overwriting file with directory (overwrite apply-to-all): $dest" }
+                        Files.delete(dest.file.toPath())
+                    } else {
+                        val existsError = WriteException(path = dest, cause = FileAlreadyExistsException(dest.path))
+                        if (onIssue == null) throw existsError
+
+                        val issue = PathActionIssue.PathAlreadyExists(
+                            source = sourceLookup,
+                            destination = destLookup,
+                            canSkip = true,
+                            canOverwrite = true,
+                            canRenameSource = true,
+                            canRenameDestination = true,
+                            suggestedName = generateUniqueName(dest.name, dest.file.parentFile!!),
+                        )
+
+                        workQueue.addFirst(WorkItem.ResolveIssue(issue, item, existsError))
+                        return
+                    }
+                }
+            }
+
+            // Create directory or symlink
+            if (sourceLookup.fileType == FileType.SYMBOLIC_LINK && !options.followSymlinks) {
+                val sourcePath = sourceLookup.lookedUp.file.toPath()
+                val linkTarget = Files.readSymbolicLink(sourcePath)
+                val newTarget = if (linkTarget.isAbsolute) {
+                    linkTarget
+                } else {
+                    val absoluteTarget = sourcePath.parent.resolve(linkTarget).normalize()
+                    dest.file.toPath().parent.relativize(absoluteTarget)
+                }
+                if (Files.exists(dest.file.toPath())) {
+                    Files.delete(dest.file.toPath())
+                }
+                Files.createSymbolicLink(dest.file.toPath(), newTarget)
+            } else {
+                Files.createDirectories(dest.file.toPath())
+            }
+
+            copied.add(sourceLookup.lookedUp to dest)
+            currentItemsProcessed++
+
+        } catch (e: SecurityException) {
+            log(TAG, ERROR) { "Security exception on $dest: $e" }
+            if (issueSkippAllPermission) {
+                log(TAG, INFO) { "Skipping permission issue (apply-to-all): $dest" }
+                skipped.add(sourceLookup.lookedUp)
+                currentItemsProcessed++
+                return
+            }
+
+            val writeError = WriteException(path = dest, cause = e)
+            if (onIssue == null) throw writeError
+
+            val destLookup = if (Files.exists(dest.file.toPath())) dest.performLookup() else sourceLookup
+            val issue = PathActionIssue.InsufficientPermission(
+                destination = destLookup,
+                exception = writeError,
+                canSkip = true,
+            )
+
+            workQueue.addFirst(WorkItem.ResolveIssue(issue, item, writeError))
+
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "Failed to create directory $dest: $e" }
+            if (issueSkippAllUnknown) {
+                log(TAG, INFO) { "Skipping unknown issue (apply-to-all): $dest" }
+                skipped.add(sourceLookup.lookedUp)
+                currentItemsProcessed++
+                return
+            }
+
+            val writeError = WriteException(path = dest, cause = e)
+            if (onIssue == null) throw writeError
+
+            val destLookup = if (Files.exists(dest.file.toPath())) dest.performLookup() else sourceLookup
+            val issue = PathActionIssue.UnknownError(
+                destination = destLookup,
+                exception = writeError,
+                canRetry = true,
+                canSkip = true
+            )
+
+            workQueue.addFirst(WorkItem.ResolveIssue(issue, item, writeError))
+        } finally {
+            onProgress?.invoke(createProgress(sourceLookup, dest, item.sourceIndex, item.totalSources))
         }
     }
 
-    private suspend fun copySingleSource(
-        sourceData: SourceCopyData,
-        index: Int,
-        total: Int
-    ) {
-        log(TAG, VERBOSE) { "Copying target ${index + 1}/$total: ${sourceData.source}" }
-
-        // Set current source state
-        currentTopLevel = sourceData.source
-        currentTotalItems = sourceData.files.size + sourceData.dirs.size
-        currentItemsProcessed = 0
-
-        // Create mutable tracking collections that will be updated during copying
-        val skippedSourceDirs = sourceData.skippedSourceDirs.toMutableSet()
-        val renamedSourceDirs = sourceData.renamedSourceDirs.toMutableMap()
-
-        // Helper to adjust destination path if parent was renamed
-        fun adjustDestinationForRenames(
-            dest: LocalPath,
-            source: LocalPath,
-            renamedSourceDirs: Map<LocalPath, LocalPath>
-        ): LocalPath {
-            return renamedSourceDirs.entries.find { (renamedSource, _) ->
-                renamedSource.isAncestorOf(source)
-            }?.let { (renamedSource, newDestDir) ->
-                val relativeSegments = renamedSource.crumbsTo(source)
-                val relativePath = relativeSegments.joinToString("/")
-                LocalPath.build(File(newDestDir.file, relativePath))
-            } ?: dest
+    private suspend fun processCopyFile(item: WorkItem.CopyFile, workQueue: ArrayDeque<WorkItem>) {
+        // Set current state for progress reporting
+        if (currentTopLevel != item.topLevelSource) {
+            currentTopLevel = item.topLevelSource
+            currentTotalItems = workQueue.count {
+                (it is WorkItem.CreateDirectory || it is WorkItem.CopyFile) &&
+                    (it as? WorkItem.CreateDirectory)?.topLevelSource == item.topLevelSource ||
+                    (it as? WorkItem.CopyFile)?.topLevelSource == item.topLevelSource
+            } + 1
+            currentItemsProcessed = 0
         }
 
-        // Helper to check if file is descendant of skipped dir
-        fun isDescendantOfSkippedDir(source: LocalPath, skippedSourceDirs: Set<LocalPath>): Boolean {
-            return skippedSourceDirs.any { skippedDir ->
-                skippedDir.isAncestorOf(source)
+        // Skip if parent directory was skipped
+        if (isDescendantOfSkippedDir(item.sourceLookup.lookedUp)) {
+            log(TAG, VERBOSE) { "Skipping file because parent directory was skipped: ${item.sourceLookup}" }
+            skipped.add(item.sourceLookup.lookedUp)
+            currentItemsProcessed++
+            return
+        }
+
+        // Adjust destination if parent was renamed
+        val adjustedDest = adjustDestinationForRenames(item.dest, item.sourceLookup.lookedUp)
+
+        val sourceLookup = item.sourceLookup
+        val dest = adjustedDest
+
+        log(TAG, VERBOSE) { "tryCopyFile(): $sourceLookup -> $dest" }
+
+        try {
+            onProgress?.invoke(createProgress(sourceLookup, dest, item.sourceIndex, item.totalSources))
+
+            // Ensure parent directory exists
+            val parentPath = dest.file.parentFile?.let { LocalPath.build(it) }
+            if (parentPath != null && !Files.exists(parentPath.file.toPath())) {
+                Files.createDirectories(parentPath.file.toPath())
             }
-        }
 
-        // Copy directories first
-        log(TAG, VERBOSE) { "Creating ${sourceData.dirs.size} directories for target: $currentTopLevel" }
-        for ((sourceLookup, dest) in sourceData.dirs) {
-            val adjustedDest = adjustDestinationForRenames(dest, sourceLookup.lookedUp, renamedSourceDirs)
-            tryCreateDirectory(
-                sourceLookup,
-                adjustedDest,
-                skippedSourceDirs,
-                renamedSourceDirs,
-                index,
-                total
-            )
-        }
+            // Check if destination already exists
+            if (Files.exists(dest.file.toPath())) {
+                if (issueSkipAllPathExists) {
+                    log(TAG, INFO) { "Skipping existing file (skip apply-to-all): $dest" }
+                    skipped.add(sourceLookup.lookedUp)
+                    currentItemsProcessed++
+                    return
+                }
 
-        // Copy files
-        log(TAG, VERBOSE) { "Copying ${sourceData.files.size} files for target: $currentTopLevel" }
-        for ((sourceLookup, dest) in sourceData.files) {
-            if (isDescendantOfSkippedDir(sourceLookup.lookedUp, skippedSourceDirs)) {
-                log(TAG, VERBOSE) { "Skipping file because parent directory was skipped: $sourceLookup" }
+                if (!issueOverwriteAllPathExists) {
+                    val existsError = WriteException(path = dest, cause = FileAlreadyExistsException(dest.path))
+                    if (onIssue == null) throw existsError
+
+                    val issue = PathActionIssue.PathAlreadyExists(
+                        source = sourceLookup,
+                        destination = dest.performLookup(),
+                        canSkip = true,
+                        canOverwrite = true,
+                        canRenameSource = true,
+                        canRenameDestination = true,
+                        suggestedName = generateUniqueName(dest.name, dest.file.parentFile!!),
+                    )
+
+                    workQueue.addFirst(WorkItem.ResolveIssue(issue, item, existsError))
+                    return
+                } else {
+                    log(TAG, INFO) { "Overwriting existing file (overwrite apply-to-all): $dest" }
+                }
+            }
+
+            // Perform the copy
+            val sourcePath = sourceLookup.lookedUp.file.toPath()
+
+            if (sourceLookup.fileType == FileType.SYMBOLIC_LINK) {
+                if (options.followSymlinks) {
+                    val targetPath = Files.readSymbolicLink(sourcePath).let { target ->
+                        sourcePath.parent.resolve(target).normalize()
+                    }
+                    Files.copy(
+                        targetPath,
+                        dest.file.toPath(),
+                        StandardCopyOption.REPLACE_EXISTING,
+                        StandardCopyOption.COPY_ATTRIBUTES
+                    )
+                } else {
+                    val linkTarget = Files.readSymbolicLink(sourcePath)
+                    val newTarget = if (linkTarget.isAbsolute) {
+                        linkTarget
+                    } else {
+                        val absoluteTarget = sourcePath.parent.resolve(linkTarget).normalize()
+                        dest.file.toPath().parent.relativize(absoluteTarget)
+                    }
+                    if (Files.exists(dest.file.toPath())) {
+                        Files.delete(dest.file.toPath())
+                    }
+                    Files.createSymbolicLink(dest.file.toPath(), newTarget)
+                }
+            } else {
+                Files.copy(
+                    sourcePath,
+                    dest.file.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING,
+                    StandardCopyOption.COPY_ATTRIBUTES
+                )
+            }
+
+            bytesCopied += sourceLookup.size
+            copied.add(sourceLookup.lookedUp to dest)
+            currentItemsProcessed++
+
+        } catch (securityError: SecurityException) {
+            log(TAG, ERROR) { "Security exception on $sourceLookup: $securityError" }
+            if (issueSkippAllPermission) {
+                log(TAG, INFO) { "Skipping permission issue (apply-to-all): $sourceLookup" }
                 skipped.add(sourceLookup.lookedUp)
                 currentItemsProcessed++
-                continue
+                return
             }
 
-            val adjustedDest = adjustDestinationForRenames(dest, sourceLookup.lookedUp, renamedSourceDirs)
-            tryCopyFile(
-                sourceLookup,
-                adjustedDest,
-                index,
-                total
+            val readError =
+                ReadException(message = "Cannot read file", path = sourceLookup.lookedUp, cause = securityError)
+            if (onIssue == null) throw readError
+
+            val issue = PathActionIssue.InsufficientPermission(
+                destination = sourceLookup,
+                exception = readError,
+                canSkip = true,
             )
+
+            workQueue.addFirst(WorkItem.ResolveIssue(issue, item, readError))
+
+        } catch (copyError: Exception) {
+            log(TAG, ERROR) { "Failed to copy $sourceLookup to $dest: $copyError" }
+            if (issueSkippAllUnknown) {
+                log(TAG, INFO) { "Skipping unknown issue (apply-to-all): $sourceLookup" }
+                skipped.add(sourceLookup.lookedUp)
+                currentItemsProcessed++
+                return
+            }
+
+            val writeError = WriteException(path = dest, cause = copyError)
+            if (onIssue == null) throw writeError
+
+            val destLookup = if (Files.exists(dest.file.toPath())) dest.performLookup() else sourceLookup
+            val issue = PathActionIssue.UnknownError(
+                destination = destLookup,
+                exception = writeError,
+                canRetry = true,
+                canSkip = true
+            )
+
+            workQueue.addFirst(WorkItem.ResolveIssue(issue, item, writeError))
+        } finally {
+            onProgress?.invoke(createProgress(sourceLookup, dest, item.sourceIndex, item.totalSources))
+        }
+    }
+
+    private suspend fun processResolveIssue(item: WorkItem.ResolveIssue, workQueue: ArrayDeque<WorkItem>) {
+        val resolution = onIssue!!.invoke(item.issue)
+
+        when (item.issue) {
+            is PathActionIssue.PathAlreadyExists -> {
+                when (val res = resolution as PathActionIssue.PathAlreadyExists.Resolution) {
+                    is PathActionIssue.PathAlreadyExists.Resolution.Cancel -> throw CancellationException(
+                        "User cancelled",
+                        item.exception
+                    )
+                    is PathActionIssue.PathAlreadyExists.Resolution.Skip -> {
+                        if (res.applyToAll) issueSkipAllPathExists = true
+                        val sourceLookup = when (val orig = item.originalItem) {
+                            is WorkItem.CreateDirectory -> orig.sourceLookup
+                            is WorkItem.CopyFile -> orig.sourceLookup
+                            else -> error("Unexpected original item type")
+                        }
+                        skipped.add(sourceLookup.lookedUp)
+                        if (item.originalItem is WorkItem.CreateDirectory) {
+                            skippedSourceDirs.add(sourceLookup.lookedUp)
+                        }
+                        currentItemsProcessed++
+                    }
+                    is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
+                        if (res.applyToAll) issueOverwriteAllPathExists = true
+                        // Perform the overwrite before requeueing
+                        when (val orig = item.originalItem) {
+                            is WorkItem.CreateDirectory -> {
+                                val dest = orig.dest
+                                if (Files.exists(dest.file.toPath())) {
+                                    if (Files.isDirectory(dest.file.toPath())) {
+                                        deleteRecursively(dest)
+                                    } else {
+                                        Files.delete(dest.file.toPath())
+                                    }
+                                }
+                            }
+                            is WorkItem.CopyFile -> {
+                                val dest = orig.dest
+                                if (Files.exists(dest.file.toPath())) {
+                                    if (Files.isDirectory(dest.file.toPath())) {
+                                        deleteRecursively(dest)
+                                    } else {
+                                        Files.delete(dest.file.toPath())
+                                    }
+                                }
+                            }
+                            else -> error("Unexpected original item type")
+                        }
+                        workQueue.addFirst(item.originalItem)
+                    }
+                    is PathActionIssue.PathAlreadyExists.Resolution.Merge -> {
+                        if (res.applyToAll) issueMergeAllPathExists = true
+                        currentItemsProcessed++
+                    }
+                    is PathActionIssue.PathAlreadyExists.Resolution.RenameSource -> {
+                        log(TAG, INFO) { "User chose rename source: ${res.newName}" }
+                        when (val orig = item.originalItem) {
+                            is WorkItem.CreateDirectory -> {
+                                val newDestPath = LocalPath.build(File(orig.dest.file.parentFile!!, res.newName))
+                                Files.createDirectories(newDestPath.file.toPath())
+                                copied.add(orig.sourceLookup.lookedUp to newDestPath)
+                                renamedSourceDirs[orig.sourceLookup.lookedUp] = newDestPath
+                                currentItemsProcessed++
+                            }
+                            is WorkItem.CopyFile -> {
+                                val newDestPath = LocalPath.build(File(orig.dest.file.parentFile!!, res.newName))
+                                Files.copy(
+                                    orig.sourceLookup.lookedUp.file.toPath(),
+                                    newDestPath.file.toPath(),
+                                    StandardCopyOption.COPY_ATTRIBUTES
+                                )
+                                bytesCopied += orig.sourceLookup.size
+                                copied.add(orig.sourceLookup.lookedUp to newDestPath)
+                                currentItemsProcessed++
+                            }
+                            else -> error("Unexpected original item type")
+                        }
+                    }
+                    is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
+                        log(TAG, INFO) { "User chose rename destination: ${res.newName}" }
+                        when (val orig = item.originalItem) {
+                            is WorkItem.CreateDirectory, is WorkItem.CopyFile -> {
+                                val dest =
+                                    if (orig is WorkItem.CreateDirectory) orig.dest else (orig as WorkItem.CopyFile).dest
+                                val newDestPath = LocalPath.build(File(dest.file.parentFile!!, res.newName))
+                                Files.move(dest.file.toPath(), newDestPath.file.toPath())
+                                workQueue.addFirst(orig)
+                            }
+                            else -> error("Unexpected original item type")
+                        }
+                    }
+                }
+            }
+            is PathActionIssue.InsufficientPermission -> {
+                when (val res = resolution as PathActionIssue.InsufficientPermission.Resolution) {
+                    is PathActionIssue.InsufficientPermission.Resolution.Cancel -> throw CancellationException(
+                        "User cancelled",
+                        item.exception
+                    )
+                    is PathActionIssue.InsufficientPermission.Resolution.Skip -> {
+                        if (res.applyToAll) issueSkippAllPermission = true
+                        val sourceLookup = when (val orig = item.originalItem) {
+                            is WorkItem.CreateDirectory -> orig.sourceLookup
+                            is WorkItem.CopyFile -> orig.sourceLookup
+                            else -> error("Unexpected original item type")
+                        }
+                        skipped.add(sourceLookup.lookedUp)
+                        currentItemsProcessed++
+                    }
+                }
+            }
+            is PathActionIssue.UnknownError -> {
+                when (val res = resolution as PathActionIssue.UnknownError.Resolution) {
+                    is PathActionIssue.UnknownError.Resolution.Cancel -> throw CancellationException(
+                        "User cancelled",
+                        item.exception
+                    )
+                    is PathActionIssue.UnknownError.Resolution.Retry -> {
+                        workQueue.addFirst(item.originalItem)
+                    }
+                    is PathActionIssue.UnknownError.Resolution.Skip -> {
+                        if (res.applyToAll) issueSkippAllUnknown = true
+                        val sourceLookup = when (val orig = item.originalItem) {
+                            is WorkItem.CreateDirectory -> orig.sourceLookup
+                            is WorkItem.CopyFile -> orig.sourceLookup
+                            else -> error("Unexpected original item type")
+                        }
+                        skipped.add(sourceLookup.lookedUp)
+                        currentItemsProcessed++
+                    }
+                }
+            }
+            else -> error("Unexpected issue type: ${item.issue}")
+        }
+    }
+
+    private suspend fun ensureDestinationExists() {
+        try {
+            if (!Files.exists(destination.file.toPath())) {
+                Files.createDirectories(destination.file.toPath())
+                log(TAG) { "Destination directory created: $destination" }
+                return
+            }
+
+            if (Files.isDirectory(destination.file.toPath())) {
+                log(TAG) { "Destination is an existing directory: $destination" }
+                return
+            }
+
+            log(TAG, WARN) { "Destination exists but is not a directory: $destination" }
+
+            if (onIssue == null) {
+                throw IOException("Destination exists but is not a directory: ${destination.path}")
+            }
+
+            val existsError = FileAlreadyExistsException(destination.path)
+
+            val destLookup = destination.performLookup()
+            val sourceLookup = sources.first().performLookup()
+
+            val issue = PathActionIssue.PathAlreadyExists(
+                source = sourceLookup,
+                destination = destLookup,
+                canOverwrite = true,
+                canRenameDestination = true,
+                suggestedName = generateUniqueName(destination.name, destination.file.parentFile!!),
+            )
+
+            when (val resolution = onIssue.invoke(issue) as PathActionIssue.PathAlreadyExists.Resolution) {
+                is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
+                    log(TAG, INFO) { "Overwriting file at destination: $destination" }
+                    Files.delete(destination.file.toPath())
+                }
+                is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
+                    log(TAG, INFO) { "Renaming existing file: $destination -> ${resolution.newName}" }
+                    val newDestPath = LocalPath.build(File(destination.file.parentFile!!, resolution.newName))
+                    Files.move(destination.file.toPath(), newDestPath.file.toPath())
+                }
+                is PathActionIssue.PathAlreadyExists.Resolution.Cancel -> throw CancellationException(
+                    "User cancelled",
+                    existsError
+                )
+                is PathActionIssue.PathAlreadyExists.Resolution.Skip,
+                is PathActionIssue.PathAlreadyExists.Resolution.RenameSource,
+                is PathActionIssue.PathAlreadyExists.Resolution.Merge -> {
+                    throw UnsupportedOperationException("Invalid resolution for destination conflict", existsError)
+                }
+            }
+
+            Files.createDirectories(destination.file.toPath())
+        } catch (e: Exception) {
+            throw WriteException(path = destination, cause = e)
+        }
+    }
+
+    private fun adjustDestinationForRenames(dest: LocalPath, source: LocalPath): LocalPath {
+        return renamedSourceDirs.entries.find { (renamedSource, _) ->
+            renamedSource.isAncestorOf(source)
+        }?.let { (renamedSource, newDestDir) ->
+            val relativeSegments = renamedSource.crumbsTo(source)
+            val relativePath = relativeSegments.joinToString("/")
+            LocalPath.build(File(newDestDir.file, relativePath))
+        } ?: dest
+    }
+
+    private fun isDescendantOfSkippedDir(source: LocalPath): Boolean {
+        return skippedSourceDirs.any { skippedDir ->
+            skippedDir.isAncestorOf(source)
         }
     }
 
@@ -445,504 +891,6 @@ internal class LocalPathCopyTool(
         } while (File(parentDir, newName).exists())
 
         return newName
-    }
-
-    private suspend fun tryCreateDirectory(
-        sourceLookup: LocalPathLookup,
-        dest: LocalPath,
-        skippedSourceDirs: MutableSet<LocalPath>,
-        renamedSourceDirs: MutableMap<LocalPath, LocalPath>,
-        index: Int,
-        total: Int
-    ) {
-        log(TAG, VERBOSE) { "tryCreateDirectory(): $sourceLookup -> $dest" }
-        while (currentCoroutineContext().isActive) {
-            try {
-                onProgress?.invoke(createProgress(sourceLookup, dest, index, total))
-
-                // Check if destination already exists
-                if (Files.exists(dest.file.toPath())) {
-                    val destLookup = dest.performLookup()
-
-                    // If it's already a directory, handle directory-directory conflict
-                    if (destLookup.fileType == FileType.DIRECTORY) {
-                        // Check "apply to all" flags first
-                        if (issueSkipAllPathExists) {
-                            log(TAG, INFO) { "Skipping directory merge (skip apply-to-all): $dest" }
-                            skipped.add(sourceLookup.lookedUp)
-                            skippedSourceDirs.add(sourceLookup.lookedUp)
-                            currentItemsProcessed++
-                            break
-                        }
-
-                        if (issueMergeAllPathExists) {
-                            log(TAG, INFO) { "Merging directory (merge apply-to-all): $dest" }
-                            // Directory exists, just continue (no action needed for merge)
-                            currentItemsProcessed++
-                            break
-                        }
-
-                        if (issueOverwriteAllPathExists) {
-                            log(TAG, INFO) { "Overwriting directory (overwrite apply-to-all): $dest" }
-                            deleteRecursively(dest)
-                            // Continue to creation below
-                        } else {
-                            // No "apply to all" - ask user
-                            val existsError = WriteException(
-                                path = dest,
-                                cause = FileAlreadyExistsException(dest.path)
-                            )
-                            if (onIssue == null) {
-                                // Default: auto-merge (preserve backward compatibility when no handler)
-                                log(TAG, VERBOSE) { "Directory already exists, auto-merging (no issue handler): $dest" }
-                                currentItemsProcessed++
-                                break
-                            }
-
-                            val issue = PathActionIssue.PathAlreadyExists(
-                                source = sourceLookup,
-                                destination = destLookup,
-                                canSkip = true,
-                                canOverwrite = true,
-                                canMerge = true,
-                                canRenameSource = true,
-                                canRenameDestination = true,
-                                suggestedName = generateUniqueName(dest.name, dest.file.parentFile!!),
-                            )
-
-                            when (val resolution = onIssue.invoke(issue) as PathActionIssue.PathAlreadyExists.Resolution) {
-                                is PathActionIssue.PathAlreadyExists.Resolution.Cancel -> throw CancellationException(
-                                    "User cancelled",
-                                    existsError
-                                )
-                                is PathActionIssue.PathAlreadyExists.Resolution.Merge -> {
-                                    if (resolution.applyToAll) issueMergeAllPathExists = true
-                                    log(TAG, VERBOSE) { "Merging directory: $dest" }
-                                    // Directory exists, just continue
-                                    currentItemsProcessed++
-                                    break
-                                }
-                                is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
-                                    if (resolution.applyToAll) issueOverwriteAllPathExists = true
-                                    log(TAG, INFO) { "Overwriting directory: $dest" }
-                                    deleteRecursively(dest)
-                                    // Continue to creation below
-                                }
-                                is PathActionIssue.PathAlreadyExists.Resolution.Skip -> {
-                                    if (resolution.applyToAll) issueSkipAllPathExists = true
-                                    skipped.add(sourceLookup.lookedUp)
-                                    skippedSourceDirs.add(sourceLookup.lookedUp)
-                                    currentItemsProcessed++
-                                    break
-                                }
-                                is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
-                                    log(TAG, INFO) { "Renaming existing directory: $dest -> ${resolution.newName}" }
-                                    val newDestPath = LocalPath.build(File(dest.file.parentFile!!, resolution.newName))
-                                    Files.move(dest.file.toPath(), newDestPath.file.toPath())
-                                    // Continue to create directory with original name
-                                }
-                                is PathActionIssue.PathAlreadyExists.Resolution.RenameSource -> {
-                                    log(TAG, INFO) { "Creating directory with new name: $dest -> ${resolution.newName}" }
-                                    val newDestPath = LocalPath.build(File(dest.file.parentFile!!, resolution.newName))
-                                    Files.createDirectories(newDestPath.file.toPath())
-                                    copied.add(sourceLookup.lookedUp to newDestPath)
-                                    renamedSourceDirs[sourceLookup.lookedUp] = newDestPath
-                                    currentItemsProcessed++
-                                    break
-                                }
-                            }
-                        }
-                    } else {
-                        // It's a file blocking our directory creation
-                        if (issueSkipAllPathExists) {
-                            log(TAG, INFO) { "Skipping file-directory conflict (skip apply-to-all): $dest" }
-                            skipped.add(sourceLookup.lookedUp)
-                            skippedSourceDirs.add(sourceLookup.lookedUp)
-                            currentItemsProcessed++
-                            break
-                        }
-
-                        if (issueOverwriteAllPathExists) {
-                            log(TAG, INFO) { "Overwriting file with directory (overwrite apply-to-all): $dest" }
-                            Files.delete(dest.file.toPath())
-                            // Continue to creation below
-                        } else {
-                            val existsError = WriteException(
-                                path = dest,
-                                cause = FileAlreadyExistsException(dest.path)
-                            )
-                            if (onIssue == null) throw existsError
-
-                            val issue = PathActionIssue.PathAlreadyExists(
-                                source = sourceLookup,
-                                destination = destLookup,
-                                canSkip = true,
-                                canOverwrite = true,
-                                canRenameSource = true,
-                                canRenameDestination = true,
-                                suggestedName = generateUniqueName(dest.name, dest.file.parentFile!!),
-                            )
-
-                            when (val resolution = onIssue.invoke(issue) as PathActionIssue.PathAlreadyExists.Resolution) {
-                                is PathActionIssue.PathAlreadyExists.Resolution.Cancel -> throw CancellationException(
-                                    "User cancelled",
-                                    existsError
-                                )
-                                is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
-                                    if (resolution.applyToAll) issueOverwriteAllPathExists = true
-                                    Files.delete(dest.file.toPath())
-                                    // Continue to creation below
-                                }
-                                is PathActionIssue.PathAlreadyExists.Resolution.Skip -> {
-                                    if (resolution.applyToAll) issueSkipAllPathExists = true
-                                    skipped.add(sourceLookup.lookedUp)
-                                    skippedSourceDirs.add(sourceLookup.lookedUp)
-                                    currentItemsProcessed++
-                                    break
-                                }
-                                is PathActionIssue.PathAlreadyExists.Resolution.Merge -> {
-                                    // Can't merge file with directory
-                                    throw CancellationException("Cannot merge file with directory", existsError)
-                                }
-                                is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
-                                    log(TAG, INFO) { "Renaming existing file: $dest -> ${resolution.newName}" }
-                                    val newDestPath = LocalPath.build(File(dest.file.parentFile!!, resolution.newName))
-                                    Files.move(dest.file.toPath(), newDestPath.file.toPath())
-                                    // Continue to create directory with original name
-                                }
-                                is PathActionIssue.PathAlreadyExists.Resolution.RenameSource -> {
-                                    log(TAG, INFO) { "Creating directory with new name: $dest -> ${resolution.newName}" }
-                                    val newDestPath = LocalPath.build(File(dest.file.parentFile!!, resolution.newName))
-                                    Files.createDirectories(newDestPath.file.toPath())
-                                    copied.add(sourceLookup.lookedUp to newDestPath)
-                                    renamedSourceDirs[sourceLookup.lookedUp] = newDestPath
-                                    currentItemsProcessed++
-                                    break
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Create directory or symlink depending on source type and options
-                if (sourceLookup.fileType == FileType.SYMBOLIC_LINK && !options.followSymlinks) {
-                    // Copy directory symlink as symlink (not the directory it points to)
-                    val sourcePath = sourceLookup.lookedUp.file.toPath()
-                    val linkTarget = Files.readSymbolicLink(sourcePath)
-
-                    // Preserve whether target is absolute or relative
-                    val newTarget = if (linkTarget.isAbsolute) {
-                        // Keep absolute paths as absolute
-                        linkTarget
-                    } else {
-                        // For relative paths, adjust relative to destination location
-                        val absoluteTarget = sourcePath.parent.resolve(linkTarget).normalize()
-                        dest.file.toPath().parent.relativize(absoluteTarget)
-                    }
-
-                    // Delete destination if it exists (createSymbolicLink doesn't support REPLACE_EXISTING)
-                    if (Files.exists(dest.file.toPath())) {
-                        Files.delete(dest.file.toPath())
-                    }
-                    Files.createSymbolicLink(dest.file.toPath(), newTarget)
-                } else {
-                    // Create actual directory
-                    Files.createDirectories(dest.file.toPath())
-                }
-
-                copied.add(sourceLookup.lookedUp to dest)
-                currentItemsProcessed++
-                break
-            } catch (e: SecurityException) {
-                log(TAG, ERROR) { "copy(): Security exception on $dest: $e" }
-
-                if (issueSkippAllPermission) {
-                    log(TAG, INFO) { "Skipping permission issue (apply-to-all): $dest" }
-                    skipped.add(sourceLookup.lookedUp)
-                    currentItemsProcessed++
-                    break
-                }
-
-                val writeError = WriteException(path = dest, cause = e)
-                if (onIssue == null) throw writeError
-
-                // Use source lookup if dest doesn't exist yet
-                val destLookup = if (Files.exists(dest.file.toPath())) dest.performLookup() else sourceLookup
-
-                val issue = PathActionIssue.InsufficientPermission(
-                    destination = destLookup,
-                    exception = writeError,
-                    canSkip = true,
-                )
-
-                when (val resolution = onIssue.invoke(issue) as PathActionIssue.InsufficientPermission.Resolution) {
-                    is PathActionIssue.InsufficientPermission.Resolution.Cancel -> throw CancellationException(
-                        "User cancelled",
-                        writeError
-                    )
-                    is PathActionIssue.InsufficientPermission.Resolution.Skip -> {
-                        if (resolution.applyToAll) issueSkippAllPermission = true
-                        skipped.add(sourceLookup.lookedUp)
-                        currentItemsProcessed++
-                        break
-                    }
-                }
-            } catch (e: Exception) {
-                log(TAG, ERROR) { "copy(): Failed to create directory $dest: $e" }
-
-                if (issueSkippAllUnknown) {
-                    log(TAG, INFO) { "Skipping unknown issue (apply-to-all): $dest" }
-                    skipped.add(sourceLookup.lookedUp)
-                    currentItemsProcessed++
-                    break
-                }
-
-                val writeError = WriteException(path = dest, cause = e)
-                if (onIssue == null) throw writeError
-
-                // Use source lookup if dest doesn't exist yet
-                val destLookup = if (Files.exists(dest.file.toPath())) dest.performLookup() else sourceLookup
-
-                val issue = PathActionIssue.UnknownError(
-                    destination = destLookup,
-                    exception = writeError,
-                    canRetry = true,
-                    canSkip = true
-                )
-
-                when (val resolution = onIssue.invoke(issue) as PathActionIssue.UnknownError.Resolution) {
-                    is PathActionIssue.UnknownError.Resolution.Cancel -> throw CancellationException(
-                        "User cancelled",
-                        writeError
-                    )
-                    is PathActionIssue.UnknownError.Resolution.Retry -> continue
-                    is PathActionIssue.UnknownError.Resolution.Skip -> {
-                        if (resolution.applyToAll) issueSkippAllUnknown = true
-                        skipped.add(sourceLookup.lookedUp)
-                        currentItemsProcessed++
-                        break
-                    }
-                }
-            } finally {
-                onProgress?.invoke(createProgress(sourceLookup, dest, index, total))
-            }
-        }
-    }
-
-    private suspend fun tryCopyFile(
-        sourceLookup: LocalPathLookup,
-        dest: LocalPath,
-        index: Int,
-        total: Int
-    ) {
-        log(TAG, VERBOSE) { "tryCopyFile(): $sourceLookup -> $dest" }
-        while (currentCoroutineContext().isActive) {
-            try {
-                onProgress?.invoke(createProgress(sourceLookup, dest, index, total))
-
-                // Ensure parent directory exists
-                val parentPath = dest.file.parentFile?.let { LocalPath.build(it) }
-                if (parentPath != null && !Files.exists(parentPath.file.toPath())) {
-                    Files.createDirectories(parentPath.file.toPath())
-                }
-
-                // Check if destination already exists
-                if (Files.exists(dest.file.toPath())) {
-                    // Handle "apply to all" for previous choices
-                    if (issueSkipAllPathExists) {
-                        log(TAG, INFO) { "Skipping existing file (skip apply-to-all): $dest" }
-                        skipped.add(sourceLookup.lookedUp)
-                        currentItemsProcessed++
-                        break
-                    }
-
-                    if (issueOverwriteAllPathExists) {
-                        log(TAG, INFO) { "Overwriting existing file (overwrite apply-to-all): $dest" }
-                        // Continue to copy with overwrite
-                    } else {
-                        // Ask user what to do
-                        val existsError = WriteException(
-                            path = dest,
-                            cause = FileAlreadyExistsException(dest.path)
-                        )
-                        if (onIssue == null) throw existsError
-
-                        val issue = PathActionIssue.PathAlreadyExists(
-                            source = sourceLookup,
-                            destination = dest.performLookup(),
-                            canSkip = true,
-                            canOverwrite = true,
-                            canRenameSource = true,
-                            canRenameDestination = true,
-                            suggestedName = generateUniqueName(dest.name, dest.file.parentFile!!),
-                        )
-
-                        when (val resolution = onIssue.invoke(issue) as PathActionIssue.PathAlreadyExists.Resolution) {
-                            is PathActionIssue.PathAlreadyExists.Resolution.Cancel -> throw CancellationException(
-                                "User cancelled",
-                                existsError
-                            )
-                            is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
-                                if (resolution.applyToAll) issueOverwriteAllPathExists = true
-                                // Continue to copy with overwrite
-                            }
-                            is PathActionIssue.PathAlreadyExists.Resolution.Skip -> {
-                                if (resolution.applyToAll) issueSkipAllPathExists = true
-                                skipped.add(sourceLookup.lookedUp)
-                                currentItemsProcessed++
-                                break
-                            }
-                            is PathActionIssue.PathAlreadyExists.Resolution.Merge -> {
-                                // Merge doesn't need "apply to all" for files, only directories
-                                // Continue to copy
-                            }
-                            is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
-                                log(TAG, INFO) { "Renaming existing destination: $dest -> ${resolution.newName}" }
-                                val newDestPath = LocalPath.build(File(dest.file.parentFile!!, resolution.newName))
-                                Files.move(dest.file.toPath(), newDestPath.file.toPath())
-                                // Continue to copy source to original destination name
-                            }
-                            is PathActionIssue.PathAlreadyExists.Resolution.RenameSource -> {
-                                log(TAG, INFO) { "Copying source with new name: $dest -> ${resolution.newName}" }
-                                val newDestPath = LocalPath.build(File(dest.file.parentFile!!, resolution.newName))
-                                Files.copy(
-                                    sourceLookup.lookedUp.file.toPath(),
-                                    newDestPath.file.toPath(),
-                                    StandardCopyOption.COPY_ATTRIBUTES
-                                )
-                                bytesCopied += sourceLookup.size
-                                copied.add(sourceLookup.lookedUp to newDestPath)
-                                currentItemsProcessed++
-                                break
-                            }
-                        }
-                    }
-                }
-
-                // Perform the copy
-                val sourcePath = sourceLookup.lookedUp.file.toPath()
-
-                if (sourceLookup.fileType == FileType.SYMBOLIC_LINK) {
-                    if (options.followSymlinks) {
-                        // Follow the symlink and copy the target content
-                        val targetPath = Files.readSymbolicLink(sourcePath).let { target ->
-                            sourcePath.parent.resolve(target).normalize()
-                        }
-                        Files.copy(
-                            targetPath,
-                            dest.file.toPath(),
-                            StandardCopyOption.REPLACE_EXISTING,
-                            StandardCopyOption.COPY_ATTRIBUTES
-                        )
-                    } else {
-                        // Copy the symlink itself (not the target)
-                        val linkTarget = Files.readSymbolicLink(sourcePath)
-
-                        // Preserve whether target is absolute or relative
-                        val newTarget = if (linkTarget.isAbsolute) {
-                            // Keep absolute paths as absolute
-                            linkTarget
-                        } else {
-                            // For relative paths, adjust relative to destination location
-                            val absoluteTarget = sourcePath.parent.resolve(linkTarget).normalize()
-                            dest.file.toPath().parent.relativize(absoluteTarget)
-                        }
-
-                        // Delete destination if it exists (createSymbolicLink doesn't support REPLACE_EXISTING)
-                        if (Files.exists(dest.file.toPath())) {
-                            Files.delete(dest.file.toPath())
-                        }
-                        Files.createSymbolicLink(dest.file.toPath(), newTarget)
-                    }
-                } else {
-                    // Regular file copy
-                    Files.copy(
-                        sourcePath,
-                        dest.file.toPath(),
-                        StandardCopyOption.REPLACE_EXISTING,
-                        StandardCopyOption.COPY_ATTRIBUTES
-                    )
-                }
-
-                bytesCopied += sourceLookup.size
-                copied.add(sourceLookup.lookedUp to dest)
-                currentItemsProcessed++
-                break
-            } catch (securityError: SecurityException) {
-                log(TAG, ERROR) { "copy(): Security exception on $sourceLookup: $securityError" }
-
-                if (issueSkippAllPermission) {
-                    log(TAG, INFO) { "Skipping permission issue (apply-to-all): $sourceLookup" }
-                    skipped.add(sourceLookup.lookedUp)
-                    currentItemsProcessed++
-                    break
-                }
-
-                val readError = ReadException(
-                    message = "Cannot read file",
-                    path = sourceLookup.lookedUp,
-                    cause = securityError
-                )
-                if (onIssue == null) throw readError
-
-                val issue = PathActionIssue.InsufficientPermission(
-                    destination = sourceLookup,
-                    exception = readError,
-                    canSkip = true,
-                )
-
-                when (val resolution = onIssue.invoke(issue) as PathActionIssue.InsufficientPermission.Resolution) {
-                    is PathActionIssue.InsufficientPermission.Resolution.Cancel -> throw CancellationException(
-                        "User cancelled",
-                        readError
-                    )
-                    is PathActionIssue.InsufficientPermission.Resolution.Skip -> {
-                        if (resolution.applyToAll) issueSkippAllPermission = true
-                        skipped.add(sourceLookup.lookedUp)
-                        currentItemsProcessed++
-                        break
-                    }
-                }
-            } catch (copyError: Exception) {
-                log(TAG, ERROR) { "copy(): Failed to copy $sourceLookup to $dest: $copyError" }
-
-                if (issueSkippAllUnknown) {
-                    log(TAG, INFO) { "Skipping unknown issue (apply-to-all): $sourceLookup" }
-                    skipped.add(sourceLookup.lookedUp)
-                    currentItemsProcessed++
-                    break
-                }
-
-                val writeError = WriteException(path = dest, cause = copyError)
-                if (onIssue == null) throw writeError
-
-                // Use source lookup if dest doesn't exist yet
-                val destLookup = if (Files.exists(dest.file.toPath())) dest.performLookup() else sourceLookup
-
-                val issue = PathActionIssue.UnknownError(
-                    destination = destLookup,
-                    exception = writeError,
-                    canRetry = true,
-                    canSkip = true
-                )
-
-                when (val resolution = onIssue.invoke(issue) as PathActionIssue.UnknownError.Resolution) {
-                    is PathActionIssue.UnknownError.Resolution.Cancel -> throw CancellationException(
-                        "User cancelled",
-                        writeError
-                    )
-                    is PathActionIssue.UnknownError.Resolution.Retry -> continue
-                    is PathActionIssue.UnknownError.Resolution.Skip -> {
-                        if (resolution.applyToAll) issueSkippAllUnknown = true
-                        skipped.add(sourceLookup.lookedUp)
-                        currentItemsProcessed++
-                        break
-                    }
-                }
-            } finally {
-                onProgress?.invoke(createProgress(sourceLookup, dest, index, total))
-            }
-        }
     }
 
     companion object {
