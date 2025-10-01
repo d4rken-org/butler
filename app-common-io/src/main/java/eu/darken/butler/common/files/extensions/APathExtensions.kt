@@ -4,7 +4,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.files.SAFPath
-import eu.darken.butler.common.files.local.crumbsTo
+import eu.darken.butler.common.files.local.relativeSegmentsTo
 import eu.darken.butler.common.files.saf.crumbsTo
 import java.io.File
 
@@ -13,7 +13,7 @@ fun APath.crumbsTo(child: APath): Array<String> {
 
     return when (this) {
         is RawPath -> this.crumbsTo(child as RawPath)
-        is LocalPath -> this.crumbsTo(child as LocalPath)
+        is LocalPath -> this.relativeSegmentsTo(child as LocalPath)
         is SAFPath -> this.crumbsTo(child as SAFPath)
     }
 }

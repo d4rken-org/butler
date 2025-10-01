@@ -22,7 +22,7 @@ class LocalPathExtensionsTest : BaseTest() {
         val parent = LocalPath.build("/the/parent")
         val child = LocalPath.build("/the/parent/has/a/child")
 
-        val crumbs = parent.crumbsTo(child)
+        val crumbs = parent.relativeSegmentsTo(child)
 
         crumbs shouldBe arrayOf("has", "a", "child")
     }

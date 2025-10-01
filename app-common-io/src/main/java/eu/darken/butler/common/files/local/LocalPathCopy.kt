@@ -151,8 +151,8 @@ internal class LocalPathCopy(
         val relativePath = if (pathForDestination == item.topLevelSource) {
             item.topLevelSource.name
         } else {
-            val segments = item.topLevelSource.crumbsTo(pathForDestination)
-            item.topLevelSource.name + "/" + segments.joinToString("/")
+            val segments = item.topLevelSource.relativeSegmentsTo(pathForDestination)
+            item.topLevelSource.name + File.separator + segments.joinToString(File.separator)
         }
         val cleanRelativePath = relativePath.trimStart('/')
         val destinationPath = LocalPath.build(File(destination.file, cleanRelativePath))
@@ -774,8 +774,8 @@ internal class LocalPathCopy(
         return renamedSourceDirs.entries.find { (renamedSource, _) ->
             renamedSource.isAncestorOf(source)
         }?.let { (renamedSource, newDestDir) ->
-            val relativeSegments = renamedSource.crumbsTo(source)
-            val relativePath = relativeSegments.joinToString("/")
+            val relativeSegments = renamedSource.relativeSegmentsTo(source)
+            val relativePath = relativeSegments.joinToString(File.separator)
             LocalPath.build(File(newDestDir.file, relativePath))
         } ?: dest
     }

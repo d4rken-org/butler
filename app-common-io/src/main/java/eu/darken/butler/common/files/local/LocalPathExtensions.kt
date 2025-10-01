@@ -20,7 +20,7 @@ import java.nio.file.attribute.BasicFileAttributes
 import kotlin.time.Instant
 
 
-fun LocalPath.crumbsTo(child: LocalPath): Array<String> {
+fun LocalPath.relativeSegmentsTo(child: LocalPath): Array<String> {
     val childPath = child.path
     val parentPath = this.path
     val pure = childPath.replaceFirst(parentPath, "")
