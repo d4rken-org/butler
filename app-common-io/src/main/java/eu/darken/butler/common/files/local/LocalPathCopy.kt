@@ -266,7 +266,8 @@ internal class LocalPathCopy(
 
     private suspend fun processSpaceCheck() {
         while (currentCoroutineContext().isActive) {
-            val availableSpace = Files.getFileStore(destination.file.toPath()).usableSpace
+            @Suppress("UsableSpace")
+            val availableSpace = destination.file.usableSpace
             log(TAG, DEBUG) { "Space check: need $totalSizeNeeded bytes, available $availableSpace bytes" }
 
             if (totalSizeNeeded > availableSpace) {
