@@ -36,7 +36,6 @@ internal class LocalPathCopy(
     private var issueMergeAllPathExists = false
     private var issueSkippAllPermission = false
     private var issueSkippAllUnknown = false
-    private var issueSkipAllDirectoryListing = false
 
     // Track renamed and skipped directories across all sources
     private val skippedSourceDirs = mutableSetOf<LocalPath>()
@@ -61,9 +60,13 @@ internal class LocalPathCopy(
     private sealed class WorkItem {
         /**
          * Scan a source directory tree and queue create/copy items
+         * @param source The actual path to scan (may be resolved from symlink)
+         * @param displayPath The path to use for destination calculation (preserves symlink names)
+         * @param topLevelSource The root source path for this scan tree
          */
         data class ScanSource(
             val source: LocalPath,
+            val displayPath: LocalPath? = null,
             val topLevelSource: LocalPath = source,
         ) : WorkItem()
 
@@ -143,10 +146,12 @@ internal class LocalPathCopy(
         val lookup = item.source.performLookup()
 
         // Calculate destination path relative to top-level source
-        val relativePath = if (item.source == item.topLevelSource) {
+        // Use displayPath if set (for symlinks), otherwise use source
+        val pathForDestination = item.displayPath ?: item.source
+        val relativePath = if (pathForDestination == item.topLevelSource) {
             item.topLevelSource.name
         } else {
-            val segments = item.topLevelSource.crumbsTo(item.source)
+            val segments = item.topLevelSource.crumbsTo(pathForDestination)
             item.topLevelSource.name + "/" + segments.joinToString("/")
         }
         val cleanRelativePath = relativePath.trimStart('/')
@@ -160,38 +165,20 @@ internal class LocalPathCopy(
                 totalItems++
 
                 // List and queue children
-                try {
-                    Files.newDirectoryStream(item.source.file.toPath()).use { ds ->
-                        for (child in ds) {
-                            val childPath = LocalPath.build(child.toFile())
-                            // Add child scan to front (processed before CheckSpace and work items)
-                            workQueue.addFirst(WorkItem.ScanSource(childPath, item.topLevelSource))
+                Files.newDirectoryStream(item.source.file.toPath()).use { ds ->
+                    for (child in ds) {
+                        val childPath = LocalPath.build(child.toFile())
+                        // If displayPath is set, maintain the mapping for children
+                        val childDisplayPath = item.displayPath?.let {
+                            LocalPath.build(File(it.file, child.fileName.toString()))
                         }
+                        // Add child scan to front (processed before CheckSpace and work items)
+                        workQueue.addFirst(WorkItem.ScanSource(
+                            source = childPath,
+                            displayPath = childDisplayPath,
+                            topLevelSource = item.topLevelSource
+                        ))
                     }
-                } catch (e: IOException) {
-                    log(TAG, ERROR) { "processScan(): Cannot list directory: $lookup - ${e.message}" }
-
-                    if (issueSkipAllDirectoryListing) {
-                        log(TAG, INFO) { "Skipping directory listing (apply-to-all): $lookup" }
-                        return
-                    }
-
-                    val readError = ReadException(
-                        message = "Cannot list directory",
-                        path = lookup.lookedUp,
-                        cause = e
-                    )
-                    if (onIssue == null) throw readError
-
-                    val issue = PathActionIssue.UnknownError(
-                        destination = lookup,
-                        exception = readError,
-                        canRetry = true,
-                        canSkip = true
-                    )
-
-                    // Queue issue resolution to be processed next (suspend function required)
-                    workQueue.addFirst(WorkItem.ResolveIssue(issue, item, readError))
                 }
             }
             FileType.FILE -> {
@@ -209,40 +196,13 @@ internal class LocalPathCopy(
                             totalSizeNeeded += lookup.size
                             totalItems++
 
-                            // List and queue children
-                            try {
-                                Files.newDirectoryStream(item.source.file.toPath()).use { ds ->
-                                    for (child in ds) {
-                                        val childPath = LocalPath.build(child.toFile())
-                                        // Add child scan to front (processed before CheckSpace and work items)
-                                        workQueue.addFirst(WorkItem.ScanSource(childPath, item.topLevelSource))
-                                    }
-                                }
-                            } catch (e: IOException) {
-                                log(TAG, ERROR) { "processScan(): Cannot list directory: $lookup - ${e.message}" }
-
-                                if (issueSkipAllDirectoryListing) {
-                                    log(TAG, INFO) { "Skipping directory listing (apply-to-all): $lookup" }
-                                    return
-                                }
-
-                                val readError = ReadException(
-                                    message = "Cannot list directory",
-                                    path = lookup.lookedUp,
-                                    cause = e
-                                )
-                                if (onIssue == null) throw readError
-
-                                val issue = PathActionIssue.UnknownError(
-                                    destination = lookup,
-                                    exception = readError,
-                                    canRetry = true,
-                                    canSkip = true
-                                )
-
-                                // Queue issue resolution to be processed next (suspend function required)
-                                workQueue.addFirst(WorkItem.ResolveIssue(issue, item, readError))
-                            }
+                            // Re-queue to list children
+                            // Use resolved path for scanning, but preserve symlink path for destination calc
+                            workQueue.addFirst(WorkItem.ScanSource(
+                                source = LocalPath.build(resolvedPath.toFile()),
+                                displayPath = item.source,
+                                topLevelSource = item.topLevelSource
+                            ))
                         } else {
                             workQueue.addLast(WorkItem.CopyFile(lookup, destinationPath, item.topLevelSource))
                             totalSizeNeeded += lookup.size
@@ -729,26 +689,14 @@ internal class LocalPathCopy(
                         workQueue.addFirst(item.originalItem)
                     }
                     is PathActionIssue.UnknownError.Resolution.Skip -> {
-                        when (val orig = item.originalItem) {
-                            is WorkItem.ScanSource -> {
-                                // Directory listing failure - skip this directory and its contents
-                                if (res.applyToAll) issueSkipAllDirectoryListing = true
-                                log(TAG, INFO) { "Skipping directory scan: ${orig.source}" }
-                                // No need to increment itemsProcessed or add to skipped
-                                // The CreateDirectory work item will still be processed
-                            }
-                            is WorkItem.CreateDirectory -> {
-                                if (res.applyToAll) issueSkippAllUnknown = true
-                                skipped.add(orig.sourceLookup.lookedUp)
-                                itemsProcessed++
-                            }
-                            is WorkItem.CopyFile -> {
-                                if (res.applyToAll) issueSkippAllUnknown = true
-                                skipped.add(orig.sourceLookup.lookedUp)
-                                itemsProcessed++
-                            }
+                        if (res.applyToAll) issueSkippAllUnknown = true
+                        val sourceLookup = when (val orig = item.originalItem) {
+                            is WorkItem.CreateDirectory -> orig.sourceLookup
+                            is WorkItem.CopyFile -> orig.sourceLookup
                             else -> error("Unexpected original item type: ${orig::class.simpleName}")
                         }
+                        skipped.add(sourceLookup.lookedUp)
+                        itemsProcessed++
                     }
                 }
             }
