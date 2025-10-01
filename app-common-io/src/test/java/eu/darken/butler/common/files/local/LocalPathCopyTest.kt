@@ -22,7 +22,7 @@ import testhelpers.BaseTest
 import java.io.File
 import java.nio.file.Files
 
-class LocalPathCopyExtensionsTest : BaseTest() {
+class LocalPathCopyTest : BaseTest() {
 
     private val testFolder = File(IO_TEST_BASEDIR, "copy-test")
     private val sourceFolder = File(testFolder, "source")
@@ -1875,7 +1875,7 @@ class LocalPathCopyExtensionsTest : BaseTest() {
         val sourcePath = LocalPath.build(sourceFile)
         val destPath = LocalPath.build(destFolder)
 
-        val tool = LocalPathCopyTool(
+        val tool = LocalPathCopy(
             sources = setOf(sourcePath),
             destination = destPath,
             options = CopyAction.Options(),

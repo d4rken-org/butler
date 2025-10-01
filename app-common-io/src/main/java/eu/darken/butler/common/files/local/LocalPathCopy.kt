@@ -20,7 +20,7 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import kotlin.coroutines.cancellation.CancellationException
 
-internal class LocalPathCopyTool(
+internal class LocalPathCopy(
     private val sources: Collection<LocalPath>,
     private val destination: LocalPath,
     private val options: CopyAction.Options<LocalPath>,
@@ -839,8 +839,32 @@ internal class LocalPathCopyTool(
 
         return newName
     }
-
-    companion object {
-        private val TAG = logTag("Gateway", "Local", "Copy", "Tool")
-    }
 }
+
+suspend fun LocalPath.copy(
+    destination: LocalPath,
+    options: CopyAction.Options<LocalPath> = CopyAction.Options(),
+    onProgress: (suspend (CopyAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
+    onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
+) = setOf(this).copy(destination, options, onProgress, onIssue)
+
+suspend fun Collection<LocalPath>.copy(
+    destination: LocalPath,
+    options: CopyAction.Options<LocalPath> = CopyAction.Options(),
+    onProgress: (suspend (CopyAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
+    onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
+): CopyAction.State.Result<LocalPath, LocalPathLookup> {
+    log(TAG, DEBUG) {
+        "copy(): Copying $size targets to $destination (options=$options, onProgress=$onProgress, onIssue=$onIssue)"
+    }
+
+    return LocalPathCopy(
+        sources = this,
+        destination = destination,
+        options = options,
+        onProgress = onProgress,
+        onIssue = onIssue
+    ).execute()
+}
+
+private val TAG = logTag("Gateway", "LocalPath", "Copy")
