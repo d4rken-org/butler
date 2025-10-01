@@ -66,7 +66,7 @@ internal class LocalPathCopy(
          */
         data class ScanSource(
             val source: LocalPath,
-            val displayPath: LocalPath? = null,
+            val displayPath: LocalPath = source,
             val topLevelSource: LocalPath = source,
         ) : WorkItem()
 
@@ -146,8 +146,8 @@ internal class LocalPathCopy(
         val lookup = item.source.performLookup()
 
         // Calculate destination path relative to top-level source
-        // Use displayPath if set (for symlinks), otherwise use source
-        val pathForDestination = item.displayPath ?: item.source
+        // Use displayPath for destination calculation (preserves symlink names)
+        val pathForDestination = item.displayPath
         val relativePath = if (pathForDestination == item.topLevelSource) {
             item.topLevelSource.name
         } else {
@@ -168,10 +168,8 @@ internal class LocalPathCopy(
                 Files.newDirectoryStream(item.source.file.toPath()).use { ds ->
                     for (child in ds) {
                         val childPath = LocalPath.build(child.toFile())
-                        // If displayPath is set, maintain the mapping for children
-                        val childDisplayPath = item.displayPath?.let {
-                            LocalPath.build(File(it.file, child.fileName.toString()))
-                        }
+                        // Maintain displayPath mapping for children
+                        val childDisplayPath = LocalPath.build(File(item.displayPath.file, child.fileName.toString()))
                         // Add child scan to front (processed before CheckSpace and work items)
                         workQueue.addFirst(WorkItem.ScanSource(
                             source = childPath,
@@ -197,10 +195,10 @@ internal class LocalPathCopy(
                             totalItems++
 
                             // Re-queue to list children
-                            // Use resolved path for scanning, but preserve symlink path for destination calc
+                            // Use resolved path for scanning, but preserve displayPath for destination calc
                             workQueue.addFirst(WorkItem.ScanSource(
                                 source = LocalPath.build(resolvedPath.toFile()),
-                                displayPath = item.source,
+                                displayPath = item.displayPath,
                                 topLevelSource = item.topLevelSource
                             ))
                         } else {
