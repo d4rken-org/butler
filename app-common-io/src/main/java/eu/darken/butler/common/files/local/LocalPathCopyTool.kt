@@ -41,10 +41,9 @@ internal class LocalPathCopyTool(
     private val skippedSourceDirs = mutableSetOf<LocalPath>()
     private val renamedSourceDirs = mutableMapOf<LocalPath, LocalPath>()
 
-    // Temporary state for current source being processed
-    private var currentTopLevel: LocalPath? = null
-    private var currentItemsProcessed = 0
-    private var currentTotalItems = 0
+    // Progress tracking
+    private var totalItems = 0
+    private var itemsProcessed = 0
 
     // Total accumulated size from all scans
     private var totalSizeNeeded = 0L
@@ -58,8 +57,6 @@ internal class LocalPathCopyTool(
          */
         data class ScanSource(
             val source: LocalPath,
-            val sourceIndex: Int,
-            val totalSources: Int
         ) : WorkItem()
 
         /**
@@ -73,8 +70,6 @@ internal class LocalPathCopyTool(
         data class CreateDirectory(
             val sourceLookup: LocalPathLookup,
             val dest: LocalPath,
-            val sourceIndex: Int,
-            val totalSources: Int,
             val topLevelSource: LocalPath
         ) : WorkItem()
 
@@ -84,8 +79,6 @@ internal class LocalPathCopyTool(
         data class CopyFile(
             val sourceLookup: LocalPathLookup,
             val dest: LocalPath,
-            val sourceIndex: Int,
-            val totalSources: Int,
             val topLevelSource: LocalPath
         ) : WorkItem()
 
@@ -102,12 +95,8 @@ internal class LocalPathCopyTool(
     suspend fun execute(): CopyAction.State.Result<LocalPath, LocalPathLookup> {
         ensureDestinationExists()
 
-        val workQueue = ArrayDeque<WorkItem>()
-
         // Initialize queue with scan items for each source
-        sources.forEachIndexed { index, source ->
-            workQueue.addLast(WorkItem.ScanSource(source, index, sources.size))
-        }
+        val workQueue = ArrayDeque<WorkItem>(sources.map { WorkItem.ScanSource(it) })
 
         var scansCompleted = 0
 
@@ -151,7 +140,7 @@ internal class LocalPathCopyTool(
     }
 
     private fun processScan(item: WorkItem.ScanSource, workQueue: ArrayDeque<WorkItem>) {
-        log(TAG, VERBOSE) { "Scanning source ${item.sourceIndex + 1}/${item.totalSources}: ${item.source}" }
+        log(TAG, VERBOSE) { "Scanning source: ${item.source}" }
 
         val toVisit = ArrayDeque<LocalPath>().apply { add(item.source) }
         val discoveredItems = mutableListOf<WorkItem>()
@@ -180,7 +169,7 @@ internal class LocalPathCopyTool(
                             if (Files.isDirectory(resolvedPath)) {
                                 discoveredItems.add(
                                     WorkItem.CreateDirectory(
-                                        lookup, destinationPath, item.sourceIndex, item.totalSources, item.source
+                                        lookup, destinationPath, item.source
                                     )
                                 )
                                 Files.newDirectoryStream(resolvedPath).use { ds ->
@@ -193,7 +182,7 @@ internal class LocalPathCopyTool(
                             } else {
                                 discoveredItems.add(
                                     WorkItem.CopyFile(
-                                        lookup, destinationPath, item.sourceIndex, item.totalSources, item.source
+                                        lookup, destinationPath, item.source
                                     )
                                 )
                                 totalSizeNeeded += lookup.size
@@ -202,7 +191,7 @@ internal class LocalPathCopyTool(
                             log(TAG, WARN) { "Cannot resolve symlink: $lookup - ${e.message}" }
                             discoveredItems.add(
                                 WorkItem.CopyFile(
-                                    lookup, destinationPath, item.sourceIndex, item.totalSources, item.source
+                                    lookup, destinationPath, item.source
                                 )
                             )
                             totalSizeNeeded += lookup.size
@@ -210,7 +199,7 @@ internal class LocalPathCopyTool(
                     } else {
                         discoveredItems.add(
                             WorkItem.CopyFile(
-                                lookup, destinationPath, item.sourceIndex, item.totalSources, item.source
+                                lookup, destinationPath, item.source
                             )
                         )
                         totalSizeNeeded += lookup.size
@@ -220,7 +209,7 @@ internal class LocalPathCopyTool(
                 FileType.FILE -> {
                     discoveredItems.add(
                         WorkItem.CopyFile(
-                            lookup, destinationPath, item.sourceIndex, item.totalSources, item.source
+                            lookup, destinationPath, item.source
                         )
                     )
                     totalSizeNeeded += lookup.size
@@ -229,7 +218,7 @@ internal class LocalPathCopyTool(
                 FileType.DIRECTORY -> {
                     discoveredItems.add(
                         WorkItem.CreateDirectory(
-                            lookup, destinationPath, item.sourceIndex, item.totalSources, item.source
+                            lookup, destinationPath, item.source
                         )
                     )
                 }
@@ -250,6 +239,7 @@ internal class LocalPathCopyTool(
         val files = discoveredItems.filterIsInstance<WorkItem.CopyFile>()
         workQueue.addAll(directories)
         workQueue.addAll(files)
+        totalItems += directories.size + files.size
     }
 
     private suspend fun processSpaceCheck() {
@@ -294,17 +284,6 @@ internal class LocalPathCopyTool(
     }
 
     private suspend fun processCreateDirectory(item: WorkItem.CreateDirectory, workQueue: ArrayDeque<WorkItem>) {
-        // Set current state for progress reporting
-        if (currentTopLevel != item.topLevelSource) {
-            currentTopLevel = item.topLevelSource
-            currentTotalItems = workQueue.count {
-                (it is WorkItem.CreateDirectory || it is WorkItem.CopyFile) &&
-                    (it as? WorkItem.CreateDirectory)?.topLevelSource == item.topLevelSource ||
-                    (it as? WorkItem.CopyFile)?.topLevelSource == item.topLevelSource
-            } + 1 // +1 for current item
-            currentItemsProcessed = 0
-        }
-
         // Adjust destination if parent was renamed
         val adjustedDest = adjustDestinationForRenames(item.dest, item.sourceLookup.lookedUp)
 
@@ -314,7 +293,7 @@ internal class LocalPathCopyTool(
         log(TAG, VERBOSE) { "tryCreateDirectory(): $sourceLookup -> $dest" }
 
         try {
-            onProgress?.invoke(createProgress(sourceLookup, dest, item.sourceIndex, item.totalSources))
+            onProgress?.invoke(createProgress(sourceLookup, dest))
 
             // Check if destination already exists
             if (Files.exists(dest.file.toPath())) {
@@ -326,13 +305,13 @@ internal class LocalPathCopyTool(
                         log(TAG, INFO) { "Skipping directory merge (skip apply-to-all): $dest" }
                         skipped.add(sourceLookup.lookedUp)
                         skippedSourceDirs.add(sourceLookup.lookedUp)
-                        currentItemsProcessed++
+                        itemsProcessed++
                         return
                     }
 
                     if (issueMergeAllPathExists) {
                         log(TAG, INFO) { "Merging directory (merge apply-to-all): $dest" }
-                        currentItemsProcessed++
+                        itemsProcessed++
                         return
                     }
 
@@ -343,7 +322,7 @@ internal class LocalPathCopyTool(
                         val existsError = WriteException(path = dest, cause = FileAlreadyExistsException(dest.path))
                         if (onIssue == null) {
                             log(TAG, VERBOSE) { "Directory already exists, auto-merging (no issue handler): $dest" }
-                            currentItemsProcessed++
+                            itemsProcessed++
                             return
                         }
 
@@ -367,7 +346,7 @@ internal class LocalPathCopyTool(
                         log(TAG, INFO) { "Skipping file-directory conflict (skip apply-to-all): $dest" }
                         skipped.add(sourceLookup.lookedUp)
                         skippedSourceDirs.add(sourceLookup.lookedUp)
-                        currentItemsProcessed++
+                        itemsProcessed++
                         return
                     }
 
@@ -413,14 +392,14 @@ internal class LocalPathCopyTool(
             }
 
             copied.add(sourceLookup.lookedUp to dest)
-            currentItemsProcessed++
+            itemsProcessed++
 
         } catch (e: SecurityException) {
             log(TAG, ERROR) { "Security exception on $dest: $e" }
             if (issueSkippAllPermission) {
                 log(TAG, INFO) { "Skipping permission issue (apply-to-all): $dest" }
                 skipped.add(sourceLookup.lookedUp)
-                currentItemsProcessed++
+                itemsProcessed++
                 return
             }
 
@@ -441,7 +420,7 @@ internal class LocalPathCopyTool(
             if (issueSkippAllUnknown) {
                 log(TAG, INFO) { "Skipping unknown issue (apply-to-all): $dest" }
                 skipped.add(sourceLookup.lookedUp)
-                currentItemsProcessed++
+                itemsProcessed++
                 return
             }
 
@@ -458,27 +437,16 @@ internal class LocalPathCopyTool(
 
             workQueue.addFirst(WorkItem.ResolveIssue(issue, item, writeError))
         } finally {
-            onProgress?.invoke(createProgress(sourceLookup, dest, item.sourceIndex, item.totalSources))
+            onProgress?.invoke(createProgress(sourceLookup, dest))
         }
     }
 
     private suspend fun processCopyFile(item: WorkItem.CopyFile, workQueue: ArrayDeque<WorkItem>) {
-        // Set current state for progress reporting
-        if (currentTopLevel != item.topLevelSource) {
-            currentTopLevel = item.topLevelSource
-            currentTotalItems = workQueue.count {
-                (it is WorkItem.CreateDirectory || it is WorkItem.CopyFile) &&
-                    (it as? WorkItem.CreateDirectory)?.topLevelSource == item.topLevelSource ||
-                    (it as? WorkItem.CopyFile)?.topLevelSource == item.topLevelSource
-            } + 1
-            currentItemsProcessed = 0
-        }
-
         // Skip if parent directory was skipped
         if (isDescendantOfSkippedDir(item.sourceLookup.lookedUp)) {
             log(TAG, VERBOSE) { "Skipping file because parent directory was skipped: ${item.sourceLookup}" }
             skipped.add(item.sourceLookup.lookedUp)
-            currentItemsProcessed++
+            itemsProcessed++
             return
         }
 
@@ -491,7 +459,7 @@ internal class LocalPathCopyTool(
         log(TAG, VERBOSE) { "tryCopyFile(): $sourceLookup -> $dest" }
 
         try {
-            onProgress?.invoke(createProgress(sourceLookup, dest, item.sourceIndex, item.totalSources))
+            onProgress?.invoke(createProgress(sourceLookup, dest))
 
             // Ensure parent directory exists
             val parentPath = dest.file.parentFile?.let { LocalPath.build(it) }
@@ -504,7 +472,7 @@ internal class LocalPathCopyTool(
                 if (issueSkipAllPathExists) {
                     log(TAG, INFO) { "Skipping existing file (skip apply-to-all): $dest" }
                     skipped.add(sourceLookup.lookedUp)
-                    currentItemsProcessed++
+                    itemsProcessed++
                     return
                 }
 
@@ -567,14 +535,14 @@ internal class LocalPathCopyTool(
 
             bytesCopied += sourceLookup.size
             copied.add(sourceLookup.lookedUp to dest)
-            currentItemsProcessed++
+            itemsProcessed++
 
         } catch (securityError: SecurityException) {
             log(TAG, ERROR) { "Security exception on $sourceLookup: $securityError" }
             if (issueSkippAllPermission) {
                 log(TAG, INFO) { "Skipping permission issue (apply-to-all): $sourceLookup" }
                 skipped.add(sourceLookup.lookedUp)
-                currentItemsProcessed++
+                itemsProcessed++
                 return
             }
 
@@ -595,7 +563,7 @@ internal class LocalPathCopyTool(
             if (issueSkippAllUnknown) {
                 log(TAG, INFO) { "Skipping unknown issue (apply-to-all): $sourceLookup" }
                 skipped.add(sourceLookup.lookedUp)
-                currentItemsProcessed++
+                itemsProcessed++
                 return
             }
 
@@ -612,7 +580,7 @@ internal class LocalPathCopyTool(
 
             workQueue.addFirst(WorkItem.ResolveIssue(issue, item, writeError))
         } finally {
-            onProgress?.invoke(createProgress(sourceLookup, dest, item.sourceIndex, item.totalSources))
+            onProgress?.invoke(createProgress(sourceLookup, dest))
         }
     }
 
@@ -637,7 +605,7 @@ internal class LocalPathCopyTool(
                         if (item.originalItem is WorkItem.CreateDirectory) {
                             skippedSourceDirs.add(sourceLookup.lookedUp)
                         }
-                        currentItemsProcessed++
+                        itemsProcessed++
                     }
                     is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
                         if (res.applyToAll) issueOverwriteAllPathExists = true
@@ -669,7 +637,7 @@ internal class LocalPathCopyTool(
                     }
                     is PathActionIssue.PathAlreadyExists.Resolution.Merge -> {
                         if (res.applyToAll) issueMergeAllPathExists = true
-                        currentItemsProcessed++
+                        itemsProcessed++
                     }
                     is PathActionIssue.PathAlreadyExists.Resolution.RenameSource -> {
                         log(TAG, INFO) { "User chose rename source: ${res.newName}" }
@@ -679,7 +647,7 @@ internal class LocalPathCopyTool(
                                 Files.createDirectories(newDestPath.file.toPath())
                                 copied.add(orig.sourceLookup.lookedUp to newDestPath)
                                 renamedSourceDirs[orig.sourceLookup.lookedUp] = newDestPath
-                                currentItemsProcessed++
+                                itemsProcessed++
                             }
                             is WorkItem.CopyFile -> {
                                 val newDestPath = LocalPath.build(File(orig.dest.file.parentFile!!, res.newName))
@@ -690,7 +658,7 @@ internal class LocalPathCopyTool(
                                 )
                                 bytesCopied += orig.sourceLookup.size
                                 copied.add(orig.sourceLookup.lookedUp to newDestPath)
-                                currentItemsProcessed++
+                                itemsProcessed++
                             }
                             else -> error("Unexpected original item type")
                         }
@@ -724,7 +692,7 @@ internal class LocalPathCopyTool(
                             else -> error("Unexpected original item type")
                         }
                         skipped.add(sourceLookup.lookedUp)
-                        currentItemsProcessed++
+                        itemsProcessed++
                     }
                 }
             }
@@ -745,7 +713,7 @@ internal class LocalPathCopyTool(
                             else -> error("Unexpected original item type")
                         }
                         skipped.add(sourceLookup.lookedUp)
-                        currentItemsProcessed++
+                        itemsProcessed++
                     }
                 }
             }
@@ -831,36 +799,19 @@ internal class LocalPathCopyTool(
     private fun createProgress(
         sourceLookup: LocalPathLookup,
         dest: LocalPath,
-        index: Int,
-        total: Int
     ): CopyAction.State.Progress<LocalPath, LocalPathLookup> = CopyAction.State.Progress(
         currentSource = sourceLookup.lookedUp,
         currentDestination = dest,
         bytesCopied = bytesCopied,
         primaryProgress = eu.darken.butler.common.progress.Progress.Data(
-            primary = R.string.general_copy_progress_title.toCaString(currentTopLevel!!.name),
-            secondary = if (sourceLookup.lookedUp == currentTopLevel) {
-                R.string.general_copy_progress_processing_main.toCaString()
-            } else {
-                R.string.general_copy_progress_processing_content.toCaString()
-            },
+            primary = R.string.general_copy_progress_title.toCaString(),
+            secondary = sourceLookup.userReadablePath,
             count = eu.darken.butler.common.progress.Progress.Count.Counter(
-                current = index,
-                max = total
+                current = itemsProcessed,
+                max = totalItems
             )
         ),
-        secondaryProgress = if (currentTotalItems > 1) {
-            eu.darken.butler.common.progress.Progress.Data(
-                primary = R.string.general_copy_progress_items_in_folder.toCaString(
-                    currentTopLevel!!.name
-                ),
-                secondary = sourceLookup.userReadablePath,
-                count = eu.darken.butler.common.progress.Progress.Count.Percent(
-                    current = currentItemsProcessed,
-                    max = currentTotalItems
-                )
-            )
-        } else null
+        secondaryProgress = null
     )
 
     private fun deleteRecursively(path: LocalPath) {

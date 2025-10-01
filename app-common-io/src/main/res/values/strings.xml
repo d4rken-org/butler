@@ -6,8 +6,5 @@
     <string name="general_delete_progress_items_in_folder">Deleting items in \'%1$s\'</string>
 
     <!-- Copy operation progress strings -->
-    <string name="general_copy_progress_title">Copying \'%1$s\'</string>
-    <string name="general_copy_progress_processing_main">Copying target…</string>
-    <string name="general_copy_progress_processing_content">Copying directory content…</string>
-    <string name="general_copy_progress_items_in_folder">Copying items in \'%1$s\'</string>
+    <string name="general_copy_progress_title">Copying items</string>
 </resources>
