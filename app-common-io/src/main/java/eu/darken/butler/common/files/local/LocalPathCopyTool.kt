@@ -48,6 +48,12 @@ internal class LocalPathCopyTool(
     // Total accumulated size from all scans
     private var totalSizeNeeded = 0L
 
+    // Work queue for processing copy operations
+    private var workQueue = ArrayDeque<WorkItem>()
+
+    // Single-use flag
+    private var hasExecuted = false
+
     /**
      * Sealed hierarchy of work items for the copy queue
      */
@@ -93,41 +99,31 @@ internal class LocalPathCopyTool(
     }
 
     suspend fun execute(): CopyAction.State.Result<LocalPath, LocalPathLookup> {
+        check(!hasExecuted) { "LocalPathCopyTool can only be executed once" }
+        hasExecuted = true
+
         ensureDestinationExists()
 
         // Initialize queue with scan items for each source
-        val workQueue = ArrayDeque<WorkItem>(sources.map { WorkItem.ScanSource(it) })
-
-        var scansCompleted = 0
+        workQueue.addAll(sources.map { WorkItem.ScanSource(it) })
+        // After all sources are scanned, we need to do a space check
+        workQueue.add(WorkItem.CheckSpace)
 
         // Process work queue
         while (workQueue.isNotEmpty() && currentCoroutineContext().isActive) {
             when (val item = workQueue.removeFirst()) {
-                is WorkItem.ScanSource -> {
-                    processScan(item, workQueue)
-                    scansCompleted++
-
-                    // After all scans complete, inject space check before first create/copy
-                    if (scansCompleted == sources.size) {
-                        val insertIndex = workQueue.indexOfFirst {
-                            it is WorkItem.CreateDirectory || it is WorkItem.CopyFile
-                        }
-                        if (insertIndex >= 0) {
-                            workQueue.add(insertIndex, WorkItem.CheckSpace)
-                        }
-                    }
-                }
+                is WorkItem.ScanSource -> processScan(item)
                 is WorkItem.CheckSpace -> {
                     processSpaceCheck()
                 }
                 is WorkItem.CreateDirectory -> {
-                    processCreateDirectory(item, workQueue)
+                    processCreateDirectory(item)
                 }
                 is WorkItem.CopyFile -> {
-                    processCopyFile(item, workQueue)
+                    processCopyFile(item)
                 }
                 is WorkItem.ResolveIssue -> {
-                    processResolveIssue(item, workQueue)
+                    processResolveIssue(item)
                 }
             }
         }
@@ -139,7 +135,7 @@ internal class LocalPathCopyTool(
         )
     }
 
-    private fun processScan(item: WorkItem.ScanSource, workQueue: ArrayDeque<WorkItem>) {
+    private fun processScan(item: WorkItem.ScanSource) {
         log(TAG, VERBOSE) { "Scanning source: ${item.source}" }
 
         val toVisit = ArrayDeque<LocalPath>().apply { add(item.source) }
@@ -283,7 +279,7 @@ internal class LocalPathCopyTool(
         }
     }
 
-    private suspend fun processCreateDirectory(item: WorkItem.CreateDirectory, workQueue: ArrayDeque<WorkItem>) {
+    private suspend fun processCreateDirectory(item: WorkItem.CreateDirectory) {
         // Adjust destination if parent was renamed
         val adjustedDest = adjustDestinationForRenames(item.dest, item.sourceLookup.lookedUp)
 
@@ -441,7 +437,7 @@ internal class LocalPathCopyTool(
         }
     }
 
-    private suspend fun processCopyFile(item: WorkItem.CopyFile, workQueue: ArrayDeque<WorkItem>) {
+    private suspend fun processCopyFile(item: WorkItem.CopyFile) {
         // Skip if parent directory was skipped
         if (isDescendantOfSkippedDir(item.sourceLookup.lookedUp)) {
             log(TAG, VERBOSE) { "Skipping file because parent directory was skipped: ${item.sourceLookup}" }
@@ -584,7 +580,7 @@ internal class LocalPathCopyTool(
         }
     }
 
-    private suspend fun processResolveIssue(item: WorkItem.ResolveIssue, workQueue: ArrayDeque<WorkItem>) {
+    private suspend fun processResolveIssue(item: WorkItem.ResolveIssue) {
         val resolution = onIssue!!.invoke(item.issue)
 
         when (item.issue) {

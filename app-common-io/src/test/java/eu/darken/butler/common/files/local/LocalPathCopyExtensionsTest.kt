@@ -1865,4 +1865,31 @@ class LocalPathCopyExtensionsTest : BaseTest() {
 
         result.copied shouldHaveSize 2 // Directory + file
     }
+
+    @Test
+    fun `tool can only be executed once`() = runTest {
+        // Given
+        val sourceFile = File(sourceFolder, "test.txt")
+        sourceFile.writeText("content")
+
+        val sourcePath = LocalPath.build(sourceFile)
+        val destPath = LocalPath.build(destFolder)
+
+        val tool = LocalPathCopyTool(
+            sources = setOf(sourcePath),
+            destination = destPath,
+            options = CopyAction.Options(),
+            onProgress = null,
+            onIssue = null
+        )
+
+        // When - first execution succeeds
+        tool.execute()
+
+        // Then - second execution should throw
+        val exception = shouldThrow<IllegalStateException> {
+            tool.execute()
+        }
+        exception.message shouldContain "can only be executed once"
+    }
 }
