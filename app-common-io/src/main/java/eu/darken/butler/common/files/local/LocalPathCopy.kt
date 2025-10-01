@@ -157,12 +157,24 @@ internal class LocalPathCopy(
                 workQueue.addLast(WorkItem.CreateDirectory(lookup, destinationPath, item.topLevelSource))
                 totalSizeNeeded += lookup.size
                 totalItems++
+
+                // List and queue children
+                try {
+                    Files.newDirectoryStream(item.source.file.toPath()).use { ds ->
+                        for (child in ds) {
+                            val childPath = LocalPath.build(child.toFile())
+                            // Add child scan to front (processed before CheckSpace and work items)
+                            workQueue.addFirst(WorkItem.ScanSource(childPath, item.topLevelSource))
+                        }
+                    }
+                } catch (e: IOException) {
+                    log(TAG, WARN) { "Cannot list directory: $lookup - ${e.message}" }
+                }
             }
             FileType.FILE -> {
                 workQueue.addLast(WorkItem.CopyFile(lookup, destinationPath, item.topLevelSource))
                 totalSizeNeeded += lookup.size
                 totalItems++
-                return // Files don't have children
             }
             FileType.SYMBOLIC_LINK -> {
                 if (options.followSymlinks) {
@@ -173,41 +185,37 @@ internal class LocalPathCopy(
                             workQueue.addLast(WorkItem.CreateDirectory(lookup, destinationPath, item.topLevelSource))
                             totalSizeNeeded += lookup.size
                             totalItems++
-                            // Will list children below
+
+                            // List and queue children
+                            try {
+                                Files.newDirectoryStream(item.source.file.toPath()).use { ds ->
+                                    for (child in ds) {
+                                        val childPath = LocalPath.build(child.toFile())
+                                        // Add child scan to front (processed before CheckSpace and work items)
+                                        workQueue.addFirst(WorkItem.ScanSource(childPath, item.topLevelSource))
+                                    }
+                                }
+                            } catch (e: IOException) {
+                                log(TAG, WARN) { "Cannot list directory: $lookup - ${e.message}" }
+                            }
                         } else {
                             workQueue.addLast(WorkItem.CopyFile(lookup, destinationPath, item.topLevelSource))
                             totalSizeNeeded += lookup.size
                             totalItems++
-                            return // File symlink, no children
                         }
                     } catch (e: IOException) {
                         log(TAG, WARN) { "Cannot resolve symlink: $lookup - ${e.message}" }
                         workQueue.addLast(WorkItem.CopyFile(lookup, destinationPath, item.topLevelSource))
                         totalSizeNeeded += lookup.size
                         totalItems++
-                        return // Failed symlink, treat as file
                     }
                 } else {
                     workQueue.addLast(WorkItem.CopyFile(lookup, destinationPath, item.topLevelSource))
                     totalSizeNeeded += lookup.size
                     totalItems++
-                    return // Copy symlink as-is, no children
                 }
             }
             FileType.UNKNOWN -> throw IllegalStateException("Unknown file type: $lookup")
-        }
-
-        // List and queue children (only for directories)
-        try {
-            Files.newDirectoryStream(item.source.file.toPath()).use { ds ->
-                for (child in ds) {
-                    val childPath = LocalPath.build(child.toFile())
-                    // Add child scan to front (processed before CheckSpace and work items)
-                    workQueue.addFirst(WorkItem.ScanSource(childPath, item.topLevelSource))
-                }
-            }
-        } catch (e: IOException) {
-            log(TAG, WARN) { "Cannot list directory: $lookup - ${e.message}" }
         }
     }
 
