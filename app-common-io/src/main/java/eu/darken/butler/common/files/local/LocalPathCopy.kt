@@ -63,6 +63,7 @@ internal class LocalPathCopy(
          */
         data class ScanSource(
             val source: LocalPath,
+            val topLevelSource: LocalPath = source,
         ) : WorkItem()
 
         /**
@@ -138,106 +139,76 @@ internal class LocalPathCopy(
     private fun processScan(item: WorkItem.ScanSource) {
         log(TAG, VERBOSE) { "Scanning source: ${item.source}" }
 
-        val toVisit = ArrayDeque<LocalPath>().apply { add(item.source) }
-        val discoveredItems = mutableListOf<WorkItem>()
+        val lookup = item.source.performLookup()
 
-        // Build lists of directories and files to queue
-        while (toVisit.isNotEmpty()) {
-            val localPath = toVisit.removeFirst()
-            val lookup = localPath.performLookup()
+        // Calculate destination path relative to top-level source
+        val relativePath = if (item.source == item.topLevelSource) {
+            item.topLevelSource.name
+        } else {
+            val segments = item.topLevelSource.crumbsTo(item.source)
+            item.topLevelSource.name + "/" + segments.joinToString("/")
+        }
+        val cleanRelativePath = relativePath.trimStart('/')
+        val destinationPath = LocalPath.build(File(destination.file, cleanRelativePath))
 
-            val relativePath = if (localPath == item.source) {
-                item.source.name
-            } else {
-                val segments = item.source.crumbsTo(localPath)
-                item.source.name + "/" + segments.joinToString("/")
+        // Queue work item for this item itself
+        when (lookup.fileType) {
+            FileType.DIRECTORY -> {
+                workQueue.addLast(WorkItem.CreateDirectory(lookup, destinationPath, item.topLevelSource))
+                totalSizeNeeded += lookup.size
+                totalItems++
             }
-
-            val cleanRelativePath = relativePath.trimStart('/')
-            val destinationPath = LocalPath.build(File(destination.file, cleanRelativePath))
-
-            when (lookup.fileType) {
-                FileType.SYMBOLIC_LINK -> {
-                    if (options.followSymlinks) {
-                        try {
-                            val targetPath = Files.readSymbolicLink(localPath.file.toPath())
-                            val resolvedPath = localPath.file.toPath().parent.resolve(targetPath).normalize()
-                            if (Files.isDirectory(resolvedPath)) {
-                                discoveredItems.add(
-                                    WorkItem.CreateDirectory(
-                                        lookup, destinationPath, item.source
-                                    )
-                                )
-                                totalSizeNeeded += lookup.size
-                                Files.newDirectoryStream(resolvedPath).use { ds ->
-                                    for (child in ds) {
-                                        val childName = child.fileName.toString()
-                                        val symlinkChild = LocalPath.build(File(localPath.file, childName))
-                                        toVisit.addLast(symlinkChild)
-                                    }
-                                }
-                            } else {
-                                discoveredItems.add(
-                                    WorkItem.CopyFile(
-                                        lookup, destinationPath, item.source
-                                    )
-                                )
-                                totalSizeNeeded += lookup.size
-                            }
-                        } catch (e: IOException) {
-                            log(TAG, WARN) { "Cannot resolve symlink: $lookup - ${e.message}" }
-                            discoveredItems.add(
-                                WorkItem.CopyFile(
-                                    lookup, destinationPath, item.source
-                                )
-                            )
+            FileType.FILE -> {
+                workQueue.addLast(WorkItem.CopyFile(lookup, destinationPath, item.topLevelSource))
+                totalSizeNeeded += lookup.size
+                totalItems++
+                return // Files don't have children
+            }
+            FileType.SYMBOLIC_LINK -> {
+                if (options.followSymlinks) {
+                    try {
+                        val targetPath = Files.readSymbolicLink(item.source.file.toPath())
+                        val resolvedPath = item.source.file.toPath().parent.resolve(targetPath).normalize()
+                        if (Files.isDirectory(resolvedPath)) {
+                            workQueue.addLast(WorkItem.CreateDirectory(lookup, destinationPath, item.topLevelSource))
                             totalSizeNeeded += lookup.size
+                            totalItems++
+                            // Will list children below
+                        } else {
+                            workQueue.addLast(WorkItem.CopyFile(lookup, destinationPath, item.topLevelSource))
+                            totalSizeNeeded += lookup.size
+                            totalItems++
+                            return // File symlink, no children
                         }
-                    } else {
-                        discoveredItems.add(
-                            WorkItem.CopyFile(
-                                lookup, destinationPath, item.source
-                            )
-                        )
+                    } catch (e: IOException) {
+                        log(TAG, WARN) { "Cannot resolve symlink: $lookup - ${e.message}" }
+                        workQueue.addLast(WorkItem.CopyFile(lookup, destinationPath, item.topLevelSource))
                         totalSizeNeeded += lookup.size
+                        totalItems++
+                        return // Failed symlink, treat as file
                     }
-                    continue
-                }
-                FileType.FILE -> {
-                    discoveredItems.add(
-                        WorkItem.CopyFile(
-                            lookup, destinationPath, item.source
-                        )
-                    )
+                } else {
+                    workQueue.addLast(WorkItem.CopyFile(lookup, destinationPath, item.topLevelSource))
                     totalSizeNeeded += lookup.size
-                    continue
+                    totalItems++
+                    return // Copy symlink as-is, no children
                 }
-                FileType.DIRECTORY -> {
-                    discoveredItems.add(
-                        WorkItem.CreateDirectory(
-                            lookup, destinationPath, item.source
-                        )
-                    )
-                    totalSizeNeeded += lookup.size
-                }
-                FileType.UNKNOWN -> throw IllegalStateException("Unknown file type: $lookup")
             }
-
-            try {
-                Files.newDirectoryStream(localPath.file.toPath()).use { ds ->
-                    for (child in ds) toVisit.addLast(LocalPath.build(child.toFile()))
-                }
-            } catch (e: IOException) {
-                log(TAG, WARN) { "Cannot list directory: $lookup - ${e.message}" }
-            }
+            FileType.UNKNOWN -> throw IllegalStateException("Unknown file type: $lookup")
         }
 
-        // Add discovered items to queue: directories first, then files
-        val directories = discoveredItems.filterIsInstance<WorkItem.CreateDirectory>()
-        val files = discoveredItems.filterIsInstance<WorkItem.CopyFile>()
-        workQueue.addAll(directories)
-        workQueue.addAll(files)
-        totalItems += directories.size + files.size
+        // List and queue children (only for directories)
+        try {
+            Files.newDirectoryStream(item.source.file.toPath()).use { ds ->
+                for (child in ds) {
+                    val childPath = LocalPath.build(child.toFile())
+                    // Add child scan to front (processed before CheckSpace and work items)
+                    workQueue.addFirst(WorkItem.ScanSource(childPath, item.topLevelSource))
+                }
+            }
+        } catch (e: IOException) {
+            log(TAG, WARN) { "Cannot list directory: $lookup - ${e.message}" }
+        }
     }
 
     private suspend fun processSpaceCheck() {
