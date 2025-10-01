@@ -1867,6 +1867,156 @@ class LocalPathCopyTest : BaseTest() {
     }
 
     @Test
+    fun `copy broken symlink with followSymlinks false should preserve symlink`() = runTest {
+        // Given - symlink pointing to non-existent target
+        val brokenLink = File(sourceFolder, "brokenLink")
+
+        // Create symlink to non-existent file
+        Files.createSymbolicLink(
+            brokenLink.toPath(),
+            java.nio.file.Paths.get("nonexistent.txt")
+        )
+
+        // Only proceed if symlink was actually created
+        if (!Files.isSymbolicLink(brokenLink.toPath())) {
+            return@runTest
+        }
+
+        val sourcePath = LocalPath.build(brokenLink)
+        val destPath = LocalPath.build(destFolder)
+
+        // When - copy with followSymlinks = false
+        val result = sourcePath.copy(
+            destPath,
+            options = CopyAction.Options(followSymlinks = false)
+        )
+
+        // Then - broken symlink should be copied as-is
+        val copiedLink = File(destFolder, "brokenLink")
+        copiedLink.exists() shouldBe false // Target doesn't exist
+        Files.isSymbolicLink(copiedLink.toPath()) shouldBe true // But symlink exists
+        result.copied shouldHaveSize 1
+    }
+
+    @Test
+    fun `copy broken symlink with followSymlinks true should fail`() = runTest {
+        // Given - symlink pointing to non-existent target
+        val brokenLink = File(sourceFolder, "brokenLink")
+
+        // Create symlink to non-existent file
+        Files.createSymbolicLink(
+            brokenLink.toPath(),
+            java.nio.file.Paths.get("nonexistent.txt")
+        )
+
+        // Only proceed if symlink was actually created
+        if (!Files.isSymbolicLink(brokenLink.toPath())) {
+            return@runTest
+        }
+
+        val sourcePath = LocalPath.build(brokenLink)
+        val destPath = LocalPath.build(destFolder)
+
+        // When - copy with followSymlinks = true should fail
+        shouldThrow<Exception> {
+            sourcePath.copy(
+                destPath,
+                options = CopyAction.Options(followSymlinks = true)
+            )
+        }
+    }
+
+    @Test
+    fun `copy nested symlinks with followSymlinks true should resolve all levels`() = runTest {
+        // Given - directory with nested symlinks
+        val realDir = File(sourceFolder, "realDir")
+        realDir.mkdir()
+        val realFile = File(realDir, "realFile.txt")
+        realFile.writeText("nested content")
+
+        // Create symlink to file inside directory
+        val linkToFile = File(realDir, "linkToFile")
+        Files.createSymbolicLink(
+            linkToFile.toPath(),
+            java.nio.file.Paths.get("realFile.txt")
+        )
+
+        // Create symlink to directory
+        val linkToDir = File(sourceFolder, "linkToDir")
+        Files.createSymbolicLink(
+            linkToDir.toPath(),
+            java.nio.file.Paths.get("realDir")
+        )
+
+        // Only proceed if symlinks were actually created
+        if (!Files.isSymbolicLink(linkToDir.toPath()) || !Files.isSymbolicLink(linkToFile.toPath())) {
+            return@runTest
+        }
+
+        val sourcePath = LocalPath.build(linkToDir)
+        val destPath = LocalPath.build(destFolder)
+
+        // When - copy with followSymlinks = true
+        val result = sourcePath.copy(
+            destPath,
+            options = CopyAction.Options(followSymlinks = true)
+        )
+
+        // Then - both symlinks should be resolved and content copied
+        val copiedDir = File(destFolder, "linkToDir")
+        copiedDir.exists() shouldBe true
+        copiedDir.isDirectory shouldBe true
+        Files.isSymbolicLink(copiedDir.toPath()) shouldBe false
+
+        val copiedRealFile = File(copiedDir, "realFile.txt")
+        copiedRealFile.exists() shouldBe true
+        copiedRealFile.readText() shouldBe "nested content"
+
+        val copiedLinkToFile = File(copiedDir, "linkToFile")
+        copiedLinkToFile.exists() shouldBe true
+        copiedLinkToFile.readText() shouldBe "nested content"
+
+        result.copied shouldHaveSize 3 // Directory + realFile + linkToFile
+    }
+
+    @Test
+    fun `copy symlink to deeply nested directory structure`() = runTest {
+        // Given - deeply nested directory with symlink at top
+        val targetDir = File(sourceFolder, "targetDir")
+        val subdir1 = File(targetDir, "level1")
+        val subdir2 = File(subdir1, "level2")
+        subdir2.mkdirs()
+        File(subdir2, "deep.txt").writeText("deep content")
+
+        val linkToDir = File(sourceFolder, "linkToDir")
+        Files.createSymbolicLink(
+            linkToDir.toPath(),
+            java.nio.file.Paths.get("targetDir")
+        )
+
+        // Only proceed if symlink was actually created
+        if (!Files.isSymbolicLink(linkToDir.toPath())) {
+            return@runTest
+        }
+
+        val sourcePath = LocalPath.build(linkToDir)
+        val destPath = LocalPath.build(destFolder)
+
+        // When - copy with followSymlinks = true
+        val result = sourcePath.copy(
+            destPath,
+            options = CopyAction.Options(followSymlinks = true)
+        )
+
+        // Then - full directory structure should be preserved under linkToDir name
+        val copiedDeepFile = File(destFolder, "linkToDir/level1/level2/deep.txt")
+        copiedDeepFile.exists() shouldBe true
+        copiedDeepFile.readText() shouldBe "deep content"
+
+        result.copied shouldHaveSize 4 // linkToDir + level1 + level2 + deep.txt
+    }
+
+    @Test
     fun `tool can only be executed once`() = runTest {
         // Given
         val sourceFile = File(sourceFolder, "test.txt")

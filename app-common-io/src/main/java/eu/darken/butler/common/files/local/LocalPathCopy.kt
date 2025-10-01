@@ -159,6 +159,7 @@ internal class LocalPathCopy(
 
         // Queue work item for this item itself
         when (lookup.fileType) {
+
             FileType.DIRECTORY -> {
                 workQueue.addLast(WorkItem.CreateDirectory(lookup, destinationPath, item.topLevelSource))
                 totalSizeNeeded += lookup.size
@@ -171,19 +172,23 @@ internal class LocalPathCopy(
                         // Maintain displayPath mapping for children
                         val childDisplayPath = LocalPath.build(File(item.displayPath.file, child.fileName.toString()))
                         // Add child scan to front (processed before CheckSpace and work items)
-                        workQueue.addFirst(WorkItem.ScanSource(
-                            source = childPath,
-                            displayPath = childDisplayPath,
-                            topLevelSource = item.topLevelSource
-                        ))
+                        workQueue.addFirst(
+                            WorkItem.ScanSource(
+                                source = childPath,
+                                displayPath = childDisplayPath,
+                                topLevelSource = item.topLevelSource
+                            )
+                        )
                     }
                 }
             }
+
             FileType.FILE -> {
                 workQueue.addLast(WorkItem.CopyFile(lookup, destinationPath, item.topLevelSource))
                 totalSizeNeeded += lookup.size
                 totalItems++
             }
+
             FileType.SYMBOLIC_LINK -> {
                 if (options.followSymlinks) {
                     try {
@@ -196,11 +201,13 @@ internal class LocalPathCopy(
 
                             // Re-queue to list children
                             // Use resolved path for scanning, but preserve displayPath for destination calc
-                            workQueue.addFirst(WorkItem.ScanSource(
-                                source = LocalPath.build(resolvedPath.toFile()),
-                                displayPath = item.displayPath,
-                                topLevelSource = item.topLevelSource
-                            ))
+                            workQueue.addFirst(
+                                WorkItem.ScanSource(
+                                    source = LocalPath.build(resolvedPath.toFile()),
+                                    displayPath = item.displayPath,
+                                    topLevelSource = item.topLevelSource
+                                )
+                            )
                         } else {
                             workQueue.addLast(WorkItem.CopyFile(lookup, destinationPath, item.topLevelSource))
                             totalSizeNeeded += lookup.size
@@ -218,7 +225,9 @@ internal class LocalPathCopy(
                     totalItems++
                 }
             }
+
             FileType.UNKNOWN -> throw IllegalStateException("Unknown file type: $lookup")
+
         }
     }
 
