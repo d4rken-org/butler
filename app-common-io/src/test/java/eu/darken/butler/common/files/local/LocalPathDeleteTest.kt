@@ -20,7 +20,7 @@ import java.io.File
 import java.nio.file.DirectoryNotEmptyException
 import java.nio.file.Files
 
-class LocalPathDeleteExtensionsTest : BaseTest() {
+class LocalPathDeleteTest : BaseTest() {
 
     private val testFolder = File(IO_TEST_BASEDIR, "delete-test")
 

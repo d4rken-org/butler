@@ -16,11 +16,11 @@ import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import java.io.File
 
-class LocalPathDeleteExtensionsDefaultsTest : BaseTest() {
+class LocalPathDeleteDefaultsTest : BaseTest() {
 
     @BeforeEach
     fun setup() {
-        mockkStatic("eu.darken.butler.common.files.local.LocalPathDeleteExtensionsKt")
+        mockkStatic("eu.darken.butler.common.files.local.LocalPathDeleteKt")
     }
 
     @AfterEach
