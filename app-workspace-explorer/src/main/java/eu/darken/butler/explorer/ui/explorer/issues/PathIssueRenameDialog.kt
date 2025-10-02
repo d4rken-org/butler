@@ -18,12 +18,13 @@ import eu.darken.butler.explorer.R
 @Composable
 fun PathIssueRenameDialog(
     currentName: String,
+    initialValue: String? = null,
     onValidate: (String) -> FilenameValidator.ValidationResult = { FilenameValidator.ValidationResult.Valid },
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
     dialogTitle: String = stringResource(R.string.explorer_issue_common_rename),
 ) {
-    var newName by remember { mutableStateOf(currentName) }
+    var newName by remember { mutableStateOf(initialValue ?: currentName) }
     val validation = remember(newName) { onValidate(newName) }
     val isError = validation is FilenameValidator.ValidationResult.Invalid
 

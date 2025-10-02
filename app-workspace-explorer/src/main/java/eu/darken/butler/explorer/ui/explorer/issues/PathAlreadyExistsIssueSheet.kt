@@ -257,9 +257,10 @@ fun PathAlreadyExistsIssueSheet(
 
     // Rename new file dialog
     if (showRenameNewDialog) {
-        val nameToRename = issue.suggestedName ?: issue.source?.name ?: issue.destination.name
+        val originalName = issue.source?.name ?: issue.destination.name
         PathIssueRenameDialog(
-            currentName = nameToRename,
+            currentName = originalName,
+            initialValue = issue.suggestedName,
             dialogTitle = stringResource(R.string.explorer_rename_dialog_title_new),
             onConfirm = { newName ->
                 onResolution(PathActionIssue.PathAlreadyExists.Resolution.RenameSource(newName))
