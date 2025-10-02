@@ -37,8 +37,14 @@ internal class LocalPathDelete(
     private var totalItems = 0
     private var itemsProcessed = 0
 
+    // Scan tracking to know when all items are discovered
+    private var scanItemsRemaining = 0
+
     // Work queue for processing all delete and issue operations
     private var workQueue = ArrayDeque<WorkItem>()
+
+    // Collect DeletePath items during scanning to preserve post-order
+    private val deferredDeletions = ArrayDeque<WorkItem.DeletePath>()
 
     // Single-use flag
     private var hasExecuted = false
@@ -48,28 +54,20 @@ internal class LocalPathDelete(
      */
     private sealed class WorkItem {
         /**
-         * Delete a path (either scan children first or perform deletion)
-         * @param path The path to delete
-         * @param phase Whether to scan children or perform actual deletion
-         * @param topLevelTarget The root target being deleted
-         * @param targetIndex Index of this target in the targets collection
-         * @param totalTargets Total number of targets being deleted
+         * Scan a path and queue children for deletion
+         * @param path The path to scan
          */
-        data class Delete(
+        data class ScanPath(
             val path: LocalPath,
-            val phase: Phase,
-            val topLevelTarget: LocalPath,
-            val targetIndex: Int,
-            val totalTargets: Int
         ) : WorkItem()
 
         /**
-         * Phase of deletion operation
+         * Perform actual deletion of a path
+         * @param path The path to delete
          */
-        enum class Phase {
-            SCAN_CHILDREN,  // Scan directory contents and queue children
-            DELETE_SELF     // Perform actual deletion
-        }
+        data class DeletePath(
+            val path: LocalPath,
+        ) : WorkItem()
 
         /**
          * Resolve an issue that occurred during processing
@@ -108,23 +106,31 @@ internal class LocalPathDelete(
             "execute(): Deleting ${targets.size} targets (recursive=$recursive, ignoreMissing=$ignoreMissing)"
         }
 
-        // Initialize work queue with delete operations for all targets
-        targets.forEachIndexed { targetIndex, target ->
-            workQueue.addLast(
-                WorkItem.Delete(
-                    path = target,
-                    phase = WorkItem.Phase.SCAN_CHILDREN,
-                    topLevelTarget = target,
-                    targetIndex = targetIndex,
-                    totalTargets = targets.size
-                )
-            )
+        // Initialize work queue with scan operations for all targets
+        scanItemsRemaining = targets.size
+        targets.forEach { target ->
+            workQueue.addLast(WorkItem.ScanPath(path = target))
         }
 
         // Process work queue in single unified loop
+        // Scan items are processed first, delete items are deferred until scan completes
         while (workQueue.isNotEmpty() && currentCoroutineContext().isActive) {
             when (val item = workQueue.removeFirst()) {
-                is WorkItem.Delete -> processDelete(item)
+                is WorkItem.ScanPath -> {
+                    scanItemsRemaining--
+                    val childrenAdded = processScan(item)
+                    scanItemsRemaining += childrenAdded
+
+                    if (scanItemsRemaining == 0) {
+                        log(TAG, DEBUG) { "Scan complete: $totalItems items to delete" }
+                        // Add all deferred deletions to queue in correct post-order
+                        deferredDeletions.forEach { workQueue.addLast(it) }
+                        deferredDeletions.clear()
+                    }
+                }
+
+                is WorkItem.DeletePath -> processDeletePath(item)
+
                 is WorkItem.ResolveIssue -> processResolveIssue(item)
             }
         }
@@ -209,159 +215,137 @@ internal class LocalPathDelete(
         workQueue.addFirst(WorkItem.ResolveIssue(issue, context.lookup, workItem, exception))
     }
 
-    private suspend fun processDelete(item: WorkItem.Delete) {
-        when (item.phase) {
-            WorkItem.Phase.SCAN_CHILDREN -> {
-                log(TAG, VERBOSE) { "Scanning path: ${item.path}" }
+    private suspend fun processScan(item: WorkItem.ScanPath): Int {
+        log(TAG, VERBOSE) { "Scanning path: ${item.path}" }
 
-                // Check file existence first when ignoreMissing is enabled
-                if (ignoreMissing && !Files.exists(item.path.toNioPath(), LinkOption.NOFOLLOW_LINKS)) {
-                    log(TAG, VERBOSE) { "Skipping missing file (ignoreMissing=true): ${item.path}" }
-                    return
-                }
+        // Check file existence first when ignoreMissing is enabled
+        if (ignoreMissing && !Files.exists(item.path.toNioPath(), LinkOption.NOFOLLOW_LINKS)) {
+            log(TAG, VERBOSE) { "Skipping missing file (ignoreMissing=true): ${item.path}" }
+            return 0
+        }
 
-                val lookup = try {
-                    item.path.performLookup()
-                } catch (e: NoSuchFileException) {
-                    if (ignoreMissing) {
-                        log(TAG, VERBOSE) { "Skipping missing file (ignoreMissing=true): ${item.path}" }
-                        return
-                    }
-                    throw ReadException("File does not exist", item.path, e)
-                }
+        val lookup = try {
+            item.path.performLookup()
+        } catch (e: NoSuchFileException) {
+            if (ignoreMissing) {
+                log(TAG, VERBOSE) { "Skipping missing file (ignoreMissing=true): ${item.path}" }
+                return 0
+            }
+            throw ReadException("File does not exist", item.path, e)
+        }
 
-                when (lookup.fileType) {
-                    FileType.SYMBOLIC_LINK, FileType.FILE -> {
-                        // Files: queue for immediate deletion
-                        totalItems++
-                        workQueue.addFirst(
-                            WorkItem.Delete(
-                                path = item.path,
-                                phase = WorkItem.Phase.DELETE_SELF,
-                                topLevelTarget = item.topLevelTarget,
-                                targetIndex = item.targetIndex,
-                                totalTargets = item.totalTargets
-                            )
-                        )
-                    }
+        when (lookup.fileType) {
+            FileType.SYMBOLIC_LINK, FileType.FILE -> {
+                // Files: defer deletion until scan completes (using addFirst for post-order)
+                totalItems++
+                deferredDeletions.addFirst(WorkItem.DeletePath(path = item.path))
+                return 0 // No children for files
+            }
 
-                    FileType.DIRECTORY -> {
-                        if (!recursive) {
-                            // Non-recursive: queue directory for deletion (will fail if not empty)
-                            totalItems++
-                            workQueue.addFirst(
-                                WorkItem.Delete(
-                                    path = item.path,
-                                    phase = WorkItem.Phase.DELETE_SELF,
-                                    topLevelTarget = item.topLevelTarget,
-                                    targetIndex = item.targetIndex,
-                                    totalTargets = item.totalTargets
-                                )
-                            )
-                        } else {
-                            // Recursive: queue directory deletion after children
-                            // First, add THIS directory's DELETE_SELF to front
-                            totalItems++
-                            workQueue.addFirst(
-                                WorkItem.Delete(
-                                    path = item.path,
-                                    phase = WorkItem.Phase.DELETE_SELF,
-                                    topLevelTarget = item.topLevelTarget,
-                                    targetIndex = item.targetIndex,
-                                    totalTargets = item.totalTargets
-                                )
-                            )
+            FileType.DIRECTORY -> {
+                if (!recursive) {
+                    // Non-recursive: defer directory deletion (will fail if not empty, using addFirst for post-order)
+                    totalItems++
+                    deferredDeletions.addFirst(WorkItem.DeletePath(path = item.path))
+                    return 0
+                } else {
+                    // Recursive: scan children first, then defer directory deletion
+                    var childrenFound = 0
 
-                            // Then list and queue children (they will be processed before parent)
-                            try {
-                                Files.newDirectoryStream(item.path.toNioPath()).use { ds ->
-                                    for (child in ds) {
-                                        val childPath = LocalPath.build(child.toFile())
-                                        // Add child scan to front (processed before parent's DELETE_SELF)
-                                        workQueue.addFirst(
-                                            WorkItem.Delete(
-                                                path = childPath,
-                                                phase = WorkItem.Phase.SCAN_CHILDREN,
-                                                topLevelTarget = item.topLevelTarget,
-                                                targetIndex = item.targetIndex,
-                                                totalTargets = item.totalTargets
-                                            )
-                                        )
-                                    }
-                                }
-                            } catch (_: NoSuchFileException) {
-                                // Directory disappeared between lookup and listing
-                                log(TAG, WARN) { "Directory disappeared during scan: ${item.path}" }
-                            } catch (e: AccessDeniedException) {
-                                handlePermissionError(
-                                    error = e,
-                                    context = ErrorContext.Scan(lookup, "List directory contents"),
-                                    workItem = item
-                                )
-                                return
-                            } catch (e: SecurityException) {
-                                handlePermissionError(
-                                    error = e,
-                                    context = ErrorContext.Scan(lookup, "List directory contents"),
-                                    workItem = item
-                                )
-                                return
-                            } catch (e: Exception) {
-                                handleUnknownError(
-                                    error = e,
-                                    context = ErrorContext.Scan(lookup, "List directory contents"),
-                                    workItem = item
-                                )
-                                return
+                    // List and queue children (they will be processed before parent)
+                    try {
+                        Files.newDirectoryStream(item.path.toNioPath()).use { ds ->
+                            for (child in ds) {
+                                val childPath = LocalPath.build(child.toFile())
+                                // Add child scan to front (processed before parent's DELETE_SELF)
+                                workQueue.addFirst(WorkItem.ScanPath(path = childPath))
+                                childrenFound++
                             }
                         }
+                    } catch (_: NoSuchFileException) {
+                        // Directory disappeared between lookup and listing
+                        log(TAG, WARN) { "Directory disappeared during scan: ${item.path}" }
+                    } catch (e: AccessDeniedException) {
+                        handlePermissionError(
+                            error = e,
+                            context = ErrorContext.Scan(lookup, "List directory contents"),
+                            workItem = item
+                        )
+                        return 0
+                    } catch (e: SecurityException) {
+                        handlePermissionError(
+                            error = e,
+                            context = ErrorContext.Scan(lookup, "List directory contents"),
+                            workItem = item
+                        )
+                        return 0
+                    } catch (e: Exception) {
+                        handleUnknownError(
+                            error = e,
+                            context = ErrorContext.Scan(lookup, "List directory contents"),
+                            workItem = item
+                        )
+                        return 0
                     }
 
-                    FileType.UNKNOWN -> throw IllegalStateException("Unknown file type: $lookup")
+                    // After successfully scanning children, defer directory deletion (using addFirst for post-order)
+                    totalItems++
+                    deferredDeletions.addFirst(WorkItem.DeletePath(path = item.path))
+
+                    return childrenFound
                 }
             }
 
-            WorkItem.Phase.DELETE_SELF -> {
-                log(TAG, VERBOSE) { "Deleting path: ${item.path}" }
+            FileType.UNKNOWN -> throw IllegalStateException("Unknown file type: $lookup")
+        }
+    }
 
-                val lookup = try {
-                    item.path.performLookup()
-                } catch (e: NoSuchFileException) {
-                    if (ignoreMissing) {
-                        log(TAG, VERBOSE) { "File already deleted (ignoreMissing=true): ${item.path}" }
-                        itemsProcessed++
-                        return
-                    }
-                    throw ReadException("File does not exist", item.path, e)
-                }
+    private suspend fun processDeletePath(item: WorkItem.DeletePath) {
+        log(TAG, VERBOSE) { "Deleting path: ${item.path}" }
 
-                val progress = createProgress(lookup)
-
-                try {
-                    onProgress?.invoke(progress)
-
-                    Files.delete(lookup.lookedUp.toNioPath())
-                    deleted += lookup
-                    itemsProcessed++
-
-                } catch (e: SecurityException) {
-                    handlePermissionError(
-                        error = e,
-                        context = ErrorContext.Delete(lookup, "Delete file/directory"),
-                        workItem = item
-                    )
-
-                } catch (e: Exception) {
-                    handleUnknownError(
-                        error = e,
-                        context = ErrorContext.Delete(lookup, "Delete file/directory"),
-                        workItem = item
-                    )
-
-                } finally {
-                    onProgress?.invoke(progress)
-                }
+        val lookup = try {
+            item.path.performLookup()
+        } catch (e: NoSuchFileException) {
+            if (ignoreMissing) {
+                log(TAG, VERBOSE) { "File already deleted (ignoreMissing=true): ${item.path}" }
+                itemsProcessed++
+                return
             }
+            throw ReadException("File does not exist", item.path, e)
+        } catch (e: ReadException) {
+            if (ignoreMissing) {
+                log(TAG, VERBOSE) { "File already deleted (ignoreMissing=true): ${item.path}" }
+                itemsProcessed++
+                return
+            }
+            throw e
+        }
+
+        val progress = createProgress(lookup)
+
+        try {
+            onProgress?.invoke(progress)
+
+            Files.delete(lookup.lookedUp.toNioPath())
+            deleted += lookup
+            itemsProcessed++
+
+        } catch (e: SecurityException) {
+            handlePermissionError(
+                error = e,
+                context = ErrorContext.Delete(lookup, "Delete file/directory"),
+                workItem = item
+            )
+
+        } catch (e: Exception) {
+            handleUnknownError(
+                error = e,
+                context = ErrorContext.Delete(lookup, "Delete file/directory"),
+                workItem = item
+            )
+
+        } finally {
+            onProgress?.invoke(progress)
         }
     }
 
