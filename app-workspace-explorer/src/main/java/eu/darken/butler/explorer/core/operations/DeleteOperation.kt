@@ -93,7 +93,7 @@ class DeleteOperation @AssistedInject constructor(
                     is DeleteAction.State.Result<APath, APathLookup<APath>> -> {
                         fileSystemHinter.trackPathsRemoved(deleteState.deleted)
                         reportBuilder.setDeletions(deleteState.deleted)
-                        reportBuilder.setSkipped(deleteState.deleted)
+                        reportBuilder.setSkipped(deleteState.skipped)
                         reportBuilder.setBytesFreed(deleteState.deleted.sumOf { it.size })
                     }
                 }

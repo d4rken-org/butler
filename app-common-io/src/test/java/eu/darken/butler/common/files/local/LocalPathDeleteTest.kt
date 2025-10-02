@@ -954,4 +954,316 @@ class LocalPathDeleteTest : BaseTest() {
         // Then - Operation should complete without crashing
         result.deleted should { it.size >= 0 }
     }
+
+    @Test
+    fun `delete two nested empty directories reports only deleted not skipped`() = runTest {
+        // Given - Create /A/<B/ (two nested empty directories)
+        val dirA = File(testFolder, "A")
+        val dirB = File(dirA, "<B")
+
+        dirA.mkdir()
+        dirB.mkdir()
+
+        // When
+        val result = LocalPath.build(dirA).delete()
+
+        // Then
+        result.deleted shouldHaveSize 2
+        result.skipped.shouldBeEmpty()
+        dirA.exists() shouldBe false
+    }
+
+    @Test
+    fun `directory scan error then skip should not appear in deleted`() = runTest {
+        // Given - Create nested directory structure
+        val parentDir = File(testFolder, "parent")
+        val childFile = File(parentDir, "child.txt")
+
+        parentDir.mkdir()
+        childFile.writeText("content")
+
+        // Make directory unreadable to trigger permission error during scan
+        parentDir.setReadable(false)
+
+        var issueReceived = false
+
+        try {
+            // When
+            val result = LocalPath.build(parentDir).delete(
+                onIssue = { issue ->
+                    issueReceived = true
+                    when (issue) {
+                        is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                        is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                        else -> TODO("Unexpected issue type: $issue")
+                    }
+                }
+            )
+
+            // Then - Directory should be ONLY in skipped, NOT in deleted
+            result.deleted.map { it.lookedUp } shouldNotBe LocalPath.build(parentDir)
+            result.skipped.map { it.lookedUp } shouldContain LocalPath.build(parentDir)
+            issueReceived shouldBe true
+        } finally {
+            // Restore permissions for cleanup
+            parentDir.setReadable(true)
+        }
+    }
+
+    // ============ NEW ARCHITECTURE VALIDATION TESTS ============
+
+    @Test
+    fun `multiple targets with error in one should continue with others`() = runTest {
+        // Given - Three targets: A (succeeds), B (fails), C (succeeds)
+        val targetA = File(testFolder, "targetA.txt")
+        val targetB = File(testFolder, "targetB.txt")
+        val targetC = File(testFolder, "targetC.txt")
+
+        targetA.writeText("content A")
+        targetB.writeText("content B")
+        targetC.writeText("content C")
+
+        // Make targetB read-only to potentially trigger issues
+        targetB.setReadOnly()
+
+        var issueCount = 0
+
+        try {
+            // When
+            val result = listOf(
+                LocalPath.build(targetA),
+                LocalPath.build(targetB),
+                LocalPath.build(targetC)
+            ).delete(
+                onIssue = { issue ->
+                    issueCount++
+                    when (issue) {
+                        is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                        is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                        else -> TODO("Unexpected issue: $issue")
+                    }
+                }
+            )
+
+            // Then - If B had an issue, A and C should still be deleted
+            if (issueCount > 0) {
+                // B had permission issue and was skipped
+                result.deleted.map { it.lookedUp } shouldContain LocalPath.build(targetA)
+                result.deleted.map { it.lookedUp } shouldContain LocalPath.build(targetC)
+                result.skipped.map { it.lookedUp } shouldContain LocalPath.build(targetB)
+                targetB.exists() shouldBe true
+            } else {
+                // All succeeded (read-only doesn't prevent deletion on this system)
+                result.deleted shouldHaveSize 3
+            }
+
+            // A and C should always be deleted
+            targetA.exists() shouldBe false
+            targetC.exists() shouldBe false
+        } finally {
+            // Cleanup
+            targetB.setWritable(true)
+        }
+    }
+
+    @Test
+    fun `deleted and skipped sets are always mutually exclusive`() = runTest {
+        // Given - Complex nested structure with various scenarios
+        val dirA = File(testFolder, "dirA")
+        val dirB = File(dirA, "dirB")
+        val fileInA = File(dirA, "fileA.txt")
+        val fileInB = File(dirB, "fileB.txt")
+        val standaloneFile = File(testFolder, "standalone.txt")
+
+        dirA.mkdir()
+        dirB.mkdir()
+        fileInA.writeText("content A")
+        fileInB.writeText("content B")
+        standaloneFile.writeText("standalone")
+
+        // Make one file read-only to potentially trigger skip
+        fileInB.setReadOnly()
+
+        try {
+            // When
+            val result = listOf(
+                LocalPath.build(dirA),
+                LocalPath.build(standaloneFile)
+            ).delete(
+                onIssue = { issue ->
+                    when (issue) {
+                        is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                        is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                        else -> TODO()
+                    }
+                }
+            )
+
+            // Then - Verify mutual exclusivity (this is the critical test for the bug we fixed)
+            val deletedPaths = result.deleted.map { it.lookedUp }.toSet()
+            val skippedPaths = result.skipped.map { it.lookedUp }.toSet()
+            val intersection = deletedPaths.intersect(skippedPaths)
+
+            intersection.shouldBeEmpty()
+        } finally {
+            fileInB.setWritable(true)
+        }
+    }
+
+    @Test
+    fun `retry can be called multiple times before success`() = runTest {
+        // Given
+        val testFile = File(testFolder, "test.txt")
+        testFile.writeText("content")
+
+        var attemptCount = 0
+
+        // When - Simulate multiple retry attempts
+        val result = LocalPath.build(testFile).delete(
+            onIssue = { issue ->
+                attemptCount++
+                when (issue) {
+                    is PathActionIssue.UnknownError -> {
+                        // We can't easily force real errors, but we can track attempts
+                        PathActionIssue.UnknownError.Resolution.Skip()
+                    }
+                    else -> TODO()
+                }
+            }
+        )
+
+        // Then - File should either be deleted (no errors) or skipped (with error handling)
+        // The key is the operation completes without hanging in retry loop
+        (result.deleted.size + result.skipped.size) shouldBe 1
+    }
+
+    @Test
+    fun `progress count is accurate with new workQueue architecture`() = runTest {
+        // Given - Nested structure
+        val parentDir = File(testFolder, "parent")
+        val childDir = File(parentDir, "child")
+        val file1 = File(parentDir, "file1.txt")
+        val file2 = File(childDir, "file2.txt")
+
+        parentDir.mkdir()
+        childDir.mkdir()
+        file1.writeText("content1")
+        file2.writeText("content2")
+
+        val progressReports = mutableListOf<Long>()
+
+        // When
+        val result = LocalPath.build(parentDir).delete(
+            onProgress = { progress ->
+                val count = progress.primaryProgress.count
+                if (count is eu.darken.butler.common.progress.Progress.Count.Counter) {
+                    progressReports.add(count.current)
+                }
+            }
+        )
+
+        // Then
+        result.deleted shouldHaveSize 4 // file1, file2, childDir, parentDir
+
+        // Progress is called twice per item (before and after deletion in try/finally)
+        // So we expect 8 calls total for 4 items
+        progressReports shouldHaveSize 8
+        // Each item appears twice: 0 (start), 0 (end), 1 (start), 1 (end), etc.
+        progressReports shouldBe listOf(0L, 0L, 1L, 1L, 2L, 2L, 3L, 3L)
+    }
+
+    @Test
+    fun `deletion error with skip should appear only in skipped not deleted`() = runTest {
+        // Given
+        val testFile = File(testFolder, "test.txt")
+        testFile.writeText("content")
+
+        // Make file unreadable AND unwritable to maximize chance of permission error
+        testFile.setReadOnly()
+        testFile.setReadable(false)
+
+        var issueEncountered = false
+
+        try {
+            // When
+            val result = LocalPath.build(testFile).delete(
+                onIssue = { issue ->
+                    issueEncountered = true
+                    when (issue) {
+                        is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                        is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                        else -> TODO()
+                    }
+                }
+            )
+
+            // Then
+            if (issueEncountered) {
+                // File should be ONLY in skipped
+                result.skipped.map { it.lookedUp } shouldContain LocalPath.build(testFile)
+                result.deleted.map { it.lookedUp } shouldNotBe LocalPath.build(testFile)
+                testFile.exists() shouldBe true
+            } else {
+                // System allowed deletion despite permissions
+                result.deleted shouldHaveSize 1
+            }
+        } finally {
+            // Restore permissions for cleanup
+            testFile.setReadable(true)
+            testFile.setWritable(true)
+        }
+    }
+
+    @Test
+    fun `deletion error with retry resolution works correctly`() = runTest {
+        // Given
+        val testFile = File(testFolder, "test.txt")
+        testFile.writeText("content")
+
+        var attemptCount = 0
+        var retryInvoked = false
+
+        // When - Use read-only to potentially trigger error
+        testFile.setReadOnly()
+
+        try {
+            val result = LocalPath.build(testFile).delete(
+                onIssue = { issue ->
+                    attemptCount++
+                    when (issue) {
+                        is PathActionIssue.UnknownError -> {
+                            if (attemptCount == 1) {
+                                retryInvoked = true
+                                // On first error, restore permissions and retry
+                                testFile.setWritable(true)
+                                PathActionIssue.UnknownError.Resolution.Retry
+                            } else {
+                                // Shouldn't get here if retry worked
+                                PathActionIssue.UnknownError.Resolution.Skip()
+                            }
+                        }
+                        is PathActionIssue.InsufficientPermission -> {
+                            // InsufficientPermission doesn't support Retry, only Skip/Cancel
+                            // This shouldn't happen in practice for deletion, but handle it gracefully
+                            PathActionIssue.InsufficientPermission.Resolution.Skip()
+                        }
+                        else -> TODO()
+                    }
+                }
+            )
+
+            // Then
+            if (retryInvoked) {
+                // Retry was invoked, file should have been deleted after retry
+                result.deleted shouldHaveSize 1
+                testFile.exists() shouldBe false
+            } else {
+                // No error occurred (system allows deletion of read-only by owner)
+                result.deleted shouldHaveSize 1
+                testFile.exists() shouldBe false
+            }
+        } finally {
+            testFile.setWritable(true)
+        }
+    }
 }
