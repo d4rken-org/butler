@@ -15,8 +15,10 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import java.io.File
 import java.io.IOException
+import java.nio.file.AccessDeniedException
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
+import java.nio.file.NoSuchFileException
 import java.nio.file.StandardCopyOption
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -103,6 +105,25 @@ internal class LocalPathCopy(
         ) : WorkItem()
     }
 
+    /**
+     * Context for error handling operations
+     */
+    private sealed class ErrorContext {
+        abstract val sourceLookup: LocalPathLookup
+        abstract val operation: String
+
+        data class Read(
+            override val sourceLookup: LocalPathLookup,
+            override val operation: String,
+        ) : ErrorContext()
+
+        data class Write(
+            override val sourceLookup: LocalPathLookup,
+            val destPath: LocalPath,
+            override val operation: String,
+        ) : ErrorContext()
+    }
+
     suspend fun execute(): CopyAction.State.Result<LocalPath, LocalPathLookup> {
         check(!hasExecuted) { "LocalPathCopyTool can only be executed once" }
         hasExecuted = true
@@ -140,10 +161,107 @@ internal class LocalPathCopy(
         )
     }
 
+    /**
+     * Handles permission errors (SecurityException, AccessDeniedException)
+     */
+    private fun handlePermissionError(
+        error: Exception,
+        context: ErrorContext,
+        workItem: WorkItem,
+    ) {
+        val path = when (context) {
+            is ErrorContext.Read -> context.sourceLookup.lookedUp
+            is ErrorContext.Write -> context.destPath
+        }
+
+        log(TAG, ERROR) { "${context.operation} - Permission denied: $path - $error" }
+
+        if (issueSkippAllPermission) {
+            log(TAG, INFO) { "Skipping permission issue (apply-to-all): $path" }
+            skipped.add(context.sourceLookup.lookedUp)
+            itemsProcessed++
+            return
+        }
+
+        val exception = when (context) {
+            is ErrorContext.Read -> ReadException(context.operation, context.sourceLookup.lookedUp, error)
+            is ErrorContext.Write -> WriteException(path = context.destPath, cause = error)
+        }
+
+        if (onIssue == null) throw exception
+
+        val issue = PathActionIssue.InsufficientPermission(
+            destination = context.sourceLookup,
+            exception = exception,
+            canSkip = true,
+        )
+
+        workQueue.addFirst(WorkItem.ResolveIssue(issue, workItem, exception))
+    }
+
+    /**
+     * Handles unknown I/O errors
+     */
+    private fun handleUnknownError(
+        error: Exception,
+        context: ErrorContext,
+        workItem: WorkItem,
+    ) {
+        val path = when (context) {
+            is ErrorContext.Read -> context.sourceLookup.lookedUp
+            is ErrorContext.Write -> context.destPath
+        }
+
+        log(TAG, ERROR) { "${context.operation} failed: $path - $error" }
+
+        if (issueSkippAllUnknown) {
+            log(TAG, INFO) { "Skipping unknown issue (apply-to-all): $path" }
+            skipped.add(context.sourceLookup.lookedUp)
+            itemsProcessed++
+            return
+        }
+
+        val exception = when (context) {
+            is ErrorContext.Read -> ReadException(context.operation, context.sourceLookup.lookedUp, error)
+            is ErrorContext.Write -> WriteException(path = context.destPath, cause = error)
+        }
+
+        if (onIssue == null) throw exception
+
+        val destLookup = when (context) {
+            is ErrorContext.Read -> context.sourceLookup
+            is ErrorContext.Write -> if (Files.exists(context.destPath.toNioPath())) {
+                context.destPath.performLookup()
+            } else {
+                context.sourceLookup
+            }
+        }
+
+        val issue = PathActionIssue.UnknownError(
+            destination = destLookup,
+            exception = exception,
+            canRetry = true,
+            canSkip = true
+        )
+
+        workQueue.addFirst(WorkItem.ResolveIssue(issue, workItem, exception))
+    }
+
     private fun processScan(item: WorkItem.ScanSource) {
         log(TAG, VERBOSE) { "Scanning source: ${item.source}" }
 
-        val lookup = item.source.performLookup()
+        val lookup = try {
+            item.source.performLookup()
+        } catch (e: ReadException) {
+            // Distinguish between top-level sources and child sources
+            if (item.source == item.topLevelSource) {
+                // Top-level source doesn't exist - user explicitly asked to copy it, so throw
+                throw e
+            }
+            // Child source disappeared during scan (likely concurrent deletion) - skip silently
+            log(TAG, WARN) { "Child source disappeared during scan: ${item.source} - ${e.message}" }
+            return
+        }
 
         // Calculate destination path relative to top-level source
         // Use displayPath for destination calculation (preserves symlink names)
@@ -159,27 +277,49 @@ internal class LocalPathCopy(
 
         // Queue work item for this item itself
         when (lookup.fileType) {
-
             FileType.DIRECTORY -> {
                 workQueue.addLast(WorkItem.CreateDirectory(lookup, destinationPath, item.topLevelSource))
                 totalSizeNeeded += lookup.size
                 totalItems++
 
                 // List and queue children
-                Files.newDirectoryStream(item.source.toNioPath()).use { ds ->
-                    for (child in ds) {
-                        val childPath = LocalPath.build(child.toFile())
-                        // Maintain displayPath mapping for children
-                        val childDisplayPath = LocalPath.build(File(item.displayPath.file, child.fileName.toString()))
-                        // Add child scan to front (processed before CheckSpace and work items)
-                        workQueue.addFirst(
-                            WorkItem.ScanSource(
-                                source = childPath,
-                                displayPath = childDisplayPath,
-                                topLevelSource = item.topLevelSource
+                try {
+                    Files.newDirectoryStream(item.source.toNioPath()).use { ds ->
+                        for (child in ds) {
+                            val childPath = LocalPath.build(child.toFile())
+                            // Maintain displayPath mapping for children
+                            val childDisplayPath = LocalPath.build(File(item.displayPath.file, child.fileName.toString()))
+                            // Add child scan to front (processed before CheckSpace and work items)
+                            workQueue.addFirst(
+                                WorkItem.ScanSource(
+                                    source = childPath,
+                                    displayPath = childDisplayPath,
+                                    topLevelSource = item.topLevelSource
+                                )
                             )
-                        )
+                        }
                     }
+                } catch (_: NoSuchFileException) {
+                    // Directory disappeared between lookup and listing
+                    log(TAG, WARN) { "Directory disappeared during scan: ${item.source}" }
+                } catch (e: AccessDeniedException) {
+                    handlePermissionError(
+                        error = e,
+                        context = ErrorContext.Read(lookup, "List directory contents"),
+                        workItem = item
+                    )
+                } catch (e: SecurityException) {
+                    handlePermissionError(
+                        error = e,
+                        context = ErrorContext.Read(lookup, "List directory contents"),
+                        workItem = item
+                    )
+                } catch (e: Exception) {
+                    handleUnknownError(
+                        error = e,
+                        context = ErrorContext.Read(lookup, "List directory contents"),
+                        workItem = item
+                    )
                 }
             }
 
@@ -278,21 +418,20 @@ internal class LocalPathCopy(
         val adjustedDest = adjustDestinationForRenames(item.dest, item.sourceLookup.lookedUp)
 
         val sourceLookup = item.sourceLookup
-        val dest = adjustedDest
 
-        log(TAG, VERBOSE) { "tryCreateDirectory(): $sourceLookup -> $dest" }
+        log(TAG, VERBOSE) { "tryCreateDirectory(): $sourceLookup -> $adjustedDest" }
 
         try {
-            onProgress?.invoke(createProgress(sourceLookup, dest))
+            onProgress?.invoke(createProgress(sourceLookup, adjustedDest))
 
             // Check if destination already exists
-            if (Files.exists(dest.toNioPath())) {
-                val destLookup = dest.performLookup()
+            if (Files.exists(adjustedDest.toNioPath())) {
+                val destLookup = adjustedDest.performLookup()
 
                 // Directory-directory conflict
                 if (destLookup.fileType == FileType.DIRECTORY) {
                     if (issueSkipAllPathExists) {
-                        log(TAG, INFO) { "Skipping directory merge (skip apply-to-all): $dest" }
+                        log(TAG, INFO) { "Skipping directory merge (skip apply-to-all): $adjustedDest" }
                         skipped.add(sourceLookup.lookedUp)
                         skippedSourceDirs.add(sourceLookup.lookedUp)
                         itemsProcessed++
@@ -300,18 +439,18 @@ internal class LocalPathCopy(
                     }
 
                     if (issueMergeAllPathExists) {
-                        log(TAG, INFO) { "Merging directory (merge apply-to-all): $dest" }
+                        log(TAG, INFO) { "Merging directory (merge apply-to-all): $adjustedDest" }
                         itemsProcessed++
                         return
                     }
 
                     if (issueOverwriteAllPathExists) {
-                        log(TAG, INFO) { "Overwriting directory (overwrite apply-to-all): $dest" }
-                        deleteRecursively(dest)
+                        log(TAG, INFO) { "Overwriting directory (overwrite apply-to-all): $adjustedDest" }
+                        deleteRecursively(adjustedDest)
                     } else {
-                        val existsError = WriteException(path = dest, cause = FileAlreadyExistsException(dest.path))
+                        val existsError = WriteException(path = adjustedDest, cause = FileAlreadyExistsException(adjustedDest.path))
                         if (onIssue == null) {
-                            log(TAG, VERBOSE) { "Directory already exists, auto-merging (no issue handler): $dest" }
+                            log(TAG, VERBOSE) { "Directory already exists, auto-merging (no issue handler): $adjustedDest" }
                             itemsProcessed++
                             return
                         }
@@ -324,7 +463,7 @@ internal class LocalPathCopy(
                             canMerge = true,
                             canRenameSource = true,
                             canRenameDestination = true,
-                            suggestedName = generateUniqueName(dest.name, dest.file.parentFile!!),
+                            suggestedName = generateUniqueName(adjustedDest.name, adjustedDest.file.parentFile!!),
                         )
 
                         workQueue.addFirst(WorkItem.ResolveIssue(issue, item, existsError))
@@ -333,7 +472,7 @@ internal class LocalPathCopy(
                 } else {
                     // File-directory conflict
                     if (issueSkipAllPathExists) {
-                        log(TAG, INFO) { "Skipping file-directory conflict (skip apply-to-all): $dest" }
+                        log(TAG, INFO) { "Skipping file-directory conflict (skip apply-to-all): $adjustedDest" }
                         skipped.add(sourceLookup.lookedUp)
                         skippedSourceDirs.add(sourceLookup.lookedUp)
                         itemsProcessed++
@@ -341,10 +480,10 @@ internal class LocalPathCopy(
                     }
 
                     if (issueOverwriteAllPathExists) {
-                        log(TAG, INFO) { "Overwriting file with directory (overwrite apply-to-all): $dest" }
-                        Files.delete(dest.toNioPath())
+                        log(TAG, INFO) { "Overwriting file with directory (overwrite apply-to-all): $adjustedDest" }
+                        Files.delete(adjustedDest.toNioPath())
                     } else {
-                        val existsError = WriteException(path = dest, cause = FileAlreadyExistsException(dest.path))
+                        val existsError = WriteException(path = adjustedDest, cause = FileAlreadyExistsException(adjustedDest.path))
                         if (onIssue == null) throw existsError
 
                         val issue = PathActionIssue.PathAlreadyExists(
@@ -354,7 +493,7 @@ internal class LocalPathCopy(
                             canOverwrite = true,
                             canRenameSource = true,
                             canRenameDestination = true,
-                            suggestedName = generateUniqueName(dest.name, dest.file.parentFile!!),
+                            suggestedName = generateUniqueName(adjustedDest.name, adjustedDest.file.parentFile!!),
                         )
 
                         workQueue.addFirst(WorkItem.ResolveIssue(issue, item, existsError))
@@ -371,63 +510,33 @@ internal class LocalPathCopy(
                     linkTarget
                 } else {
                     val absoluteTarget = sourcePath.parent.resolve(linkTarget).normalize()
-                    dest.toNioPath().parent.relativize(absoluteTarget)
+                    adjustedDest.toNioPath().parent.relativize(absoluteTarget)
                 }
-                if (Files.exists(dest.toNioPath())) {
-                    Files.delete(dest.toNioPath())
+                if (Files.exists(adjustedDest.toNioPath())) {
+                    Files.delete(adjustedDest.toNioPath())
                 }
-                Files.createSymbolicLink(dest.toNioPath(), newTarget)
+                Files.createSymbolicLink(adjustedDest.toNioPath(), newTarget)
             } else {
-                Files.createDirectories(dest.toNioPath())
+                Files.createDirectories(adjustedDest.toNioPath())
             }
 
-            copied.add(sourceLookup.lookedUp to dest)
+            copied.add(sourceLookup.lookedUp to adjustedDest)
             itemsProcessed++
 
         } catch (e: SecurityException) {
-            log(TAG, ERROR) { "Security exception on $dest: $e" }
-            if (issueSkippAllPermission) {
-                log(TAG, INFO) { "Skipping permission issue (apply-to-all): $dest" }
-                skipped.add(sourceLookup.lookedUp)
-                itemsProcessed++
-                return
-            }
-
-            val writeError = WriteException(path = dest, cause = e)
-            if (onIssue == null) throw writeError
-
-            val destLookup = if (Files.exists(dest.toNioPath())) dest.performLookup() else sourceLookup
-            val issue = PathActionIssue.InsufficientPermission(
-                destination = destLookup,
-                exception = writeError,
-                canSkip = true,
+            handlePermissionError(
+                error = e,
+                context = ErrorContext.Write(sourceLookup, adjustedDest, "Create directory"),
+                workItem = item
             )
-
-            workQueue.addFirst(WorkItem.ResolveIssue(issue, item, writeError))
-
         } catch (e: Exception) {
-            log(TAG, ERROR) { "Failed to create directory $dest: $e" }
-            if (issueSkippAllUnknown) {
-                log(TAG, INFO) { "Skipping unknown issue (apply-to-all): $dest" }
-                skipped.add(sourceLookup.lookedUp)
-                itemsProcessed++
-                return
-            }
-
-            val writeError = WriteException(path = dest, cause = e)
-            if (onIssue == null) throw writeError
-
-            val destLookup = if (Files.exists(dest.toNioPath())) dest.performLookup() else sourceLookup
-            val issue = PathActionIssue.UnknownError(
-                destination = destLookup,
-                exception = writeError,
-                canRetry = true,
-                canSkip = true
+            handleUnknownError(
+                error = e,
+                context = ErrorContext.Write(sourceLookup, adjustedDest, "Create directory"),
+                workItem = item
             )
-
-            workQueue.addFirst(WorkItem.ResolveIssue(issue, item, writeError))
         } finally {
-            onProgress?.invoke(createProgress(sourceLookup, dest))
+            onProgress?.invoke(createProgress(sourceLookup, adjustedDest))
         }
     }
 
@@ -444,46 +553,45 @@ internal class LocalPathCopy(
         val adjustedDest = adjustDestinationForRenames(item.dest, item.sourceLookup.lookedUp)
 
         val sourceLookup = item.sourceLookup
-        val dest = adjustedDest
 
-        log(TAG, VERBOSE) { "tryCopyFile(): $sourceLookup -> $dest" }
+        log(TAG, VERBOSE) { "tryCopyFile(): $sourceLookup -> $adjustedDest" }
 
         try {
-            onProgress?.invoke(createProgress(sourceLookup, dest))
+            onProgress?.invoke(createProgress(sourceLookup, adjustedDest))
 
             // Ensure parent directory exists
-            val parentPath = dest.file.parentFile?.let { LocalPath.build(it) }
+            val parentPath = adjustedDest.file.parentFile?.let { LocalPath.build(it) }
             if (parentPath != null && !Files.exists(parentPath.toNioPath())) {
                 Files.createDirectories(parentPath.toNioPath())
             }
 
             // Check if destination already exists
-            if (Files.exists(dest.toNioPath())) {
+            if (Files.exists(adjustedDest.toNioPath())) {
                 if (issueSkipAllPathExists) {
-                    log(TAG, INFO) { "Skipping existing file (skip apply-to-all): $dest" }
+                    log(TAG, INFO) { "Skipping existing file (skip apply-to-all): $adjustedDest" }
                     skipped.add(sourceLookup.lookedUp)
                     itemsProcessed++
                     return
                 }
 
                 if (!issueOverwriteAllPathExists) {
-                    val existsError = WriteException(path = dest, cause = FileAlreadyExistsException(dest.path))
+                    val existsError = WriteException(path = adjustedDest, cause = FileAlreadyExistsException(adjustedDest.path))
                     if (onIssue == null) throw existsError
 
                     val issue = PathActionIssue.PathAlreadyExists(
                         source = sourceLookup,
-                        destination = dest.performLookup(),
+                        destination = adjustedDest.performLookup(),
                         canSkip = true,
                         canOverwrite = true,
                         canRenameSource = true,
                         canRenameDestination = true,
-                        suggestedName = generateUniqueName(dest.name, dest.file.parentFile!!),
+                        suggestedName = generateUniqueName(adjustedDest.name, adjustedDest.file.parentFile!!),
                     )
 
                     workQueue.addFirst(WorkItem.ResolveIssue(issue, item, existsError))
                     return
                 } else {
-                    log(TAG, INFO) { "Overwriting existing file (overwrite apply-to-all): $dest" }
+                    log(TAG, INFO) { "Overwriting existing file (overwrite apply-to-all): $adjustedDest" }
                 }
             }
 
@@ -497,7 +605,7 @@ internal class LocalPathCopy(
                     }
                     Files.copy(
                         targetPath,
-                        dest.toNioPath(),
+                        adjustedDest.toNioPath(),
                         StandardCopyOption.REPLACE_EXISTING,
                         StandardCopyOption.COPY_ATTRIBUTES
                     )
@@ -507,70 +615,40 @@ internal class LocalPathCopy(
                         linkTarget
                     } else {
                         val absoluteTarget = sourcePath.parent.resolve(linkTarget).normalize()
-                        dest.toNioPath().parent.relativize(absoluteTarget)
+                        adjustedDest.toNioPath().parent.relativize(absoluteTarget)
                     }
-                    if (Files.exists(dest.toNioPath())) {
-                        Files.delete(dest.toNioPath())
+                    if (Files.exists(adjustedDest.toNioPath())) {
+                        Files.delete(adjustedDest.toNioPath())
                     }
-                    Files.createSymbolicLink(dest.toNioPath(), newTarget)
+                    Files.createSymbolicLink(adjustedDest.toNioPath(), newTarget)
                 }
             } else {
                 Files.copy(
                     sourcePath,
-                    dest.toNioPath(),
+                    adjustedDest.toNioPath(),
                     StandardCopyOption.REPLACE_EXISTING,
                     StandardCopyOption.COPY_ATTRIBUTES
                 )
             }
 
             bytesCopied += sourceLookup.size
-            copied.add(sourceLookup.lookedUp to dest)
+            copied.add(sourceLookup.lookedUp to adjustedDest)
             itemsProcessed++
 
         } catch (securityError: SecurityException) {
-            log(TAG, ERROR) { "Security exception on $sourceLookup: $securityError" }
-            if (issueSkippAllPermission) {
-                log(TAG, INFO) { "Skipping permission issue (apply-to-all): $sourceLookup" }
-                skipped.add(sourceLookup.lookedUp)
-                itemsProcessed++
-                return
-            }
-
-            val readError =
-                ReadException(message = "Cannot read file", path = sourceLookup.lookedUp, cause = securityError)
-            if (onIssue == null) throw readError
-
-            val issue = PathActionIssue.InsufficientPermission(
-                destination = sourceLookup,
-                exception = readError,
-                canSkip = true,
+            handlePermissionError(
+                error = securityError,
+                context = ErrorContext.Read(sourceLookup, "Read file for copy"),
+                workItem = item
             )
-
-            workQueue.addFirst(WorkItem.ResolveIssue(issue, item, readError))
-
         } catch (copyError: Exception) {
-            log(TAG, ERROR) { "Failed to copy $sourceLookup to $dest: $copyError" }
-            if (issueSkippAllUnknown) {
-                log(TAG, INFO) { "Skipping unknown issue (apply-to-all): $sourceLookup" }
-                skipped.add(sourceLookup.lookedUp)
-                itemsProcessed++
-                return
-            }
-
-            val writeError = WriteException(path = dest, cause = copyError)
-            if (onIssue == null) throw writeError
-
-            val destLookup = if (Files.exists(dest.toNioPath())) dest.performLookup() else sourceLookup
-            val issue = PathActionIssue.UnknownError(
-                destination = destLookup,
-                exception = writeError,
-                canRetry = true,
-                canSkip = true
+            handleUnknownError(
+                error = copyError,
+                context = ErrorContext.Write(sourceLookup, adjustedDest, "Copy file"),
+                workItem = item
             )
-
-            workQueue.addFirst(WorkItem.ResolveIssue(issue, item, writeError))
         } finally {
-            onProgress?.invoke(createProgress(sourceLookup, dest))
+            onProgress?.invoke(createProgress(sourceLookup, adjustedDest))
         }
     }
 
