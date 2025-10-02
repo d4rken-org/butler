@@ -12,6 +12,7 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -68,11 +69,14 @@ fun SwipeToDismissItem(
     
     // Handle programmatic dismiss trigger (e.g., for clear all animations)
     if (programmaticDismissTrigger > 0L) {
+        val wasEnabledWhenTriggered = remember(programmaticDismissTrigger) { enabled }
         LaunchedEffect(programmaticDismissTrigger) {
-            if (programmaticDismissDelay > 0L) {
-                kotlinx.coroutines.delay(programmaticDismissDelay)
+            if (wasEnabledWhenTriggered) {
+                if (programmaticDismissDelay > 0L) {
+                    kotlinx.coroutines.delay(programmaticDismissDelay)
+                }
+                dismissState.dismiss(SwipeToDismissBoxValue.EndToStart)
             }
-            dismissState.dismiss(SwipeToDismissBoxValue.EndToStart)
         }
     }
     
