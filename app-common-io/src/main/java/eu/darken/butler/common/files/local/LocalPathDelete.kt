@@ -423,12 +423,10 @@ suspend fun Collection<LocalPath>.delete(
     ignoreMissing: Boolean = true,
     onProgress: (suspend (DeleteAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): DeleteAction.State.Result<LocalPath, LocalPathLookup> {
-    return LocalPathDelete(
-        targets = this,
-        recursive = recursive,
-        ignoreMissing = ignoreMissing,
-        onProgress = onProgress,
-        onIssue = onIssue
-    ).execute()
-}
+): DeleteAction.State.Result<LocalPath, LocalPathLookup> = LocalPathDelete(
+    targets = this,
+    recursive = recursive,
+    ignoreMissing = ignoreMissing,
+    onProgress = onProgress,
+    onIssue = onIssue
+).execute()

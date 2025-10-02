@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.explorer.R
 import eu.darken.butler.common.R as CommonR
 
@@ -46,13 +47,16 @@ data class CreateItemResult(
 
 @Composable
 fun CreateItemDialog(
+    onValidate: (String) -> FilenameValidator.ValidationResult = { FilenameValidator.ValidationResult.Valid },
     onDismiss: () -> Unit,
     onConfirm: (CreateItemResult) -> Unit,
 ) {
     var name by remember { mutableStateOf("") }
     var selectedType by remember { mutableStateOf(CreateItemType.FOLDER) }
     val focusRequester = remember { FocusRequester() }
-    
+    val validation = remember(name) { onValidate(name) }
+    val isError = validation is FilenameValidator.ValidationResult.Invalid
+
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
@@ -78,10 +82,17 @@ fun CreateItemDialog(
                         .fillMaxWidth()
                         .focusRequester(focusRequester),
                     singleLine = true,
+                    isError = isError,
+                    supportingText = if (isError) {
+                        {
+                            val chars = (validation as FilenameValidator.ValidationResult.Invalid).invalidChars.joinToString(" ")
+                            Text(stringResource(CommonR.string.general_filename_validation_error, chars))
+                        }
+                    } else null,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(
                         onDone = {
-                            if (name.isNotBlank()) {
+                            if (name.isNotBlank() && !isError) {
                                 onConfirm(CreateItemResult(name, selectedType))
                             }
                         }
@@ -147,11 +158,11 @@ fun CreateItemDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    if (name.isNotBlank()) {
+                    if (name.isNotBlank() && !isError) {
                         onConfirm(CreateItemResult(name, selectedType))
                     }
                 },
-                enabled = name.isNotBlank()
+                enabled = name.isNotBlank() && !isError
             ) {
                 Text(stringResource(CommonR.string.general_create_action))
             }

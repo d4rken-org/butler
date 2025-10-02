@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.explorer.R
 import eu.darken.butler.common.R as CommonR
 
@@ -34,22 +35,26 @@ data class RenameResult(
 fun RenameDialog(
     item: APath,
     currentName: String,
+    onValidate: (String) -> FilenameValidator.ValidationResult = { FilenameValidator.ValidationResult.Valid },
     onDismiss: () -> Unit,
     onConfirm: (RenameResult) -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
-    
+
     // Pre-select the filename without extension for easier renaming
     val initialSelection = if (currentName.contains('.')) {
         TextRange(0, currentName.lastIndexOf('.'))
     } else {
         TextRange(0, currentName.length)
     }
-    
-    var textFieldValue by remember { 
+
+    var textFieldValue by remember {
         mutableStateOf(TextFieldValue(currentName, initialSelection))
     }
-    
+
+    val validation = remember(textFieldValue.text) { onValidate(textFieldValue.text) }
+    val isError = validation is FilenameValidator.ValidationResult.Invalid
+
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
@@ -74,6 +79,13 @@ fun RenameDialog(
                         .fillMaxWidth()
                         .focusRequester(focusRequester),
                     singleLine = true,
+                    isError = isError,
+                    supportingText = if (isError) {
+                        {
+                            val chars = (validation as FilenameValidator.ValidationResult.Invalid).invalidChars.joinToString(" ")
+                            Text(stringResource(CommonR.string.general_filename_validation_error, chars))
+                        }
+                    } else null,
                 )
             }
         },
@@ -81,12 +93,13 @@ fun RenameDialog(
             TextButton(
                 onClick = {
                     val newName = textFieldValue.text.trim()
-                    if (newName.isNotBlank() && newName != currentName) {
+                    if (newName.isNotBlank() && newName != currentName && !isError) {
                         onConfirm(RenameResult(item, newName))
                     }
                 },
-                enabled = textFieldValue.text.trim().isNotBlank() && 
-                         textFieldValue.text.trim() != currentName
+                enabled = textFieldValue.text.trim().isNotBlank() &&
+                         textFieldValue.text.trim() != currentName &&
+                         !isError
             ) {
                 Text(stringResource(CommonR.string.general_rename_action))
             }

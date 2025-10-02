@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer.dialogs
 
 import androidx.compose.runtime.Composable
+import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.workspace.ui.clipboard.details.ClipboardInfoBottomSheet
 
@@ -16,6 +17,7 @@ fun ExplorerDialogHost(
         
         is ExplorerDialogState.CreateItem -> {
             CreateItemDialog(
+                onValidate = vm?.let { vm::validateFilename } ?: { FilenameValidator.ValidationResult.Valid },
                 onDismiss = { vm?.dismissDialog() },
                 onConfirm = { result -> vm?.onCreateItem(result) }
             )
@@ -33,6 +35,7 @@ fun ExplorerDialogHost(
             RenameDialog(
                 item = dialogState.item,
                 currentName = dialogState.item.name,
+                onValidate = vm?.let { vm::validateFilename } ?: { FilenameValidator.ValidationResult.Valid },
                 onDismiss = { vm?.dismissDialog() },
                 onConfirm = { result -> vm?.onRename(result) }
             )

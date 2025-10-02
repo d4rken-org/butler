@@ -12,16 +12,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.explorer.R
 
 @Composable
 fun PathIssueRenameDialog(
     currentName: String,
+    onValidate: (String) -> FilenameValidator.ValidationResult = { FilenameValidator.ValidationResult.Valid },
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
     dialogTitle: String = stringResource(R.string.explorer_issue_common_rename),
 ) {
     var newName by remember { mutableStateOf(currentName) }
+    val validation = remember(newName) { onValidate(newName) }
+    val isError = validation is FilenameValidator.ValidationResult.Invalid
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -32,16 +36,23 @@ fun PathIssueRenameDialog(
                 onValueChange = { newName = it },
                 label = { Text(stringResource(R.string.explorer_rename_new_name)) },
                 singleLine = true,
+                isError = isError,
+                supportingText = if (isError) {
+                    {
+                        val chars = (validation as FilenameValidator.ValidationResult.Invalid).invalidChars.joinToString(" ")
+                        Text(stringResource(eu.darken.butler.common.R.string.general_filename_validation_error, chars))
+                    }
+                } else null,
             )
         },
         confirmButton = {
             TextButton(
                 onClick = {
-                    if (newName.isNotBlank()) {
+                    if (newName.isNotBlank() && !isError) {
                         onConfirm(newName)
                     }
                 },
-                enabled = newName.isNotBlank() && newName != currentName,
+                enabled = newName.isNotBlank() && newName != currentName && !isError,
             ) {
                 Text(stringResource(eu.darken.butler.common.R.string.general_rename_action))
             }

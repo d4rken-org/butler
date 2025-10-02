@@ -18,6 +18,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.issue.Issue
@@ -79,6 +80,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.runBlocking
 
 @HiltViewModel(assistedFactory = ExplorerWorkspaceViewModel.Factory::class)
 class ExplorerWorkspaceViewModel @AssistedInject constructor(
@@ -97,6 +99,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val systemClipboardHelper: SystemClipboardHelper,
     private val copyErrorTool: CopyErrorTool,
     private val upgradeRepo: UpgradeRepo,
+    private val filenameValidator: FilenameValidator,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
 
     private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
@@ -879,6 +882,22 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             ${error.stackTraceToString()}
             ```
         """.trimIndent()
+    }
+
+    fun validateFilename(name: String): FilenameValidator.ValidationResult {
+        val currentPath = runBlocking {
+            state.first().currentLocation?.let {
+                when (it) {
+                    is ExplorerLocation.Directory -> it.path
+                    else -> null
+                }
+            }
+        }
+        return if (currentPath != null) {
+            filenameValidator.validate(name, currentPath)
+        } else {
+            FilenameValidator.ValidationResult.Valid
+        }
     }
 
     @AssistedFactory
