@@ -33,8 +33,8 @@ internal class LocalPathDelete(
     private var issueSkippAllPermission = false
     private var issueSkippAllUnknown = false
 
-    // Progress tracking per target
-    private var totalItemsForTarget = 0
+    // Global progress tracking
+    private var totalItems = 0
     private var itemsProcessed = 0
 
     // Separate lists for files and directories to ensure correct deletion order
@@ -102,15 +102,9 @@ internal class LocalPathDelete(
             "execute(): Deleting ${targets.size} targets (recursive=$recursive, ignoreMissing=$ignoreMissing)"
         }
 
-        // Process each target
+        // Scan all targets first
         targets.forEachIndexed { targetIndex, currentTopLevel ->
-            log(TAG, VERBOSE) { "Processing target ${targetIndex + 1}/${targets.size}: $currentTopLevel" }
-
-            // Reset per-target state
-            totalItemsForTarget = 0
-            itemsProcessed = 0
-            filesToDelete.clear()
-            dirsToDeletePostOrder.clear()
+            log(TAG, VERBOSE) { "Scanning target ${targetIndex + 1}/${targets.size}: $currentTopLevel" }
 
             // Initialize work queue with scan for this target
             workQueue.addLast(
@@ -129,17 +123,21 @@ internal class LocalPathDelete(
                     is WorkItem.ResolveIssue -> processResolveIssue(item)
                 }
             }
+        }
 
-            // Now delete files first, then directories (post-order)
-            log(TAG, VERBOSE) { "Deleting ${filesToDelete.size} files for target: $currentTopLevel" }
-            for (lookup in filesToDelete) {
-                tryDelete(lookup, currentTopLevel, targetIndex)
-            }
+        // Calculate total items to delete
+        totalItems = filesToDelete.size + dirsToDeletePostOrder.size
+        log(TAG, DEBUG) { "Total items to delete: $totalItems (${filesToDelete.size} files, ${dirsToDeletePostOrder.size} dirs)" }
 
-            log(TAG, VERBOSE) { "Deleting ${dirsToDeletePostOrder.size} directories for target: $currentTopLevel" }
-            for (dir in dirsToDeletePostOrder) {
-                tryDelete(dir, currentTopLevel, targetIndex)
-            }
+        // Now delete files first, then directories (post-order)
+        log(TAG, VERBOSE) { "Deleting ${filesToDelete.size} files" }
+        for (lookup in filesToDelete) {
+            tryDelete(lookup)
+        }
+
+        log(TAG, VERBOSE) { "Deleting ${dirsToDeletePostOrder.size} directories" }
+        for (dir in dirsToDeletePostOrder) {
+            tryDelete(dir)
         }
 
         return DeleteAction.State.Result(
@@ -245,14 +243,12 @@ internal class LocalPathDelete(
             FileType.SYMBOLIC_LINK, FileType.FILE -> {
                 // Add file to deletion list
                 filesToDelete.addLast(lookup)
-                totalItemsForTarget++
             }
 
             FileType.DIRECTORY -> {
                 if (!recursive) {
                     // Non-recursive: treat directory as a file (will fail if not empty)
                     filesToDelete.addLast(lookup)
-                    totalItemsForTarget++
                 } else {
                     // Recursive: scan children first, then add directory
                     // List and queue children
@@ -296,7 +292,6 @@ internal class LocalPathDelete(
 
                     // Add directory to post-order list (added to front for post-order traversal)
                     dirsToDeletePostOrder.addFirst(lookup)
-                    totalItemsForTarget++
                 }
             }
 
@@ -304,15 +299,11 @@ internal class LocalPathDelete(
         }
     }
 
-    private suspend fun tryDelete(
-        lookup: LocalPathLookup,
-        topLevelTarget: LocalPath,
-        targetIndex: Int
-    ) {
+    private suspend fun tryDelete(lookup: LocalPathLookup) {
         log(TAG, VERBOSE) { "tryDelete(): $lookup" }
 
         while (currentCoroutineContext().isActive) {
-            val progress = createProgress(lookup, topLevelTarget, targetIndex)
+            val progress = createProgress(lookup)
 
             try {
                 onProgress?.invoke(progress)
@@ -326,8 +317,8 @@ internal class LocalPathDelete(
                 // Create a dummy scan item for error handling
                 val dummyItem = WorkItem.ScanPath(
                     path = lookup.lookedUp,
-                    topLevelTarget = topLevelTarget,
-                    targetIndex = targetIndex,
+                    topLevelTarget = lookup.lookedUp,
+                    targetIndex = 0,
                     totalTargets = targets.size
                 )
 
@@ -341,8 +332,8 @@ internal class LocalPathDelete(
             } catch (e: Exception) {
                 val dummyItem = WorkItem.ScanPath(
                     path = lookup.lookedUp,
-                    topLevelTarget = topLevelTarget,
-                    targetIndex = targetIndex,
+                    topLevelTarget = lookup.lookedUp,
+                    targetIndex = 0,
                     totalTargets = targets.size
                 )
 
@@ -400,37 +391,18 @@ internal class LocalPathDelete(
         }
     }
 
-    private fun createProgress(
-        lookup: LocalPathLookup,
-        topLevelTarget: LocalPath,
-        targetIndex: Int
-    ): DeleteAction.State.Progress<LocalPath, LocalPathLookup> {
+    private fun createProgress(lookup: LocalPathLookup): DeleteAction.State.Progress<LocalPath, LocalPathLookup> {
         return DeleteAction.State.Progress(
             target = lookup,
             primaryProgress = eu.darken.butler.common.progress.Progress.Data(
-                primary = R.string.general_delete_progress_title.toCaString(topLevelTarget.name),
-                secondary = if (lookup.lookedUp == topLevelTarget) {
-                    R.string.general_delete_progress_processing_main.toCaString()
-                } else {
-                    R.string.general_delete_progress_processing_content.toCaString()
-                },
+                primary = R.string.general_delete_progress_title.toCaString(),
+                secondary = lookup.userReadablePath,
                 count = eu.darken.butler.common.progress.Progress.Count.Counter(
-                    current = targetIndex,
-                    max = targets.size
+                    current = itemsProcessed,
+                    max = totalItems
                 )
             ),
-            secondaryProgress = if (totalItemsForTarget > 1) {
-                eu.darken.butler.common.progress.Progress.Data(
-                    primary = R.string.general_delete_progress_items_in_folder.toCaString(
-                        topLevelTarget.name
-                    ),
-                    secondary = lookup.userReadablePath,
-                    count = eu.darken.butler.common.progress.Progress.Count.Percent(
-                        current = itemsProcessed,
-                        max = totalItemsForTarget
-                    )
-                )
-            } else null
+            secondaryProgress = null
         )
     }
 
