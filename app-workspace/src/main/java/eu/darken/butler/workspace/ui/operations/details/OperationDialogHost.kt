@@ -27,7 +27,6 @@ fun OperationDialogHost(
                     onDismiss = onDismissDialog,
                     onCancel = if (currentOperation.canCancel && currentOperation.state is OperationDisplay.State.Running) {
                         {
-                            onDismissDialog()
                             onCancelOperation?.invoke(currentOperation.id)
                         }
                     } else null,

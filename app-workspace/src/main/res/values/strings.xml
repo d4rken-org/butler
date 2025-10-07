@@ -66,7 +66,8 @@
     <string name="operations_state_cancelled">Cancelled</string>
     <string name="operations_cancel_operation">Cancel operation</string>
     <string name="operations_cancel_dialog_title">Cancel operation?</string>
-    <string name="operations_cancel_dialog_message">Are you sure you want to cancel this operation? This action cannot be undone.</string>
+    <string name="operations_cancel_dialog_message">Are you sure you want to cancel this operation?</string>
+    <string name="operations_cancel_dialog_warning">Canceling may leave files in an inconsistent state.</string>
     <string name="operations_cancel_dialog_confirm">Cancel operation</string>
     <string name="operations_details_timeline">Timeline</string>
     <string name="operations_details_started_at">Started</string>

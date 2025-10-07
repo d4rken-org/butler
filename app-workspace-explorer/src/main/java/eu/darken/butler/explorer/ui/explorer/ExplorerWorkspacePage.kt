@@ -63,11 +63,13 @@ import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
 import eu.darken.butler.explorer.ui.explorer.permissions.PermissionRequestCard
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
+import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationDialog
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import kotlinx.coroutines.flow.Flow
@@ -138,6 +140,7 @@ fun ExplorerWorkspacePage(
 
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
+    var showCancelConfirmation by remember { mutableStateOf<Operation.Id?>(null) }
 
     LaunchedEffect(mainState.locationId) {
         if (mainState.locationId != null) {
@@ -506,7 +509,10 @@ fun ExplorerWorkspacePage(
             dialogState = operationDialogState,
             operations = operationsState.operations,
             onDismissDialog = { operationDialogState = OperationDialogState.None },
-            onCancelOperation = { vm?.cancelOperation(it) },
+            onCancelOperation = { operationId ->
+                operationDialogState = OperationDialogState.None
+                showCancelConfirmation = operationId
+            },
             onCopyError = { vm?.copyError(it) }
         )
     }
@@ -517,6 +523,17 @@ fun ExplorerWorkspacePage(
             issue = issueState!!,
             onResolution = { resolution -> vm?.resolveConflict(resolution) },
             onDismiss = { showIssueSheet = false },
+        )
+    }
+
+    // Show cancel confirmation dialog when needed
+    showCancelConfirmation?.let { operationId ->
+        CancelOperationConfirmationDialog(
+            onDismiss = { showCancelConfirmation = null },
+            onConfirm = {
+                vm?.cancelOperation(operationId)
+                showCancelConfirmation = null
+            }
         )
     }
 }
