@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.core.operations
 
+import android.text.format.Formatter
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.CopyAll
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -28,6 +29,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
 import kotlin.time.Clock
+import kotlin.time.Instant
+import kotlin.time.TimeSource
 
 class CopyOperation @AssistedInject constructor(
     @Assisted workspaceId: Workspace.Id,
@@ -59,12 +62,21 @@ class CopyOperation @AssistedInject constructor(
     ): Flow<State> = flow {
         log(tag) { "perform(): $command" }
 
-        var stateActive = State.Active(
-            startedAt = operationContext.startedAt,
+        data class SpeedSample(
+            val timestamp: Instant,
+            val bytesPerSecond: Long
         )
+
+        val speedHistory = ArrayDeque<SpeedSample>(30) // 30 samples max
+        var lastCopiedBytes = 0L
+        var lastSpeedUpdate = TimeSource.Monotonic.markNow()
+
+        var stateActive = State.Active(startedAt = operationContext.startedAt)
+        emit(stateActive)
+
         val reportBuilder = CopyOperationReport.Builder()
 
-        command.sources
+        val result = command.sources
             .copy(
                 gateway = gatewaySwitch,
                 destination = command.destination,
@@ -84,26 +96,100 @@ class CopyOperation @AssistedInject constructor(
                 )
             )
             .onEach { copyState ->
-                when (copyState) {
-                    is CopyAction.State.Progress<APath, APathLookup<APath>> -> {
-                        stateActive = stateActive.copy(
-                            primaryProgress = copyState.primaryProgress,
-                            secondaryProgress = copyState.secondaryProgress,
-                        )
-                        emit(stateActive)
-                    }
-                    is CopyAction.State.Result<APath, APathLookup<APath>> -> {
-                        val copiedDestinations = copyState.copied.map { it.second }.toSet()
-                        val copiedLookups = copiedDestinations.map { gatewaySwitch.lookup(it) }
-                        fileSystemHinter.trackPathsAdded(copiedLookups.toSet())
+                if (copyState !is CopyAction.State.Progress<APath, APathLookup<APath>>) return@onEach
+                log(tag) { "Progress: $copyState" }
 
-                        reportBuilder.addCopiedItems(copiedLookups)
-                        reportBuilder.setSkipped(copyState.skipped)
-                        reportBuilder.setBytesCopied(copyState.bytesCopied)
-                    }
+                val now = Clock.System.now()
+                val elapsed = lastSpeedUpdate.elapsedNow().inWholeMilliseconds / 1000.0
+
+                // Calculate instantaneous speed (every ~1 second)
+                if (elapsed >= 1.0) {
+                    val bytesDelta = copyState.copiedBytes - lastCopiedBytes
+                    val currentSpeed = (bytesDelta / elapsed).toLong()
+
+                    speedHistory.addLast(SpeedSample(now, currentSpeed))
+                    if (speedHistory.size > 30) speedHistory.removeFirst()
+
+                    lastCopiedBytes = copyState.copiedBytes
+                    lastSpeedUpdate = TimeSource.Monotonic.markNow()
                 }
+
+                // Calculate overall metrics (from speed history)
+                val avgSpeed = if (speedHistory.isNotEmpty()) {
+                    speedHistory.map { it.bytesPerSecond }.average().toLong()
+                } else 0L
+
+                val overallEta = if (avgSpeed > 0 && copyState.totalBytes > 0) {
+                    val remaining = copyState.totalBytes - copyState.copiedBytes
+                    (remaining / avgSpeed) // seconds
+                } else null
+
+                // Calculate per-file metrics
+                val fileStartTime = copyState.currentFileStartTime
+                val (fileSpeed, fileEta) = if (fileStartTime != null && copyState.currentFileSize > 0) {
+                    val fileElapsed = (now - fileStartTime).inWholeMilliseconds / 1000.0
+                    if (fileElapsed > 0) {
+                        val speed = (copyState.currentFileBytes / fileElapsed).toLong()
+                        val remaining = copyState.currentFileSize - copyState.currentFileBytes
+                        val eta = if (speed > 0) (remaining / speed).toLong() else null
+                        speed to eta
+                    } else 0L to null
+                } else 0L to null
+
+                // Format overall metrics for primary progress
+                val overallMetrics = if (avgSpeed > 0) {
+                    caString { ctx ->
+                        val speedFormatted = Formatter.formatShortFileSize(ctx, avgSpeed)
+                        val etaPart = if (overallEta != null) " • ${overallEta}s remaining" else ""
+                        "$speedFormatted/s$etaPart"
+                    }
+                } else null
+
+                // Format per-file metrics for secondary progress
+                val fileMetrics = if (fileSpeed > 0) {
+                    caString { ctx ->
+                        val speedFormatted = Formatter.formatShortFileSize(ctx, fileSpeed)
+                        val etaPart = if (fileEta != null) " • ${fileEta}s remaining" else ""
+                        "$speedFormatted/s$etaPart"
+                    }
+                } else null
+
+                // Build enhanced primary progress with overall metrics
+                val enhancedPrimary = copyState.primaryProgress.copy(
+                    secondary = overallMetrics ?: copyState.primaryProgress.secondary
+                )
+
+                // Build enhanced secondary progress with file metrics
+                val enhancedSecondary = copyState.secondaryProgress?.let { secondaryProgress ->
+                    secondaryProgress.copy(
+                        secondary = fileMetrics ?: secondaryProgress.secondary,
+                        extra = mapOf(
+                            "overallSpeed" to avgSpeed,
+                            "fileSpeed" to fileSpeed,
+                            "speedHistory" to speedHistory.toList(),
+                            "overallEta" to overallEta,
+                            "fileEta" to fileEta
+                        )
+                    )
+                }
+
+                stateActive = stateActive.copy(
+                    primaryProgress = enhancedPrimary,
+                    secondaryProgress = enhancedSecondary,
+                )
+                emit(stateActive)
             }
             .last()
+
+        result as CopyAction.State.Result<APath, APathLookup<APath>>
+
+        val copiedDestinations = result.copied.map { it.second }.toSet()
+        val copiedLookups = copiedDestinations.map { gatewaySwitch.lookup(it) }
+        fileSystemHinter.trackPathsAdded(copiedLookups.toSet())
+
+        reportBuilder.addCopiedItems(copiedLookups)
+        reportBuilder.setSkipped(result.skipped)
+        reportBuilder.setCopiedBytes(result.copiedBytes)
 
         emit(
             State.Completed(

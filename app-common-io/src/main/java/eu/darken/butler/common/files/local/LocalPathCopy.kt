@@ -13,6 +13,9 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.io.R
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
+import okio.buffer
+import okio.sink
+import okio.source
 import java.io.File
 import java.io.IOException
 import java.nio.file.AccessDeniedException
@@ -20,6 +23,7 @@ import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.StandardCopyOption
+import java.nio.file.attribute.PosixFileAttributeView
 import kotlin.coroutines.cancellation.CancellationException
 
 internal class LocalPathCopy(
@@ -31,7 +35,13 @@ internal class LocalPathCopy(
 ) {
     private val copied = linkedSetOf<Pair<LocalPath, LocalPath>>()
     private val skipped = linkedSetOf<LocalPath>()
-    private var bytesCopied = 0L
+    private var copiedBytes = 0L
+
+    // Current file progress tracking
+    private var currentFileSize = 0L
+    private var currentFileBytes = 0L
+    private var currentFileStartTime: kotlin.time.Instant? = null
+    private var lastProgressReport = kotlin.time.TimeSource.Monotonic.markNow()
 
     private var issueSkipAllPathExists = false
     private var issueOverwriteAllPathExists = false
@@ -48,7 +58,7 @@ internal class LocalPathCopy(
     private var itemsProcessed = 0
 
     // Total accumulated size from all scans
-    private var totalSizeNeeded = 0L
+    private var totalBytes = 0L
 
     // Work queue for processing copy operations
     private var workQueue = ArrayDeque<WorkItem>()
@@ -157,7 +167,7 @@ internal class LocalPathCopy(
         return CopyAction.State.Result(
             copied = copied,
             skipped = skipped,
-            bytesCopied = bytesCopied,
+            copiedBytes = copiedBytes,
         )
     }
 
@@ -279,7 +289,7 @@ internal class LocalPathCopy(
         when (lookup.fileType) {
             FileType.DIRECTORY -> {
                 workQueue.addLast(WorkItem.CreateDirectory(lookup, destinationPath, item.topLevelSource))
-                totalSizeNeeded += lookup.size
+                totalBytes += lookup.size
                 totalItems++
 
                 // List and queue children
@@ -325,7 +335,7 @@ internal class LocalPathCopy(
 
             FileType.FILE -> {
                 workQueue.addLast(WorkItem.CopyFile(lookup, destinationPath, item.topLevelSource))
-                totalSizeNeeded += lookup.size
+                totalBytes += lookup.size
                 totalItems++
             }
 
@@ -336,7 +346,7 @@ internal class LocalPathCopy(
                         val resolvedPath = item.source.toNioPath().parent.resolve(targetPath).normalize()
                         if (Files.isDirectory(resolvedPath)) {
                             workQueue.addLast(WorkItem.CreateDirectory(lookup, destinationPath, item.topLevelSource))
-                            totalSizeNeeded += lookup.size
+                            totalBytes += lookup.size
                             totalItems++
 
                             // Re-queue to list children
@@ -350,18 +360,18 @@ internal class LocalPathCopy(
                             )
                         } else {
                             workQueue.addLast(WorkItem.CopyFile(lookup, destinationPath, item.topLevelSource))
-                            totalSizeNeeded += lookup.size
+                            totalBytes += lookup.size
                             totalItems++
                         }
                     } catch (e: IOException) {
                         log(TAG, WARN) { "Cannot resolve symlink: $lookup - ${e.message}" }
                         workQueue.addLast(WorkItem.CopyFile(lookup, destinationPath, item.topLevelSource))
-                        totalSizeNeeded += lookup.size
+                        totalBytes += lookup.size
                         totalItems++
                     }
                 } else {
                     workQueue.addLast(WorkItem.CopyFile(lookup, destinationPath, item.topLevelSource))
-                    totalSizeNeeded += lookup.size
+                    totalBytes += lookup.size
                     totalItems++
                 }
             }
@@ -375,13 +385,13 @@ internal class LocalPathCopy(
         while (currentCoroutineContext().isActive) {
             @Suppress("UsableSpace")
             val availableSpace = destination.file.usableSpace
-            log(TAG, DEBUG) { "Space check: need $totalSizeNeeded bytes, available $availableSpace bytes" }
+            log(TAG, DEBUG) { "Space check: need $totalBytes bytes, available $availableSpace bytes" }
 
-            if (totalSizeNeeded > availableSpace) {
-                log(TAG, WARN) { "Insufficient space: need $totalSizeNeeded, have $availableSpace" }
+            if (totalBytes > availableSpace) {
+                log(TAG, WARN) { "Insufficient space: need $totalBytes, have $availableSpace" }
                 val spaceError = WriteException(
                     path = destination,
-                    cause = IOException("Insufficient space: need $totalSizeNeeded bytes, available $availableSpace bytes")
+                    cause = IOException("Insufficient space: need $totalBytes bytes, available $availableSpace bytes")
                 )
                 if (onIssue != null) {
                     val sourceLookup = if (sources.size == 1) {
@@ -557,6 +567,11 @@ internal class LocalPathCopy(
         log(TAG, VERBOSE) { "tryCopyFile(): $sourceLookup -> $adjustedDest" }
 
         try {
+            // Set current file size for progress tracking
+            currentFileSize = sourceLookup.size
+            currentFileBytes = 0L
+            currentFileStartTime = kotlin.time.Clock.System.now()
+
             onProgress?.invoke(createProgress(sourceLookup, adjustedDest))
 
             // Ensure parent directory exists
@@ -622,18 +637,54 @@ internal class LocalPathCopy(
                     }
                     Files.createSymbolicLink(adjustedDest.toNioPath(), newTarget)
                 }
+                copiedBytes += sourceLookup.size
             } else {
-                Files.copy(
-                    sourcePath,
-                    adjustedDest.toNioPath(),
-                    StandardCopyOption.REPLACE_EXISTING,
-                    StandardCopyOption.COPY_ATTRIBUTES
-                )
+                // Chunked file copy with OkIO for progress tracking
+                Files.newInputStream(sourcePath).source().buffer().use { source ->
+                    Files.newOutputStream(adjustedDest.toNioPath()).sink().buffer().use { sink ->
+                        val buffer = okio.Buffer()
+                        var bytesRead: Long
+
+                        while (source.read(buffer, BUFFER_SIZE.toLong()).also { bytesRead = it } != -1L) {
+                            sink.write(buffer, bytesRead)
+                            currentFileBytes += bytesRead
+                            copiedBytes += bytesRead
+
+                            // Report progress at intervals to avoid overwhelming the flow
+                            if (lastProgressReport.elapsedNow().inWholeMilliseconds >= PROGRESS_REPORT_INTERVAL_MS) {
+                                lastProgressReport = kotlin.time.TimeSource.Monotonic.markNow()
+                                onProgress?.invoke(createProgress(sourceLookup, adjustedDest))
+                            }
+                        }
+                        sink.flush()
+                    }
+                }
+
+                // Copy file attributes (without re-copying content)
+                if (options.preserveAttributes) {
+                    try {
+                        // Copy last modified time
+                        val lastModified = Files.getLastModifiedTime(sourcePath)
+                        Files.setLastModifiedTime(adjustedDest.toNioPath(), lastModified)
+
+                        // Copy POSIX permissions if available
+                        if (Files.getFileAttributeView(sourcePath, PosixFileAttributeView::class.java) != null) {
+                            val permissions = Files.getPosixFilePermissions(sourcePath)
+                            Files.setPosixFilePermissions(adjustedDest.toNioPath(), permissions)
+                        }
+                    } catch (e: Exception) {
+                        log(TAG, WARN) { "Failed to copy attributes: $e" }
+                    }
+                }
             }
 
-            bytesCopied += sourceLookup.size
             copied.add(sourceLookup.lookedUp to adjustedDest)
             itemsProcessed++
+
+            // Reset current file tracking
+            currentFileSize = 0L
+            currentFileBytes = 0L
+            currentFileStartTime = null
 
         } catch (securityError: SecurityException) {
             handlePermissionError(
@@ -724,7 +775,7 @@ internal class LocalPathCopy(
                                     newDestPath.toNioPath(),
                                     StandardCopyOption.COPY_ATTRIBUTES
                                 )
-                                bytesCopied += orig.sourceLookup.size
+                                copiedBytes += orig.sourceLookup.size
                                 copied.add(orig.sourceLookup.lookedUp to newDestPath)
                                 itemsProcessed++
                             }
@@ -870,7 +921,11 @@ internal class LocalPathCopy(
     ): CopyAction.State.Progress<LocalPath, LocalPathLookup> = CopyAction.State.Progress(
         currentSource = sourceLookup.lookedUp,
         currentDestination = dest,
-        bytesCopied = bytesCopied,
+        copiedBytes = copiedBytes,
+        totalBytes = totalBytes,
+        currentFileSize = currentFileSize,
+        currentFileBytes = currentFileBytes,
+        currentFileStartTime = currentFileStartTime,
         primaryProgress = eu.darken.butler.common.progress.Progress.Data(
             primary = R.string.general_copy_progress_title.toCaString(),
             secondary = sourceLookup.userReadablePath,
@@ -879,7 +934,13 @@ internal class LocalPathCopy(
                 max = totalItems
             )
         ),
-        secondaryProgress = null
+        secondaryProgress = eu.darken.butler.common.progress.Progress.Data(
+            primary = sourceLookup.lookedUp.name.toCaString(),
+            count = eu.darken.butler.common.progress.Progress.Count.Size(
+                current = currentFileBytes,
+                max = currentFileSize
+            )
+        )
     )
 
     private fun deleteRecursively(path: LocalPath) {
@@ -910,6 +971,11 @@ internal class LocalPathCopy(
         } while (File(parentDir, newName).exists())
 
         return newName
+    }
+
+    companion object {
+        private const val BUFFER_SIZE = 64 * 1024 // 64KB chunks
+        private const val PROGRESS_REPORT_INTERVAL_MS = 100L // Report every 100ms
     }
 }
 

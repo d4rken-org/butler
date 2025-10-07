@@ -265,10 +265,10 @@ class GatewaySwitch @Inject constructor(
                     }.collect { state ->
                         when (state) {
                             is CopyAction.State.Progress -> {
-                                emit(state.copy(bytesCopied = totalBytesProcessed + state.bytesCopied))
+                                emit(state.copy(copiedBytes = totalBytesProcessed + state.copiedBytes))
                             }
                             is CopyAction.State.Result -> {
-                                totalBytesProcessed += state.bytesCopied
+                                totalBytesProcessed += state.copiedBytes
                                 allCopiedFiles.addAll(state.copied)
                                 allSkippedFiles.addAll(state.skipped)
                             }
@@ -283,10 +283,10 @@ class GatewaySwitch @Inject constructor(
                             .collect { state ->
                                 when (state) {
                                     is CopyAction.State.Progress -> {
-                                        emit(state.copy(bytesCopied = totalBytesProcessed + state.bytesCopied))
+                                        emit(state.copy(copiedBytes = totalBytesProcessed + state.copiedBytes))
                                     }
                                     is CopyAction.State.Result -> {
-                                        totalBytesProcessed += state.bytesCopied
+                                        totalBytesProcessed += state.copiedBytes
                                         allCopiedFiles.addAll(state.copied)
                                         allSkippedFiles.addAll(state.skipped)
                                     }
@@ -301,7 +301,7 @@ class GatewaySwitch @Inject constructor(
             CopyAction.State.Result(
                 copied = allCopiedFiles,
                 skipped = allSkippedFiles,
-                bytesCopied = totalBytesProcessed
+                copiedBytes = totalBytesProcessed
             )
         )
     }

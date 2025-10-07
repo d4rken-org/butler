@@ -15,7 +15,7 @@ data class CopyOperationReport(
     val skipped: Collection<APath>,
     val copiedFiles: Int,
     val copiedDirectories: Int,
-    val bytesCopied: Long,
+    val copiedBytes: Long,
 ) : ExplorerOperation.Report {
 
     override val summary: CaString = caString {
@@ -38,16 +38,20 @@ data class CopyOperationReport(
                 )
                 append(" ")
             }
-            if (bytesCopied > 0) {
+            if (copiedBytes > 0) {
                 append(
                     it.getQuantityString2(
                         R.plurals.explorer_operation_report_bytes_copied,
-                        bytesCopied.toInt(),
-                        formatFileSize(it, bytesCopied)
+                        copiedBytes.toInt(),
+                        formatFileSize(it, copiedBytes)
                     )
                 )
             }
         }
+    }
+
+    override fun toString(): String {
+        return "OperationReport(affectedPaths=${affectedPaths.size}, skipped=${skipped.size}, copiedFiles=$copiedFiles, copiedDirectories=$copiedDirectories, copiedBytes=$copiedBytes)"
     }
 
     class Builder {
@@ -55,7 +59,7 @@ data class CopyOperationReport(
         private val skipped = mutableListOf<APath>()
         private var copiedFiles: Int = 0
         private var copiedDirectories: Int = 0
-        private var bytesCopied: Long = 0
+        private var copiedBytes: Long = 0
 
         fun addCopiedItems(lookups: Collection<APathLookup<*>>) {
             val affected = lookups.map { lookup ->
@@ -69,8 +73,8 @@ data class CopyOperationReport(
             skipped.addAll(items)
         }
 
-        fun setBytesCopied(bytes: Long) {
-            this.bytesCopied = bytes
+        fun setCopiedBytes(bytes: Long) {
+            this.copiedBytes = bytes
         }
 
         fun build(): CopyOperationReport = CopyOperationReport(
@@ -78,7 +82,7 @@ data class CopyOperationReport(
             skipped = skipped,
             copiedFiles = copiedFiles,
             copiedDirectories = copiedDirectories,
-            bytesCopied = bytesCopied,
+            copiedBytes = copiedBytes,
         )
     }
 }

@@ -50,6 +50,10 @@ data class DeleteOperationReport(
         }
     }
 
+    override fun toString(): String {
+        return "DeleteOperationReport(affectedPaths=${affectedPaths.size}, skipped=${skipped.size}, deletedFiles=$deletedFiles, deletedDirectories=$deletedDirectories, bytesFreed=$bytesFreed)"
+    }
+
     class Builder() {
         private val affectedPaths = mutableListOf<PathChange>()
         private val skipped = mutableListOf<APathLookup<*>>()

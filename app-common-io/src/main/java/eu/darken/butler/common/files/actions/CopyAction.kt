@@ -24,13 +24,17 @@ interface CopyAction<P : APath, PL : APathLookup<P>> : GatewayAction<P> {
             val currentDestination: P,
             val primaryProgress: eu.darken.butler.common.progress.Progress.Data,
             val secondaryProgress: eu.darken.butler.common.progress.Progress.Data? = null,
-            val bytesCopied: Long,
+            val copiedBytes: Long,
+            val totalBytes: Long = 0L,
+            val currentFileSize: Long = 0L,
+            val currentFileBytes: Long = 0L,
+            val currentFileStartTime: kotlin.time.Instant? = null,
         ) : State<P, PL>
 
         data class Result<P : APath, PL : APathLookup<P>>(
             val copied: Set<Pair<P, P>>,
             val skipped: Set<P> = emptySet(),
-            val bytesCopied: Long,
+            val copiedBytes: Long,
         ) : State<P, PL>
     }
 }
