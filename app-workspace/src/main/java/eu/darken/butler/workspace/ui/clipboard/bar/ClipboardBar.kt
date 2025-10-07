@@ -3,10 +3,8 @@ package eu.darken.butler.workspace.ui.clipboard.bar
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
@@ -35,7 +33,6 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -110,24 +107,18 @@ fun ClipboardBar(
                     animationSpec = tween(durationMillis = 300)
                 )
             ) {
-                // Expand/Collapse header row (when multiple entries)
-                AnimatedVisibility(
-                    visible = clipboardEntries.size > 1,
-                    enter = expandVertically(expandFrom = Alignment.Bottom) + fadeIn(animationSpec = tween(300)),
-                    exit = shrinkVertically(shrinkTowards = Alignment.Bottom) + fadeOut(animationSpec = tween(300))
-                ) {
-                    Column {
-                        ClipboardBarHeader(
-                            isExpanded = isExpanded,
-                            entryCount = clipboardEntries.size,
-                            onExpandClick = { isExpanded = !isExpanded },
-                            onClearAllClick = { clearAllAnimationTrigger = System.currentTimeMillis() },
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 32.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                        )
-                    }
+                // Header row (always visible)
+                Column {
+                    ClipboardBarHeader(
+                        isExpanded = isExpanded,
+                        entryCount = clipboardEntries.size,
+                        onExpandClick = { isExpanded = !isExpanded },
+                        onClearAllClick = { clearAllAnimationTrigger = System.currentTimeMillis() },
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 32.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                    )
                 }
 
                 // Additional entries (when expanded) - already in correct order (oldest first)
@@ -183,8 +174,8 @@ private fun SwipeToDismissEntry(
         modifier = modifier,
         onDismiss = onRemoveClick,
         dismissThreshold = 0.5f,
-        backgroundColor = MaterialTheme.colorScheme.errorContainer,
-        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         verticalPadding = 8,
         programmaticDismissTrigger = triggerDismiss,
         programmaticDismissDelay = dismissDelay,
@@ -192,14 +183,14 @@ private fun SwipeToDismissEntry(
             Icon(
                 imageVector = Icons.TwoTone.Close,
                 contentDescription = stringResource(CommonR.string.general_dismiss_action),
-                tint = MaterialTheme.colorScheme.onErrorContainer,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = stringResource(CommonR.string.general_dismiss_action),
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     ) {

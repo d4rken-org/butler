@@ -588,7 +588,7 @@ private fun OperationOverviewSection(
                                 is OperationDisplay.State.Queued -> stringResource(R.string.operations_state_queued)
                                 is OperationDisplay.State.Running -> stringResource(R.string.operations_state_running)
                                 is OperationDisplay.State.Waiting -> stringResource(R.string.operations_state_waiting)
-                                is OperationDisplay.State.Completed -> stringResource(R.string.operations_state_completed)
+                                is OperationDisplay.State.Completed -> stringResource(R.string.operations_state_successful)
                                 is OperationDisplay.State.Failed -> stringResource(R.string.operations_state_failed)
                                 is OperationDisplay.State.Cancelled -> stringResource(R.string.operations_state_cancelled)
                             },

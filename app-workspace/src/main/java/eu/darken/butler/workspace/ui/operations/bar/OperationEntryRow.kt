@@ -12,7 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Cancel
+import androidx.compose.material.icons.twotone.CheckCircle
 import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material.icons.twotone.Error
+import androidx.compose.material.icons.twotone.HourglassEmpty
+import androidx.compose.material.icons.twotone.Info
+import androidx.compose.material.icons.twotone.Schedule
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -20,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
@@ -27,9 +34,11 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.progress.Progress
+import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun OperationEntryRow(
@@ -37,81 +46,286 @@ fun OperationEntryRow(
     onRowClick: () -> Unit,
     modifier: Modifier = Modifier,
     onActionClick: (() -> Unit)? = null,
+    showSecondaryText: Boolean = true,
+    isBarExpanded: Boolean = true,
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            .background(MaterialTheme.colorScheme.secondaryContainer)
             .clickable { onRowClick() }
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Icon(
-            imageVector = operation.icon,
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.primary,
-        )
+        // Use small icon layout when bar is expanded
+        val useSmallIconLayout = isBarExpanded
 
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = when (operation.state) {
-                    is OperationDisplay.State.Running -> operation.state.primaryProgress.primary.asComposable()
-                    else -> operation.title.asComposable()
-                },
-                style = MaterialTheme.typography.titleSmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            val secondaryText = when (operation.state) {
-                is OperationDisplay.State.Running -> operation.state.primaryProgress.secondary.asComposable()
-                is OperationDisplay.State.Completed -> operation.state.summary.asComposable()
-                else -> operation.description.asComposable()
-            }
-            Text(
-                text = secondaryText,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+        if (useSmallIconLayout) {
+            // Expanded layout with small icons for all operations
+            Column(modifier = Modifier.weight(1f)) {
+                // Row 1: Operation icon + Title
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = operation.icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(12.dp),
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    )
 
-            val progressData = (operation.state as? OperationDisplay.State.Running)?.primaryProgress
-            progressData?.let { progressData ->
-                Spacer(modifier = Modifier.height(2.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
 
-                when (val count = progressData.count) {
-                    is Progress.Count.Percent,
-                    is Progress.Count.Counter,
-                    is Progress.Count.Size -> {
-                        val fraction = if (count.max > 0) {
-                            count.current / count.max.toFloat()
-                        } else 0f
+                    Text(
+                        text = operation.title.asComposable(),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
 
+                // Row 2: Icon + secondary text (result icon for finished ops, info icon for running ops)
+                if (showSecondaryText) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        // Choose icon based on operation state
+                        val (rowIcon, rowTint) = when (operation.state) {
+                            is OperationDisplay.State.Completed -> Icons.TwoTone.CheckCircle to MaterialTheme.colorScheme.onSecondaryContainer
+                            is OperationDisplay.State.Failed -> Icons.TwoTone.Error to MaterialTheme.colorScheme.error
+                            is OperationDisplay.State.Cancelled -> Icons.TwoTone.Cancel to MaterialTheme.colorScheme.onSecondaryContainer.copy(
+                                alpha = 0.7f
+                            )
+                            is OperationDisplay.State.Running -> Icons.TwoTone.Info to MaterialTheme.colorScheme.onSecondaryContainer
+                            else -> Icons.TwoTone.Info to MaterialTheme.colorScheme.onSecondaryContainer
+                        }
+
+                        Icon(
+                            imageVector = rowIcon,
+                            contentDescription = null,
+                            modifier = Modifier.size(12.dp),
+                            tint = rowTint,
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+
+                        val secondaryText = when (operation.state) {
+                            is OperationDisplay.State.Running -> operation.state.primaryProgress.secondary.asComposable()
+                            is OperationDisplay.State.Completed -> operation.state.summary.asComposable()
+                            is OperationDisplay.State.Failed -> operation.state.summary.asComposable()
+                            else -> operation.description.asComposable()
+                        }
+
+                        Text(
+                            text = secondaryText,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+
+                // Row 3: Duration + state (for finished ops) or progress bar (for running ops)
+                when (operation.state) {
+                    is OperationDisplay.State.Completed,
+                    is OperationDisplay.State.Failed,
+                    is OperationDisplay.State.Cancelled -> {
+                        // Duration row for finished operations
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            LinearProgressIndicator(
-                                progress = { fraction },
-                                modifier = Modifier.weight(1f),
+                            Icon(
+                                imageVector = Icons.TwoTone.Schedule,
+                                contentDescription = null,
+                                modifier = Modifier.size(12.dp),
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
+
+                            Spacer(modifier = Modifier.width(6.dp))
+
+                            val (completedAt, stateStringRes) = when (operation.state) {
+                                is OperationDisplay.State.Completed -> operation.state.completedAt to R.string.operations_state_successful
+                                is OperationDisplay.State.Failed -> operation.state.completedAt to R.string.operations_state_failed
+                                is OperationDisplay.State.Cancelled -> operation.state.completedAt to R.string.operations_state_cancelled
+                                else -> null to null
+                            }
+
+                            val durationText = completedAt?.let {
+                                val duration = it - operation.startedAt
+                                val formatted = when {
+                                    duration.inWholeSeconds < 1 -> "${duration.inWholeMilliseconds}ms"
+                                    duration.inWholeSeconds < 60 -> String.format(
+                                        "%.1fs",
+                                        duration.inWholeMilliseconds / 1000.0
+                                    )
+                                    else -> {
+                                        val minutes = duration.inWholeMinutes
+                                        val seconds = duration.inWholeSeconds % 60
+                                        "${minutes}m ${seconds}s"
+                                    }
+                                }
+                                val stateLabel = stateStringRes?.let { stringResource(it) } ?: ""
+                                "$formatted • $stateLabel"
+                            } ?: ""
+
                             Text(
-                                text = count.displayValue.asComposable(),
+                                text = durationText,
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f),
                             )
                         }
                     }
-                    is Progress.Count.Indeterminate -> {
-                        LinearProgressIndicator(
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+                    is OperationDisplay.State.Running -> {
+                        // Progress bar for running operations
+                        val progressData = operation.state.primaryProgress
+                        // Add spacing
+                        Spacer(modifier = Modifier.height(2.dp))
+
+                        when (val count = progressData.count) {
+                            is Progress.Count.Percent,
+                            is Progress.Count.Counter,
+                            is Progress.Count.Size -> {
+                                val fraction = if (count.max > 0) {
+                                    count.current / count.max.toFloat()
+                                } else 0f
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.TwoTone.HourglassEmpty,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(12.dp),
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+
+                                    LinearProgressIndicator(
+                                        progress = { fraction },
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = count.displayValue.asComposable(),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    )
+                                }
+                            }
+                            is Progress.Count.Indeterminate -> {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.TwoTone.HourglassEmpty,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(12.dp),
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+
+                                    LinearProgressIndicator(
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                }
+                            }
+                            is Progress.Count.None -> {
+                                // No progress indicator
+                            }
+                        }
                     }
-                    is Progress.Count.None -> {
-                        // No progress indicator
+                    else -> {}
+                }
+            }
+        } else {
+            // Standard layout for running operations or collapsed view
+            Icon(
+                imageVector = operation.icon,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = when (operation.state) {
+                        is OperationDisplay.State.Running -> operation.state.primaryProgress.primary.asComposable()
+                        else -> operation.title.asComposable()
+                    },
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+                if (showSecondaryText) {
+                    val secondaryText = when (operation.state) {
+                        is OperationDisplay.State.Running -> operation.state.primaryProgress.secondary.asComposable()
+                        is OperationDisplay.State.Completed -> operation.state.summary.asComposable()
+                        else -> operation.description.asComposable()
+                    }
+                    Text(
+                        text = secondaryText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+
+                val progressData = (operation.state as? OperationDisplay.State.Running)?.primaryProgress
+                progressData?.let { progressData ->
+                    // Add spacing when secondary text is hidden
+                    if (!showSecondaryText) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                    } else {
+                        Spacer(modifier = Modifier.height(2.dp))
+                    }
+
+                    when (val count = progressData.count) {
+                        is Progress.Count.Percent,
+                        is Progress.Count.Counter,
+                        is Progress.Count.Size -> {
+                            val fraction = if (count.max > 0) {
+                                count.current / count.max.toFloat()
+                            } else 0f
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                LinearProgressIndicator(
+                                    progress = { fraction },
+                                    modifier = Modifier.weight(1f),
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = count.displayValue.asComposable(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                )
+                            }
+                        }
+                        is Progress.Count.Indeterminate -> {
+                            LinearProgressIndicator(
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                        is Progress.Count.None -> {
+                            // No progress indicator
+                        }
                     }
                 }
             }
@@ -146,6 +360,7 @@ private fun OperationEntryRowCounterPreview() {
             ),
             onRowClick = {},
             onActionClick = {},
+            isBarExpanded = false,
         )
     }
 }
@@ -171,6 +386,7 @@ private fun OperationEntryRowPercentPreview() {
             ),
             onRowClick = {},
             onActionClick = {},
+            isBarExpanded = false,
         )
     }
 }
@@ -196,6 +412,7 @@ private fun OperationEntryRowSizePreview() {
             ),
             onRowClick = {},
             onActionClick = {},
+            isBarExpanded = false,
         )
     }
 }
@@ -221,6 +438,7 @@ private fun OperationEntryRowIndeterminatePreview() {
             ),
             onRowClick = {},
             onActionClick = {},
+            isBarExpanded = false,
         )
     }
 }
@@ -236,10 +454,10 @@ private fun OperationEntryRowCompletedPreview() {
                 description = "Successfully deleted 5 files".toCaString(),
                 icon = Icons.TwoTone.Delete,
                 state = OperationDisplay.State.Completed(
-                    summary = "Successfully completed".toCaString(),
-                    completedAt = Clock.System.now(),
+                    summary = "Deleted 5 items".toCaString(),
+                    completedAt = Clock.System.now() + 2.5.seconds,
                     report = object : Operation.Report {
-                        override val summary = "Successfully completed".toCaString()
+                        override val summary = "Deleted 5 items".toCaString()
                         override val affectedPaths = emptyList<Operation.Report.PathChange>()
                     }
                 ),
@@ -247,6 +465,57 @@ private fun OperationEntryRowCompletedPreview() {
             ),
             onRowClick = {},
             onActionClick = {},
+            showSecondaryText = true,
+            isBarExpanded = true,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun OperationEntryRowFailedPreview() {
+    PreviewWrapper {
+        OperationEntryRow(
+            operation = OperationDisplay(
+                id = Operation.Id(),
+                title = "Copy operation".toCaString(),
+                description = "Failed to copy files".toCaString(),
+                icon = Icons.TwoTone.Delete,
+                state = OperationDisplay.State.Failed(
+                    summary = "Permission denied".toCaString(),
+                    completedAt = Clock.System.now() + 1.2.seconds,
+                    report = null,
+                ),
+                startedAt = Clock.System.now(),
+            ),
+            onRowClick = {},
+            onActionClick = {},
+            showSecondaryText = true,
+            isBarExpanded = true,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun OperationEntryRowCancelledPreview() {
+    PreviewWrapper {
+        OperationEntryRow(
+            operation = OperationDisplay(
+                id = Operation.Id(),
+                title = "Move operation".toCaString(),
+                description = "Cancelled by user".toCaString(),
+                icon = Icons.TwoTone.Delete,
+                state = OperationDisplay.State.Cancelled(
+                    completedAt = Clock.System.now() + 0.8.seconds,
+                    report = null,
+                ),
+                startedAt = Clock.System.now(),
+            ),
+            onRowClick = {},
+            onActionClick = {},
+            showSecondaryText = true,
+            isBarExpanded = true,
         )
     }
 }

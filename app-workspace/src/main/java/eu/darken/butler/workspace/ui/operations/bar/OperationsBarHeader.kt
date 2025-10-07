@@ -1,9 +1,8 @@
 package eu.darken.butler.workspace.ui.operations.bar
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -37,86 +36,74 @@ fun OperationsBarHeader(
     onClearCompleted: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (isExpanded) {
-        // Expanded mode: Two buttons spanning full width
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.secondaryContainer)
+            .padding(horizontal = 12.dp, vertical = 2.dp),
+    ) {
+        // Title on the left
+        Text(
+            text = if (operationCount > 1) {
+                stringResource(R.string.operations_header_title) + " ($operationCount)"
+            } else {
+                stringResource(R.string.operations_header_title)
+            },
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.align(Alignment.CenterStart),
+        )
+
+        // Expand/Collapse button (centered)
+        TextButton(
+            onClick = onExpandClick,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .height(24.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
         ) {
-            // Show less button (extends to meet clear completed button)
-            TextButton(
-                onClick = onExpandClick,
-                modifier = Modifier
-                    .height(32.dp)
-                    .weight(1f),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.TwoTone.ExpandLess,
-                    contentDescription = stringResource(R.string.operations_show_less),
-                    modifier = Modifier.size(14.dp),
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = stringResource(R.string.operations_show_less),
-                    style = MaterialTheme.typography.labelSmall,
-                )
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // Clear completed button
-            if (completedCount > 0) {
-                TextButton(
-                    onClick = onClearCompleted,
-                    modifier = Modifier
-                        .height(32.dp)
-                        .weight(1f),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.ClearAll,
-                        contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = stringResource(R.string.operations_clear_completed),
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                }
-            }
+            Icon(
+                imageVector = if (isExpanded) Icons.TwoTone.ExpandMore else Icons.TwoTone.ExpandLess,
+                contentDescription = if (isExpanded) {
+                    stringResource(R.string.operations_show_less)
+                } else {
+                    stringResource(R.string.operations_show_more)
+                },
+                modifier = Modifier.size(14.dp),
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = if (isExpanded) {
+                    stringResource(R.string.operations_show_less)
+                } else {
+                    stringResource(R.string.operations_show_more)
+                },
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
         }
-    } else {
-        // Collapsed mode: Single expand button fills full width
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+
+        // Clear completed button on the right (when expanded and has completed operations)
+        if (isExpanded && completedCount > 0) {
             TextButton(
-                onClick = onExpandClick,
+                onClick = onClearCompleted,
                 modifier = Modifier
-                    .height(32.dp)
-                    .fillMaxWidth(),
+                    .align(Alignment.CenterEnd)
+                    .height(24.dp),
                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
             ) {
                 Icon(
-                    imageVector = Icons.TwoTone.ExpandMore,
-                    contentDescription = stringResource(R.string.operations_show_more),
+                    imageVector = Icons.TwoTone.ClearAll,
+                    contentDescription = null,
                     modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = stringResource(R.string.operations_show_more_items, operationCount),
+                    text = stringResource(R.string.operations_clear_completed),
                     style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
             }
         }
@@ -132,6 +119,21 @@ private fun OperationsBarHeaderPreview() {
             completedCount = 1,
             runningCount = 2,
             isExpanded = false,
+            onExpandClick = {},
+            onClearCompleted = {},
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun OperationsBarHeaderExpandedPreview() {
+    PreviewWrapper {
+        OperationsBarHeader(
+            operationCount = 3,
+            completedCount = 1,
+            runningCount = 2,
+            isExpanded = true,
             onExpandClick = {},
             onClearCompleted = {},
         )

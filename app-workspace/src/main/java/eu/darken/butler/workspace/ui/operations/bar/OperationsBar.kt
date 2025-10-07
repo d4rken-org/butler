@@ -19,14 +19,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Delete
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,9 +41,9 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.ui.SwipeToDismissItem
-import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
+import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationDialog
 import kotlin.time.Clock
 
 @Composable
@@ -109,34 +107,44 @@ fun OperationsBar(
             ),
         ) {
             Column {
-                // Header for multiple operations
-                if (operations.size > 1) {
-                    OperationsBarHeader(
-                        operationCount = operations.size,
-                        completedCount = operations.count { it.state is OperationDisplay.State.Completed },
-                        runningCount = operations.count { it.state is OperationDisplay.State.Running },
-                        isExpanded = isExpanded,
-                        onExpandClick = { isExpanded = !isExpanded },
-                        onClearCompleted = { clearCompletedAnimationTrigger = System.currentTimeMillis() },
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 32.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
-                }
+                // Header row (always visible)
+                OperationsBarHeader(
+                    operationCount = operations.size,
+                    completedCount = operations.count { it.state is OperationDisplay.State.Completed },
+                    runningCount = operations.count { it.state is OperationDisplay.State.Running },
+                    isExpanded = isExpanded,
+                    onExpandClick = { isExpanded = !isExpanded },
+                    onClearCompleted = { clearCompletedAnimationTrigger = System.currentTimeMillis() },
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 32.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                )
 
                 // Operations list
                 val visibleOps = when {
-                    !isExpanded -> operations.take(1)  // Show highest priority only
-                    operations.size > 1 -> operations.reversed()  // Show all, reversed so highest priority is at bottom
-                    else -> operations  // Single operation, no need to reverse
+                    !isExpanded -> {
+                        // When collapsed, show only running operations
+                        val runningOps = operations.filter {
+                            it.state is OperationDisplay.State.Running
+                        }
+                        // If there are running ops, show them; otherwise show the last operation
+                        if (runningOps.isNotEmpty()) {
+                            if (runningOps.size > 1) runningOps.reversed() else runningOps
+                        } else {
+                            operations.take(1)
+                        }
+                    }
+                    // When expanded, show all operations
+                    operations.size > 1 -> operations.reversed()
+                    else -> operations
                 }
 
                 LazyColumn(
                     modifier = Modifier
                         .heightIn(max = if (visibleOps.size > 1) 240.dp else Dp.Unspecified)
                         .fillMaxWidth(),
-                    userScrollEnabled = visibleOps.size > 4  // Only enable scroll when needed
+                    userScrollEnabled = visibleOps.size > 1  // Enable scroll when height is constrained
                 ) {
                     itemsIndexed(
                         items = visibleOps,
@@ -191,6 +199,13 @@ fun OperationsBar(
                                 onActionClick = if (canCancel) {
                                     { pendingCancelId = operation.id }
                                 } else null,
+                                showSecondaryText = isExpanded || when (operation.state) {
+                                    is OperationDisplay.State.Completed,
+                                    is OperationDisplay.State.Failed,
+                                    is OperationDisplay.State.Cancelled -> true
+                                    else -> false
+                                },
+                                isBarExpanded = isExpanded,
                             )
                         }
 
@@ -209,26 +224,11 @@ fun OperationsBar(
 
     // Cancel confirmation dialog
     pendingCancelId?.let { operationId ->
-        AlertDialog(
-            onDismissRequest = { pendingCancelId = null },
-            title = { Text(stringResource(R.string.operations_cancel_dialog_title)) },
-            text = { Text(stringResource(R.string.operations_cancel_dialog_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        pendingCancelId = null
-                        onCancelOperation(operationId)
-                    }
-                ) {
-                    Text(stringResource(R.string.operations_cancel_dialog_confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { pendingCancelId = null }
-                ) {
-                    Text(stringResource(eu.darken.butler.common.R.string.general_cancel_action))
-                }
+        CancelOperationConfirmationDialog(
+            onDismiss = { pendingCancelId = null },
+            onConfirm = {
+                pendingCancelId = null
+                onCancelOperation(operationId)
             }
         )
     }

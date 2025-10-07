@@ -64,7 +64,7 @@ fun OperationActionIndicator(
             )
             is OperationDisplay.State.Completed -> Triple(
                 Icons.TwoTone.CheckCircle,
-                R.string.operations_state_completed,
+                R.string.operations_state_successful,
                 Color(0xFF4CAF50) // Success green
             )
             is OperationDisplay.State.Failed -> Triple(

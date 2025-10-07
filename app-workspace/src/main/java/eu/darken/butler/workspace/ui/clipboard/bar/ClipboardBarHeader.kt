@@ -1,9 +1,8 @@
 package eu.darken.butler.workspace.ui.clipboard.bar
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,84 +34,74 @@ fun ClipboardBarHeader(
     onClearAllClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (isExpanded) {
-        // Expanded mode: Two buttons spanning full width
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.tertiaryContainer)
+            .padding(horizontal = 12.dp, vertical = 2.dp),
+    ) {
+        // Title on the left
+        Text(
+            text = if (entryCount > 1) {
+                stringResource(R.string.clipboard_header_title) + " ($entryCount)"
+            } else {
+                stringResource(R.string.clipboard_header_title)
+            },
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onTertiaryContainer,
+            modifier = Modifier.align(Alignment.CenterStart),
+        )
+
+        // Expand/Collapse button (centered)
+        TextButton(
+            onClick = onExpandClick,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .height(24.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
         ) {
-            // Collapse button (extends to meet clear all button)
-            TextButton(
-                onClick = onExpandClick,
-                modifier = Modifier
-                    .height(32.dp)
-                    .weight(1f),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.TwoTone.ExpandLess,
-                    contentDescription = stringResource(R.string.clipboard_show_less),
-                    modifier = Modifier.size(14.dp),
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = stringResource(R.string.clipboard_show_less),
-                    style = MaterialTheme.typography.labelSmall,
-                )
-            }
+            Icon(
+                imageVector = if (isExpanded) Icons.TwoTone.ExpandMore else Icons.TwoTone.ExpandLess,
+                contentDescription = if (isExpanded) {
+                    stringResource(R.string.clipboard_show_less)
+                } else {
+                    stringResource(R.string.clipboard_show_more)
+                },
+                modifier = Modifier.size(14.dp),
+                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = if (isExpanded) {
+                    stringResource(R.string.clipboard_show_less)
+                } else {
+                    stringResource(R.string.clipboard_show_more)
+                },
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+            )
+        }
 
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // Clear All button
+        // Clear All button on the right (when expanded)
+        if (isExpanded) {
             TextButton(
                 onClick = onClearAllClick,
                 modifier = Modifier
-                    .height(32.dp)
-                    .weight(1f),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
+                    .align(Alignment.CenterEnd)
+                    .height(24.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
             ) {
                 Icon(
                     imageVector = Icons.TwoTone.ClearAll,
                     contentDescription = null,
                     modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = stringResource(R.string.clipboard_clear_all),
                     style = MaterialTheme.typography.labelSmall,
-                )
-            }
-        }
-    } else {
-        // Collapsed mode: Single expand button fills full width
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            TextButton(
-                onClick = onExpandClick,
-                modifier = Modifier
-                    .height(32.dp)
-                    .fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.TwoTone.ExpandMore,
-                    contentDescription = stringResource(R.string.clipboard_show_more),
-                    modifier = Modifier.size(14.dp),
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = stringResource(R.string.clipboard_show_more_items, entryCount),
-                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
             }
         }
@@ -125,6 +114,19 @@ private fun ClipboardBarHeaderPreview() {
     PreviewWrapper {
         ClipboardBarHeader(
             isExpanded = false,
+            entryCount = 3,
+            onExpandClick = {},
+            onClearAllClick = {},
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun ClipboardBarHeaderExpandedPreview() {
+    PreviewWrapper {
+        ClipboardBarHeader(
+            isExpanded = true,
             entryCount = 3,
             onExpandClick = {},
             onClearAllClick = {},

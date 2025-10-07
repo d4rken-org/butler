@@ -38,14 +38,18 @@ sealed interface ClipboardClip {
 
         override val description: CaString
             get() = caString {
-                it.getQuantityString2(
-                    when (mode) {
-                        Mode.COPY -> R.plurals.clipboard_paths_description_copy
-                        Mode.CUT -> R.plurals.clipboard_paths_description_cut
-                    },
-                    paths.size,
-                    paths.size, paths.first().parent?.userReadablePath?.get(it) ?: "?"
-                )
+                if (paths.size == 1) {
+                    paths.single().userReadablePath.get(it)
+                } else {
+                    it.getQuantityString2(
+                        when (mode) {
+                            Mode.COPY -> R.plurals.clipboard_paths_description_copy
+                            Mode.CUT -> R.plurals.clipboard_paths_description_cut
+                        },
+                        paths.size,
+                        paths.size, paths.first().parent?.userReadablePath?.get(it) ?: "?"
+                    )
+                }
             }
 
         enum class Mode {

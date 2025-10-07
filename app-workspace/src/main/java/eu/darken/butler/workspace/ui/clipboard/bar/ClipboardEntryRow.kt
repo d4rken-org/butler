@@ -48,7 +48,7 @@ fun ClipboardEntryRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            .background(MaterialTheme.colorScheme.tertiaryContainer)
             .clickable { onEntryClick() }
             .padding(vertical = if (showOrigin) 8.dp else 4.dp)
             .padding(start = 16.dp),
@@ -74,10 +74,7 @@ fun ClipboardEntryRow(
                                 },
                                 contentDescription = entry.mode.name,
                                 modifier = Modifier.size(12.dp),
-                                tint = when (entry.mode) {
-                                    ClipboardClip.Paths.Mode.COPY -> MaterialTheme.colorScheme.primary
-                                    ClipboardClip.Paths.Mode.CUT -> MaterialTheme.colorScheme.tertiary
-                                }
+                                tint = MaterialTheme.colorScheme.onTertiaryContainer
                             )
 
                             Spacer(modifier = Modifier.width(6.dp))
@@ -95,7 +92,7 @@ fun ClipboardEntryRow(
                             Text(
                                 text = formatRelativeTime(entry.clippedAt),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
                                 modifier = Modifier.padding(start = 8.dp, end = 8.dp),
                             )
                         }
@@ -110,7 +107,7 @@ fun ClipboardEntryRow(
                                 imageVector = Icons.TwoTone.FolderOpen,
                                 contentDescription = null,
                                 modifier = Modifier.size(12.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
                             )
 
                             Spacer(modifier = Modifier.width(6.dp))
@@ -118,7 +115,7 @@ fun ClipboardEntryRow(
                             Text(
                                 text = entry.description.asComposable(),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f),
@@ -135,7 +132,7 @@ fun ClipboardEntryRow(
                                 imageVector = Icons.TwoTone.Workspaces,
                                 contentDescription = null,
                                 modifier = Modifier.size(12.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                tint = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
                             )
 
                             Spacer(modifier = Modifier.width(6.dp))
@@ -143,7 +140,7 @@ fun ClipboardEntryRow(
                             Text(
                                 text = stringResource(R.string.clipboard_origin, entry.origin.shortTag),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f),
@@ -159,10 +156,7 @@ fun ClipboardEntryRow(
                         },
                         contentDescription = entry.mode.name,
                         modifier = Modifier.size(20.dp),
-                        tint = when (entry.mode) {
-                            ClipboardClip.Paths.Mode.COPY -> MaterialTheme.colorScheme.primary
-                            ClipboardClip.Paths.Mode.CUT -> MaterialTheme.colorScheme.tertiary
-                        }
+                        tint = MaterialTheme.colorScheme.onTertiaryContainer
                     )
 
                     Spacer(modifier = Modifier.width(12.dp))
@@ -178,6 +172,7 @@ fun ClipboardEntryRow(
                             Text(
                                 text = entry.title.asComposable(),
                                 style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f),
@@ -186,7 +181,7 @@ fun ClipboardEntryRow(
                             Text(
                                 text = formatRelativeTime(entry.clippedAt),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
                                 modifier = Modifier.padding(start = 8.dp, end = 8.dp),
                             )
                         }
@@ -195,7 +190,7 @@ fun ClipboardEntryRow(
                         Text(
                             text = entry.description.asComposable(),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -210,7 +205,7 @@ fun ClipboardEntryRow(
                         imageVector = Icons.TwoTone.ContentPaste,
                         contentDescription = stringResource(R.string.clipboard_paste),
                         modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = MaterialTheme.colorScheme.onTertiaryContainer,
                     )
                 }
             }
