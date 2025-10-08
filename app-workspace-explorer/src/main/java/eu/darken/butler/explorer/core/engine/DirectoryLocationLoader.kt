@@ -78,7 +78,7 @@ class DirectoryLocationLoader @AssistedInject constructor(
                 context.updateProgressMsg(R.string.explorer_loader_progress_directory_permissions)
                 if (!permissionState.hasSufficientPermissions) {
                     log(tag, WARN) { "Insufficient permission for $path" }
-                    emit(ExplorerLocation.Directory(path = path, permissionState = permissionState))
+                    emit(ExplorerLocation.Directory(path = path, permissionState = permissionState, progress = null))
                     return@flow
                 }
 
