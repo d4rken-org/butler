@@ -110,7 +110,11 @@ fun OperationsBar(
                 // Header row (always visible)
                 OperationsBarHeader(
                     operationCount = operations.size,
-                    completedCount = operations.count { it.state is OperationDisplay.State.Completed },
+                    completedCount = operations.count {
+                        it.state is OperationDisplay.State.Completed ||
+                        it.state is OperationDisplay.State.Failed ||
+                        it.state is OperationDisplay.State.Cancelled
+                    },
                     runningCount = operations.count { it.state is OperationDisplay.State.Running },
                     isExpanded = isExpanded,
                     onExpandClick = { isExpanded = !isExpanded },

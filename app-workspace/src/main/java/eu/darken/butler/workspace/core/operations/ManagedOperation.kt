@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
@@ -60,6 +61,9 @@ class ManagedOperation(
 
         operation
             .perform(operationContext)
+            .onStart {
+
+            }
             .throttleLatest(250.milliseconds) {
                 it is Operation.State.Active
             }

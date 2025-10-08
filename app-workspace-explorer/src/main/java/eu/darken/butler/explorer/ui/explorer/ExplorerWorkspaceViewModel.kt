@@ -764,12 +764,21 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         currentConflictOperationId = null
     }
 
-    fun showConflictSheet() = launch {
-        log(tag) { "showConflictSheet(): Requesting to show conflict sheet" }
-        if (issueStateFlow.value != null) {
+    fun showConflictSheet(operationId: Operation.Id) = launch {
+        log(tag) { "showConflictSheet($operationId): Requesting to show conflict sheet" }
+
+        // Get current conflicts map
+        val workspace = getWorkspace()
+        val operationsState = workspace.operations.first()
+        val conflicts = operationsState.pendingConflicts
+        val issue = conflicts[operationId]
+
+        if (issue != null) {
+            currentConflictOperationId = operationId
+            issueStateFlow.value = issue
             showIssueSheetFlow.emit(Unit)
         } else {
-            log(tag, WARN) { "Cannot show conflict sheet: no current conflict" }
+            log(tag, WARN) { "Cannot show conflict sheet: no conflict for operation $operationId" }
         }
     }
 

@@ -452,7 +452,7 @@ fun ExplorerWorkspacePage(
                         onOperationClick = { operation ->
                             when (operation.state) {
                                 is OperationDisplay.State.Waiting -> {
-                                    vm?.showConflictSheet()
+                                    vm?.showConflictSheet(operation.id)
                                 }
                                 else -> {
                                     operationDialogState = OperationDialogState.OperationDetails(operation.id)

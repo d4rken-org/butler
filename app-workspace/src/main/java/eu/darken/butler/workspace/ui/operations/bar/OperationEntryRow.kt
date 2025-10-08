@@ -18,6 +18,7 @@ import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.HourglassEmpty
 import androidx.compose.material.icons.twotone.Info
+import androidx.compose.material.icons.twotone.Pause
 import androidx.compose.material.icons.twotone.Schedule
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -102,6 +103,7 @@ fun OperationEntryRow(
                                 alpha = 0.7f
                             )
                             is OperationDisplay.State.Running -> Icons.TwoTone.Info to MaterialTheme.colorScheme.onSecondaryContainer
+                            is OperationDisplay.State.Waiting -> Icons.TwoTone.Pause to MaterialTheme.colorScheme.tertiary
                             else -> Icons.TwoTone.Info to MaterialTheme.colorScheme.onSecondaryContainer
                         }
 
@@ -117,6 +119,7 @@ fun OperationEntryRow(
                             is OperationDisplay.State.Running -> operation.state.primaryProgress.secondary.asComposable()
                             is OperationDisplay.State.Completed -> operation.state.summary.asComposable()
                             is OperationDisplay.State.Failed -> operation.state.summary.asComposable()
+                            is OperationDisplay.State.Waiting -> operation.state.reason.asComposable()
                             else -> operation.description.asComposable()
                         }
 
@@ -131,7 +134,7 @@ fun OperationEntryRow(
                     }
                 }
 
-                // Row 3: Duration + state (for finished ops) or progress bar (for running ops)
+                // Row 3: Duration + state (for finished ops) or progress bar (for running/waiting ops)
                 when (operation.state) {
                     is OperationDisplay.State.Completed,
                     is OperationDisplay.State.Failed,
@@ -246,6 +249,27 @@ fun OperationEntryRow(
                             }
                         }
                     }
+                    is OperationDisplay.State.Waiting -> {
+                        // Indeterminate progress bar for waiting operations
+                        Spacer(modifier = Modifier.height(2.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                imageVector = Icons.TwoTone.HourglassEmpty,
+                                contentDescription = null,
+                                modifier = Modifier.size(12.dp),
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+
+                            LinearProgressIndicator(
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
                     else -> {}
                 }
             }
@@ -274,6 +298,7 @@ fun OperationEntryRow(
                     val secondaryText = when (operation.state) {
                         is OperationDisplay.State.Running -> operation.state.primaryProgress.secondary.asComposable()
                         is OperationDisplay.State.Completed -> operation.state.summary.asComposable()
+                        is OperationDisplay.State.Waiting -> operation.state.reason.asComposable()
                         else -> operation.description.asComposable()
                     }
                     Text(
@@ -285,15 +310,20 @@ fun OperationEntryRow(
                     )
                 }
 
+                // Progress bar for running or waiting operations
                 val progressData = (operation.state as? OperationDisplay.State.Running)?.primaryProgress
-                progressData?.let { progressData ->
-                    // Add spacing when secondary text is hidden
+                val isWaiting = operation.state is OperationDisplay.State.Waiting
+
+                if (progressData != null || isWaiting) {
+                    // Add spacing
                     if (!showSecondaryText) {
                         Spacer(modifier = Modifier.height(4.dp))
                     } else {
                         Spacer(modifier = Modifier.height(2.dp))
                     }
+                }
 
+                progressData?.let { progressData ->
                     when (val count = progressData.count) {
                         is Progress.Count.Percent,
                         is Progress.Count.Counter,
@@ -327,6 +357,13 @@ fun OperationEntryRow(
                             // No progress indicator
                         }
                     }
+                }
+
+                // Show indeterminate progress for waiting operations
+                if (isWaiting) {
+                    LinearProgressIndicator(
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
             }
         }
