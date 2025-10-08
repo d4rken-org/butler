@@ -58,7 +58,7 @@ internal fun ClassicWorkspaceContainer(
     val isScrolling by remember { derivedStateOf { pagerState.isScrollInProgress } }
 
     // Sync selected tab with pager when user swipes
-    LaunchedEffect(currentPage, isScrolling, state.all, state.focused) {
+    LaunchedEffect(currentPage, isScrolling, state.all) {
         if (isScrolling) return@LaunchedEffect
 
         log(TAG, VERBOSE) { "Pager scroll completed at page: $currentPage" }
