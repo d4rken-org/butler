@@ -19,7 +19,8 @@ fun SettingsSwitchItem(
     subtitle: String?,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     SettingsBaseItem(
         icon = icon,
@@ -27,10 +28,12 @@ fun SettingsSwitchItem(
         onClick = { onCheckedChange(!checked) },
         modifier = modifier,
         subtitle = subtitle,
+        enabled = enabled,
         trailingContent = {
             Switch(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
+                enabled = enabled,
                 modifier = Modifier.padding(start = 16.dp)
             )
         }

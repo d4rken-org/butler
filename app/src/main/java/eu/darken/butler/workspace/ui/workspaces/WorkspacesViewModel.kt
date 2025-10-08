@@ -67,17 +67,19 @@ class WorkspacesViewModel @Inject constructor(
         workspaceRepo.state,
         upgradeRepo.upgradeInfo,
         workspaceSettings.swipeGesturesEnabled.flow,
+        workspaceSettings.onDemandWorkspaceCreation.flow,
         workspacePageManager.state,
         kotlinx.coroutines.flow.combine(motdRepo.motd, hiddenMotdIds) { motd, hiddenIds ->
             motd?.takeIf { it.id !in hiddenIds }
         },
-    ) { repoState, upgradeInfo, swipeGesturesEnabled, uiState, visibleMotd ->
+    ) { repoState, upgradeInfo, swipeGesturesEnabled, onDemandWorkspaceCreation, uiState, visibleMotd ->
         State(
             state = repoState,
             focusedWorkspace = uiState.focusedWorkspaceId,
             selectedWorkspaces = uiState.selectedWorkspaces,
             isUpgraded = upgradeInfo.isUpgraded,
             swipeGesturesEnabled = swipeGesturesEnabled,
+            onDemandWorkspaceCreation = swipeGesturesEnabled && onDemandWorkspaceCreation,
             motd = visibleMotd,
         )
     }.asStateFlow()
@@ -103,6 +105,13 @@ class WorkspacesViewModel @Inject constructor(
                 log(tag) { "Setting pane count to ${action.count}" }
                 workspacePageManager.setPaneCount(action.count)
             }
+            is WorkspaceScreenAction.CreateOnDemand -> {
+                log(tag) { "Creating workspace on-demand" }
+                val result = workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.TEMPLATES)) as WorkspaceAction.Create.Result
+                log(tag) { "On-demand workspace created: ${result.newId}, focusing it" }
+                workspacePageManager.setFocusedWorkspace(result.newId)
+                workspacePageManager.setSelectedWorkspaces(mapOf(0 to result.newId))
+            }
         }
     }
 
@@ -127,6 +136,7 @@ class WorkspacesViewModel @Inject constructor(
         val selectedWorkspaces: Map<Int, Workspace.Id>,
         val isUpgraded: Boolean,
         val swipeGesturesEnabled: Boolean = true,
+        val onDemandWorkspaceCreation: Boolean = true,
         val motd: MotdState? = null,
     ) {
         val displayMode: WorkspacePanelMode

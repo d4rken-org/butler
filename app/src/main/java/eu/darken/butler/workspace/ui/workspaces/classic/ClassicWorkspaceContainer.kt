@@ -10,7 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
@@ -30,7 +32,15 @@ internal fun ClassicWorkspaceContainer(
     onWorkspaceScreenAction: (WorkspaceScreenAction) -> Unit,
     workspaceActionHandler: WorkspaceActionHandler?,
 ) {
-    val pagerState = rememberPagerState(pageCount = { state.all.size })
+    val effectivePageCount = if (state.onDemandWorkspaceCreation && state.swipeGesturesEnabled) {
+        state.all.size + 1
+    } else {
+        state.all.size
+    }
+    val pagerState = rememberPagerState(pageCount = { effectivePageCount })
+
+    var isCreatingWorkspace by remember { mutableStateOf(false) }
+    var previousPage by remember { mutableStateOf<Int?>(null) }
 
     // Sync pager with selected tab
     LaunchedEffect(state.focused, state.all) {
@@ -60,7 +70,24 @@ internal fun ClassicWorkspaceContainer(
         if (isScrolling) return@LaunchedEffect
 
         log(TAG, VERBOSE) { "Pager scroll completed at page: $currentPage" }
-        if (currentPage < 0 || currentPage >= state.all.size) return@LaunchedEffect
+
+        // Check if we're on the extra page (beyond all workspaces)
+        // Only trigger if transitioning from a valid page (not on initial render)
+        val isOnPlaceholderPage = currentPage >= state.all.size
+        val isTransitioningFromValidPage = previousPage != null && previousPage!! < state.all.size
+
+        if (isOnPlaceholderPage && state.onDemandWorkspaceCreation && !isCreatingWorkspace && isTransitioningFromValidPage) {
+            log(TAG, INFO) { "User swiped from page $previousPage to placeholder page $currentPage, creating workspace on-demand" }
+            isCreatingWorkspace = true
+            onWorkspaceScreenAction(WorkspaceScreenAction.CreateOnDemand)
+            previousPage = currentPage
+            return@LaunchedEffect
+        }
+
+        if (currentPage < 0 || currentPage >= state.all.size) {
+            previousPage = currentPage
+            return@LaunchedEffect
+        }
 
         val currentTabId = state.all[currentPage].id
         log(TAG, VERBOSE) { "Current tab ID: $currentTabId, focused: ${state.focused}" }
@@ -75,23 +102,35 @@ internal fun ClassicWorkspaceContainer(
         } else if (!focusedTabExists) {
             log(TAG, WARN) { "Skipping tab selection - focused tab doesn't exist in tabs list yet" }
         }
+
+        previousPage = currentPage
+    }
+
+    // Reset creation flag when workspace count increases
+    LaunchedEffect(state.all.size) {
+        if (state.all.isNotEmpty()) {
+            isCreatingWorkspace = false
+        }
     }
 
     Scaffold(
-        modifier = Modifier.Companion.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         if (state.all.isNotEmpty()) {
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues),
                 userScrollEnabled = state.swipeGesturesEnabled,
             ) { page ->
+                val workspaceInfo = state.all.getOrNull(page)
+                val isPlaceholderPage = page >= state.all.size
                 WorkspaceMapper(
-                    info = state.all[page],
+                    info = workspaceInfo,
                     design = design,
+                    isCreating = isPlaceholderPage && isCreatingWorkspace,
                 )
             }
         } else {
