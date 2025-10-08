@@ -1164,4 +1164,186 @@ class LocalPathMoveTest : BaseTest() {
             issueCount shouldBe 1
         }
     }
+
+    // ============ VERIFICATION TESTS ============
+
+    @Test
+    fun `verify byte tracking for moved files`() = runTest {
+        // Given
+        val content = "A".repeat(1024) // 1KB
+        val file = File(sourceFolder, "large.txt")
+        file.writeText(content)
+
+        // When
+        val result = LocalPath.build(file).move(LocalPath.build(destFolder))
+
+        // Then
+        result.bytesMoved shouldBe content.length.toLong()
+    }
+
+    @Test
+    fun `verify directory structure preservation`() = runTest {
+        // Given - create nested structure
+        val projectDir = File(sourceFolder, "project")
+        val srcDir = File(projectDir, "src")
+        val mainFile = File(srcDir, "main.kt")
+
+        projectDir.mkdir()
+        srcDir.mkdir()
+        mainFile.writeText("fun main() {}")
+
+        // When - move directory to destination
+        LocalPath.build(projectDir).move(LocalPath.build(destFolder))
+
+        // Then - verify structure is preserved with directory name
+        File(destFolder, "project").exists() shouldBe true
+        File(destFolder, "project").isDirectory shouldBe true
+        File(destFolder, "project/src").exists() shouldBe true
+        File(destFolder, "project/src").isDirectory shouldBe true
+        File(destFolder, "project/src/main.kt").exists() shouldBe true
+        File(destFolder, "project/src/main.kt").readText() shouldBe "fun main() {}"
+        projectDir.exists() shouldBe false
+    }
+
+    @Test
+    fun `verify nested directory paths`() = runTest {
+        // Given
+        val deepDir = File(sourceFolder, "a/b/c")
+        deepDir.mkdirs()
+        val file = File(deepDir, "file.txt")
+        file.writeText("deep content")
+
+        // When
+        LocalPath.build(File(sourceFolder, "a")).move(LocalPath.build(destFolder))
+
+        // Then
+        File(destFolder, "a/b/c/file.txt").exists() shouldBe true
+        File(destFolder, "a/b/c/file.txt").readText() shouldBe "deep content"
+        File(sourceFolder, "a").exists() shouldBe false
+    }
+
+    @Test
+    fun `verify multiple sources maintain structure`() = runTest {
+        // Given
+        val dir1 = File(sourceFolder, "project1")
+        val dir2 = File(sourceFolder, "project2")
+        val file1 = File(dir1, "file.txt")
+        val file2 = File(dir2, "file.txt")
+
+        dir1.mkdir()
+        dir2.mkdir()
+        file1.writeText("project1 content")
+        file2.writeText("project2 content")
+
+        // When
+        listOf(LocalPath.build(dir1), LocalPath.build(dir2)).move(LocalPath.build(destFolder))
+
+        // Then
+        File(destFolder, "project1/file.txt").exists() shouldBe true
+        File(destFolder, "project2/file.txt").exists() shouldBe true
+        File(destFolder, "project1/file.txt").readText() shouldBe "project1 content"
+        File(destFolder, "project2/file.txt").readText() shouldBe "project2 content"
+        dir1.exists() shouldBe false
+        dir2.exists() shouldBe false
+    }
+
+    @Test
+    fun `verify progress includes source and destination data`() = runTest {
+        // Given
+        val dir = File(sourceFolder, "project")
+        val file = File(dir, "file.txt")
+        dir.mkdir()
+        file.writeText("content")
+
+        var sourcesSeen = mutableSetOf<String>()
+        var destinationsSeen = mutableSetOf<String>()
+
+        // When
+        LocalPath.build(dir).move(
+            LocalPath.build(destFolder),
+            onProgress = {
+                sourcesSeen.add(it.currentSource.path)
+                destinationsSeen.add(it.currentDestination.path)
+            }
+        )
+
+        // Then
+        sourcesSeen.size should { it > 0 }
+        destinationsSeen.size should { it > 0 }
+    }
+
+    @Test
+    fun `cumulative byte tracking in progress`() = runTest {
+        // Given
+        val files = (1..5).map { i ->
+            File(sourceFolder, "file$i.txt").apply {
+                writeText("Content $i".repeat(i * 10))
+            }
+        }
+
+        val bytesSeen = mutableListOf<Long>()
+
+        // When
+        files.map { LocalPath.build(it) }.move(
+            LocalPath.build(destFolder),
+            onProgress = { bytesSeen.add(it.bytesMoved) }
+        )
+
+        // Then - bytes should increase over time
+        bytesSeen.size should { it > 0 }
+        if (bytesSeen.size > 1) {
+            bytesSeen.zipWithNext().all { (a, b) -> b >= a } shouldBe true
+        }
+    }
+
+    // ============ EDGE CASES - ADVANCED ============
+
+    @Test
+    fun `issue should provide suggested name for conflicts`() = runTest {
+        // Given - file that will conflict
+        val sourceFile = File(sourceFolder, "document.pdf")
+        sourceFile.writeText("content")
+
+        val destFile = File(destFolder, "document.pdf")
+        destFile.writeText("existing")
+
+        // When - move and capture issue
+        var capturedIssue: PathActionIssue.PathAlreadyExists? = null
+        LocalPath.build(sourceFile).move(
+            LocalPath.build(destFolder),
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        capturedIssue = issue
+                        PathActionIssue.PathAlreadyExists.Resolution.Skip()
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - issue contains suggested name
+        capturedIssue shouldNotBe null
+        capturedIssue!!.suggestedName shouldBe "document (1).pdf"
+        capturedIssue!!.canRenameSource shouldBe true
+        capturedIssue!!.canRenameDestination shouldBe true
+    }
+
+    // ============ PERFORMANCE ============
+
+    @Test
+    fun `handle large number of files efficiently`() = runTest {
+        // Given - many small files
+        val files = (1..50).map { i ->
+            File(sourceFolder, "file$i.txt").apply { writeText("content $i") }
+        }
+
+        // When
+        val result = files.map { LocalPath.build(it) }.move(LocalPath.build(destFolder))
+
+        // Then
+        result.movedFiles shouldHaveSize 50
+        files.all { !it.exists() } shouldBe true
+        (1..50).all { File(destFolder, "file$it.txt").exists() } shouldBe true
+    }
 }
