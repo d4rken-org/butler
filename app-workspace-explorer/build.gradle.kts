@@ -24,6 +24,7 @@ android {
     setupKotlinOptions()
 
     buildFeatures {
+        buildConfig = true
         compose = true
     }
 

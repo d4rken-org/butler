@@ -19,6 +19,7 @@ android {
     setupModuleBuildTypes()
 
     buildFeatures {
+        buildConfig = true
         aidl = true
     }
 
