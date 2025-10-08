@@ -10,7 +10,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.adaptive.AdaptiveWorkspaceContainer
@@ -32,14 +32,11 @@ fun AdaptiveWorkspaceLayout(
     showPaneOverlay: Boolean,
     onPaneMenuToggle: (Boolean) -> Unit,
     workspaceButtonState: WorkspaceButtonViewModel.State?,
-    onWorkspaceAction: (WorkspaceAction) -> Unit,
-    onNavToWorkspaceManager: () -> Unit,
-    onNavToSettings: () -> Unit,
-    onTabAction: (WorkspaceAction) -> Unit,
+    workspaceActionHandler: WorkspaceActionHandler? = null,
     onScreenAction: (WorkspaceScreenAction) -> Unit,
 ) {
     val dragDropState = remember { DragDropState() }
-    
+
 
     CompositionLocalProvider(LocalDragDropState provides dragDropState) {
         Row(
@@ -52,7 +49,7 @@ fun AdaptiveWorkspaceLayout(
                 workspaces = workspaces,
                 selected = selected,
                 focusedId = focusedId,
-                onTabAction = onTabAction,
+                onTabAction = { workspaceActionHandler?.executeWorkspaceAction(it) },
                 onPaneAssignment = { workspaceId, paneIndex ->
                     // Create new selection with the workspace at the specified pane index
                     val currentSelection = selected.toMutableMap()
@@ -93,9 +90,7 @@ fun AdaptiveWorkspaceLayout(
                 },
                 onPaneMenuToggle = onPaneMenuToggle,
                 workspaceButtonState = workspaceButtonState,
-                onWorkspaceAction = onWorkspaceAction,
-                onNavToWorkspaceManager = onNavToWorkspaceManager,
-                onNavToSettings = onNavToSettings,
+                workspaceActionHandler = workspaceActionHandler,
             )
 
             AdaptiveWorkspaceContainer(

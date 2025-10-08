@@ -40,7 +40,7 @@ import eu.darken.butler.searcher.core.SearchResult
 import eu.darken.butler.searcher.ui.search.rows.FileRowData
 import eu.darken.butler.searcher.ui.search.rows.SmartFileRow
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import kotlinx.coroutines.delay
@@ -63,9 +63,7 @@ fun SearcherWorkspacePage(
     onToggleWholeWord: () -> Unit = {},
     onToggleRegex: () -> Unit = {},
     workspaceButtonState: WorkspaceButtonViewModel.State?,
-    onWorkspaceAction: (WorkspaceAction) -> Unit,
-    onNavToWorkspaceManager: () -> Unit,
-    onNavToSettings: () -> Unit,
+    workspaceActionHandler: WorkspaceActionHandler? = null,
     onOpenSetup: () -> Unit = {},
 ) {
     var searchDebounce by remember { mutableStateOf(false) }
@@ -106,12 +104,10 @@ fun SearcherWorkspacePage(
                 onToggleWholeWord = onToggleWholeWord,
                 onToggleRegex = onToggleRegex,
                 workspaceButtonState = workspaceButtonState,
-                onWorkspaceAction = onWorkspaceAction,
-                onNavToWorkspaceManager = onNavToWorkspaceManager,
-                onNavToSettings = onNavToSettings
+                workspaceActionHandler = workspaceActionHandler,
             )
         }
-        
+
         // Show permission card if needed
         if (state.needsPermissions) {
             item {
@@ -175,7 +171,7 @@ fun SearcherWorkspacePage(
             }
         }
     }
-    
+
     // Clear history confirmation dialog
     if (showClearHistoryDialog) {
         AlertDialog(
@@ -256,9 +252,7 @@ fun SearcherWorkspacePageHost(
             onToggleWholeWord = vm::toggleWholeWord,
             onToggleRegex = vm::toggleRegex,
             workspaceButtonState = workspaceButtonState,
-            onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
-            onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
-            onNavToSettings = workspaceButtonVm::onNavToSettings,
+            workspaceActionHandler = workspaceButtonVm,
             onOpenSetup = vm::navigateToSetup,
         )
     }
@@ -310,9 +304,6 @@ private fun SearchPagePreview() {
                 searchPath = LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler")
             ),
             workspaceButtonState = null,
-            onWorkspaceAction = {},
-            onNavToWorkspaceManager = {},
-            onNavToSettings = {}
         )
     }
 }

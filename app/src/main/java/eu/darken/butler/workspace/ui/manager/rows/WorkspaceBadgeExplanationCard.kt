@@ -86,9 +86,6 @@ fun WorkspaceBadgeExplanationCard(
                     operationsCount = 2,
                     attentionCount = 1,
                 ),
-                onAction = { /* Demo, no action */ },
-                onNavToWorkspaceManager = { /* Demo, no action */ },
-                onNavToSettings = { /* Demo, no action */ }
             )
 
             // Explanations

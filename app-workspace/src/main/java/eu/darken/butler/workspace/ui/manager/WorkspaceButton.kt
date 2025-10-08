@@ -46,9 +46,7 @@ fun WorkspaceButton(
     state: WorkspaceButtonViewModel.State?,
     containerColor: Color? = null,
     contentColor: Color? = null,
-    onAction: (WorkspaceAction) -> Unit,
-    onNavToWorkspaceManager: () -> Unit,
-    onNavToSettings: () -> Unit,
+    workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -61,7 +59,7 @@ fun WorkspaceButton(
                 .background(containerColor ?: MaterialTheme.colorScheme.tertiaryContainer)
                 .combinedClickable(
                     onClick = { expanded = true },
-                    onLongClick = { onAction(WorkspaceAction.Create()) }
+                    onLongClick = { workspaceActionHandler?.executeWorkspaceAction(WorkspaceAction.Create()) }
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -80,7 +78,7 @@ fun WorkspaceButton(
                 text = { Text(stringResource(R.string.workspace_button_menu_manager_action)) },
                 onClick = {
                     expanded = false
-                    onNavToWorkspaceManager()
+                    workspaceActionHandler?.navToWorkspaceManager()
                 },
                 leadingIcon = {
                     Icon(
@@ -93,7 +91,7 @@ fun WorkspaceButton(
                 text = { Text(stringResource(R.string.workspace_button_menu_settings_action)) },
                 onClick = {
                     expanded = false
-                    onNavToSettings()
+                    workspaceActionHandler?.navToSettings()
                 },
                 leadingIcon = {
                     Icon(
@@ -202,9 +200,6 @@ private fun WorkspaceButtonPreview() {
                     operationsCount = 0,
                     attentionCount = 0,
                 ),
-                onAction = {},
-                onNavToWorkspaceManager = {},
-                onNavToSettings = {}
             )
 
             // Single workspace
@@ -214,9 +209,6 @@ private fun WorkspaceButtonPreview() {
                     operationsCount = 0,
                     attentionCount = 0,
                 ),
-                onAction = {},
-                onNavToWorkspaceManager = {},
-                onNavToSettings = {}
             )
 
             // Multiple workspaces with operations
@@ -226,9 +218,6 @@ private fun WorkspaceButtonPreview() {
                     operationsCount = 2,
                     attentionCount = 0,
                 ),
-                onAction = {},
-                onNavToWorkspaceManager = {},
-                onNavToSettings = {}
             )
 
             // All badges active
@@ -238,9 +227,6 @@ private fun WorkspaceButtonPreview() {
                     operationsCount = 7,
                     attentionCount = 1,
                 ),
-                onAction = {},
-                onNavToWorkspaceManager = {},
-                onNavToSettings = {}
             )
 
             // Max badge values
@@ -250,9 +236,6 @@ private fun WorkspaceButtonPreview() {
                     operationsCount = 15,
                     attentionCount = 10,
                 ),
-                onAction = {},
-                onNavToWorkspaceManager = {},
-                onNavToSettings = {}
             )
         }
     }

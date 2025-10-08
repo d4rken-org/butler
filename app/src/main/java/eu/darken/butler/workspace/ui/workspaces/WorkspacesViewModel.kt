@@ -7,9 +7,7 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.combine
-import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
-import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.main.core.motd.MotdRepo
 import eu.darken.butler.main.core.motd.MotdState
@@ -21,7 +19,6 @@ import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.WorkspacePanelMode
-import eu.darken.butler.workspace.ui.manager.workspaceManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
@@ -51,7 +48,7 @@ class WorkspacesViewModel @Inject constructor(
             val currentWorkspaces = workspaceRepo.state.first()
             if (currentWorkspaces.infos.isEmpty()) {
                 log(tag) { "No workspaces found, auto-creating workspace for testing" }
-                executeAction(WorkspaceAction.Create(type = Workspace.Type.EXPLORER))
+                workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.EXPLORER))
             }
         }
 
@@ -85,31 +82,6 @@ class WorkspacesViewModel @Inject constructor(
         )
     }.asStateFlow()
 
-    fun executeAction(
-        action: WorkspaceAction,
-    ) = launch {
-        log(tag) { "modifyTab($action)" }
-
-        when (action) {
-            is WorkspaceAction.Create -> {
-                log(tag) { "Create action: type=${action.type}, replace=${action.replace}" }
-                val result = workspaceRepo.execute(action) as WorkspaceAction.Create.Result
-                log(tag) { "Workspace created with ID: ${result.newId}, pane assignment will be handled reactively" }
-            }
-            is WorkspaceAction.Close -> {
-                log(tag) { "Close action: id=${action.id}" }
-                workspaceRepo.execute(action)
-                log(tag) { "Workspace closed, selection handling will be done reactively" }
-            }
-            is WorkspaceAction.Reorder -> {
-                log(tag) { "Reorder action: workspaceIds=${action.workspaceIds}" }
-                workspaceRepo.execute(action)
-                log(tag) { "Workspaces reordered" }
-            }
-            else -> workspaceRepo.execute(action)
-        }
-    }
-
     fun executeScreenAction(action: WorkspaceScreenAction) = launch {
         log(tag) { "executeScreenAction($action)" }
 
@@ -134,16 +106,6 @@ class WorkspacesViewModel @Inject constructor(
         }
     }
 
-    fun openWorkspaceManager() = launch {
-        log(tag) { "openWorkspaceManager()" }
-        navCtrl.goTo(Nav.workspaceManager())
-    }
-
-    fun upgradeButler() = launch {
-        log(tag) { "upgradeButler()" }
-        navCtrl.goTo(Nav.Main.upgrade())
-    }
-
     fun hideMotd(id: Uuid) = launch {
         log(tag) { "hideMotd($id)" }
         hiddenMotdIds.update { it + id }
@@ -158,7 +120,6 @@ class WorkspacesViewModel @Inject constructor(
         log(tag) { "openMotdLink($url)" }
         webpageTool.open(url)
     }
-
 
     data class State(
         private val state: WorkspaceRemote.State,

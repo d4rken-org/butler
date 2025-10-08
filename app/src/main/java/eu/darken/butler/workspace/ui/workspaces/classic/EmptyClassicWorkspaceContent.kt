@@ -36,14 +36,13 @@ import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 
 @Composable
 internal fun EmptyClassicWorkspaceContent(
     modifier: Modifier = Modifier,
     isUpgraded: Boolean,
-    onNavToSettings: () -> Unit,
-    onWorkspaceAction: (WorkspaceAction) -> Unit,
-    onUpgradeButler: () -> Unit,
+    workspaceActionHandler: WorkspaceActionHandler?,
 ) {
     Column(
         modifier = modifier
@@ -150,7 +149,7 @@ internal fun EmptyClassicWorkspaceContent(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onWorkspaceAction(WorkspaceAction.Create()) },
+                    .clickable { workspaceActionHandler?.executeWorkspaceAction(WorkspaceAction.Create()) },
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Row(
@@ -183,7 +182,7 @@ internal fun EmptyClassicWorkspaceContent(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onUpgradeButler() },
+                        .clickable { workspaceActionHandler?.navToUpgradeButler() },
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
                 ) {
                     Row(
@@ -216,7 +215,7 @@ internal fun EmptyClassicWorkspaceContent(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onNavToSettings() }
+                    .clickable { workspaceActionHandler?.navToSettings() }
             ) {
                 Row(
                     modifier = Modifier.padding(20.dp),
@@ -250,9 +249,7 @@ private fun EmptyWorkspaceContentPreview() {
     PreviewWrapper {
         EmptyClassicWorkspaceContent(
             isUpgraded = false,
-            onNavToSettings = {},
-            onWorkspaceAction = {},
-            onUpgradeButler = {},
+            workspaceActionHandler = null,
         )
     }
 }

@@ -19,13 +19,11 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
-import eu.darken.butler.common.navigation.Nav
-import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.main.ui.motd.MotdCard
-import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.ui.WorkspacePanelMode
+import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
@@ -49,13 +47,9 @@ fun WorkspacesScreenHost(
     state?.let { state ->
         WorkspaceScreen(
             workspaceButtonState = workspaceButtonState,
-            onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
-            onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
+            workspaceActionHandler = workspaceButtonVm,
             state = state,
-            onNavToSettings = { vm.navTo(Nav.Main.settings()) },
-            onWorkspaceTabAction = { vm.executeAction(it) },
             onScreenAction = { vm.executeScreenAction(it) },
-            onUpgradeButler = { vm.upgradeButler() },
             onHideMotd = { vm.hideMotd(it) },
             onDismissMotd = { vm.dismissMotd(it) },
             onMotdLinkClick = { vm.openMotdLink(it) },
@@ -67,13 +61,9 @@ fun WorkspacesScreenHost(
 @Composable
 fun WorkspaceScreen(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
-    onWorkspaceAction: (WorkspaceAction) -> Unit,
-    onNavToWorkspaceManager: () -> Unit,
+    workspaceActionHandler: WorkspaceActionHandler? = null,
     state: WorkspacesViewModel.State,
-    onNavToSettings: () -> Unit,
-    onWorkspaceTabAction: (WorkspaceAction) -> Unit,
     onScreenAction: (WorkspaceScreenAction) -> Unit,
-    onUpgradeButler: () -> Unit,
     onHideMotd: (Uuid) -> Unit,
     onDismissMotd: (Uuid) -> Unit,
     onMotdLinkClick: (String) -> Unit,
@@ -85,7 +75,6 @@ fun WorkspaceScreen(
     var dividerPositions by rememberSaveable {
         mutableStateOf(DividerPositions())
     }
-    
 
 
     val effectivePaneLayout = when (state.displayMode) {
@@ -128,19 +117,14 @@ fun WorkspaceScreen(
                     showPaneNumbers = isOpen
                 },
                 workspaceButtonState = workspaceButtonState,
-                onWorkspaceAction = onWorkspaceAction,
-                onNavToWorkspaceManager = onNavToWorkspaceManager,
-                onNavToSettings = onNavToSettings,
-                onTabAction = onWorkspaceTabAction,
+                workspaceActionHandler = workspaceActionHandler,
                 onScreenAction = onScreenAction,
             )
         } else {
             ClassicWorkspaceContainer(
                 state = state,
-                onNavToSettings = onNavToSettings,
-                onWorkspaceAction = onWorkspaceTabAction,
                 onWorkspaceScreenAction = onScreenAction,
-                onUpgradeButler = onUpgradeButler,
+                workspaceActionHandler = workspaceActionHandler,
             )
         }
 
@@ -194,13 +178,8 @@ private fun WorkspacesScreenPreviewContent(
 ) {
     WorkspaceScreen(
         workspaceButtonState = workspaceButtonState,
-        onWorkspaceAction = {},
-        onNavToWorkspaceManager = {},
         state = state,
-        onNavToSettings = {},
-        onWorkspaceTabAction = {},
         onScreenAction = {},
-        onUpgradeButler = {},
         onHideMotd = {},
         onDismissMotd = {},
         onMotdLinkClick = {},

@@ -67,6 +67,7 @@ import eu.darken.butler.templates.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.WorkspacePanelMode
+import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -94,10 +95,8 @@ fun TemplatesWorkspacePageHost(
             design = design,
             state = state,
             onNavToSettings = { vm.navTo(Nav.Main.settings()) },
-            onNavToWorkspaceSettings = workspaceButtonVm::onNavToSettings,
             workspaceButtonState = workspaceButtonState,
-            onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
-            onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
+            workspaceActionHandler = workspaceButtonVm,
         )
     }
 }
@@ -107,10 +106,8 @@ fun TemplatesWorkspacePage(
     design: WorkspaceDesign = WorkspaceDesign(),
     state: TemplatesWorkspaceViewModel.State,
     onNavToSettings: () -> Unit,
-    onNavToWorkspaceSettings: () -> Unit,
-    workspaceButtonState: WorkspaceButtonViewModel.State?,
-    onWorkspaceAction: (WorkspaceAction) -> Unit,
-    onNavToWorkspaceManager: () -> Unit,
+    workspaceButtonState: WorkspaceButtonViewModel.State? = null,
+    workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
     val randomSlogan = remember { Slogans.random }
 
@@ -138,16 +135,14 @@ fun TemplatesWorkspacePage(
                         CompactTabPillsRow(
                             tabs = state.workspaceTabs,
                             selectedTabId = state.selectedTabId,
-                            onWorkspaceAction = onWorkspaceAction,
-                            onNavToWorkspaceManager = onNavToWorkspaceManager
+                            onWorkspaceAction = { workspaceActionHandler?.executeWorkspaceAction(it) },
+                            onNavToWorkspaceManager = { workspaceActionHandler?.navToWorkspaceManager() }
                         )
                     }
 
                     WorkspaceButton(
                         state = workspaceButtonState,
-                        onAction = onWorkspaceAction,
-                        onNavToWorkspaceManager = onNavToWorkspaceManager,
-                        onNavToSettings = onNavToWorkspaceSettings,
+                        workspaceActionHandler = workspaceActionHandler,
                     )
                 }
             }
@@ -185,7 +180,7 @@ fun TemplatesWorkspacePage(
                                 template = template,
                                 isFirstItem = isFirstItem,
                                 onClick = {
-                                    onWorkspaceAction(
+                                    workspaceActionHandler?.executeWorkspaceAction(
                                         WorkspaceAction.Create(
                                             type = template.type,
                                             arguments = template.arguments,
@@ -579,10 +574,6 @@ private fun TemplatesWorkspacePagePreview() {
                 versionDescription = "1.0.0-preview",
             ),
             onNavToSettings = {},
-            onNavToWorkspaceSettings = {},
-            workspaceButtonState = null,
-            onWorkspaceAction = {},
-            onNavToWorkspaceManager = {},
         )
     }
 }

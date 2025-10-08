@@ -61,6 +61,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -72,9 +73,7 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 fun WorkspaceNavigationRail(
     modifier: Modifier = Modifier,
     workspaceButtonState: WorkspaceButtonViewModel.State?,
-    onWorkspaceAction: (WorkspaceAction) -> Unit,
-    onNavToWorkspaceManager: () -> Unit,
-    onNavToSettings: () -> Unit,
+    workspaceActionHandler: WorkspaceActionHandler? = null,
     workspaces: List<Workspace.Info>,
     selected: Map<Int, Workspace.Info>,
     focusedId: Workspace.Id?,
@@ -128,9 +127,7 @@ fun WorkspaceNavigationRail(
         ) {
             WorkspaceButton(
                 state = workspaceButtonState,
-                onAction = onWorkspaceAction,
-                onNavToWorkspaceManager = onNavToWorkspaceManager,
-                onNavToSettings = onNavToSettings,
+                workspaceActionHandler = workspaceActionHandler,
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -498,9 +495,6 @@ private fun WorkspaceNavigationRailPreview() {
         )
         WorkspaceNavigationRail(
             workspaceButtonState = null,
-            onWorkspaceAction = {},
-            onNavToWorkspaceManager = {},
-            onNavToSettings = {},
             workspaces = tabs,
             selected = mapOf(0 to tabs[0], 1 to tabs[1]),
             focusedId = tabs[0].id,

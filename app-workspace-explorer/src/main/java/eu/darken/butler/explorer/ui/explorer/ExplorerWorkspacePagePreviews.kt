@@ -67,8 +67,6 @@ fun ExplorerWorkspacePagePreview() {
             clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
             vm = null,
-            onWorkspaceAction = {},
-            onNavToWorkspaceManager = {},
         )
     }
 }
@@ -90,8 +88,6 @@ fun ExplorerWorkspacePageLoadingPreview() {
             clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
             vm = null,
-            onWorkspaceAction = {},
-            onNavToWorkspaceManager = {},
         )
     }
 }
@@ -115,8 +111,6 @@ fun ExplorerWorkspacePageEmptyPreview() {
             clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
             vm = null,
-            onWorkspaceAction = {},
-            onNavToWorkspaceManager = {},
         )
     }
 }
@@ -148,8 +142,6 @@ fun ExplorerWorkspacePageWithSelectionPreview() {
             clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
             vm = null,
-            onWorkspaceAction = {},
-            onNavToWorkspaceManager = {},
         )
     }
 }
@@ -187,8 +179,6 @@ fun ExplorerWorkspacePageGridModePreview() {
             clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
             vm = null,
-            onWorkspaceAction = {},
-            onNavToWorkspaceManager = {},
         )
     }
 }
@@ -247,8 +237,6 @@ fun ExplorerWorkspacePageWithAllBarsPreview() {
             operationsStateSource = flowOf(mockOperations),
             workspaceStateSource = flowOf(null),
             vm = null,
-            onWorkspaceAction = {},
-            onNavToWorkspaceManager = {},
         )
     }
 }
@@ -307,8 +295,6 @@ fun ExplorerWorkspacePageWithExpandedBarsPreview() {
             operationsStateSource = flowOf(mockOperations),
             workspaceStateSource = flowOf(WorkspaceButtonViewModel.State()),
             vm = null,
-            onWorkspaceAction = {},
-            onNavToWorkspaceManager = {},
             initialOperationsExpanded = true,
             initialClipboardExpanded = true,
         )

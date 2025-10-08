@@ -7,8 +7,8 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.settings
+import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.workspace.ui.WorkspacePanelMode
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import kotlinx.coroutines.flow.map
@@ -19,7 +19,7 @@ class WorkspaceButtonViewModel @Inject constructor(
     dispatchers: DispatcherProvider,
     navCtrl: NavigationController,
     private val workspaceRemote: WorkspaceRemote,
-) : ViewModel4(dispatchers, logTag("Workspace", "Button", "VM"), navCtrl) {
+) : ViewModel4(dispatchers, logTag("Workspace", "Button", "VM"), navCtrl), WorkspaceActionHandler {
 
     val state = workspaceRemote.state.map {
         State(
@@ -29,19 +29,24 @@ class WorkspaceButtonViewModel @Inject constructor(
         )
     }.asStateFlow()
 
-    fun onWorkspaceAction(action: WorkspaceAction) = launch {
+    override fun executeWorkspaceAction(action: WorkspaceAction) = launch {
         log(tag) { "onWorkspaceAction($action)" }
         workspaceRemote.execute(action)
     }
 
-    fun onNavToWorkspaceManager() {
+    override fun navToWorkspaceManager() {
         log(tag) { "onNavToWorkspaceManager()" }
         navTo(Nav.workspaceManager())
     }
 
-    fun onNavToSettings() {
+    override fun navToSettings() {
         log(tag) { "onNavToSettings()" }
         navTo(Nav.Main.settings())
+    }
+
+    override fun navToUpgradeButler() {
+        log(tag) { "upgradeButler()" }
+        navTo(Nav.Main.upgrade())
     }
 
     data class State(

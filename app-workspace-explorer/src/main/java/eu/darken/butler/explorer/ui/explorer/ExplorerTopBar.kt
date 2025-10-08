@@ -18,7 +18,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
-import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 
@@ -31,9 +31,7 @@ fun ExplorerTopBar(
     onNavigateToPath: (String) -> Unit,
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     showWorkspaceButton: Boolean,
-    onWorkspaceAction: (WorkspaceAction) -> Unit,
-    onNavToWorkspaceManager: () -> Unit,
-    onNavToSettings: () -> Unit,
+    workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
     TopAppBar(
         modifier = modifier,
@@ -54,9 +52,7 @@ fun ExplorerTopBar(
                 WorkspaceButton(
                     modifier = Modifier.padding(end = 8.dp),
                     state = workspaceButtonState,
-                    onAction = onWorkspaceAction,
-                    onNavToWorkspaceManager = onNavToWorkspaceManager,
-                    onNavToSettings = onNavToSettings,
+                    workspaceActionHandler = workspaceActionHandler,
                 )
             }
         },
@@ -86,7 +82,7 @@ fun ExplorerTopBarPreview() {
             target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0"))
         )
     )
-    
+
     PreviewWrapper {
         ExplorerTopBar(
             breadcrumbs = mockBreadcrumbs,
@@ -95,9 +91,6 @@ fun ExplorerTopBarPreview() {
             onNavigateToPath = {},
             workspaceButtonState = null,
             showWorkspaceButton = true,
-            onWorkspaceAction = {},
-            onNavToWorkspaceManager = {},
-            onNavToSettings = {},
         )
     }
 }

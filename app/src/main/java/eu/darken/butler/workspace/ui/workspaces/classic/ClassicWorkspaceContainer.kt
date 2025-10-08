@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceScreenAction
@@ -27,10 +27,8 @@ private val TAG = logTag("Workspace", "Container", "Classic")
 internal fun ClassicWorkspaceContainer(
     design: WorkspaceDesign = WorkspaceDesign(),
     state: WorkspacesViewModel.State,
-    onNavToSettings: () -> Unit,
-    onWorkspaceAction: (WorkspaceAction) -> Unit,
     onWorkspaceScreenAction: (WorkspaceScreenAction) -> Unit,
-    onUpgradeButler: () -> Unit,
+    workspaceActionHandler: WorkspaceActionHandler?,
 ) {
     val pagerState = rememberPagerState(pageCount = { state.all.size })
 
@@ -99,10 +97,8 @@ internal fun ClassicWorkspaceContainer(
         } else {
             EmptyClassicWorkspaceContent(
                 modifier = Modifier.padding(paddingValues),
-                onNavToSettings = onNavToSettings,
-                onWorkspaceAction = onWorkspaceAction,
                 isUpgraded = state.isUpgraded,
-                onUpgradeButler = onUpgradeButler,
+                workspaceActionHandler = workspaceActionHandler,
             )
         }
     }

@@ -21,13 +21,14 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
 @Composable
 fun SearchToolbarCard(
+    modifier: Modifier = Modifier,
     state: SearcherWorkspaceViewModel.State,
     design: WorkspaceDesign,
     onUpdateQuery: (TextFieldValue) -> Unit,
@@ -38,11 +39,8 @@ fun SearchToolbarCard(
     onToggleCaseSensitive: () -> Unit,
     onToggleWholeWord: () -> Unit,
     onToggleRegex: () -> Unit,
-    workspaceButtonState: WorkspaceButtonViewModel.State?,
-    onWorkspaceAction: (WorkspaceAction) -> Unit,
-    onNavToWorkspaceManager: () -> Unit,
-    onNavToSettings: () -> Unit,
-    modifier: Modifier = Modifier
+    workspaceButtonState: WorkspaceButtonViewModel.State? = null,
+    workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -77,9 +75,7 @@ fun SearchToolbarCard(
 
                     WorkspaceButton(
                         state = workspaceButtonState,
-                        onAction = onWorkspaceAction,
-                        onNavToWorkspaceManager = onNavToWorkspaceManager,
-                        onNavToSettings = onNavToSettings,
+                        workspaceActionHandler = workspaceActionHandler,
                     )
                 }
             }
@@ -125,10 +121,6 @@ private fun SearchToolbarCardPreview() {
             onToggleCaseSensitive = {},
             onToggleWholeWord = {},
             onToggleRegex = {},
-            workspaceButtonState = null,
-            onWorkspaceAction = {},
-            onNavToWorkspaceManager = {},
-            onNavToSettings = {},
             modifier = Modifier.padding(16.dp)
         )
     }

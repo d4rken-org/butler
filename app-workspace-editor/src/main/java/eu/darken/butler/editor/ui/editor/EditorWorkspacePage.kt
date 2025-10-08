@@ -1,4 +1,5 @@
 package eu.darken.butler.editor.ui.editor
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,22 +14,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Error
-import androidx.compose.material.icons.filled.FolderOpen
-import androidx.compose.material.icons.filled.FormatListNumbered
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.twotone.Save
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.FormatListNumbered
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.KeyboardArrowDown
 import androidx.compose.material.icons.twotone.KeyboardArrowUp
+import androidx.compose.material.icons.twotone.Save
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -65,7 +59,7 @@ import eu.darken.butler.editor.core.MemoryStats
 import eu.darken.butler.editor.core.SearchResult
 import eu.darken.butler.editor.core.TextPosition
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -93,9 +87,7 @@ fun EditorWorkspacePageHost(
     state?.let { state ->
         EditorWorkspacePage(
             workspaceButtonState = workspaceButtonState,
-            onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
-            onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
-            onNavToSettings = workspaceButtonVm::onNavToSettings,
+            workspaceActionHandler = workspaceButtonVm,
             design = design,
             state = state,
             onOpenFile = vm::openFile,
@@ -124,10 +116,8 @@ fun EditorWorkspacePageHost(
 
 @Composable
 fun EditorWorkspacePage(
-    workspaceButtonState: WorkspaceButtonViewModel.State?,
-    onWorkspaceAction: (WorkspaceAction) -> Unit,
-    onNavToWorkspaceManager: () -> Unit,
-    onNavToSettings: () -> Unit,
+    workspaceButtonState: WorkspaceButtonViewModel.State? = null,
+    workspaceActionHandler: WorkspaceActionHandler? = null,
     design: WorkspaceDesign,
     state: EditorWorkspaceViewModel.State,
     onOpenFile: (APath) -> Unit,
@@ -194,9 +184,7 @@ fun EditorWorkspacePage(
             onGoToLine = { showGoToLineDialog = true },
             onToggleMemoryStats = { showMemoryStats = !showMemoryStats },
             workspaceButtonState = workspaceButtonState,
-            onWorkspaceAction = onWorkspaceAction,
-            onNavToWorkspaceManager = onNavToWorkspaceManager,
-            onNavToSettings = onNavToSettings,
+            workspaceActionHandler = workspaceActionHandler,
         )
 
         Column(
@@ -288,7 +276,7 @@ fun EditorWorkspacePage(
             onDismiss = { showSearchDialog = false }
         )
     }
-    
+
     // File picker host
     FilePickerHost(
         launcher = filePickerLauncher,
@@ -314,9 +302,7 @@ private fun EditorHeader(
     onGoToLine: () -> Unit,
     onToggleMemoryStats: () -> Unit,
     workspaceButtonState: WorkspaceButtonViewModel.State?,
-    onWorkspaceAction: (WorkspaceAction) -> Unit,
-    onNavToWorkspaceManager: () -> Unit,
-    onNavToSettings: () -> Unit,
+    workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -353,9 +339,7 @@ private fun EditorHeader(
 
                     WorkspaceButton(
                         state = workspaceButtonState,
-                        onAction = onWorkspaceAction,
-                        onNavToWorkspaceManager = onNavToWorkspaceManager,
-                        onNavToSettings = onNavToSettings,
+                        workspaceActionHandler = workspaceActionHandler,
                     )
                 }
             }
@@ -664,10 +648,6 @@ private fun EditorPagePreview() {
     PreviewWrapper {
         EditorWorkspacePage(
             design = WorkspaceDesign(),
-            workspaceButtonState = null,
-            onWorkspaceAction = {},
-            onNavToWorkspaceManager = {},
-            onNavToSettings = {},
             state = EditorWorkspaceViewModel.State(
                 id = Workspace.Id(),
                 totalLines = 1000,
