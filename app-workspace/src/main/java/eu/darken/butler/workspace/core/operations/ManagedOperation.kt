@@ -72,6 +72,8 @@ class ManagedOperation(
                 _state.emit(state)
             }
             .catch { error ->
+                if (error is CancellationException) throw error  // Re-throw to preserve cancellation semantics
+
                 log(tag, INFO) { "Operation $id completed with error: $error" }
                 _state.emit(
                     object : Operation.State.Completed {
