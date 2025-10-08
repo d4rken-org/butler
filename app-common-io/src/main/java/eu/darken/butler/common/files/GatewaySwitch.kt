@@ -310,7 +310,7 @@ class GatewaySwitch @Inject constructor(
         sources: Set<APath>,
         destination: APath,
         options: MoveAction.Options<APath>
-    ): Flow<MoveAction.State<APath>> = flow {
+    ): Flow<MoveAction.State<APath, APathLookup<APath>>> = flow {
         // Group sources by gateway type for optimal processing
         val sourcesByType = sources.groupBy { it::class }
         val destinationType = destination::class
@@ -328,7 +328,7 @@ class GatewaySwitch @Inject constructor(
                     }.collect { state ->
                         when (state) {
                             is MoveAction.State.Progress -> {
-                                emit(state.copy(bytesMoved = totalBytesMoved + state.bytesMoved))
+                                emit(state.copy(movedBytes = totalBytesMoved + state.movedBytes))
                             }
                             is MoveAction.State.Result -> {
                                 totalBytesMoved += state.bytesMoved
@@ -346,7 +346,7 @@ class GatewaySwitch @Inject constructor(
                             .collect { state ->
                                 when (state) {
                                     is MoveAction.State.Progress -> {
-                                        emit(state.copy(bytesMoved = totalBytesMoved + state.bytesMoved))
+                                        emit(state.copy(movedBytes = totalBytesMoved + state.movedBytes))
                                     }
                                     is MoveAction.State.Result -> {
                                         totalBytesMoved += state.bytesMoved
@@ -417,7 +417,7 @@ class GatewaySwitch @Inject constructor(
         source: APath,
         target: APath,
         options: MoveAction.Options<APath>
-    ): Flow<MoveAction.State<APath>> = flow {
+    ): Flow<MoveAction.State<APath, APathLookup<APath>>> = flow {
         // TODO: Implement cross-gateway move (copy + delete)
         // - Copy from source to target using cross-gateway copy
         // - Delete source after successful copy

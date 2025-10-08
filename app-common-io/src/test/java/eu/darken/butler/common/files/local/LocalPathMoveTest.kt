@@ -5,7 +5,6 @@ import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
-import eu.darken.butler.common.files.metadata.FileType
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
@@ -259,7 +258,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(destPath) { issue ->
+        sourcePath.move(destPath) { issue ->
             when (issue) {
                 is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Merge()
                 else -> error("Unexpected issue: $issue")
@@ -326,7 +325,9 @@ class LocalPathMoveTest : BaseTest() {
         val result = sources.move(destPath) { issue ->
             issueCount++
             when (issue) {
-                is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Overwrite(applyToAll = true)
+                is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Overwrite(
+                    applyToAll = true
+                )
                 else -> error("Unexpected issue: $issue")
             }
         }
@@ -360,7 +361,7 @@ class LocalPathMoveTest : BaseTest() {
         val nonExistentDest = File(testFolder, "non-existent-dest")
 
         // When
-        val result = LocalPath.build(sourceFile).move(LocalPath.build(nonExistentDest))
+        LocalPath.build(sourceFile).move(LocalPath.build(nonExistentDest))
 
         // Then
         nonExistentDest.exists() shouldBe true
@@ -621,7 +622,7 @@ class LocalPathMoveTest : BaseTest() {
         var issueReceived: PathActionIssue? = null
 
         // When
-        val result = sourcePath.move(
+        sourcePath.move(
             destPath,
             onIssue = { issue ->
                 issueReceived = issue
@@ -726,7 +727,7 @@ class LocalPathMoveTest : BaseTest() {
         var issueReceived: PathActionIssue? = null
 
         // When
-        val result = LocalPath.build(sourceFile).move(
+        LocalPath.build(sourceFile).move(
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 issueReceived = issue
@@ -754,7 +755,7 @@ class LocalPathMoveTest : BaseTest() {
         var issueReceived: PathActionIssue? = null
 
         // When
-        val result = LocalPath.build(sourceDir).move(
+        LocalPath.build(sourceDir).move(
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 issueReceived = issue
@@ -781,7 +782,7 @@ class LocalPathMoveTest : BaseTest() {
         destFile.writeText("Dest content")
 
         // When
-        val result = LocalPath.build(sourceFile).move(
+        LocalPath.build(sourceFile).move(
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 when (issue) {
@@ -809,7 +810,7 @@ class LocalPathMoveTest : BaseTest() {
         destFile.writeText("Dest content")
 
         // When
-        val result = LocalPath.build(sourceFile).move(
+        LocalPath.build(sourceFile).move(
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 when (issue) {
@@ -1008,7 +1009,7 @@ class LocalPathMoveTest : BaseTest() {
         val sourcePath = LocalPath.build(sourceFile)
         val destPath = LocalPath.build(destFolder)
 
-        val progressUpdates = mutableListOf<MoveAction.State.Progress<LocalPath>>()
+        val progressUpdates = mutableListOf<MoveAction.State.Progress<LocalPath, LocalPathLookup>>()
 
         // When
         val result = sourcePath.move(
@@ -1018,7 +1019,7 @@ class LocalPathMoveTest : BaseTest() {
 
         // Then
         result.movedFiles shouldHaveSize 1
-        progressUpdates shouldNotBe emptyList<MoveAction.State.Progress<LocalPath>>()
+        progressUpdates shouldNotBe emptyList<MoveAction.State.Progress<LocalPath, LocalPathLookup>>()
     }
 
     // ============ EDGE CASES ============
@@ -1141,7 +1142,7 @@ class LocalPathMoveTest : BaseTest() {
         File(destDir, "existing.txt").writeText("existing")
 
         // When - rename source to Parent-new
-        val result = LocalPath.build(sourceDir).move(
+        LocalPath.build(sourceDir).move(
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 when (issue) {
@@ -1402,7 +1403,7 @@ class LocalPathMoveTest : BaseTest() {
         // When
         files.map { LocalPath.build(it) }.move(
             LocalPath.build(destFolder),
-            onProgress = { bytesSeen.add(it.bytesMoved) }
+            onProgress = { bytesSeen.add(it.movedBytes) }
         )
 
         // Then - bytes should increase over time

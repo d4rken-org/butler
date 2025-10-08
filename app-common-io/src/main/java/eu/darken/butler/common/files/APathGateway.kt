@@ -17,7 +17,7 @@ interface APathGateway<
     PLE : APathLookupExtended<P>,
     > : HasSharedResource<Any>,
     CopyAction<P, PL>,
-    MoveAction<P>,
+    MoveAction<P, PL>,
     DeleteAction<P, PL>,
     FileSystemAction<P> {
 

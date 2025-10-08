@@ -5,6 +5,9 @@
     <!-- Copy operation progress strings -->
     <string name="general_copy_progress_title">Copying items</string>
 
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">Moving items</string>
+
     <!-- Path action issue strings -->
     <string name="path_action_file_exists_title">File already exists</string>
     <string name="path_action_folder_exists_title">Folder already exists</string>

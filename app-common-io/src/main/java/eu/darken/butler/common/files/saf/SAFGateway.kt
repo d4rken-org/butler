@@ -453,7 +453,7 @@ class SAFGateway @Inject constructor(
         sources: Set<SAFPath>,
         destination: SAFPath,
         options: MoveAction.Options<SAFPath>
-    ): Flow<MoveAction.State<SAFPath>> {
+    ): Flow<MoveAction.State<SAFPath, SAFPathLookup>> {
         // TODO: Implement using DocumentFile.renameTo()
         // - Try renameTo() for same parent directory across all sources
         // - Fallback to copy+delete for different parents

@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.core.operations
 
+import android.text.format.Formatter
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.DriveFileMove
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -11,6 +12,8 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
@@ -25,6 +28,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
+import kotlin.time.Clock
+import kotlin.time.Instant
+import kotlin.time.TimeSource
 
 class MoveOperation @AssistedInject constructor(
     @Assisted workspaceId: Workspace.Id,
@@ -59,9 +65,18 @@ class MoveOperation @AssistedInject constructor(
         var stateActive = State.Active(startedAt = operationContext.startedAt)
         emit(stateActive)
 
+        data class SpeedSample(
+            val timestamp: Instant,
+            val bytesPerSecond: Long
+        )
+
+        val speedHistory = ArrayDeque<SpeedSample>(30) // 30 samples max
+        var lastMovedBytes = 0L
+        var lastSpeedUpdate = TimeSource.Monotonic.markNow()
+
         val reportBuilder = MoveOperationReport.Builder()
 
-        command.sources
+        val result = command.sources
             .move(
                 gateway = gatewaySwitch,
                 destination = command.destination,
@@ -71,7 +86,7 @@ class MoveOperation @AssistedInject constructor(
                         emit(
                             State.Waiting(
                                 startedAt = operationContext.startedAt,
-                                waitingSince = kotlin.time.Clock.System.now(),
+                                waitingSince = Clock.System.now(),
                                 issue = issue,
                             )
                         )
@@ -80,71 +95,133 @@ class MoveOperation @AssistedInject constructor(
                 ),
             )
             .onEach { moveState ->
-                when (moveState) {
-                    is MoveAction.State.Progress<*> -> {
-                        val primaryProgress = eu.darken.butler.common.progress.Progress.Data(
-                            primary = caString { it.getString(R.string.explorer_operation_move_progress_title) },
-                            secondary = caString {
-                                it.getQuantityString2(
-                                    R.plurals.explorer_operation_progress_sources,
-                                    moveState.sourcesCompleted,
-                                    moveState.sourcesCompleted,
-                                    moveState.totalSources,
-                                )
-                            },
-                            count = eu.darken.butler.common.progress.Progress.Count.Counter(
-                                current = moveState.filesProcessed,
-                                max = moveState.totalFiles,
-                            ),
-                        )
+                if (moveState !is MoveAction.State.Progress<APath, APathLookup<APath>>) return@onEach
 
-                        val secondaryProgress = if (moveState.bytesMoved > 0) {
-                            eu.darken.butler.common.progress.Progress.Data(
-                                primary = moveState.currentSource.name.toCaString(),
-                                secondary = caString {
-                                    val bytesFormatted =
-                                        android.text.format.Formatter.formatShortFileSize(it, moveState.bytesMoved)
-                                    it.getString(R.string.explorer_operation_progress_bytes_moved, bytesFormatted)
-                                },
-                            )
-                        } else null
+                val now = Clock.System.now()
+                val elapsed = lastSpeedUpdate.elapsedNow().inWholeMilliseconds / 1000.0
 
-                        stateActive = stateActive.copy(
-                            primaryProgress = primaryProgress,
-                            secondaryProgress = secondaryProgress,
-                        )
-                        emit(stateActive)
-                    }
-                    is MoveAction.State.Result<*> -> {
-                        // Track filesystem changes - sources were removed
-                        val movedSources = moveState.movedFiles.map { it.first }.toSet()
-                        val sourceLookupsForHinter = movedSources.map { path ->
-                            // Create a minimal lookup for removed paths (may no longer exist)
-                            object : eu.darken.butler.common.files.APathLookup<eu.darken.butler.common.files.APath> {
-                                override val lookedUp = path
-                                override val fileType = eu.darken.butler.common.files.metadata.FileType.UNKNOWN
-                                override val size = 0L
-                                override val modifiedAt = kotlin.time.Instant.DISTANT_PAST
-                                override val target: eu.darken.butler.common.files.APath? = null
-                            }
-                        }
-                        fileSystemHinter.trackPathsRemoved(operationContext.id, sourceLookupsForHinter.toSet())
+                // Calculate instantaneous speed (every ~1 second)
+                if (elapsed >= 1.0) {
+                    val bytesDelta = moveState.movedBytes - lastMovedBytes
+                    val currentSpeed = (bytesDelta / elapsed).toLong()
 
-                        val movedDestinations = moveState.movedFiles.map { it.second }.toSet()
-                        val movedLookups = movedDestinations.map { gatewaySwitch.lookup(it) }
-                        fileSystemHinter.trackPathsAdded(operationContext.id, movedLookups.toSet())
+                    speedHistory.addLast(SpeedSample(now, currentSpeed))
+                    if (speedHistory.size > 30) speedHistory.removeFirst()
 
-                        // Build report
-                        val sourceAndDestLookup = moveState.movedFiles.map { (source, dest) ->
-                            source to gatewaySwitch.lookup(dest)
-                        }
-                        reportBuilder.addMovedItems(sourceAndDestLookup)
-                        reportBuilder.setSkipped(moveState.skippedFiles)
-                        reportBuilder.setBytesMoved(moveState.bytesMoved)
-                    }
+                    lastMovedBytes = moveState.movedBytes
+                    lastSpeedUpdate = TimeSource.Monotonic.markNow()
                 }
+
+                // Calculate overall metrics (from speed history)
+                val avgSpeed = if (speedHistory.isNotEmpty()) {
+                    speedHistory.map { it.bytesPerSecond }.average().toLong()
+                } else 0L
+
+                val overallEta = if (avgSpeed > 0 && moveState.totalBytes > 0) {
+                    val remaining = moveState.totalBytes - moveState.movedBytes
+                    (remaining / avgSpeed) // seconds
+                } else null
+
+                // Calculate per-file metrics
+                val fileStartTime = moveState.currentFileStartTime
+                val (fileSpeed, fileEta) = if (fileStartTime != null && moveState.currentFileSize > 0) {
+                    val fileElapsed = (now - fileStartTime).inWholeMilliseconds / 1000.0
+                    if (fileElapsed > 0) {
+                        val speed = (moveState.currentFileBytes / fileElapsed).toLong()
+                        val remaining = moveState.currentFileSize - moveState.currentFileBytes
+                        val eta = if (speed > 0) (remaining / speed).toLong() else null
+                        speed to eta
+                    } else 0L to null
+                } else 0L to null
+
+                // Format overall metrics for primary progress
+                val overallMetrics = if (avgSpeed > 0) {
+                    caString { ctx ->
+                        val speedFormatted = Formatter.formatShortFileSize(ctx, avgSpeed)
+                        val speedPart = ctx.getString(R.string.explorer_operation_progress_bytes_speed, speedFormatted)
+                        val etaPart = if (overallEta != null) {
+                            val duration = ctx.getQuantityString2(
+                                eu.darken.butler.common.R.plurals.common_duration_seconds_full,
+                                overallEta.toInt(),
+                                overallEta
+                            )
+                            " • " + ctx.getString(R.string.explorer_operation_progress_time_remaining, duration)
+                        } else ""
+                        speedPart + etaPart
+                    }
+                } else null
+
+                // Format per-file metrics for secondary progress
+                val fileMetrics = if (fileSpeed > 0) {
+                    caString { ctx ->
+                        val speedFormatted = Formatter.formatShortFileSize(ctx, fileSpeed)
+                        val speedPart = ctx.getString(R.string.explorer_operation_progress_bytes_speed, speedFormatted)
+                        val etaPart = if (fileEta != null) {
+                            val duration = ctx.getQuantityString2(
+                                eu.darken.butler.common.R.plurals.common_duration_seconds_full,
+                                fileEta.toInt(),
+                                fileEta
+                            )
+                            " • " + ctx.getString(R.string.explorer_operation_progress_time_remaining, duration)
+                        } else ""
+                        speedPart + etaPart
+                    }
+                } else null
+
+                // Build enhanced primary progress with overall metrics
+                val enhancedPrimary = moveState.primaryProgress.copy(
+                    secondary = overallMetrics ?: moveState.primaryProgress.secondary
+                )
+
+                // Build enhanced secondary progress with file metrics
+                val enhancedSecondary = moveState.secondaryProgress?.let { secondaryProgress ->
+                    secondaryProgress.copy(
+                        secondary = fileMetrics ?: secondaryProgress.secondary,
+                        extra = mapOf(
+                            "overallSpeed" to avgSpeed,
+                            "fileSpeed" to fileSpeed,
+                            "speedHistory" to speedHistory.toList(),
+                            "overallEta" to overallEta,
+                            "fileEta" to fileEta
+                        )
+                    )
+                }
+
+                stateActive = stateActive.copy(
+                    primaryProgress = enhancedPrimary,
+                    secondaryProgress = enhancedSecondary,
+                )
+                emit(stateActive)
             }
             .last()
+
+        result as MoveAction.State.Result<APath, APathLookup<APath>>
+
+        // Track filesystem changes - sources were removed
+        val movedSources = result.movedFiles.map { it.first }.toSet()
+        val sourceLookupsForHinter = movedSources.map { path ->
+            // Create a minimal lookup for removed paths (may no longer exist)
+            object : APathLookup<APath> {
+                override val lookedUp = path
+                override val fileType = eu.darken.butler.common.files.metadata.FileType.UNKNOWN
+                override val size = 0L
+                override val modifiedAt = Instant.DISTANT_PAST
+                override val target: APath? = null
+            }
+        }
+        fileSystemHinter.trackPathsRemoved(operationContext.id, sourceLookupsForHinter.toSet())
+
+        val movedDestinations = result.movedFiles.map { it.second }.toSet()
+        val movedLookups = movedDestinations.map { gatewaySwitch.lookup(it) }
+        fileSystemHinter.trackPathsAdded(operationContext.id, movedLookups.toSet())
+
+        // Build report
+        val sourceAndDestLookup = result.movedFiles.map { (source, dest) ->
+            source to gatewaySwitch.lookup(dest)
+        }
+        reportBuilder.addMovedItems(sourceAndDestLookup)
+        reportBuilder.setSkipped(result.skippedFiles)
+        reportBuilder.setBytesMoved(result.bytesMoved)
 
         emit(
             State.Completed(

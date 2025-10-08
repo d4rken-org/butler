@@ -19,11 +19,9 @@ import okio.source
 import java.io.File
 import java.io.IOException
 import java.nio.file.AccessDeniedException
-import java.nio.file.AtomicMoveNotSupportedException
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
-import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.PosixFileAttributeView
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -31,7 +29,7 @@ internal class LocalPathMove(
     private val sources: Collection<LocalPath>,
     private val destination: LocalPath,
     private val options: MoveAction.Options<LocalPath>,
-    private val onProgress: (suspend (MoveAction.State.Progress<LocalPath>) -> Unit)?,
+    private val onProgress: (suspend (MoveAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)?,
     private val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
 ) {
     private val moved = linkedSetOf<Pair<LocalPath, LocalPath>>()
@@ -56,9 +54,7 @@ internal class LocalPathMove(
 
     // Progress tracking
     private var totalItems = 0
-    private var totalSources = 0
     private var itemsProcessed = 0
-    private var sourcesCompleted = 0
 
     // Total accumulated size from all scans
     private var totalBytes = 0L
@@ -134,13 +130,11 @@ internal class LocalPathMove(
         ) : ErrorContext()
     }
 
-    suspend fun execute(): MoveAction.State.Result<LocalPath> {
+    suspend fun execute(): MoveAction.State.Result<LocalPath, LocalPathLookup> {
         check(!hasExecuted) { "LocalPathMove can only be executed once" }
         hasExecuted = true
 
         ensureDestinationExists()
-
-        totalSources = sources.size
 
         // Initialize queue with scan items for each source (matches LocalPathCopy architecture)
         workQueue.addAll(sources.map { WorkItem.ScanSource(it) })
@@ -180,7 +174,6 @@ internal class LocalPathMove(
                 try {
                     deleteRecursively(source)
                     log(TAG, DEBUG) { "Deleted source directory after move: $source" }
-                    sourcesCompleted++
                 } catch (e: Exception) {
                     log(TAG, WARN) { "Failed to delete source directory: $source - $e" }
                 }
@@ -313,7 +306,8 @@ internal class LocalPathMove(
                     Files.newDirectoryStream(item.source.toNioPath()).use { ds ->
                         for (child in ds) {
                             val childPath = LocalPath.build(child.toFile())
-                            val childDisplayPath = LocalPath.build(File(item.displayPath.file, child.fileName.toString()))
+                            val childDisplayPath =
+                                LocalPath.build(File(item.displayPath.file, child.fileName.toString()))
                             workQueue.addFirst(
                                 WorkItem.ScanSource(
                                     source = childPath,
@@ -429,9 +423,13 @@ internal class LocalPathMove(
                         log(TAG, INFO) { "Overwriting directory (overwrite apply-to-all): $adjustedDest" }
                         deleteRecursively(adjustedDest)
                     } else {
-                        val existsError = WriteException(path = adjustedDest, cause = FileAlreadyExistsException(adjustedDest.path))
+                        val existsError =
+                            WriteException(path = adjustedDest, cause = FileAlreadyExistsException(adjustedDest.path))
                         if (onIssue == null) {
-                            log(TAG, VERBOSE) { "Directory already exists, auto-merging (no issue handler): $adjustedDest" }
+                            log(
+                                TAG,
+                                VERBOSE
+                            ) { "Directory already exists, auto-merging (no issue handler): $adjustedDest" }
                             itemsProcessed++
                             return
                         }
@@ -463,7 +461,8 @@ internal class LocalPathMove(
                         log(TAG, INFO) { "Overwriting file with directory (overwrite apply-to-all): $adjustedDest" }
                         Files.delete(adjustedDest.toNioPath())
                     } else {
-                        val existsError = WriteException(path = adjustedDest, cause = FileAlreadyExistsException(adjustedDest.path))
+                        val existsError =
+                            WriteException(path = adjustedDest, cause = FileAlreadyExistsException(adjustedDest.path))
                         if (onIssue == null) throw existsError
 
                         val issue = PathActionIssue.PathAlreadyExists(
@@ -537,7 +536,8 @@ internal class LocalPathMove(
                 }
 
                 if (!issueOverwriteAllPathExists) {
-                    val existsError = WriteException(path = adjustedDest, cause = FileAlreadyExistsException(adjustedDest.path))
+                    val existsError =
+                        WriteException(path = adjustedDest, cause = FileAlreadyExistsException(adjustedDest.path))
                     if (onIssue == null) throw existsError
 
                     val issue = PathActionIssue.PathAlreadyExists(
@@ -574,7 +574,12 @@ internal class LocalPathMove(
                 }
                 Files.createSymbolicLink(adjustedDest.toNioPath(), newTarget)
                 Files.delete(sourcePath)
+
+                // Report final progress showing symlink completed
+                currentFileBytes = sourceLookup.size
                 movedBytes += sourceLookup.size
+                onProgress?.invoke(createProgress(sourceLookup, adjustedDest))
+
                 moved.add(sourceLookup.lookedUp to adjustedDest)
                 itemsProcessed++
 
@@ -592,7 +597,12 @@ internal class LocalPathMove(
                     java.nio.file.LinkOption.NOFOLLOW_LINKS
                 )
                 log(TAG, DEBUG) { "Atomic move succeeded: ${sourceLookup.lookedUp} -> $adjustedDest" }
+
+                // Report final progress showing file completed
+                currentFileBytes = sourceLookup.size
                 movedBytes += sourceLookup.size
+                onProgress?.invoke(createProgress(sourceLookup, adjustedDest))
+
                 moved.add(sourceLookup.lookedUp to adjustedDest)
                 itemsProcessed++
 
@@ -618,6 +628,7 @@ internal class LocalPathMove(
                     absoluteDest.relativize(absoluteTarget)
                 }
                 Files.createSymbolicLink(adjustedDest.toNioPath(), newTarget)
+                currentFileBytes = sourceLookup.size
                 movedBytes += sourceLookup.size
             } else {
                 // Chunked file copy with progress tracking
@@ -655,6 +666,9 @@ internal class LocalPathMove(
                     }
                 }
             }
+
+            // Report final progress showing file completed
+            onProgress?.invoke(createProgress(sourceLookup, adjustedDest))
 
             // Delete source after successful copy
             Files.delete(sourcePath)
@@ -706,7 +720,8 @@ internal class LocalPathMove(
                         if (res.applyToAll) issueOverwriteAllPathExists = true
                         when (val orig = item.originalItem) {
                             is WorkItem.CreateDirectory, is WorkItem.MoveFile -> {
-                                val dest = if (orig is WorkItem.CreateDirectory) orig.dest else (orig as WorkItem.MoveFile).dest
+                                val dest =
+                                    if (orig is WorkItem.CreateDirectory) orig.dest else (orig as WorkItem.MoveFile).dest
                                 if (Files.exists(dest.toNioPath())) {
                                     if (Files.isDirectory(dest.toNioPath())) {
                                         deleteRecursively(dest)
@@ -734,7 +749,8 @@ internal class LocalPathMove(
                             }
                             is WorkItem.MoveFile -> {
                                 val newDestPath = LocalPath.build(File(orig.dest.file.parentFile!!, res.newName))
-                                val adjustedNewDestPath = adjustDestinationForRenames(newDestPath, orig.sourceLookup.lookedUp)
+                                val adjustedNewDestPath =
+                                    adjustDestinationForRenames(newDestPath, orig.sourceLookup.lookedUp)
                                 Files.move(
                                     orig.sourceLookup.lookedUp.toNioPath(),
                                     adjustedNewDestPath.toNioPath(),
@@ -884,15 +900,29 @@ internal class LocalPathMove(
     private fun createProgress(
         sourceLookup: LocalPathLookup,
         dest: LocalPath,
-    ): MoveAction.State.Progress<LocalPath> = MoveAction.State.Progress(
+    ): MoveAction.State.Progress<LocalPath, LocalPathLookup> = MoveAction.State.Progress(
         currentSource = sourceLookup.lookedUp,
         currentDestination = dest,
-        totalSources = totalSources,
-        sourcesCompleted = sourcesCompleted,
-        totalFiles = totalItems,
-        filesProcessed = itemsProcessed,
+        movedBytes = movedBytes,
         totalBytes = totalBytes,
-        bytesMoved = movedBytes,
+        currentFileSize = currentFileSize,
+        currentFileBytes = currentFileBytes,
+        currentFileStartTime = currentFileStartTime,
+        primaryProgress = eu.darken.butler.common.progress.Progress.Data(
+            primary = R.string.general_move_progress_title.toCaString(),
+            secondary = sourceLookup.userReadablePath,
+            count = eu.darken.butler.common.progress.Progress.Count.Counter(
+                current = itemsProcessed,
+                max = totalItems
+            )
+        ),
+        secondaryProgress = eu.darken.butler.common.progress.Progress.Data(
+            primary = sourceLookup.lookedUp.name.toCaString(),
+            count = eu.darken.butler.common.progress.Progress.Count.Size(
+                current = currentFileBytes,
+                max = currentFileSize
+            )
+        )
     )
 
     private fun deleteRecursively(path: LocalPath) {
@@ -956,16 +986,16 @@ internal class LocalPathMove(
 suspend fun LocalPath.move(
     destination: LocalPath,
     options: MoveAction.Options<LocalPath> = MoveAction.Options(),
-    onProgress: (suspend (MoveAction.State.Progress<LocalPath>) -> Unit)? = null,
+    onProgress: (suspend (MoveAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
 ) = setOf(this).move(destination, options, onProgress, onIssue)
 
 suspend fun Collection<LocalPath>.move(
     destination: LocalPath,
     options: MoveAction.Options<LocalPath> = MoveAction.Options(),
-    onProgress: (suspend (MoveAction.State.Progress<LocalPath>) -> Unit)? = null,
+    onProgress: (suspend (MoveAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
-): MoveAction.State.Result<LocalPath> {
+): MoveAction.State.Result<LocalPath, LocalPathLookup> {
     log(TAG, DEBUG) {
         "move(): Moving $size targets to $destination (options=$options, onProgress=$onProgress, onIssue=$onIssue)"
     }

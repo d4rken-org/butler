@@ -1005,14 +1005,14 @@ class LocalGateway @Inject constructor(
         sources: Set<LocalPath>,
         destination: LocalPath,
         options: MoveAction.Options<LocalPath>
-    ): Flow<MoveAction.State<LocalPath>> = move(sources, destination, options, Mode.AUTO)
+    ): Flow<MoveAction.State<LocalPath, LocalPathLookup>> = move(sources, destination, options, Mode.AUTO)
 
     fun move(
         sources: Set<LocalPath>,
         destination: LocalPath,
         options: MoveAction.Options<LocalPath>,
         mode: Mode = Mode.AUTO,
-    ): Flow<MoveAction.State<LocalPath>> = flow {
+    ): Flow<MoveAction.State<LocalPath, LocalPathLookup>> = flow {
         log(TAG, VERBOSE) { "move(): ${sources.size} sources to $destination" }
 
         try {

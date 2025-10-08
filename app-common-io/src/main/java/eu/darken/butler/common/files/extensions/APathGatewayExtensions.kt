@@ -195,22 +195,22 @@ suspend fun <P : APath, PL : APathLookup<P>> Set<P>.copy(
         }
 }
 
-suspend fun <T : APath> T.move(
-    gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
-    destination: T,
-    options: MoveAction.Options<T> = MoveAction.Options(),
-): Flow<MoveAction.State<T>> {
+suspend fun <P : APath, PL : APathLookup<P>> P.move(
+    gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
+    destination: P,
+    options: MoveAction.Options<P> = MoveAction.Options(),
+): Flow<MoveAction.State<P, PL>> {
     return gateway.move(sources = setOf(this), destination = destination, options = options)
         .onCompletion {
             log(VERBOSE) { "T.move(destination=$destination, options=$options): Moved $this" }
         }
 }
 
-suspend fun <T : APath> Set<T>.move(
-    gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
-    destination: T,
-    options: MoveAction.Options<T> = MoveAction.Options(),
-): Flow<MoveAction.State<T>> {
+suspend fun <P : APath, PL : APathLookup<P>> Set<P>.move(
+    gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
+    destination: P,
+    options: MoveAction.Options<P> = MoveAction.Options(),
+): Flow<MoveAction.State<P, PL>> {
     return gateway.move(sources = this, destination = destination, options = options)
         .onCompletion {
             log(VERBOSE) { "Set<T>.move(destination=$destination, options=$options): Moved $this" }
