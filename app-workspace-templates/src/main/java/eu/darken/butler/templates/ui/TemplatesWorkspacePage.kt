@@ -94,6 +94,7 @@ fun TemplatesWorkspacePageHost(
             design = design,
             state = state,
             onNavToSettings = { vm.navTo(Nav.Main.settings()) },
+            onNavToWorkspaceSettings = workspaceButtonVm::onNavToSettings,
             workspaceButtonState = workspaceButtonState,
             onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
             onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
@@ -106,6 +107,7 @@ fun TemplatesWorkspacePage(
     design: WorkspaceDesign = WorkspaceDesign(),
     state: TemplatesWorkspaceViewModel.State,
     onNavToSettings: () -> Unit,
+    onNavToWorkspaceSettings: () -> Unit,
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
@@ -145,6 +147,7 @@ fun TemplatesWorkspacePage(
                         state = workspaceButtonState,
                         onAction = onWorkspaceAction,
                         onNavToWorkspaceManager = onNavToWorkspaceManager,
+                        onNavToSettings = onNavToWorkspaceSettings,
                     )
                 }
             }
@@ -576,6 +579,7 @@ private fun TemplatesWorkspacePagePreview() {
                 versionDescription = "1.0.0-preview",
             ),
             onNavToSettings = {},
+            onNavToWorkspaceSettings = {},
             workspaceButtonState = null,
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},

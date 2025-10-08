@@ -39,16 +39,14 @@
     <string name="clipboard_info_go_to_source">Go to Source</string>
     <string name="clipboard_info_remove">Remove from Clipboard</string>
 
-    <!-- Tab Button Behavior -->
-    <string name="workspace_tab_button_behavior_tip">Tip: Tab Button Behavior</string>
-    <string name="workspace_tab_button_behavior_flipped_description">• Click: Add new tab\n• Long click: Open tab manager</string>
-    <string name="workspace_tab_button_behavior_normal_description">• Click: Open tab manager\n• Long click: Add new tab</string>
-    <string name="workspace_tab_button_behavior_flip_action">Flip button actions</string>
-
     <string name="workspace_explorer_label">Explorer</string>
     <string name="workspace_searcher_label">Searcher</string>
     <string name="workspace_editor_label">Editor</string>
     <string name="workspace_templates_label">Templates</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_menu_manager_action">Tab Manager</string>
+    <string name="workspace_button_menu_settings_action">Settings</string>
 
     <!-- Operations -->
     <string name="operations_header_title">Operations</string>

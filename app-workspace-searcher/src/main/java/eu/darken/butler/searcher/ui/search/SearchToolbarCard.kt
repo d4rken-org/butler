@@ -41,6 +41,7 @@ fun SearchToolbarCard(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
+    onNavToSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -78,6 +79,7 @@ fun SearchToolbarCard(
                         state = workspaceButtonState,
                         onAction = onWorkspaceAction,
                         onNavToWorkspaceManager = onNavToWorkspaceManager,
+                        onNavToSettings = onNavToSettings,
                     )
                 }
             }
@@ -126,6 +128,7 @@ private fun SearchToolbarCardPreview() {
             workspaceButtonState = null,
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
+            onNavToSettings = {},
             modifier = Modifier.padding(16.dp)
         )
     }

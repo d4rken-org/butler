@@ -74,6 +74,7 @@ fun WorkspaceNavigationRail(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
+    onNavToSettings: () -> Unit,
     workspaces: List<Workspace.Info>,
     selected: Map<Int, Workspace.Info>,
     focusedId: Workspace.Id?,
@@ -129,6 +130,7 @@ fun WorkspaceNavigationRail(
                 state = workspaceButtonState,
                 onAction = onWorkspaceAction,
                 onNavToWorkspaceManager = onNavToWorkspaceManager,
+                onNavToSettings = onNavToSettings,
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -498,6 +500,7 @@ private fun WorkspaceNavigationRailPreview() {
             workspaceButtonState = null,
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
+            onNavToSettings = {},
             workspaces = tabs,
             selected = mapOf(0 to tabs[0], 1 to tabs[1]),
             focusedId = tabs[0].id,

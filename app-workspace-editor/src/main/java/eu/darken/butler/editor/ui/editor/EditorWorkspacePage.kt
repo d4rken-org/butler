@@ -95,6 +95,7 @@ fun EditorWorkspacePageHost(
             workspaceButtonState = workspaceButtonState,
             onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
             onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
+            onNavToSettings = workspaceButtonVm::onNavToSettings,
             design = design,
             state = state,
             onOpenFile = vm::openFile,
@@ -126,6 +127,7 @@ fun EditorWorkspacePage(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
+    onNavToSettings: () -> Unit,
     design: WorkspaceDesign,
     state: EditorWorkspaceViewModel.State,
     onOpenFile: (APath) -> Unit,
@@ -193,7 +195,8 @@ fun EditorWorkspacePage(
             onToggleMemoryStats = { showMemoryStats = !showMemoryStats },
             workspaceButtonState = workspaceButtonState,
             onWorkspaceAction = onWorkspaceAction,
-            onNavToWorkspaceManager = onNavToWorkspaceManager
+            onNavToWorkspaceManager = onNavToWorkspaceManager,
+            onNavToSettings = onNavToSettings,
         )
 
         Column(
@@ -312,7 +315,8 @@ private fun EditorHeader(
     onToggleMemoryStats: () -> Unit,
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     onWorkspaceAction: (WorkspaceAction) -> Unit,
-    onNavToWorkspaceManager: () -> Unit
+    onNavToWorkspaceManager: () -> Unit,
+    onNavToSettings: () -> Unit,
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -351,6 +355,7 @@ private fun EditorHeader(
                         state = workspaceButtonState,
                         onAction = onWorkspaceAction,
                         onNavToWorkspaceManager = onNavToWorkspaceManager,
+                        onNavToSettings = onNavToSettings,
                     )
                 }
             }
@@ -662,6 +667,7 @@ private fun EditorPagePreview() {
             workspaceButtonState = null,
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
+            onNavToSettings = {},
             state = EditorWorkspaceViewModel.State(
                 id = Workspace.Id(),
                 totalLines = 1000,

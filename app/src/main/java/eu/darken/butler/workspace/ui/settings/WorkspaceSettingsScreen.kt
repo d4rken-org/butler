@@ -6,9 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.filled.SwipeLeft
-import androidx.compose.material.icons.twotone.SwapHoriz
 import androidx.compose.material.icons.twotone.SwipeLeft
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -33,7 +30,6 @@ import eu.darken.butler.common.ui.waitForState
 fun WorkspaceSettingsScreen(
     state: WorkspaceSettingsViewModel.State,
     onNavigateUp: () -> Unit,
-    onToggleButtonActions: () -> Unit,
     onToggleSwipeGestures: () -> Unit,
 ) {
     Scaffold(
@@ -60,20 +56,6 @@ fun WorkspaceSettingsScreen(
             verticalArrangement = Arrangement.Top
         ) {
             item {
-                SettingsCategoryHeader(text = stringResource(R.string.workspace_settings_button_behavior))
-            }
-
-            item {
-                SettingsSwitchItem(
-                    icon = Icons.TwoTone.SwapHoriz,
-                    title = stringResource(R.string.workspace_settings_flip_button_actions_title),
-                    subtitle = stringResource(R.string.workspace_settings_flip_button_actions_desc),
-                    checked = state.isButtonActionsFlipped,
-                    onCheckedChange = { onToggleButtonActions() }
-                )
-            }
-
-            item {
                 SettingsCategoryHeader(text = stringResource(R.string.workspace_settings_navigation))
             }
 
@@ -96,11 +78,9 @@ private fun WorkspaceSettingsScreenPreview() {
     PreviewWrapper {
         WorkspaceSettingsScreen(
             state = WorkspaceSettingsViewModel.State(
-                isButtonActionsFlipped = false,
                 swipeGesturesEnabled = true,
             ),
             onNavigateUp = {},
-            onToggleButtonActions = {},
             onToggleSwipeGestures = {},
         )
     }
@@ -116,7 +96,6 @@ fun WorkspaceSettingsScreenHost(vm: WorkspaceSettingsViewModel = hiltViewModel()
         WorkspaceSettingsScreen(
             state = vmState,
             onNavigateUp = { vm.navUp() },
-            onToggleButtonActions = { vm.toggleButtonActions() },
             onToggleSwipeGestures = { vm.toggleSwipeGestures() },
         )
     }

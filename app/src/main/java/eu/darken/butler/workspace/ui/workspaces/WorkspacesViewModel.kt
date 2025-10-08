@@ -69,19 +69,17 @@ class WorkspacesViewModel @Inject constructor(
     val state = combine(
         workspaceRepo.state,
         upgradeRepo.upgradeInfo,
-        workspaceSettings.isButtonActionsFlipped.flow,
         workspaceSettings.swipeGesturesEnabled.flow,
         workspacePageManager.state,
         kotlinx.coroutines.flow.combine(motdRepo.motd, hiddenMotdIds) { motd, hiddenIds ->
             motd?.takeIf { it.id !in hiddenIds }
         },
-    ) { repoState, upgradeInfo, isButtonFlipped, swipeGesturesEnabled, uiState, visibleMotd ->
+    ) { repoState, upgradeInfo, swipeGesturesEnabled, uiState, visibleMotd ->
         State(
             state = repoState,
             focusedWorkspace = uiState.focusedWorkspaceId,
             selectedWorkspaces = uiState.selectedWorkspaces,
             isUpgraded = upgradeInfo.isUpgraded,
-            isButtonActionsFlipped = isButtonFlipped,
             swipeGesturesEnabled = swipeGesturesEnabled,
             motd = visibleMotd,
         )
@@ -167,7 +165,6 @@ class WorkspacesViewModel @Inject constructor(
         val focusedWorkspace: Workspace.Id?,
         val selectedWorkspaces: Map<Int, Workspace.Id>,
         val isUpgraded: Boolean,
-        val isButtonActionsFlipped: Boolean = false,
         val swipeGesturesEnabled: Boolean = true,
         val motd: MotdState? = null,
     ) {

@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
-import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -63,10 +62,7 @@ fun WorkspaceManagerScreenHost(
             onSelectWorkspace = vm::selectWorkspace,
             onCreateWorkspace = vm::createWorkspace,
             onNavigateBack = vm::navigateBack,
-            onNavigateToSettings = vm::navigateToSettings,
             onDismissBadgeExplanation = vm::dismissBadgeExplanation,
-            onDismissButtonBehaviorExplanation = vm::dismissButtonBehaviorExplanation,
-            onToggleButtonActions = vm::toggleButtonActions,
             onCloseAllWorkspaces = vm::closeAllWorkspaces,
         )
     }
@@ -81,10 +77,7 @@ fun WorkspaceManagerScreen(
     onSelectWorkspace: (Workspace.Id) -> Unit,
     onCreateWorkspace: (Workspace.Type) -> Unit,
     onNavigateBack: () -> Unit,
-    onNavigateToSettings: () -> Unit,
     onDismissBadgeExplanation: () -> Unit,
-    onDismissButtonBehaviorExplanation: () -> Unit,
-    onToggleButtonActions: () -> Unit,
     onCloseAllWorkspaces: () -> Unit,
 ) {
     var showCloseAllDialog by remember { mutableStateOf(false) }
@@ -133,12 +126,6 @@ fun WorkspaceManagerScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(
-                            imageVector = Icons.TwoTone.Settings,
-                            contentDescription = stringResource(R.string.workspace_manager_settings_content_desc)
-                        )
-                    }
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.TwoTone.Close,
@@ -169,8 +156,6 @@ fun WorkspaceManagerScreen(
             onReorderWorkspaces = onReorderWorkspaces,
             onSelectWorkspace = onSelectWorkspace,
             onDismissBadgeExplanation = onDismissBadgeExplanation,
-            onDismissButtonBehaviorExplanation = onDismissButtonBehaviorExplanation,
-            onToggleButtonActions = onToggleButtonActions,
         )
     }
 
@@ -250,10 +235,7 @@ private fun WorkspaceManagerScreenPreview() {
             onSelectWorkspace = {},
             onCreateWorkspace = {},
             onNavigateBack = {},
-            onNavigateToSettings = {},
             onDismissBadgeExplanation = {},
-            onDismissButtonBehaviorExplanation = {},
-            onToggleButtonActions = {},
             onCloseAllWorkspaces = {}
         )
     }
@@ -274,10 +256,7 @@ private fun WorkspaceManagerScreenEmptyPreview() {
             onSelectWorkspace = {},
             onCreateWorkspace = {},
             onNavigateBack = {},
-            onNavigateToSettings = {},
             onDismissBadgeExplanation = {},
-            onDismissButtonBehaviorExplanation = {},
-            onToggleButtonActions = {},
             onCloseAllWorkspaces = {}
         )
     }

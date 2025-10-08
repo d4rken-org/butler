@@ -65,6 +65,7 @@ fun SearcherWorkspacePage(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
+    onNavToSettings: () -> Unit,
     onOpenSetup: () -> Unit = {},
 ) {
     var searchDebounce by remember { mutableStateOf(false) }
@@ -106,7 +107,8 @@ fun SearcherWorkspacePage(
                 onToggleRegex = onToggleRegex,
                 workspaceButtonState = workspaceButtonState,
                 onWorkspaceAction = onWorkspaceAction,
-                onNavToWorkspaceManager = onNavToWorkspaceManager
+                onNavToWorkspaceManager = onNavToWorkspaceManager,
+                onNavToSettings = onNavToSettings
             )
         }
         
@@ -256,6 +258,7 @@ fun SearcherWorkspacePageHost(
             workspaceButtonState = workspaceButtonState,
             onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
             onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
+            onNavToSettings = workspaceButtonVm::onNavToSettings,
             onOpenSetup = vm::navigateToSetup,
         )
     }
@@ -308,7 +311,8 @@ private fun SearchPagePreview() {
             ),
             workspaceButtonState = null,
             onWorkspaceAction = {},
-            onNavToWorkspaceManager = {}
+            onNavToWorkspaceManager = {},
+            onNavToSettings = {}
         )
     }
 }

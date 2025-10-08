@@ -12,22 +12,31 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.AddCircle
+import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Workspaces
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import eu.darken.butler.common.compose.ButlerIcon
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.WorkspaceAction
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -39,20 +48,9 @@ fun WorkspaceButton(
     contentColor: Color? = null,
     onAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
+    onNavToSettings: () -> Unit,
 ) {
-    val (normalAction, longAction) = if (state?.isButtonFlipped == true) {
-        // Flipped mode: normal click adds workspace, long click opens manager
-        { onAction(WorkspaceAction.Create()) } to { onNavToWorkspaceManager() }
-    } else {
-        // Normal mode: normal click opens manager, long click adds workspace
-        { onNavToWorkspaceManager() } to { onAction(WorkspaceAction.Create()) }
-    }
-
-    val icon = if (state?.isButtonFlipped == true) {
-        Icons.TwoTone.AddCircle
-    } else {
-        Icons.TwoTone.Workspaces
-    }
+    var expanded by remember { mutableStateOf(false) }
 
     Box(modifier = modifier) {
         // Button background
@@ -62,16 +60,47 @@ fun WorkspaceButton(
                 .clip(RoundedCornerShape(8.dp))
                 .background(containerColor ?: MaterialTheme.colorScheme.tertiaryContainer)
                 .combinedClickable(
-                    onClick = normalAction,
-                    onLongClick = longAction
+                    onClick = { expanded = true },
+                    onLongClick = { onAction(WorkspaceAction.Create()) }
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = icon,
+            ButlerIcon(
+                size = 32.dp,
                 contentDescription = null,
-                tint = contentColor ?: MaterialTheme.colorScheme.onTertiaryContainer,
-                modifier = Modifier.size(24.dp)
+            )
+        }
+
+        // Dropdown menu
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.workspace_button_menu_manager_action)) },
+                onClick = {
+                    expanded = false
+                    onNavToWorkspaceManager()
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.TwoTone.Workspaces,
+                        contentDescription = null
+                    )
+                }
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.workspace_button_menu_settings_action)) },
+                onClick = {
+                    expanded = false
+                    onNavToSettings()
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.TwoTone.Settings,
+                        contentDescription = null
+                    )
+                }
             )
         }
 
@@ -170,60 +199,60 @@ private fun WorkspaceButtonPreview() {
             WorkspaceButton(
                 state = WorkspaceButtonViewModel.State(
                     workspaceCount = 0,
-                    isButtonFlipped = false,
                     operationsCount = 0,
                     attentionCount = 0,
                 ),
                 onAction = {},
-                onNavToWorkspaceManager = {}
+                onNavToWorkspaceManager = {},
+                onNavToSettings = {}
             )
 
             // Single workspace
             WorkspaceButton(
                 state = WorkspaceButtonViewModel.State(
                     workspaceCount = 1,
-                    isButtonFlipped = false,
                     operationsCount = 0,
                     attentionCount = 0,
                 ),
                 onAction = {},
-                onNavToWorkspaceManager = {}
+                onNavToWorkspaceManager = {},
+                onNavToSettings = {}
             )
 
             // Multiple workspaces with operations
             WorkspaceButton(
                 state = WorkspaceButtonViewModel.State(
                     workspaceCount = 3,
-                    isButtonFlipped = false,
                     operationsCount = 2,
                     attentionCount = 0,
                 ),
                 onAction = {},
-                onNavToWorkspaceManager = {}
+                onNavToWorkspaceManager = {},
+                onNavToSettings = {}
             )
 
             // All badges active
             WorkspaceButton(
                 state = WorkspaceButtonViewModel.State(
                     workspaceCount = 5,
-                    isButtonFlipped = false,
                     operationsCount = 7,
                     attentionCount = 1,
                 ),
                 onAction = {},
-                onNavToWorkspaceManager = {}
+                onNavToWorkspaceManager = {},
+                onNavToSettings = {}
             )
 
             // Max badge values
             WorkspaceButton(
                 state = WorkspaceButtonViewModel.State(
                     workspaceCount = 12,
-                    isButtonFlipped = true,
                     operationsCount = 15,
                     attentionCount = 10,
                 ),
                 onAction = {},
-                onNavToWorkspaceManager = {}
+                onNavToWorkspaceManager = {},
+                onNavToSettings = {}
             )
         }
     }

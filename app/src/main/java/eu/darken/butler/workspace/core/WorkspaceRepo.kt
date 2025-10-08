@@ -48,15 +48,12 @@ class WorkspaceRepo @Inject constructor(
         }
     }
 
-    override val state: Flow<WorkspaceRemote.State> = combine(
-        infos,
-        workspaceSettings.isButtonActionsFlipped.flow
-    ) { workspaceInfos, isButtonFlipped ->
-        WorkspaceRemote.State(
-            infos = workspaceInfos,
-            isButtonActionsFlipped = isButtonFlipped,
-        )
-    }
+    override val state: Flow<WorkspaceRemote.State> = infos
+        .map { workspaceInfos ->
+            WorkspaceRemote.State(
+                infos = workspaceInfos,
+            )
+        }
         .setupCommonEventHandlers(TAG, enabled = Bugs.isTrace) { "WorkspaceState" }
         .replayingShare(appScope)
 

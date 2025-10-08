@@ -6,6 +6,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
+import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.ui.WorkspacePanelMode
 import eu.darken.butler.workspace.core.WorkspaceAction
@@ -23,7 +24,6 @@ class WorkspaceButtonViewModel @Inject constructor(
     val state = workspaceRemote.state.map {
         State(
             workspaceCount = it.workspaceCount,
-            isButtonFlipped = it.isButtonActionsFlipped,
             operationsCount = it.operationCount,
             attentionCount = it.attentionCount,
         )
@@ -39,9 +39,13 @@ class WorkspaceButtonViewModel @Inject constructor(
         navTo(Nav.workspaceManager())
     }
 
+    fun onNavToSettings() {
+        log(tag) { "onNavToSettings()" }
+        navTo(Nav.Main.settings())
+    }
+
     data class State(
         val workspaceCount: Int = 0,
-        val isButtonFlipped: Boolean = false,
         val operationsCount: Int = 0,
         val attentionCount: Int = 0,
     )
