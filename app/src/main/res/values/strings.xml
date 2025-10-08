@@ -290,7 +290,6 @@
     <string name="workspace_classic_tip_keyboard_shortcuts">Use keyboard shortcuts for faster navigation.</string>
     <string name="workspace_creating_placeholder">Creating tab…</string>
     <string name="workspace_ondemand_swipe_title">Swipe to create new tab</string>
-    <string name="workspace_ondemand_swipe_subtitle">Explorer workspace</string>
 
     <!-- Adaptive Workspace Tips -->
     <string name="workspace_adaptive_tip_multiple_panes">Use multiple panes to compare files side by side.</string>

@@ -107,7 +107,7 @@ class WorkspacesViewModel @Inject constructor(
             }
             is WorkspaceScreenAction.CreateOnDemand -> {
                 log(tag) { "Creating workspace on-demand" }
-                val result = workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.EXPLORER)) as WorkspaceAction.Create.Result
+                val result = workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.TEMPLATES)) as WorkspaceAction.Create.Result
                 log(tag) { "On-demand workspace created: ${result.newId}, focusing it" }
                 workspacePageManager.setFocusedWorkspace(result.newId)
                 workspacePageManager.setSelectedWorkspaces(mapOf(0 to result.newId))

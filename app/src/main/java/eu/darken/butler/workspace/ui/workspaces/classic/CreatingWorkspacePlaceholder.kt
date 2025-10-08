@@ -100,7 +100,7 @@ internal fun CreatingWorkspacePlaceholder(
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = stringResource(R.string.workspace_ondemand_swipe_subtitle),
+                                text = stringResource(eu.darken.butler.workspace.R.string.workspace_templates_label),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             )
