@@ -1,6 +1,8 @@
 package eu.darken.butler.common.datastore
 
+import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -17,15 +19,26 @@ import java.io.File
 
 class DataStoreValueTest : BaseTest() {
 
-    private val testFile = File(IO_TEST_BASEDIR, DataStoreValueTest::class.java.simpleName + ".preferences_pb")
-    private fun createDataStore(scope: TestScope) = PreferenceDataStoreFactory.create(
-        scope = scope,
-        produceFile = { testFile },
-    )
+    private val testFiles = mutableListOf<File>()
+
+    private fun createDataStore(scope: TestScope): DataStore<Preferences> {
+        val testFile = File(
+            IO_TEST_BASEDIR,
+            "${DataStoreValueTest::class.java.simpleName}_${System.nanoTime()}.preferences_pb"
+        )
+        // Delete file if it exists from a previous test run
+        testFile.delete()
+        testFiles.add(testFile)
+        return PreferenceDataStoreFactory.create(
+            scope = scope,
+            produceFile = { testFile },
+        )
+    }
 
     @AfterEach
     fun tearDown() {
-        testFile.delete()
+        testFiles.forEach { it.delete() }
+        testFiles.clear()
     }
 
     @Test

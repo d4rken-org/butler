@@ -84,7 +84,7 @@ class GplayReviewTool @Inject constructor(
             hasReviewed = hasReviewed,
         )
     }
-        .throttleLatest(500)
+        .throttleLatest(500.milliseconds)
         .onStart { emit(ReviewTool.State()) }
         .replayingShare(appScope)
 
