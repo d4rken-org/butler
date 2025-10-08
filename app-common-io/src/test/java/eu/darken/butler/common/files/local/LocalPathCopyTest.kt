@@ -58,7 +58,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // Then
         result.copied shouldContain (sourcePath to LocalPath.build(File(destFolder, "test.txt")))
-        result.bytesCopied shouldBe expectedSize
+        result.copiedBytes shouldBe expectedSize
         File(destFolder, "test.txt").exists() shouldBe true
         File(destFolder, "test.txt").readText() shouldBe "Hello World"
         sourceFile.exists() shouldBe true // Source should still exist
@@ -102,7 +102,7 @@ class LocalPathCopyTest : BaseTest() {
         val result = sourcePath.copy(destPath)
 
         // Then
-        result.bytesCopied shouldBe expectedSize
+        result.copiedBytes shouldBe expectedSize
         result.copied.map { it.first } should { paths ->
             paths shouldContain LocalPath.build(file1)
             paths shouldContain LocalPath.build(file2)
@@ -135,7 +135,7 @@ class LocalPathCopyTest : BaseTest() {
         val result = sourcePaths.copy(destPath)
 
         // Then
-        result.bytesCopied shouldBe expectedSize
+        result.copiedBytes shouldBe expectedSize
         result.copied.map { it.first } should { paths ->
             paths shouldContain LocalPath.build(file)
             paths shouldContain LocalPath.build(dir)
@@ -183,7 +183,7 @@ class LocalPathCopyTest : BaseTest() {
         val result = LocalPath.build(file).copy(LocalPath.build(destFolder))
 
         // Then
-        result.bytesCopied shouldBe content.length.toLong()
+        result.copiedBytes shouldBe content.length.toLong()
     }
 
     @Test
@@ -208,7 +208,7 @@ class LocalPathCopyTest : BaseTest() {
         val result = LocalPath.build(File(sourceFolder, "deep")).copy(LocalPath.build(destFolder))
 
         // Then
-        result.bytesCopied shouldBe expectedSize
+        result.copiedBytes shouldBe expectedSize
         File(destFolder, "deep/level0/level1/level2/level3/level4/level5/level6/level7/level8/level9/file9.txt")
             .exists() shouldBe true
     }
@@ -232,7 +232,7 @@ class LocalPathCopyTest : BaseTest() {
         val endTime = System.currentTimeMillis()
 
         // Then
-        result.bytesCopied shouldBe expectedSize
+        result.copiedBytes shouldBe expectedSize
         result.copied shouldHaveSize (files.size + 1) // files + directory
 
         val duration = endTime - startTime
@@ -246,7 +246,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // Then
         result.copied.shouldBeEmpty()
-        result.bytesCopied shouldBe 0L
+        result.copiedBytes shouldBe 0L
     }
 
     @Test
@@ -271,7 +271,7 @@ class LocalPathCopyTest : BaseTest() {
         // Then
         File(destFolder, "duplicate.txt").exists() shouldBe true
         // Both copies attempted but result may vary
-        result.bytesCopied should { it >= expectedSize }
+        result.copiedBytes should { it >= expectedSize }
     }
 
     // ============ PATH CONSTRUCTION VERIFICATION (CRITICAL) ============
@@ -413,7 +413,7 @@ class LocalPathCopyTest : BaseTest() {
         // When
         files.map { LocalPath.build(it) }.copy(
             LocalPath.build(destFolder),
-            onProgress = { bytesSeen.add(it.bytesCopied) }
+            onProgress = { bytesSeen.add(it.copiedBytes) }
         )
 
         // Then - bytes should increase over time
@@ -617,7 +617,7 @@ class LocalPathCopyTest : BaseTest() {
             val result = LocalPath.build(sourceFile).copy(LocalPath.build(destFolder))
 
             // Then - should complete without crashing
-            result.bytesCopied should { it >= 0 }
+            result.copiedBytes should { it >= 0 }
         } catch (e: SecurityException) {
             // Expected on some systems
         }
@@ -644,7 +644,7 @@ class LocalPathCopyTest : BaseTest() {
                 }
             )
 
-            result.bytesCopied should { it >= 0 }
+            result.copiedBytes should { it >= 0 }
         } catch (e: Exception) {
             // Expected on systems where read-only doesn't prevent writes
             // or where permission errors manifest differently
@@ -715,7 +715,7 @@ class LocalPathCopyTest : BaseTest() {
         )
 
         // Result depends on whether errors actually occurred
-        result.bytesCopied should { it >= 0 }
+        result.copiedBytes should { it >= 0 }
     }
 
     @Test
@@ -733,7 +733,7 @@ class LocalPathCopyTest : BaseTest() {
             }
         )
 
-        result.bytesCopied should { it >= 0 }
+        result.copiedBytes should { it >= 0 }
     }
 
     @Test
@@ -945,7 +945,7 @@ class LocalPathCopyTest : BaseTest() {
         val result = LocalPath.build(sourceFile).copy(LocalPath.build(destFolder), onProgress = null)
 
         // Then
-        result.bytesCopied should { it > 0 }
+        result.copiedBytes should { it > 0 }
         File(destFolder, "file.txt").exists() shouldBe true
     }
 
@@ -959,7 +959,7 @@ class LocalPathCopyTest : BaseTest() {
         val result = LocalPath.build(sourceFile).copy(LocalPath.build(destFolder), onIssue = null)
 
         // Then - should complete normally
-        result.bytesCopied should { it > 0 }
+        result.copiedBytes should { it > 0 }
         File(destFolder, "file.txt").exists() shouldBe true
     }
 
@@ -1006,7 +1006,7 @@ class LocalPathCopyTest : BaseTest() {
     }
 
     @Test
-    fun `result contains correct bytesCopied count`() = runTest {
+    fun `result contains correct copiedBytes count`() = runTest {
         // Given
         val files = (1..5).map { i ->
             File(sourceFolder, "file$i.txt").apply {
@@ -1019,7 +1019,7 @@ class LocalPathCopyTest : BaseTest() {
         val result = files.map { LocalPath.build(it) }.copy(LocalPath.build(destFolder))
 
         // Then
-        result.bytesCopied shouldBe expectedSize
+        result.copiedBytes shouldBe expectedSize
     }
 
     // ============ ATTRIBUTE PRESERVATION ============
