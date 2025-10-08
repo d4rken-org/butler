@@ -393,6 +393,210 @@ class LocalPathMoveTest : BaseTest() {
         symlink.exists() shouldBe false
     }
 
+    @Test
+    fun `move broken symlink should preserve symlink`() = runTest {
+        // Given - symlink pointing to non-existent target
+        val brokenLink = File(sourceFolder, "brokenLink")
+
+        // Create symlink to non-existent file
+        Files.createSymbolicLink(
+            brokenLink.toPath(),
+            java.nio.file.Paths.get("nonexistent.txt")
+        )
+
+        // Only proceed if symlink was actually created
+        if (!Files.isSymbolicLink(brokenLink.toPath())) {
+            return@runTest
+        }
+
+        val sourcePath = LocalPath.build(brokenLink)
+        val destPath = LocalPath.build(destFolder)
+
+        // When
+        val result = sourcePath.move(destPath)
+
+        // Then - broken symlink should be moved as-is
+        val movedLink = File(destFolder, "brokenLink")
+        movedLink.exists() shouldBe false // Target doesn't exist
+        Files.isSymbolicLink(movedLink.toPath()) shouldBe true // But symlink exists
+        result.movedFiles shouldHaveSize 1
+        brokenLink.exists() shouldBe false // Source symlink should be deleted
+    }
+
+    @Test
+    fun `move symlink to directory`() = runTest {
+        // Given - symlink pointing to a directory
+        val targetDir = File(sourceFolder, "targetDir")
+        targetDir.mkdir()
+        File(targetDir, "file.txt").writeText("content")
+
+        val linkDir = File(sourceFolder, "linkDir")
+
+        // Create symlink with relative path
+        Files.createSymbolicLink(
+            linkDir.toPath(),
+            java.nio.file.Paths.get("targetDir")
+        )
+
+        // Only proceed if symlink was actually created
+        if (!Files.isSymbolicLink(linkDir.toPath())) {
+            return@runTest
+        }
+
+        val sourcePath = LocalPath.build(linkDir)
+        val destPath = LocalPath.build(destFolder)
+
+        // When
+        val result = sourcePath.move(destPath)
+
+        // Then - symlink should be moved
+        val movedLink = File(destFolder, "linkDir")
+        Files.isSymbolicLink(movedLink.toPath()) shouldBe true
+        result.movedFiles shouldHaveSize 1 // Only the link, not contents
+        linkDir.exists() shouldBe false // Source symlink should be deleted
+        // Note: The symlink may not resolve correctly since we moved it but not its target
+    }
+
+    @Test
+    fun `move nested symlinks`() = runTest {
+        // Given - symlink chain: link2 -> link1 -> target
+        val targetFile = File(sourceFolder, "target.txt")
+        targetFile.writeText("Target content")
+
+        val link1 = File(sourceFolder, "link1.txt")
+        Files.createSymbolicLink(link1.toPath(), targetFile.toPath())
+
+        val link2 = File(sourceFolder, "link2.txt")
+        Files.createSymbolicLink(link2.toPath(), link1.toPath())
+
+        if (!Files.isSymbolicLink(link2.toPath())) {
+            return@runTest
+        }
+
+        val sourcePath = LocalPath.build(link2)
+        val destPath = LocalPath.build(destFolder)
+
+        // When
+        val result = sourcePath.move(destPath)
+
+        // Then - link2 should be moved and still point to link1
+        val movedLink = File(destFolder, "link2.txt")
+        Files.isSymbolicLink(movedLink.toPath()) shouldBe true
+        result.movedFiles shouldHaveSize 1
+        link2.exists() shouldBe false
+    }
+
+    // ============ DIRECTORY CONFLICTS ============
+
+    @Test
+    fun `move directory overwrite`() = runTest {
+        // Given
+        val sourceDir = File(sourceFolder, "dir")
+        sourceDir.mkdir()
+        File(sourceDir, "file.txt").writeText("Source content")
+
+        val destDir = File(destFolder, "dir")
+        destDir.mkdir()
+        File(destDir, "old.txt").writeText("Old content")
+
+        val sourcePath = LocalPath.build(sourceDir)
+        val destPath = LocalPath.build(destFolder)
+
+        var issueReceived: PathActionIssue? = null
+
+        // When
+        val result = sourcePath.move(
+            destPath,
+            onIssue = { issue ->
+                issueReceived = issue
+                PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+            }
+        )
+
+        // Then
+        issueReceived shouldNotBe null
+        (issueReceived is PathActionIssue.PathAlreadyExists) shouldBe true
+        File(destFolder, "dir/file.txt").exists() shouldBe true
+        File(destFolder, "dir/old.txt").exists() shouldBe false // Old content removed
+        sourceDir.exists() shouldBe false
+    }
+
+    @Test
+    fun `move directory overwrite with apply to all`() = runTest {
+        // Given
+        val dir1 = File(sourceFolder, "dir1")
+        dir1.mkdir()
+        File(dir1, "file1.txt").writeText("Content 1")
+
+        val dir2 = File(sourceFolder, "dir2")
+        dir2.mkdir()
+        File(dir2, "file2.txt").writeText("Content 2")
+
+        // Create conflicting destinations
+        File(destFolder, "dir1").mkdir()
+        File(destFolder, "dir2").mkdir()
+
+        var issueCount = 0
+
+        // When
+        listOf(LocalPath.build(dir1), LocalPath.build(dir2)).move(
+            LocalPath.build(destFolder),
+            onIssue = { issue ->
+                issueCount++
+                PathActionIssue.PathAlreadyExists.Resolution.Overwrite(applyToAll = true)
+            }
+        )
+
+        // Then - only one issue for apply-to-all
+        issueCount shouldBe 1
+        File(destFolder, "dir1/file1.txt").exists() shouldBe true
+        File(destFolder, "dir2/file2.txt").exists() shouldBe true
+        dir1.exists() shouldBe false
+        dir2.exists() shouldBe false
+    }
+
+    @Test
+    fun `move directory skip with apply to all`() = runTest {
+        // Given
+        val dir1 = File(sourceFolder, "dir1")
+        dir1.mkdir()
+        File(dir1, "file1.txt").writeText("Content 1")
+
+        val dir2 = File(sourceFolder, "dir2")
+        dir2.mkdir()
+        File(dir2, "file2.txt").writeText("Content 2")
+
+        // Create conflicting destinations
+        val dest1 = File(destFolder, "dir1")
+        dest1.mkdir()
+        File(dest1, "existing1.txt").writeText("Existing 1")
+
+        val dest2 = File(destFolder, "dir2")
+        dest2.mkdir()
+        File(dest2, "existing2.txt").writeText("Existing 2")
+
+        var issueCount = 0
+
+        // When
+        val result = listOf(LocalPath.build(dir1), LocalPath.build(dir2)).move(
+            LocalPath.build(destFolder),
+            onIssue = { issue ->
+                issueCount++
+                PathActionIssue.PathAlreadyExists.Resolution.Skip(applyToAll = true)
+            }
+        )
+
+        // Then
+        issueCount shouldBe 1
+        File(dest1, "file1.txt").exists() shouldBe false // Not moved
+        File(dest1, "existing1.txt").exists() shouldBe true // Original preserved
+        File(dest2, "file2.txt").exists() shouldBe false // Not moved
+        File(dest2, "existing2.txt").exists() shouldBe true // Original preserved
+        result.skippedFiles.size shouldBe 4 // 2 directories + 2 files (cascading skip)
+        dir1.exists() shouldBe true // Source still exists
+        dir2.exists() shouldBe true // Source still exists
+    }
+
     // ============ PROGRESS TRACKING ============
 
     @Test
