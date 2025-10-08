@@ -37,7 +37,6 @@ class BrowsingEngine @AssistedInject constructor(
     fun hint(event: FileSystemEvent) {
         log(tag) { "hint(): $event" }
         // TODO: Refresh directory based on hints
-        TODO("Not yet implemented")
     }
 
     @AssistedFactory

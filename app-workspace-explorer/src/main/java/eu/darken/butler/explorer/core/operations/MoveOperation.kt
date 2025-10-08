@@ -102,7 +102,8 @@ class MoveOperation @AssistedInject constructor(
                             eu.darken.butler.common.progress.Progress.Data(
                                 primary = moveState.currentSource.name.toCaString(),
                                 secondary = caString {
-                                    val bytesFormatted = android.text.format.Formatter.formatShortFileSize(it, moveState.bytesMoved)
+                                    val bytesFormatted =
+                                        android.text.format.Formatter.formatShortFileSize(it, moveState.bytesMoved)
                                     it.getString(R.string.explorer_operation_progress_bytes_moved, bytesFormatted)
                                 },
                             )
@@ -127,11 +128,11 @@ class MoveOperation @AssistedInject constructor(
                                 override val target: eu.darken.butler.common.files.APath? = null
                             }
                         }
-                        fileSystemHinter.trackPathsRemoved(sourceLookupsForHinter.toSet())
+                        fileSystemHinter.trackPathsRemoved(operationContext.id, sourceLookupsForHinter.toSet())
 
                         val movedDestinations = moveState.movedFiles.map { it.second }.toSet()
                         val movedLookups = movedDestinations.map { gatewaySwitch.lookup(it) }
-                        fileSystemHinter.trackPathsAdded(movedLookups.toSet())
+                        fileSystemHinter.trackPathsAdded(operationContext.id, movedLookups.toSet())
 
                         // Build report
                         val sourceAndDestLookup = moveState.movedFiles.map { (source, dest) ->

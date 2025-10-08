@@ -117,6 +117,34 @@ class LocalPathCopyTest : BaseTest() {
     }
 
     @Test
+    fun `copy deeply nested structure`() = runTest {
+        // Given
+        val sourceDir = File(sourceFolder, "level1")
+        var current = sourceDir
+        for (i in 2..10) {
+            current = File(current, "level$i")
+        }
+        current.mkdirs()
+        File(current, "deep.txt").writeText("Deep content")
+
+        val sourcePath = LocalPath.build(sourceDir)
+        val destPath = LocalPath.build(destFolder)
+
+        // When
+        val result = sourcePath.copy(destPath)
+
+        // Then
+        // Should have 1 file + 10 directories = 11 items
+        result.copied shouldHaveSize 11
+        result.copied.map { it.first } should { paths ->
+            paths shouldContain LocalPath.build(File(current, "deep.txt"))
+            paths shouldContain LocalPath.build(sourceDir)
+        }
+        File(destFolder, "level1/level2/level3/level4/level5/level6/level7/level8/level9/level10/deep.txt")
+            .readText() shouldBe "Deep content"
+    }
+
+    @Test
     fun `copy collection with files and directories`() = runTest {
         // Given
         val file = File(sourceFolder, "standalone.txt")

@@ -10,6 +10,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.test.runTest
@@ -101,8 +102,13 @@ class LocalPathMoveTest : BaseTest() {
         val result = sourcePath.move(destPath)
 
         // Then
-        result.movedFiles shouldContain (sourcePath to LocalPath.build(File(destFolder, "nested")))
         result.bytesMoved shouldBe expectedSize
+        result.movedFiles.map { it.first } should { paths ->
+            paths shouldContain LocalPath.build(file1)
+            paths shouldContain LocalPath.build(file2)
+            paths shouldContain LocalPath.build(subDir)
+            paths shouldContain LocalPath.build(sourceDir)
+        }
 
         File(destFolder, "nested").exists() shouldBe true
         File(destFolder, "nested/file1.txt").exists() shouldBe true
@@ -446,7 +452,12 @@ class LocalPathMoveTest : BaseTest() {
         val result = sourcePath.move(destPath)
 
         // Then
-        result.movedFiles shouldHaveSize 1
+        // Should have 1 file + 10 directories = 11 items
+        result.movedFiles shouldHaveSize 11
+        result.movedFiles.map { it.first } should { paths ->
+            paths shouldContain LocalPath.build(File(current, "deep.txt"))
+            paths shouldContain LocalPath.build(sourceDir)
+        }
         File(destFolder, "level1/level2/level3/level4/level5/level6/level7/level8/level9/level10/deep.txt")
             .readText() shouldBe "Deep content"
         sourceDir.exists() shouldBe false

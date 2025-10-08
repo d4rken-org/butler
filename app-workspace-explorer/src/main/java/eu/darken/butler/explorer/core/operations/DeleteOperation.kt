@@ -127,7 +127,8 @@ class DeleteOperation @AssistedInject constructor(
                         } else 0L
 
                         val overallEta = if (avgItemsSpeed > 0 && deleteState.primaryProgress.count.max > 0) {
-                            val remaining = deleteState.primaryProgress.count.max - deleteState.primaryProgress.count.current
+                            val remaining =
+                                deleteState.primaryProgress.count.max - deleteState.primaryProgress.count.current
                             (remaining / avgItemsSpeed) // seconds
                         } else null
 
@@ -136,18 +137,22 @@ class DeleteOperation @AssistedInject constructor(
                             caString { ctx ->
                                 val parts = mutableListOf<String>()
                                 if (avgItemsSpeed > 0) {
-                                    parts.add(ctx.getQuantityString2(
-                                        R.plurals.explorer_operation_progress_items_speed,
-                                        avgItemsSpeed.toInt(),
-                                        avgItemsSpeed
-                                    ))
+                                    parts.add(
+                                        ctx.getQuantityString2(
+                                            R.plurals.explorer_operation_progress_items_speed,
+                                            avgItemsSpeed.toInt(),
+                                            avgItemsSpeed
+                                        )
+                                    )
                                 }
                                 if (avgBytesSpeed > 0) {
                                     val bytesFormatted = Formatter.formatShortFileSize(ctx, avgBytesSpeed)
-                                    parts.add(ctx.getString(
-                                        R.string.explorer_operation_progress_bytes_speed_freed,
-                                        bytesFormatted
-                                    ))
+                                    parts.add(
+                                        ctx.getString(
+                                            R.string.explorer_operation_progress_bytes_speed_freed,
+                                            bytesFormatted
+                                        )
+                                    )
                                 }
                                 val speedPart = parts.joinToString(" • ")
                                 val etaPart = if (overallEta != null) {
@@ -185,7 +190,7 @@ class DeleteOperation @AssistedInject constructor(
                         emit(stateActive)
                     }
                     is DeleteAction.State.Result<APath, APathLookup<APath>> -> {
-                        fileSystemHinter.trackPathsRemoved(deleteState.deleted)
+                        fileSystemHinter.trackPathsRemoved(operationContext.id, deleteState.deleted)
                         reportBuilder.setDeletions(deleteState.deleted)
                         reportBuilder.setSkipped(deleteState.skipped)
                         reportBuilder.setBytesFreed(deleteState.deleted.sumOf { it.size })

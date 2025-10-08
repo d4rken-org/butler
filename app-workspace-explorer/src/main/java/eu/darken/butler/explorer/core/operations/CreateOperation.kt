@@ -207,7 +207,7 @@ class CreateOperation @AssistedInject constructor(
         }
 
         val createdLookup = gatewaySwitch.lookup(destinationPath)
-        fileSystemHinter.trackPathsAdded(setOf(createdLookup))
+        fileSystemHinter.trackPathsAdded(operationContext.id, setOf(createdLookup))
 
         FileSystemEvent.Added(
             operationId = operationContext.id,

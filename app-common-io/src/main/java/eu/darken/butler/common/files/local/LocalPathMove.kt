@@ -38,10 +38,6 @@ internal class LocalPathMove(
     private val skipped = linkedSetOf<LocalPath>()
     private var movedBytes = 0L
 
-    // Track which sources were successfully moved atomically vs copy+delete
-    private val atomicMoves = mutableSetOf<LocalPath>()
-    private val copyDeleteMoves = mutableSetOf<LocalPath>()
-
     // Current file progress tracking (for copy+delete fallback)
     private var currentFileSize = 0L
     private var currentFileBytes = 0L
@@ -78,14 +74,7 @@ internal class LocalPathMove(
      */
     private sealed class WorkItem {
         /**
-         * Attempt atomic move for a top-level source
-         */
-        data class TryAtomicMove(
-            val source: LocalPath,
-        ) : WorkItem()
-
-        /**
-         * Scan a source directory tree and queue create/copy items (for copy+delete fallback)
+         * Scan a source directory tree and queue create/move items
          */
         data class ScanSource(
             val source: LocalPath,
@@ -108,19 +97,11 @@ internal class LocalPathMove(
         ) : WorkItem()
 
         /**
-         * Copy a file to the destination
+         * Move a file to the destination (tries atomic move, falls back to copy+delete)
          */
-        data class CopyFile(
+        data class MoveFile(
             val sourceLookup: LocalPathLookup,
             val dest: LocalPath,
-            val topLevelSource: LocalPath,
-        ) : WorkItem()
-
-        /**
-         * Delete source after successful copy
-         */
-        data class DeleteSource(
-            val source: LocalPath,
             val topLevelSource: LocalPath,
         ) : WorkItem()
 
@@ -161,35 +142,48 @@ internal class LocalPathMove(
 
         totalSources = sources.size
 
-        // Initialize queue with atomic move attempts for each source
-        workQueue.addAll(sources.map { WorkItem.TryAtomicMove(it) })
+        // Initialize queue with scan items for each source (matches LocalPathCopy architecture)
+        workQueue.addAll(sources.map { WorkItem.ScanSource(it) })
+        // After all sources are scanned, check disk space
+        workQueue.add(WorkItem.CheckSpace)
 
         // Process work queue
         while (workQueue.isNotEmpty() && currentCoroutineContext().isActive) {
             when (val item = workQueue.removeFirst()) {
-                is WorkItem.TryAtomicMove -> processTryAtomicMove(item)
                 is WorkItem.ScanSource -> processScan(item)
                 is WorkItem.CheckSpace -> processSpaceCheck()
                 is WorkItem.CreateDirectory -> processCreateDirectory(item)
-                is WorkItem.CopyFile -> processCopyFile(item)
-                is WorkItem.DeleteSource -> processDeleteSource(item)
+                is WorkItem.MoveFile -> processMoveFile(item)
                 is WorkItem.ResolveIssue -> processResolveIssue(item)
             }
         }
 
-        // Delete sources that were moved via copy+delete fallback
-        // This happens AFTER all copy operations are complete to avoid deleting
-        // sources before their children are copied
-        for (source in copyDeleteMoves) {
-            log(TAG, DEBUG) { "Deleting source after successful copy: $source" }
-            try {
-                deleteRecursively(source)
-                val destPath = LocalPath.build(File(destination.file, source.name))
-                moved.add(source to destPath)
-                sourcesCompleted++
-                onProgress?.invoke(createProgress(source.performLookup(), destPath))
+        // Clean up source directories that were moved file-by-file
+        for (source in sources) {
+            if (source in skipped) continue
+
+            // Check if source was a directory
+            val sourceLookup = try {
+                if (Files.exists(source.toNioPath())) {
+                    source.performLookup()
+                } else {
+                    // Source no longer exists - it was a file that was moved atomically
+                    null
+                }
             } catch (e: Exception) {
-                log(TAG, WARN) { "Failed to delete source after copy: $source - ${e.message}" }
+                log(TAG, WARN) { "Failed to lookup source for cleanup: $source - $e" }
+                null
+            }
+
+            if (sourceLookup != null && sourceLookup.fileType == FileType.DIRECTORY) {
+                // Delete source directory tree (all contents have been moved individually)
+                try {
+                    deleteRecursively(source)
+                    log(TAG, DEBUG) { "Deleted source directory after move: $source" }
+                    sourcesCompleted++
+                } catch (e: Exception) {
+                    log(TAG, WARN) { "Failed to delete source directory: $source - $e" }
+                }
             }
         }
 
@@ -286,150 +280,6 @@ internal class LocalPathMove(
         workQueue.addFirst(WorkItem.ResolveIssue(issue, workItem, exception))
     }
 
-    private suspend fun processTryAtomicMove(item: WorkItem.TryAtomicMove) {
-        log(TAG, VERBOSE) { "Attempting atomic move: ${item.source}" }
-
-        val sourceLookup = try {
-            item.source.performLookup()
-        } catch (e: ReadException) {
-            throw e
-        }
-
-        val destinationPath = LocalPath.build(File(destination.file, item.source.name))
-
-        // Symlinks with relative targets need special handling to maintain the link relationship
-        // Use copy+delete fallback which adjusts relative symlink targets appropriately
-        if (sourceLookup.fileType == FileType.SYMBOLIC_LINK) {
-            val linkTarget = Files.readSymbolicLink(item.source.toNioPath())
-            if (!linkTarget.isAbsolute) {
-                log(TAG, DEBUG) { "Symlink has relative target, using copy+delete: ${item.source}" }
-                fallbackToCopyDelete(item.source)
-                return
-            }
-        }
-
-        // Check if destination exists BEFORE attempting atomic move
-        // This is necessary because Files.move() behavior with ATOMIC_MOVE is filesystem-dependent
-        // and may silently replace existing files instead of throwing FileAlreadyExistsException
-        if (Files.exists(destinationPath.toNioPath())) {
-            log(TAG, VERBOSE) { "Destination exists, handling conflict: $destinationPath" }
-            handleDestinationExists(item.source, destinationPath, sourceLookup, item)
-            return
-        }
-
-        try{
-            // Calculate size before move (especially for directories, since source won't exist after)
-            val bytesToMove = when (sourceLookup.fileType) {
-                FileType.FILE, FileType.SYMBOLIC_LINK -> sourceLookup.size
-                FileType.DIRECTORY -> calculateDirectorySize(item.source)
-                else -> 0L
-            }
-
-            // Try atomic move
-            Files.move(
-                item.source.toNioPath(),
-                destinationPath.toNioPath(),
-                StandardCopyOption.ATOMIC_MOVE,
-            )
-
-            // Success - atomic move worked
-            log(TAG, DEBUG) { "Atomic move succeeded: ${item.source} -> $destinationPath" }
-            atomicMoves.add(item.source)
-            moved.add(item.source to destinationPath)
-
-            // Count bytes moved
-            movedBytes += bytesToMove
-
-            sourcesCompleted++
-
-            onProgress?.invoke(createProgress(sourceLookup, destinationPath))
-
-        } catch (e: AtomicMoveNotSupportedException) {
-            // Cross-filesystem move detected - fall back to copy+delete
-            log(TAG, INFO) { "Atomic move not supported (cross-filesystem), falling back to copy+delete: ${item.source}" }
-            fallbackToCopyDelete(item.source)
-
-        } catch (e: FileAlreadyExistsException) {
-            // Destination exists - handle conflict (shouldn't happen due to pre-check, but keep as safety)
-            log(TAG, WARN) { "FileAlreadyExistsException despite pre-check: $destinationPath" }
-            handleDestinationExists(item.source, destinationPath, sourceLookup, item)
-
-        } catch (e: AccessDeniedException) {
-            handlePermissionError(
-                error = e,
-                context = ErrorContext.Write(sourceLookup, destinationPath, "Atomic move"),
-                workItem = item,
-            )
-
-        } catch (e: SecurityException) {
-            handlePermissionError(
-                error = e,
-                context = ErrorContext.Write(sourceLookup, destinationPath, "Atomic move"),
-                workItem = item,
-            )
-
-        } catch (e: Exception) {
-            handleUnknownError(
-                error = e,
-                context = ErrorContext.Write(sourceLookup, destinationPath, "Atomic move"),
-                workItem = item,
-            )
-        }
-    }
-
-    private suspend fun handleDestinationExists(
-        source: LocalPath,
-        destinationPath: LocalPath,
-        sourceLookup: LocalPathLookup,
-        workItem: WorkItem,
-    ) {
-        if (issueSkipAllPathExists) {
-            log(TAG, INFO) { "Skipping existing destination (skip apply-to-all): $destinationPath" }
-            skipped.add(source)
-            sourcesCompleted++
-            return
-        }
-
-        if (issueOverwriteAllPathExists) {
-            log(TAG, INFO) { "Overwriting existing destination (overwrite apply-to-all): $destinationPath" }
-            deleteRecursively(destinationPath)
-            // Retry the atomic move
-            workQueue.addFirst(workItem)
-            return
-        }
-
-        val existsError = WriteException(path = destinationPath, cause = FileAlreadyExistsException(destinationPath.path))
-        if (onIssue == null) throw existsError
-
-        val destLookup = destinationPath.performLookup()
-        val canMerge = sourceLookup.fileType == FileType.DIRECTORY && destLookup.fileType == FileType.DIRECTORY
-
-        val issue = PathActionIssue.PathAlreadyExists(
-            source = sourceLookup,
-            destination = destLookup,
-            canSkip = true,
-            canOverwrite = true,
-            canMerge = canMerge,
-            canRenameSource = true,
-            canRenameDestination = true,
-            suggestedName = generateUniqueName(destinationPath.name, destinationPath.file.parentFile!!),
-        )
-
-        workQueue.addFirst(WorkItem.ResolveIssue(issue, workItem, existsError))
-    }
-
-    private fun fallbackToCopyDelete(source: LocalPath) {
-        log(TAG, DEBUG) { "Queuing copy+delete fallback for: $source" }
-        copyDeleteMoves.add(source)
-
-        // Queue scan for this source
-        workQueue.addFirst(WorkItem.ScanSource(source))
-        // Queue space check after scan
-        workQueue.add(WorkItem.CheckSpace)
-        // Note: Source deletion is deferred until after all copy operations complete
-        // to avoid deleting sources before their children are copied
-    }
-
     private fun processScan(item: WorkItem.ScanSource) {
         log(TAG, VERBOSE) { "Scanning source: ${item.source}" }
 
@@ -497,7 +347,7 @@ internal class LocalPathMove(
             }
 
             FileType.FILE, FileType.SYMBOLIC_LINK -> {
-                workQueue.addLast(WorkItem.CopyFile(lookup, destinationPath, item.topLevelSource))
+                workQueue.addLast(WorkItem.MoveFile(lookup, destinationPath, item.topLevelSource))
                 totalBytes += lookup.size
                 totalItems++
             }
@@ -633,6 +483,7 @@ internal class LocalPathMove(
             }
 
             Files.createDirectories(adjustedDest.toNioPath())
+            moved.add(sourceLookup.lookedUp to adjustedDest)
             itemsProcessed++
 
         } catch (e: SecurityException) {
@@ -652,7 +503,7 @@ internal class LocalPathMove(
         }
     }
 
-    private suspend fun processCopyFile(item: WorkItem.CopyFile) {
+    private suspend fun processMoveFile(item: WorkItem.MoveFile) {
         if (isDescendantOfSkippedDir(item.sourceLookup.lookedUp)) {
             log(TAG, VERBOSE) { "Skipping file because parent directory was skipped: ${item.sourceLookup}" }
             skipped.add(item.sourceLookup.lookedUp)
@@ -663,7 +514,7 @@ internal class LocalPathMove(
         val adjustedDest = adjustDestinationForRenames(item.dest, item.sourceLookup.lookedUp)
         val sourceLookup = item.sourceLookup
 
-        log(TAG, VERBOSE) { "Copying file: $sourceLookup -> $adjustedDest" }
+        log(TAG, VERBOSE) { "Moving file: $sourceLookup -> $adjustedDest" }
 
         try {
             currentFileSize = sourceLookup.size
@@ -703,25 +554,68 @@ internal class LocalPathMove(
                     return
                 } else {
                     log(TAG, INFO) { "Overwriting existing file (overwrite apply-to-all): $adjustedDest" }
+                    Files.delete(adjustedDest.toNioPath())
                 }
             }
 
             val sourcePath = sourceLookup.lookedUp.toNioPath()
 
+            // Symlinks need special handling - atomic move doesn't adjust relative targets
             if (sourceLookup.fileType == FileType.SYMBOLIC_LINK) {
                 val linkTarget = Files.readSymbolicLink(sourcePath)
                 val newTarget = if (linkTarget.isAbsolute) {
                     linkTarget
                 } else {
-                    // Resolve relative symlink target to absolute path, then relativize to destination
-                    // Both paths must be absolute for relativize to work correctly
-                    val absoluteSource = sourcePath.parent.toAbsolutePath().normalize()
-                    val absoluteTarget = absoluteSource.resolve(linkTarget).normalize()
+                    // Relative symlink targets are relative to CWD, not to the link's directory
+                    // Resolve to absolute path first, then make relative to destination
+                    val absoluteTarget = java.nio.file.Paths.get("").toAbsolutePath().resolve(linkTarget).normalize()
                     val absoluteDest = adjustedDest.toNioPath().parent.toAbsolutePath().normalize()
                     absoluteDest.relativize(absoluteTarget)
                 }
-                if (Files.exists(adjustedDest.toNioPath())) {
-                    Files.delete(adjustedDest.toNioPath())
+                Files.createSymbolicLink(adjustedDest.toNioPath(), newTarget)
+                Files.delete(sourcePath)
+                movedBytes += sourceLookup.size
+                moved.add(sourceLookup.lookedUp to adjustedDest)
+                itemsProcessed++
+
+                currentFileSize = 0L
+                currentFileBytes = 0L
+                currentFileStartTime = null
+                return
+            }
+
+            // Try atomic move for regular files
+            try {
+                Files.move(
+                    sourcePath,
+                    adjustedDest.toNioPath(),
+                    java.nio.file.LinkOption.NOFOLLOW_LINKS
+                )
+                log(TAG, DEBUG) { "Atomic move succeeded: ${sourceLookup.lookedUp} -> $adjustedDest" }
+                movedBytes += sourceLookup.size
+                moved.add(sourceLookup.lookedUp to adjustedDest)
+                itemsProcessed++
+
+                currentFileSize = 0L
+                currentFileBytes = 0L
+                currentFileStartTime = null
+                return
+            } catch (e: java.nio.file.AtomicMoveNotSupportedException) {
+                log(TAG, DEBUG) { "Atomic move not supported, falling back to copy+delete: ${sourceLookup.lookedUp}" }
+                // Fall through to copy+delete logic below
+            }
+
+            // Atomic move failed - use copy+delete fallback
+            // Note: Symlinks are handled above, but keep this for clarity
+            if (sourceLookup.fileType == FileType.SYMBOLIC_LINK) {
+                val linkTarget = Files.readSymbolicLink(sourcePath)
+                val newTarget = if (linkTarget.isAbsolute) {
+                    linkTarget
+                } else {
+                    // Relative symlink targets are relative to CWD, not to the link's directory
+                    val absoluteTarget = java.nio.file.Paths.get("").toAbsolutePath().resolve(linkTarget).normalize()
+                    val absoluteDest = adjustedDest.toNioPath().parent.toAbsolutePath().normalize()
+                    absoluteDest.relativize(absoluteTarget)
                 }
                 Files.createSymbolicLink(adjustedDest.toNioPath(), newTarget)
                 movedBytes += sourceLookup.size
@@ -762,6 +656,9 @@ internal class LocalPathMove(
                 }
             }
 
+            // Delete source after successful copy
+            Files.delete(sourcePath)
+            moved.add(sourceLookup.lookedUp to adjustedDest)
             itemsProcessed++
 
             currentFileSize = 0L
@@ -770,35 +667,13 @@ internal class LocalPathMove(
         } catch (securityError: SecurityException) {
             handlePermissionError(
                 error = securityError,
-                context = ErrorContext.Read(sourceLookup, "Read file for copy"),
+                context = ErrorContext.Read(sourceLookup, "Read file for move"),
                 workItem = item,
             )
-        } catch (copyError: Exception) {
+        } catch (moveError: Exception) {
             handleUnknownError(
-                error = copyError,
-                context = ErrorContext.Write(sourceLookup, adjustedDest, "Copy file"),
-                workItem = item,
-            )
-        }
-    }
-
-    private suspend fun processDeleteSource(item: WorkItem.DeleteSource) {
-        log(TAG, DEBUG) { "Deleting source after successful copy: ${item.source}" }
-
-        try {
-            deleteRecursively(item.source)
-            val destPath = LocalPath.build(File(destination.file, item.source.name))
-            moved.add(item.source to destPath)
-            sourcesCompleted++
-
-            onProgress?.invoke(createProgress(item.source.performLookup(), destPath))
-
-        } catch (e: Exception) {
-            log(TAG, ERROR) { "Failed to delete source after copy: ${item.source} - $e" }
-            val sourceLookup = item.source.performLookup()
-            handleUnknownError(
-                error = e,
-                context = ErrorContext.Read(sourceLookup, "Delete source after copy"),
+                error = moveError,
+                context = ErrorContext.Write(sourceLookup, adjustedDest, "Move file"),
                 workItem = item,
             )
         }
@@ -817,32 +692,21 @@ internal class LocalPathMove(
                     is PathActionIssue.PathAlreadyExists.Resolution.Skip -> {
                         if (res.applyToAll) issueSkipAllPathExists = true
                         val source = when (val orig = item.originalItem) {
-                            is WorkItem.TryAtomicMove -> orig.source
                             is WorkItem.CreateDirectory -> orig.sourceLookup.lookedUp
-                            is WorkItem.CopyFile -> orig.sourceLookup.lookedUp
+                            is WorkItem.MoveFile -> orig.sourceLookup.lookedUp
                             else -> error("Unexpected original item type")
                         }
                         skipped.add(source)
                         if (item.originalItem is WorkItem.CreateDirectory) {
                             skippedSourceDirs.add(source)
                         }
-                        if (item.originalItem is WorkItem.TryAtomicMove) {
-                            sourcesCompleted++
-                        } else {
-                            itemsProcessed++
-                        }
+                        itemsProcessed++
                     }
                     is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
                         if (res.applyToAll) issueOverwriteAllPathExists = true
                         when (val orig = item.originalItem) {
-                            is WorkItem.TryAtomicMove -> {
-                                val destPath = LocalPath.build(File(destination.file, orig.source.name))
-                                if (Files.exists(destPath.toNioPath())) {
-                                    deleteRecursively(destPath)
-                                }
-                            }
-                            is WorkItem.CreateDirectory, is WorkItem.CopyFile -> {
-                                val dest = if (orig is WorkItem.CreateDirectory) orig.dest else (orig as WorkItem.CopyFile).dest
+                            is WorkItem.CreateDirectory, is WorkItem.MoveFile -> {
+                                val dest = if (orig is WorkItem.CreateDirectory) orig.dest else (orig as WorkItem.MoveFile).dest
                                 if (Files.exists(dest.toNioPath())) {
                                     if (Files.isDirectory(dest.toNioPath())) {
                                         deleteRecursively(dest)
@@ -857,43 +721,25 @@ internal class LocalPathMove(
                     }
                     is PathActionIssue.PathAlreadyExists.Resolution.Merge -> {
                         if (res.applyToAll) issueMergeAllPathExists = true
-                        when (item.originalItem) {
-                            is WorkItem.TryAtomicMove -> {
-                                // For atomic move with merge, fall back to copy+delete
-                                fallbackToCopyDelete((item.originalItem as WorkItem.TryAtomicMove).source)
-                            }
-                            else -> itemsProcessed++
-                        }
+                        itemsProcessed++
                     }
                     is PathActionIssue.PathAlreadyExists.Resolution.RenameSource -> {
                         log(TAG, INFO) { "User chose rename source: ${res.newName}" }
                         when (val orig = item.originalItem) {
-                            is WorkItem.TryAtomicMove -> {
-                                val sourceLookup = orig.source.performLookup()
-                                val bytesToMove = if (sourceLookup.fileType == FileType.DIRECTORY) {
-                                    calculateDirectorySize(orig.source)
-                                } else {
-                                    sourceLookup.size
-                                }
-                                val newDestPath = LocalPath.build(File(destination.file, res.newName))
-                                Files.move(orig.source.toNioPath(), newDestPath.toNioPath())
-                                moved.add(orig.source to newDestPath)
-                                movedBytes += bytesToMove
-                                sourcesCompleted++
-                            }
                             is WorkItem.CreateDirectory -> {
                                 val newDestPath = LocalPath.build(File(orig.dest.file.parentFile!!, res.newName))
                                 Files.createDirectories(newDestPath.toNioPath())
                                 renamedSourceDirs[orig.sourceLookup.lookedUp] = newDestPath
                                 itemsProcessed++
                             }
-                            is WorkItem.CopyFile -> {
+                            is WorkItem.MoveFile -> {
                                 val newDestPath = LocalPath.build(File(orig.dest.file.parentFile!!, res.newName))
-                                Files.copy(
+                                val adjustedNewDestPath = adjustDestinationForRenames(newDestPath, orig.sourceLookup.lookedUp)
+                                Files.move(
                                     orig.sourceLookup.lookedUp.toNioPath(),
-                                    newDestPath.toNioPath(),
-                                    StandardCopyOption.COPY_ATTRIBUTES,
+                                    adjustedNewDestPath.toNioPath(),
                                 )
+                                moved.add(orig.sourceLookup.lookedUp to adjustedNewDestPath)
                                 movedBytes += orig.sourceLookup.size
                                 itemsProcessed++
                             }
@@ -903,11 +749,10 @@ internal class LocalPathMove(
                     is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
                         log(TAG, INFO) { "User chose rename destination: ${res.newName}" }
                         when (val orig = item.originalItem) {
-                            is WorkItem.TryAtomicMove, is WorkItem.CreateDirectory, is WorkItem.CopyFile -> {
+                            is WorkItem.CreateDirectory, is WorkItem.MoveFile -> {
                                 val dest = when (orig) {
-                                    is WorkItem.TryAtomicMove -> LocalPath.build(File(destination.file, orig.source.name))
                                     is WorkItem.CreateDirectory -> orig.dest
-                                    is WorkItem.CopyFile -> orig.dest
+                                    is WorkItem.MoveFile -> orig.dest
                                     else -> error("Unreachable")
                                 }
                                 val newDestPath = LocalPath.build(File(dest.file.parentFile!!, res.newName))
@@ -928,17 +773,12 @@ internal class LocalPathMove(
                     is PathActionIssue.InsufficientPermission.Resolution.Skip -> {
                         if (res.applyToAll) issueSkipAllPermission = true
                         val source = when (val orig = item.originalItem) {
-                            is WorkItem.TryAtomicMove -> orig.source
                             is WorkItem.CreateDirectory -> orig.sourceLookup.lookedUp
-                            is WorkItem.CopyFile -> orig.sourceLookup.lookedUp
+                            is WorkItem.MoveFile -> orig.sourceLookup.lookedUp
                             else -> error("Unexpected original item type")
                         }
                         skipped.add(source)
-                        if (item.originalItem is WorkItem.TryAtomicMove) {
-                            sourcesCompleted++
-                        } else {
-                            itemsProcessed++
-                        }
+                        itemsProcessed++
                     }
                 }
             }
@@ -954,17 +794,12 @@ internal class LocalPathMove(
                     is PathActionIssue.UnknownError.Resolution.Skip -> {
                         if (res.applyToAll) issueSkipAllUnknown = true
                         val source = when (val orig = item.originalItem) {
-                            is WorkItem.TryAtomicMove -> orig.source
                             is WorkItem.CreateDirectory -> orig.sourceLookup.lookedUp
-                            is WorkItem.CopyFile -> orig.sourceLookup.lookedUp
+                            is WorkItem.MoveFile -> orig.sourceLookup.lookedUp
                             else -> error("Unexpected original item type: ${orig::class.simpleName}")
                         }
                         skipped.add(source)
-                        if (item.originalItem is WorkItem.TryAtomicMove) {
-                            sourcesCompleted++
-                        } else {
-                            itemsProcessed++
-                        }
+                        itemsProcessed++
                     }
                 }
             }

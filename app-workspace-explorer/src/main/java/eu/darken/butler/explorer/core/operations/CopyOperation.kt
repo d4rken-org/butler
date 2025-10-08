@@ -203,7 +203,7 @@ class CopyOperation @AssistedInject constructor(
 
         val copiedDestinations = result.copied.map { it.second }.toSet()
         val copiedLookups = copiedDestinations.map { gatewaySwitch.lookup(it) }
-        fileSystemHinter.trackPathsAdded(copiedLookups.toSet())
+        fileSystemHinter.trackPathsAdded(operationContext.id,copiedLookups.toSet())
 
         reportBuilder.addCopiedItems(copiedLookups)
         reportBuilder.setSkipped(result.skipped)
