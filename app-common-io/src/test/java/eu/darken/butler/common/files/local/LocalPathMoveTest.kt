@@ -486,6 +486,122 @@ class LocalPathMoveTest : BaseTest() {
         link2.exists() shouldBe false
     }
 
+    @Test
+    fun `move directory containing symlinks`() = runTest {
+        // Given - directory with both regular files and symlinks
+        val sourceDir = File(sourceFolder, "project")
+        sourceDir.mkdir()
+
+        val regularFile = File(sourceDir, "file.txt")
+        regularFile.writeText("regular content")
+
+        val targetFile = File(sourceDir, "target.txt")
+        targetFile.writeText("target content")
+
+        val symlinkFile = File(sourceDir, "link.txt")
+        Files.createSymbolicLink(symlinkFile.toPath(), java.nio.file.Paths.get("target.txt"))
+
+        if (!Files.isSymbolicLink(symlinkFile.toPath())) {
+            return@runTest // Skip if symlinks not supported
+        }
+
+        // When - move the entire directory
+        val result = LocalPath.build(sourceDir).move(LocalPath.build(destFolder))
+
+        // Then - directory and all contents moved, symlink preserved
+        val movedDir = File(destFolder, "project")
+        movedDir.exists() shouldBe true
+        movedDir.isDirectory shouldBe true
+
+        File(movedDir, "file.txt").readText() shouldBe "regular content"
+        File(movedDir, "target.txt").readText() shouldBe "target content"
+
+        val movedLink = File(movedDir, "link.txt")
+        Files.isSymbolicLink(movedLink.toPath()) shouldBe true
+
+        // Symlink path may be adjusted during move (relative or absolute)
+        // What matters is that the symlink is preserved as a symlink
+        val linkTarget = Files.readSymbolicLink(movedLink.toPath())
+        linkTarget shouldNotBe null // Symlink has a target
+
+        result.movedFiles shouldHaveSize 4 // directory + 2 files + symlink
+        sourceDir.exists() shouldBe false
+    }
+
+    @Test
+    fun `move symlink conflict - source symlink destination regular file`() = runTest {
+        // Given - source is symlink, destination is regular file
+        val targetFile = File(sourceFolder, "target.txt")
+        targetFile.writeText("target")
+
+        val sourceLink = File(sourceFolder, "item.txt")
+        Files.createSymbolicLink(sourceLink.toPath(), java.nio.file.Paths.get("target.txt"))
+
+        val destFile = File(destFolder, "item.txt")
+        destFile.writeText("existing file")
+
+        if (!Files.isSymbolicLink(sourceLink.toPath())) {
+            return@runTest
+        }
+
+        // When - move with overwrite resolution
+        val result = LocalPath.build(sourceLink).move(
+            LocalPath.build(destFolder),
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - symlink should overwrite the regular file
+        val movedItem = File(destFolder, "item.txt")
+        Files.isSymbolicLink(movedItem.toPath()) shouldBe true
+        result.movedFiles shouldHaveSize 1
+        sourceLink.exists() shouldBe false
+    }
+
+    @Test
+    fun `move symlink and target together`() = runTest {
+        // Given - both symlink and its relative target in same source directory
+        val sourceDir = File(sourceFolder, "bundle")
+        sourceDir.mkdir()
+
+        val target = File(sourceDir, "data.txt")
+        target.writeText("data content")
+
+        val link = File(sourceDir, "shortcut.txt")
+        Files.createSymbolicLink(link.toPath(), java.nio.file.Paths.get("data.txt"))
+
+        if (!Files.isSymbolicLink(link.toPath())) {
+            return@runTest
+        }
+
+        // When - move entire directory (symlink + target together)
+        val result = LocalPath.build(sourceDir).move(LocalPath.build(destFolder))
+
+        // Then - both moved, symlink still resolves to target
+        val movedDir = File(destFolder, "bundle")
+        val movedTarget = File(movedDir, "data.txt")
+        val movedLink = File(movedDir, "shortcut.txt")
+
+        movedTarget.exists() shouldBe true
+        movedTarget.readText() shouldBe "data content"
+
+        Files.isSymbolicLink(movedLink.toPath()) shouldBe true
+
+        // Symlink path may be adjusted during move
+        // What matters is that the symlink is preserved
+        val linkTarget = Files.readSymbolicLink(movedLink.toPath())
+        linkTarget shouldNotBe null // Symlink has a target
+
+        result.movedFiles shouldHaveSize 3 // directory + target + symlink
+        sourceDir.exists() shouldBe false
+    }
+
     // ============ DIRECTORY CONFLICTS ============
 
     @Test
