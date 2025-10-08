@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.actions
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import kotlinx.coroutines.flow.Flow
+import kotlin.time.Instant
 
 interface CopyAction<P : APath, PL : APathLookup<P>> : GatewayAction<P> {
     suspend fun copy(
@@ -28,7 +29,7 @@ interface CopyAction<P : APath, PL : APathLookup<P>> : GatewayAction<P> {
             val totalBytes: Long = 0L,
             val currentFileSize: Long = 0L,
             val currentFileBytes: Long = 0L,
-            val currentFileStartTime: kotlin.time.Instant? = null,
+            val currentFileStartTime: Instant? = null,
         ) : State<P, PL>
 
         data class Result<P : APath, PL : APathLookup<P>>(

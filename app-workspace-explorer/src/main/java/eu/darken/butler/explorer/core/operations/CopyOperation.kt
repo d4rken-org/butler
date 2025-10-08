@@ -10,6 +10,8 @@ import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.debug.Bugs
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
@@ -97,7 +99,7 @@ class CopyOperation @AssistedInject constructor(
             )
             .onEach { copyState ->
                 if (copyState !is CopyAction.State.Progress<APath, APathLookup<APath>>) return@onEach
-                log(tag) { "Progress: $copyState" }
+                if (Bugs.isTrace) log(tag, VERBOSE) { "Progress: $copyState" }
 
                 val now = Clock.System.now()
                 val elapsed = lastSpeedUpdate.elapsedNow().inWholeMilliseconds / 1000.0

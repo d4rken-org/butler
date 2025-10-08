@@ -685,7 +685,6 @@ internal class LocalPathCopy(
             currentFileSize = 0L
             currentFileBytes = 0L
             currentFileStartTime = null
-
         } catch (securityError: SecurityException) {
             handlePermissionError(
                 error = securityError,
@@ -698,8 +697,6 @@ internal class LocalPathCopy(
                 context = ErrorContext.Write(sourceLookup, adjustedDest, "Copy file"),
                 workItem = item
             )
-        } finally {
-            onProgress?.invoke(createProgress(sourceLookup, adjustedDest))
         }
     }
 
