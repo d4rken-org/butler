@@ -19,8 +19,10 @@ sealed interface WorkspaceScreenAction {
         val id: Workspace.Id,
         val position: Int? = null,
     ) : WorkspaceScreenAction
-    
+
     data class SetPaneCount(
         val count: Int,
     ) : WorkspaceScreenAction
+
+    data object CreateOnDemand : WorkspaceScreenAction
 }

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.twotone.AutoAwesome
 import androidx.compose.material.icons.twotone.SwipeLeft
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -31,6 +32,7 @@ fun WorkspaceSettingsScreen(
     state: WorkspaceSettingsViewModel.State,
     onNavigateUp: () -> Unit,
     onToggleSwipeGestures: () -> Unit,
+    onToggleOnDemandWorkspaceCreation: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -68,6 +70,17 @@ fun WorkspaceSettingsScreen(
                     onCheckedChange = { onToggleSwipeGestures() }
                 )
             }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.AutoAwesome,
+                    title = stringResource(R.string.workspace_settings_ondemand_creation_title),
+                    subtitle = stringResource(R.string.workspace_settings_ondemand_creation_desc),
+                    checked = state.onDemandWorkspaceCreation,
+                    onCheckedChange = { onToggleOnDemandWorkspaceCreation() },
+                    enabled = state.swipeGesturesEnabled,
+                )
+            }
         }
     }
 }
@@ -79,9 +92,11 @@ private fun WorkspaceSettingsScreenPreview() {
         WorkspaceSettingsScreen(
             state = WorkspaceSettingsViewModel.State(
                 swipeGesturesEnabled = true,
+                onDemandWorkspaceCreation = true,
             ),
             onNavigateUp = {},
             onToggleSwipeGestures = {},
+            onToggleOnDemandWorkspaceCreation = {},
         )
     }
 }
@@ -97,6 +112,7 @@ fun WorkspaceSettingsScreenHost(vm: WorkspaceSettingsViewModel = hiltViewModel()
             state = vmState,
             onNavigateUp = { vm.navUp() },
             onToggleSwipeGestures = { vm.toggleSwipeGestures() },
+            onToggleOnDemandWorkspaceCreation = { vm.toggleOnDemandWorkspaceCreation() },
         )
     }
 }

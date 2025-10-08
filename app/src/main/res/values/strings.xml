@@ -288,6 +288,9 @@
     <string name="workspace_classic_tip_swipe_between">Swipe to change tabs, like in a browser.</string>
     <string name="workspace_classic_tip_bookmark_folders">Bookmark frequently used folders for quick access.</string>
     <string name="workspace_classic_tip_keyboard_shortcuts">Use keyboard shortcuts for faster navigation.</string>
+    <string name="workspace_creating_placeholder">Creating tab…</string>
+    <string name="workspace_ondemand_swipe_title">Swipe to create new tab</string>
+    <string name="workspace_ondemand_swipe_subtitle">Explorer workspace</string>
 
     <!-- Adaptive Workspace Tips -->
     <string name="workspace_adaptive_tip_multiple_panes">Use multiple panes to compare files side by side.</string>
@@ -300,6 +303,8 @@
     <string name="workspace_settings_navigation">Navigation</string>
     <string name="workspace_settings_swipe_gestures_title">Swipe Gestures</string>
     <string name="workspace_settings_swipe_gestures_desc">Swipe left or right to switch between tabs.</string>
+    <string name="workspace_settings_ondemand_creation_title">Auto-Create Tabs</string>
+    <string name="workspace_settings_ondemand_creation_desc">Automatically create new tab when swiping past the last tab.</string>
 
     <string name="workspace_badge_tip_title">Tip: Tab Button Indicators</string>
     <string name="workspace_badge_open_workspaces">Number of open tabs</string>
