@@ -1005,15 +1005,53 @@ class LocalGateway @Inject constructor(
         sources: Set<LocalPath>,
         destination: LocalPath,
         options: MoveAction.Options<LocalPath>
-    ): Flow<MoveAction.State<LocalPath>> {
-        // TODO: Implement atomic move using Files.move()
-        // - Try ATOMIC_MOVE first for same filesystem across all sources
-        // - Fallback to copy+delete for cross-filesystem operations
-        // - Handle issues via options.onIssue callback
-        // - Report cumulative progress across all sources
-        // - Support "Apply to All" via gateway-level state management
-        throw NotImplementedError("TODO: LocalGateway multi-source move implementation")
-    }
+    ): Flow<MoveAction.State<LocalPath>> = move(sources, destination, options, Mode.AUTO)
+
+    fun move(
+        sources: Set<LocalPath>,
+        destination: LocalPath,
+        options: MoveAction.Options<LocalPath>,
+        mode: Mode = Mode.AUTO,
+    ): Flow<MoveAction.State<LocalPath>> = flow {
+        log(TAG, VERBOSE) { "move(): ${sources.size} sources to $destination" }
+
+        try {
+            val result = when {
+                hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
+                    log(TAG, VERBOSE) { "move($mode->ROOT): To $destination" }
+                    rootOps {
+                        TODO("Root move implementation")
+                    }
+                }
+
+                hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
+                    log(TAG, VERBOSE) { "move($mode->ADB): To $destination" }
+                    adbOps {
+                        TODO("ADB move implementation")
+                    }
+                }
+
+                mode == Mode.NORMAL || mode == Mode.AUTO -> {
+                    log(TAG, VERBOSE) { "move($mode->NORMAL): To $destination" }
+                    sources.move(
+                        destination,
+                        options,
+                        onProgress = { progress -> emit(progress) },
+                        onIssue = options.onIssue,
+                    )
+                }
+
+                else -> throw IOException("No matching mode available.")
+            }
+
+            log(TAG, INFO) { "move(): Finished, moved ${result.movedFiles} items" }
+            emit(result)
+        } catch (e: Exception) {
+            log(TAG, WARN) { "move(): mode=$mode, sources=${sources.size}, destination=$destination failed ($e)" }
+            if (e is CancellationException) throw e
+            else throw WriteException(message = "Move failed", cause = e)
+        }
+    }.flowOn(dispatcherProvider.IO)
 
     enum class Mode {
         AUTO, NORMAL, ROOT, ADB

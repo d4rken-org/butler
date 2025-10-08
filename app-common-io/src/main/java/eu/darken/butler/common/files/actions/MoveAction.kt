@@ -12,8 +12,9 @@ interface MoveAction<P : APath> : GatewayAction<P> {
     ): Flow<State<P>>
 
     data class Options<P : APath>(
+        val preserveAttributes: Boolean = true,
         val overwrite: Boolean = false,
-        val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution?)? = null,
+        val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
     )
 
     sealed interface State<P : APath> {

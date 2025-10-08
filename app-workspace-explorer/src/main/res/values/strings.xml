@@ -243,6 +243,30 @@
         <item quantity="other">%s copied.</item>
     </plurals>
 
+    <string name="explorer_operation_move_title">Move operation</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="one">Move %1$d item to \"%2$s\".</item>
+        <item quantity="other">Move %1$d items to \"%2$s\".</item>
+    </plurals>
+    <string name="explorer_operation_move_progress_title">Moving…</string>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="one">%d file moved.</item>
+        <item quantity="other">%d files moved.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="one">%d directory moved.</item>
+        <item quantity="other">%d directories moved.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="one">%s moved.</item>
+        <item quantity="other">%s moved.</item>
+    </plurals>
+    <string name="explorer_operation_progress_bytes_moved">%s moved</string>
+    <plurals name="explorer_operation_progress_sources">
+        <item quantity="one">Source %1$d of %2$d</item>
+        <item quantity="other">Sources %1$d of %2$d</item>
+    </plurals>
+
     <string name="explorer_operation_create_title_directory">Folder creation</string>
     <string name="explorer_operation_create_description_directory">Create folder \"%1$s\" at \"%2$s\"</string>
     <string name="explorer_operation_create_title_file">File creation</string>
