@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
@@ -52,8 +53,8 @@ fun InsufficientPermissionIssueSheet(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
-            text = stringResource(R.string.explorer_issue_permission_title),
-            style = MaterialTheme.typography.headlineSmall,
+            text = issue.title.asComposable(),
+            style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
         )
 
@@ -61,7 +62,7 @@ fun InsufficientPermissionIssueSheet(
 
         Text(
             modifier  = modifier.padding(bottom = 8.dp),
-            text = stringResource(R.string.explorer_issue_permission_description),
+            text = issue.description.asComposable(),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

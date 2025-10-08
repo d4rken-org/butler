@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer.issues
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -45,46 +46,60 @@ fun PathIssueFileComparisonCard(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Icon(
-                imageVector = when (lookup.fileType) {
-                    FileType.DIRECTORY -> Icons.TwoTone.Folder
-                    else -> Icons.TwoTone.Description
-                },
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Icon(
+                    imageVector = when (lookup.fileType) {
+                        FileType.DIRECTORY -> Icons.TwoTone.Folder
+                        else -> Icons.TwoTone.Description
+                    },
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
+                Text(
+                    text = lookup.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+
+                Text(
+                    text = when (lookup.fileType) {
+                        FileType.FILE -> formatFileSize(lookup.size)
+                        FileType.DIRECTORY -> stringResource(R.string.explorer_type_folder)
+                        else -> "-"
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
+                Text(
+                    text = dateFormat.format(Date(lookup.modifiedAt.toEpochMilliseconds())),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
 
             Text(
-                text = lookup.name,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
+                text = lookup.lookedUp.parent?.path ?: "/",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
-            )
-
-            Text(
-                text = when (lookup.fileType) {
-                    FileType.FILE -> formatFileSize(lookup.size)
-                    FileType.DIRECTORY -> stringResource(R.string.explorer_type_folder)
-                    else -> "-"
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            Text(
-                text = dateFormat.format(Date(lookup.modifiedAt.toEpochMilliseconds())),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 28.dp),
             )
         }
     }

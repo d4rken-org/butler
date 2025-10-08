@@ -76,8 +76,8 @@ fun UnknownErrorIssueSheet(
                 tint = MaterialTheme.colorScheme.error,
             )
             Text(
-                text = stringResource(R.string.explorer_issue_unknown_error_title),
-                style = MaterialTheme.typography.headlineSmall,
+                text = issue.title.asComposable(),
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
             )
         }
@@ -86,7 +86,7 @@ fun UnknownErrorIssueSheet(
 
         Text(
             modifier  = modifier.padding(bottom = 8.dp),
-            text = issue.errorMessage.asComposable(),
+            text = issue.description.asComposable(),
             style = MaterialTheme.typography.bodyMedium,
         )
 

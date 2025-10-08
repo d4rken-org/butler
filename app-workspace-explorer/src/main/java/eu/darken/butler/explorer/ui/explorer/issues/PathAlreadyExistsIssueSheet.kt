@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.explorer.R
@@ -58,15 +59,19 @@ fun PathAlreadyExistsIssueSheet(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
-            text = stringResource(
-                if (isDirectory) R.string.explorer_issue_collision_title_folder
-                else R.string.explorer_issue_collision_title_file
-            ),
-            style = MaterialTheme.typography.headlineSmall,
+            text = issue.title.asComposable(),
+            style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
         )
 
         HorizontalDivider()
+
+        Text(
+            modifier = Modifier.padding(bottom = 8.dp),
+            text = issue.description.asComposable(),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
 
         Text(
             text = stringResource(

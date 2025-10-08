@@ -23,10 +23,19 @@ sealed interface PathActionIssue : Issue {
         val suggestedName: String? = null,
     ) : PathActionIssue {
         override val title: CaString = caString {
-            "// TODO: title PathAlreadyExists"
+            if (destination.fileType == eu.darken.butler.common.files.metadata.FileType.DIRECTORY) {
+                getString(eu.darken.butler.common.io.R.string.path_action_folder_exists_title)
+            } else {
+                getString(eu.darken.butler.common.io.R.string.path_action_file_exists_title)
+            }
         }
         override val description: CaString = caString {
-            "// TODO: description PathAlreadyExists"
+            val parentPath = destination.lookedUp.parent?.path ?: "/"
+            if (destination.fileType == eu.darken.butler.common.files.metadata.FileType.DIRECTORY) {
+                getString(eu.darken.butler.common.io.R.string.path_action_folder_exists_description, destination.lookedUp.name, parentPath)
+            } else {
+                getString(eu.darken.butler.common.io.R.string.path_action_file_exists_description, destination.lookedUp.name, parentPath)
+            }
         }
         sealed interface Resolution : PathActionIssue.Resolution {
             data class Skip(val applyToAll: Boolean = false) : Resolution
@@ -46,10 +55,11 @@ sealed interface PathActionIssue : Issue {
         val exception: Throwable? = null,
     ) : PathActionIssue {
         override val title: CaString = caString {
-            "// TODO: title InsufficientPermission"
+            getString(eu.darken.butler.common.io.R.string.path_action_permission_denied_title)
         }
         override val description: CaString = caString {
-            "// TODO: description InsufficientPermission"
+            val parentPath = destination.lookedUp.parent?.path ?: "/"
+            getString(eu.darken.butler.common.io.R.string.path_action_permission_denied_description, destination.lookedUp.name, parentPath)
         }
         sealed interface Resolution : PathActionIssue.Resolution {
             data class Skip(val applyToAll: Boolean = false) : Resolution
@@ -63,10 +73,11 @@ sealed interface PathActionIssue : Issue {
         val destination: APathLookup<APath>,
     ) : PathActionIssue {
         override val title: CaString = caString {
-            "// TODO: title InsufficientSpace"
+            getString(eu.darken.butler.common.io.R.string.path_action_insufficient_space_title)
         }
         override val description: CaString = caString {
-            "// TODO: description InsufficientSpace"
+            val parentPath = source.lookedUp.parent?.path ?: "/"
+            getString(eu.darken.butler.common.io.R.string.path_action_insufficient_space_description, source.lookedUp.name, parentPath)
         }
         sealed interface Resolution : PathActionIssue.Resolution {
             data object Retry : Resolution
@@ -84,11 +95,9 @@ sealed interface PathActionIssue : Issue {
         val canRetry: Boolean = false,
     ) : PathActionIssue {
         override val title: CaString = caString {
-            "// TODO: title UnknownError"
+            getString(eu.darken.butler.common.io.R.string.path_action_unknown_error_title)
         }
-        override val description: CaString = caString {
-            "// TODO: description UnknownError"
-        }
+        override val description: CaString = errorMessage
         sealed interface Resolution : PathActionIssue.Resolution {
             data class Skip(val applyToAll: Boolean = false) : Resolution
             data object Retry : Resolution
