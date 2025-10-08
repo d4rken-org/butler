@@ -22,6 +22,9 @@ interface DeleteAction<P : APath, PL : APathLookup<P>> : GatewayAction<P> {
             val target: PL,
             val primaryProgress: eu.darken.butler.common.progress.Progress.Data,
             val secondaryProgress: eu.darken.butler.common.progress.Progress.Data? = null,
+            val deletedBytes: Long = 0L,
+            val totalBytes: Long = 0L,
+            val currentItemStartTime: kotlin.time.Instant? = null,
         ) : State<P, PL>
 
         data class Result<P : APath, PL : APathLookup<P>>(

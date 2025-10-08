@@ -36,6 +36,9 @@ internal class LocalPathDelete(
     // Global progress tracking
     private var totalItems = 0
     private var itemsProcessed = 0
+    private var totalBytes = 0L
+    private var deletedBytes = 0L
+    private var currentItemStartTime: kotlin.time.Instant? = null
 
     // Scan tracking to know when all items are discovered
     private var scanItemsRemaining = 0
@@ -238,6 +241,7 @@ internal class LocalPathDelete(
             FileType.SYMBOLIC_LINK, FileType.FILE -> {
                 // Files: defer deletion until scan completes (using addFirst for post-order)
                 totalItems++
+                totalBytes += lookup.size
                 deferredDeletions.addFirst(WorkItem.DeletePath(path = item.path))
                 return 0 // No children for files
             }
@@ -246,6 +250,7 @@ internal class LocalPathDelete(
                 if (!recursive) {
                     // Non-recursive: defer directory deletion (will fail if not empty, using addFirst for post-order)
                     totalItems++
+                    totalBytes += lookup.size
                     deferredDeletions.addFirst(WorkItem.DeletePath(path = item.path))
                     return 0
                 } else {
@@ -290,6 +295,7 @@ internal class LocalPathDelete(
 
                     // After successfully scanning children, defer directory deletion (using addFirst for post-order)
                     totalItems++
+                    totalBytes += lookup.size
                     deferredDeletions.addFirst(WorkItem.DeletePath(path = item.path))
 
                     return childrenFound
@@ -321,6 +327,7 @@ internal class LocalPathDelete(
             throw e
         }
 
+        currentItemStartTime = kotlin.time.Clock.System.now()
         val progress = createProgress(lookup)
 
         try {
@@ -328,6 +335,7 @@ internal class LocalPathDelete(
 
             Files.delete(lookup.lookedUp.toNioPath())
             deleted += lookup
+            deletedBytes += lookup.size
             itemsProcessed++
 
         } catch (e: SecurityException) {
@@ -345,6 +353,7 @@ internal class LocalPathDelete(
             )
 
         } finally {
+            currentItemStartTime = null
             onProgress?.invoke(progress)
         }
     }
@@ -402,7 +411,10 @@ internal class LocalPathDelete(
                     max = totalItems
                 )
             ),
-            secondaryProgress = null
+            secondaryProgress = null,
+            deletedBytes = deletedBytes,
+            totalBytes = totalBytes,
+            currentItemStartTime = currentItemStartTime
         )
     }
 
