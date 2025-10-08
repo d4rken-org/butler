@@ -11,7 +11,6 @@ interface WorkspaceRemote {
 
     data class State(
         val infos: List<Workspace.Info> = emptyList(),
-        val isButtonActionsFlipped: Boolean = false,
         val panelMode: WorkspacePanelMode = WorkspacePanelMode.AUTO,
     ) {
         val workspaceCount: Int

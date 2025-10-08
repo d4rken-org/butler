@@ -132,6 +132,7 @@ fun WorkspaceScreen(
                 workspaceButtonState = workspaceButtonState,
                 onWorkspaceAction = onWorkspaceAction,
                 onNavToWorkspaceManager = onNavToWorkspaceManager,
+                onNavToSettings = onNavToSettings,
                 onTabAction = onWorkspaceTabAction,
                 onScreenAction = onScreenAction,
             )
@@ -167,19 +168,16 @@ private fun WorkspacesScreenPreview() {
         val state = WorkspacesViewModel.State(
             state = WorkspaceRemote.State(
                 infos = emptyList(), // No workspaces
-                isButtonActionsFlipped = false,
                 panelMode = WorkspacePanelMode.DUAL,
             ),
             focusedWorkspace = null,
             selectedWorkspaces = emptyMap(), // No selected workspaces
             isUpgraded = true,
-            isButtonActionsFlipped = false,
             swipeGesturesEnabled = true,
         )
 
         val workspaceButtonState = WorkspaceButtonViewModel.State(
             workspaceCount = 0,
-            isButtonFlipped = false,
             operationsCount = 0,
             attentionCount = 0,
         )

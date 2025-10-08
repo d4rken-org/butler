@@ -32,8 +32,6 @@ fun AdaptiveWorkspaceManagerContent(
     onReorderWorkspaces: (List<Workspace.Id>) -> Unit,
     onSelectWorkspace: (Workspace.Id) -> Unit,
     onDismissBadgeExplanation: () -> Unit,
-    onDismissButtonBehaviorExplanation: () -> Unit,
-    onToggleButtonActions: () -> Unit,
 ) {
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
@@ -67,8 +65,6 @@ fun AdaptiveWorkspaceManagerContent(
                     onReorderWorkspaces = onReorderWorkspaces,
                     onSelectWorkspace = onSelectWorkspace,
                     onDismissBadgeExplanation = onDismissBadgeExplanation,
-                    onDismissButtonBehaviorExplanation = onDismissButtonBehaviorExplanation,
-                    onToggleButtonActions = onToggleButtonActions,
                 )
             }
             LayoutMode.GRID -> {
@@ -81,8 +77,6 @@ fun AdaptiveWorkspaceManagerContent(
                     onReorderWorkspaces = onReorderWorkspaces,
                     onSelectWorkspace = onSelectWorkspace,
                     onDismissBadgeExplanation = onDismissBadgeExplanation,
-                    onDismissButtonBehaviorExplanation = onDismissButtonBehaviorExplanation,
-                    onToggleButtonActions = onToggleButtonActions,
                 )
             }
         }
@@ -123,9 +117,7 @@ private fun AdaptiveWorkspaceManagerContentListPreview() {
                 onCloseWorkspace = {},
                 onReorderWorkspaces = {},
                 onSelectWorkspace = {},
-                onDismissBadgeExplanation = {},
-                onDismissButtonBehaviorExplanation = {},
-                onToggleButtonActions = {}
+                onDismissBadgeExplanation = {}
             )
         }
     }
@@ -171,9 +163,7 @@ private fun AdaptiveWorkspaceManagerContentGridPreview() {
                 onCloseWorkspace = {},
                 onReorderWorkspaces = {},
                 onSelectWorkspace = {},
-                onDismissBadgeExplanation = {},
-                onDismissButtonBehaviorExplanation = {},
-                onToggleButtonActions = {}
+                onDismissBadgeExplanation = {}
             )
         }
     }

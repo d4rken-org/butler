@@ -78,6 +78,7 @@ fun ExplorerWorkspacePagePreview() {
             workspaceButtonState = null,
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
+            onNavToSettings = {},
         )
     }
 }
@@ -98,6 +99,7 @@ fun ExplorerWorkspacePageLoadingPreview() {
             workspaceButtonState = null,
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
+            onNavToSettings = {},
         )
     }
 }
@@ -118,6 +120,7 @@ fun ExplorerWorkspacePageEmptyPreview() {
             workspaceButtonState = null,
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
+            onNavToSettings = {},
         )
     }
 }
@@ -147,6 +150,7 @@ fun ExplorerWorkspacePageWithSelectionPreview() {
             workspaceButtonState = null,
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
+            onNavToSettings = {},
         )
     }
 }
@@ -182,6 +186,7 @@ fun ExplorerWorkspacePageGridModePreview() {
             workspaceButtonState = null,
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
+            onNavToSettings = {},
         )
     }
 }
@@ -225,6 +230,7 @@ fun ExplorerWorkspacePageGridModeWithSelectionPreview() {
             workspaceButtonState = null,
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
+            onNavToSettings = {},
         )
     }
 }
@@ -362,6 +368,7 @@ fun ExplorerWorkspacePageWithAllBarsPreview() {
             workspaceButtonState = WorkspaceButtonViewModel.State(),
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
+            onNavToSettings = {},
             operations = mockOperations,
         )
     }
@@ -500,6 +507,7 @@ fun ExplorerWorkspacePageWithExpandedBarsPreview() {
             workspaceButtonState = WorkspaceButtonViewModel.State(),
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
+            onNavToSettings = {},
             operations = mockOperations,
             initialOperationsExpanded = true,
             initialClipboardExpanded = true,

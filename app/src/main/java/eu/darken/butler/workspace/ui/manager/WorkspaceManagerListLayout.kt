@@ -22,7 +22,6 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.rows.WorkspaceBadgeExplanationCard
-import eu.darken.butler.workspace.ui.manager.rows.WorkspaceButtonBehaviorCard
 import eu.darken.butler.workspace.ui.manager.rows.WorkspaceListItem
 import eu.darken.butler.workspace.ui.manager.rows.WorkspaceStatusCard
 import sh.calvin.reorderable.ReorderableItem
@@ -38,8 +37,6 @@ fun WorkspaceManagerListLayout(
     onReorderWorkspaces: (List<Workspace.Id>) -> Unit,
     onSelectWorkspace: (Workspace.Id) -> Unit,
     onDismissBadgeExplanation: () -> Unit,
-    onDismissButtonBehaviorExplanation: () -> Unit,
-    onToggleButtonActions: () -> Unit,
 ) {
     val tag = logTag("Workspace", "Manager", "ListLayout")
     var localWorkspaceItems by remember { mutableStateOf(state.workspaces) }
@@ -124,18 +121,6 @@ fun WorkspaceManagerListLayout(
         }
 
         // Explanation cards
-        if (state.showButtonBehaviorExplanation) {
-            item(key = WorkspaceManagerColumnItemKey.Explanation.ButtonBehaviorExplanation) {
-                Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    WorkspaceButtonBehaviorCard(
-                        isButtonFlipped = state.isButtonActionsFlipped,
-                        onToggleFlipped = { onToggleButtonActions() },
-                        onDismiss = onDismissButtonBehaviorExplanation
-                    )
-                }
-            }
-        }
-
         if (state.showBadgeExplanation) {
             item(key = WorkspaceManagerColumnItemKey.Explanation.BadgeExplanation) {
                 Box(modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -181,9 +166,7 @@ private fun WorkspaceManagerListLayoutPreview() {
             onCloseWorkspace = {},
             onReorderWorkspaces = {},
             onSelectWorkspace = {},
-            onDismissBadgeExplanation = {},
-            onDismissButtonBehaviorExplanation = {},
-            onToggleButtonActions = {}
+            onDismissBadgeExplanation = {}
         )
     }
 }
@@ -202,9 +185,7 @@ private fun WorkspaceManagerListLayoutEmptyPreview() {
             onCloseWorkspace = {},
             onReorderWorkspaces = {},
             onSelectWorkspace = {},
-            onDismissBadgeExplanation = {},
-            onDismissButtonBehaviorExplanation = {},
-            onToggleButtonActions = {}
+            onDismissBadgeExplanation = {}
         )
     }
 }
@@ -225,17 +206,13 @@ private fun WorkspaceManagerListLayoutWithExplanationsPreview() {
                 ),
                 operationsCount = 1,
                 attentionCount = 1,
-                showBadgeExplanation = true,
-                showButtonBehaviorExplanation = true,
-                isButtonActionsFlipped = false
+                showBadgeExplanation = true
             ),
             paddingValues = PaddingValues(),
             onCloseWorkspace = {},
             onReorderWorkspaces = {},
             onSelectWorkspace = {},
-            onDismissBadgeExplanation = {},
-            onDismissButtonBehaviorExplanation = {},
-            onToggleButtonActions = {}
+            onDismissBadgeExplanation = {}
         )
     }
 }

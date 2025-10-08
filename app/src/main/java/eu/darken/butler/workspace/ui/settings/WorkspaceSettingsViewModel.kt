@@ -7,7 +7,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.WorkspaceSettings
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 @HiltViewModel
@@ -19,20 +19,12 @@ constructor(
     private val workspaceSettings: WorkspaceSettings,
 ) : ViewModel4(dispatcherProvider, logTag("Workspace", "Settings", "Screen", "VM"), navCtrl) {
 
-    val state = combine(
-        workspaceSettings.isButtonActionsFlipped.flow,
-        workspaceSettings.swipeGesturesEnabled.flow,
-    ) { isButtonActionsFlipped, swipeGesturesEnabled ->
-        State(
-            isButtonActionsFlipped = isButtonActionsFlipped,
-            swipeGesturesEnabled = swipeGesturesEnabled,
-        )
-    }.asStateFlow()
-
-    fun toggleButtonActions() = launch {
-        val current = workspaceSettings.isButtonActionsFlipped.value()
-        workspaceSettings.isButtonActionsFlipped.value(!current)
-    }
+    val state = workspaceSettings.swipeGesturesEnabled.flow
+        .map { swipeGesturesEnabled ->
+            State(
+                swipeGesturesEnabled = swipeGesturesEnabled,
+            )
+        }.asStateFlow()
 
     fun toggleSwipeGestures() = launch {
         val current = workspaceSettings.swipeGesturesEnabled.value()
@@ -40,7 +32,6 @@ constructor(
     }
 
     data class State(
-        val isButtonActionsFlipped: Boolean,
         val swipeGesturesEnabled: Boolean,
     )
 }

@@ -90,6 +90,7 @@ fun ExplorerWorkspacePageHost(
             workspaceButtonState = workspaceButtonState,
             onWorkspaceAction = workspaceButtonVm::onWorkspaceAction,
             onNavToWorkspaceManager = workspaceButtonVm::onNavToWorkspaceManager,
+            onNavToSettings = workspaceButtonVm::onNavToSettings,
             operations = operations,
         )
     }
@@ -104,6 +105,7 @@ fun ExplorerWorkspacePage(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
+    onNavToSettings: () -> Unit,
     operations: List<eu.darken.butler.workspace.ui.operations.OperationDisplay> = emptyList(),
     initialOperationsExpanded: Boolean = false,
     initialClipboardExpanded: Boolean = false,
@@ -181,6 +183,7 @@ fun ExplorerWorkspacePage(
                     showWorkspaceButton = design.isSingle,
                     onWorkspaceAction = onWorkspaceAction,
                     onNavToWorkspaceManager = onNavToWorkspaceManager,
+                    onNavToSettings = onNavToSettings,
                 )
             },
         ) { paddingValues ->

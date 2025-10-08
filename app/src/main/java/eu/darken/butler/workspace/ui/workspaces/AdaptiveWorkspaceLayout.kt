@@ -34,6 +34,7 @@ fun AdaptiveWorkspaceLayout(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
+    onNavToSettings: () -> Unit,
     onTabAction: (WorkspaceAction) -> Unit,
     onScreenAction: (WorkspaceScreenAction) -> Unit,
 ) {
@@ -94,6 +95,7 @@ fun AdaptiveWorkspaceLayout(
                 workspaceButtonState = workspaceButtonState,
                 onWorkspaceAction = onWorkspaceAction,
                 onNavToWorkspaceManager = onNavToWorkspaceManager,
+                onNavToSettings = onNavToSettings,
             )
 
             AdaptiveWorkspaceContainer(

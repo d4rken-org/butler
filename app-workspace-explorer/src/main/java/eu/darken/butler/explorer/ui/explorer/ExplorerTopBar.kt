@@ -33,6 +33,7 @@ fun ExplorerTopBar(
     showWorkspaceButton: Boolean,
     onWorkspaceAction: (WorkspaceAction) -> Unit,
     onNavToWorkspaceManager: () -> Unit,
+    onNavToSettings: () -> Unit,
 ) {
     TopAppBar(
         modifier = modifier,
@@ -55,6 +56,7 @@ fun ExplorerTopBar(
                     state = workspaceButtonState,
                     onAction = onWorkspaceAction,
                     onNavToWorkspaceManager = onNavToWorkspaceManager,
+                    onNavToSettings = onNavToSettings,
                 )
             }
         },
@@ -95,6 +97,7 @@ fun ExplorerTopBarPreview() {
             showWorkspaceButton = true,
             onWorkspaceAction = {},
             onNavToWorkspaceManager = {},
+            onNavToSettings = {},
         )
     }
 }
