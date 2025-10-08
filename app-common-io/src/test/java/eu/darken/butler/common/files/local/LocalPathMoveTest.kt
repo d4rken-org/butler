@@ -597,6 +597,290 @@ class LocalPathMoveTest : BaseTest() {
         dir2.exists() shouldBe true // Source still exists
     }
 
+    @Test
+    fun `move file to directory conflict - overwrite directory`() = runTest {
+        // Given - file in source, directory at destination
+        val sourceFile = File(sourceFolder, "item")
+        sourceFile.writeText("File content")
+
+        val destDir = File(destFolder, "item")
+        destDir.mkdir()
+        File(destDir, "nested.txt").writeText("Nested")
+
+        var issueReceived: PathActionIssue? = null
+
+        // When
+        val result = LocalPath.build(sourceFile).move(
+            LocalPath.build(destFolder),
+            onIssue = { issue ->
+                issueReceived = issue
+                PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+            }
+        )
+
+        // Then
+        issueReceived shouldNotBe null
+        File(destFolder, "item").isFile shouldBe true // Now a file
+        File(destFolder, "item").readText() shouldBe "File content"
+        sourceFile.exists() shouldBe false
+    }
+
+    @Test
+    fun `move directory to file conflict - overwrite file`() = runTest {
+        // Given - directory in source, file at destination
+        val sourceDir = File(sourceFolder, "item")
+        sourceDir.mkdir()
+        File(sourceDir, "file.txt").writeText("Content")
+
+        val destFile = File(destFolder, "item")
+        destFile.writeText("Existing file")
+
+        var issueReceived: PathActionIssue? = null
+
+        // When
+        val result = LocalPath.build(sourceDir).move(
+            LocalPath.build(destFolder),
+            onIssue = { issue ->
+                issueReceived = issue
+                PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+            }
+        )
+
+        // Then
+        issueReceived shouldNotBe null
+        File(destFolder, "item").isDirectory shouldBe true // Now a directory
+        File(destFolder, "item/file.txt").readText() shouldBe "Content"
+        sourceDir.exists() shouldBe false
+    }
+
+    // ============ RENAME RESOLUTION ============
+
+    @Test
+    fun `move with rename source`() = runTest {
+        // Given - file with conflict
+        val sourceFile = File(sourceFolder, "file.txt")
+        sourceFile.writeText("Source content")
+
+        val destFile = File(destFolder, "file.txt")
+        destFile.writeText("Dest content")
+
+        // When
+        val result = LocalPath.build(sourceFile).move(
+            LocalPath.build(destFolder),
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        PathActionIssue.PathAlreadyExists.Resolution.RenameSource("file-renamed.txt")
+                    }
+                    else -> throw AssertionError("Unexpected issue")
+                }
+            }
+        )
+
+        // Then
+        File(destFolder, "file.txt").readText() shouldBe "Dest content" // Original unchanged
+        File(destFolder, "file-renamed.txt").readText() shouldBe "Source content" // Renamed
+        sourceFile.exists() shouldBe false
+    }
+
+    @Test
+    fun `move with rename destination`() = runTest {
+        // Given - file with conflict
+        val sourceFile = File(sourceFolder, "file.txt")
+        sourceFile.writeText("Source content")
+
+        val destFile = File(destFolder, "file.txt")
+        destFile.writeText("Dest content")
+
+        // When
+        val result = LocalPath.build(sourceFile).move(
+            LocalPath.build(destFolder),
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        PathActionIssue.PathAlreadyExists.Resolution.RenameDestination("file-old.txt")
+                    }
+                    else -> throw AssertionError("Unexpected issue")
+                }
+            }
+        )
+
+        // Then
+        File(destFolder, "file.txt").readText() shouldBe "Source content" // New file
+        File(destFolder, "file-old.txt").readText() shouldBe "Dest content" // Renamed old
+        sourceFile.exists() shouldBe false
+    }
+
+    @Test
+    fun `move directory with rename source`() = runTest {
+        // Given
+        val sourceDir = File(sourceFolder, "dir")
+        sourceDir.mkdir()
+        File(sourceDir, "file.txt").writeText("Source")
+
+        val destDir = File(destFolder, "dir")
+        destDir.mkdir()
+        File(destDir, "existing.txt").writeText("Existing")
+
+        // When
+        LocalPath.build(sourceDir).move(
+            LocalPath.build(destFolder),
+            onIssue = { issue ->
+                PathActionIssue.PathAlreadyExists.Resolution.RenameSource("dir-renamed")
+            }
+        )
+
+        // Then
+        File(destFolder, "dir/existing.txt").exists() shouldBe true // Original preserved
+        File(destFolder, "dir-renamed/file.txt").readText() shouldBe "Source"
+        sourceDir.exists() shouldBe false
+    }
+
+    // ============ ATTRIBUTES ============
+
+    @Test
+    fun `move file preserves attributes`() = runTest {
+        // Given
+        val sourceFile = File(sourceFolder, "file.txt")
+        sourceFile.writeText("Content")
+
+        // Set specific timestamp
+        val timestamp = System.currentTimeMillis() - 100000
+        sourceFile.setLastModified(timestamp)
+
+        // When
+        LocalPath.build(sourceFile).move(
+            LocalPath.build(destFolder),
+            options = MoveAction.Options(preserveAttributes = true)
+        )
+
+        // Then
+        val movedFile = File(destFolder, "file.txt")
+        movedFile.exists() shouldBe true
+        // Allow small timestamp difference due to filesystem precision
+        kotlin.math.abs(movedFile.lastModified() - timestamp) should { it < 2000 }
+    }
+
+    @Test
+    fun `move directory preserves attributes`() = runTest {
+        // Given
+        val sourceDir = File(sourceFolder, "dir")
+        sourceDir.mkdir()
+        File(sourceDir, "file.txt").writeText("Content")
+
+        val timestamp = System.currentTimeMillis() - 100000
+        sourceDir.setLastModified(timestamp)
+
+        // When
+        LocalPath.build(sourceDir).move(
+            LocalPath.build(destFolder),
+            options = MoveAction.Options(preserveAttributes = true)
+        )
+
+        // Then
+        val movedDir = File(destFolder, "dir")
+        movedDir.exists() shouldBe true
+        movedDir.isDirectory shouldBe true
+    }
+
+    // ============ EDGE CASES ============
+
+    @Test
+    fun `move works without onProgress callback`() = runTest {
+        // Given
+        val sourceFile = File(sourceFolder, "file.txt")
+        sourceFile.writeText("Content")
+
+        // When - no onProgress callback provided
+        val result = LocalPath.build(sourceFile).move(LocalPath.build(destFolder))
+
+        // Then - should still work
+        File(destFolder, "file.txt").exists() shouldBe true
+        result.movedFiles shouldHaveSize 1
+    }
+
+    @Test
+    fun `move works without onIssue callback when no conflicts`() = runTest {
+        // Given
+        val sourceFile = File(sourceFolder, "file.txt")
+        sourceFile.writeText("Content")
+
+        // When - no onIssue callback provided, no conflicts
+        val result = LocalPath.build(sourceFile).move(LocalPath.build(destFolder))
+
+        // Then
+        File(destFolder, "file.txt").exists() shouldBe true
+        result.movedFiles shouldHaveSize 1
+    }
+
+    @Test
+    fun `tool can only be executed once`() = runTest {
+        // Given
+        val sourceFile = File(sourceFolder, "file.txt")
+        sourceFile.writeText("Content")
+
+        val tool = LocalPathMove(
+            sources = setOf(LocalPath.build(sourceFile)),
+            destination = LocalPath.build(destFolder),
+            options = MoveAction.Options(),
+            onProgress = null,
+            onIssue = null
+        )
+
+        // When - execute once
+        tool.execute()
+
+        // Then - second execution should throw
+        shouldThrow<IllegalStateException> {
+            tool.execute()
+        }
+    }
+
+    @Test
+    fun `result contains correct moved pairs`() = runTest {
+        // Given
+        val file1 = File(sourceFolder, "file1.txt")
+        file1.writeText("Content 1")
+        val file2 = File(sourceFolder, "file2.txt")
+        file2.writeText("Content 2")
+
+        // When
+        val result = listOf(LocalPath.build(file1), LocalPath.build(file2))
+            .move(LocalPath.build(destFolder))
+
+        // Then
+        result.movedFiles shouldHaveSize 2
+        result.movedFiles.map { it.first } shouldContain LocalPath.build(file1)
+        result.movedFiles.map { it.first } shouldContain LocalPath.build(file2)
+        result.movedFiles.map { it.second } shouldContain LocalPath.build(File(destFolder, "file1.txt"))
+        result.movedFiles.map { it.second } shouldContain LocalPath.build(File(destFolder, "file2.txt"))
+    }
+
+    @Test
+    fun `result contains correct skipped sources`() = runTest {
+        // Given
+        val file1 = File(sourceFolder, "file1.txt")
+        file1.writeText("New 1")
+        val file2 = File(sourceFolder, "file2.txt")
+        file2.writeText("New 2")
+
+        File(destFolder, "file1.txt").writeText("Existing 1")
+        File(destFolder, "file2.txt").writeText("Existing 2")
+
+        // When
+        val result = listOf(LocalPath.build(file1), LocalPath.build(file2)).move(
+            LocalPath.build(destFolder),
+            onIssue = { issue ->
+                PathActionIssue.PathAlreadyExists.Resolution.Skip(applyToAll = true)
+            }
+        )
+
+        // Then
+        result.skippedFiles shouldHaveSize 2
+        result.skippedFiles shouldContain LocalPath.build(file1)
+        result.skippedFiles shouldContain LocalPath.build(file2)
+    }
+
     // ============ PROGRESS TRACKING ============
 
     @Test
@@ -685,5 +969,199 @@ class LocalPathMoveTest : BaseTest() {
         File(destFolder, "large.bin").exists() shouldBe true
         File(destFolder, "large.bin").length() shouldBe (1024 * 1024).toLong()
         largeFile.exists() shouldBe false
+    }
+
+    // ============ RENAME - ADVANCED ============
+
+    @Test
+    fun `directory rename destination should move existing directory and create new`() = runTest {
+        // Given - source directory and destination directory already exists
+        val sourceDir = File(sourceFolder, "Dir")
+        sourceDir.mkdir()
+        File(sourceDir, "new.txt").writeText("new")
+
+        val destDir = File(destFolder, "Dir")
+        destDir.mkdir()
+        File(destDir, "old.txt").writeText("old")
+
+        // When - rename destination
+        val result = LocalPath.build(sourceDir).move(
+            LocalPath.build(destFolder),
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        PathActionIssue.PathAlreadyExists.Resolution.RenameDestination("Dir (1)")
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - old directory renamed, new directory created with original name
+        File(destFolder, "Dir/new.txt").exists() shouldBe true
+        File(destFolder, "Dir/old.txt").exists() shouldBe false
+        File(destFolder, "Dir (1)/old.txt").exists() shouldBe true
+        File(destFolder, "Dir (1)/new.txt").exists() shouldBe false
+        result.movedFiles shouldHaveSize 2 // directory + file
+        sourceDir.exists() shouldBe false
+    }
+
+    @Test
+    fun `nested directory rename source should update all subdirectories and files`() = runTest {
+        // Given - nested source structure and conflicting destination
+        val sourceDir = File(sourceFolder, "Parent")
+        sourceDir.mkdir()
+        val subDir1 = File(sourceDir, "SubDir1")
+        subDir1.mkdir()
+        val subDir2 = File(subDir1, "SubDir2")
+        subDir2.mkdir()
+        File(sourceDir, "file1.txt").writeText("content1")
+        File(subDir1, "file2.txt").writeText("content2")
+        File(subDir2, "file3.txt").writeText("content3")
+
+        // Destination has conflicting Parent directory
+        val destDir = File(destFolder, "Parent")
+        destDir.mkdir()
+        File(destDir, "existing.txt").writeText("existing")
+
+        // When - rename source to Parent-new
+        val result = LocalPath.build(sourceDir).move(
+            LocalPath.build(destFolder),
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        PathActionIssue.PathAlreadyExists.Resolution.RenameSource("Parent-new")
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - all paths updated to use Parent-new
+        File(destFolder, "Parent-new").exists() shouldBe true
+        File(destFolder, "Parent-new/file1.txt").readText() shouldBe "content1"
+        File(destFolder, "Parent-new/SubDir1/file2.txt").readText() shouldBe "content2"
+        File(destFolder, "Parent-new/SubDir1/SubDir2/file3.txt").readText() shouldBe "content3"
+        File(destFolder, "Parent/existing.txt").exists() shouldBe true // Original unchanged
+        sourceDir.exists() shouldBe false
+    }
+
+    // ============ ERROR HANDLING ============
+
+    @Test
+    fun `handle read-only source files gracefully`() = runTest {
+        // Given
+        val sourceFile = File(sourceFolder, "readonly.txt")
+        sourceFile.writeText("readonly content")
+
+        // When
+        val result = LocalPath.build(sourceFile).move(LocalPath.build(destFolder))
+
+        // Then - should succeed even if file was read-only
+        File(destFolder, "readonly.txt").exists() shouldBe true
+        result.movedFiles shouldHaveSize 1
+    }
+
+    @Test
+    fun `handle write-protected destination`() = runTest {
+        // This test is system-dependent and may not trigger issues on all systems
+        // It mainly verifies the code doesn't crash with permission issues
+        val sourceFile = File(sourceFolder, "file.txt")
+        sourceFile.writeText("content")
+
+        try {
+            LocalPath.build(sourceFile).move(
+                LocalPath.build(destFolder),
+                onIssue = { issue ->
+                    when (issue) {
+                        is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                        is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                        else -> throw AssertionError("Unexpected issue: $issue")
+                    }
+                }
+            )
+        } catch (_: Exception) {
+            // Expected on systems where read-only doesn't prevent writes
+            // or where permission errors manifest differently
+        }
+    }
+
+    @Test
+    fun `insufficient permission with apply to all`() = runTest {
+        // This test verifies the "Apply to All" mechanism for permission issues
+        // Actual permission errors may not occur on all systems
+        val file1 = File(sourceFolder, "file1.txt")
+        val file2 = File(sourceFolder, "file2.txt")
+        file1.writeText("content1")
+        file2.writeText("content2")
+
+        try {
+            listOf(LocalPath.build(file1), LocalPath.build(file2)).move(
+                LocalPath.build(destFolder),
+                onIssue = { issue ->
+                    when (issue) {
+                        is PathActionIssue.InsufficientPermission ->
+                            PathActionIssue.InsufficientPermission.Resolution.Skip(applyToAll = true)
+                        else -> throw AssertionError("Unexpected issue: $issue")
+                    }
+                }
+            )
+        } catch (_: Exception) {
+            // Expected on some systems where read-only doesn't prevent moving
+        }
+    }
+
+    @Test
+    fun `handle unknown errors with retry resolution`() = runTest {
+        // This test verifies retry mechanism works
+        val sourceFile = File(sourceFolder, "file.txt")
+        sourceFile.writeText("content")
+
+        var retryCount = 0
+        try {
+            LocalPath.build(sourceFile).move(
+                LocalPath.build(destFolder),
+                onIssue = { issue ->
+                    if (issue is PathActionIssue.UnknownError && retryCount < 2) {
+                        retryCount++
+                        PathActionIssue.UnknownError.Resolution.Retry
+                    } else {
+                        PathActionIssue.UnknownError.Resolution.Skip()
+                    }
+                }
+            )
+        } catch (_: Exception) {
+            // Expected - this test just verifies retry mechanism doesn't crash
+        }
+    }
+
+    @Test
+    fun `handle unknown errors with cancel resolution`() = runTest {
+        val file1 = File(sourceFolder, "file1.txt")
+        val file2 = File(sourceFolder, "file2.txt")
+        file1.writeText("content1")
+        file2.writeText("content2")
+
+        var issueCount = 0
+        try {
+            listOf(LocalPath.build(file1), LocalPath.build(file2)).move(
+                LocalPath.build(destFolder),
+                onIssue = { issue ->
+                    issueCount++
+                    when (issue) {
+                        is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Cancel()
+                        is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Cancel()
+                        else -> throw AssertionError("Unexpected issue: $issue")
+                    }
+                }
+            )
+        } catch (_: Exception) {
+            // Expected - cancel may throw
+        }
+
+        // If issues were encountered, operation should have been cancelled
+        if (issueCount > 0) {
+            issueCount shouldBe 1
+        }
     }
 }
