@@ -258,6 +258,16 @@
     <string name="explorer_operation_create_title_file">File creation</string>
     <string name="explorer_operation_create_description_file">Create file \"%1$s\" at \"%2$s\"</string>
 
+    <!-- Operation Progress Metrics -->
+    <plurals name="explorer_operation_progress_items_speed">
+        <item quantity="one">%d item/s</item>
+        <item quantity="other">%d items/s</item>
+    </plurals>
+    <string name="explorer_operation_progress_bytes_speed">%s/s</string>
+    <string name="explorer_operation_progress_bytes_speed_freed">%s/s freed</string>
+    <string name="explorer_operation_progress_bytes_freed">%s freed</string>
+    <string name="explorer_operation_progress_time_remaining">%s remaining</string>
+
     <!-- Navigation Error Messages -->
     <string name="explorer_navigation_error_title">Navigation Failed</string>
     <string name="explorer_navigation_error_copy_action">Copy error</string>

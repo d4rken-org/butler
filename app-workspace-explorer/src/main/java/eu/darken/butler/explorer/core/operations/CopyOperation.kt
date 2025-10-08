@@ -62,6 +62,9 @@ class CopyOperation @AssistedInject constructor(
     ): Flow<State> = flow {
         log(tag) { "perform(): $command" }
 
+        var stateActive = State.Active(startedAt = operationContext.startedAt)
+        emit(stateActive)
+
         data class SpeedSample(
             val timestamp: Instant,
             val bytesPerSecond: Long
@@ -70,9 +73,6 @@ class CopyOperation @AssistedInject constructor(
         val speedHistory = ArrayDeque<SpeedSample>(30) // 30 samples max
         var lastCopiedBytes = 0L
         var lastSpeedUpdate = TimeSource.Monotonic.markNow()
-
-        var stateActive = State.Active(startedAt = operationContext.startedAt)
-        emit(stateActive)
 
         val reportBuilder = CopyOperationReport.Builder()
 
@@ -140,8 +140,16 @@ class CopyOperation @AssistedInject constructor(
                 val overallMetrics = if (avgSpeed > 0) {
                     caString { ctx ->
                         val speedFormatted = Formatter.formatShortFileSize(ctx, avgSpeed)
-                        val etaPart = if (overallEta != null) " • ${overallEta}s remaining" else ""
-                        "$speedFormatted/s$etaPart"
+                        val speedPart = ctx.getString(R.string.explorer_operation_progress_bytes_speed, speedFormatted)
+                        val etaPart = if (overallEta != null) {
+                            val duration = ctx.getQuantityString2(
+                                eu.darken.butler.common.R.plurals.common_duration_seconds_full,
+                                overallEta.toInt(),
+                                overallEta
+                            )
+                            " • " + ctx.getString(R.string.explorer_operation_progress_time_remaining, duration)
+                        } else ""
+                        speedPart + etaPart
                     }
                 } else null
 
@@ -149,8 +157,16 @@ class CopyOperation @AssistedInject constructor(
                 val fileMetrics = if (fileSpeed > 0) {
                     caString { ctx ->
                         val speedFormatted = Formatter.formatShortFileSize(ctx, fileSpeed)
-                        val etaPart = if (fileEta != null) " • ${fileEta}s remaining" else ""
-                        "$speedFormatted/s$etaPart"
+                        val speedPart = ctx.getString(R.string.explorer_operation_progress_bytes_speed, speedFormatted)
+                        val etaPart = if (fileEta != null) {
+                            val duration = ctx.getQuantityString2(
+                                eu.darken.butler.common.R.plurals.common_duration_seconds_full,
+                                fileEta.toInt(),
+                                fileEta
+                            )
+                            " • " + ctx.getString(R.string.explorer_operation_progress_time_remaining, duration)
+                        } else ""
+                        speedPart + etaPart
                     }
                 } else null
 
