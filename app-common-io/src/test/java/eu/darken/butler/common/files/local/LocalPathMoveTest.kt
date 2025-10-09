@@ -1533,4 +1533,399 @@ class LocalPathMoveTest : BaseTest() {
         files.all { !it.exists() } shouldBe true
         (1..50).all { File(destFolder, "file$it.txt").exists() } shouldBe true
     }
+
+    // ============ EDGE CASES ============
+
+    @Test
+    fun `collection with duplicates should handle gracefully`() = runTest {
+        // Given - collection with duplicate paths
+        val file = File(sourceFolder, "document.txt")
+        file.writeText("content")
+
+        val path = LocalPath.build(file)
+        val duplicatePaths = listOf(path, path, path)
+
+        // When - with skip resolution for conflicts
+        val result = duplicatePaths.move(
+            LocalPath.build(destFolder),
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - should move file once, skip duplicates
+        result.movedFiles.size + result.skippedFiles.size should { it >= 1 }
+        file.exists() shouldBe false
+        File(destFolder, "document.txt").exists() shouldBe true
+        File(destFolder, "document.txt").readText() shouldBe "content"
+    }
+
+    @Test
+    fun `handle unknown errors with skip resolution`() = runTest {
+        // Given - file that might cause issues
+        val file1 = File(sourceFolder, "file1.txt")
+        val file2 = File(sourceFolder, "file2.txt")
+        val file3 = File(sourceFolder, "file3.txt")
+
+        file1.writeText("content1")
+        file2.writeText("content2")
+        file3.writeText("content3")
+
+        var issueCount = 0
+
+        // When - move with skip resolution for unknown errors
+        val result = listOf(
+            LocalPath.build(file1),
+            LocalPath.build(file2),
+            LocalPath.build(file3)
+        ).move(
+            LocalPath.build(destFolder),
+            onIssue = { issue ->
+                issueCount++
+                when (issue) {
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Skip()
+                    is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - should complete successfully (skip any issues)
+        result.movedFiles.size + result.skippedFiles.size shouldBe 3
+    }
+
+    @Test
+    fun `empty result values are correct`() = runTest {
+        // Given - empty source list
+        val emptyList = emptyList<LocalPath>()
+
+        // When
+        val result = emptyList.move(LocalPath.build(destFolder))
+
+        // Then - all result fields should be empty/zero
+        result.movedFiles.shouldBeEmpty()
+        result.skippedFiles.shouldBeEmpty()
+        result.bytesMoved shouldBe 0L
+    }
+
+    @Test
+    fun `move with collection containing non-existent and existing files`() = runTest {
+        // Given - mix of existing and non-existent files
+        val existingFile = File(sourceFolder, "exists.txt")
+        existingFile.writeText("content")
+
+        val nonExistent = File(sourceFolder, "missing.txt")
+
+        val paths = listOf(
+            LocalPath.build(existingFile),
+            LocalPath.build(nonExistent)
+        )
+
+        // When/Then - should throw on first missing file (strict by default)
+        shouldThrow<Exception> {
+            paths.move(LocalPath.build(destFolder))
+        }
+
+        // First file might have been moved before error
+        // This tests that operations don't complete when errors occur
+    }
+
+    @Test
+    fun `progress callback includes all expected data`() = runTest {
+        // Given
+        val file = File(sourceFolder, "test.txt")
+        file.writeText("x".repeat(1000))
+
+        var progressCalled = false
+        var lastProgress: MoveAction.State.Progress<LocalPath, LocalPathLookup>? = null
+
+        // When
+        LocalPath.build(file).move(
+            LocalPath.build(destFolder),
+            onProgress = { progress ->
+                progressCalled = true
+                lastProgress = progress
+            }
+        )
+
+        // Then - progress should have been called
+        progressCalled shouldBe true
+        lastProgress shouldNotBe null
+
+        // Verify progress contains expected fields
+        lastProgress!!.currentSource shouldNotBe null
+        lastProgress!!.currentDestination shouldNotBe null
+        lastProgress!!.primaryProgress shouldNotBe null
+        lastProgress!!.secondaryProgress shouldNotBe null
+        lastProgress!!.movedBytes should { it >= 0 }
+        lastProgress!!.totalBytes should { it >= 0 }
+    }
+
+    @Test
+    fun `result accurately tracks bytes moved`() = runTest {
+        // Given - files with known sizes
+        val file1 = File(sourceFolder, "file1.txt")
+        val file2 = File(sourceFolder, "file2.txt")
+
+        file1.writeText("x".repeat(100))
+        file2.writeText("y".repeat(200))
+
+        val expectedBytes = file1.length() + file2.length()
+
+        // When
+        val result = listOf(
+            LocalPath.build(file1),
+            LocalPath.build(file2)
+        ).move(LocalPath.build(destFolder))
+
+        // Then
+        result.bytesMoved shouldBe expectedBytes
+    }
+
+    // ============ ADDITIONAL COVERAGE TESTS ============
+
+    @Test
+    fun `verify files vs directories handled consistently`() = runTest {
+        // Given
+        val file = File(sourceFolder, "file.txt")
+        val dir = File(sourceFolder, "dir")
+        val dirFile = File(dir, "nested.txt")
+
+        file.writeText("file content")
+        dir.mkdir()
+        dirFile.writeText("nested content")
+
+        // When
+        listOf(LocalPath.build(file), LocalPath.build(dir)).move(LocalPath.build(destFolder))
+
+        // Then - both maintain their top-level name
+        File(destFolder, "file.txt").exists() shouldBe true
+        File(destFolder, "dir/nested.txt").exists() shouldBe true
+        file.exists() shouldBe false
+        dir.exists() shouldBe false
+    }
+
+    @Test
+    fun `move should fail when destination creation fails due to permissions`() = runTest {
+        // Given
+        val sourceFile = File(sourceFolder, "source.txt")
+        sourceFile.writeText("content")
+
+        val readOnlyParent = File(testFolder, "readonly-parent")
+        readOnlyParent.mkdirs()
+        readOnlyParent.setReadOnly()
+
+        val destinationInReadOnly = File(readOnlyParent, "dest-folder")
+
+        try {
+            // When/Then
+            val exception = shouldThrow<WriteException> {
+                LocalPath.build(sourceFile).move(LocalPath.build(destinationInReadOnly))
+            }
+
+            // Verify the exception is about the destination path
+            exception.path shouldBe LocalPath.build(destinationInReadOnly)
+            // Verify it's an IO error (permission or creation failure)
+            exception.cause shouldNotBe null
+        } finally {
+            // Cleanup - restore write permissions
+            readOnlyParent.setWritable(true)
+        }
+    }
+
+    @Test
+    fun `no issue handler should auto-merge directories for backward compatibility`() = runTest {
+        // Given - directory exists at destination
+        val sourceDir = File(sourceFolder, "Folder")
+        sourceDir.mkdir()
+        File(sourceDir, "new.txt").writeText("new")
+
+        val destDir = File(destFolder, "Folder")
+        destDir.mkdir()
+        File(destDir, "old.txt").writeText("old")
+
+        // When - move without issue handler (onIssue = null)
+        LocalPath.build(sourceDir).move(
+            LocalPath.build(destFolder)
+            // No onIssue parameter - uses default null
+        )
+
+        // Then - should auto-merge without prompting
+        File(destFolder, "Folder/new.txt").exists() shouldBe true
+        File(destFolder, "Folder/old.txt").exists() shouldBe true
+        sourceDir.exists() shouldBe false
+    }
+
+    @Test
+    fun `file rename destination should move existing file`() = runTest {
+        // Given - source file and destination file already exists
+        val sourceFile = File(sourceFolder, "file.txt")
+        sourceFile.writeText("new content")
+
+        val destFile = File(destFolder, "file.txt")
+        destFile.writeText("old content")
+
+        // When - rename destination
+        val result = LocalPath.build(sourceFile).move(
+            LocalPath.build(destFolder),
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        PathActionIssue.PathAlreadyExists.Resolution.RenameDestination("file (1).txt")
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - old file renamed, new file moved to original name
+        File(destFolder, "file.txt").readText() shouldBe "new content"
+        File(destFolder, "file (1).txt").readText() shouldBe "old content"
+        sourceFile.exists() shouldBe false
+        result.movedFiles shouldContain (LocalPath.build(sourceFile) to LocalPath.build(File(destFolder, "file.txt")))
+    }
+
+    @Test
+    fun `file-directory conflict rename destination should move file and create directory`() = runTest {
+        // Given - source directory but destination has a file with same name
+        val sourceDir = File(sourceFolder, "Item")
+        sourceDir.mkdir()
+        File(sourceDir, "content.txt").writeText("content")
+
+        val destFile = File(destFolder, "Item")
+        destFile.writeText("blocking file")
+
+        // When - rename destination
+        val result = LocalPath.build(sourceDir).move(
+            LocalPath.build(destFolder),
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        PathActionIssue.PathAlreadyExists.Resolution.RenameDestination("Item (1)")
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - file renamed, directory created with original name
+        File(destFolder, "Item").isDirectory shouldBe true
+        File(destFolder, "Item/content.txt").exists() shouldBe true
+        File(destFolder, "Item (1)").isFile shouldBe true
+        File(destFolder, "Item (1)").readText() shouldBe "blocking file"
+        sourceDir.exists() shouldBe false
+        result.movedFiles shouldHaveSize 2 // directory + file
+    }
+
+    @Test
+    fun `file-directory conflict rename source should create directory with new name`() = runTest {
+        // Given - source directory but destination has a file with same name
+        val sourceDir = File(sourceFolder, "Item")
+        sourceDir.mkdir()
+        File(sourceDir, "content.txt").writeText("content")
+
+        val destFile = File(destFolder, "Item")
+        destFile.writeText("blocking file")
+
+        // When - rename source
+        val result = LocalPath.build(sourceDir).move(
+            LocalPath.build(destFolder),
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        PathActionIssue.PathAlreadyExists.Resolution.RenameSource("Item (1)")
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - file unchanged, directory created with new name
+        File(destFolder, "Item").isFile shouldBe true
+        File(destFolder, "Item").readText() shouldBe "blocking file"
+        File(destFolder, "Item (1)").isDirectory shouldBe true
+        File(destFolder, "Item (1)/content.txt").exists() shouldBe true
+        sourceDir.exists() shouldBe false
+        result.movedFiles shouldHaveSize 2 // directory + file
+    }
+
+    @Test
+    fun `directory merge with apply to all should merge all directories`() = runTest {
+        // Given - multiple directories that exist at destination
+        val source1 = File(sourceFolder, "Dir1")
+        source1.mkdir()
+        File(source1, "file1.txt").writeText("content1")
+
+        val source2 = File(sourceFolder, "Dir2")
+        source2.mkdir()
+        File(source2, "file2.txt").writeText("content2")
+
+        // Destination has these directories too
+        val dest1 = File(destFolder, "Dir1")
+        dest1.mkdir()
+        File(dest1, "existing1.txt").writeText("old1")
+
+        val dest2 = File(destFolder, "Dir2")
+        dest2.mkdir()
+        File(dest2, "existing2.txt").writeText("old2")
+
+        // When - move both with merge apply-to-all
+        val issuesEncountered = mutableListOf<PathActionIssue>()
+        listOf(LocalPath.build(source1), LocalPath.build(source2)).move(
+            LocalPath.build(destFolder),
+            onIssue = { issue ->
+                issuesEncountered.add(issue)
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        PathActionIssue.PathAlreadyExists.Resolution.Merge(applyToAll = true)
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - only asked once due to "apply to all"
+        issuesEncountered shouldHaveSize 1
+
+        // All files merged
+        File(destFolder, "Dir1/file1.txt").exists() shouldBe true
+        File(destFolder, "Dir1/existing1.txt").exists() shouldBe true
+        File(destFolder, "Dir2/file2.txt").exists() shouldBe true
+        File(destFolder, "Dir2/existing2.txt").exists() shouldBe true
+        source1.exists() shouldBe false
+        source2.exists() shouldBe false
+    }
+
+    @Test
+    fun `very deep directory structure`() = runTest {
+        // Given
+        var currentDir = File(sourceFolder, "deep")
+        currentDir.mkdir()
+        val files = mutableListOf<File>()
+
+        repeat(10) { level ->
+            currentDir = File(currentDir, "level$level")
+            currentDir.mkdir()
+
+            val file = File(currentDir, "file$level.txt")
+            file.writeText("Level $level content")
+            files.add(file)
+        }
+
+        val expectedSize = files.sumOf { it.length() }
+        val sourcePath = File(sourceFolder, "deep")
+
+        // When
+        val result = LocalPath.build(sourcePath).move(LocalPath.build(destFolder))
+
+        // Then
+        result.bytesMoved shouldBe expectedSize
+        File(destFolder, "deep/level0/level1/level2/level3/level4/level5/level6/level7/level8/level9/file9.txt")
+            .exists() shouldBe true
+        sourcePath.exists() shouldBe false
+    }
 }

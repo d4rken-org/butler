@@ -110,70 +110,23 @@ internal class LocalPathDelete(
         )
     }
 
-    private suspend fun handleDeleteError(error: Exception, lookup: LocalPathLookup) {
-        log(TAG, ERROR) { "Delete failed: ${lookup.lookedUp} - $error" }
-
-        // Resolve issue and apply resolution
-        if (error is AccessDeniedException || error is SecurityException) {
-            if (issueResolver.shouldSkipPermission()) {
-                log(TAG, INFO) { "Skipping permission issue (apply-to-all): ${lookup.lookedUp}" }
-                skipped.add(lookup)
-                progressTracker.completeItem()
-                return
-            }
-
-            if (onIssue == null) throw WriteException(path = lookup.lookedUp, cause = error)
-
-            val issue = PathActionIssue.InsufficientPermission(
-                destination = lookup,
-                exception = WriteException(path = lookup.lookedUp, cause = error),
-                canSkip = true
-            )
-            val resolution = issueResolver.resolveIssue(issue)
-
-            when (resolution) {
-                is PathActionIssue.InsufficientPermission.Resolution.Skip -> {
-                    skipped.add(lookup)
-                    progressTracker.completeItem()
-                }
-                is PathActionIssue.InsufficientPermission.Resolution.Cancel -> {
-                    // Already thrown by resolveIssue
-                }
-            }
-        } else {
-            if (issueResolver.shouldSkipUnknown()) {
-                log(TAG, INFO) { "Skipping unknown issue (apply-to-all): ${lookup.lookedUp}" }
-                skipped.add(lookup)
-                progressTracker.completeItem()
-                return
-            }
-
-            if (onIssue == null) throw WriteException(path = lookup.lookedUp, cause = error)
-
-            val issue = PathActionIssue.UnknownError(
-                destination = lookup,
-                exception = WriteException(path = lookup.lookedUp, cause = error),
-                canRetry = false,
-                canSkip = true
-            )
-            val resolution = issueResolver.resolveIssue(issue)
-
-            when (resolution) {
-                is PathActionIssue.UnknownError.Resolution.Skip -> {
-                    skipped.add(lookup)
-                    progressTracker.completeItem()
-                }
-                is PathActionIssue.UnknownError.Resolution.Retry -> {
-                    // Shouldn't happen (canRetry=false), but ignore
-                }
-                is PathActionIssue.UnknownError.Resolution.Cancel -> {
-                    // Already thrown by resolveIssue
-                }
-            }
-        }
-    }
-
-    private suspend fun handleScanError(error: Exception, lookup: LocalPathLookup, operation: String) {
+    /**
+     * Shared error handling for both scan and delete operations.
+     *
+     * Handles permission errors and unknown errors with "apply to all" support.
+     * Automatically adds items to skipped set and completes progress tracking.
+     *
+     * @param error The exception that occurred
+     * @param lookup The path lookup that failed
+     * @param operation Description of the operation for logging
+     * @param canRetry Whether retry is supported for this operation
+     */
+    private suspend fun handleError(
+        error: Exception,
+        lookup: LocalPathLookup,
+        operation: String,
+        canRetry: Boolean = false
+    ) {
         log(TAG, ERROR) { "$operation failed: ${lookup.lookedUp} - $error" }
 
         // Resolve issue and apply resolution
@@ -216,7 +169,7 @@ internal class LocalPathDelete(
             val issue = PathActionIssue.UnknownError(
                 destination = lookup,
                 exception = WriteException(path = lookup.lookedUp, cause = error),
-                canRetry = false,  // Can't retry scan
+                canRetry = canRetry,
                 canSkip = true
             )
             val resolution = issueResolver.resolveIssue(issue)
@@ -227,13 +180,21 @@ internal class LocalPathDelete(
                     progressTracker.completeItem()
                 }
                 is PathActionIssue.UnknownError.Resolution.Retry -> {
-                    // Shouldn't happen (canRetry=false), but ignore
+                    // Retry not implemented in delete operation
                 }
                 is PathActionIssue.UnknownError.Resolution.Cancel -> {
                     // Already thrown by resolveIssue
                 }
             }
         }
+    }
+
+    private suspend fun handleDeleteError(error: Exception, lookup: LocalPathLookup) {
+        handleError(error, lookup, operation = "Delete", canRetry = false)
+    }
+
+    private suspend fun handleScanError(error: Exception, lookup: LocalPathLookup, operation: String) {
+        handleError(error, lookup, operation = operation, canRetry = false)
     }
 
     private suspend fun processScan(item: WorkItem.ScanPath): Int {
@@ -390,7 +351,13 @@ internal class LocalPathDelete(
                         max = snapshot.totalItems
                     )
                 ),
-                secondaryProgress = null,
+                secondaryProgress = eu.darken.butler.common.progress.Progress.Data(
+                    primary = lookup.lookedUp.name.toCaString(),
+                    count = eu.darken.butler.common.progress.Progress.Count.Size(
+                        current = lookup.size,
+                        max = lookup.size
+                    )
+                ),
                 deletedBytes = snapshot.processedBytes,
                 totalBytes = snapshot.totalBytes,
                 currentItemStartTime = snapshot.currentFileStartTime

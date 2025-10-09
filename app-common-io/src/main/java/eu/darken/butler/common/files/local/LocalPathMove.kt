@@ -37,7 +37,7 @@ internal class LocalPathMove(
         log(TAG, DEBUG) { "Starting move operation: $sources -> $destination" }
 
         // Ensure destination exists
-        ensureDestinationExists()
+        PathOperationUtils.ensureDestinationExists(destination, sources, onIssue)
 
         // Create components
         val issueResolver = PathOperationIssueResolver(onIssue)
@@ -86,87 +86,6 @@ internal class LocalPathMove(
             skippedFiles = result.skipped.toSet(),
             bytesMoved = result.bytesTransferred
         )
-    }
-
-    private suspend fun ensureDestinationExists() {
-        if (!Files.exists(destination.toNioPath())) {
-            try {
-                Files.createDirectories(destination.toNioPath())
-                log(TAG, DEBUG) { "Destination directory created: $destination" }
-            } catch (e: AccessDeniedException) {
-                throw eu.darken.butler.common.files.errors.WriteException(
-                    path = destination,
-                    cause = e
-                )
-            } catch (e: SecurityException) {
-                throw eu.darken.butler.common.files.errors.WriteException(
-                    path = destination,
-                    cause = e
-                )
-            }
-            return
-        }
-
-        if (Files.isDirectory(destination.toNioPath())) {
-            log(TAG, DEBUG) { "Destination is an existing directory: $destination" }
-            return
-        }
-
-        log(TAG, WARN) { "Destination exists but is not a directory: $destination" }
-
-        if (onIssue == null) {
-            throw eu.darken.butler.common.files.errors.WriteException(
-                path = destination,
-                cause = java.io.IOException("Destination exists but is not a directory: ${destination.path}")
-            )
-        }
-
-        val existsError = java.nio.file.FileAlreadyExistsException(destination.path)
-        val destLookup = destination.performLookup()
-        val sourceLookup = sources.first().performLookup()
-
-        val issue = PathActionIssue.PathAlreadyExists(
-            source = sourceLookup,
-            destination = destLookup,
-            canOverwrite = true,
-            canRenameDestination = true,
-            suggestedName = PathOperationUtils.generateUniqueName(destination.name, destination.file.parentFile!!),
-        )
-
-        when (val resolution = onIssue.invoke(issue) as PathActionIssue.PathAlreadyExists.Resolution) {
-            is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
-                log(TAG, DEBUG) { "Overwriting file at destination: $destination" }
-                Files.delete(destination.toNioPath())
-            }
-            is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
-                log(TAG, DEBUG) { "Renaming existing file: $destination -> ${resolution.newName}" }
-                val newDestPath = LocalPath.build(java.io.File(destination.file.parentFile!!, resolution.newName))
-                Files.move(destination.toNioPath(), newDestPath.toNioPath())
-            }
-            is PathActionIssue.PathAlreadyExists.Resolution.Cancel -> throw kotlin.coroutines.cancellation.CancellationException(
-                "User cancelled",
-                existsError
-            )
-            is PathActionIssue.PathAlreadyExists.Resolution.Skip,
-            is PathActionIssue.PathAlreadyExists.Resolution.RenameSource,
-            is PathActionIssue.PathAlreadyExists.Resolution.Merge -> {
-                throw UnsupportedOperationException("Invalid resolution for destination conflict", existsError)
-            }
-        }
-
-        try {
-            Files.createDirectories(destination.toNioPath())
-        } catch (e: AccessDeniedException) {
-            throw eu.darken.butler.common.files.errors.WriteException(
-                path = destination,
-                cause = e
-            )
-        } catch (e: SecurityException) {
-            throw eu.darken.butler.common.files.errors.WriteException(
-                path = destination,
-                cause = e
-            )
-        }
     }
 
     private fun cleanupSourceDirectories(result: PathOperationExecutor.Result) {

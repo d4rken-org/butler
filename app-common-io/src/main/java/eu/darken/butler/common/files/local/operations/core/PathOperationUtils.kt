@@ -1,10 +1,17 @@
 package eu.darken.butler.common.files.local.operations.core
 
+import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.isAncestorOf
+import eu.darken.butler.common.files.local.performLookup
 import eu.darken.butler.common.files.local.relativeSegmentsTo
 import eu.darken.butler.common.files.local.toNioPath
 import java.io.File
+import java.nio.file.AccessDeniedException
 import java.nio.file.Files
 
 /**
@@ -138,4 +145,104 @@ object PathOperationUtils {
             0L
         }
     }
+
+    /**
+     * Ensures the destination directory exists and is ready for copy/move operations.
+     *
+     * Handles various scenarios:
+     * - Creates destination if it doesn't exist
+     * - Validates destination is a directory
+     * - Resolves conflicts if destination is a file
+     *
+     * @param destination The destination directory path
+     * @param sources The source paths being copied/moved (used for conflict resolution)
+     * @param onIssue Issue handler callback (null = strict mode, throws on issues)
+     * @throws eu.darken.butler.common.files.errors.WriteException if destination cannot be created or is invalid
+     */
+    suspend fun ensureDestinationExists(
+        destination: LocalPath,
+        sources: Collection<LocalPath>,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
+    ) {
+        if (!Files.exists(destination.toNioPath())) {
+            try {
+                Files.createDirectories(destination.toNioPath())
+                log(TAG, DEBUG) { "Destination directory created: $destination" }
+            } catch (e: AccessDeniedException) {
+                throw eu.darken.butler.common.files.errors.WriteException(
+                    path = destination,
+                    cause = e
+                )
+            } catch (e: SecurityException) {
+                throw eu.darken.butler.common.files.errors.WriteException(
+                    path = destination,
+                    cause = e
+                )
+            }
+            return
+        }
+
+        if (Files.isDirectory(destination.toNioPath())) {
+            log(TAG, DEBUG) { "Destination is an existing directory: $destination" }
+            return
+        }
+
+        log(TAG, WARN) { "Destination exists but is not a directory: $destination" }
+
+        if (onIssue == null) {
+            throw eu.darken.butler.common.files.errors.WriteException(
+                path = destination,
+                cause = java.io.IOException("Destination exists but is not a directory: ${destination.path}")
+            )
+        }
+
+        val existsError = java.nio.file.FileAlreadyExistsException(destination.path)
+        val destLookup = destination.performLookup()
+        val sourceLookup = sources.first().performLookup()
+
+        val issue = PathActionIssue.PathAlreadyExists(
+            source = sourceLookup,
+            destination = destLookup,
+            canOverwrite = true,
+            canRenameDestination = true,
+            suggestedName = generateUniqueName(destination.name, destination.file.parentFile!!),
+        )
+
+        when (val resolution = onIssue.invoke(issue) as PathActionIssue.PathAlreadyExists.Resolution) {
+            is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
+                log(TAG, DEBUG) { "Overwriting file at destination: $destination" }
+                Files.delete(destination.toNioPath())
+            }
+            is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
+                log(TAG, DEBUG) { "Renaming existing file: $destination -> ${resolution.newName}" }
+                val newDestPath = LocalPath.build(java.io.File(destination.file.parentFile!!, resolution.newName))
+                Files.move(destination.toNioPath(), newDestPath.toNioPath())
+            }
+            is PathActionIssue.PathAlreadyExists.Resolution.Cancel -> throw kotlin.coroutines.cancellation.CancellationException(
+                "User cancelled",
+                existsError
+            )
+            is PathActionIssue.PathAlreadyExists.Resolution.Skip,
+            is PathActionIssue.PathAlreadyExists.Resolution.RenameSource,
+            is PathActionIssue.PathAlreadyExists.Resolution.Merge -> {
+                throw UnsupportedOperationException("Invalid resolution for destination conflict", existsError)
+            }
+        }
+
+        try {
+            Files.createDirectories(destination.toNioPath())
+        } catch (e: AccessDeniedException) {
+            throw eu.darken.butler.common.files.errors.WriteException(
+                path = destination,
+                cause = e
+            )
+        } catch (e: SecurityException) {
+            throw eu.darken.butler.common.files.errors.WriteException(
+                path = destination,
+                cause = e
+            )
+        }
+    }
+
+    private val TAG = logTag("Gateway", "LocalPath", "Utils")
 }

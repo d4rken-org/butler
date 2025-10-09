@@ -19,6 +19,7 @@ import testhelpers.BaseTest
 import java.io.File
 import java.nio.file.DirectoryNotEmptyException
 import java.nio.file.Files
+import java.nio.file.LinkOption
 
 class LocalPathDeleteTest : BaseTest() {
 
@@ -1352,5 +1353,320 @@ class LocalPathDeleteTest : BaseTest() {
         } finally {
             testFile.setWritable(true)
         }
+    }
+
+    // ============ SYMLINK TESTS ============
+
+    @Test
+    fun `delete symlink to file should delete link not target`() = runTest {
+        // Given - symlink pointing to a file
+        val targetFile = File(testFolder, "target.txt")
+        targetFile.writeText("target content")
+
+        val symlinkFile = File(testFolder, "link.txt")
+        Files.createSymbolicLink(symlinkFile.toPath(), java.nio.file.Paths.get("target.txt"))
+
+        // Only proceed if symlink was actually created
+        if (!Files.isSymbolicLink(symlinkFile.toPath())) {
+            return@runTest
+        }
+
+        // When - delete the symlink
+        val result = LocalPath.build(symlinkFile).delete()
+
+        // Then - symlink deleted, target still exists
+        symlinkFile.exists() shouldBe false
+        targetFile.exists() shouldBe true
+        targetFile.readText() shouldBe "target content"
+        result.deleted shouldHaveSize 1
+    }
+
+    @Test
+    fun `delete broken symlink should succeed`() = runTest {
+        // Given - symlink pointing to non-existent target
+        val brokenLink = File(testFolder, "brokenLink")
+
+        // Create symlink to non-existent file
+        Files.createSymbolicLink(
+            brokenLink.toPath(),
+            java.nio.file.Paths.get("nonexistent.txt")
+        )
+
+        // Only proceed if symlink was actually created
+        if (!Files.isSymbolicLink(brokenLink.toPath())) {
+            return@runTest
+        }
+
+        // When - delete broken symlink
+        val result = LocalPath.build(brokenLink).delete()
+
+        // Then - symlink should be deleted
+        brokenLink.exists() shouldBe false
+        Files.exists(brokenLink.toPath()) shouldBe false
+        result.deleted shouldHaveSize 1
+    }
+
+    @Test
+    fun `delete directory containing symlinks should delete all`() = runTest {
+        // Given - directory with both regular files and symlinks
+        val sourceDir = File(testFolder, "project")
+        sourceDir.mkdir()
+
+        val regularFile = File(sourceDir, "file.txt")
+        regularFile.writeText("regular content")
+
+        val targetFile = File(sourceDir, "target.txt")
+        targetFile.writeText("target content")
+
+        val symlinkFile = File(sourceDir, "link.txt")
+        Files.createSymbolicLink(symlinkFile.toPath(), java.nio.file.Paths.get("target.txt"))
+
+        if (!Files.isSymbolicLink(symlinkFile.toPath())) {
+            return@runTest // Skip if symlinks not supported
+        }
+
+        // When - delete the entire directory
+        val result = LocalPath.build(sourceDir).delete()
+
+        // Then - directory and all contents deleted, including symlinks
+        sourceDir.exists() shouldBe false
+        result.deleted shouldHaveSize 4 // directory + 2 files + symlink
+        result.deleted.map { it.lookedUp } should { paths ->
+            paths shouldContain LocalPath.build(sourceDir)
+            paths shouldContain LocalPath.build(regularFile)
+            paths shouldContain LocalPath.build(targetFile)
+            paths shouldContain LocalPath.build(symlinkFile)
+        }
+    }
+
+    @Test
+    fun `delete directory that is itself a symlink should delete only link`() = runTest {
+        // Given - symlink pointing to a directory
+        val targetDir = File(testFolder, "targetDir")
+        targetDir.mkdir()
+        File(targetDir, "file.txt").writeText("content")
+
+        val linkDir = File(testFolder, "linkDir")
+
+        // Create symlink with relative path
+        Files.createSymbolicLink(
+            linkDir.toPath(),
+            java.nio.file.Paths.get("targetDir")
+        )
+
+        // Only proceed if symlink was actually created
+        if (!Files.isSymbolicLink(linkDir.toPath())) {
+            return@runTest
+        }
+
+        // When - delete the symlink directory (non-recursive)
+        val result = LocalPath.build(linkDir).delete(recursive = false)
+
+        // Then - symlink deleted, target directory still exists
+        linkDir.exists() shouldBe false
+        targetDir.exists() shouldBe true
+        File(targetDir, "file.txt").exists() shouldBe true
+        result.deleted shouldHaveSize 1 // Only the symlink itself
+    }
+
+    @Test
+    fun `delete symlink chain should delete only first link`() = runTest {
+        // Given - symlink chain: link2 -> link1 -> target
+        val targetFile = File(testFolder, "target.txt")
+        targetFile.writeText("target content")
+
+        val link1 = File(testFolder, "link1.txt")
+        Files.createSymbolicLink(link1.toPath(), targetFile.toPath())
+
+        val link2 = File(testFolder, "link2.txt")
+        Files.createSymbolicLink(link2.toPath(), link1.toPath())
+
+        if (!Files.isSymbolicLink(link2.toPath())) {
+            return@runTest
+        }
+
+        // When - delete link2
+        val result = LocalPath.build(link2).delete()
+
+        // Then - only link2 deleted, link1 and target still exist
+        Files.exists(link2.toPath(), LinkOption.NOFOLLOW_LINKS) shouldBe false
+        Files.exists(link1.toPath(), LinkOption.NOFOLLOW_LINKS) shouldBe true
+        targetFile.exists() shouldBe true
+        targetFile.readText() shouldBe "target content"
+        result.deleted shouldHaveSize 1
+    }
+
+    @Test
+    fun `delete multiple symlinks pointing to same target`() = runTest {
+        // Given - multiple symlinks pointing to same file
+        val targetFile = File(testFolder, "target.txt")
+        targetFile.writeText("shared content")
+
+        val link1 = File(testFolder, "link1.txt")
+        val link2 = File(testFolder, "link2.txt")
+        val link3 = File(testFolder, "link3.txt")
+
+        Files.createSymbolicLink(link1.toPath(), java.nio.file.Paths.get("target.txt"))
+        Files.createSymbolicLink(link2.toPath(), java.nio.file.Paths.get("target.txt"))
+        Files.createSymbolicLink(link3.toPath(), java.nio.file.Paths.get("target.txt"))
+
+        if (!Files.isSymbolicLink(link1.toPath())) {
+            return@runTest
+        }
+
+        // When - delete all symlinks
+        val result = listOf(
+            LocalPath.build(link1),
+            LocalPath.build(link2),
+            LocalPath.build(link3)
+        ).delete()
+
+        // Then - all symlinks deleted, target still exists
+        link1.exists() shouldBe false
+        link2.exists() shouldBe false
+        link3.exists() shouldBe false
+        targetFile.exists() shouldBe true
+        targetFile.readText() shouldBe "shared content"
+        result.deleted shouldHaveSize 3
+    }
+
+    @Test
+    fun `delete directory and symlink to that directory`() = runTest {
+        // Given - directory and a symlink pointing to it
+        val targetDir = File(testFolder, "realDir")
+        targetDir.mkdir()
+        File(targetDir, "file.txt").writeText("content")
+
+        val linkDir = File(testFolder, "linkDir")
+        Files.createSymbolicLink(
+            linkDir.toPath(),
+            java.nio.file.Paths.get("realDir")
+        )
+
+        if (!Files.isSymbolicLink(linkDir.toPath())) {
+            return@runTest
+        }
+
+        // When - delete both the symlink and the target directory
+        val result = listOf(
+            LocalPath.build(linkDir),
+            LocalPath.build(targetDir)
+        ).delete()
+
+        // Then - both deleted (symlink + directory tree)
+        linkDir.exists() shouldBe false
+        targetDir.exists() shouldBe false
+        result.deleted shouldHaveSize 3 // linkDir + targetDir + file.txt
+    }
+
+    @Test
+    fun `delete circular symlink should succeed`() = runTest {
+        // Given - two symlinks pointing to each other
+        val link1 = File(testFolder, "link1")
+        val link2 = File(testFolder, "link2")
+
+        // Create circular reference
+        Files.createSymbolicLink(link1.toPath(), java.nio.file.Paths.get("link2"))
+        Files.createSymbolicLink(link2.toPath(), java.nio.file.Paths.get("link1"))
+
+        if (!Files.isSymbolicLink(link1.toPath()) || !Files.isSymbolicLink(link2.toPath())) {
+            return@runTest
+        }
+
+        // When - delete both symlinks
+        val result = listOf(
+            LocalPath.build(link1),
+            LocalPath.build(link2)
+        ).delete()
+
+        // Then - both deleted despite circular reference
+        link1.exists() shouldBe false
+        link2.exists() shouldBe false
+        result.deleted shouldHaveSize 2
+    }
+
+    @Test
+    fun `delete symlink with ignoreMissing when target missing`() = runTest {
+        // Given - symlink with missing target
+        val brokenLink = File(testFolder, "brokenLink")
+        Files.createSymbolicLink(
+            brokenLink.toPath(),
+            java.nio.file.Paths.get("missing.txt")
+        )
+
+        if (!Files.isSymbolicLink(brokenLink.toPath())) {
+            return@runTest
+        }
+
+        // When - delete with ignoreMissing=true
+        val result = LocalPath.build(brokenLink).delete(ignoreMissing = true)
+
+        // Then - symlink deleted successfully
+        brokenLink.exists() shouldBe false
+        result.deleted shouldHaveSize 1
+    }
+
+    // ============ SECONDARY PROGRESS ============
+
+    @Test
+    fun `delete should report secondary progress with file name and size`() = runTest {
+        // Given
+        val file = File(testFolder, "document.pdf")
+        file.writeText("x".repeat(5000))
+        val fileSize = file.length()
+
+        var secondaryProgressReported = false
+        var lastSecondaryProgress: eu.darken.butler.common.progress.Progress.Data? = null
+
+        // When
+        LocalPath.build(file).delete(
+            onProgress = { progress ->
+                if (progress.secondaryProgress != null) {
+                    secondaryProgressReported = true
+                    lastSecondaryProgress = progress.secondaryProgress
+                }
+            }
+        )
+
+        // Then - secondary progress should be reported
+        secondaryProgressReported shouldBe true
+        lastSecondaryProgress shouldNotBe null
+
+        // Verify secondary progress shows file size as both current and max
+        val count = lastSecondaryProgress!!.count
+        count shouldNotBe null
+        count as eu.darken.butler.common.progress.Progress.Count.Size
+        count.current shouldBe fileSize
+        count.max shouldBe fileSize
+    }
+
+    @Test
+    fun `delete multiple files should report secondary progress for each`() = runTest {
+        // Given
+        val file1 = File(testFolder, "file1.txt")
+        val file2 = File(testFolder, "file2.txt")
+        val file3 = File(testFolder, "file3.txt")
+
+        file1.writeText("content1")
+        file2.writeText("content2")
+        file3.writeText("content3")
+
+        var secondaryProgressCount = 0
+
+        // When
+        listOf(
+            LocalPath.build(file1),
+            LocalPath.build(file2),
+            LocalPath.build(file3)
+        ).delete(
+            onProgress = { progress ->
+                if (progress.secondaryProgress != null) {
+                    secondaryProgressCount++
+                }
+            }
+        )
+
+        // Then - should report secondary progress for multiple files
+        secondaryProgressCount should { it >= 3 }
     }
 }
