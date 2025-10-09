@@ -11,6 +11,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.extensions.getFileSystemInfo
 import eu.darken.butler.common.progress.Progress
@@ -192,6 +193,11 @@ class DirectoryLocationLoader @AssistedInject constructor(
         }
 
         updateState { copy(items = items) }
+    }
+
+    fun classifyLookups(lookups: Collection<APathLookup<*>>): List<ExplorerItem.Lookup> {
+        val fileClassifier = FileTypeClassifier()
+        return lookups.map { fileClassifier.classify(it) }
     }
 
     @AssistedFactory

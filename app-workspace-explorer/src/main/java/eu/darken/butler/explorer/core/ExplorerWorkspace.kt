@@ -145,6 +145,54 @@ class ExplorerWorkspace @AssistedInject constructor(
     }
 
     init {
+        // Single continuous collection of location updates
+        browsingEngine.location
+            .onEach { location ->
+                if (location != null) {
+                    val breadcrumbs = breadcrumbGenerator.getBreadcrumbs(location)
+                    _state.updateBlocking {
+                        copy(
+                            currentLocation = location,
+                            currentBreadcrumbs = breadcrumbs
+                        )
+                    }
+                }
+            }
+            .launchIn(scope)
+
+        // Process navigation requests
+        navigationRequests
+            .onEach { request ->
+                log(tag, INFO) { "New navigation request: $request" }
+                _state.updateBlocking { copy(error = null) }
+                try {
+                    processNavigationRequest(request)
+                } catch (e: Exception) {
+                    when (e) {
+                        is CancellationException -> {
+                            log(tag, INFO) { "Navigation cancelled" }
+                            _state.updateBlocking { copy(currentLocation = null) }
+                            throw e
+                        }
+                        else -> {
+                            log(tag, ERROR) { "Navigation failed: $e" }
+                            _state.updateBlocking {
+                                copy(
+                                    currentLocation = null,
+                                    error = e,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            .launchIn(scope)
+
+        // Forward filesystem hints to browsing engine
+        fileSystemHinter.events
+            .onEach { event -> browsingEngine.hint(event) }
+            .launchIn(scope)
+
         // Load initial location
         scope.launch {
             log(tag, INFO) { "Loading initial data... ($arguments)" }
@@ -160,43 +208,6 @@ class ExplorerWorkspace @AssistedInject constructor(
                 Bugs.report(e)
             }
         }
-
-        navigationRequests
-            .onEach { log(tag, INFO) { "New navigation request: $it" } }
-            .flatMapLatest { request ->
-                flow<Unit> {
-                    _state.updateBlocking {
-                        copy(error = null)
-                    }
-                    try {
-                        processNavigationRequest(request)
-                    } catch (e: Exception) {
-                        when (e) {
-                            is CancellationException -> {
-                                log(tag, INFO) { "Navigation cancelled" }
-                                _state.updateBlocking {
-                                    copy(currentLocation = null)
-                                }
-                                throw e
-                            }
-                            else -> {
-                                log(tag, ERROR) { "Navigation failed: $e" }
-                                _state.updateBlocking {
-                                    copy(
-                                        currentLocation = null,
-                                        error = e,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            .launchIn(scope)
-
-        fileSystemHinter.events
-            .onEach { event -> browsingEngine.hint(event) }
-            .launchIn(scope)
     }
 
     private suspend fun processNavigationRequest(request: ExplorerNavigation) {
@@ -231,12 +242,10 @@ class ExplorerWorkspace @AssistedInject constructor(
                 }
             }
             is ExplorerNavigation.Refresh -> {
-                _state.value().currentTarget?.let { target ->
-                    loadTarget(target, addToHistory = false)
-                } ?: log(tag, WARN) { "Current target was null" }
+                log(tag, INFO) { "Refreshing current location" }
+                browsingEngine.refresh()
             }
             is ExplorerNavigation.Cancel -> {
-                // Just reset the loading state, flatMapLatest will have already cancelled the previous operation
                 log(tag, INFO) { "Navigation cancel request processed" }
                 _state.updateBlocking {
                     copy(
@@ -250,51 +259,39 @@ class ExplorerWorkspace @AssistedInject constructor(
 
     private suspend fun loadTarget(target: ExplorerNavigation.Target, addToHistory: Boolean) {
         log(tag, INFO) { "loadTarget($target, $addToHistory)" }
+
         _state.updateBlocking {
             copy(currentTarget = target)
         }
-        browsingEngine.loadLocation(target)
-            .onStart {
-                if (addToHistory) {
-                    log(tag) { "loadTarget(): Updating history" }
 
-                    val currentHistory = _state.value().navigationHistory
-                    val currentIndex = _state.value().historyIndex
+        if (addToHistory) {
+            log(tag) { "loadTarget(): Updating history" }
 
-                    // Remove forward history when navigating to new location
-                    val trimmedHistory = currentHistory.take(currentIndex + 1)
-                    val newHistory = trimmedHistory + target
+            val currentHistory = _state.value().navigationHistory
+            val currentIndex = _state.value().historyIndex
 
-                    _state.updateBlocking {
-                        log(tag) { "loadTarget(): Old history: index=$historyIndex history=$navigationHistory" }
-                        copy(
-                            navigationHistory = newHistory,
-                            historyIndex = newHistory.size - 1
-                        ).apply {
-                            log(tag) { "loadTarget(): New history: index=$historyIndex history=$navigationHistory" }
-                        }
-                    }
+            // Remove forward history when navigating to new location
+            val trimmedHistory = currentHistory.take(currentIndex + 1)
+            val newHistory = trimmedHistory + target
+
+            _state.updateBlocking {
+                log(tag) { "loadTarget(): Old history: index=$historyIndex history=$navigationHistory" }
+                copy(
+                    navigationHistory = newHistory,
+                    historyIndex = newHistory.size - 1
+                ).apply {
+                    log(tag) { "loadTarget(): New history: index=$historyIndex history=$navigationHistory" }
                 }
             }
-            .onCompletion { error ->
-                // Track path access for shortcuts (only for new navigations to directories)
-                if (addToHistory && target is ExplorerNavigation.Target.Directory) {
-                    pathAccessTracker.trackPathAccess(target.path)
-                }
-            }
-            .collectIndexed { index, state ->
-                log(tag) { "loadTarget(): Emission index#$index" }
 
-                val breadcrumbs = breadcrumbGenerator.getBreadcrumbs(state)
-                log(tag) { "loadTarget(): Generated breadcrumbs: $breadcrumbs" }
-
-                _state.updateBlocking {
-                    copy(
-                        currentBreadcrumbs = breadcrumbs,
-                        currentLocation = state,
-                    )
-                }
+            // Track path access for shortcuts (only for new navigations to directories)
+            if (target is ExplorerNavigation.Target.Directory) {
+                pathAccessTracker.trackPathAccess(target.path)
             }
+        }
+
+        // Trigger load in browsing engine
+        browsingEngine.setTarget(target)
     }
 
     fun navigate(request: ExplorerNavigation) {
@@ -348,6 +345,7 @@ class ExplorerWorkspace @AssistedInject constructor(
 
     override suspend fun release() {
         log(tag, INFO) { "release()" }
+        browsingEngine.release()
         scope.cancel()
     }
 
