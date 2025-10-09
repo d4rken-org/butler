@@ -68,48 +68,28 @@ internal class LocalPathCopy(
     // Single-use flag
     private var hasExecuted = false
 
-    /**
-     * Sealed hierarchy of work items for the copy queue
-     */
     private sealed class WorkItem {
-        /**
-         * Scan a source directory tree and queue create/copy items
-         * @param source The actual path to scan (may be resolved from symlink)
-         * @param displayPath The path to use for destination calculation (preserves symlink names)
-         * @param topLevelSource The root source path for this scan tree
-         */
+
         data class ScanSource(
             val source: LocalPath,
             val displayPath: LocalPath = source,
             val topLevelSource: LocalPath = source,
         ) : WorkItem()
 
-        /**
-         * Check if sufficient disk space is available
-         */
         data object CheckSpace : WorkItem()
 
-        /**
-         * Create a directory at the destination
-         */
         data class CreateDirectory(
             val sourceLookup: LocalPathLookup,
             val dest: LocalPath,
             val topLevelSource: LocalPath
         ) : WorkItem()
 
-        /**
-         * Copy a file to the destination
-         */
         data class CopyFile(
             val sourceLookup: LocalPathLookup,
             val dest: LocalPath,
             val topLevelSource: LocalPath
         ) : WorkItem()
 
-        /**
-         * Resolve an issue that occurred during processing
-         */
         data class ResolveIssue(
             val issue: PathActionIssue,
             val originalItem: WorkItem,
@@ -117,9 +97,6 @@ internal class LocalPathCopy(
         ) : WorkItem()
     }
 
-    /**
-     * Context for error handling operations
-     */
     private sealed class ErrorContext {
         abstract val sourceLookup: LocalPathLookup
         abstract val operation: String
@@ -137,7 +114,7 @@ internal class LocalPathCopy(
     }
 
     suspend fun execute(): CopyAction.State.Result<LocalPath, LocalPathLookup> {
-        check(!hasExecuted) { "LocalPathCopyTool can only be executed once" }
+        check(!hasExecuted) { "LocalPathCopy can only be executed once" }
         hasExecuted = true
 
         ensureDestinationExists()

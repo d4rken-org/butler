@@ -67,45 +67,28 @@ internal class LocalPathMove(
     // Single-use flag
     private var hasExecuted = false
 
-    /**
-     * Sealed hierarchy of work items for the move queue
-     */
     private sealed class WorkItem {
-        /**
-         * Scan a source directory tree and queue create/move items
-         */
+
         data class ScanSource(
             val source: LocalPath,
             val displayPath: LocalPath = source,
             val topLevelSource: LocalPath = source,
         ) : WorkItem()
 
-        /**
-         * Check if sufficient disk space is available
-         */
         data object CheckSpace : WorkItem()
 
-        /**
-         * Create a directory at the destination
-         */
         data class CreateDirectory(
             val sourceLookup: LocalPathLookup,
             val dest: LocalPath,
             val topLevelSource: LocalPath,
         ) : WorkItem()
 
-        /**
-         * Move a file to the destination (tries atomic move, falls back to copy+delete)
-         */
         data class MoveFile(
             val sourceLookup: LocalPathLookup,
             val dest: LocalPath,
             val topLevelSource: LocalPath,
         ) : WorkItem()
 
-        /**
-         * Resolve an issue that occurred during processing
-         */
         data class ResolveIssue(
             val issue: PathActionIssue,
             val originalItem: WorkItem,
@@ -113,9 +96,6 @@ internal class LocalPathMove(
         ) : WorkItem()
     }
 
-    /**
-     * Context for error handling operations
-     */
     private sealed class ErrorContext {
         abstract val sourceLookup: LocalPathLookup
         abstract val operation: String
