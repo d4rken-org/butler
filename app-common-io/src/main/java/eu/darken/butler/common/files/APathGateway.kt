@@ -25,6 +25,8 @@ interface APathGateway<
 
     suspend fun createFile(path: P)
 
+    suspend fun createSymlink(linkPath: P, targetPath: P): Boolean
+
     suspend fun listFiles(path: P): Collection<P>
 
     suspend fun lookup(path: P): PL
@@ -63,8 +65,6 @@ interface APathGateway<
     suspend fun canRead(path: P): Boolean
 
     suspend fun file(path: P, readWrite: Boolean): FileHandle
-
-    suspend fun createSymlink(linkPath: P, targetPath: P): Boolean
 
     suspend fun setModifiedAt(path: P, modifiedAt: Instant): Boolean
 
