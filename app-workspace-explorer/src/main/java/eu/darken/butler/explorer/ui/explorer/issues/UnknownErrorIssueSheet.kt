@@ -215,6 +215,7 @@ fun UnknownErrorIssueSheet(
                             onResolution(PathActionIssue.UnknownError.Resolution.Retry)
                         },
                         modifier = Modifier.weight(1f),
+                        enabled = !applyToAll,
                     ) {
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(4.dp),

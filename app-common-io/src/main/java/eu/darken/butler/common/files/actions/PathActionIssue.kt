@@ -40,8 +40,8 @@ sealed interface PathActionIssue : Issue {
         sealed interface Resolution : PathActionIssue.Resolution {
             data class Skip(val applyToAll: Boolean = false) : Resolution
             data class Overwrite(val applyToAll: Boolean = false) : Resolution
-            data class RenameSource(val newName: String) : Resolution
-            data class RenameDestination(val newName: String) : Resolution
+            data class RenameSource(val newName: String, val applyToAll: Boolean = false) : Resolution
+            data class RenameDestination(val newName: String, val applyToAll: Boolean = false) : Resolution
             data class Merge(val applyToAll: Boolean = false) : Resolution
             data class Cancel(val error: Exception? = null) : Resolution
         }

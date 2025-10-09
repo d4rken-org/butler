@@ -25,6 +25,7 @@ import java.nio.file.NoSuchFileException
 import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.PosixFileAttributeView
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.milliseconds
 
 internal class LocalPathCopy(
     private val sources: Collection<LocalPath>,
@@ -46,6 +47,7 @@ internal class LocalPathCopy(
     private var issueSkipAllPathExists = false
     private var issueOverwriteAllPathExists = false
     private var issueMergeAllPathExists = false
+    private var issueRenameSourceAllPathExists = false
     private var issueSkippAllPermission = false
     private var issueSkippAllUnknown = false
 
@@ -298,7 +300,8 @@ internal class LocalPathCopy(
                         for (child in ds) {
                             val childPath = LocalPath.build(child.toFile())
                             // Maintain displayPath mapping for children
-                            val childDisplayPath = LocalPath.build(File(item.displayPath.file, child.fileName.toString()))
+                            val childDisplayPath =
+                                LocalPath.build(File(item.displayPath.file, child.fileName.toString()))
                             // Add child scan to front (processed before CheckSpace and work items)
                             workQueue.addFirst(
                                 WorkItem.ScanSource(
@@ -448,6 +451,17 @@ internal class LocalPathCopy(
                         return
                     }
 
+                    if (issueRenameSourceAllPathExists) {
+                        val uniqueName = generateUniqueName(adjustedDest.name, adjustedDest.file.parentFile!!)
+                        val renamedDest = LocalPath.build(File(adjustedDest.file.parentFile!!, uniqueName))
+                        log(TAG, INFO) { "Auto-renaming directory (rename apply-to-all): $adjustedDest -> $renamedDest" }
+                        Files.createDirectories(renamedDest.toNioPath())
+                        copied.add(sourceLookup.lookedUp to renamedDest)
+                        renamedSourceDirs[sourceLookup.lookedUp] = renamedDest
+                        itemsProcessed++
+                        return
+                    }
+
                     if (issueMergeAllPathExists) {
                         log(TAG, INFO) { "Merging directory (merge apply-to-all): $adjustedDest" }
                         itemsProcessed++
@@ -458,9 +472,13 @@ internal class LocalPathCopy(
                         log(TAG, INFO) { "Overwriting directory (overwrite apply-to-all): $adjustedDest" }
                         deleteRecursively(adjustedDest)
                     } else {
-                        val existsError = WriteException(path = adjustedDest, cause = FileAlreadyExistsException(adjustedDest.path))
+                        val existsError =
+                            WriteException(path = adjustedDest, cause = FileAlreadyExistsException(adjustedDest.path))
                         if (onIssue == null) {
-                            log(TAG, VERBOSE) { "Directory already exists, auto-merging (no issue handler): $adjustedDest" }
+                            log(
+                                TAG,
+                                VERBOSE
+                            ) { "Directory already exists, auto-merging (no issue handler): $adjustedDest" }
                             itemsProcessed++
                             return
                         }
@@ -489,11 +507,23 @@ internal class LocalPathCopy(
                         return
                     }
 
+                    if (issueRenameSourceAllPathExists) {
+                        val uniqueName = generateUniqueName(adjustedDest.name, adjustedDest.file.parentFile!!)
+                        val renamedDest = LocalPath.build(File(adjustedDest.file.parentFile!!, uniqueName))
+                        log(TAG, INFO) { "Auto-renaming directory to avoid file conflict (rename apply-to-all): $adjustedDest -> $renamedDest" }
+                        Files.createDirectories(renamedDest.toNioPath())
+                        copied.add(sourceLookup.lookedUp to renamedDest)
+                        renamedSourceDirs[sourceLookup.lookedUp] = renamedDest
+                        itemsProcessed++
+                        return
+                    }
+
                     if (issueOverwriteAllPathExists) {
                         log(TAG, INFO) { "Overwriting file with directory (overwrite apply-to-all): $adjustedDest" }
                         Files.delete(adjustedDest.toNioPath())
                     } else {
-                        val existsError = WriteException(path = adjustedDest, cause = FileAlreadyExistsException(adjustedDest.path))
+                        val existsError =
+                            WriteException(path = adjustedDest, cause = FileAlreadyExistsException(adjustedDest.path))
                         if (onIssue == null) throw existsError
 
                         val issue = PathActionIssue.PathAlreadyExists(
@@ -589,8 +619,53 @@ internal class LocalPathCopy(
                     return
                 }
 
+                if (issueRenameSourceAllPathExists) {
+                    val uniqueName = generateUniqueName(adjustedDest.name, adjustedDest.file.parentFile!!)
+                    val renamedDest = LocalPath.build(File(adjustedDest.file.parentFile!!, uniqueName))
+                    log(TAG, INFO) { "Auto-renaming file (rename apply-to-all): $adjustedDest -> $renamedDest" }
+
+                    val sourcePath = sourceLookup.lookedUp.toNioPath()
+                    if (sourceLookup.fileType == FileType.SYMBOLIC_LINK) {
+                        if (options.followSymlinks) {
+                            val targetPath = Files.readSymbolicLink(sourcePath).let { target ->
+                                sourcePath.parent.resolve(target).normalize()
+                            }
+                            Files.copy(
+                                targetPath,
+                                renamedDest.toNioPath(),
+                                StandardCopyOption.COPY_ATTRIBUTES
+                            )
+                        } else {
+                            val linkTarget = Files.readSymbolicLink(sourcePath)
+                            val newTarget = if (linkTarget.isAbsolute) {
+                                linkTarget
+                            } else {
+                                val absoluteTarget = sourcePath.parent.resolve(linkTarget).normalize()
+                                renamedDest.toNioPath().parent.relativize(absoluteTarget)
+                            }
+                            Files.createSymbolicLink(renamedDest.toNioPath(), newTarget)
+                        }
+                    } else {
+                        Files.copy(
+                            sourcePath,
+                            renamedDest.toNioPath(),
+                            StandardCopyOption.COPY_ATTRIBUTES
+                        )
+                    }
+
+                    copiedBytes += sourceLookup.size
+                    copied.add(sourceLookup.lookedUp to renamedDest)
+                    itemsProcessed++
+
+                    currentFileSize = 0L
+                    currentFileBytes = 0L
+                    currentFileStartTime = null
+                    return
+                }
+
                 if (!issueOverwriteAllPathExists) {
-                    val existsError = WriteException(path = adjustedDest, cause = FileAlreadyExistsException(adjustedDest.path))
+                    val existsError =
+                        WriteException(path = adjustedDest, cause = FileAlreadyExistsException(adjustedDest.path))
                     if (onIssue == null) throw existsError
 
                     val issue = PathActionIssue.PathAlreadyExists(
@@ -651,7 +726,7 @@ internal class LocalPathCopy(
                             copiedBytes += bytesRead
 
                             // Report progress at intervals to avoid overwhelming the flow
-                            if (lastProgressReport.elapsedNow().inWholeMilliseconds >= PROGRESS_REPORT_INTERVAL_MS) {
+                            if (lastProgressReport.elapsedNow() >= PROGRESS_REPORT_INTERVAL) {
                                 lastProgressReport = kotlin.time.TimeSource.Monotonic.markNow()
                                 onProgress?.invoke(createProgress(sourceLookup, adjustedDest))
                             }
@@ -756,7 +831,8 @@ internal class LocalPathCopy(
                         itemsProcessed++
                     }
                     is PathActionIssue.PathAlreadyExists.Resolution.RenameSource -> {
-                        log(TAG, INFO) { "User chose rename source: ${res.newName}" }
+                        if (res.applyToAll) issueRenameSourceAllPathExists = true
+                        log(TAG, INFO) { "User chose rename source: ${res.newName} (applyToAll=${res.applyToAll})" }
                         when (val orig = item.originalItem) {
                             is WorkItem.CreateDirectory -> {
                                 val newDestPath = LocalPath.build(File(orig.dest.file.parentFile!!, res.newName))
@@ -972,7 +1048,7 @@ internal class LocalPathCopy(
 
     companion object {
         private const val BUFFER_SIZE = 64 * 1024 // 64KB chunks
-        private const val PROGRESS_REPORT_INTERVAL_MS = 100L // Report every 100ms
+        private val PROGRESS_REPORT_INTERVAL = 250.milliseconds
     }
 }
 
