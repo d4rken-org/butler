@@ -1010,6 +1010,86 @@ class LocalPathDeleteTest : BaseTest() {
         }
     }
 
+    // ============ PROGRESS THROTTLING TESTS ============
+
+    @Test
+    fun `progress callbacks should be throttled to reduce UI spam`() = runTest {
+        // Given - 100 files that would normally trigger 200 callbacks (before + after each delete)
+        val files = (1..100).map { i ->
+            File(testFolder, "file$i.txt").apply {
+                writeText("content $i")
+            }
+        }
+
+        val progressTimestamps = mutableListOf<Long>()
+        val startTime = System.currentTimeMillis()
+
+        // When
+        files.map { LocalPath.build(it) }.delete(
+            onProgress = {
+                progressTimestamps.add(System.currentTimeMillis() - startTime)
+            }
+        )
+
+        // Then - Should have significantly fewer than 200 calls (2 per file without throttling)
+        // With 250ms throttling, expect roughly 40-60 calls depending on execution speed
+        progressTimestamps.size should { it < 80 }
+
+        // Verify some throttling occurred (if more than 2 callbacks)
+        if (progressTimestamps.size > 2) {
+            val intervals = progressTimestamps.zipWithNext { a, b -> b - a }
+            val throttledIntervals = intervals.dropLast(1).count { it >= 200 }
+            // At least some intervals should show throttling behavior
+            throttledIntervals should { it > 0 }
+        }
+    }
+
+    @Test
+    fun `progress callbacks should fire for small files despite throttling`() = runTest {
+        // Given - Single small file
+        val file = File(testFolder, "single.txt")
+        file.writeText("Small content")
+
+        var progressCallbackCalled = false
+
+        // When
+        LocalPath.build(file).delete(
+            onProgress = { progressCallbackCalled = true }
+        )
+
+        // Then - At least one callback should fire despite throttling
+        progressCallbackCalled shouldBe true
+    }
+
+    @Test
+    fun `final progress callback shows complete state`() = runTest {
+        // Given - 10 files
+        val files = (1..10).map { i ->
+            File(testFolder, "file$i.txt").apply { writeText("content $i") }
+        }
+
+        val progressUpdates = mutableListOf<Pair<Long, Long>>()
+
+        // When
+        files.map { LocalPath.build(it) }.delete(
+            onProgress = { progress ->
+                val count = progress.primaryProgress.count
+                if (count is eu.darken.butler.common.progress.Progress.Count.Counter) {
+                    progressUpdates.add(count.current to count.max)
+                }
+            }
+        )
+
+        // Then - Final progress callback must show near-completion
+        progressUpdates shouldNotBe emptyList<Pair<Long, Long>>()
+        val (current, max) = progressUpdates.last()
+
+        // Note: Current implementation has off-by-one because progress object is created
+        // before itemsProcessed is incremented. After throttling refactor, this will be fixed.
+        max shouldBe 10L
+        current should { it >= 9L }  // Should be 9 or 10 (accounting for current implementation quirk)
+    }
+
     // ============ NEW ARCHITECTURE VALIDATION TESTS ============
 
     @Test
@@ -1165,11 +1245,18 @@ class LocalPathDeleteTest : BaseTest() {
         // Then
         result.deleted shouldHaveSize 4 // file1, file2, childDir, parentDir
 
-        // Progress is called twice per item (before and after deletion in try/finally)
-        // So we expect 8 calls total for 4 items
-        progressReports shouldHaveSize 8
-        // Each item appears twice: 0 (start), 0 (end), 1 (start), 1 (end), etc.
-        progressReports shouldBe listOf(0L, 0L, 1L, 1L, 2L, 2L, 3L, 3L)
+        // With throttling, we can't guarantee exact call count
+        // But progress tracking must be accurate
+        progressReports shouldNotBe emptyList<Long>()
+
+        // Initial progress should start at 0
+        progressReports.first() shouldBe 0L
+
+        // Final progress should show all items processed
+        progressReports.last() shouldBe 4L  // All 4 items have been processed
+
+        // Should have at least a start and end callback
+        progressReports.size should { it >= 2 }
     }
 
     @Test

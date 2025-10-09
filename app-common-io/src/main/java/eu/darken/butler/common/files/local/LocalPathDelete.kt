@@ -9,6 +9,8 @@ import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
+import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
+import eu.darken.butler.common.files.local.operations.core.PathOperationProgressTracker
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.io.R
 import kotlinx.coroutines.currentCoroutineContext
@@ -18,7 +20,6 @@ import java.nio.file.DirectoryNotEmptyException
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
-import kotlin.coroutines.cancellation.CancellationException
 
 internal class LocalPathDelete(
     private val targets: Collection<LocalPath>,
@@ -30,15 +31,9 @@ internal class LocalPathDelete(
     private val deleted = linkedSetOf<LocalPathLookup>()
     private val skipped = linkedSetOf<LocalPathLookup>()
 
-    private var issueSkippAllPermission = false
-    private var issueSkippAllUnknown = false
-
-    // Global progress tracking
-    private var totalItems = 0
-    private var itemsProcessed = 0
-    private var totalBytes = 0L
-    private var deletedBytes = 0L
-    private var currentItemStartTime: kotlin.time.Instant? = null
+    // Shared components
+    private val progressTracker = PathOperationProgressTracker()
+    private val issueResolver = PathOperationIssueResolver(onIssue)
 
     // Scan tracking to know when all items are discovered
     private var scanItemsRemaining = 0
@@ -71,34 +66,6 @@ internal class LocalPathDelete(
         data class DeletePath(
             val path: LocalPath,
         ) : WorkItem()
-
-        /**
-         * Resolve an issue that occurred during processing
-         */
-        data class ResolveIssue(
-            val issue: PathActionIssue,
-            val lookup: LocalPathLookup,
-            val originalItem: WorkItem,
-            val exception: Exception
-        ) : WorkItem()
-    }
-
-    /**
-     * Context for error handling operations
-     */
-    private sealed class ErrorContext {
-        abstract val lookup: LocalPathLookup
-        abstract val operation: String
-
-        data class Scan(
-            override val lookup: LocalPathLookup,
-            override val operation: String,
-        ) : ErrorContext()
-
-        data class Delete(
-            override val lookup: LocalPathLookup,
-            override val operation: String,
-        ) : ErrorContext()
     }
 
     suspend fun execute(): DeleteAction.State.Result<LocalPath, LocalPathLookup> {
@@ -125,7 +92,8 @@ internal class LocalPathDelete(
                     scanItemsRemaining += childrenAdded
 
                     if (scanItemsRemaining == 0) {
-                        log(TAG, DEBUG) { "Scan complete: $totalItems items to delete" }
+                        val snapshot = progressTracker.createSnapshot()
+                        log(TAG, DEBUG) { "Scan complete: ${snapshot.totalItems} items to delete" }
                         // Add all deferred deletions to queue in correct post-order
                         deferredDeletions.forEach { workQueue.addLast(it) }
                         deferredDeletions.clear()
@@ -133,8 +101,6 @@ internal class LocalPathDelete(
                 }
 
                 is WorkItem.DeletePath -> processDeletePath(item)
-
-                is WorkItem.ResolveIssue -> processResolveIssue(item)
             }
         }
 
@@ -144,78 +110,130 @@ internal class LocalPathDelete(
         )
     }
 
-    /**
-     * Handles permission errors (SecurityException, AccessDeniedException)
-     */
-    private fun handlePermissionError(
-        error: Exception,
-        context: ErrorContext,
-        workItem: WorkItem,
-    ) {
-        log(TAG, ERROR) { "${context.operation} - Permission denied: ${context.lookup.lookedUp} - $error" }
+    private suspend fun handleDeleteError(error: Exception, lookup: LocalPathLookup) {
+        log(TAG, ERROR) { "Delete failed: ${lookup.lookedUp} - $error" }
 
-        if (issueSkippAllPermission) {
-            log(TAG, INFO) { "Skipping permission issue (apply-to-all): ${context.lookup.lookedUp}" }
-            skipped.add(context.lookup)
-            itemsProcessed++
-            return
-        }
-
-        val exception = WriteException(path = context.lookup.lookedUp, cause = error)
-        if (onIssue == null) throw exception
-
-        val issue = PathActionIssue.InsufficientPermission(
-            destination = context.lookup,
-            exception = exception,
-            canSkip = true,
-        )
-
-        workQueue.addFirst(WorkItem.ResolveIssue(issue, context.lookup, workItem, exception))
-    }
-
-    /**
-     * Handles unknown I/O errors
-     */
-    private fun handleUnknownError(
-        error: Exception,
-        context: ErrorContext,
-        workItem: WorkItem,
-    ) {
-        log(TAG, ERROR) { "${context.operation} failed: ${context.lookup.lookedUp} - $error" }
-
-        // Handle NoSuchFileException specially
-        if (error is NoSuchFileException) {
-            log(TAG, WARN) { "File doesn't exist: ${context.lookup.lookedUp}" }
-            if (ignoreMissing) {
-                itemsProcessed++
+        // Resolve issue and apply resolution
+        if (error is AccessDeniedException || error is SecurityException) {
+            if (issueResolver.shouldSkipPermission()) {
+                log(TAG, INFO) { "Skipping permission issue (apply-to-all): ${lookup.lookedUp}" }
+                skipped.add(lookup)
+                progressTracker.completeItem()
                 return
             }
+
+            if (onIssue == null) throw WriteException(path = lookup.lookedUp, cause = error)
+
+            val issue = PathActionIssue.InsufficientPermission(
+                destination = lookup,
+                exception = WriteException(path = lookup.lookedUp, cause = error),
+                canSkip = true
+            )
+            val resolution = issueResolver.resolveIssue(issue)
+
+            when (resolution) {
+                is PathActionIssue.InsufficientPermission.Resolution.Skip -> {
+                    skipped.add(lookup)
+                    progressTracker.completeItem()
+                }
+                is PathActionIssue.InsufficientPermission.Resolution.Cancel -> {
+                    // Already thrown by resolveIssue
+                }
+            }
+        } else {
+            if (issueResolver.shouldSkipUnknown()) {
+                log(TAG, INFO) { "Skipping unknown issue (apply-to-all): ${lookup.lookedUp}" }
+                skipped.add(lookup)
+                progressTracker.completeItem()
+                return
+            }
+
+            if (onIssue == null) throw WriteException(path = lookup.lookedUp, cause = error)
+
+            val issue = PathActionIssue.UnknownError(
+                destination = lookup,
+                exception = WriteException(path = lookup.lookedUp, cause = error),
+                canRetry = false,
+                canSkip = true
+            )
+            val resolution = issueResolver.resolveIssue(issue)
+
+            when (resolution) {
+                is PathActionIssue.UnknownError.Resolution.Skip -> {
+                    skipped.add(lookup)
+                    progressTracker.completeItem()
+                }
+                is PathActionIssue.UnknownError.Resolution.Retry -> {
+                    // Shouldn't happen (canRetry=false), but ignore
+                }
+                is PathActionIssue.UnknownError.Resolution.Cancel -> {
+                    // Already thrown by resolveIssue
+                }
+            }
         }
+    }
 
-        // DirectoryNotEmptyException without issue handler should throw the original exception
-        if (error is DirectoryNotEmptyException && onIssue == null) {
-            log(TAG, WARN) { "Directory not empty: ${context.lookup.lookedUp}" }
-            throw error
+    private suspend fun handleScanError(error: Exception, lookup: LocalPathLookup, operation: String) {
+        log(TAG, ERROR) { "$operation failed: ${lookup.lookedUp} - $error" }
+
+        // Resolve issue and apply resolution
+        if (error is AccessDeniedException || error is SecurityException) {
+            if (issueResolver.shouldSkipPermission()) {
+                log(TAG, INFO) { "Skipping permission issue (apply-to-all): ${lookup.lookedUp}" }
+                skipped.add(lookup)
+                progressTracker.completeItem()
+                return
+            }
+
+            if (onIssue == null) throw WriteException(path = lookup.lookedUp, cause = error)
+
+            val issue = PathActionIssue.InsufficientPermission(
+                destination = lookup,
+                exception = WriteException(path = lookup.lookedUp, cause = error),
+                canSkip = true
+            )
+            val resolution = issueResolver.resolveIssue(issue)
+
+            when (resolution) {
+                is PathActionIssue.InsufficientPermission.Resolution.Skip -> {
+                    skipped.add(lookup)
+                    progressTracker.completeItem()
+                }
+                is PathActionIssue.InsufficientPermission.Resolution.Cancel -> {
+                    // Already thrown by resolveIssue
+                }
+            }
+        } else {
+            if (issueResolver.shouldSkipUnknown()) {
+                log(TAG, INFO) { "Skipping unknown issue (apply-to-all): ${lookup.lookedUp}" }
+                skipped.add(lookup)
+                progressTracker.completeItem()
+                return
+            }
+
+            if (onIssue == null) throw WriteException(path = lookup.lookedUp, cause = error)
+
+            val issue = PathActionIssue.UnknownError(
+                destination = lookup,
+                exception = WriteException(path = lookup.lookedUp, cause = error),
+                canRetry = false,  // Can't retry scan
+                canSkip = true
+            )
+            val resolution = issueResolver.resolveIssue(issue)
+
+            when (resolution) {
+                is PathActionIssue.UnknownError.Resolution.Skip -> {
+                    skipped.add(lookup)
+                    progressTracker.completeItem()
+                }
+                is PathActionIssue.UnknownError.Resolution.Retry -> {
+                    // Shouldn't happen (canRetry=false), but ignore
+                }
+                is PathActionIssue.UnknownError.Resolution.Cancel -> {
+                    // Already thrown by resolveIssue
+                }
+            }
         }
-
-        if (issueSkippAllUnknown) {
-            log(TAG, INFO) { "Skipping unknown issue (apply-to-all): ${context.lookup.lookedUp}" }
-            skipped.add(context.lookup)
-            itemsProcessed++
-            return
-        }
-
-        val exception = WriteException(path = context.lookup.lookedUp, cause = error)
-        if (onIssue == null) throw exception
-
-        val issue = PathActionIssue.UnknownError(
-            destination = context.lookup,
-            exception = exception,
-            canRetry = true,
-            canSkip = true
-        )
-
-        workQueue.addFirst(WorkItem.ResolveIssue(issue, context.lookup, workItem, exception))
     }
 
     private suspend fun processScan(item: WorkItem.ScanPath): Int {
@@ -240,8 +258,8 @@ internal class LocalPathDelete(
         when (lookup.fileType) {
             FileType.SYMBOLIC_LINK, FileType.FILE -> {
                 // Files: defer deletion until scan completes (using addFirst for post-order)
-                totalItems++
-                totalBytes += lookup.size
+                progressTracker.totalItems++
+                progressTracker.totalBytes += lookup.size
                 deferredDeletions.addFirst(WorkItem.DeletePath(path = item.path))
                 return 0 // No children for files
             }
@@ -249,8 +267,8 @@ internal class LocalPathDelete(
             FileType.DIRECTORY -> {
                 if (!recursive) {
                     // Non-recursive: defer directory deletion (will fail if not empty, using addFirst for post-order)
-                    totalItems++
-                    totalBytes += lookup.size
+                    progressTracker.totalItems++
+                    progressTracker.totalBytes += lookup.size
                     deferredDeletions.addFirst(WorkItem.DeletePath(path = item.path))
                     return 0
                 } else {
@@ -271,31 +289,28 @@ internal class LocalPathDelete(
                         // Directory disappeared between lookup and listing
                         log(TAG, WARN) { "Directory disappeared during scan: ${item.path}" }
                     } catch (e: AccessDeniedException) {
-                        handlePermissionError(
-                            error = e,
-                            context = ErrorContext.Scan(lookup, "List directory contents"),
-                            workItem = item
-                        )
+                        // Add item before handling error so counts are correct
+                        progressTracker.totalItems++
+                        progressTracker.totalBytes += lookup.size
+                        handleScanError(e, lookup, "List directory contents - Permission denied")
                         return 0
                     } catch (e: SecurityException) {
-                        handlePermissionError(
-                            error = e,
-                            context = ErrorContext.Scan(lookup, "List directory contents"),
-                            workItem = item
-                        )
+                        // Add item before handling error so counts are correct
+                        progressTracker.totalItems++
+                        progressTracker.totalBytes += lookup.size
+                        handleScanError(e, lookup, "List directory contents - Permission denied")
                         return 0
                     } catch (e: Exception) {
-                        handleUnknownError(
-                            error = e,
-                            context = ErrorContext.Scan(lookup, "List directory contents"),
-                            workItem = item
-                        )
+                        // Add item before handling error so counts are correct
+                        progressTracker.totalItems++
+                        progressTracker.totalBytes += lookup.size
+                        handleScanError(e, lookup, "List directory contents")
                         return 0
                     }
 
                     // After successfully scanning children, defer directory deletion (using addFirst for post-order)
-                    totalItems++
-                    totalBytes += lookup.size
+                    progressTracker.totalItems++
+                    progressTracker.totalBytes += lookup.size
                     deferredDeletions.addFirst(WorkItem.DeletePath(path = item.path))
 
                     return childrenFound
@@ -314,107 +329,72 @@ internal class LocalPathDelete(
         } catch (e: NoSuchFileException) {
             if (ignoreMissing) {
                 log(TAG, VERBOSE) { "File already deleted (ignoreMissing=true): ${item.path}" }
-                itemsProcessed++
+                progressTracker.completeItem()
                 return
             }
             throw ReadException("File does not exist", item.path, e)
         } catch (e: ReadException) {
             if (ignoreMissing) {
                 log(TAG, VERBOSE) { "File already deleted (ignoreMissing=true): ${item.path}" }
-                itemsProcessed++
+                progressTracker.completeItem()
                 return
             }
             throw e
         }
 
-        currentItemStartTime = kotlin.time.Clock.System.now()
-        val progress = createProgress(lookup)
+        progressTracker.startFile(lookup.size)
 
         try {
-            onProgress?.invoke(progress)
+            // Report progress with throttling
+            if (progressTracker.shouldReportProgress()) {
+                reportProgress(lookup)
+            }
 
             Files.delete(lookup.lookedUp.toNioPath())
             deleted += lookup
-            deletedBytes += lookup.size
-            itemsProcessed++
+            progressTracker.completeItem(lookup.size)
 
         } catch (e: SecurityException) {
-            handlePermissionError(
-                error = e,
-                context = ErrorContext.Delete(lookup, "Delete file/directory"),
-                workItem = item
-            )
+            handleDeleteError(e, lookup)
+
+        } catch (e: DirectoryNotEmptyException) {
+            // DirectoryNotEmptyException without issue handler should throw the original exception
+            if (onIssue == null) {
+                log(TAG, WARN) { "Directory not empty: ${lookup.lookedUp}" }
+                throw e
+            }
+            handleDeleteError(e, lookup)
 
         } catch (e: Exception) {
-            handleUnknownError(
-                error = e,
-                context = ErrorContext.Delete(lookup, "Delete file/directory"),
-                workItem = item
-            )
+            handleDeleteError(e, lookup)
 
         } finally {
-            currentItemStartTime = null
-            onProgress?.invoke(progress)
+            // Force final progress report
+            if (progressTracker.shouldReportProgress(force = true)) {
+                reportProgress(lookup)
+            }
         }
     }
 
+    private suspend fun reportProgress(lookup: LocalPathLookup) {
+        val snapshot = progressTracker.createSnapshot()
 
-    private suspend fun processResolveIssue(item: WorkItem.ResolveIssue) {
-        val resolution = onIssue!!.invoke(item.issue)
-
-        when (item.issue) {
-            is PathActionIssue.InsufficientPermission -> {
-                when (val res = resolution as PathActionIssue.InsufficientPermission.Resolution) {
-                    is PathActionIssue.InsufficientPermission.Resolution.Cancel -> {
-                        throw CancellationException("User cancelled", item.exception)
-                    }
-
-                    is PathActionIssue.InsufficientPermission.Resolution.Skip -> {
-                        if (res.applyToAll) issueSkippAllPermission = true
-                        skipped.add(item.lookup)
-                        itemsProcessed++
-                    }
-                }
-            }
-
-            is PathActionIssue.UnknownError -> {
-                when (val res = resolution as PathActionIssue.UnknownError.Resolution) {
-                    is PathActionIssue.UnknownError.Resolution.Cancel -> {
-                        throw CancellationException("User cancelled", item.exception)
-                    }
-
-                    is PathActionIssue.UnknownError.Resolution.Retry -> {
-                        // Re-queue the original work item
-                        workQueue.addFirst(item.originalItem)
-                    }
-
-                    is PathActionIssue.UnknownError.Resolution.Skip -> {
-                        if (res.applyToAll) issueSkippAllUnknown = true
-                        skipped.add(item.lookup)
-                        itemsProcessed++
-                    }
-                }
-            }
-
-            else -> throw IllegalArgumentException("Unsupported issue type: ${item.issue}")
-        }
-    }
-
-    private fun createProgress(lookup: LocalPathLookup): DeleteAction.State.Progress<LocalPath, LocalPathLookup> {
-        return DeleteAction.State.Progress(
-            target = lookup,
-            primaryProgress = eu.darken.butler.common.progress.Progress.Data(
-                primary = R.string.general_delete_progress_title.toCaString(),
-                secondary = lookup.userReadablePath,
-                count = eu.darken.butler.common.progress.Progress.Count.Counter(
-                    current = itemsProcessed,
-                    max = totalItems
-                )
-            ),
-            secondaryProgress = null,
-            deletedBytes = deletedBytes,
-            totalBytes = totalBytes,
-            currentItemStartTime = currentItemStartTime
+        onProgress?.invoke(
+            DeleteAction.State.Progress(
+                target = lookup,
+                primaryProgress = eu.darken.butler.common.progress.Progress.Data(
+                    primary = R.string.general_delete_progress_title.toCaString(),
+                    secondary = lookup.userReadablePath,
+                    count = eu.darken.butler.common.progress.Progress.Count.Counter(
+                        current = snapshot.itemsProcessed,
+                        max = snapshot.totalItems
+                    )
+                ),
+                secondaryProgress = null,
+                deletedBytes = snapshot.processedBytes,
+                totalBytes = snapshot.totalBytes,
+                currentItemStartTime = snapshot.currentFileStartTime
+            )
         )
     }
 

@@ -1022,6 +1022,76 @@ class LocalPathMoveTest : BaseTest() {
         progressUpdates shouldNotBe emptyList<MoveAction.State.Progress<LocalPath, LocalPathLookup>>()
     }
 
+    @Test
+    fun `progress callbacks should be throttled to reduce UI spam`() = runTest {
+        // Given - file large enough to generate many chunks (64KB buffer = ~20 chunks)
+        val sourceFile = File(sourceFolder, "large.bin")
+        sourceFile.writeBytes(ByteArray(1024 * 1024 * 2)) // 2MB file
+
+        val progressTimestamps = mutableListOf<Long>()
+        val startTime = System.currentTimeMillis()
+
+        // When
+        LocalPath.build(sourceFile).move(
+            destination = LocalPath.build(destFolder),
+            onProgress = {
+                progressTimestamps.add(System.currentTimeMillis() - startTime)
+            }
+        )
+
+        // Then - should have significantly fewer callbacks than chunks (2MB / 64KB = ~32 chunks)
+        // With 250ms throttling, expect ~4-20 callbacks depending on speed
+        progressTimestamps.size should { it < 40 }
+
+        // Verify time intervals between callbacks (except possibly the last)
+        if (progressTimestamps.size > 2) {
+            val intervals = progressTimestamps.zipWithNext { a, b -> b - a }
+            // Most intervals should respect the 250ms throttle (allow some variance)
+            val throttledIntervals = intervals.dropLast(1).count { it >= 200 }
+            throttledIntervals should { it >= intervals.size / 2 }
+        }
+    }
+
+    @Test
+    fun `progress callbacks should fire for small files despite throttling`() = runTest {
+        // Given - small file that transfers quickly
+        val sourceFile = File(sourceFolder, "small.txt")
+        sourceFile.writeText("Small content")
+
+        var progressCallbackCalled = false
+
+        // When
+        LocalPath.build(sourceFile).move(
+            destination = LocalPath.build(destFolder),
+            onProgress = { progressCallbackCalled = true }
+        )
+
+        // Then - should still get at least one callback
+        progressCallbackCalled shouldBe true
+    }
+
+    @Test
+    fun `final progress callback should always fire immediately`() = runTest {
+        // Given
+        val sourceFile = File(sourceFolder, "test.bin")
+        sourceFile.writeBytes(ByteArray(512 * 1024)) // 512KB file
+
+        val progressUpdates = mutableListOf<Pair<Long, Long>>()
+
+        // When
+        LocalPath.build(sourceFile).move(
+            destination = LocalPath.build(destFolder),
+            onProgress = {
+                progressUpdates.add(it.movedBytes to it.totalBytes)
+            }
+        )
+
+        // Then - last callback should show 100% completion
+        progressUpdates shouldNotBe emptyList<Pair<Long, Long>>()
+        val (movedBytes, totalBytes) = progressUpdates.last()
+        movedBytes shouldBe totalBytes
+    }
+
     // ============ EDGE CASES ============
 
     @Test
