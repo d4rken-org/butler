@@ -434,6 +434,13 @@ internal class LocalPathCopy(
 
         log(TAG, VERBOSE) { "tryCreateDirectory(): $sourceLookup -> $adjustedDest" }
 
+        // Skip if source and destination are the same (no-op)
+        if (sourceLookup.lookedUp.path == adjustedDest.path) {
+            log(TAG, INFO) { "Skipping copy - source and destination are identical: ${sourceLookup.lookedUp}" }
+            itemsProcessed++
+            return
+        }
+
         try {
             onProgress?.invoke(createProgress(sourceLookup, adjustedDest))
 
@@ -595,6 +602,13 @@ internal class LocalPathCopy(
         val sourceLookup = item.sourceLookup
 
         log(TAG, VERBOSE) { "tryCopyFile(): $sourceLookup -> $adjustedDest" }
+
+        // Skip if source and destination are the same (no-op)
+        if (sourceLookup.lookedUp.path == adjustedDest.path) {
+            log(TAG, INFO) { "Skipping copy - source and destination are identical: ${sourceLookup.lookedUp}" }
+            itemsProcessed++
+            return
+        }
 
         try {
             // Set current file size for progress tracking

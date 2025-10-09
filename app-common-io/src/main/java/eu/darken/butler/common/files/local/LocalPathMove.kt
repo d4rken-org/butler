@@ -400,6 +400,13 @@ internal class LocalPathMove(
 
         log(TAG, VERBOSE) { "Creating directory: $sourceLookup -> $adjustedDest" }
 
+        // Skip if source and destination are the same (no-op)
+        if (sourceLookup.lookedUp.path == adjustedDest.path) {
+            log(TAG, INFO) { "Skipping move - source and destination are identical: ${sourceLookup.lookedUp}" }
+            itemsProcessed++
+            return
+        }
+
         try {
             onProgress?.invoke(createProgress(sourceLookup, adjustedDest))
 
@@ -538,6 +545,13 @@ internal class LocalPathMove(
         val sourceLookup = item.sourceLookup
 
         log(TAG, VERBOSE) { "Moving file: $sourceLookup -> $adjustedDest" }
+
+        // Skip if source and destination are the same (no-op)
+        if (sourceLookup.lookedUp.path == adjustedDest.path) {
+            log(TAG, INFO) { "Skipping move - source and destination are identical: ${sourceLookup.lookedUp}" }
+            itemsProcessed++
+            return
+        }
 
         try {
             currentFileSize = sourceLookup.size
