@@ -17,6 +17,7 @@ import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,6 +26,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -44,6 +46,7 @@ class BrowsingEngine @AssistedInject constructor(
     private val scope = CoroutineScope(dispatcherProvider.IO + CoroutineName(tag))
 
     private val targetFlow = MutableStateFlow<ExplorerNavigation.Target?>(null)
+    private val refreshTrigger = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     private val _location = MutableStateFlow<ExplorerLocation?>(null)
     val location: StateFlow<ExplorerLocation?> = _location.asStateFlow()
 
@@ -63,11 +66,17 @@ class BrowsingEngine @AssistedInject constructor(
                 }
             }
             .flatMapLatest { target ->
-                when (target) {
-                    is ExplorerNavigation.Target.Home -> homeLocationLoader.loadHome()
-                    is ExplorerNavigation.Target.Device -> deviceLocationLoader.loadDevice()
-                    is ExplorerNavigation.Target.Directory -> directoryLoader.loadDirectory(target.path)
-                }.flowOn(dispatcherProvider.IO)
+                // React to both initial navigation and refresh events
+                refreshTrigger
+                    .onStart { emit(Unit) }
+                    .onEach { log(tag) { "Loading/refreshing target: $target" } }
+                    .flatMapLatest {
+                        when (target) {
+                            is ExplorerNavigation.Target.Home -> homeLocationLoader.loadHome()
+                            is ExplorerNavigation.Target.Device -> deviceLocationLoader.loadDevice()
+                            is ExplorerNavigation.Target.Directory -> directoryLoader.loadDirectory(target.path)
+                        }.flowOn(dispatcherProvider.IO)
+                    }
             }
             .onEach { location ->
                 _location.value = location
@@ -160,7 +169,7 @@ class BrowsingEngine @AssistedInject constructor(
 
     fun refresh() {
         log(tag, INFO) { "refresh()" }
-        targetFlow.value?.let { targetFlow.value = it }
+        refreshTrigger.tryEmit(Unit)
     }
 
     fun release() {
