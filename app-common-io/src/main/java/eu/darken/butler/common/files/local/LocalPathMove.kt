@@ -255,7 +255,7 @@ internal class LocalPathMove(
         workQueue.addFirst(WorkItem.ResolveIssue(issue, workItem, exception))
     }
 
-    private fun processScan(item: WorkItem.ScanSource) {
+    private suspend fun processScan(item: WorkItem.ScanSource) {
         log(TAG, VERBOSE) { "Scanning source: ${item.source}" }
 
         val lookup = try {
@@ -287,6 +287,7 @@ internal class LocalPathMove(
                 try {
                     Files.newDirectoryStream(item.source.toNioPath()).use { ds ->
                         for (child in ds) {
+                            if (!currentCoroutineContext().isActive) return
                             val childPath = LocalPath.build(child.toFile())
                             val childDisplayPath =
                                 LocalPath.build(File(item.displayPath.file, child.fileName.toString()))
