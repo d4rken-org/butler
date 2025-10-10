@@ -45,6 +45,7 @@ import kotlin.time.Instant
 class SAFGateway @Inject constructor(
     @ApplicationContext private val context: Context,
     private val contentResolver: ContentResolver,
+    private val locationManager: SAFLocationManager,
     @AppScope private val appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
 ) : APathGateway<SAFPath, SAFPathLookup, SAFPathLookupExtended> {
@@ -61,18 +62,8 @@ class SAFGateway @Inject constructor(
      * SAFDocFiles need require a treeUri that actually gives us access though, i.e. the closet SAF permission we have.
      */
     private fun findDocFile(file: SAFPath): SAFDocFile {
-        val match = file.findPermission(contentResolver.persistedUriPermissions)
-
-        if (match == null) {
-            log(TAG, VERBOSE) { "No UriPermission match for $file" }
-            throw MissingUriPermissionException(path = file)
-        }
-
-        val targetTreeUri = SAFDocFile.buildTreeUri(
-            match.permission.uri,
-            match.missingSegments,
-        )
-        return SAFDocFile.fromTreeUri(context, contentResolver, targetTreeUri)
+        return locationManager.getDocFileFor(file)
+            ?: throw MissingUriPermissionException(path = file)
     }
 
     override suspend fun createFile(path: SAFPath): Unit = runIO {

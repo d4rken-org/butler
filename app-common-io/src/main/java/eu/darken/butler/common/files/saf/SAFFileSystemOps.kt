@@ -22,12 +22,14 @@ import kotlin.time.Instant
 /**
  * FileSystemOps implementation for SAFPath using Android Storage Access Framework.
  *
- * This class encapsulates all Android-specific dependencies (Context, ContentResolver,
- * UriPermissions) making SAF operations testable without Android framework.
+ * This class encapsulates all Android-specific dependencies (Context, ContentResolver)
+ * and uses SAFLocationManager for permission management, making SAF operations
+ * testable without Android framework.
  *
  * ## Key Innovation: Testability
  *
- * By wrapping Context/ContentResolver/UriPermissions in this class, we enable:
+ * By wrapping Context/ContentResolver in this class and delegating permission
+ * management to SAFLocationManager, we enable:
  * - **Unit testing without Android**: Use MockSAFFileSystemOps instead
  * - **Fast tests**: No ContentProvider initialization or file system access
  * - **Controlled tests**: Full control over mock behavior (permissions, errors, etc.)
@@ -35,7 +37,7 @@ import kotlin.time.Instant
  * ## How It Works
  *
  * All SAF logic that was scattered in SAFGateway is now centralized here:
- * 1. **Permission matching**: `findDocFile()` finds closest URI permission
+ * 1. **Permission matching**: Delegates to `SAFLocationManager.findPermissionFor()`
  * 2. **Document operations**: Uses DocumentsContract for all file operations
  * 3. **Stream access**: ContentResolver for reading/writing file contents
  *
@@ -46,7 +48,7 @@ import kotlin.time.Instant
  * val safOps = SAFFileSystemOps(
  *     context = context,
  *     contentResolver = contentResolver,
- *     uriPermissionsProvider = { contentResolver.persistedUriPermissions }
+ *     locationManager = safLocationManager
  * )
  * val lookup = safOps.lookup(safPath)
  *
@@ -58,37 +60,24 @@ import kotlin.time.Instant
  *
  * @param context Android context for SAFDocFile operations
  * @param contentResolver ContentResolver for document operations
- * @param uriPermissionsProvider Lambda providing current URI permissions (allows lazy evaluation)
+ * @param locationManager SAFLocationManager for permission checking and management
  */
 class SAFFileSystemOps(
     private val context: Context,
     private val contentResolver: ContentResolver,
-    private val uriPermissionsProvider: () -> List<UriPermission>
+    private val locationManager: SAFLocationManager
 ) : FileSystemOps<SAFPath, SAFPathLookup, SAFPathLookupExtended> {
 
     /**
      * Find DocumentFile for a SAFPath by matching against persisted URI permissions.
      *
      * This is the core of SAF access control - we need a URI permission that covers
-     * the requested path. This method finds the closest permission and builds a
-     * tree URI from it.
-     *
-     * Moved from SAFGateway.findDocFile()
+     * the requested path. This method finds the closest permission via SAFLocationManager
+     * and builds a tree URI from it.
      */
     private fun findDocFile(path: SAFPath): SAFDocFile {
-        val permissions = uriPermissionsProvider()
-        val match = path.findPermission(permissions)
-
-        if (match == null) {
-            log(TAG, VERBOSE) { "No UriPermission match for $path" }
-            throw MissingUriPermissionException(path = path)
-        }
-
-        val targetTreeUri = SAFDocFile.buildTreeUri(
-            match.permission.uri,
-            match.missingSegments,
-        )
-        return SAFDocFile.fromTreeUri(context, contentResolver, targetTreeUri)
+        return locationManager.getDocFileFor(path)
+            ?: throw MissingUriPermissionException(path = path)
     }
 
     override suspend fun lookup(path: SAFPath): SAFPathLookup {
