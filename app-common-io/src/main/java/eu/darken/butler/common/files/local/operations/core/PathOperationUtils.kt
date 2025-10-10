@@ -1,7 +1,6 @@
 package eu.darken.butler.common.files.local.operations.core
 
-import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
@@ -165,9 +164,27 @@ object PathOperationUtils {
         onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
     ) {
         if (!Files.exists(destination.toNioPath())) {
+            // Detect rename: single source with same parent directory as destination
+            // - Same parent = RENAME (e.g., /dir/old.txt → /dir/new.txt)
+            // - Different parent = MOVE (e.g., /dir1/file.txt → /dir2/ or /dir2/file.txt)
+            val isRename = sources.size == 1 &&
+                sources.first().file.parentFile?.absolutePath == destination.file.parentFile?.absolutePath
+            val parent = destination.file.parentFile
+
             try {
-                Files.createDirectories(destination.toNioPath())
-                log(TAG, DEBUG) { "Destination directory created: $destination" }
+                if (isRename && parent != null) {
+                    // Rename case: ensure parent directory exists, but don't create destination
+                    if (!parent.exists()) {
+                        Files.createDirectories(parent.toPath())
+                        log(TAG, DEBUG) { "Created parent directory for rename: $parent" }
+                    } else {
+                        log(TAG, DEBUG) { "Rename operation detected, parent exists: $parent" }
+                    }
+                } else {
+                    // Move-to-folder case: create destination as directory
+                    Files.createDirectories(destination.toNioPath())
+                    log(TAG, DEBUG) { "Destination directory created: $destination" }
+                }
             } catch (e: AccessDeniedException) {
                 throw eu.darken.butler.common.files.errors.WriteException(
                     path = destination,
@@ -215,7 +232,7 @@ object PathOperationUtils {
             }
             is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
                 log(TAG, DEBUG) { "Renaming existing file: $destination -> ${resolution.newName}" }
-                val newDestPath = LocalPath.build(java.io.File(destination.file.parentFile!!, resolution.newName))
+                val newDestPath = LocalPath.build(File(destination.file.parentFile!!, resolution.newName))
                 Files.move(destination.toNioPath(), newDestPath.toNioPath())
             }
             is PathActionIssue.PathAlreadyExists.Resolution.Cancel -> throw kotlin.coroutines.cancellation.CancellationException(

@@ -43,10 +43,23 @@ class SpaceValidator(
         log(TAG, DEBUG) { "Validating space: need $requiredBytes bytes" }
 
         while (currentCoroutineContext().isActive) {
-            @Suppress("UsableSpace")
-            val availableSpace = destination.file.usableSpace
+            // For rename operations (single source with same parent directory),
+            // check space on parent directory instead of non-existent destination
+            val isRename = sources.size == 1 &&
+                sources.first().file.parentFile?.absolutePath == destination.file.parentFile?.absolutePath
+            val spaceCheckFile = if (isRename) {
+                destination.file.absoluteFile.parentFile ?: destination.file
+            } else {
+                destination.file
+            }
 
-            log(TAG, DEBUG) { "Space check: need $requiredBytes bytes, available $availableSpace bytes" }
+            @Suppress("UsableSpace")
+            val availableSpace = spaceCheckFile.usableSpace
+
+            log(
+                TAG,
+                DEBUG
+            ) { "Space check: need $requiredBytes bytes, available $availableSpace bytes (from $spaceCheckFile)" }
 
             if (requiredBytes > availableSpace) {
                 log(TAG, WARN) { "Insufficient space: need $requiredBytes, have $availableSpace" }
@@ -62,9 +75,23 @@ class SpaceValidator(
                     destination.performLookup()
                 }
 
+                // For rename operations (single source + file-like destination),
+                // destination doesn't exist yet - use parent directory for lookup instead
+                val destinationLookup = if (isRename) {
+                    val parent = destination.file.absoluteFile.parentFile
+                    if (parent != null && parent.exists()) {
+                        LocalPath.build(parent).performLookup()
+                    } else {
+                        // No parent or doesn't exist? Fall back to destination
+                        destination.performLookup()
+                    }
+                } else {
+                    destination.performLookup()
+                }
+
                 val issue = PathActionIssue.InsufficientSpace(
                     source = sourceLookup,
-                    destination = destination.performLookup(),
+                    destination = destinationLookup,
                 )
 
                 when (issueResolver.resolveIssue(issue) as PathActionIssue.InsufficientSpace.Resolution) {

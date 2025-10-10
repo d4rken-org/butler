@@ -1686,6 +1686,76 @@ class LocalPathMoveTest : BaseTest() {
         result.bytesMoved shouldBe expectedBytes
     }
 
+    // ============ FILE RENAME OPERATIONS ============
+
+    @Test
+    fun `rename file in same directory`() = runTest {
+        // Given
+        val sourceFile = File(sourceFolder, "original.txt")
+        sourceFile.writeText("Content")
+        val sourcePath = LocalPath.build(sourceFile.absoluteFile)
+
+        // Destination is a FILE path (not a directory)
+        val destPath = LocalPath.build(sourceFolder.absoluteFile).child("renamed.txt")
+
+        // When
+        val result = sourcePath.move(destPath)
+
+        // Then
+        val renamedFile = File(sourceFolder, "renamed.txt")
+        renamedFile.exists() shouldBe true
+        renamedFile.isFile shouldBe true
+        renamedFile.isDirectory shouldBe false // NOT a directory!
+        renamedFile.readText() shouldBe "Content"
+        sourceFile.exists() shouldBe false
+        result.movedFiles shouldContain (sourcePath to destPath)
+    }
+
+    @Test
+    fun `rename file with extension change`() = runTest {
+        // Given
+        val sourceFile = File(sourceFolder, "document.txt")
+        sourceFile.writeText("Markdown content")
+        val sourcePath = LocalPath.build(sourceFile.absoluteFile)
+
+        // Destination with different extension
+        val destPath = LocalPath.build(sourceFolder.absoluteFile).child("document.md")
+
+        // When
+        val result = sourcePath.move(destPath)
+
+        // Then
+        val destFile = File(sourceFolder, "document.md")
+        destFile.exists() shouldBe true
+        destFile.isFile shouldBe true
+        destFile.readText() shouldBe "Markdown content"
+        sourceFile.exists() shouldBe false
+        result.movedFiles shouldContain (sourcePath to destPath)
+    }
+
+    @Test
+    fun `rename directory in same parent`() = runTest {
+        // Given
+        val sourceDir = File(sourceFolder, "OldName")
+        sourceDir.mkdir()
+        File(sourceDir, "file.txt").writeText("Content")
+        val sourcePath = LocalPath.build(sourceDir.absoluteFile)
+
+        // Destination is a directory path with new name
+        val destPath = LocalPath.build(sourceFolder.absoluteFile).child("NewName")
+
+        // When
+        val result = sourcePath.move(destPath)
+
+        // Then
+        val destDir = File(sourceFolder, "NewName")
+        destDir.exists() shouldBe true
+        destDir.isDirectory shouldBe true
+        File(destDir, "file.txt").exists() shouldBe true
+        sourceDir.exists() shouldBe false
+        result.movedFiles shouldHaveSize 2 // directory + file
+    }
+
     // ============ ADDITIONAL COVERAGE TESTS ============
 
     @Test

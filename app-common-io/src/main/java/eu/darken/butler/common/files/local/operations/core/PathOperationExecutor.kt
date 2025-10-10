@@ -54,6 +54,11 @@ class PathOperationExecutor(
     private val transferred = linkedSetOf<Pair<LocalPath, LocalPath>>()
     private val skipped = linkedSetOf<LocalPath>()
 
+    // Detect rename operation: single source with same parent directory as destination
+    // For rename, destination IS the final path, not a parent directory to append to
+    private val isRename = sources.size == 1 &&
+        sources.first().file.parentFile?.absolutePath == destination.file.parentFile?.absolutePath
+
     // Track renamed and skipped directories
     private val skippedSourceDirs = mutableSetOf<LocalPath>()
     private val renamedSourceDirs = mutableMapOf<LocalPath, LocalPath>()
@@ -137,13 +142,22 @@ class PathOperationExecutor(
         }
 
         // Calculate destination path
-        val relativePath = if (item.displayPath == item.topLevelSource) {
-            item.topLevelSource.name
+        val destinationPath = if (isRename && item.displayPath == item.topLevelSource) {
+            // For rename of top-level source, destination IS the final path - don't append source name
+            destination
         } else {
-            val segments = item.topLevelSource.relativeSegmentsTo(item.displayPath)
-            item.topLevelSource.name + File.separator + segments.joinToString(File.separator)
+            // For move/copy (or children of renamed directories), append source path relative to top-level source
+            val relativePath = if (item.displayPath == item.topLevelSource) {
+                item.topLevelSource.name
+            } else {
+                val segments = item.topLevelSource.relativeSegmentsTo(item.displayPath)
+                // For renamed top-level, use destination name as base; otherwise use source name
+                val baseName = if (isRename) destination.name else item.topLevelSource.name
+                baseName + File.separator + segments.joinToString(File.separator)
+            }
+            val baseDir = if (isRename) destination.file.parentFile else destination.file
+            LocalPath.build(File(baseDir ?: destination.file, relativePath.trimStart('/')))
         }
-        val destinationPath = LocalPath.build(File(destination.file, relativePath.trimStart('/')))
 
         when (lookup.fileType) {
             FileType.DIRECTORY -> {
