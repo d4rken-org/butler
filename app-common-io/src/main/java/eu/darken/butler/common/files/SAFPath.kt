@@ -2,7 +2,7 @@ package eu.darken.butler.common.files
 
 import android.net.Uri
 import androidx.annotation.Keep
-import androidx.core.net.toUri
+import eu.darken.butler.common.SafUri
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.files.extensions.joinSegments
@@ -19,11 +19,20 @@ data class SAFPath(
     override val segments: List<String>,
 ) : APath {
 
+    /**
+     * Pure Kotlin SafUri representation of tree root (framework-independent).
+     */
+    val treeRootSafUri: SafUri
+        get() = SafUri.parse(treeRoot)
+
+    /**
+     * Android Uri representation of tree root (for framework API boundaries).
+     */
     val treeRootUri: Uri
-        get() = treeRoot.toUri()
+        get() = treeRootSafUri.toAndroidUri()
 
     init {
-        val paths = treeRootUri.pathSegments
+        val paths = treeRootSafUri.pathSegments
         require(paths.size >= 2 && "tree" == paths[0]) { "SAFFile URI's must be a tree uri: $treeRoot" }
     }
 
@@ -32,7 +41,7 @@ data class SAFPath(
 
     override val userReadablePath: CaString
         get() {
-            val treeRootPath = treeRootUri.path
+            val treeRootPath = treeRootSafUri.path
             return when {
                 treeRootPath?.startsWith("/tree/primary") == true -> caString {
                     "/storage/emulated/0/${segments.joinSegments("/")}"
@@ -48,28 +57,28 @@ data class SAFPath(
         }
 
     override val path: String
-        get() = "${File.separator}${(treeRootUri.pathSegments + segments).joinToString(File.separator)}"
+        get() = "${File.separator}${(treeRootSafUri.pathSegments + segments).joinToString(File.separator)}"
 
     val pathUri: Uri
         get() {
             if (segments.isEmpty()) return treeRootUri
 
             val uriString = StringBuilder(treeRoot).apply {
-                append("%3A") // Uri.encode(":")
+                append("%3A") // SafUri.encode(":")
                 segments.forEach {
-                    append(Uri.encode(it))
+                    append(SafUri.encode(it))
                     if (it != segments.last()) {
-                        append("%2F") // Uri.encode(File.separator)
+                        append("%2F") // SafUri.encode(File.separator)
                     }
                 }
             }
-            return uriString.toString().toUri()
+            return SafUri.parse(uriString.toString()).toAndroidUri()
         }
 
     override val name: String
         get() = when {
             segments.isNotEmpty() -> segments.last()
-            else -> treeRootUri.pathSegments.last().split('/').last()
+            else -> treeRootSafUri.pathSegments.last().split('/').last()
         }
 
     override fun child(vararg segments: String): SAFPath {

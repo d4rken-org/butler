@@ -1,6 +1,5 @@
 package eu.darken.butler.common.files
 
-import android.net.Uri
 import eu.darken.butler.common.files.saf.SAFDocFile
 import eu.darken.butler.common.files.saf.SAFPathLookup
 import eu.darken.butler.common.serialization.SerializationIOModule
@@ -10,15 +9,10 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.mockk
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.ListSerializer
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
+import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.json.toComparableJson
 
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [29])
 class SAFPathTest : BaseTest() {
 
     val testUri = "content://com.android.externalstorage.documents/tree/primary%3Asafstor"
@@ -85,7 +79,7 @@ class SAFPathTest : BaseTest() {
     @Test
     fun `test must be tree uri`() {
         shouldThrow<IllegalArgumentException> {
-            SAFPath.Companion.build(Uri.parse("abc"))
+            SAFPath.build("abc")
         }
     }
 
@@ -161,23 +155,23 @@ class SAFPathTest : BaseTest() {
 
     @Test
     fun `user readable path mapping`() {
-        SAFPath.Companion.build(
-            Uri.parse("content://com.android.externalstorage.documents/tree/primary%3Asafstor"),
+        SAFPath.build(
+            "content://com.android.externalstorage.documents/tree/primary%3Asafstor",
             "seg1",
             "seg2",
         ).userReadablePath.get(mockk()) shouldBe "/storage/emulated/0/seg1/seg2"
-        SAFPath.Companion.build(
-            Uri.parse("content://com.android.externalstorage.documents/tree/primary"),
+        SAFPath.build(
+            "content://com.android.externalstorage.documents/tree/primary",
             "seg1",
             "seg2",
         ).userReadablePath.get(mockk()) shouldBe "/storage/emulated/0/seg1/seg2"
-        SAFPath.Companion.build(
-            Uri.parse("content://com.android.externalstorage.documents/tree/3135-3132%3Asafstor"),
+        SAFPath.build(
+            "content://com.android.externalstorage.documents/tree/3135-3132%3Asafstor",
             "seg1",
             "seg2",
         ).userReadablePath.get(mockk()) shouldBe "/storage/3135-3132/seg1/seg2"
-        SAFPath.Companion.build(
-            Uri.parse("content://com.android.externalstorage.documents/tree/3135-3132"),
+        SAFPath.build(
+            "content://com.android.externalstorage.documents/tree/3135-3132",
             "seg1",
             "seg2",
         ).userReadablePath.get(mockk()) shouldBe "/storage/3135-3132/seg1/seg2"

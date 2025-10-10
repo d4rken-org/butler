@@ -16,10 +16,8 @@ class SAFGatewayTest {
     @Test
     fun `init`() = runTest2(autoCancel = true) {
         val dispatcherProvider = TestDispatcherProvider()
-        val safGateway = SAFGateway(
-            context = mockk(),
-            contentResolver = mockk(),
-            locationManager = mockk(),
+        SAFGateway(
+            fileSystemOps = mockk(),
             appScope = this,
             dispatcherProvider = dispatcherProvider
         )

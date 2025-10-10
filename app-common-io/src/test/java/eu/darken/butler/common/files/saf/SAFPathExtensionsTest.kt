@@ -1,6 +1,5 @@
 package eu.darken.butler.common.files.saf
 
-import android.net.Uri
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.extensions.isAncestorOf
 import eu.darken.butler.common.files.extensions.isChildOf
@@ -13,14 +12,9 @@ import eu.darken.butler.common.files.extensions.startsWith
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
+import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [29])
 class SAFPathExtensionsTest : BaseTest() {
     private val baseTreeUri = "content://com.android.externalstorage.documents/tree/primary%3A"
 
@@ -57,21 +51,23 @@ class SAFPathExtensionsTest : BaseTest() {
         crumbs shouldBe arrayOf()
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun `test crumbsTo needs same root`() {
-        val parent = SAFPath.build(testUri1, "/the/parent/")
-        val child = SAFPath.build(testUri2, "/the/parent/has/a/child/")
+        shouldThrow<IllegalArgumentException> {
+            val parent = SAFPath.build(testUri1, "/the/parent/")
+            val child = SAFPath.build(testUri2, "/the/parent/has/a/child/")
 
-        parent.crumbsTo(child)
+            parent.crumbsTo(child)
+        }
     }
 
     @Test
     fun `test storage root detection`() {
-        val nonRoot = Uri.parse("content://com.android.externalstorage.documents/tree/primary%3Asafstor")
+        val nonRoot = "content://com.android.externalstorage.documents/tree/primary%3Asafstor"
         SAFPath.build(nonRoot).isStorageRoot shouldBe false
         SAFPath.build(nonRoot, "crumb1").isStorageRoot shouldBe false
 
-        val root = Uri.parse("content://com.android.externalstorage.documents/tree/primary%3A")
+        val root = "content://com.android.externalstorage.documents/tree/primary%3A"
         SAFPath.build(root).isStorageRoot shouldBe true
         SAFPath.build(root, "crumb1").isStorageRoot shouldBe false
     }
@@ -254,7 +250,7 @@ class SAFPathExtensionsTest : BaseTest() {
 
     @Test
     fun `startsWith operator`() {
-        val baseUri = Uri.parse("content://com.android.externalstorage.documents/tree/4BBD-D3E7")
+        val baseUri = "content://com.android.externalstorage.documents/tree/4BBD-D3E7"
         val file1 = SAFPath.build(baseUri, "Android", "data", "eu.darken.octi")
         val file2 = SAFPath.build(baseUri, "Android", "data", "eu.darken.octi", "files")
 

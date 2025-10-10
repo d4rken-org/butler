@@ -69,28 +69,27 @@ data class SafUri internal constructor(
     /**
      * URI path segments, decoded.
      *
-     * For SAF URIs like `content://authority/tree/primary%3Afolder%2Ffile`,
-     * returns: ["tree", "primary", "folder", "file"]
+     * For URIs like `content://authority/tree/primary%3Afolder`,
+     * returns: ["tree", "primary:folder"]
      *
-     * The encoded colon (%3A) and slash (%2F) are treated as segment separators.
+     * Matches Android Uri.getPathSegments() behavior - only splits on `/`, not on `:`.
      */
     val pathSegments: List<String>
         get() {
             val path = path ?: return emptyList()
             if (path.isEmpty() || path == "/") return emptyList()
 
-            // Decode the entire path first
-            val decoded = decode(path)
-
-            // Split by both forward slash and colon (SAF uses colon as separator)
-            return decoded
+            // Split only by forward slash (not colon) to match Android Uri behavior
+            return path
                 .removePrefix("/")
-                .split('/', ':')
+                .split('/')
                 .filter { it.isNotEmpty() }
         }
 
     /**
-     * Raw URI path (everything after authority, before query/fragment)
+     * Decoded URI path (everything after authority, before query/fragment).
+     *
+     * Returns the path with URL decoding applied, matching Android Uri.getPath() behavior.
      */
     val path: String?
         get() {
@@ -98,9 +97,9 @@ data class SafUri internal constructor(
             val afterScheme = rawUri.substringAfter("://")
             if (!afterScheme.contains("/")) return null
 
-            val pathAndRest = afterScheme.substringAfter("/", "")
+            val pathAndRest = afterScheme.substringAfter("/")
             val pathPart = pathAndRest.substringBefore("?").substringBefore("#")
-            return if (pathPart.isNotEmpty()) "/$pathPart" else null
+            return "/" + decode(pathPart)
         }
 
     /**

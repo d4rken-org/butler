@@ -166,7 +166,7 @@ data class SAFDocFile(
         false
     }
 
-    fun setPermissions(permissions: Permissions): Boolean = openPFD(resolver, FileMode.WRITE).use { pfd ->
+    fun setPermissions(permissions: Permissions): Boolean = openPFD(FileMode.WRITE).use { pfd ->
         try {
             Os.fchmod(pfd.fileDescriptor, permissions.mode)
             true
@@ -176,7 +176,7 @@ data class SAFDocFile(
         }
     }
 
-    fun setOwnership(ownership: Ownership): Boolean = openPFD(resolver, FileMode.WRITE).use { pfd ->
+    fun setOwnership(ownership: Ownership): Boolean = openPFD(FileMode.WRITE).use { pfd ->
         try {
             Os.fchown(pfd.fileDescriptor, ownership.userId.toInt(), ownership.groupId.toInt())
             true
@@ -188,7 +188,7 @@ data class SAFDocFile(
 
     fun fstat(): StructStat? {
         return try {
-            val pfd = openPFD(resolver, FileMode.READ)
+            val pfd = openPFD(FileMode.READ)
             pfd.use { Os.fstat(pfd.fileDescriptor) }
         } catch (e: Exception) {
             log(SAFGateway.TAG, WARN) { "Failed to fstat SAFPath: $this: ${e.asLog()}" }
@@ -196,8 +196,8 @@ data class SAFDocFile(
         }
     }
 
-    fun openPFD(contentResolver: ContentResolver, mode: FileMode): ParcelFileDescriptor {
-        return contentResolver.openFileDescriptor(uri, mode.value) ?: throw IOException("Couldn't open $uri")
+    fun openPFD(mode: FileMode): ParcelFileDescriptor {
+        return resolver.openFileDescriptor(uri, mode.value) ?: throw IOException("Couldn't open $uri")
     }
 
     private fun hasPermission(

@@ -1,10 +1,6 @@
 package eu.darken.butler.common.files.saf
 
-import android.content.ContentResolver
-import android.content.Context
 import android.content.Intent
-import android.provider.DocumentsContract
-import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.Bugs
@@ -18,13 +14,11 @@ import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.errors.ReadException
-import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
 import eu.darken.butler.common.files.metadata.FileSystemInfo
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
-import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.sharedresource.SharedResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -44,9 +38,7 @@ import kotlin.time.Instant
 
 @Singleton
 class SAFGateway @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val contentResolver: ContentResolver,
-    private val locationManager: SAFLocationManager,
+    private val fileSystemOps: SAFFileSystemOps,
     @AppScope private val appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
 ) : APathGateway<SAFPath, SAFPathLookup, SAFPathLookupExtended> {
@@ -57,216 +49,58 @@ class SAFGateway @Inject constructor(
         block: suspend CoroutineScope.() -> T
     ): T = withContext(dispatcherProvider.IO) { block() }
 
-    /**
-     * SAFPaths have a normalized treeUri, e.g.:
-     * content://com.android.externalstorage.documents/tree/primary
-     * SAFDocFiles need require a treeUri that actually gives us access though, i.e. the closet SAF permission we have.
-     */
-    private fun findDocFile(file: SAFPath): SAFDocFile {
-        return locationManager.getDocFileFor(file)
-            ?: throw MissingUriPermissionException(path = file)
-    }
-
     override suspend fun createFile(path: SAFPath): Unit = runIO {
-        val docFile = findDocFile(path)
-        log(TAG, VERBOSE) { "createFile(): $path -> $docFile" }
-        if (docFile.exists) throw WriteException("File already exists", path)
-
-        try {
-            createDocumentFile(FILE_TYPE_DEFAULT, path)
-        } catch (e: Exception) {
-            log(TAG, WARN) { "createFile($path) failed: ${e.asLog()}" }
-            throw WriteException(path = path, cause = e)
-        }
+        fileSystemOps.createFile(path)
     }
 
     override suspend fun createDir(path: SAFPath): Unit = runIO {
-        val docFile = findDocFile(path)
-        log(TAG, VERBOSE) { "createDir(): $path -> $docFile" }
-        if (docFile.exists) throw WriteException("Directory already exists", path)
-
-        try {
-            createDocumentFile(DIR_TYPE, path)
-        } catch (e: Exception) {
-            log(TAG, WARN) { "createDir($path) failed: ${e.asLog()}" }
-            throw WriteException(path = path, cause = e)
-        }
-    }
-
-    private fun createDocumentFile(mimeType: String, targetSafPath: SAFPath): SAFDocFile {
-        if (targetSafPath.segments.isEmpty()) {
-            throw IllegalArgumentException("Can't create file/dir on treeRoot without segments!")
-        }
-        val targetName = targetSafPath.segments.last()
-
-        val targetParentDocFile: SAFDocFile = targetSafPath.segments
-            .mapIndexed { index, segment ->
-                val segmentSafPath = targetSafPath.copy(
-                    segments = targetSafPath.segments.drop(targetSafPath.segments.size - index)
-                )
-                val segmentDocFile = findDocFile(segmentSafPath)
-                if (!segmentDocFile.exists) {
-                    log(TAG) { "Create parent folder $segmentSafPath" }
-                    segmentDocFile.createDirectory(segment)
-                }
-
-                segmentDocFile
-            }
-            .last()
-
-        val existing = targetParentDocFile.findFile(targetName)
-
-        check(existing == null) { "File already exists: ${existing?.uri}" }
-
-        val targetDocFile = if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
-            targetParentDocFile.createDirectory(targetName)
-        } else {
-            targetParentDocFile.createFile(mimeType, targetName)
-        }
-        require(targetName == targetDocFile.name) {
-            "Unexpected name change: Wanted $targetName, but got ${targetDocFile.name}"
-        }
-
-        log(TAG) { "createDocumentFile(mimeType=$mimeType, targetSafPath=$targetSafPath" }
-        return targetDocFile
+        fileSystemOps.createDir(path)
     }
 
     override suspend fun listFiles(path: SAFPath): List<SAFPath> = runIO {
-        try {
-            val docFile = findDocFile(path)
-            log(TAG, VERBOSE) { "listFiles(): $path -> $docFile" }
-            docFile.listFiles().map {
-                val name = it.name ?: it.uri.pathSegments.last().split('/').last()
-                path.child(name)
-            }
-        } catch (e: Exception) {
-            log(TAG, WARN) { "listFiles($path) failed." }
-            throw ReadException(path = path, cause = e)
-        }
+        fileSystemOps.listFiles(path)
     }
 
     override suspend fun exists(path: SAFPath): Boolean = runIO {
-        try {
-            val docFile = findDocFile(path)
-            log(TAG, VERBOSE) { "exists(): $path -> $docFile" }
-            docFile.exists
-        } catch (e: Exception) {
-            throw ReadException(path = path, cause = e)
-        }
+        fileSystemOps.exists(path)
     }
 
     override suspend fun canWrite(path: SAFPath): Boolean = runIO {
-        try {
-            val docFile = findDocFile(path)
-            log(TAG, VERBOSE) { "canWrite(): $path -> $docFile" }
-            docFile.writable
-        } catch (e: MissingUriPermissionException) {
-            false
-        } catch (e: Exception) {
-            throw ReadException(path = path, cause = e)
-        }
+        fileSystemOps.canWrite(path)
     }
 
     override suspend fun canRead(path: SAFPath): Boolean = runIO {
-        try {
-            val docFile = findDocFile(path)
-            log(TAG, VERBOSE) { "canRead(): $path -> $docFile" }
-            docFile.readable
-        } catch (e: MissingUriPermissionException) {
-            false
-        } catch (e: Exception) {
-            throw ReadException(path = path, cause = e)
-        }
+        fileSystemOps.canRead(path)
     }
 
     override suspend fun delete(path: SAFPath): Boolean = runIO {
-        try {
-            val docFile = findDocFile(path)
-            log(TAG, VERBOSE) { "delete(): $path -> $docFile" }
-            docFile.delete()
-        } catch (e: Exception) {
-            throw WriteException(path = path, cause = e)
-        }
+        fileSystemOps.delete(path)
     }
 
     override suspend fun openInputStream(path: SAFPath): InputStream = runIO {
-        try {
-            val docFile = findDocFile(path)
-            log(TAG, VERBOSE) { "openInputStream(): $path -> $docFile" }
-
-            if (!docFile.readable) {
-                throw IOException("readable=false")
-            }
-
-            contentResolver.openInputStream(docFile.uri)
-                ?: throw IOException("Couldn't open input stream for $path")
-        } catch (e: Exception) {
-            log(TAG, WARN) { "openInputStream($path) failed: ${e.asLog()}" }
-            throw ReadException(path = path, cause = e)
-        }
+        fileSystemOps.openInputStream(path)
     }
 
     override suspend fun openOutputStream(path: SAFPath, append: Boolean): OutputStream = runIO {
-        try {
-            val docFile = findDocFile(path)
-            log(TAG, VERBOSE) { "openOutputStream(append=$append): $path -> $docFile" }
-
-            if (!docFile.writable) {
-                throw IOException("writable=false")
-            }
-
-            val mode = if (append) "wa" else "w"
-            contentResolver.openOutputStream(docFile.uri, mode)
-                ?: throw IOException("Couldn't open output stream for $path")
-        } catch (e: Exception) {
-            log(TAG, WARN) { "openOutputStream($path, append=$append) failed: ${e.asLog()}" }
-            throw WriteException(path = path, cause = e)
-        }
+        fileSystemOps.openOutputStream(path, append)
     }
 
     override suspend fun lookup(path: SAFPath): SAFPathLookup = runIO {
-        try {
-            val docFile = findDocFile(path)
-            log(TAG, VERBOSE) { "lookup($path) -> $docFile" }
-
-            if (!docFile.readable) throw IOException("readable=false")
-
-            SAFPathLookup(
-                lookedUp = path,
-                docFile = docFile,
-            ).also {
-                if (Bugs.isTrace) log(TAG, VERBOSE) { "Looked up: $it" }
-            }
-        } catch (e: Exception) {
-            log(TAG, WARN) { "lookup($path) failed." }
-            throw ReadException(path = path, cause = e)
+        fileSystemOps.lookup(path).also {
+            if (Bugs.isTrace) log(TAG, VERBOSE) { "Looked up: $it" }
         }
     }
 
     override suspend fun lookupExtended(path: SAFPath): SAFPathLookupExtended = runIO {
-        try {
-            val basicLookup = lookup(path)
-            log(TAG, VERBOSE) { "lookupExtended($path)" }
-
-            SAFPathLookupExtended(lookup = basicLookup).also {
-                if (Bugs.isTrace) log(TAG, VERBOSE) { "Looked up extended: $it" }
-            }
-        } catch (e: Exception) {
-            log(TAG, WARN) { "lookupExtended($path) failed." }
-            throw ReadException(path = path, cause = e)
+        fileSystemOps.lookupExtended(path).also {
+            if (Bugs.isTrace) log(TAG, VERBOSE) { "Looked up extended: $it" }
         }
     }
 
     override suspend fun lookupFiles(path: SAFPath): List<SAFPathLookup> = runIO {
         try {
-            val docFile = findDocFile(path)
-            log(TAG, VERBOSE) { "lookupFiles($path) -> $docFile" }
-
-            docFile.listFiles()
-                .map {
-                    val name = it.name ?: it.uri.pathSegments.last().split('/').last()
-                    path.child(name)
-                }
+            log(TAG, VERBOSE) { "lookupFiles($path)" }
+            listFiles(path)
                 .map { lookup(it) }
                 .also {
                     if (Bugs.isTrace) {
@@ -282,16 +116,9 @@ class SAFGateway @Inject constructor(
 
     override suspend fun lookupFilesExtended(path: SAFPath): List<SAFPathLookupExtended> = runIO {
         try {
-            val docFile = findDocFile(path)
-            log(TAG, VERBOSE) { "lookupFilesExtended($path) -> $docFile" }
-
-            docFile.listFiles()
-                .map {
-                    val name = it.name ?: it.uri.pathSegments.last().split('/').last()
-                    path.child(name)
-                }
-                .map { lookup(it) }
-                .map { SAFPathLookupExtended(it) }
+            log(TAG, VERBOSE) { "lookupFilesExtended($path)" }
+            listFiles(path)
+                .map { lookupExtended(it) }
                 .also {
                     if (Bugs.isTrace) {
                         log(TAG, VERBOSE) { "Looked up ${it.size} items:" }
@@ -394,13 +221,13 @@ class SAFGateway @Inject constructor(
 
     override suspend fun file(path: SAFPath, readWrite: Boolean): FileHandle = runIO {
         try {
-            val docFile = findDocFile(path)
-            log(TAG, VERBOSE) { "file(readWrite0$readWrite): $path -> $docFile" }
+            val lookup = fileSystemOps.lookup(path)
+            log(TAG, VERBOSE) { "file(readWrite=$readWrite): $path" }
 
-            if (readWrite && !docFile.writable) throw IOException("writable=false")
-            else if (!docFile.readable) throw IOException("readable=false")
+            if (readWrite && !lookup.docFile.writable) throw IOException("writable=false")
+            else if (!lookup.docFile.readable) throw IOException("readable=false")
 
-            val pfd = docFile.openPFD(contentResolver, if (readWrite) FileMode.READ_WRITE else FileMode.READ)
+            val pfd = lookup.docFile.openPFD(if (readWrite) FileMode.READ_WRITE else FileMode.READ)
             pfd.toFileHandle(readWrite)
         } catch (e: Exception) {
             log(TAG, WARN) { "Failed to access from $path: ${e.asLog()}" }
@@ -409,37 +236,19 @@ class SAFGateway @Inject constructor(
     }
 
     override suspend fun setModifiedAt(path: SAFPath, modifiedAt: Instant): Boolean = runIO {
-        try {
-            val docFile = findDocFile(path)
-            log(TAG, VERBOSE) { "setModifiedAt(): $path -> $docFile" }
-            docFile.setLastModified(modifiedAt)
-        } catch (e: Exception) {
-            throw WriteException(path = path, cause = e)
-        }
+        fileSystemOps.setModifiedAt(path, modifiedAt)
     }
 
     override suspend fun setPermissions(path: SAFPath, permissions: Permissions): Boolean = runIO {
-        try {
-            val docFile = findDocFile(path)
-            log(TAG, VERBOSE) { "setPermissions(): $path -> $docFile" }
-            docFile.setPermissions(permissions)
-        } catch (e: Exception) {
-            throw WriteException(path = path, cause = e)
-        }
+        fileSystemOps.setPermissions(path, permissions)
     }
 
     override suspend fun setOwnership(path: SAFPath, ownership: Ownership): Boolean = runIO {
-        try {
-            val docFile = findDocFile(path)
-            log(TAG, VERBOSE) { "setOwnership(): $path -> $docFile" }
-            docFile.setOwnership(ownership)
-        } catch (e: Exception) {
-            throw WriteException(path = path, cause = e)
-        }
+        fileSystemOps.setOwnership(path, ownership)
     }
 
-    override suspend fun createSymlink(linkPath: SAFPath, targetPath: SAFPath): Boolean {
-        throw UnsupportedOperationException("SAF doesn't support symlinks. createSymlink(linkPath=$linkPath, targetPath=$targetPath)")
+    override suspend fun createSymlink(linkPath: SAFPath, targetPath: SAFPath): Boolean = runIO {
+        fileSystemOps.createSymlink(linkPath, targetPath)
     }
 
     override suspend fun getInfo(path: SAFPath): FileSystemInfo {
@@ -520,7 +329,5 @@ class SAFGateway @Inject constructor(
         val TAG = logTag("Gateway", "SAF")
 
         const val RW_FLAGSINT = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-        private const val DIR_TYPE: String = DocumentsContract.Document.MIME_TYPE_DIR
-        private const val FILE_TYPE_DEFAULT: String = "application/octet-stream"
     }
 }

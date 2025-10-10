@@ -15,19 +15,26 @@ class SafUriTest {
     }
 
     @Test
+    fun `path is decoded`() {
+        val uri = SafUri.parse("content://authority/tree/3135-3132%3Asafstor")
+
+        uri.path shouldBe "/tree/3135-3132:safstor"
+    }
+
+    @Test
     fun `parse SAF tree URI with encoded path`() {
         val uri = SafUri.parse("content://com.android.externalstorage.documents/tree/primary%3Asafstor")
 
         uri.scheme shouldBe "content"
         uri.authority shouldBe "com.android.externalstorage.documents"
-        uri.pathSegments shouldBe listOf("tree", "primary", "safstor")
+        uri.pathSegments shouldBe listOf("tree", "primary:safstor")
     }
 
     @Test
     fun `parse SAF tree URI with complex encoded path`() {
         val uri = SafUri.parse("content://com.android.externalstorage.documents/tree/primary%3Afolder%2Fsubfolder%2Ffile")
 
-        uri.pathSegments shouldBe listOf("tree", "primary", "folder", "subfolder", "file")
+        uri.pathSegments shouldBe listOf("tree", "primary:folder", "subfolder", "file")
     }
 
     @Test
@@ -36,7 +43,7 @@ class SafUriTest {
 
         uri.scheme shouldBe "content"
         uri.authority shouldBe "com.android.externalstorage.documents"
-        uri.pathSegments shouldBe listOf("tree", "3135-3132", "safstor")
+        uri.pathSegments shouldBe listOf("tree", "3135-3132:safstor")
     }
 
     @Test
@@ -96,7 +103,7 @@ class SafUriTest {
     fun `pathSegments handles multiple separators`() {
         val uri = SafUri.parse("content://authority/tree/primary%3Afolder1%2Ffolder2")
 
-        uri.pathSegments shouldBe listOf("tree", "primary", "folder1", "folder2")
+        uri.pathSegments shouldBe listOf("tree", "primary:folder1", "folder2")
     }
 
     @Test
@@ -130,14 +137,14 @@ class SafUriTest {
     fun `real world SAF URI examples`() {
         // Primary storage root
         SafUri.parse("content://com.android.externalstorage.documents/tree/primary%3A")
-            .pathSegments shouldBe listOf("tree", "primary")
+            .pathSegments shouldBe listOf("tree", "primary:")
 
         // SD card with path
         SafUri.parse("content://com.android.externalstorage.documents/tree/4BBD-D3E7%3AAndroid%2Fdata")
-            .pathSegments shouldBe listOf("tree", "4BBD-D3E7", "Android", "data")
+            .pathSegments shouldBe listOf("tree", "4BBD-D3E7:Android", "data")
 
         // Deep nested path
         SafUri.parse("content://com.android.externalstorage.documents/tree/primary%3ADownload%2Ftest%2Ffile.txt")
-            .pathSegments shouldBe listOf("tree", "primary", "Download", "test", "file.txt")
+            .pathSegments shouldBe listOf("tree", "primary:Download", "test", "file.txt")
     }
 }
