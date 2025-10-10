@@ -19,6 +19,7 @@ import eu.darken.butler.common.files.extensions.isFile
 import eu.darken.butler.common.files.metadata.FileSystemInfo
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
+import eu.darken.butler.common.files.saf.SAFFileSystemOps.*
 import eu.darken.butler.common.sharedresource.SharedResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -38,8 +39,8 @@ import kotlin.time.Instant
 
 @Singleton
 class SAFGateway @Inject constructor(
-    private val fileSystemOps: SAFFileSystemOps,
     @AppScope private val appScope: CoroutineScope,
+    private val fileSystemOps: SAFFileSystemOps,
     private val dispatcherProvider: DispatcherProvider,
 ) : APathGateway<SAFPath, SAFPathLookup, SAFPathLookupExtended> {
 
@@ -221,13 +222,12 @@ class SAFGateway @Inject constructor(
 
     override suspend fun file(path: SAFPath, readWrite: Boolean): FileHandle = runIO {
         try {
-            val lookup = fileSystemOps.lookup(path)
             log(TAG, VERBOSE) { "file(readWrite=$readWrite): $path" }
 
-            if (readWrite && !lookup.docFile.writable) throw IOException("writable=false")
-            else if (!lookup.docFile.readable) throw IOException("readable=false")
+            if (readWrite && !fileSystemOps.canWrite(path)) throw IOException("writable=false")
+            else if (!fileSystemOps.canRead(path)) throw IOException("readable=false")
 
-            val pfd = lookup.docFile.openPFD(if (readWrite) FileMode.READ_WRITE else FileMode.READ)
+            val pfd = fileSystemOps.openPFD(path, if (readWrite) FileMode.READ_WRITE else FileMode.READ)
             pfd.toFileHandle(readWrite)
         } catch (e: Exception) {
             log(TAG, WARN) { "Failed to access from $path: ${e.asLog()}" }

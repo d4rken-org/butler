@@ -20,6 +20,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.io.useQuietly
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
+import eu.darken.butler.common.files.saf.SAFFileSystemOps.*
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -237,6 +238,7 @@ data class SAFDocFile(
             null
         }
     }
+
 
     override fun toString(): String {
         return "SAFDocFile(uri=$uri)"

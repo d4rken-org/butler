@@ -1,8 +1,9 @@
 package eu.darken.butler.common.files.saf
 
 import android.content.ContentResolver
-import android.content.Context
+import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
+import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -10,6 +11,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.operations.FileSystemOps
@@ -17,6 +19,8 @@ import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.time.Instant
 
 /**
@@ -62,8 +66,8 @@ import kotlin.time.Instant
  * @param contentResolver ContentResolver for document operations
  * @param locationManager SAFLocationManager for permission checking and management
  */
-class SAFFileSystemOps(
-    private val context: Context,
+@Singleton
+class SAFFileSystemOps @Inject constructor(
     private val contentResolver: ContentResolver,
     private val locationManager: SAFLocationManager
 ) : FileSystemOps<SAFPath, SAFPathLookup, SAFPathLookupExtended> {
@@ -76,23 +80,30 @@ class SAFFileSystemOps(
      * and builds a tree URI from it.
      */
     private fun findDocFile(path: SAFPath): SAFDocFile {
-        return locationManager.getDocFileFor(path)
-            ?: throw MissingUriPermissionException(path = path)
+        val docFile = locationManager.getDocFileFor(path)
+        if (Bugs.isTrace) log(TAG, VERBOSE) { "findDocFile() $path -> $docFile" }
+        return docFile ?: throw MissingUriPermissionException(path = path)
+    }
+
+    private fun SAFPath.performLookup(): Pair<SAFDocFile, SAFPathLookup> {
+        val docFile = findDocFile(this)
+
+        if (!docFile.readable) throw IOException("readable=false")
+
+        return docFile to SAFPathLookup(
+            lookedUp = this,
+            fileType = when {
+                docFile.isDirectory -> FileType.DIRECTORY
+                else -> FileType.FILE
+            },
+            size = docFile.length,
+            modifiedAt = docFile.lastModified,
+        )
     }
 
     override suspend fun lookup(path: SAFPath): SAFPathLookup {
         return try {
-            val docFile = findDocFile(path)
-            log(TAG, VERBOSE) { "lookup($path) -> $docFile" }
-
-            if (!docFile.readable) {
-                throw IOException("readable=false")
-            }
-
-            SAFPathLookup(
-                lookedUp = path,
-                docFile = docFile,
-            )
+            path.performLookup().second
         } catch (e: Exception) {
             log(TAG, WARN) { "lookup($path) failed." }
             throw ReadException(path = path, cause = e)
@@ -101,11 +112,17 @@ class SAFFileSystemOps(
 
     override suspend fun lookupExtended(path: SAFPath): SAFPathLookupExtended {
         return try {
-            val basicLookup = lookup(path)
             log(TAG, VERBOSE) { "lookupExtended($path)" }
+            val (docFile, lookup) = path.performLookup()
 
-            // SAFPathLookupExtended wraps basic lookup and lazily fetches fstat if available
-            SAFPathLookupExtended(lookup = basicLookup)
+            val fstat = docFile.fstat()
+
+            SAFPathLookupExtended(
+                lookup = lookup,
+                ownership = fstat?.let { Ownership(it.st_uid.toLong(), it.st_gid.toLong()) },
+                permissions = fstat?.let { Permissions(it.st_mode) },
+                createdAt = null,
+            )
         } catch (e: Exception) {
             log(TAG, WARN) { "lookupExtended($path) failed." }
             throw ReadException(path = path, cause = e)
@@ -323,6 +340,14 @@ class SAFFileSystemOps(
         } catch (e: Exception) {
             false
         }
+    }
+
+    fun openPFD(path: SAFPath, mode: FileMode): ParcelFileDescriptor {
+        return findDocFile(path).openPFD(mode)
+    }
+
+    enum class FileMode(val value: String) {
+        READ_WRITE("rw"), WRITE("w"), READ("r")
     }
 
     companion object {

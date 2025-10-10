@@ -12,11 +12,9 @@ import eu.darken.butler.common.files.extensions.segs
 import eu.darken.butler.common.files.extensions.startsWith
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.common.files.saf.SAFDocFile
 import eu.darken.butler.common.files.saf.SAFPathLookup
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import io.mockk.mockk
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -64,11 +62,15 @@ class APathExtensionTest : BaseTest() {
 
         val lookup1: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "test", "file1"),
-            docFile = mockk<SAFDocFile>(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         val lookup2: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "test", "file2"),
-            docFile = mockk<SAFDocFile>(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         file1.matches(file1) shouldBe true
         file1.matches(file2) shouldBe false
@@ -94,7 +96,9 @@ class APathExtensionTest : BaseTest() {
         )
         val lookup2: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "test", "file2"),
-            docFile = mockk<SAFDocFile>(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
         file1.matches(file2) shouldBe false
@@ -150,11 +154,15 @@ class APathExtensionTest : BaseTest() {
 
         val lookup1: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent"),
-            docFile = mockk<SAFDocFile>(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         val lookup2: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent", "child", "niece"),
-            docFile = mockk<SAFDocFile>(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
         file1.isAncestorOf(file1) shouldBe false
@@ -191,7 +199,9 @@ class APathExtensionTest : BaseTest() {
         )
         val lookup2: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent", "child", "niece"),
-            docFile = mockk<SAFDocFile>(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
         file1.matches(file2) shouldBe false
@@ -247,11 +257,15 @@ class APathExtensionTest : BaseTest() {
 
         val lookup1: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent"),
-            docFile = mockk<SAFDocFile>(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         val lookup2: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent", "child", "niece"),
-            docFile = mockk<SAFDocFile>(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
         file1.isDescendantOf(file1) shouldBe false
@@ -288,7 +302,9 @@ class APathExtensionTest : BaseTest() {
         )
         val lookup2: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent", "child", "niece"),
-            docFile = mockk<SAFDocFile>(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
         file1.matches(file2) shouldBe false
@@ -346,11 +362,15 @@ class APathExtensionTest : BaseTest() {
 
         val lookup1: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent"),
-            docFile = mockk<SAFDocFile>(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         val lookup2: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent", "child"),
-            docFile = mockk<SAFDocFile>(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
         file1.isParentOf(file1) shouldBe false
@@ -387,7 +407,9 @@ class APathExtensionTest : BaseTest() {
         )
         val lookup2: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent", "child"),
-            docFile = mockk<SAFDocFile>(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
         file1.matches(file2)
@@ -443,11 +465,15 @@ class APathExtensionTest : BaseTest() {
 
         val lookup1: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent"),
-            docFile = mockk<SAFDocFile>(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         val lookup2: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent", "child"),
-            docFile = mockk<SAFDocFile>(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
         file1.isChildOf(file1) shouldBe false
@@ -484,7 +510,9 @@ class APathExtensionTest : BaseTest() {
         )
         val lookup2: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent", "child"),
-            docFile = mockk<SAFDocFile>(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
         file1.isChildOf(file2)
@@ -541,11 +569,15 @@ class APathExtensionTest : BaseTest() {
 
         val lookup1: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent", "chi"),
-            docFile = mockk<SAFDocFile>(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         val lookup2: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent", "child"),
-            docFile = mockk<SAFDocFile>(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
         file1.startsWith(file1) shouldBe true
@@ -582,7 +614,9 @@ class APathExtensionTest : BaseTest() {
         )
         val lookup2: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent", "child"),
-            docFile = mockk<SAFDocFile>(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
         file1.startsWith(file2)
@@ -633,11 +667,15 @@ class APathExtensionTest : BaseTest() {
         val pre: APath = SAFPath.build(treeUri, "pre")
         val prefixLookup: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "pre", "fix"),
-            docFile = mockk<SAFDocFile>(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         val preLookup: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "pre"),
-            docFile = mockk<SAFDocFile>(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
         prefix.removePrefix(prefix) shouldBe segs()
@@ -715,11 +753,15 @@ class APathExtensionTest : BaseTest() {
         val pre: APath = SAFPath.build(treeUri, "prefix", "overlap")
         val prefixLookup: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "prefix", "overlap", "folder"),
-            docFile = mockk(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         val preLookup: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "prefix", "overlap"),
-            docFile = mockk(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
         prefix.removePrefix(prefix, overlap = 1) shouldBe segs("folder")

@@ -9,11 +9,12 @@ import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.common.files.extensions.removePrefix
 import eu.darken.butler.common.files.extensions.segs
 import eu.darken.butler.common.files.extensions.startsWith
+import eu.darken.butler.common.files.metadata.FileType
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import kotlin.time.Instant
 
 class SAFPathExtensionsTest : BaseTest() {
     private val baseTreeUri = "content://com.android.externalstorage.documents/tree/primary%3A"
@@ -90,11 +91,15 @@ class SAFPathExtensionsTest : BaseTest() {
 
         val lookup1 = SAFPathLookup(
             lookedUp = SAFPath.build(testUri1, "seg1", "seg2"),
-            docFile = mockk(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         val lookup2 = SAFPathLookup(
             lookedUp = SAFPath.build(testUri1, "seg1", "alt"),
-            docFile = mockk(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         file1.matches(file1) shouldBe true
         file1.matches(file2) shouldBe false
@@ -115,11 +120,15 @@ class SAFPathExtensionsTest : BaseTest() {
 
         val lookup1 = SAFPathLookup(
             lookedUp = SAFPath.build(baseTreeUri, "parent"),
-            docFile = mockk(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         val lookup2 = SAFPathLookup(
             lookedUp = SAFPath.build(baseTreeUri, "parent", "child", "niece"),
-            docFile = mockk(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
         file1.isAncestorOf(file1) shouldBe false
@@ -150,11 +159,15 @@ class SAFPathExtensionsTest : BaseTest() {
 
         val lookup1 = SAFPathLookup(
             lookedUp = SAFPath.build(baseTreeUri, "parent"),
-            docFile = mockk(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         val lookup2 = SAFPathLookup(
             lookedUp = SAFPath.build(baseTreeUri, "parent", "child", "niece"),
-            docFile = mockk(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
         file1.isDescendantOf(file1) shouldBe false
@@ -185,11 +198,15 @@ class SAFPathExtensionsTest : BaseTest() {
 
         val lookup1 = SAFPathLookup(
             lookedUp = SAFPath.build(baseTreeUri, "parent"),
-            docFile = mockk(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         val lookup2 = SAFPathLookup(
             lookedUp = SAFPath.build(baseTreeUri, "parent", "child"),
-            docFile = mockk(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
         file1.isParentOf(file1) shouldBe false
@@ -220,11 +237,15 @@ class SAFPathExtensionsTest : BaseTest() {
 
         val lookup1 = SAFPathLookup(
             lookedUp = SAFPath.build(baseTreeUri, "parent"),
-            docFile = mockk(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         val lookup2 = SAFPathLookup(
             lookedUp = SAFPath.build(baseTreeUri, "parent", "child"),
-            docFile = mockk(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
         file1.isChildOf(file1) shouldBe false
@@ -269,11 +290,15 @@ class SAFPathExtensionsTest : BaseTest() {
 
         val lookup1 = SAFPathLookup(
             lookedUp = SAFPath.build(baseTreeUri, "chi"),
-            docFile = mockk(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         val lookup2 = SAFPathLookup(
             lookedUp = SAFPath.build(baseTreeUri, "child"),
-            docFile = mockk(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
         file1.startsWith(file1) shouldBe true
@@ -302,11 +327,15 @@ class SAFPathExtensionsTest : BaseTest() {
         val pre = SAFPath.build(baseTreeUri, "pre")
         val prefixLookup = SAFPathLookup(
             lookedUp = SAFPath.build(baseTreeUri, "pre", "fix"),
-            docFile = mockk(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         val preLookup = SAFPathLookup(
             lookedUp = SAFPath.build(baseTreeUri, "pre"),
-            docFile = mockk(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
         prefix.removePrefix(prefix) shouldBe segs()
@@ -333,11 +362,15 @@ class SAFPathExtensionsTest : BaseTest() {
         val pre = SAFPath.build(baseTreeUri, "prefix", "overlap")
         val prefixLookup = SAFPathLookup(
             lookedUp = SAFPath.build(baseTreeUri, "prefix", "overlap", "folder"),
-            docFile = mockk(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         val preLookup = SAFPathLookup(
             lookedUp = SAFPath.build(baseTreeUri, "prefix", "overlap"),
-            docFile = mockk(),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
         prefix.removePrefix(prefix, overlap = 0) shouldBe prefix.removePrefix(prefix)

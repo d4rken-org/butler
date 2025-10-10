@@ -1,6 +1,6 @@
 package eu.darken.butler.common.files
 
-import eu.darken.butler.common.files.saf.SAFDocFile
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.saf.SAFPathLookup
 import eu.darken.butler.common.serialization.SerializationIOModule
 import io.kotest.assertions.throwables.shouldThrow
@@ -12,6 +12,7 @@ import kotlinx.serialization.builtins.ListSerializer
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.json.toComparableJson
+import kotlin.time.Instant
 
 class SAFPathTest : BaseTest() {
 
@@ -106,47 +107,27 @@ class SAFPathTest : BaseTest() {
     fun `lookup comparison`() {
         val lookup1a = SAFPathLookup(
             lookedUp = SAFPath.build(testUri, "seg1", "seg2"),
-            docFile = mockk<SAFDocFile>().apply {
-//                fileType = FileType.FILE,
-//                size = 16,
-//                modifiedAt = Instant.EPOCH,
-//                ownership = null,
-//                permissions = null,
-//                target = null,
-            }
+            fileType = FileType.FILE,
+            size = 16,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         val lookup1b = SAFPathLookup(
             lookedUp = SAFPath.build(testUri, "seg1", "seg2"),
-            docFile = mockk<SAFDocFile>().apply {
-//                fileType = FileType.FILE,
-//                size = 8,
-//                modifiedAt = Instant.ofEpochMilli(123),
-//                ownership = Ownership(1, 1),
-//                permissions = Permissions(444),
-//                target = null,
-            }
+            fileType = FileType.FILE,
+            size = 8,
+            modifiedAt = Instant.fromEpochMilliseconds(123),
         )
         val lookup1c = SAFPathLookup(
-            SAFPath.build(testUri, "seg1", "seg2"),
-            docFile = mockk<SAFDocFile>().apply {
-//                fileType = FileType.DIRECTORY,
-//                size = 16,
-//                modifiedAt = Instant.EPOCH,
-//                ownership = null,
-//                permissions = null,
-//                target = null,
-            }
+            lookedUp = SAFPath.build(testUri, "seg1", "seg2"),
+            fileType = FileType.DIRECTORY,
+            size = 16,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         val lookup2 = SAFPathLookup(
             lookedUp = SAFPath.build(testUri, "seg1", "test"),
-            docFile = mockk<SAFDocFile>().apply {
-//                fileType = FileType.FILE,
-//                size = 16,
-//                modifiedAt = Instant.EPOCH,
-//                ownership = null,
-//                permissions = null,
-//                target = null,
-            }
+            fileType = FileType.FILE,
+            size = 16,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         lookup1a shouldNotBe lookup1b
         lookup1a shouldNotBe lookup1c

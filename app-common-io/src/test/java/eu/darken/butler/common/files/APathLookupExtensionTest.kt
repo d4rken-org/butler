@@ -5,11 +5,8 @@ import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.common.files.saf.SAFDocFile
 import eu.darken.butler.common.files.saf.SAFPathLookup
 import io.kotest.matchers.shouldBe
-import io.mockk.every
-import io.mockk.mockk
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -46,17 +43,15 @@ class APathLookupExtensionTest : BaseTest() {
     @Test fun `match operator - SAFPath`() {
         val lookup1: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "test", "file1"),
-            docFile = mockk<SAFDocFile>().apply {
-                every { isDirectory } returns true
-                every { isFile } returns false
-            }
+            fileType = FileType.DIRECTORY,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         val lookup2: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "test", "file2"),
-            docFile = mockk<SAFDocFile>().apply {
-                every { isFile } returns true
-                every { isDirectory } returns false
-            }
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         lookup1.isDirectory shouldBe true
         lookup1.isFile shouldBe false
@@ -81,17 +76,15 @@ class APathLookupExtensionTest : BaseTest() {
         )
         val lookup2: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "test", "file2"),
-            docFile = mockk<SAFDocFile>().apply {
-                every { isFile } returns true
-                every { isDirectory } returns false
-            }
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         val lookup2s: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "test", "file2", "sub"),
-            docFile = mockk<SAFDocFile>().apply {
-                every { isFile } returns true
-                every { isDirectory } returns false
-            }
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
         )
         setOf(lookup1, lookup1s, lookup2, lookup2s).filterDistinctRoots() shouldBe setOf(lookup1, lookup2)
     }

@@ -1,6 +1,5 @@
 package eu.darken.butler.common.files.saf
 
-import android.net.Uri
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.operations.MockFileSystemOps
@@ -131,7 +130,7 @@ class MockSAFFileSystemOps : MockFileSystemOps<SAFPath, SAFPathLookup, SAFPathLo
             ?: throw java.nio.file.NoSuchFileException(path.path)
 
         // Create a mock SAFDocFile with the necessary properties
-        val mockDocFile = mockk<SAFDocFile>(relaxed = true) {
+        mockk<SAFDocFile>(relaxed = true) {
             every { uri } returns path.pathUri
             every { name } returns path.name
             every { isDirectory } returns (mockFile.type == FileType.DIRECTORY)
@@ -145,7 +144,9 @@ class MockSAFFileSystemOps : MockFileSystemOps<SAFPath, SAFPathLookup, SAFPathLo
 
         return SAFPathLookup(
             lookedUp = path,
-            docFile = mockDocFile,
+            fileType = mockFile.type,
+            size = mockFile.size,
+            modifiedAt = mockFile.modifiedAt ?: Instant.fromEpochMilliseconds(0),
         )
     }
 
@@ -156,7 +157,12 @@ class MockSAFFileSystemOps : MockFileSystemOps<SAFPath, SAFPathLookup, SAFPathLo
         }
 
         val basicLookup = lookup(path)
-        return SAFPathLookupExtended(lookup = basicLookup)
+        return SAFPathLookupExtended(
+            lookup = basicLookup,
+            ownership = null,
+            permissions = null,
+            createdAt = null,
+        )
     }
 
     override suspend fun lookupFiles(path: SAFPath): List<SAFPathLookup> {

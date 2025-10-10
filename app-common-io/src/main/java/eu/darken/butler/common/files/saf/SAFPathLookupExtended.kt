@@ -9,16 +9,7 @@ import kotlin.time.Instant
 
 data class SAFPathLookupExtended(
     val lookup: SAFPathLookup,
-) : APathLookupExtended<SAFPath>, APathLookup<SAFPath> by lookup {
-
-    private val fstat by lazy { lookup.docFile.fstat() }
-    override val ownership: Ownership? by lazy {
-        fstat?.let { Ownership(it.st_uid.toLong(), it.st_gid.toLong()) }
-    }
-    override val permissions: Permissions? by lazy {
-        fstat?.let { Permissions(it.st_mode) }
-    }
-
-    // TODO support basic attributes and get creation time?
-    override val createdAt: Instant? = null
-}
+    override val ownership: Ownership?,
+    override val permissions: Permissions?,
+    override val createdAt: Instant?,
+) : APathLookupExtended<SAFPath>, APathLookup<SAFPath> by lookup
