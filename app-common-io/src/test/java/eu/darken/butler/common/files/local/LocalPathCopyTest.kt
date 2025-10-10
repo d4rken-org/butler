@@ -875,18 +875,32 @@ class LocalPathCopyTest : BaseTest() {
     }
 
     @Test
-    fun `copy to non-existent destination creates it`() = runTest {
+    fun `copy to non-existent destination - should throw`() = runTest {
         // Given
         val sourceFile = File(sourceFolder, "file.txt")
         sourceFile.writeText("content")
         val nonExistentDest = File(testFolder, "new-dest")
 
+        // When/Then - destination doesn't exist, should fail
+        shouldThrow<WriteException> {
+            LocalPath.build(sourceFile).copy(LocalPath.build(nonExistentDest))
+        }
+    }
+
+    @Test
+    fun `copy to existing destination - should succeed`() = runTest {
+        // Given
+        val sourceFile = File(sourceFolder, "file.txt")
+        sourceFile.writeText("content")
+        val existingDest = File(testFolder, "existing-dest")
+        existingDest.mkdirs()
+
         // When
-        LocalPath.build(sourceFile).copy(LocalPath.build(nonExistentDest))
+        LocalPath.build(sourceFile).copy(LocalPath.build(existingDest))
 
         // Then
-        nonExistentDest.exists() shouldBe true
-        File(nonExistentDest, "file.txt").exists() shouldBe true
+        File(existingDest, "file.txt").exists() shouldBe true
+        sourceFile.exists() shouldBe true // Source still exists after copy
     }
 
     @Test

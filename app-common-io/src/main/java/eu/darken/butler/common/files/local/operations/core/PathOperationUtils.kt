@@ -181,9 +181,11 @@ object PathOperationUtils {
                         log(TAG, DEBUG) { "Rename operation detected, parent exists: $parent" }
                     }
                 } else {
-                    // Move-to-folder case: create destination as directory
-                    Files.createDirectories(destination.toNioPath())
-                    log(TAG, DEBUG) { "Destination directory created: $destination" }
+                    // Move/copy to different parent: destination must exist
+                    throw eu.darken.butler.common.files.errors.WriteException(
+                        path = destination,
+                        cause = java.io.IOException("Destination directory does not exist: ${destination.path}")
+                    )
                 }
             } catch (e: AccessDeniedException) {
                 throw eu.darken.butler.common.files.errors.WriteException(

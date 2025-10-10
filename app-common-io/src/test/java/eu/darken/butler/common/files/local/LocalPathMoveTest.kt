@@ -353,19 +353,32 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move to non-existent destination - creates destination`() = runTest {
+    fun `move to non-existent destination - should throw`() = runTest {
         // Given
         val sourceFile = File(sourceFolder, "test.txt")
         sourceFile.writeText("Content")
 
         val nonExistentDest = File(testFolder, "non-existent-dest")
 
+        // When/Then - destination doesn't exist, should fail
+        shouldThrow<WriteException> {
+            LocalPath.build(sourceFile).move(LocalPath.build(nonExistentDest))
+        }
+    }
+
+    @Test
+    fun `move to existing destination - should succeed`() = runTest {
+        // Given
+        val sourceFile = File(sourceFolder, "test.txt")
+        sourceFile.writeText("Content")
+        val existingDest = File(testFolder, "existing-dest")
+        existingDest.mkdirs()
+
         // When
-        LocalPath.build(sourceFile).move(LocalPath.build(nonExistentDest))
+        LocalPath.build(sourceFile).move(LocalPath.build(existingDest))
 
         // Then
-        nonExistentDest.exists() shouldBe true
-        File(nonExistentDest, "test.txt").exists() shouldBe true
+        File(existingDest, "test.txt").exists() shouldBe true
         sourceFile.exists() shouldBe false
     }
 
