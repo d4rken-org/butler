@@ -1,4 +1,4 @@
-package eu.darken.butler.common.files.saf
+package eu.darken.butler.common.files.saf.location
 
 import android.content.ContentResolver
 import android.content.Context
@@ -8,10 +8,11 @@ import android.net.Uri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.saf.SAFDocFile
 import eu.darken.butler.common.rngString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -51,7 +52,7 @@ class SAFLocationManagerImpl @Inject constructor(
                 try {
                     createSAFLocation(permission, prefs)
                 } catch (e: Exception) {
-                    log(TAG, WARN) { "Failed to create SAFLocation from $permission: $e" }
+                    log(TAG, Logging.Priority.WARN) { "Failed to create SAFLocation from $permission: $e" }
                     null
                 }
             }
@@ -101,7 +102,7 @@ class SAFLocationManagerImpl @Inject constructor(
             log(TAG) { "Successfully granted permission for $treeUri" }
             refresh()
         } catch (e: SecurityException) {
-            log(TAG, ERROR) { "Failed to take persistable URI permission: $e" }
+            log(TAG, Logging.Priority.ERROR) { "Failed to take persistable URI permission: $e" }
             throw e
         }
     }
@@ -122,10 +123,10 @@ class SAFLocationManagerImpl @Inject constructor(
                 )
                 log(TAG) { "Successfully revoked permission for ${permission.uri}" }
             } catch (e: SecurityException) {
-                log(TAG, WARN) { "Failed to release persistable URI permission: $e" }
+                log(TAG, Logging.Priority.WARN) { "Failed to release persistable URI permission: $e" }
             }
         } else {
-            log(TAG, WARN) { "No permission found for locationId=$locationId" }
+            log(TAG, Logging.Priority.WARN) { "No permission found for locationId=$locationId" }
         }
 
         // Remove user preferences
@@ -134,18 +135,13 @@ class SAFLocationManagerImpl @Inject constructor(
     }
 
     override suspend fun setLocationLabel(locationId: String, label: String?) {
-        log(TAG, VERBOSE) { "setLocationLabel(locationId=$locationId, label=$label)" }
+        log(TAG, Logging.Priority.VERBOSE) { "setLocationLabel(locationId=$locationId, label=$label)" }
         preferences.updateLocationPreference(locationId) { it.copy(userLabel = label) }
     }
 
     override suspend fun setLocationHidden(locationId: String, hidden: Boolean) {
-        log(TAG, VERBOSE) { "setLocationHidden(locationId=$locationId, hidden=$hidden)" }
+        log(TAG, Logging.Priority.VERBOSE) { "setLocationHidden(locationId=$locationId, hidden=$hidden)" }
         preferences.updateLocationPreference(locationId) { it.copy(isHidden = hidden) }
-    }
-
-    override suspend fun setLocationPinned(locationId: String, pinned: Boolean) {
-        log(TAG, VERBOSE) { "setLocationPinned(locationId=$locationId, pinned=$pinned)" }
-        preferences.updateLocationPreference(locationId) { it.copy(isPinned = pinned) }
     }
 
     override suspend fun refresh() {
@@ -174,7 +170,6 @@ class SAFLocationManagerImpl @Inject constructor(
             grantedAt = Instant.fromEpochMilliseconds(permission.persistedTime),
             userLabel = userPrefs?.userLabel,
             isHidden = userPrefs?.isHidden ?: false,
-            isPinned = userPrefs?.isPinned ?: false,
         )
     }
 
@@ -228,6 +223,6 @@ class SAFLocationManagerImpl @Inject constructor(
     }
 
     companion object {
-        private val TAG = logTag("SAF", "LocationManager")
+        private val TAG = logTag("SAF", "Location", "Manager")
     }
 }

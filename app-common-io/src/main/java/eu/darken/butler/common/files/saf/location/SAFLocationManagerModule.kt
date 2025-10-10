@@ -1,4 +1,4 @@
-package eu.darken.butler.common.files.saf
+package eu.darken.butler.common.files.saf.location
 
 import dagger.Binds
 import dagger.Module

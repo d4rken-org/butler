@@ -1,11 +1,9 @@
-package eu.darken.butler.common.files.saf
+package eu.darken.butler.common.files.saf.location
 
 import android.net.Uri
-import eu.darken.butler.common.ca.CaString
-import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.saf.SAFDocFile
 import kotlinx.coroutines.flow.Flow
-import kotlin.time.Instant
 
 /**
  * Manages SAF (Storage Access Framework) granted permissions and user preferences.
@@ -135,15 +133,6 @@ interface SAFLocationManager {
      */
     suspend fun setLocationHidden(locationId: String, hidden: Boolean)
 
-    /**
-     * Pin a location to the top of the list.
-     *
-     * Pinned locations appear first in getGrantedLocations().
-     *
-     * @param locationId The location ID
-     * @param pinned true to pin, false to unpin
-     */
-    suspend fun setLocationPinned(locationId: String, pinned: Boolean)
 
     /**
      * Manually trigger refresh of locations.
@@ -153,90 +142,3 @@ interface SAFLocationManager {
      */
     suspend fun refresh()
 }
-
-/**
- * Represents a granted SAF location with user preferences.
- *
- * Each location corresponds to a persisted URI permission granted by
- * the Android system via the Storage Access Framework.
- */
-data class SAFLocation(
-    /**
-     * Stable identifier for this location.
-     * Based on the tree URI to ensure consistency.
-     */
-    val id: String,
-
-    /**
-     * Tree URI as string (e.g., "content://com.android.externalstorage.documents/tree/primary")
-     */
-    val treeUri: String,
-
-    /**
-     * The SAF path representing this location's root
-     */
-    val path: SAFPath,
-
-    /**
-     * Whether we have read permission
-     */
-    val hasReadPermission: Boolean,
-
-    /**
-     * Whether we have write permission
-     */
-    val hasWritePermission: Boolean,
-
-    /**
-     * When the permission was first granted
-     */
-    val grantedAt: Instant,
-
-    // --- User Preferences ---
-
-    /**
-     * User-provided custom label (e.g., "My SD Card", "Work Files")
-     */
-    val userLabel: String? = null,
-
-    /**
-     * Whether this location is hidden from the UI
-     */
-    val isHidden: Boolean = false,
-
-    /**
-     * Whether this location is pinned to the top of the list
-     */
-    val isPinned: Boolean = false,
-) {
-    /**
-     * Display name for UI: user label if set, otherwise path's readable name
-     */
-    val displayName: CaString
-        get() = userLabel?.toCaString() ?: path.userReadableName
-
-    /**
-     * Whether this location has both read and write access
-     */
-    val hasFullAccess: Boolean
-        get() = hasReadPermission && hasWritePermission
-}
-
-/**
- * Result of finding a permission match for a SAF path.
- *
- * Contains the matching location and the path segments that need to be
- * traversed from the permission's root to reach the target path.
- */
-data class SAFPermissionMatch(
-    /**
-     * The SAF location that provides permission for the requested path
-     */
-    val location: SAFLocation,
-
-    /**
-     * Path segments from the permission root to the target path.
-     * Empty list if the target path is exactly at the permission root.
-     */
-    val missingSegments: List<String>,
-)

@@ -1,4 +1,4 @@
-package eu.darken.butler.common.files.saf
+package eu.darken.butler.common.files.saf.location
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -11,7 +11,6 @@ import eu.darken.butler.common.datastore.PreferenceStoreMapper
 import eu.darken.butler.common.datastore.createValue
 import eu.darken.butler.common.debug.logging.logTag
 import kotlinx.coroutines.flow.first
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -28,7 +27,7 @@ class SAFLocationPreferences @Inject constructor(
     private val json: Json,
 ) : PreferenceScreenData {
 
-    private val Context.dataStore by preferencesDataStore(name = "settings_saf_locations")
+    private val Context.dataStore by preferencesDataStore(name = "settings_saf")
 
     override val dataStore: DataStore<Preferences>
         get() = context.dataStore
@@ -77,32 +76,7 @@ class SAFLocationPreferences @Inject constructor(
     )
 
     companion object {
-        internal val TAG = logTag("SAF", "Preferences")
+        internal val TAG = logTag("SAF", "Location", "Preferences")
     }
 }
 
-/**
- * User preferences for a single SAF location
- */
-@Serializable
-data class LocationPreference(
-    /**
-     * Location ID (matches SAFLocation.id)
-     */
-    val locationId: String,
-
-    /**
-     * User-provided custom label (null = use default name)
-     */
-    val userLabel: String? = null,
-
-    /**
-     * Whether this location is hidden from the UI
-     */
-    val isHidden: Boolean = false,
-
-    /**
-     * Whether this location is pinned to the top
-     */
-    val isPinned: Boolean = false,
-)
