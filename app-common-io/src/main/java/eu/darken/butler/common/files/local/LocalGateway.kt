@@ -8,7 +8,6 @@ import eu.darken.butler.common.adb.canUseAdbNow
 import eu.darken.butler.common.adb.service.runModuleAction
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -18,7 +17,6 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
-import eu.darken.butler.common.files.core.local.createSymlink
 import eu.darken.butler.common.files.core.local.isReadable
 import eu.darken.butler.common.files.core.local.listFiles2
 import eu.darken.butler.common.files.core.local.parentsInclusive
@@ -33,10 +31,7 @@ import eu.darken.butler.common.files.local.walkers.IndirectLocalWalker
 import eu.darken.butler.common.files.metadata.FileSystemInfo
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
-import eu.darken.butler.common.funnel.IPCFunnel
 import eu.darken.butler.common.hasApiLevel
-import eu.darken.butler.common.ipc.fileHandle
-import eu.darken.butler.common.pkgs.pkgops.LibcoreTool
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.root.RootUnavailableException
 import eu.darken.butler.common.root.canUseRootNow
@@ -54,13 +49,10 @@ import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import okio.FileHandle
 import okio.buffer
-import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.nio.file.Files
 import java.nio.file.NoSuchFileException
-import java.nio.file.StandardOpenOption
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Instant
@@ -68,10 +60,9 @@ import kotlin.time.Instant
 @Suppress("BlockingMethodInNonBlockingContext")
 @Singleton
 class LocalGateway @Inject constructor(
-    private val ipcFunnel: IPCFunnel,
-    private val libcoreTool: LibcoreTool,
     @AppScope private val appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
+    private val fileSystemOps: LocalFileSystemOps,
     private val storageEnvironment: StorageEnvironment,
     private val rootManager: RootManager,
     private val adbManager: AdbManager,
@@ -109,52 +100,18 @@ class LocalGateway @Inject constructor(
 
     suspend fun createDir(path: LocalPath, mode: Mode = Mode.AUTO): Unit = runIO {
         try {
-            val file = path.toFile()
-
-            if (mode == Mode.NORMAL || mode == Mode.AUTO) {
-                if (file.exists() && file.isFile) {
-                    throw IOException(" Path exists already, but it's a file")
+            when {
+                hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
+                    rootOps { it.createDir(path) }
                 }
-
-                if (file.mkdirs()) {
-                    log(TAG, VERBOSE) { "createDir($mode->NORMAL): $path" }
-                    return@runIO
+                hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
+                    adbOps { it.createDir(path) }
                 }
-                if (file.exists()) {
-                    log(TAG, WARN) { "createDir(NORMAL) failed, but dir does now exist: $path" }
-                    return@runIO
+                mode == Mode.NORMAL || mode == Mode.AUTO -> {
+                    fileSystemOps.createDir(path)
                 }
+                else -> throw IOException("No matching mode available.")
             }
-
-            if (hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO)) {
-                if (rootOps { file.exists() && file.isFile }) {
-                    throw IOException("Path exists already, but it's a file.")
-                }
-                if (rootOps { it.mkdirs(path) }) {
-                    log(TAG, VERBOSE) { "createDir($mode->ROOT): $path" }
-                    return@runIO
-                }
-                if (rootOps { it.exists(path) }) {
-                    log(TAG, WARN) { "createDir(ROOT) failed, but dir does now exist: $path" }
-                    return@runIO
-                }
-            }
-
-            if (hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO)) {
-                if (adbOps { file.exists() && file.isFile }) {
-                    throw IOException("Path exists already, but it's a file.")
-                }
-                if (adbOps { it.mkdirs(path) }) {
-                    log(TAG, VERBOSE) { "createDir($mode->ADB): $path" }
-                    return@runIO
-                }
-                if (adbOps { it.exists(path) }) {
-                    log(TAG, WARN) { "createDir(ADB) failed, but dir does now exist: $path" }
-                    return@runIO
-                }
-            }
-
-            throw IOException("No matching mode available.")
         } catch (e: IOException) {
             log(TAG, WARN) { "createDir(path=$path, mode=$mode) failed." }
             throw WriteException(path = path, cause = e)
@@ -165,60 +122,18 @@ class LocalGateway @Inject constructor(
 
     suspend fun createFile(path: LocalPath, mode: Mode = Mode.AUTO): Unit = runIO {
         try {
-            if (mode == Mode.NORMAL || mode == Mode.AUTO) {
-                val file = path.toFile()
-
-                if (file.exists()) {
-                    throw IOException("Path exists already")
+            when {
+                hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
+                    rootOps { it.createFile(path) }
                 }
-
-                file.parentFile?.let {
-                    if (!it.exists()) {
-                        if (!it.mkdirs()) {
-                            log(TAG, WARN) { "Failed to create parent directory $it for $path" }
-                        }
-                    }
+                hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
+                    adbOps { it.createFile(path) }
                 }
-
-                if (file.createNewFile()) {
-                    log(TAG, VERBOSE) { "createFile($mode->NORMAL): $path" }
-                    return@runIO
+                mode == Mode.NORMAL || mode == Mode.AUTO -> {
+                    fileSystemOps.createFile(path)
                 }
-                if (file.exists()) {
-                    log(TAG, WARN) { "createFile(NORMAL) failed, but file does now exist: $path" }
-                    return@runIO
-                }
+                else -> throw IOException("No matching mode available.")
             }
-
-            if (hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO)) {
-                if (rootOps { it.exists(path) }) {
-                    throw IOException("Path exists already")
-                }
-                if (rootOps { it.createNewFile(path) }) {
-                    log(TAG, VERBOSE) { "createFile($mode->ROOT): $path" }
-                    return@runIO
-                }
-                if (rootOps { it.exists(path) }) {
-                    log(TAG, WARN) { "createFile(ROOT) failed, but file does now exist: $path" }
-                    return@runIO
-                }
-            }
-
-            if (hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO)) {
-                if (adbOps { it.exists(path) }) {
-                    throw IOException("Path exists already")
-                }
-                if (adbOps { it.createNewFile(path) }) {
-                    log(TAG, VERBOSE) { "createFile($mode->ADB): $path" }
-                    return@runIO
-                }
-                if (adbOps { it.exists(path) }) {
-                    log(TAG, WARN) { "createFile(ADB) failed, but file does now exist: $path" }
-                    return@runIO
-                }
-            }
-
-            throw IOException("No matching mode available.")
         } catch (e: IOException) {
             log(TAG, WARN) { "createFile(path=$path, mode=$mode) failed." }
             throw WriteException(path = path, cause = e)
@@ -229,35 +144,18 @@ class LocalGateway @Inject constructor(
 
     suspend fun lookup(path: LocalPath, mode: Mode = Mode.AUTO): LocalPathLookup = runIO {
         try {
-            val javaFile = path.toFile()
-            val canRead = if (mode == Mode.ROOT) {
-                false
-            } else {
-                javaFile.canRead()
-            }
-
             when {
-                mode == Mode.NORMAL || canRead && mode == Mode.AUTO -> {
-                    log(TAG, VERBOSE) { "lookup($mode->NORMAL): $path" }
-                    if (!canRead) throw ReadException(path = path)
-                    path.performLookup()
+                hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
+                    rootOps { it.lookup(path) }
                 }
-
-                hasRoot() && (mode == Mode.ROOT || !canRead && mode == Mode.AUTO) -> {
-                    log(TAG, VERBOSE) { "lookup($mode->ROOT): $path" }
-                    rootOps { it.lookUp(path) }
+                hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
+                    adbOps { it.lookup(path) }
                 }
-
-                hasAdb() && (mode == Mode.ADB || !canRead && mode == Mode.AUTO) -> {
-                    log(TAG, VERBOSE) { "lookup($mode->ADB): $path" }
-                    adbOps { it.lookUp(path) }
+                mode == Mode.NORMAL || mode == Mode.AUTO -> {
+                    fileSystemOps.lookup(path)
                 }
-
                 else -> throw IOException("No matching mode available.")
-            }.also {
-                log(TAG, VERBOSE) { "Looked up: $it" }
             }
-
         } catch (e: Exception) {
             throw ReadException(path = path, cause = e).also {
                 log(TAG, WARN) { "lookup(path=$path, mode=$mode) failed:\n${it.asLog()}" }
@@ -269,35 +167,16 @@ class LocalGateway @Inject constructor(
 
     suspend fun listFiles(path: LocalPath, mode: Mode = Mode.AUTO): List<LocalPath> = runIO {
         try {
-            val javaFile = path.toFile()
-            val nonRootList: List<File>? = try {
-                when (mode) {
-                    Mode.ROOT -> null
-                    Mode.ADB -> null
-                    else -> if (javaFile.canRead()) javaFile.listFiles2() else null
-                }
-            } catch (e: Exception) {
-                log(TAG) { "listFiles($path, $mode) failed: $e" }
-                null
-            }
-
             when {
-                mode == Mode.NORMAL || nonRootList != null && mode == Mode.AUTO -> {
-                    log(TAG, VERBOSE) { "listFiles($mode->NORMAL): $path" }
-                    if (nonRootList == null) throw ReadException(path = path)
-                    nonRootList.map { LocalPath.build(it) }
+                hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
+                    rootOps { it.listFiles(path) }
                 }
-
-                hasRoot() && (mode == Mode.ROOT || nonRootList == null && mode == Mode.AUTO) -> {
-                    log(TAG, VERBOSE) { "listFiles($mode->ROOT): $path" }
-                    rootOps { it.listFiles(path).toList() }
+                hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
+                    adbOps { it.listFiles(path) }
                 }
-
-                hasAdb() && (mode == Mode.ADB || nonRootList == null && mode == Mode.AUTO) -> {
-                    log(TAG, VERBOSE) { "listFiles($mode->ADB): $path" }
-                    adbOps { it.listFiles(path).toList() }
+                mode == Mode.NORMAL || mode == Mode.AUTO -> {
+                    fileSystemOps.listFiles(path)
                 }
-
                 else -> throw IOException("No matching mode available.")
             }
         } catch (e: IOException) {
@@ -311,47 +190,18 @@ class LocalGateway @Inject constructor(
 
     suspend fun lookupExtended(path: LocalPath, mode: Mode = Mode.AUTO): LocalPathLookupExtended = runIO {
         try {
-            val javaFile = path.toFile()
-            val canRead = if (mode == Mode.ROOT || mode == Mode.ADB) {
-                false
-            } else {
-                javaFile.canRead()
-            }
-
             when {
-                mode == Mode.NORMAL || canRead && mode == Mode.AUTO -> {
-                    log(TAG, VERBOSE) { "lookupExtended($mode->NORMAL): $path" }
-                    if (!canRead) throw ReadException(path = path)
-                    path.performLookupExtended(ipcFunnel, libcoreTool)
+                hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
+                    TODO()
                 }
-
-                hasRoot() && (mode == Mode.ROOT || !canRead && mode == Mode.AUTO) -> {
-                    log(TAG, VERBOSE) { "lookupExtended($mode->ROOT): $path (fallback to basic lookup)" }
-                    // TODO: FileOpsClient doesn't have lookupExtended yet, use basic lookup as fallback
-                    LocalPathLookupExtended(
-                        lookup = rootOps { it.lookUp(path) },
-                        permissions = null,
-                        ownership = null,
-                        createdAt = null
-                    )
+                hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
+                    TODO()
                 }
-
-                hasAdb() && (mode == Mode.ADB || !canRead && mode == Mode.AUTO) -> {
-                    log(TAG, VERBOSE) { "lookupExtended($mode->ADB): $path (fallback to basic lookup)" }
-                    // TODO: FileOpsClient doesn't have lookupExtended yet, use basic lookup as fallback
-                    LocalPathLookupExtended(
-                        lookup = adbOps { it.lookUp(path) },
-                        permissions = null,
-                        ownership = null,
-                        createdAt = null
-                    )
+                mode == Mode.NORMAL || mode == Mode.AUTO -> {
+                    fileSystemOps.lookupExtended(path)
                 }
-
                 else -> throw IOException("No matching mode available.")
-            }.also {
-                log(TAG, VERBOSE) { "Looked up extended: $it" }
             }
-
         } catch (e: Exception) {
             throw ReadException(path = path, cause = e).also {
                 log(TAG, WARN) { "lookupExtended(path=$path, mode=$mode) failed:\n${it.asLog()}" }
@@ -363,42 +213,17 @@ class LocalGateway @Inject constructor(
 
     suspend fun lookupFiles(path: LocalPath, mode: Mode = Mode.AUTO): List<LocalPathLookup> = runIO {
         try {
-            val javaFile = path.toFile()
-            val nonRootList = try {
-                when (mode) {
-                    Mode.ROOT -> null
-                    Mode.ADB -> null
-                    else -> if (javaFile.canRead()) javaFile.listFiles2() else null
-                }
-            } catch (e: Exception) {
-                null
-            }
-
             when {
-                mode == Mode.NORMAL || nonRootList != null && mode == Mode.AUTO -> {
-                    log(TAG, VERBOSE) { "lookupFiles($mode->NORMAL): $path" }
-                    if (nonRootList == null) throw ReadException(path = path)
-                    nonRootList
-                        .map { it.toLocalPath() }
-                        .map { it.performLookup() }
+                hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
+                    TODO()
                 }
-
-                hasRoot() && (mode == Mode.ROOT || nonRootList == null && mode == Mode.AUTO) -> {
-                    log(TAG, VERBOSE) { "lookupFiles($mode->ROOT): $path" }
-                    rootOps { it.lookupFiles(path).toList() }
+                hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
+                    TODO()
                 }
-
-                hasAdb() && (mode == Mode.ADB || nonRootList == null && mode == Mode.AUTO) -> {
-                    log(TAG, VERBOSE) { "lookupFiles($mode->ADB): $path" }
-                    adbOps { it.lookupFiles(path).toList() }
+                mode == Mode.NORMAL || mode == Mode.AUTO -> {
+                    fileSystemOps.lookupFiles(path)
                 }
-
                 else -> throw IOException("No matching mode available.")
-            }.also {
-                if (Bugs.isTrace) {
-                    log(TAG, VERBOSE) { "Looked up ${it.size} items:" }
-                    it.forEachIndexed { index, look -> log(TAG, VERBOSE) { "#$index $look" } }
-                }
             }
         } catch (e: IOException) {
             log(TAG, WARN) { "lookupFiles(path=$path, mode=$mode) failed:\n${e.asLog()}" }
@@ -410,51 +235,28 @@ class LocalGateway @Inject constructor(
         path: LocalPath
     ): List<LocalPathLookupExtended> = lookupFilesExtended(path, Mode.AUTO)
 
-    suspend fun lookupFilesExtended(path: LocalPath, mode: Mode = Mode.AUTO): List<LocalPathLookupExtended> =
-        runIO {
-            try {
-                val javaFile = path.toFile()
-                val nonRootList = try {
-                    when (mode) {
-                        Mode.ROOT -> null
-                        Mode.ADB -> null
-                        else -> if (javaFile.canRead()) javaFile.listFiles2() else null
-                    }
-                } catch (e: Exception) {
-                    null
+    suspend fun lookupFilesExtended(
+        path: LocalPath,
+        mode: Mode = Mode.AUTO
+    ): List<LocalPathLookupExtended> = runIO {
+        try {
+            when {
+                hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
+                    rootOps { it.lookupFilesExtendedStream(path) }
                 }
-
-                when {
-                    mode == Mode.NORMAL || nonRootList != null && mode == Mode.AUTO -> {
-                        log(TAG, VERBOSE) { "lookupFilesExtended($mode->NORMAL): $path" }
-                        if (nonRootList == null) throw ReadException(path = path)
-                        nonRootList
-                            .map { it.toLocalPath() }
-                            .map { it.performLookupExtended(ipcFunnel, libcoreTool) }
-                    }
-
-                    hasRoot() && (mode == Mode.ROOT || nonRootList == null && mode == Mode.AUTO) -> {
-                        log(TAG, VERBOSE) { "lookupFilesExtended($mode->ROOT): $path" }
-                        rootOps { it.lookupFilesExtendedStream(path).toList() }
-                    }
-
-                    hasAdb() && (mode == Mode.ADB || nonRootList == null && mode == Mode.AUTO) -> {
-                        log(TAG, VERBOSE) { "lookupFilesExtended($mode->ADB): $path" }
-                        adbOps { it.lookupFilesExtendedStream(path).toList() }
-                    }
-
-                    else -> throw IOException("No matching mode available.")
-                }.also {
-                    if (Bugs.isTrace) {
-                        log(TAG, VERBOSE) { "Looked up ${it.size} items:" }
-                        it.forEachIndexed { index, look -> log(TAG, VERBOSE) { "#$index $look" } }
-                    }
+                hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
+                    adbOps { it.lookupFilesExtendedStream(path) }
                 }
-            } catch (e: IOException) {
-                log(TAG, WARN) { "lookupFilesExtended(path=$path, mode=$mode) failed:\n${e.asLog()}" }
-                throw ReadException(path = path, cause = e)
+                mode == Mode.NORMAL || mode == Mode.AUTO -> {
+                    fileSystemOps.lookupFilesExtended(path)
+                }
+                else -> throw IOException("No matching mode available.")
             }
+        } catch (e: IOException) {
+            log(TAG, WARN) { "lookupFilesExtended(path=$path, mode=$mode) failed:\n${e.asLog()}" }
+            throw ReadException(path = path, cause = e)
         }
+    }
 
     override suspend fun walk(
         path: LocalPath,
@@ -488,6 +290,7 @@ class LocalGateway @Inject constructor(
                     log(TAG, VERBOSE) { "walk($mode->NORMAL, direct): $path" }
                     if (!canRead) throw ReadException(path = path)
                     DirectLocalWalker(
+                        fileSystemOps = fileSystemOps,
                         start = path,
                         onFilter = { lookup -> options.onFilter?.invoke(lookup) ?: true },
                         onError = { lookup, exception -> options.onError?.invoke(lookup, exception) ?: true },
@@ -560,52 +363,16 @@ class LocalGateway @Inject constructor(
         mode: Mode = Mode.AUTO,
     ): Long = runIO {
         try {
-            val javaFile = path.toFile()
-            val canRead = when (mode) {
-                Mode.AUTO, Mode.NORMAL -> if (javaFile.canRead()) {
-                    try {
-                        javaFile.length()
-                        true
-                    } catch (e: IOException) {
-                        false
-                    }
-                } else {
-                    false
-                }
-
-                else -> false
-            }
-
             when {
-                mode == Mode.NORMAL -> {
-                    log(TAG, VERBOSE) { "walk($mode->NORMAL, direct): $path" }
-                    if (!canRead) throw ReadException(path = path)
-                    javaFile.walkTopDown().map { it.length() }.sum()
-                }
-
-                canRead && mode == Mode.AUTO -> {
-                    log(TAG, VERBOSE) { "du($mode->AUTO, escalating): $path" }
-                    try {
-                        du(path, mode = Mode.NORMAL)
-                    } catch (e: ReadException) {
-                        when {
-                            hasRoot() -> du(path, mode = Mode.ROOT)
-                            hasAdb() -> du(path, mode = Mode.ADB)
-                            else -> throw e
-                        }
-                    }
-                }
-
-                hasRoot() && (mode == Mode.ROOT || !canRead && mode == Mode.AUTO) -> {
-                    log(TAG, VERBOSE) { "du($mode->ROOT): $path" }
+                hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
                     rootOps { it.du(path) }
                 }
-
-                hasAdb() && (mode == Mode.ADB || !canRead && mode == Mode.AUTO) -> {
-                    log(TAG, VERBOSE) { "du($mode->ADB): $path" }
+                hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
                     adbOps { it.du(path) }
                 }
-
+                mode == Mode.NORMAL || mode == Mode.AUTO -> {
+                    fileSystemOps.du(path)
+                }
                 else -> throw IOException("No matching mode available.")
             }
         } catch (e: IOException) {
@@ -642,7 +409,7 @@ class LocalGateway @Inject constructor(
             when {
                 mode == Mode.NORMAL || mode == Mode.AUTO && canCheckNormal -> {
                     log(TAG, VERBOSE) { "exists($mode->NORMAL): $path" }
-                    javaFile.exists()
+                    fileSystemOps.exists(path)
                 }
 
                 hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
@@ -752,7 +519,7 @@ class LocalGateway @Inject constructor(
             when {
                 mode == Mode.NORMAL || mode == Mode.AUTO && canNormalOpen -> {
                     log(TAG, VERBOSE) { "file($mode->NORMAL): $path" }
-                    file.fileHandle(readWrite)
+                    fileSystemOps.file(path, readWrite)
                 }
 
                 hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
@@ -795,18 +562,18 @@ class LocalGateway @Inject constructor(
             val javaFile = path.toFile()
             when {
                 mode == Mode.NORMAL || (mode == Mode.AUTO && javaFile.canWrite()) -> {
-                    Files.delete(path.toNioPath())
+                    fileSystemOps.delete(path)
                     true
                 }
 
                 hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
                     log(TAG, VERBOSE) { "delete($mode->ROOT): $path" }
-                    rootOps { it.delete(path, recursive = false) }
+                    rootOps { it.delete(path) }
                 }
 
                 hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
                     log(TAG, VERBOSE) { "delete($mode->ADB): $path" }
-                    adbOps { it.delete(path, recursive = false) }
+                    adbOps { it.delete(path) }
                 }
 
                 else -> throw IOException("No matching mode available for delete")
@@ -825,7 +592,7 @@ class LocalGateway @Inject constructor(
             val javaFile = path.toFile()
             when {
                 mode == Mode.NORMAL || (mode == Mode.AUTO && javaFile.canRead()) -> {
-                    Files.newInputStream(path.toNioPath())
+                    fileSystemOps.openInputStream(path)
                 }
 
                 hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
@@ -861,19 +628,7 @@ class LocalGateway @Inject constructor(
             val javaFile = path.toFile()
             when {
                 mode == Mode.NORMAL || (mode == Mode.AUTO && javaFile.canWrite()) -> {
-                    if (append) {
-                        Files.newOutputStream(
-                            path.toNioPath(),
-                            StandardOpenOption.CREATE,
-                            StandardOpenOption.APPEND
-                        )
-                    } else {
-                        Files.newOutputStream(
-                            path.toNioPath(),
-                            StandardOpenOption.CREATE,
-                            StandardOpenOption.TRUNCATE_EXISTING
-                        )
-                    }
+                    fileSystemOps.openOutputStream(path, append)
                 }
 
                 hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
@@ -905,7 +660,7 @@ class LocalGateway @Inject constructor(
     suspend fun createSymlink(linkPath: LocalPath, targetPath: LocalPath, mode: Mode = Mode.AUTO): Boolean = runIO {
         try {
             val linkPathJava = linkPath.toFile()
-            val targetPathJava = targetPath.toFile()
+            targetPath.toFile()
             val canNormalWrite = when (mode) {
                 Mode.ROOT -> false
                 Mode.ADB -> false
@@ -915,7 +670,7 @@ class LocalGateway @Inject constructor(
             when {
                 mode == Mode.NORMAL || mode == Mode.AUTO && canNormalWrite -> {
                     log(TAG, VERBOSE) { "createSymlink($mode->NORMAL): $linkPath -> $targetPath" }
-                    linkPathJava.createSymlink(targetPathJava)
+                    fileSystemOps.createSymlink(linkPath, targetPath)
                 }
 
                 hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
@@ -952,7 +707,7 @@ class LocalGateway @Inject constructor(
             when {
                 mode == Mode.NORMAL || mode == Mode.AUTO && canNormalWrite -> {
                     log(TAG, VERBOSE) { "setModifiedAt($mode->NORMAL): $path" }
-                    path.file.setLastModified(modifiedAt.toEpochMilliseconds())
+                    fileSystemOps.setModifiedAt(path, modifiedAt)
                 }
 
                 hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
@@ -987,7 +742,7 @@ class LocalGateway @Inject constructor(
             when {
                 mode == Mode.NORMAL || mode == Mode.AUTO && canNormalWrite -> {
                     log(TAG, VERBOSE) { "setPermissions($mode->NORMAL): $path" }
-                    path.file.setPermissions(permissions)
+                    fileSystemOps.setPermissions(path, permissions)
                 }
 
                 hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
@@ -1009,13 +764,16 @@ class LocalGateway @Inject constructor(
         }
     }
 
-    override suspend fun setOwnership(path: LocalPath, ownership: Ownership): Boolean = setOwnership(
-        path,
-        ownership,
-        Mode.AUTO
-    )
+    override suspend fun setOwnership(
+        path: LocalPath,
+        ownership: Ownership
+    ): Boolean = setOwnership(path, ownership, Mode.AUTO)
 
-    suspend fun setOwnership(path: LocalPath, ownership: Ownership, mode: Mode = Mode.AUTO): Boolean = runIO {
+    suspend fun setOwnership(
+        path: LocalPath,
+        ownership: Ownership,
+        mode: Mode = Mode.AUTO
+    ): Boolean = runIO {
         try {
             val canNormalWrite = when (mode) {
                 Mode.ROOT -> false
@@ -1026,7 +784,7 @@ class LocalGateway @Inject constructor(
             when {
                 mode == Mode.NORMAL || mode == Mode.AUTO && canNormalWrite -> {
                     log(TAG, VERBOSE) { "setOwnership($mode->NORMAL): $path" }
-                    path.file.setOwnership(ownership)
+                    fileSystemOps.setOwnership(path, ownership)
                 }
 
                 hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {

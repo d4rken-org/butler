@@ -26,7 +26,7 @@ class FileOpsClient @AssistedInject constructor(
     /**
      * Doesn't run into IPC buffer overflows on large directories
      */
-    fun listFiles(path: LocalPath): Collection<LocalPath> = try {
+    fun listFiles(path: LocalPath): List<LocalPath> = try {
         fileOpsConnection.listFilesStream(path).toLocalPaths().also {
             if (Bugs.isTrace) log(TAG) { "listFiles($path) finished streaming, ${it.size} items" }
         }
@@ -34,8 +34,8 @@ class FileOpsClient @AssistedInject constructor(
         throw e.refineException()
     }
 
-    fun lookUp(path: LocalPath): LocalPathLookup = try {
-        fileOpsConnection.lookUp(path).also {
+    fun lookup(path: LocalPath): LocalPathLookup = try {
+        fileOpsConnection.lookup(path).also {
             if (Bugs.isTrace) log(TAG, VERBOSE) { "lookup($path): $it" }
         }
     } catch (e: Exception) {
@@ -45,7 +45,7 @@ class FileOpsClient @AssistedInject constructor(
     /**
      * Doesn't run into IPC buffer overflows on large directories
      */
-    fun lookupFiles(path: LocalPath): Collection<LocalPathLookup> = try {
+    fun lookupFiles(path: LocalPath): List<LocalPathLookup> = try {
         fileOpsConnection.lookupFilesStream(path).toLocalPathLookups().also {
             if (Bugs.isTrace) log(TAG, VERBOSE) { "lookupFiles($path) finished streaming, ${it.size} items" }
         }
@@ -56,7 +56,7 @@ class FileOpsClient @AssistedInject constructor(
     /**
      * Doesn't run into IPC buffer overflows on large directories
      */
-    fun lookupFilesExtendedStream(path: LocalPath): Collection<LocalPathLookupExtended> = try {
+    fun lookupFilesExtendedStream(path: LocalPath): List<LocalPathLookupExtended> = try {
         fileOpsConnection.lookupFilesExtendedStream(path).toLocalPathLookupExtended().also {
             if (Bugs.isTrace) log(
                 TAG,
@@ -99,14 +99,14 @@ class FileOpsClient @AssistedInject constructor(
         throw e.refineException()
     }
 
-    fun mkdirs(path: LocalPath): Boolean = try {
-        fileOpsConnection.mkdirs(path)
+    fun createDir(path: LocalPath): Boolean = try {
+        fileOpsConnection.createDir(path)
     } catch (e: Exception) {
         throw e.refineException()
     }
 
-    fun createNewFile(path: LocalPath): Boolean = try {
-        fileOpsConnection.createNewFile(path)
+    fun createFile(path: LocalPath): Boolean = try {
+        fileOpsConnection.createFile(path)
     } catch (e: Exception) {
         throw e.refineException()
     }
@@ -129,8 +129,8 @@ class FileOpsClient @AssistedInject constructor(
         throw e.refineException()
     }
 
-    fun delete(path: LocalPath, recursive: Boolean): Boolean = try {
-        fileOpsConnection.delete(path, recursive)
+    fun delete(path: LocalPath): Boolean = try {
+        fileOpsConnection.delete(path)
     } catch (e: Exception) {
         throw e.refineException()
     }

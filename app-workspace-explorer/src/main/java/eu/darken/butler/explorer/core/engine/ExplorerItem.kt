@@ -23,6 +23,15 @@ sealed interface ExplorerItem {
         override val id: String get() = shortcutId
     }
 
+//    data class AddLocationAction(
+//        val actionId: String,
+//        override val displayName: CaString,
+//        val displayIcon: ImageVector,
+//        val description: CaString? = null,
+//    ) : ExplorerItem {
+//        override val id: String get() = actionId
+//    }
+
     sealed interface Path : ExplorerItem {
         val path: APath
 

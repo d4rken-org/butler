@@ -3,15 +3,21 @@ package eu.darken.butler.common.files.local
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
-import eu.darken.butler.common.files.operations.FileSystemOps
+import eu.darken.butler.common.files.extensions.toFile
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
+import eu.darken.butler.common.files.operations.FileSystemOps
+import eu.darken.butler.common.ipc.fileHandle
+import eu.darken.butler.common.pkgs.pkgops.LibcoreTool
+import okio.FileHandle
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.StandardOpenOption
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.time.Instant
 
 /**
@@ -37,7 +43,10 @@ import kotlin.time.Instant
  * val children = fileSystemOps.listFiles(someDirectory)
  * ```
  */
-class LocalFileSystemOps : FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended> {
+@Singleton
+class LocalFileSystemOps @Inject constructor(
+    private val libcoreTool: LibcoreTool,
+) : FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended> {
 
     override suspend fun lookup(path: LocalPath): LocalPathLookup {
         return try {
@@ -213,5 +222,13 @@ class LocalFileSystemOps : FileSystemOps<LocalPath, LocalPathLookup, LocalPathLo
         } catch (e: Exception) {
             false
         }
+    }
+
+    suspend fun du(path: LocalPath): Long {
+        return path.toFile().walkTopDown().map { it.length() }.sum()
+    }
+
+    suspend fun file(path: LocalPath, readWrite: Boolean): FileHandle {
+        return path.toFile().fileHandle(readWrite)
     }
 }

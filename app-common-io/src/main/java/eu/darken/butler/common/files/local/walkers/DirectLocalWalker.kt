@@ -17,12 +17,12 @@ import java.util.LinkedList
 // TODO support symlinks?
 // TODO unit test coverage
 class DirectLocalWalker(
+    private val fileSystemOps: LocalFileSystemOps,
     private val start: LocalPath,
     private val onFilter: suspend (LocalPathLookup) -> Boolean = { true },
     private val onError: suspend (LocalPathLookup, Exception) -> Boolean = { _, _ -> true },
 ) : AbstractFlow<LocalPathLookup>() {
     private val tag = "$TAG#${hashCode()}"
-    private val fileSystemOps = LocalFileSystemOps()
 
     override suspend fun collectSafely(collector: FlowCollector<LocalPathLookup>) {
         val startLookUp = start.performLookup()

@@ -13,19 +13,19 @@ interface FileOpsConnection {
 
     RemoteFileHandle file(in LocalPath path, boolean readWrite);
 
-    boolean mkdirs(in LocalPath path);
-    boolean createNewFile(in LocalPath path);
+    boolean createDir(in LocalPath path);
+    boolean createFile(in LocalPath path);
 
     boolean canRead(in LocalPath path);
     boolean canWrite(in LocalPath path);
 
     boolean exists(in LocalPath path);
 
-    boolean delete(in LocalPath path, boolean recursive);
+    boolean delete(in LocalPath path);
 
     RemoteInputStream listFilesStream(in LocalPath path);
 
-    LocalPathLookup lookUp(in LocalPath path);
+    LocalPathLookup lookup(in LocalPath path);
     RemoteInputStream lookupFilesStream(in LocalPath path);
 
     LocalPathLookupExtended lookUpExtended(in LocalPath path);
