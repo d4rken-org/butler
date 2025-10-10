@@ -5,8 +5,10 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.local.LocalPathLookupExtended
 import eu.darken.butler.common.files.local.toNioPath
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.operations.FileSystemOps
 import okio.buffer
 import okio.sink
 import okio.source
@@ -15,19 +17,71 @@ import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.PosixFileAttributeView
 
 /**
- * Strategy for copying files and directories.
+ * Strategy for copying files and directories using LocalPath.
  *
- * Copies files while preserving the source. Handles symlinks based on options:
+ * Uses java.nio.Files for efficient copying with optional attribute preservation.
+ * Handles symlinks based on options:
  * - followSymlinks=true: Copies the target file/directory
  * - followSymlinks=false: Recreates the symlink at the destination
+ *
+ * Note: This implements both the old TransferStrategy (for backward compatibility)
+ * and the new generic TransferStrategy<LocalPath, LocalPathLookup> interface.
  */
-class LocalPathCopyStrategy : TransferStrategy {
+class LocalPathCopyStrategy :
+    TransferStrategy,
+    eu.darken.butler.common.files.operations.TransferStrategy<
+        LocalPath, LocalPathLookup, LocalPathLookupExtended,  // Source types
+        LocalPath, LocalPathLookup, LocalPathLookupExtended   // Destination types
+    > {
 
+    // Old interface implementation (backward compatibility)
     override suspend fun transferFile(
         sourceLookup: LocalPathLookup,
         destination: LocalPath,
         options: TransferStrategy.Options,
         onProgress: suspend (bytesTransferred: Long) -> Unit
+    ): TransferStrategy.TransferResult {
+        return transferFileInternal(sourceLookup, destination, options, onProgress)
+    }
+
+    // New generic interface implementation
+    override suspend fun transferFile(
+        sourceLookup: LocalPathLookup,
+        destination: LocalPath,
+        sourceOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>,
+        destOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>,
+        options: eu.darken.butler.common.files.operations.TransferStrategy.Options,
+        onProgress: suspend (bytesTransferred: Long) -> Unit
+    ): eu.darken.butler.common.files.operations.TransferStrategy.TransferResult<LocalPath, LocalPath> {
+        // Convert generic options to local options
+        val localOptions = TransferStrategy.Options(
+            preserveAttributes = options.preserveAttributes,
+            followSymlinks = options.followSymlinks
+        )
+        val result = transferFileInternal(sourceLookup, destination, localOptions, onProgress, destOps)
+        // Convert result to generic type
+        return when (result) {
+            is TransferStrategy.TransferResult.Success ->
+                eu.darken.butler.common.files.operations.TransferStrategy.TransferResult.Success(
+                    source = result.source,
+                    destination = result.destination,
+                    bytesTransferred = result.bytesTransferred
+                )
+            is TransferStrategy.TransferResult.Skipped ->
+                eu.darken.butler.common.files.operations.TransferStrategy.TransferResult.Skipped(
+                    source = result.source,
+                    reason = result.reason
+                )
+        }
+    }
+
+    // Shared implementation used by both interfaces
+    private suspend fun transferFileInternal(
+        sourceLookup: LocalPathLookup,
+        destination: LocalPath,
+        options: TransferStrategy.Options,
+        onProgress: suspend (bytesTransferred: Long) -> Unit,
+        destOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>? = null
     ): TransferStrategy.TransferResult {
         log(TAG, DEBUG) { "Copying file: ${sourceLookup.lookedUp} -> $destination" }
 
@@ -38,7 +92,7 @@ class LocalPathCopyStrategy : TransferStrategy {
             return if (options.followSymlinks) {
                 copySymlinkTarget(sourceLookup, destination, options, onProgress)
             } else {
-                copySymlink(sourceLookup, destination, onProgress)
+                copySymlink(sourceLookup, destination, onProgress, destOps)
             }
         }
 
@@ -46,10 +100,51 @@ class LocalPathCopyStrategy : TransferStrategy {
         return copyRegularFile(sourceLookup, destination, options, onProgress)
     }
 
+    // Old interface implementation (backward compatibility)
     override suspend fun createDirectory(
         sourceLookup: LocalPathLookup,
         destination: LocalPath,
         options: TransferStrategy.Options
+    ): TransferStrategy.TransferResult {
+        return createDirectoryInternal(sourceLookup, destination, options)
+    }
+
+    // New generic interface implementation
+    override suspend fun createDirectory(
+        sourceLookup: LocalPathLookup,
+        destination: LocalPath,
+        sourceOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>,
+        destOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>,
+        options: eu.darken.butler.common.files.operations.TransferStrategy.Options
+    ): eu.darken.butler.common.files.operations.TransferStrategy.TransferResult<LocalPath, LocalPath> {
+        // Convert generic options to local options
+        val localOptions = TransferStrategy.Options(
+            preserveAttributes = options.preserveAttributes,
+            followSymlinks = options.followSymlinks
+        )
+        val result = createDirectoryInternal(sourceLookup, destination, localOptions, destOps)
+        // Convert result to generic type
+        return when (result) {
+            is TransferStrategy.TransferResult.Success ->
+                eu.darken.butler.common.files.operations.TransferStrategy.TransferResult.Success(
+                    source = result.source,
+                    destination = result.destination,
+                    bytesTransferred = result.bytesTransferred
+                )
+            is TransferStrategy.TransferResult.Skipped ->
+                eu.darken.butler.common.files.operations.TransferStrategy.TransferResult.Skipped(
+                    source = result.source,
+                    reason = result.reason
+                )
+        }
+    }
+
+    // Shared implementation used by both interfaces
+    private suspend fun createDirectoryInternal(
+        sourceLookup: LocalPathLookup,
+        destination: LocalPath,
+        options: TransferStrategy.Options,
+        destOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>? = null
     ): TransferStrategy.TransferResult {
         log(TAG, DEBUG) { "Creating directory: $destination" }
 
@@ -71,7 +166,14 @@ class LocalPathCopyStrategy : TransferStrategy {
                 Files.delete(destination.toNioPath())
             }
 
-            Files.createSymbolicLink(destination.toNioPath(), newTarget)
+            if (destOps != null) {
+                // Use FileSystemOps abstraction
+                val targetLocalPath = LocalPath.build(newTarget.toFile())
+                destOps.createSymlink(destination, targetLocalPath)
+            } else {
+                // Fallback to direct Files API for backward compatibility
+                Files.createSymbolicLink(destination.toNioPath(), newTarget)
+            }
         } else {
             // Create regular directory
             Files.createDirectories(destination.toNioPath())
@@ -87,7 +189,8 @@ class LocalPathCopyStrategy : TransferStrategy {
     private suspend fun copySymlink(
         sourceLookup: LocalPathLookup,
         destination: LocalPath,
-        onProgress: suspend (bytesTransferred: Long) -> Unit
+        onProgress: suspend (bytesTransferred: Long) -> Unit,
+        destOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>? = null
     ): TransferStrategy.TransferResult {
         val sourcePath = sourceLookup.lookedUp.toNioPath()
         val linkTarget = Files.readSymbolicLink(sourcePath)
@@ -106,7 +209,14 @@ class LocalPathCopyStrategy : TransferStrategy {
         }
 
         // Create new symlink at destination
-        Files.createSymbolicLink(destination.toNioPath(), newTarget)
+        if (destOps != null) {
+            // Use FileSystemOps abstraction
+            val targetLocalPath = LocalPath.build(newTarget.toFile())
+            destOps.createSymlink(destination, targetLocalPath)
+        } else {
+            // Fallback to direct Files API for backward compatibility
+            Files.createSymbolicLink(destination.toNioPath(), newTarget)
+        }
 
         onProgress(sourceLookup.size)
 

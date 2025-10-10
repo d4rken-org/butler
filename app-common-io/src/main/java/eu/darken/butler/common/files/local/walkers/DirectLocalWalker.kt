@@ -5,13 +5,11 @@ import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.core.local.listFiles2
-import eu.darken.butler.common.files.extensions.toFile
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
+import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.performLookup
-import eu.darken.butler.common.files.local.toLocalPath
 import kotlinx.coroutines.flow.AbstractFlow
 import kotlinx.coroutines.flow.FlowCollector
 import java.util.LinkedList
@@ -24,6 +22,7 @@ class DirectLocalWalker(
     private val onError: suspend (LocalPathLookup, Exception) -> Boolean = { _, _ -> true },
 ) : AbstractFlow<LocalPathLookup>() {
     private val tag = "$TAG#${hashCode()}"
+    private val fileSystemOps = LocalFileSystemOps()
 
     override suspend fun collectSafely(collector: FlowCollector<LocalPathLookup>) {
         val startLookUp = start.performLookup()
@@ -38,9 +37,8 @@ class DirectLocalWalker(
             val lookUp = queue.removeFirst()
 
             val newBatch = try {
-                lookUp.lookedUp.toFile()
-                    .listFiles2()
-                    .map { it.toLocalPath().performLookup() }
+                // Use lookupFiles for efficient single-call operation
+                fileSystemOps.lookupFiles(lookUp.lookedUp)
             } catch (e: Exception) {
                 log(TAG, Logging.Priority.ERROR) { "Failed to read $lookUp: $e" }
                 if (onError(lookUp, e)) {

@@ -24,7 +24,7 @@ data class RawPath(
         throw NotImplementedError()
     }
 
-    override val parent: APath?
+    override val parent: APath
         get() = throw NotImplementedError()
 
     companion object {

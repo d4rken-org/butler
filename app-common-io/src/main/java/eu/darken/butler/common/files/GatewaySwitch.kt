@@ -26,6 +26,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.plus
 import okio.FileHandle
 import okio.IOException
+import java.io.InputStream
+import java.io.OutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Instant
@@ -99,11 +101,11 @@ class GatewaySwitch @Inject constructor(
         }
     }
 
-    override suspend fun lookupFiles(path: APath): Collection<APathLookup<APath>> {
+    override suspend fun lookupFiles(path: APath): List<APathLookup<APath>> {
         return lookupFiles(path, Type.CURRENT)
     }
 
-    suspend fun lookupFiles(path: APath, type: Type): Collection<APathLookup<APath>> {
+    suspend fun lookupFiles(path: APath, type: Type): List<APathLookup<APath>> {
         val mapped = path.toTargetType(type)
         return try {
             useGateway(mapped) { lookupFiles(mapped) }
@@ -121,11 +123,33 @@ class GatewaySwitch @Inject constructor(
         }
     }
 
-    override suspend fun lookupFilesExtended(path: APath): Collection<APathLookupExtended<APath>> {
+    override suspend fun lookupExtended(path: APath): APathLookupExtended<APath> {
+        return lookupExtended(path, Type.CURRENT)
+    }
+
+    suspend fun lookupExtended(path: APath, type: Type): APathLookupExtended<APath> {
+        val mapped = path.toTargetType(type)
+        return try {
+            useGateway(mapped) { lookupExtended(mapped) }
+        } catch (oge: ReadException) {
+            if (type != Type.AUTO) throw oge
+            log(TAG, WARN) { "lookupExtended(...): Original lookup failed, try alternative: ${oge.asLog()}" }
+
+            val fallback = path.toAlternative()
+            try {
+                useGateway(fallback) { lookupExtended(fallback) }
+            } catch (e: ReadException) {
+                log(TAG, WARN) { "lookupExtended(...): Alternative lookup failed either: ${e.asLog()}" }
+                throw oge
+            }
+        }
+    }
+
+    override suspend fun lookupFilesExtended(path: APath): List<APathLookupExtended<APath>> {
         return lookupFilesExtended(path, Type.CURRENT)
     }
 
-    suspend fun lookupFilesExtended(path: APath, type: Type): Collection<APathLookupExtended<APath>> {
+    suspend fun lookupFilesExtended(path: APath, type: Type): List<APathLookupExtended<APath>> {
         val mapped = path.toTargetType(type)
         return try {
             useGateway(mapped) { lookupFilesExtended(mapped) }
@@ -158,7 +182,7 @@ class GatewaySwitch @Inject constructor(
         return useGateway(path) { du(path, options) }
     }
 
-    override suspend fun listFiles(path: APath): Collection<APath> {
+    override suspend fun listFiles(path: APath): List<APath> {
         return useGateway(path) { listFiles(path) }
     }
 
@@ -184,6 +208,18 @@ class GatewaySwitch @Inject constructor(
 
     override suspend fun canRead(path: APath): Boolean {
         return useGateway(path) { canRead(path) }
+    }
+
+    override suspend fun delete(path: APath): Boolean {
+        return useGateway(path) { delete(path) }
+    }
+
+    override suspend fun openInputStream(path: APath): InputStream {
+        return useGateway(path) { openInputStream(path) }
+    }
+
+    override suspend fun openOutputStream(path: APath, append: Boolean): OutputStream {
+        return useGateway(path) { openOutputStream(path, append) }
     }
 
     override suspend fun file(path: APath, readWrite: Boolean): FileHandle {

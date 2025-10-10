@@ -34,6 +34,8 @@ import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import okio.FileHandle
 import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 import java.util.LinkedList
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -185,6 +187,51 @@ class SAFGateway @Inject constructor(
         }
     }
 
+    override suspend fun delete(path: SAFPath): Boolean = runIO {
+        try {
+            val docFile = findDocFile(path)
+            log(TAG, VERBOSE) { "delete(): $path -> $docFile" }
+            docFile.delete()
+        } catch (e: Exception) {
+            throw WriteException(path = path, cause = e)
+        }
+    }
+
+    override suspend fun openInputStream(path: SAFPath): InputStream = runIO {
+        try {
+            val docFile = findDocFile(path)
+            log(TAG, VERBOSE) { "openInputStream(): $path -> $docFile" }
+
+            if (!docFile.readable) {
+                throw IOException("readable=false")
+            }
+
+            contentResolver.openInputStream(docFile.uri)
+                ?: throw IOException("Couldn't open input stream for $path")
+        } catch (e: Exception) {
+            log(TAG, WARN) { "openInputStream($path) failed: ${e.asLog()}" }
+            throw ReadException(path = path, cause = e)
+        }
+    }
+
+    override suspend fun openOutputStream(path: SAFPath, append: Boolean): OutputStream = runIO {
+        try {
+            val docFile = findDocFile(path)
+            log(TAG, VERBOSE) { "openOutputStream(append=$append): $path -> $docFile" }
+
+            if (!docFile.writable) {
+                throw IOException("writable=false")
+            }
+
+            val mode = if (append) "wa" else "w"
+            contentResolver.openOutputStream(docFile.uri, mode)
+                ?: throw IOException("Couldn't open output stream for $path")
+        } catch (e: Exception) {
+            log(TAG, WARN) { "openOutputStream($path, append=$append) failed: ${e.asLog()}" }
+            throw WriteException(path = path, cause = e)
+        }
+    }
+
     override suspend fun lookup(path: SAFPath): SAFPathLookup = runIO {
         try {
             val docFile = findDocFile(path)
@@ -200,6 +247,20 @@ class SAFGateway @Inject constructor(
             }
         } catch (e: Exception) {
             log(TAG, WARN) { "lookup($path) failed." }
+            throw ReadException(path = path, cause = e)
+        }
+    }
+
+    override suspend fun lookupExtended(path: SAFPath): SAFPathLookupExtended = runIO {
+        try {
+            val basicLookup = lookup(path)
+            log(TAG, VERBOSE) { "lookupExtended($path)" }
+
+            SAFPathLookupExtended(lookup = basicLookup).also {
+                if (Bugs.isTrace) log(TAG, VERBOSE) { "Looked up extended: $it" }
+            }
+        } catch (e: Exception) {
+            log(TAG, WARN) { "lookupExtended($path) failed." }
             throw ReadException(path = path, cause = e)
         }
     }
