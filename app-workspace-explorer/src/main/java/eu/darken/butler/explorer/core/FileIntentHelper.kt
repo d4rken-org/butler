@@ -28,7 +28,7 @@ class FileIntentHelper @Inject constructor(
             val uri = getFileUri(item.lookup.lookedUp) ?: return null
 
             Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, item.mimeType)
+                setDataAndType(uri, item.mimeType.rawType)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
@@ -45,7 +45,7 @@ class FileIntentHelper @Inject constructor(
             val uri = getFileUri(item.lookup.lookedUp) ?: return null
 
             Intent(Intent.ACTION_SEND).apply {
-                type = item.mimeType
+                type = item.mimeType.rawType
                 putExtra(Intent.EXTRA_STREAM, uri)
                 putExtra(Intent.EXTRA_SUBJECT, item.lookup.name)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)

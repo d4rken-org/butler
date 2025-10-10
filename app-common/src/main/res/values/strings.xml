@@ -183,6 +183,20 @@
     <string name="file_type_file">File</string>
     <string name="file_type_unknown">Unknown</string>
 
+    <!-- MIME type friendly names -->
+    <string name="common_mimetype_image">Image</string>
+    <string name="common_mimetype_video">Video</string>
+    <string name="common_mimetype_audio">Audio</string>
+    <string name="common_mimetype_text_plain">Plain Text</string>
+    <string name="common_mimetype_text">Text Document</string>
+    <string name="common_mimetype_pdf">PDF Document</string>
+    <string name="common_mimetype_document">Document</string>
+    <string name="common_mimetype_archive">Archive</string>
+    <string name="common_mimetype_apk">Android Package</string>
+    <string name="common_mimetype_json">JSON File</string>
+    <string name="common_mimetype_xml">XML File</string>
+    <string name="common_mimetype_unknown">Unknown Type</string>
+
     <string name="general_progress_ready">Ready</string>
     <string name="general_progress_done">Done</string>
 

@@ -2,17 +2,20 @@ package eu.darken.butler.explorer.ui.explorer.dialogs
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.InsertDriveFile
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.Delete
@@ -21,6 +24,9 @@ import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.OpenInBrowser
 import androidx.compose.material.icons.twotone.Share
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,17 +37,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil3.compose.SubcomposeAsyncImage
+import coil3.request.ImageRequest
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.toCaString
+import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import java.text.DateFormat
@@ -94,7 +107,7 @@ private fun FileOptionsContent(
     onDelete: () -> Unit,
     onProperties: () -> Unit,
 ) {
-    LocalContext.current
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -102,24 +115,121 @@ private fun FileOptionsContent(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp)
             .padding(bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Header with file info
-        FileInfoHeader(item = item)
+        // Preview and file info section
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Preview thumbnail
+            Card(
+                modifier = Modifier
+                    .size(96.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                )
+            ) {
+                SubcomposeAsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(item.lookup)
+                        .build(),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    loading = {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(32.dp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    },
+                    error = {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.TwoTone.InsertDriveFile,
+                                contentDescription = null,
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    },
+                )
+            }
 
-        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+            // File information
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // File name
+                Text(
+                    text = item.lookup.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                // File details card
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        // Type
+                        FileInfoRow(
+                            label = stringResource(R.string.explorer_file_info_type_label),
+                            value = item.mimeType.toCaString().get(context)
+                        )
+
+                        // Size
+                        item.lookup.size?.let { size ->
+                            FileInfoRow(
+                                label = stringResource(R.string.explorer_file_info_size_label),
+                                value = formatFileSize(size)
+                            )
+                        }
+
+                        // Modified date
+                        item.lookup.modifiedAt?.let { modifiedAt ->
+                            FileInfoRow(
+                                label = stringResource(R.string.explorer_file_info_modified_label),
+                                value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
+                                    .format(Date(modifiedAt.toEpochMilliseconds()))
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        HorizontalDivider()
 
         // Action options
         Text(
             text = stringResource(R.string.explorer_file_options_actions),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(vertical = 4.dp)
         )
 
         // Determine if file is text-editable
         val isTextFile = remember(item.mimeType) {
-            isTextFile(item.mimeType)
+            item.mimeType.isText
         }
 
         if (isTextFile) {
@@ -145,7 +255,7 @@ private fun FileOptionsContent(
             onClick = onShare
         )
 
-        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+        HorizontalDivider()
 
         FileActionRow(
             icon = Icons.TwoTone.ContentCopy,
@@ -168,7 +278,7 @@ private fun FileOptionsContent(
             onClick = onRename
         )
 
-        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+        HorizontalDivider()
 
         FileActionRow(
             icon = Icons.TwoTone.Delete,
@@ -188,51 +298,30 @@ private fun FileOptionsContent(
 }
 
 @Composable
-private fun FileInfoHeader(
-    item: ExplorerItem.File
+private fun FileInfoRow(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = item.lookup.name,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Medium,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = item.mimeType,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            item.lookup.size?.let { size ->
-                Text(
-                    text = formatFileSize(size),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            item.lookup.modifiedAt?.let { modifiedAt ->
-                Text(
-                    text = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                        .format(Date(modifiedAt.toEpochMilliseconds())),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(0.4f)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(0.6f)
+        )
     }
 }
 
@@ -276,35 +365,6 @@ private fun FileActionRow(
     }
 }
 
-private fun isTextFile(mimeType: String): Boolean {
-    return mimeType.startsWith("text/") || mimeType in setOf(
-        "application/json",
-        "application/xml",
-        "application/javascript",
-        "application/x-sh",
-        "application/x-shellscript"
-    )
-}
-
-private fun formatFileSize(bytes: Long): String {
-    if (bytes < 1024) return "$bytes B"
-
-    val units = arrayOf("B", "KB", "MB", "GB", "TB", "PB")
-    var size = bytes.toDouble()
-    var unitIndex = 0
-
-    while (size >= 1024 && unitIndex < units.size - 1) {
-        size /= 1024
-        unitIndex++
-    }
-
-    return if (unitIndex == 0) {
-        "$bytes ${units[unitIndex]}"
-    } else {
-        String.format("%.1f %s", size, units[unitIndex])
-    }
-}
-
 @Preview2
 @Composable
 private fun FileOptionsBottomSheetPreview() {
@@ -316,7 +376,7 @@ private fun FileOptionsBottomSheetPreview() {
                 size = 1024L * 50, // 50 KB
                 modifiedAt = kotlin.time.Clock.System.now()
             ),
-            mimeType = "text/plain"
+            mimeType = MimeInfo("text/plain")
         )
 
         FileOptionsBottomSheet(

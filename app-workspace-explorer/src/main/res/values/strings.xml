@@ -176,6 +176,9 @@
 
     <!-- File Options -->
     <string name="explorer_file_options_actions">Actions</string>
+    <string name="explorer_file_info_type_label">Type</string>
+    <string name="explorer_file_info_size_label">Size</string>
+    <string name="explorer_file_info_modified_label">Modified</string>
     <string name="explorer_file_action_open_in_editor">Open in Editor</string>
     <string name="explorer_file_action_open_in_editor_subtitle">Edit in Butler\'s text editor</string>
     <string name="explorer_file_action_open_with">Open With</string>

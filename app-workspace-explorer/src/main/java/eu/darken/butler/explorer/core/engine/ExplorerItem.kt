@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -47,7 +48,7 @@ sealed interface ExplorerItem {
     }
 
     sealed interface File : Lookup {
-        val mimeType: String
+        val mimeType: MimeInfo
     }
 
     data class Peek(
@@ -70,7 +71,7 @@ sealed interface ExplorerItem {
 
     data class RegularFile(
         override val lookup: APathLookup<*>,
-        override val mimeType: String,
+        override val mimeType: MimeInfo,
         override val ownership: Ownership? = null,
         override val permissions: Permissions? = null,
         override val createdAt: Instant? = null,
@@ -84,7 +85,7 @@ sealed interface ExplorerItem {
 
     data class SymbolicLink(
         override val lookup: APathLookup<*>,
-        override val mimeType: String,
+        override val mimeType: MimeInfo,
         override val ownership: Ownership? = null,
         override val permissions: Permissions? = null,
         override val createdAt: Instant? = null,

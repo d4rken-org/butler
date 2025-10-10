@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.core.engine
 
 import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.metadata.FileType
 import java.util.Locale
 
@@ -34,10 +35,10 @@ class FileTypeClassifier {
         }
     }
 
-    private fun getMimeType(fileName: String): String {
+    private fun getMimeType(fileName: String): MimeInfo {
         val extension = fileName.substringAfterLast('.', "").lowercase(Locale.ROOT)
 
-        return when (extension) {
+        val rawType = when (extension) {
             // Images
             "jpg", "jpeg" -> "image/jpeg"
             "png" -> "image/png"
@@ -78,6 +79,8 @@ class FileTypeClassifier {
 
             else -> "application/octet-stream"
         }
+
+        return MimeInfo(rawType)
     }
 
     private fun isArchiveType(mimeType: String): Boolean {

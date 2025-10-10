@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
@@ -65,7 +66,7 @@ object MockDataProvider {
         val target = targetPath?.let { RawPath.build(it) }
         return ExplorerItem.SymbolicLink(
             lookup = createMockLookup(name, "/home/user/$name", 0L, FileType.SYMBOLIC_LINK, target = target),
-            mimeType = "inode/symlink",
+            mimeType = MimeInfo("inode/symlink"),
             targetPath = targetPath,
             isBroken = isBroken
         )
@@ -74,7 +75,7 @@ object MockDataProvider {
     fun createMockRegularFile(name: String = "readme.txt"): ExplorerItem.RegularFile {
         return ExplorerItem.RegularFile(
             lookup = createMockLookup(name, "/home/user/$name", 4_096L),
-            mimeType = "text/plain",
+            mimeType = MimeInfo("text/plain"),
         ).withExtendedData(
             ownership = Ownership(
                 userId = 123,
