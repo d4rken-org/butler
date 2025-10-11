@@ -1,26 +1,25 @@
 package eu.darken.butler.explorer.core.engine
 
-import android.content.Context
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.explorer.core.BreadcrumbGenerator
+import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.filesystem.FileSystemEvent
 import eu.darken.butler.workspace.core.Workspace
-import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
@@ -32,29 +31,35 @@ import kotlinx.coroutines.sync.withLock
 
 class BrowsingEngine @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
-    @ApplicationContext private val context: Context,
+    @Assisted private val workspaceScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
     private val homeLocationLoader: HomeLocationLoader,
     private val deviceLocationLoader: DeviceLocationLoader,
-    private val directoryLoaderFactory: DirectoryLocationLoader.Factory,
+    directoryLoaderFactory: DirectoryLocationLoader.Factory,
+    private val breadcrumbGenerator: BreadcrumbGenerator,
     private val gatewaySwitch: GatewaySwitch,
 ) {
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "BrowsingEngine")
     private val directoryLoader = directoryLoaderFactory.create(workspaceId)
 
-    private val scope = CoroutineScope(dispatcherProvider.IO + CoroutineName(tag))
-
     private val targetFlow = MutableStateFlow<ExplorerNavigation.Target?>(null)
     private val refreshTrigger = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
-    private val _location = MutableStateFlow<ExplorerLocation?>(null)
-    val location: StateFlow<ExplorerLocation?> = _location.asStateFlow()
+    private val _location = MutableStateFlow<State>(State())
+    val location: StateFlow<State> = _location.asStateFlow()
 
     private val pendingHints = mutableListOf<FileSystemEvent>()
     private val hintMutex = Mutex()
 
+    data class State(
+        val location: ExplorerLocation? = null,
+        val error: Throwable? = null,
+        val breadcrumbs: List<ExplorerBreadcrumb>? = null,
+    )
+
     init {
         targetFlow
+            .onEach { log(tag) { "New target: $it" } }
             .filterNotNull()
             .onEach { target ->
                 // Clear stale hints when navigating away
@@ -66,7 +71,6 @@ class BrowsingEngine @AssistedInject constructor(
                 }
             }
             .flatMapLatest { target ->
-                // React to both initial navigation and refresh events
                 refreshTrigger
                     .onStart { emit(Unit) }
                     .onEach { log(tag) { "Loading/refreshing target: $target" } }
@@ -75,11 +79,18 @@ class BrowsingEngine @AssistedInject constructor(
                             is ExplorerNavigation.Target.Home -> homeLocationLoader.loadHome()
                             is ExplorerNavigation.Target.Device -> deviceLocationLoader.loadDevice()
                             is ExplorerNavigation.Target.Directory -> directoryLoader.loadDirectory(target.path)
-                        }.flowOn(dispatcherProvider.IO)
+                        }
+                            .flowOn(dispatcherProvider.IO)
+                            .catch { _location.value = State(error = it) }
                     }
             }
             .onEach { location ->
-                _location.value = location
+                val breadcrumbs = breadcrumbGenerator.getBreadcrumbs(location)
+
+                _location.value = State(
+                    location = location,
+                    breadcrumbs = breadcrumbs,
+                )
 
                 // When loading completes, process queued hints
                 if (!location.isLoading) {
@@ -87,15 +98,16 @@ class BrowsingEngine @AssistedInject constructor(
                         if (pendingHints.isNotEmpty()) {
                             log(tag) { "Loading complete, processing ${pendingHints.size} queued hints" }
                             pendingHints.forEach { event ->
-                                val current = _location.value as? ExplorerLocation.Directory ?: return@forEach
-                                _location.value = applyIncrementalUpdate(current, event)
+                                val current = _location.value.location as? ExplorerLocation.Directory ?: return@forEach
+                                val updated = applyIncrementalUpdate(current, event)
+                                _location.value = State(location = updated)
                             }
                             pendingHints.clear()
                         }
                     }
                 }
             }
-            .launchIn(scope)
+            .launchIn(workspaceScope)
     }
 
     fun setTarget(target: ExplorerNavigation.Target) {
@@ -112,7 +124,8 @@ class BrowsingEngine @AssistedInject constructor(
             pendingHints.add(event)
         } else {
             log(tag) { "hint(): Applying incremental update" }
-            _location.value = applyIncrementalUpdate(current, event)
+            val updated = applyIncrementalUpdate(current, event)
+            _location.value = State(location = updated)
         }
     }
 
@@ -167,18 +180,21 @@ class BrowsingEngine @AssistedInject constructor(
         }
     }
 
-    fun refresh() {
+    suspend fun refresh() {
         log(tag, INFO) { "refresh()" }
-        refreshTrigger.tryEmit(Unit)
+        refreshTrigger.emit(Unit)
     }
 
     fun release() {
         log(tag, INFO) { "release()" }
-        scope.cancel()
+        workspaceScope.cancel()
     }
 
     @AssistedFactory
     interface Factory {
-        fun create(workspaceId: Workspace.Id): BrowsingEngine
+        fun create(
+            workspaceId: Workspace.Id,
+            workspaceScope: CoroutineScope,
+        ): BrowsingEngine
     }
 }

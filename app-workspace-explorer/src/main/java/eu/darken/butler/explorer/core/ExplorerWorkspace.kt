@@ -39,15 +39,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
@@ -72,7 +67,7 @@ class ExplorerWorkspace @AssistedInject constructor(
 
     private val scope = CoroutineScope(dispatcherProvider.IO + CoroutineName(tag))
 
-    private val browsingEngine = browsingEngineFactory.create(id)
+    private val browsingEngine = browsingEngineFactory.create(id, scope)
 
     override val type: Workspace.Type = Workspace.Type.EXPLORER
 
@@ -147,16 +142,15 @@ class ExplorerWorkspace @AssistedInject constructor(
     init {
         // Single continuous collection of location updates
         browsingEngine.location
-            .onEach { location ->
-                if (location != null) {
-                    val breadcrumbs = breadcrumbGenerator.getBreadcrumbs(location)
-                    _state.updateBlocking {
-                        copy(
-                            currentLocation = location,
-                            currentBreadcrumbs = breadcrumbs
-                        )
-                    }
+            .onEach { engineState ->
+                _state.updateBlocking {
+                    copy(
+                        currentLocation = engineState.location,
+                        currentBreadcrumbs = engineState.breadcrumbs ?: currentBreadcrumbs,
+                        error = engineState.error
+                    )
                 }
+
             }
             .launchIn(scope)
 
