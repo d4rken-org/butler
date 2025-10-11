@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.Flow
  *
  * ```kotlin
  * // Query locations
- * locationManager.getGrantedLocations().collect { locations ->
+ * locationManager.locations.collect { locations ->
  *     locations.forEach { location ->
  *         println("${location.displayName}: ${location.path}")
  *     }
@@ -38,7 +38,7 @@ import kotlinx.coroutines.flow.Flow
  *
  * // Customize location
  * locationManager.setLocationLabel(locationId, "My SD Card")
- * locationManager.setLocationPinned(locationId, true)
+ * locationManager.setLocationHidden(locationId, true)
  * ```
  */
 interface SAFLocationManager {
@@ -46,16 +46,16 @@ interface SAFLocationManager {
     // --- Query Operations ---
 
     /**
-     * Get all granted SAF locations with user preferences applied.
+     * All granted SAF locations with user preferences applied.
      *
      * Emits updated list when:
      * - Android system permissions change
      * - User preferences are modified
      *
      * Hidden locations are excluded from the list.
-     * Results are sorted with pinned locations first.
+     * Results are sorted by grant time (newest first).
      */
-    fun getGrantedLocations(): Flow<List<SAFLocation>>
+    val locations: Flow<List<SAFLocation>>
 
     /**
      * Find the best matching permission for a given SAFPath.
@@ -80,14 +80,6 @@ interface SAFLocationManager {
      * @return DocumentFile if we have permission, null if no permission covers this path
      */
     fun getDocFileFor(path: SAFPath): SAFDocFile?
-
-    /**
-     * Quick check if we have read/write access to a specific path.
-     *
-     * @param path The SAF path to check
-     * @return true if we have both read and write permission
-     */
-    fun hasAccessTo(path: SAFPath): Boolean
 
     // --- Permission Lifecycle ---
 

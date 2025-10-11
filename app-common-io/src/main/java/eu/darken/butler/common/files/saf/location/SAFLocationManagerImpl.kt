@@ -7,21 +7,29 @@ import android.content.UriPermission
 import android.net.Uri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.SafUri
+import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.saf.SAFDocFile
 import eu.darken.butler.common.rngString
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.collections.filter
+import kotlin.collections.map
+import kotlin.collections.sortedByDescending
 import kotlin.time.Instant
 
 /**
@@ -36,47 +44,95 @@ class SAFLocationManagerImpl @Inject constructor(
     private val contentResolver: ContentResolver,
     private val preferences: SAFLocationPreferences,
     private val dispatcherProvider: DispatcherProvider,
+    @AppScope private val appScope: CoroutineScope,
 ) : SAFLocationManager {
 
     private val refreshTrigger = MutableStateFlow(rngString)
 
-    override fun getGrantedLocations(): Flow<List<SAFLocation>> = combine(
+    /**
+     * Cached locations (including hidden ones) updated when permissions or preferences change.
+     * This cache is shared across all methods to avoid redundant location creation.
+     */
+    private val cachedLocations: StateFlow<List<SAFLocation>> = combine(
         refreshTrigger,
         preferences.locations.flow,
     ) { _, prefs ->
-        log(TAG) { "Refreshing granted locations" }
+        log(TAG) { "Refreshing location cache" }
 
-        val locations = contentResolver.persistedUriPermissions
+        contentResolver.persistedUriPermissions
             .mapNotNull { permission ->
+                log(TAG, VERBOSE) { "Loading SAFLocation from $permission" }
                 try {
                     createSAFLocation(permission, prefs)
                 } catch (e: Exception) {
-                    log(TAG, WARN) { "Failed to create SAFLocation from $permission: $e" }
+                    log(TAG, ERROR) { "Failed to create SAFLocation from $permission: $e" }
                     null
                 }
             }
-            .filterNot { it.isHidden }
-            .sortedWith(compareByDescending { it.grantedAt })
+    }.stateIn(
+        scope = appScope,
+        started = SharingStarted.Eagerly,
+        initialValue = emptyList()
+    )
 
-        log(TAG) { "Found ${locations.size} granted locations (${prefs.size} with custom prefs)" }
-        locations
-    }
+    override val locations: Flow<List<SAFLocation>> = cachedLocations
+        .map { allLocations ->
+            val locations = allLocations
+                .filterNot { it.isHidden }
+                .sortedWith(compareByDescending { it.grantedAt })
+
+            locations.forEachIndexed { index, item -> log(TAG, INFO) { "#$index - $item" } }
+
+            log(TAG) { "Found ${locations.size} granted locations (${allLocations.size} total, ${allLocations.size - locations.size} hidden)" }
+            locations
+        }
 
     override fun findPermissionFor(path: SAFPath): SAFPermissionMatch? {
-        val locations = contentResolver.persistedUriPermissions
-            .mapNotNull { perm ->
-                try {
-                    createSAFLocation(perm, emptyMap())
-                } catch (e: Exception) {
-                    null
+        // Convert locations to permission-like structure for matching
+        val availablePermissions = cachedLocations.value
+            .map { location ->
+                val uri = location.treeUri.toAndroidUri()
+                val segments = uri.path!!.split(":").last().split(File.separator)
+                location to segments.filter { it.isNotEmpty() }
+            }
+            .sortedByDescending { it.second.size }
+
+        val targetSegments = path.segments.toMutableList()
+        val missingSegments = mutableListOf<String>()
+
+        // Try to find matching permission by walking up the path hierarchy
+        while (true) {
+            for ((location, permSegments) in availablePermissions) {
+                val uri = location.treeUri.toAndroidUri()
+
+                // Check for exact tree URI match first (handles root paths with empty segments)
+                if (path.treeRoot == location.treeUri.toString()) {
+                    return SAFPermissionMatch(
+                        location = location,
+                        missingSegments = path.segments.toList(),
+                    )
+                }
+
+                val samePrefix = path.pathUri.path!!.split(":").first() == uri.path!!.split(":").first()
+
+                if (samePrefix && permSegments == targetSegments) {
+                    return SAFPermissionMatch(
+                        location = location,
+                        missingSegments = missingSegments,
+                    )
                 }
             }
 
-        return findMatchingLocation(path, locations)
-    }
+            // Remove last segment and try again with parent path
+            val removed = targetSegments.removeLastOrNull()
+            if (removed != null) {
+                missingSegments.add(0, removed)
+            } else {
+                break  // No more segments to check, path not found
+            }
+        }
 
-    override fun hasAccessTo(path: SAFPath): Boolean {
-        return findPermissionFor(path)?.location?.hasFullAccess == true
+        return null
     }
 
     override fun getDocFileFor(path: SAFPath): SAFDocFile? {
@@ -108,7 +164,7 @@ class SAFLocationManagerImpl @Inject constructor(
 
         // Find the URI for this location ID
         val permission = contentResolver.persistedUriPermissions.find { perm ->
-            generateLocationId(perm.uri) == locationId
+            perm.uri.toLocationId() == locationId
         }
 
         if (permission != null) {
@@ -145,16 +201,11 @@ class SAFLocationManagerImpl @Inject constructor(
         refreshTrigger.value = rngString
     }
 
-    // --- Private Helpers ---
-
-    /**
-     * Create a SAFLocation from a UriPermission and user preferences
-     */
     private fun createSAFLocation(
         permission: UriPermission,
         prefs: Map<String, LocationPreference>,
     ): SAFLocation {
-        val locationId = generateLocationId(permission.uri)
+        val locationId = permission.uri.toLocationId()
         val userPrefs = prefs[locationId]
 
         return SAFLocation(
@@ -169,54 +220,7 @@ class SAFLocationManagerImpl @Inject constructor(
         )
     }
 
-    /**
-     * Generate a stable location ID from a tree URI
-     */
-    private fun generateLocationId(uri: Uri): String {
-        return uri.toString().hashCode().toString()
-    }
-
-    /**
-     * Find the best matching location for a given SAF path.
-     *
-     * Adapted from SAFPathExtensions.findPermission()
-     */
-    private fun findMatchingLocation(
-        path: SAFPath,
-        locations: List<SAFLocation>,
-    ): SAFPermissionMatch? {
-        val targetSegments = path.segments.toMutableList()
-        val missingSegments = mutableListOf<String>()
-
-        // Convert locations to permission-like structure for matching
-        val availablePermissions = locations
-            .filter { it.hasReadPermission && it.hasWritePermission }
-            .map { location ->
-                val uri = location.treeUri.toAndroidUri()
-                val segments = uri.path!!.split(":").last().split(File.separator)
-                location to segments.filter { it.isNotEmpty() }
-            }
-            .sortedByDescending { it.second.size }
-
-        // Try to find matching permission by walking up the path hierarchy
-        while (true) {
-            for ((location, permSegments) in availablePermissions) {
-                val uri = location.treeUri.toAndroidUri()
-                val samePrefix = path.pathUri.path!!.split(":").first() == uri.path!!.split(":").first()
-
-                if (samePrefix && permSegments == targetSegments) {
-                    return SAFPermissionMatch(
-                        location = location,
-                        missingSegments = missingSegments,
-                    )
-                }
-            }
-
-            targetSegments.removeLastOrNull()?.also { missingSegments.add(0, it) } ?: break
-        }
-
-        return null
-    }
+    private fun Uri.toLocationId(): String = toString().hashCode().toString()
 
     companion object {
         private val TAG = logTag("SAF", "Location", "Manager")

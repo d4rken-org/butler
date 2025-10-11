@@ -39,7 +39,7 @@ class DeviceLocationLoader @Inject constructor(
 
     fun loadDevice(): Flow<ExplorerLocation> = combine(
         flow { emit(Unit) },
-        safLocationManager.getGrantedLocations(),
+        safLocationManager.locations,
     ) { _, safLocations ->
         log(tag) { "loadDevice(): Loading device location with ${safLocations.size} SAF locations" }
 

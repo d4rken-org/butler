@@ -2,6 +2,9 @@ package eu.darken.butler
 
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.Configuration
 import coil3.SingletonImageLoader
 import dagger.hilt.android.HiltAndroidApp
@@ -19,6 +22,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.debug.recorder.core.RecorderModule
+import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.theming.Theming
 import eu.darken.butler.common.updater.UpdateService
 import eu.darken.butler.main.core.CurriculumVitae
@@ -49,6 +53,7 @@ open class App : Application(), Configuration.Provider {
     @Inject lateinit var theming: Theming
     @Inject lateinit var releaseManager: ReleaseManager
     @Inject lateinit var shortcutManager: DynamicShortcutManager
+    @Inject lateinit var safLocationManager: SAFLocationManager
 
     private val logCatLogger = LogCatLogger()
 
@@ -93,6 +98,16 @@ open class App : Application(), Configuration.Provider {
         }
 
         shortcutManager.initialize()
+
+        // Automatically refresh SAF permissions when app comes to foreground
+        ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onStart(owner: LifecycleOwner) {
+                log(TAG) { "App foregrounded, refreshing SAF permissions" }
+                appScope.launch {
+                    safLocationManager.refresh()
+                }
+            }
+        })
 
         val oldHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
