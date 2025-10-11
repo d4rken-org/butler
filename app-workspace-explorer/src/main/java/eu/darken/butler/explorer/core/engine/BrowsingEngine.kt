@@ -5,6 +5,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.GatewaySwitch
@@ -81,7 +82,10 @@ class BrowsingEngine @AssistedInject constructor(
                             is ExplorerNavigation.Target.Directory -> directoryLoader.loadDirectory(target.path)
                         }
                             .flowOn(dispatcherProvider.IO)
-                            .catch { _location.value = State(error = it) }
+                            .catch {
+                                log(tag, ERROR) { "Browsing failed on $target\n${it.asLog()}" }
+                                _location.value = State(error = it)
+                            }
                     }
             }
             .onEach { location ->
