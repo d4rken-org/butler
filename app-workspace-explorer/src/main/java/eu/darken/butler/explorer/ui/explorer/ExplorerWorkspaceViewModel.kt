@@ -103,6 +103,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val upgradeRepo: UpgradeRepo,
     private val filenameValidator: FilenameValidator,
     private val safLocationManager: SAFLocationManager,
+    private val itemInfoCalculator: ItemInfoCalculator,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
 
     private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
@@ -493,6 +494,21 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerAction.Common.Refresh -> {
                 getWorkspace().navigate(ExplorerNavigation.Refresh)
+            }
+            is ExplorerAction.Common.Info -> {
+                log(tag) { "showInfo(): ${selectedItemsFlow.value.size} items selected" }
+
+                // Only show info when items are selected
+                if (selectedItemsFlow.value.isNotEmpty()) {
+                    val selectedItems = stateSnap.items
+                        ?.filter { it.id in selectedItemsFlow.value }
+                        ?: emptyList()
+
+                    val infoContext = itemInfoCalculator.calculateInfo(selectedItems, stateSnap.items)
+                    infoContext?.let { context ->
+                        dialogStateFlow.value = ExplorerDialogState.ItemInfo(context)
+                    }
+                }
             }
             is ExplorerAction.Device.AddLocation -> {
                 showAddStorageSheet()

@@ -101,5 +101,13 @@ fun ExplorerDialogHost(
                 onConfirm = { name -> vm?.onLocationStorageName(name) }
             )
         }
+
+        is ExplorerDialogState.ItemInfo -> {
+            ItemInfoBottomSheet(
+                context = dialogState.context,
+                onDismiss = { vm?.dismissDialog() },
+                onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) }
+            )
+        }
     }
 }

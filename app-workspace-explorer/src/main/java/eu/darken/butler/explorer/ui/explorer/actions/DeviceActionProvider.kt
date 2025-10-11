@@ -20,6 +20,8 @@ class DeviceActionProvider @Inject constructor() : ExplorerActionProvider {
                 ?.filter { it.id in selectionState.selectedItems }
                 ?: emptyList()
 
+            actions.add(ExplorerAction.Common.Info())
+
             if (selectedSAFItems.size == 1) {
                 actions.add(ExplorerAction.Device.RenameLocation())
             }
@@ -33,6 +35,7 @@ class DeviceActionProvider @Inject constructor() : ExplorerActionProvider {
 
         actions.add(ExplorerAction.Common.Refresh())
         actions.add(ExplorerAction.Common.Sort())
+        actions.add(ExplorerAction.Common.Filter())
         actions.add(ExplorerAction.Common.ToggleView())
 
         return actions

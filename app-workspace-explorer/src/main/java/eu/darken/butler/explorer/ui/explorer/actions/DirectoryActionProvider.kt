@@ -41,6 +41,7 @@ class DirectoryActionProvider @Inject constructor() : ExplorerActionProvider {
             )
 
             actions.add(ExplorerAction.Directory.Share())
+            actions.add(ExplorerAction.Common.Info())
         } else {
             actions.add(
                 ExplorerAction.Directory.Create(
@@ -48,6 +49,7 @@ class DirectoryActionProvider @Inject constructor() : ExplorerActionProvider {
                 )
             )
 
+            actions.add(ExplorerAction.Common.Refresh())
             actions.add(ExplorerAction.Common.Sort())
             actions.add(ExplorerAction.Common.Filter())
             actions.add(ExplorerAction.Common.ToggleView())

@@ -14,8 +14,9 @@ class HomeActionProvider @Inject constructor() : ExplorerActionProvider {
         
         actions.add(ExplorerAction.Common.Refresh())
         actions.add(ExplorerAction.Common.Sort())
+        actions.add(ExplorerAction.Common.Filter())
         actions.add(ExplorerAction.Common.ToggleView())
-        
+
         return actions
     }
 }

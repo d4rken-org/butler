@@ -47,6 +47,49 @@
     <string name="explorer_action_deselect_all">Deselect All</string>
     <string name="explorer_action_add_location">Add location</string>
     <string name="explorer_action_more">More options</string>
+    <string name="explorer_action_info">Info</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">Information</string>
+    <string name="explorer_info_name_label">Name</string>
+    <string name="explorer_info_path_label">Path</string>
+    <string name="explorer_info_type_label">Type</string>
+    <string name="explorer_info_type_directory">Directory</string>
+    <string name="explorer_info_size_label">Size</string>
+    <string name="explorer_info_modified_label">Modified</string>
+    <string name="explorer_info_created_label">Created</string>
+    <string name="explorer_info_permissions_label">Permissions</string>
+    <string name="explorer_info_owner_label">Owner</string>
+    <string name="explorer_info_child_count_label">Items</string>
+    <string name="explorer_info_symlink_target_label">Target</string>
+    <string name="explorer_info_symlink_status_label">Status</string>
+    <string name="explorer_info_symlink_broken">Broken link</string>
+    <string name="explorer_info_unknown">Unknown</string>
+    <string name="explorer_info_copy_action">Copy to clipboard</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">Permissions</string>
+    <string name="explorer_info_saf_granted_label">Granted</string>
+    <string name="explorer_info_saf_permission_read">Read</string>
+    <string name="explorer_info_saf_permission_write">Write</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">Selected</string>
+    <string name="explorer_info_files_label">Files</string>
+    <string name="explorer_info_directories_label">Directories</string>
+    <string name="explorer_info_total_size_label">Total Size</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">Locations</string>
+    <string name="explorer_info_shortcuts_label">Shortcuts</string>
+    <string name="explorer_info_total_capacity_label">Total Capacity</string>
+    <string name="explorer_info_used_space_label">Used Space</string>
+    <string name="explorer_info_free_space_label">Free Space</string>
+    <string name="explorer_info_usage_label">Usage</string>
+    <string name="explorer_info_device_storage_total_label">Device Storage</string>
+    <string name="explorer_info_device_storage_used_label">Used</string>
+    <string name="explorer_info_device_storage_free_label">Free</string>
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Home</string>

@@ -11,6 +11,7 @@ import androidx.compose.material.icons.twotone.DriveFileRenameOutline
 import androidx.compose.material.icons.twotone.FilterList
 import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material.icons.twotone.GridView
+import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.Refresh
 import androidx.compose.material.icons.twotone.RemoveCircle
 import androidx.compose.material.icons.twotone.SelectAll
@@ -67,6 +68,14 @@ sealed interface ExplorerAction {
         ) : Common {
             override val icon = Icons.TwoTone.GridView
             override val label = R.string.explorer_action_view.toCaString()
+        }
+
+        data class Info(
+            override val isEnabled: Boolean = true,
+            override val group: Group = Group.SECONDARY,
+        ) : Common {
+            override val icon = Icons.TwoTone.Info
+            override val label = R.string.explorer_action_info.toCaString()
         }
     }
 

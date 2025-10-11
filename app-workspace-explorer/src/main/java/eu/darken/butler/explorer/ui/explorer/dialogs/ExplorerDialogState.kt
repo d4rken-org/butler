@@ -35,4 +35,20 @@ sealed interface ExplorerDialogState {
     data class FileOptions(val item: ExplorerItem.File) : ExplorerDialogState
 
     data class ClipboardInfo(val clip: ClipboardClip) : ExplorerDialogState
+
+    data class ItemInfo(val context: InfoContext) : ExplorerDialogState {
+        sealed interface InfoContext {
+            data class SingleFile(val item: ExplorerItem.File) : InfoContext
+            data class SingleDirectory(val item: ExplorerItem.Directory) : InfoContext
+            data class SingleSAF(val item: ExplorerItem.Storage.SAF) : InfoContext
+            data class MultipleItems(
+                val selectedItems: List<ExplorerItem>,
+                val fileCount: Int,
+                val directoryCount: Int,
+                val totalSize: Long?,
+            ) : InfoContext
+            data class DeviceView(val location: eu.darken.butler.explorer.core.engine.ExplorerLocation.Device) : InfoContext
+            data class HomeView(val location: eu.darken.butler.explorer.core.engine.ExplorerLocation.Home) : InfoContext
+        }
+    }
 }
