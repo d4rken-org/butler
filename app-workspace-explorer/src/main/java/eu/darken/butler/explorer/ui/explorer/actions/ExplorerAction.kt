@@ -12,6 +12,7 @@ import androidx.compose.material.icons.twotone.FilterList
 import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material.icons.twotone.GridView
 import androidx.compose.material.icons.twotone.Refresh
+import androidx.compose.material.icons.twotone.RemoveCircle
 import androidx.compose.material.icons.twotone.SelectAll
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -142,9 +143,17 @@ sealed interface ExplorerAction {
             override val isEnabled: Boolean = true,
             override val group: Group = Group.PRIMARY,
         ) : Device {
-            override val icon = Icons.TwoTone.FolderShared
+            override val icon = Icons.TwoTone.RemoveCircle
             override val label = R.string.explorer_device_action_remove_location.toCaString()
             override val isDestructive = true
+        }
+
+        data class RenameLocation(
+            override val isEnabled: Boolean = true,
+            override val group: Group = Group.PRIMARY,
+        ) : Device {
+            override val icon = Icons.TwoTone.DriveFileRenameOutline
+            override val label = R.string.explorer_location_rename_action.toCaString()
         }
     }
 

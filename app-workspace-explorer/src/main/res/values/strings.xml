@@ -24,6 +24,9 @@
     <string name="explorer_file_shortcut_label">Shortcut</string>
     <string name="explorer_file_storage_local_label">Local storage</string>
     <string name="explorer_file_storage_saf_label">Storage Access Framework</string>
+    <string name="explorer_file_storage_saf_read_only_label">Read-only access</string>
+    <string name="explorer_file_storage_saf_write_only_label">Write-only access</string>
+    <string name="explorer_file_storage_saf_no_access_label">No access</string>
     <string name="explorer_file_broken_link_label">Broken link</string>
     <string name="explorer_file_items_count">%1$d items</string>
     <string name="explorer_file_pages_count">%1$d pages</string>
@@ -112,6 +115,12 @@
         <item quantity="other">Remove %1$d storage locations?</item>
     </plurals>
     <string name="explorer_device_remove_confirmation_message">This will revoke Butler\'s access to this location. Your files will not be deleted.</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">Name location</string>
+    <string name="explorer_location_name_label">Location name</string>
+    <string name="explorer_location_name_hint">Leave empty to use default name</string>
+    <string name="explorer_location_rename_action">Rename location</string>
 
     <!-- Empty States -->
     <string name="explorer_empty_folder_title">This folder is empty</string>

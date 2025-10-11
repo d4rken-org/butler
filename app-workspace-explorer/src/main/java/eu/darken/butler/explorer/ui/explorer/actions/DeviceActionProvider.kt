@@ -20,6 +20,10 @@ class DeviceActionProvider @Inject constructor() : ExplorerActionProvider {
                 ?.filter { it.id in selectionState.selectedItems }
                 ?: emptyList()
 
+            if (selectedSAFItems.size == 1) {
+                actions.add(ExplorerAction.Device.RenameLocation())
+            }
+
             if (selectedSAFItems.isNotEmpty()) {
                 actions.add(ExplorerAction.Device.RemoveLocation())
             }

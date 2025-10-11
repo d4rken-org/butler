@@ -39,6 +39,7 @@ internal fun FileGridBase(
     secondaryText: String? = null,
     backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
     previewContent: @Composable (() -> Unit)? = null,
+    trailingContent: (@Composable () -> Unit)? = null,
 ) {
     Card(
         modifier = modifier
@@ -96,16 +97,20 @@ internal fun FileGridBase(
                     }
                 }
                 
-                // File size in top-right
-                secondaryText?.let { text ->
-                    Text(
-                        text = text,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.align(Alignment.CenterEnd)
-                    )
+                // Secondary info or trailing content in top-right
+                Box(
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                ) {
+                    when {
+                        trailingContent != null -> trailingContent()
+                        secondaryText != null -> Text(
+                            text = secondaryText,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
             

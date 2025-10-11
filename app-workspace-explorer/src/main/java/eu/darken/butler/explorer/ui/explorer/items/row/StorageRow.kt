@@ -2,8 +2,13 @@ package eu.darken.butler.explorer.ui.explorer.items.row
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Block
+import androidx.compose.material.icons.twotone.Edit
+import androidx.compose.material.icons.twotone.Visibility
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -15,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
@@ -59,8 +65,45 @@ fun StorageRow(
         secondaryText = when (item) {
             is ExplorerItem.Storage.Local -> stringResource(R.string.explorer_file_storage_local_label)
             is ExplorerItem.Storage.SAF -> stringResource(R.string.explorer_file_storage_saf_label)
-        }
+        },
+        trailingContent = if (item is ExplorerItem.Storage.SAF) {
+            { PermissionIndicator(item.location) }
+        } else null
     )
+}
+
+@Composable
+private fun PermissionIndicator(location: SAFLocation) {
+    // Only show indicators when permissions are limited
+    if (location.hasReadPermission && location.hasWritePermission) return
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        when {
+            // Read-only
+            location.hasReadPermission -> Icon(
+                imageVector = Icons.TwoTone.Visibility,
+                contentDescription = stringResource(R.string.explorer_file_storage_saf_read_only_label),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp)
+            )
+            // Write-only (rare but handle it)
+            location.hasWritePermission -> Icon(
+                imageVector = Icons.TwoTone.Edit,
+                contentDescription = stringResource(R.string.explorer_file_storage_saf_write_only_label),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp)
+            )
+            // No access (shouldn't happen but handle gracefully)
+            else -> Icon(
+                imageVector = Icons.TwoTone.Block,
+                contentDescription = stringResource(R.string.explorer_file_storage_saf_no_access_label),
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+    }
 }
 
 @Preview2
@@ -80,6 +123,36 @@ private fun StorageRowSAFPreview() {
     PreviewWrapper {
         StorageRow(
             item = MockDataProvider.createMockStorageSAF(),
+            onClick = {}
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun StorageRowSAFReadOnlyPreview() {
+    PreviewWrapper {
+        StorageRow(
+            item = MockDataProvider.createMockStorageSAF(
+                name = "SD Card (Read-only)",
+                hasReadPermission = true,
+                hasWritePermission = false
+            ),
+            onClick = {}
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun StorageRowSAFWriteOnlyPreview() {
+    PreviewWrapper {
+        StorageRow(
+            item = MockDataProvider.createMockStorageSAF(
+                name = "SD Card (Write-only)",
+                hasReadPermission = false,
+                hasWritePermission = true
+            ),
             onClick = {}
         )
     }

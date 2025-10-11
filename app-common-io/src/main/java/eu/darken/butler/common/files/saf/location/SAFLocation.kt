@@ -1,5 +1,6 @@
 package eu.darken.butler.common.files.saf.location
 
+import eu.darken.butler.common.SafUri
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.SAFPath
@@ -19,9 +20,9 @@ data class SAFLocation(
     val id: String,
 
     /**
-     * Tree URI as string (e.g., "content://com.android.externalstorage.documents/tree/primary")
+     * Tree URI (e.g., "content://com.android.externalstorage.documents/tree/primary")
      */
-    val treeUri: String,
+    val treeUri: SafUri,
 
     /**
      * The SAF path representing this location's root

@@ -93,5 +93,13 @@ fun ExplorerDialogHost(
                 onCopyPath = { path -> vm?.copyPathToSystemClipboard(path) }
             )
         }
+
+        is ExplorerDialogState.LocationStorageName -> {
+            LocationStorageNameDialog(
+                currentName = dialogState.currentName,
+                onDismiss = { vm?.dismissDialog() },
+                onConfirm = { name -> vm?.onLocationStorageName(name) }
+            )
+        }
     }
 }

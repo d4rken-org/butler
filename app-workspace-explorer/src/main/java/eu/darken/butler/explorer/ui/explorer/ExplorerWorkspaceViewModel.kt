@@ -510,6 +510,19 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     }
                 }
             }
+            is ExplorerAction.Device.RenameLocation -> {
+                log(tag) { "renameDeviceStorageLocation()" }
+                val selectedItem = stateSnap.items
+                    .filterIsInstance<ExplorerItem.Storage.SAF>()
+                    .find { it.id in selectedItemsFlow.value }
+
+                selectedItem?.let {
+                    dialogStateFlow.value = LocationStorageName(
+                        locationId = it.location.id,
+                        currentName = it.location.userLabel,
+                    )
+                }
+            }
         }
     }
 
@@ -718,6 +731,19 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         clearSelection()
     }
 
+    fun onLocationStorageName(name: String?) = launch {
+        val dialogState = dialogStateFlow.value as? LocationStorageName ?: return@launch
+        log(tag) { "onLocationStorageName(locationId=${dialogState.locationId}, name=$name)" }
+
+        dialogStateFlow.value = None
+
+        // Empty or whitespace-only = use default name (null)
+        val trimmedName = name?.trim()?.takeIf { it.isNotEmpty() }
+        safLocationManager.setLocationLabel(dialogState.locationId, trimmedName)
+
+        clearSelection()
+    }
+
     fun onRename(result: RenameResult) = launch {
         log(tag) { "onRename($result)" }
         dialogStateFlow.value = None
@@ -860,6 +886,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
             // Grant permission via location manager
             safLocationManager.grantPermission(treeUri)
+
+            // Calculate location ID to show naming dialog
+            val locationId = treeUri.toString().hashCode().toString()
+            dialogStateFlow.value = LocationStorageName(locationId, currentName = null)
 
             log(tag, INFO) { "Successfully added SAF location: $treeUri" }
         } catch (e: Exception) {

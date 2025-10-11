@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.UriPermission
 import android.net.Uri
 import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.darken.butler.common.SafUri
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -81,7 +82,7 @@ class SAFLocationManagerImpl @Inject constructor(
     override fun getDocFileFor(path: SAFPath): SAFDocFile? {
         val match = findPermissionFor(path) ?: return null
 
-        val treeUri = Uri.parse(match.location.treeUri)
+        val treeUri = match.location.treeUri.toAndroidUri()
         val targetTreeUri = SAFDocFile.buildTreeUri(treeUri, match.missingSegments)
         return SAFDocFile.fromTreeUri(context, contentResolver, targetTreeUri)
     }
@@ -158,7 +159,7 @@ class SAFLocationManagerImpl @Inject constructor(
 
         return SAFLocation(
             id = locationId,
-            treeUri = permission.uri.toString(),
+            treeUri = SafUri.fromAndroidUri(permission.uri),
             path = SAFPath.build(permission.uri),
             hasReadPermission = permission.isReadPermission,
             hasWritePermission = permission.isWritePermission,
@@ -191,7 +192,7 @@ class SAFLocationManagerImpl @Inject constructor(
         val availablePermissions = locations
             .filter { it.hasReadPermission && it.hasWritePermission }
             .map { location ->
-                val uri = Uri.parse(location.treeUri)
+                val uri = location.treeUri.toAndroidUri()
                 val segments = uri.path!!.split(":").last().split(File.separator)
                 location to segments.filter { it.isNotEmpty() }
             }
@@ -200,7 +201,7 @@ class SAFLocationManagerImpl @Inject constructor(
         // Try to find matching permission by walking up the path hierarchy
         while (true) {
             for ((location, permSegments) in availablePermissions) {
-                val uri = Uri.parse(location.treeUri)
+                val uri = location.treeUri.toAndroidUri()
                 val samePrefix = path.pathUri.path!!.split(":").first() == uri.path!!.split(":").first()
 
                 if (samePrefix && permSegments == targetSegments) {

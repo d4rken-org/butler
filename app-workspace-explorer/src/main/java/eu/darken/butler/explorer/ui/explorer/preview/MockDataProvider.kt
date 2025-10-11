@@ -8,6 +8,7 @@ import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material.icons.twotone.PhoneAndroid
 import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.ui.graphics.vector.ImageVector
+import eu.darken.butler.common.SafUri
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
@@ -454,15 +455,17 @@ object MockDataProvider {
 
     fun createMockStorageSAF(
         name: String = "SD Card",
-        icon: ImageVector = Icons.TwoTone.FolderShared
+        icon: ImageVector = Icons.TwoTone.FolderShared,
+        hasReadPermission: Boolean = true,
+        hasWritePermission: Boolean = true,
     ): ExplorerItem.Storage.SAF {
         return ExplorerItem.Storage.SAF(
             location = SAFLocation(
                 id = "saf-mock-id",
-                treeUri = "content://com.android.externalstorage.documents/tree/primary%3ADocuments",
+                treeUri = SafUri.parse("content://com.android.externalstorage.documents/tree/primary%3ADocuments"),
                 path = SAFPath.build("content://com.android.externalstorage.documents/tree/primary%3ADocuments"),
-                hasReadPermission = true,
-                hasWritePermission = true,
+                hasReadPermission = hasReadPermission,
+                hasWritePermission = hasWritePermission,
                 grantedAt = MockTimes.daysAgo(7),
                 userLabel = name,
             ),

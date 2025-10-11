@@ -37,6 +37,7 @@ internal fun FileRowBase(
     leadingContent: @Composable () -> Unit,
     primaryText: String,
     secondaryText: String? = null,
+    trailingContent: (@Composable () -> Unit)? = null,
 ) {
     Row(
         modifier = modifier
@@ -95,6 +96,12 @@ internal fun FileRowBase(
                     overflow = TextOverflow.Ellipsis
                 )
             }
+        }
+
+        // Trailing content area (optional)
+        trailingContent?.let {
+            Spacer(modifier = Modifier.width(8.dp))
+            it()
         }
     }
 }

@@ -16,6 +16,11 @@ sealed interface ExplorerDialogState {
 
     data class RemoveLocationConfirmation(val items: List<ExplorerItem.Storage.SAF>) : ExplorerDialogState
 
+    data class LocationStorageName(
+        val locationId: String,
+        val currentName: String?,
+    ) : ExplorerDialogState
+
     data class Rename(val item: APath) : ExplorerDialogState
 
     data class EditSortOptions(val currentSortSettings: SortSettings) : ExplorerDialogState
