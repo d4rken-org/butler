@@ -4,18 +4,24 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material.icons.twotone.FolderShared
+import androidx.compose.material.icons.twotone.PhoneAndroid
+import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.RawPath
+import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
+import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.common.progress.Progress
+import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.workspace.core.Workspace
@@ -427,5 +433,57 @@ object MockDataProvider {
         }
 
         return ExplorerWorkspaceViewModel.ClipboardState(entries = entries)
+    }
+
+    // MARK: - Storage and Shortcut Factories
+
+    fun createMockStorageLocal(
+        localId: String = "internal-public",
+        name: String = "Internal Storage",
+        icon: ImageVector = Icons.TwoTone.Storage
+    ): ExplorerItem.Storage.Local {
+        return ExplorerItem.Storage.Local(
+            localId = localId,
+            displayName = name.toCaString(),
+            displayIcon = icon,
+            target = ExplorerNavigation.Target.Directory(
+                LocalPath.build("/storage/emulated/0")
+            )
+        )
+    }
+
+    fun createMockStorageSAF(
+        name: String = "SD Card",
+        icon: ImageVector = Icons.TwoTone.FolderShared
+    ): ExplorerItem.Storage.SAF {
+        return ExplorerItem.Storage.SAF(
+            location = SAFLocation(
+                id = "saf-mock-id",
+                treeUri = "content://com.android.externalstorage.documents/tree/primary%3ADocuments",
+                path = SAFPath.build("content://com.android.externalstorage.documents/tree/primary%3ADocuments"),
+                hasReadPermission = true,
+                hasWritePermission = true,
+                grantedAt = MockTimes.daysAgo(7),
+                userLabel = name,
+            ),
+            displayName = name.toCaString(),
+            displayIcon = icon,
+            target = ExplorerNavigation.Target.Directory(
+                SAFPath.build("content://com.android.externalstorage.documents/tree/primary%3ADocuments")
+            )
+        )
+    }
+
+    fun createMockShortcut(
+        shortcutId: String = "device",
+        name: String = "Device",
+        icon: ImageVector = Icons.TwoTone.PhoneAndroid
+    ): ExplorerItem.Shortcut {
+        return ExplorerItem.Shortcut(
+            shortcutId = shortcutId,
+            displayName = name.toCaString(),
+            displayIcon = icon,
+            target = ExplorerNavigation.Target.Device
+        )
     }
 }

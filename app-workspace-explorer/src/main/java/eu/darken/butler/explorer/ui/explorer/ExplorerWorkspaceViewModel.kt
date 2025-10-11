@@ -2,6 +2,7 @@ package eu.darken.butler.explorer.ui.explorer
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -18,6 +19,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine
@@ -33,10 +35,10 @@ import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerNavigation.Target.*
 import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.explorer.core.ExplorerWorkspace
-import eu.darken.butler.explorer.core.PatternMatcher
 import eu.darken.butler.explorer.core.FileIntentHelper
-import eu.darken.butler.explorer.core.FilterState
 import eu.darken.butler.explorer.core.FileTypeFilter
+import eu.darken.butler.explorer.core.FilterState
+import eu.darken.butler.explorer.core.PatternMatcher
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.locationId
@@ -50,8 +52,8 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.DeleteConfirmationResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.*
-import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.FilterOptionsResult
+import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortOptionsResult
 import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.upgrade.UpgradeRepo
@@ -100,6 +102,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val copyErrorTool: CopyErrorTool,
     private val upgradeRepo: UpgradeRepo,
     private val filenameValidator: FilenameValidator,
+    private val safLocationManager: SAFLocationManager,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
 
     private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
@@ -111,8 +114,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private var currentConflictOperationId: Operation.Id? = null
     private val showIssueSheetFlow = MutableSharedFlow<Unit>()
     val showIssueSheetEvent = showIssueSheetFlow.asSharedFlow()
+    private val showAddStorageSheetFlow = MutableStateFlow(false)
+    val showAddStorageSheet = showAddStorageSheetFlow
 
     val dialogEvents = SingleEventFlow<ExplorerDialogEvent>()
+
+    val safPickerEvents = SingleEventFlow<Intent>()
 
     private val workspaceSource: Flow<ExplorerWorkspace?> =
         workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
@@ -195,7 +202,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val selectionState = ExplorerSelectionState(
             selectedItems = selectedItems,
             selectableItems = items
-                ?.filter { it is ExplorerItem.Path }
+                ?.filter { it is ExplorerItem.Path || it is ExplorerItem.Storage.SAF }
                 ?.map { it.id }
                 ?.toSet()
                 ?: emptySet(),
@@ -335,7 +342,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 getWorkspace().navigate(item.target)
                 clearSelection()
             }
-
+            is ExplorerItem.Storage -> {
+                getWorkspace().navigate(item.target)
+                clearSelection()
+            }
         }
     }
 
@@ -366,16 +376,16 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun toggleItemSelection(item: ExplorerItem) {
         log(tag) { "toggleItemSelection($item)" }
-        if (item !is ExplorerItem.Path) {
-            log(tag, WARN) { "toggleItemSelection($item) is not a path" }
+        if (item !is ExplorerItem.Path && item !is ExplorerItem.Storage.SAF) {
+            log(tag, WARN) { "toggleItemSelection($item) is not selectable" }
             return
         }
-        val path = item.path.path
+        val itemId = item.id
         val currentSelection = selectedItemsFlow.value
-        selectedItemsFlow.value = if (currentSelection.contains(path)) {
-            currentSelection - path
+        selectedItemsFlow.value = if (currentSelection.contains(itemId)) {
+            currentSelection - itemId
         } else {
-            currentSelection + path
+            currentSelection + itemId
         }
     }
 
@@ -483,6 +493,22 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerAction.Common.Refresh -> {
                 getWorkspace().navigate(ExplorerNavigation.Refresh)
+            }
+            is ExplorerAction.Device.AddLocation -> {
+                showAddStorageSheet()
+            }
+            is ExplorerAction.Device.RemoveLocation -> {
+                log(tag) { "removeDeviceStorageLocation(): ${selectedItemsFlow.value.size} items" }
+                val selectedIds = selectedItemsFlow.value
+                if (selectedIds.isNotEmpty()) {
+                    val selectedSAFItems = stateSnap.items
+                        .filterIsInstance<ExplorerItem.Storage.SAF>()
+                        .filter { it.id in selectedIds }
+
+                    if (selectedSAFItems.isNotEmpty()) {
+                        dialogStateFlow.value = RemoveLocationConfirmation(selectedSAFItems)
+                    }
+                }
             }
         }
     }
@@ -680,6 +706,18 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
+    fun onRemoveLocationConfirmed() = launch {
+        val dialogState = dialogStateFlow.value as? RemoveLocationConfirmation ?: return@launch
+        log(tag) { "onRemoveLocationConfirmed(): Removing ${dialogState.items.size} locations" }
+
+        dialogStateFlow.value = None
+
+        dialogState.items.forEach { item ->
+            safLocationManager.revokePermission(item.location.id)
+        }
+        clearSelection()
+    }
+
     fun onRename(result: RenameResult) = launch {
         log(tag) { "onRename($result)" }
         dialogStateFlow.value = None
@@ -791,6 +829,43 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 autoCloseWhenComplete = true,
             )
         )
+    }
+
+    fun showAddStorageSheet() {
+        log(tag) { "showAddStorageSheet(): Showing add storage sheet" }
+        showAddStorageSheetFlow.value = true
+    }
+
+    fun dismissAddStorageSheet() {
+        log(tag) { "dismissAddStorageSheet(): Dismissing add storage sheet" }
+        showAddStorageSheetFlow.value = false
+    }
+
+    fun addSAFLocation() = launch {
+        log(tag) { "addSAFLocation(): Launching SAF directory picker" }
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+            putExtra("android.content.extra.SHOW_ADVANCED", true)
+        }
+        safPickerEvents.emit(intent)
+    }
+
+    suspend fun handleSAFPickerResult(treeUri: Uri) {
+        log(tag) { "handleSAFPickerResult(treeUri=$treeUri)" }
+        try {
+            // Take persistable permission
+            context.contentResolver.takePersistableUriPermission(
+                treeUri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+
+            // Grant permission via location manager
+            safLocationManager.grantPermission(treeUri)
+
+            log(tag, INFO) { "Successfully added SAF location: $treeUri" }
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to handle SAF picker result: ${e.message}" }
+            errorEvents.tryEmit(e)
+        }
     }
 
     fun copyError(id: Operation.Id) = launch {

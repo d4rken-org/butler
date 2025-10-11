@@ -6,15 +6,14 @@ import android.content.Intent
 import android.content.UriPermission
 import android.net.Uri
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.saf.SAFDocFile
 import eu.darken.butler.common.rngString
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -35,7 +34,6 @@ class SAFLocationManagerImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val contentResolver: ContentResolver,
     private val preferences: SAFLocationPreferences,
-    @AppScope private val appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
 ) : SAFLocationManager {
 
@@ -52,15 +50,12 @@ class SAFLocationManagerImpl @Inject constructor(
                 try {
                     createSAFLocation(permission, prefs)
                 } catch (e: Exception) {
-                    log(TAG, Logging.Priority.WARN) { "Failed to create SAFLocation from $permission: $e" }
+                    log(TAG, WARN) { "Failed to create SAFLocation from $permission: $e" }
                     null
                 }
             }
             .filterNot { it.isHidden }
-            .sortedWith(
-                compareByDescending<SAFLocation> { it.isPinned }
-                    .thenBy { it.grantedAt }
-            )
+            .sortedWith(compareByDescending { it.grantedAt })
 
         log(TAG) { "Found ${locations.size} granted locations (${prefs.size} with custom prefs)" }
         locations
@@ -102,7 +97,7 @@ class SAFLocationManagerImpl @Inject constructor(
             log(TAG) { "Successfully granted permission for $treeUri" }
             refresh()
         } catch (e: SecurityException) {
-            log(TAG, Logging.Priority.ERROR) { "Failed to take persistable URI permission: $e" }
+            log(TAG, ERROR) { "Failed to take persistable URI permission: $e" }
             throw e
         }
     }
@@ -123,10 +118,10 @@ class SAFLocationManagerImpl @Inject constructor(
                 )
                 log(TAG) { "Successfully revoked permission for ${permission.uri}" }
             } catch (e: SecurityException) {
-                log(TAG, Logging.Priority.WARN) { "Failed to release persistable URI permission: $e" }
+                log(TAG, WARN) { "Failed to release persistable URI permission: $e" }
             }
         } else {
-            log(TAG, Logging.Priority.WARN) { "No permission found for locationId=$locationId" }
+            log(TAG, WARN) { "No permission found for locationId=$locationId" }
         }
 
         // Remove user preferences
@@ -135,12 +130,12 @@ class SAFLocationManagerImpl @Inject constructor(
     }
 
     override suspend fun setLocationLabel(locationId: String, label: String?) {
-        log(TAG, Logging.Priority.VERBOSE) { "setLocationLabel(locationId=$locationId, label=$label)" }
+        log(TAG, VERBOSE) { "setLocationLabel(locationId=$locationId, label=$label)" }
         preferences.updateLocationPreference(locationId) { it.copy(userLabel = label) }
     }
 
     override suspend fun setLocationHidden(locationId: String, hidden: Boolean) {
-        log(TAG, Logging.Priority.VERBOSE) { "setLocationHidden(locationId=$locationId, hidden=$hidden)" }
+        log(TAG, VERBOSE) { "setLocationHidden(locationId=$locationId, hidden=$hidden)" }
         preferences.updateLocationPreference(locationId) { it.copy(isHidden = hidden) }
     }
 

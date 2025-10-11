@@ -7,6 +7,7 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
+import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import kotlin.time.Instant
 
@@ -18,19 +19,33 @@ sealed interface ExplorerItem {
         val shortcutId: String,
         override val displayName: CaString,
         val displayIcon: ImageVector,
-        val target: ExplorerNavigation,
+        val target: ExplorerNavigation.Target,
     ) : ExplorerItem {
-        override val id: String get() = shortcutId
+        override val id: String get() = "shortcut-$shortcutId"
     }
 
-//    data class AddLocationAction(
-//        val actionId: String,
-//        override val displayName: CaString,
-//        val displayIcon: ImageVector,
-//        val description: CaString? = null,
-//    ) : ExplorerItem {
-//        override val id: String get() = actionId
-//    }
+    sealed interface Storage : ExplorerItem {
+        val displayIcon: ImageVector
+        val target: ExplorerNavigation.Target.Directory
+
+        data class Local(
+            val localId: String,
+            override val displayName: CaString,
+            override val displayIcon: ImageVector,
+            override val target: ExplorerNavigation.Target.Directory,
+        ) : Storage {
+            override val id: String get() = "local-$localId"
+        }
+
+        data class SAF(
+            val location: SAFLocation,
+            override val displayName: CaString,
+            override val displayIcon: ImageVector,
+            override val target: ExplorerNavigation.Target.Directory,
+        ) : Storage {
+            override val id: String get() = "saf-${location.id}"
+        }
+    }
 
     sealed interface Path : ExplorerItem {
         val path: APath

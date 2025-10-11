@@ -22,6 +22,8 @@
 
     <!-- File Row UI Strings -->
     <string name="explorer_file_shortcut_label">Shortcut</string>
+    <string name="explorer_file_storage_local_label">Local storage</string>
+    <string name="explorer_file_storage_saf_label">Storage Access Framework</string>
     <string name="explorer_file_broken_link_label">Broken link</string>
     <string name="explorer_file_items_count">%1$d items</string>
     <string name="explorer_file_pages_count">%1$d pages</string>
@@ -40,6 +42,7 @@
     <string name="explorer_action_paste">Paste</string>
     <string name="explorer_action_select_all">Select All</string>
     <string name="explorer_action_deselect_all">Deselect All</string>
+    <string name="explorer_action_add_location">Add location</string>
     <string name="explorer_action_more">More options</string>
 
     <!-- Navigation -->
@@ -94,6 +97,21 @@
     <string name="explorer_dialog_type_label">Type</string>
     <string name="explorer_dialog_type_folder">Folder</string>
     <string name="explorer_dialog_type_file">File</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">Add storage location</string>
+    <string name="explorer_add_device_storage_desc">Use the Storage Access Framework (SAF) to grant Butler access to additional storage locations such as usb drives, virtual app folders and more.</string>
+    <string name="explorer_add_device_storage_continue">Continue</string>
+    <string name="explorer_add_device_storage_cancel">Cancel</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">Remove location</string>
+    <string name="explorer_device_remove_confirmation_title">Remove storage location?</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="one">Remove %1$d storage location?</item>
+        <item quantity="other">Remove %1$d storage locations?</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">This will revoke Butler\'s access to this location. Your files will not be deleted.</string>
 
     <!-- Empty States -->
     <string name="explorer_empty_folder_title">This folder is empty</string>

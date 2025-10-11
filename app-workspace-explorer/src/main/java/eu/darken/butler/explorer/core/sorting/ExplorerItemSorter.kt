@@ -26,11 +26,13 @@ class ExplorerItemSorter @AssistedInject constructor(
         log(tag, VERBOSE) { "sortItems: ${items.size} items with settings=$sortSettings" }
 
         val shortcuts = mutableListOf<ExplorerItem.Shortcut>()
+        val storage = mutableListOf<ExplorerItem.Storage>()
         val pathItems = mutableListOf<ExplorerItem.Path>()
 
         items.forEach { item ->
             when (item) {
                 is ExplorerItem.Shortcut -> shortcuts.add(item)
+                is ExplorerItem.Storage -> storage.add(item)
                 is ExplorerItem.Path -> pathItems.add(item)
             }
         }
@@ -38,9 +40,9 @@ class ExplorerItemSorter @AssistedInject constructor(
         val sortedPathItems = sortPathItems(context, pathItems, sortSettings)
 
         return if (sortSettings.reversed) {
-            sortedPathItems + shortcuts
+            sortedPathItems + storage + shortcuts
         } else {
-            shortcuts + sortedPathItems
+            shortcuts + storage + sortedPathItems
         }
     }
 

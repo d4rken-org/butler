@@ -57,9 +57,11 @@ import eu.darken.butler.explorer.ui.explorer.issues.IssueBottomSheet
 import eu.darken.butler.explorer.ui.explorer.items.grid.LookupItemGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.PeekGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.ShortcutGrid
+import eu.darken.butler.explorer.ui.explorer.items.grid.StorageGrid
 import eu.darken.butler.explorer.ui.explorer.items.row.LookupItemRow
 import eu.darken.butler.explorer.ui.explorer.items.row.PeekRow
 import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
+import eu.darken.butler.explorer.ui.explorer.items.row.StorageRow
 import eu.darken.butler.explorer.ui.explorer.permissions.PermissionRequestCard
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
@@ -73,6 +75,7 @@ import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmat
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 
 @Composable
 fun ExplorerWorkspacePageHost(
@@ -85,6 +88,26 @@ fun ExplorerWorkspacePageHost(
     workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
     ErrorEventHandler(vm)
+
+    val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+
+    // SAF directory picker launcher
+    val safPickerLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        uri?.let {
+            coroutineScope.launch {
+                vm.handleSAFPickerResult(it)
+            }
+        }
+    }
+
+    // Handle SAF picker launch events
+    LaunchedEffect(vm) {
+        vm.safPickerEvents.collect { _ ->
+            safPickerLauncher.launch(null)
+        }
+    }
 
     ExplorerWorkspacePage(
         design = design,
@@ -325,7 +348,8 @@ fun ExplorerWorkspacePage(
                                                             }
                                                         },
                                                         onLongClick = { vm?.toggleItemSelection(item) },
-                                                        showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty()
+                                                        showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
+                                                            item.id in mainStateSnap.selectionState.selectableItems
                                                     )
 
                                                     is ExplorerItem.Peek -> PeekRow(
@@ -335,6 +359,24 @@ fun ExplorerWorkspacePage(
                                                     is ExplorerItem.Shortcut -> ShortcutRow(
                                                         item = item,
                                                         onClick = { vm?.navigate(item) },
+                                                    )
+
+                                                    is ExplorerItem.Storage -> StorageRow(
+                                                        item = item,
+                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(
+                                                            item.id
+                                                        ),
+                                                        onToggleSelection = { vm?.toggleItemSelection(item) },
+                                                        onClick = {
+                                                            if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
+                                                                vm?.toggleItemSelection(item)
+                                                            } else {
+                                                                vm?.navigate(item)
+                                                            }
+                                                        },
+                                                        onLongClick = { vm?.toggleItemSelection(item) },
+                                                        showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
+                                                            item.id in mainStateSnap.selectionState.selectableItems
                                                     )
                                                 }
                                             }
@@ -385,11 +427,30 @@ fun ExplorerWorkspacePage(
                                                             }
                                                         },
                                                         onLongClick = { vm?.toggleItemSelection(item) },
-                                                        showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty()
+                                                        showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
+                                                            item.id in mainStateSnap.selectionState.selectableItems
                                                     )
                                                     is ExplorerItem.Shortcut -> ShortcutGrid(
                                                         item = item,
                                                         onClick = { vm?.navigate(item) },
+                                                    )
+
+                                                    is ExplorerItem.Storage -> StorageGrid(
+                                                        item = item,
+                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(
+                                                            item.id
+                                                        ),
+                                                        onToggleSelection = { vm?.toggleItemSelection(item) },
+                                                        onClick = {
+                                                            if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
+                                                                vm?.toggleItemSelection(item)
+                                                            } else {
+                                                                vm?.navigate(item)
+                                                            }
+                                                        },
+                                                        onLongClick = { vm?.toggleItemSelection(item) },
+                                                        showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
+                                                            item.id in mainStateSnap.selectionState.selectableItems
                                                     )
 
                                                     is ExplorerItem.Peek -> PeekGrid(
@@ -520,6 +581,15 @@ fun ExplorerWorkspacePage(
             issue = issueState!!,
             onResolution = { resolution -> vm?.resolveConflict(resolution) },
             onDismiss = { showIssueSheet = false },
+        )
+    }
+
+    // Show add storage bottom sheet
+    val showAddStorageSheet by (vm?.showAddStorageSheet?.collectAsState() ?: remember { mutableStateOf(false) })
+    if (showAddStorageSheet) {
+        eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet(
+            onDismiss = { vm?.dismissAddStorageSheet() },
+            onContinue = { vm?.addSAFLocation() }
         )
     }
 

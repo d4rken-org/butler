@@ -30,7 +30,15 @@ fun ExplorerDialogHost(
                 onConfirm = { result -> vm?.onDeleteConfirmed(result) }
             )
         }
-        
+
+        is ExplorerDialogState.RemoveLocationConfirmation -> {
+            RemoveLocationConfirmationDialog(
+                items = dialogState.items,
+                onDismiss = { vm?.dismissDialog() },
+                onConfirm = { vm?.onRemoveLocationConfirmed() }
+            )
+        }
+
         is ExplorerDialogState.Rename -> {
             RenameDialog(
                 item = dialogState.item,

@@ -51,9 +51,8 @@ class ExplorerWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
     @Assisted private val arguments: Arguments?,
     dispatcherProvider: DispatcherProvider,
-    private val browsingEngineFactory: BrowsingEngine.Factory,
-    private val breadcrumbGenerator: BreadcrumbGenerator,
-    private val fileSystemHinter: FileSystemHinter,
+    browsingEngineFactory: BrowsingEngine.Factory,
+    fileSystemHinter: FileSystemHinter,
     private val pathAccessTracker: PathAccessTracker,
     private val issueHandler: IssueHandler,
     private val operationsManager: OperationsManager,
@@ -71,9 +70,7 @@ class ExplorerWorkspace @AssistedInject constructor(
 
     override val type: Workspace.Type = Workspace.Type.EXPLORER
 
-    private val _state = DynamicStateFlow<State>(parentScope = scope) {
-        State()
-    }
+    private val _state = DynamicStateFlow<State>(parentScope = scope) { State() }
     val state: Flow<State> = _state.flow
 
     data class OperationsState(
@@ -140,7 +137,6 @@ class ExplorerWorkspace @AssistedInject constructor(
     }
 
     init {
-        // Single continuous collection of location updates
         browsingEngine.location
             .onEach { engineState ->
                 _state.updateBlocking {

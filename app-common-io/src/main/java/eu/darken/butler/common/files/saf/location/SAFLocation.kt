@@ -54,11 +54,6 @@ data class SAFLocation(
      * Whether this location is hidden from the UI
      */
     val isHidden: Boolean = false,
-
-    /**
-     * Whether this location is pinned to the top of the list
-     */
-    val isPinned: Boolean = false,
 ) {
     /**
      * Display name for UI: user label if set, otherwise path's readable name

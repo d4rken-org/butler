@@ -1,9 +1,9 @@
 package eu.darken.butler.explorer.ui.explorer.dialogs
 
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.engine.ExplorerItem
-import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 
 sealed interface ExplorerDialogState {
@@ -13,6 +13,8 @@ sealed interface ExplorerDialogState {
     data object CreateItem : ExplorerDialogState
 
     data class DeleteConfirmation(val items: Set<APath>) : ExplorerDialogState
+
+    data class RemoveLocationConfirmation(val items: List<ExplorerItem.Storage.SAF>) : ExplorerDialogState
 
     data class Rename(val item: APath) : ExplorerDialogState
 

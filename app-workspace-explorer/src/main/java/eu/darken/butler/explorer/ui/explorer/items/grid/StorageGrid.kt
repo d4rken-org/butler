@@ -14,19 +14,23 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
-fun ShortcutGrid(
+fun StorageGrid(
     modifier: Modifier = Modifier,
-    item: ExplorerItem.Shortcut,
+    item: ExplorerItem.Storage,
+    isSelected: Boolean = false,
+    onToggleSelection: () -> Unit = {},
     onClick: () -> Unit,
+    onLongClick: () -> Unit = {},
+    showSelection: Boolean = false,
 ) {
     FileGridBase(
         modifier = modifier,
         item = item,
-        isSelected = false,
-        onToggleSelection = {},
+        isSelected = isSelected,
+        onToggleSelection = onToggleSelection,
         onClick = onClick,
-        onLongClick = {},
-        showSelection = false,
+        onLongClick = onLongClick,
+        showSelection = showSelection,
         icon = {
             Icon(
                 imageVector = item.displayIcon,
@@ -43,10 +47,21 @@ fun ShortcutGrid(
 
 @Preview2
 @Composable
-private fun ShortcutGridPreview() {
+private fun StorageGridLocalPreview() {
     PreviewWrapper {
-        ShortcutGrid(
-            item = MockDataProvider.createMockShortcut(),
+        StorageGrid(
+            item = MockDataProvider.createMockStorageLocal(),
+            onClick = {}
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun StorageGridSAFPreview() {
+    PreviewWrapper {
+        StorageGrid(
+            item = MockDataProvider.createMockStorageSAF(),
             onClick = {}
         )
     }

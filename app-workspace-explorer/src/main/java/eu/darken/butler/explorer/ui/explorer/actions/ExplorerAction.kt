@@ -5,18 +5,15 @@ import androidx.compose.material.icons.automirrored.twotone.Sort
 import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
-import androidx.compose.material.icons.twotone.ContentPaste
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Deselect
 import androidx.compose.material.icons.twotone.DriveFileRenameOutline
 import androidx.compose.material.icons.twotone.FilterList
+import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material.icons.twotone.GridView
-import androidx.compose.material.icons.twotone.MoreVert
 import androidx.compose.material.icons.twotone.Refresh
 import androidx.compose.material.icons.twotone.SelectAll
-import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Share
-import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
@@ -133,10 +130,23 @@ sealed interface ExplorerAction {
     }
 
     sealed interface Device : ExplorerAction {
+        data class AddLocation(
+            override val isEnabled: Boolean = true,
+            override val group: Group = Group.PRIMARY,
+        ) : Device {
+            override val icon = Icons.TwoTone.FolderShared
+            override val label = R.string.explorer_action_add_location.toCaString()
+        }
 
+        data class RemoveLocation(
+            override val isEnabled: Boolean = true,
+            override val group: Group = Group.PRIMARY,
+        ) : Device {
+            override val icon = Icons.TwoTone.FolderShared
+            override val label = R.string.explorer_device_action_remove_location.toCaString()
+            override val isDestructive = true
+        }
     }
 
-    sealed interface Home : ExplorerAction {
-
-    }
+    sealed interface Home : ExplorerAction
 }
