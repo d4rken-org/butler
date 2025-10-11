@@ -32,26 +32,17 @@ class SAFLocationPreferences @Inject constructor(
     override val dataStore: DataStore<Preferences>
         get() = context.dataStore
 
-    /**
-     * Map of location ID to user preferences
-     */
     val locations: DataStoreValue<Map<String, LocationPreference>> = dataStore.createValue(
         key = "saf.locations",
         defaultValue = emptyMap(),
         json = json,
     )
 
-    /**
-     * Get preference for a specific location, or default if not set
-     */
     suspend fun getLocationPreference(locationId: String): LocationPreference {
         val current = locations.flow.first()
         return current[locationId] ?: LocationPreference(locationId)
     }
 
-    /**
-     * Update preference for a specific location
-     */
     suspend fun updateLocationPreference(
         locationId: String,
         update: (LocationPreference) -> LocationPreference
@@ -62,9 +53,6 @@ class SAFLocationPreferences @Inject constructor(
         locations.update { current + (locationId to updated) }
     }
 
-    /**
-     * Remove preference for a specific location
-     */
     suspend fun removeLocationPreference(locationId: String) {
         locations.update { current ->
             current - locationId

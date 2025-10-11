@@ -1,7 +1,6 @@
 package eu.darken.butler.common.files.local
 
 import android.R.attr.*
-import android.os.StatFs
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.adb.AdbUnavailableException
 import eu.darken.butler.common.adb.canUseAdbNow
@@ -9,7 +8,6 @@ import eu.darken.butler.common.adb.service.runModuleAction
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
-import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathGateway
@@ -699,17 +697,34 @@ class LocalGateway @Inject constructor(
         }
     }
 
-    override suspend fun getInfo(path: LocalPath): FileSystemInfo {
-        val statFs = try {
-            StatFs(path.path)
-        } catch (e: Exception) {
-            log(TAG, ERROR) { "getInfo(): Failed on $path: ${e.asLog()}" }
-            null
+    override suspend fun getInfo(path: LocalPath): FileSystemInfo = getInfo(path, Mode.AUTO)
+
+    suspend fun getInfo(path: LocalPath, mode: Mode): FileSystemInfo = runIO {
+        log(TAG, VERBOSE) { "getInfo(): $path" }
+        val canNormalRead = when (mode) {
+            Mode.ROOT -> false
+            Mode.ADB -> false
+            else -> path.file.canRead()
         }
-        return FileSystemInfo(
-            freeSpace = statFs?.availableBytes,
-            totalSpace = statFs?.totalBytes,
-        )
+
+        when {
+            mode == Mode.NORMAL || mode == Mode.AUTO && canNormalRead -> {
+                log(TAG, VERBOSE) { "getInfo($mode->NORMAL): $path" }
+                fileSystemOps.getInfo(path)
+            }
+
+            hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
+                log(TAG, VERBOSE) { "getInfo($mode->ROOT): $path" }
+                rootOps { TODO() }
+            }
+
+            hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
+                log(TAG, VERBOSE) { "getInfo($mode->ADB): $path" }
+                adbOps { TODO() }
+            }
+
+            else -> throw IOException("No matching mode available.")
+        }
     }
 
     override suspend fun delete(

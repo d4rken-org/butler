@@ -149,8 +149,21 @@ class SAFGateway @Inject constructor(
         }
     }
 
-    override suspend fun getInfo(path: SAFPath): FileSystemInfo {
-        TODO("Not yet implemented")
+    override suspend fun getInfo(path: SAFPath): FileSystemInfo = runIO {
+        val statvfs = try {
+            log(TAG, VERBOSE) { "getInfo(): $path" }
+
+            val pfd = fileSystemOps.openPFD(path, FileMode.READ)
+            pfd.use { android.system.Os.fstatvfs(it.fileDescriptor) }
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "getInfo(): Failed on $path: ${e.asLog()}" }
+            null
+        }
+
+        FileSystemInfo(
+            freeSpace = statvfs?.let { statvfs.f_bavail * statvfs.f_frsize },
+            totalSpace = statvfs?.let { statvfs.f_blocks * statvfs.f_frsize },
+        )
     }
 
     override suspend fun delete(

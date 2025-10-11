@@ -1,9 +1,14 @@
 package eu.darken.butler.common.files.local
 
+import android.os.StatFs
+import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.asLog
+import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.toFile
+import eu.darken.butler.common.files.metadata.FileSystemInfo
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.operations.FileSystemOps
@@ -230,5 +235,18 @@ class LocalFileSystemOps @Inject constructor(
 
     suspend fun file(path: LocalPath, readWrite: Boolean): FileHandle {
         return path.toFile().fileHandle(readWrite)
+    }
+
+     suspend fun getInfo(path: LocalPath): FileSystemInfo {
+        val statFs = try {
+            StatFs(path.path)
+        } catch (e: Exception) {
+            log(LocalGateway.Companion.TAG, ERROR) { "getInfo(): Failed on $path: ${e.asLog()}" }
+            null
+        }
+        return FileSystemInfo(
+            freeSpace = statFs?.availableBytes,
+            totalSpace = statFs?.totalBytes,
+        )
     }
 }
