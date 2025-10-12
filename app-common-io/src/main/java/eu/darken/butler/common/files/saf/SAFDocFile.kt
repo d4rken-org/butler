@@ -13,7 +13,6 @@ import android.system.Os
 import android.system.StructStat
 import android.text.TextUtils
 import eu.darken.butler.common.asSequence
-import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -39,7 +38,8 @@ data class SAFDocFile(
     val exists: Boolean
         get() = queryForString(DocumentsContract.Document.COLUMN_DOCUMENT_ID) != null
 
-    private val mimeType: String? by lazy { queryForString(DocumentsContract.Document.COLUMN_MIME_TYPE) }
+    private val mimeType: String?
+        get() = queryForString(DocumentsContract.Document.COLUMN_MIME_TYPE)
 
     val isFile: Boolean
         get() = DocumentsContract.Document.MIME_TYPE_DIR != (mimeType) && mimeType?.isNotEmpty() == true
@@ -216,9 +216,10 @@ data class SAFDocFile(
                 }
             }
         } catch (e: Exception) {
-            if (Bugs.isTrace) {
-                log(SAFGateway.TAG + ":SAFDocFile", WARN) { "queryForString(column=$column): ${e.asLog()}" }
+            if (e !is IllegalArgumentException || !e.toString().contains("is child of")) {
+                log(SAFGateway.TAG + ":SAFDocFile", WARN) { "queryForString(column=$column): $e" }
             }
+
             null
         }
     }
@@ -234,7 +235,7 @@ data class SAFDocFile(
                 }
             }
         } catch (e: Exception) {
-            log(SAFGateway.TAG + ":SAFDocFile", WARN) { "queryForLong(column=$column): ${e.asLog()}" }
+            log(SAFGateway.TAG + ":SAFDocFile", WARN) { "queryForLong(column=$column): $e" }
             null
         }
     }
