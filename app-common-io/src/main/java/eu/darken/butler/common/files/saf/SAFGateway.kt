@@ -169,72 +169,56 @@ class SAFGateway @Inject constructor(
     override suspend fun delete(
         targets: Set<SAFPath>,
         options: DeleteAction.Options<SAFPath>
-    ): Flow<DeleteAction.State<SAFPath, SAFPathLookup>> {
-        TODO("Not yet implemented")
-//        log(TAG, VERBOSE) { "delete(recursive=$recursive): $path" }
-//
-//        val queue = LinkedList(listOf(lookup(path)))
-//
-//        while (!queue.isEmpty()) {
-//            val lookUp = queue.removeFirst()
-//
-//            if (lookUp.isDirectory) {
-//                val newBatch = try {
-//                    lookupFiles(lookUp.lookedUp)
-//                } catch (e: IOException) {
-//                    log(TAG, ERROR) { "Failed to read directory to delete $lookUp: $e" }
-//                    throw ReadException(path = path, cause = e)
-//                }
-//                queue.addAll(newBatch)
-//            } else {
-//                var success = try {
-//                    lookUp.docFile.delete()
-//                } catch (e: Exception) {
-//                    throw WriteException(path = path, cause = e)
-//                }
-//
-//                if (!success) {
-//                    success = try {
-//                        !lookUp.docFile.exists
-//                    } catch (e: IOException) {
-//                        log(TAG, ERROR) { "Failed to perform exists() check $lookUp: $e" }
-//                        throw ReadException(path = path, cause = e)
-//                    }
-//                    if (success) log(TAG, WARN) { "Tried to delete file, but it's already gone: $path" }
-//                }
-//
-//                if (!success) throw IOException("Document delete() call returned false")
-//            }
-//        }
-    }
+    ): Flow<DeleteAction.State<SAFPath, SAFPathLookup>> = flow {
+        log(TAG, VERBOSE) { "delete(): ${targets.size} targets" }
+
+        val result = targets.delete(
+            fileSystemOps = fileSystemOps,
+            recursive = options.recursive,
+            ignoreMissing = options.ignoreMissing,
+            onProgress = { progress -> emit(progress) },
+            onIssue = options.onIssue
+        )
+
+        log(TAG, INFO) { "delete(): Finished, deleted ${result.deleted.size} items" }
+        emit(result)
+    }.flowOn(dispatcherProvider.IO)
 
     override suspend fun copy(
         sources: Set<SAFPath>,
         destination: SAFPath,
         options: CopyAction.Options<SAFPath>
-    ): Flow<CopyAction.State<SAFPath, SAFPathLookup>> {
-        // TODO: Implement using DocumentFile APIs
-        // - Use DocumentFile.listFiles() for traversal across all sources
-        // - Use ContentResolver streams for copying
-        // - Handle issues via options.onIssue callback
-        // - Report cumulative progress across all sources
-        // - Support "Apply to All" via gateway-level state management
-        throw NotImplementedError("TODO: SAFGateway multi-source copy implementation")
-    }
+    ): Flow<CopyAction.State<SAFPath, SAFPathLookup>> = flow {
+        log(TAG, VERBOSE) { "copy(): ${sources.size} sources to $destination" }
+
+        val result = sources.copy(
+            destination = destination,
+            fileSystemOps = fileSystemOps,
+            onProgress = { progress -> emit(progress) },
+            onIssue = options.onIssue
+        )
+
+        log(TAG, INFO) { "copy(): Finished, copied ${result.copied.size} items" }
+        emit(result)
+    }.flowOn(dispatcherProvider.IO)
 
     override suspend fun move(
         sources: Set<SAFPath>,
         destination: SAFPath,
         options: MoveAction.Options<SAFPath>
-    ): Flow<MoveAction.State<SAFPath, SAFPathLookup>> {
-        // TODO: Implement using DocumentFile.renameTo()
-        // - Try renameTo() for same parent directory across all sources
-        // - Fallback to copy+delete for different parents
-        // - Handle issues via options.onIssue callback
-        // - Report cumulative progress across all sources
-        // - Support "Apply to All" via gateway-level state management
-        throw NotImplementedError("TODO: SAFGateway multi-source move implementation")
-    }
+    ): Flow<MoveAction.State<SAFPath, SAFPathLookup>> = flow {
+        log(TAG, VERBOSE) { "move(): ${sources.size} sources to $destination" }
+
+        val result = sources.move(
+            destination = destination,
+            fileSystemOps = fileSystemOps,
+            onProgress = { progress -> emit(progress) },
+            onIssue = options.onIssue
+        )
+
+        log(TAG, INFO) { "move(): Finished, moved ${result.movedFiles.size} items" }
+        emit(result)
+    }.flowOn(dispatcherProvider.IO)
 
     companion object {
         val TAG = logTag("Gateway", "SAF")
