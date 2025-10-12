@@ -67,7 +67,8 @@ fun ExplorerTopBarPreview() {
             label = R.string.explorer_navigation_home.toCaString(),
             icon = Icons.TwoTone.Home,
             target = ExplorerNavigation.Target.Home,
-            preferIcon = true,
+            showIcon = true,
+            showText = false,
         ),
         ExplorerBreadcrumb(
             label = "storage".toCaString(),

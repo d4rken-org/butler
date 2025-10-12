@@ -8,10 +8,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -19,6 +19,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ChevronRight
+import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -40,17 +41,16 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.res.stringResource
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.explorer.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.RawPath
+import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.BreadcrumbGenerator
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -181,7 +181,7 @@ fun BreadcrumbBar(
                     breadcrumbs.forEachIndexed { index, breadcrumb ->
                         val isLast = index == breadcrumbs.lastIndex
 
-                        Box(
+                        Row(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(4.dp))
                                 .clickable {
@@ -201,12 +201,11 @@ fun BreadcrumbBar(
                                     }
                                 }
                                 .padding(horizontal = 2.dp, vertical = 4.dp),
-                            contentAlignment = Alignment.Center
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Use icon from breadcrumb data, or show text if no icon or preferIcon is false
-                            if (breadcrumb.icon != null && (breadcrumb.preferIcon || breadcrumb.label.get(context)
-                                    .isEmpty())
-                            ) {
+                            // Show icon if showIcon is true and icon exists
+                            if (breadcrumb.showIcon && breadcrumb.icon != null) {
                                 Icon(
                                     imageVector = breadcrumb.icon,
                                     contentDescription = breadcrumb.label.get(context),
@@ -217,7 +216,10 @@ fun BreadcrumbBar(
                                     },
                                     modifier = Modifier.size(20.dp)
                                 )
-                            } else {
+                            }
+
+                            // Show text if showText is true
+                            if (breadcrumb.showText) {
                                 Text(
                                     text = breadcrumb.label.get(context),
                                     style = if (isLast) {
@@ -235,7 +237,7 @@ fun BreadcrumbBar(
 
                         if (!isLast) {
                             Icon(
-                        imageVector = Icons.TwoTone.ChevronRight,
+                                imageVector = Icons.TwoTone.ChevronRight,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                 modifier = Modifier.size(16.dp)
@@ -254,6 +256,12 @@ fun BreadcrumbBarPreview() {
     val breadcrumbs = listOf(
         BreadcrumbGenerator.HOME,
         BreadcrumbGenerator.DEVICE,
+        ExplorerBreadcrumb(
+            label = "/".toCaString(),
+            icon = Icons.TwoTone.FolderOpen,
+            showIcon = true,
+            target = ExplorerNavigation.Target.Directory(LocalPath.build("/"))
+        ),
         ExplorerBreadcrumb(
             label = "storage".toCaString(),
             target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage"))

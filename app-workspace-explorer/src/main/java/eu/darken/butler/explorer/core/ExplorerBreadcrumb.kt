@@ -6,6 +6,7 @@ import eu.darken.butler.common.ca.CaString
 data class ExplorerBreadcrumb(
     val label: CaString,
     val icon: ImageVector? = null,
-    val preferIcon: Boolean = false,
+    val showText: Boolean = true,
+    val showIcon: Boolean = false,
     val target: ExplorerNavigation,
 )
