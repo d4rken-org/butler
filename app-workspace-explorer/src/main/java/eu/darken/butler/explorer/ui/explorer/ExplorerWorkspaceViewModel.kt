@@ -358,10 +358,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             normalizedPath.isEmpty() -> {
                 getWorkspace().navigate(Home)
             }
-            normalizedPath.startsWith("/") -> {
-                getWorkspace().navigate(Directory(LocalPath.build(normalizedPath)))
-                clearSelection()
-            }
             else -> {
                 // Invalid path - could show error
                 log(tag, WARN) { "Invalid path: $pathString" }
@@ -506,7 +502,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
                     val infoContext = itemInfoCalculator.calculateInfo(selectedItems, stateSnap.items)
                     infoContext?.let { context ->
-                        dialogStateFlow.value = ExplorerDialogState.ItemInfo(context)
+                        dialogStateFlow.value = ItemInfo(context)
                     }
                 }
             }
