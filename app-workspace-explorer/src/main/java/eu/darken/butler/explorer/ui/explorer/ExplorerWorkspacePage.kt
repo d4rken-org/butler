@@ -237,6 +237,7 @@ fun ExplorerWorkspacePage(
                     workspaceButtonState = workspaceButtonState,
                     showWorkspaceButton = design.isSingle,
                     workspaceActionHandler = workspaceActionHandler,
+                    safLocationManager = vm?.safLocationManager,
                 )
             },
         ) { paddingValues ->

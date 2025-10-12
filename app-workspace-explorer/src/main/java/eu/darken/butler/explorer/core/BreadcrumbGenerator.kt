@@ -51,8 +51,13 @@ class BreadcrumbGenerator @Inject constructor(
 
                     add(
                         ExplorerBreadcrumb(
-                            label = segment.ifEmpty { "/" }.toCaString(),
+                            label = if (segment.isEmpty()) {
+                                R.string.explorer_navigation_root.toCaString()
+                            } else {
+                                segment.toCaString()
+                            },
                             icon = Icons.TwoTone.FolderOpen,
+                            showIcon = segment.isEmpty(), // Show icon for root breadcrumb
                             target = ExplorerNavigation.Target.Directory(LocalPath.build(newPath))
                         )
                     )

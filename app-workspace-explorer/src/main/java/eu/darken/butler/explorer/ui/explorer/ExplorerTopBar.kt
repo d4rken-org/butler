@@ -15,6 +15,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -32,6 +33,7 @@ fun ExplorerTopBar(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     showWorkspaceButton: Boolean,
     workspaceActionHandler: WorkspaceActionHandler? = null,
+    safLocationManager: SAFLocationManager? = null,
 ) {
     TopAppBar(
         modifier = modifier,
@@ -42,6 +44,7 @@ fun ExplorerTopBar(
                 breadcrumbs = breadcrumbs,
                 onBreadcrumbClick = onBreadcrumbClick,
                 onNavigateToPath = onNavigateToPath,
+                safLocationManager = safLocationManager,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(end = 16.dp)

@@ -102,7 +102,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val copyErrorTool: CopyErrorTool,
     private val upgradeRepo: UpgradeRepo,
     private val filenameValidator: FilenameValidator,
-    private val safLocationManager: SAFLocationManager,
+    internal val safLocationManager: SAFLocationManager,
     private val itemInfoCalculator: ItemInfoCalculator,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
 

@@ -36,6 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
@@ -49,11 +50,15 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.BreadcrumbGenerator
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
+import java.io.File
 
 @Composable
 fun BreadcrumbBar(
@@ -61,6 +66,7 @@ fun BreadcrumbBar(
     breadcrumbs: List<ExplorerBreadcrumb>,
     onBreadcrumbClick: (ExplorerNavigation) -> Unit,
     onNavigateToPath: ((String) -> Unit)? = null,
+    safLocationManager: SAFLocationManager? = null,
 ) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
@@ -69,11 +75,58 @@ fun BreadcrumbBar(
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    // Build current path from breadcrumbs
-    val currentPath = remember(breadcrumbs) {
+    // Detect current path type and extract relevant information
+    data class PathInfo(
+        val displayPath: String,
+        val path: APath?,
+        val prefixIcon: ImageVector? = null,
+        val prefixLabel: String? = null,
+    )
+
+    val pathInfo = remember(breadcrumbs, safLocationManager) {
         when (val lastTarget = breadcrumbs.lastOrNull()?.target) {
-            is ExplorerNavigation.Target.Directory -> lastTarget.path.path
-            else -> "/"
+            is ExplorerNavigation.Target.Directory -> {
+                when (val path = lastTarget.path) {
+                    is SAFPath -> {
+                        // For SAF paths, show only the relative segments
+                        val segmentsPath = path.segments.joinToString("/")
+
+                        // Find the SAF root breadcrumb (parent of current path's tree)
+                        val rootBreadcrumb = breadcrumbs.find {
+                            it.target is ExplorerNavigation.Target.Directory &&
+                            it.target.path == path.parent
+                        }
+                        val locationName = safLocationManager?.findPermissionFor(path)?.location?.displayName?.get(context)
+
+                        PathInfo(
+                            displayPath = segmentsPath, // Empty when at SAF root
+                            path = path,
+                            prefixIcon = rootBreadcrumb?.icon,
+                            prefixLabel = locationName,
+                        )
+                    }
+                    is LocalPath -> {
+                        // For local paths, split the leading "/" from the rest
+                        val pathAfterRoot = path.path.removePrefix("/")
+
+                        // Find the "/" root breadcrumb
+                        val rootBreadcrumb = breadcrumbs.find {
+                            it.target is ExplorerNavigation.Target.Directory &&
+                            it.target.path is LocalPath &&
+                            it.target.path.path == "/"
+                        }
+
+                        PathInfo(
+                            displayPath = pathAfterRoot, // Everything after the first "/"
+                            path = path,
+                            prefixIcon = rootBreadcrumb?.icon,
+                            prefixLabel = rootBreadcrumb?.label?.get(context),
+                        )
+                    }
+                    else -> PathInfo(displayPath = "", path = null)
+                }
+            }
+            else -> PathInfo(displayPath = "", path = null)
         }
     }
 
@@ -92,9 +145,9 @@ fun BreadcrumbBar(
     }
 
     // Enter edit mode with current path
-    LaunchedEffect(isEditMode) {
+    LaunchedEffect(isEditMode, pathInfo) {
         if (isEditMode) {
-            editTextValue = TextFieldValue(currentPath, TextRange(currentPath.length))
+            editTextValue = TextFieldValue(pathInfo.displayPath, TextRange(pathInfo.displayPath.length))
             focusRequester.requestFocus()
         }
     }
@@ -109,39 +162,87 @@ fun BreadcrumbBar(
         contentAlignment = Alignment.CenterStart
     ) {
         if (isEditMode && onNavigateToPath != null) {
-            // Edit mode - show text field
-            BasicTextField(
-                value = editTextValue,
-                onValueChange = { editTextValue = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester)
-                    .onKeyEvent { keyEvent ->
-                        if (keyEvent.key == Key.Escape) {
-                            keyboardController?.hide()
-                            isEditMode = false
-                            true
-                        } else {
-                            false
-                        }
-                    },
-                textStyle = MaterialTheme.typography.bodyMedium.copy(
-                    color = MaterialTheme.colorScheme.onSurface
-                ),
-                singleLine = true,
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        keyboardController?.hide()
-                        val pathToNavigate = editTextValue.text.trim()
-                        if (pathToNavigate.isNotEmpty()) {
-                            onNavigateToPath(pathToNavigate)
-                        }
-                        isEditMode = false
-                    }
-                )
-            )
+            // Edit mode - unified UI for both SAF and Local paths
+            if (pathInfo.prefixIcon != null && pathInfo.prefixLabel != null) {
+                // Show icon + label prefix + editable suffix
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    // Non-editable prefix showing root location
+                    Icon(
+                        imageVector = pathInfo.prefixIcon,
+                        contentDescription = pathInfo.prefixLabel,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        text = pathInfo.prefixLabel,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = File.separator,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    // Editable suffix (path after root)
+                    BasicTextField(
+                        value = editTextValue,
+                        onValueChange = { editTextValue = it },
+                        modifier = Modifier
+                            .weight(1f)
+                            .focusRequester(focusRequester)
+                            .onKeyEvent { keyEvent ->
+                                if (keyEvent.key == Key.Escape) {
+                                    keyboardController?.hide()
+                                    isEditMode = false
+                                    true
+                                } else {
+                                    false
+                                }
+                            },
+                        textStyle = MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.onSurface
+                        ),
+                        singleLine = true,
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                keyboardController?.hide()
+                                val editedPath = editTextValue.text.trim()
+
+                                // Handle navigation based on path type
+                                when (val path = pathInfo.path) {
+                                    is SAFPath -> {
+                                        // Reconstruct SAFPath from tree root + edited segments
+                                        val segments = if (editedPath.isEmpty() || editedPath == "/") {
+                                            emptyArray()
+                                        } else {
+                                            editedPath.split("/").filter { it.isNotEmpty() }.toTypedArray()
+                                        }
+                                        val newSafPath = SAFPath.build(path.treeRootUri, *segments)
+                                        onBreadcrumbClick(ExplorerNavigation.Target.Directory(newSafPath))
+                                    }
+                                    is LocalPath -> {
+                                        // Reconstruct full path with leading "/"
+                                        val fullPath = "/$editedPath"
+                                        onNavigateToPath(fullPath)
+                                    }
+                                    else -> {
+                                        // Fallback for other path types or null
+                                    }
+                                }
+
+                                isEditMode = false
+                            }
+                        )
+                    )
+                }
+            }
         } else {
             // Display mode - show breadcrumbs or loading state
             if (breadcrumbs.isEmpty()) {
