@@ -19,8 +19,8 @@ interface CopyAction<P : APath, PL : APathLookup<P>> : GatewayAction<P> {
         val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
     )
 
-    sealed interface State<P : APath, PL : APathLookup<P>> {
-        data class Progress<P : APath, PL : APathLookup<P>>(
+    sealed interface State<out P : APath, out PL : APathLookup<P>> {
+        data class Progress<out P : APath, out PL : APathLookup<P>>(
             val currentSource: P,
             val currentDestination: P,
             val primaryProgress: eu.darken.butler.common.progress.Progress.Data,
@@ -32,7 +32,7 @@ interface CopyAction<P : APath, PL : APathLookup<P>> : GatewayAction<P> {
             val currentFileStartTime: Instant? = null,
         ) : State<P, PL>
 
-        data class Result<P : APath, PL : APathLookup<P>>(
+        data class Result<out P : APath, out PL : APathLookup<P>>(
             val copied: Set<Pair<P, P>>,
             val skipped: Set<P> = emptySet(),
             val copiedBytes: Long,

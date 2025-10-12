@@ -18,8 +18,8 @@ interface MoveAction<P : APath, PL : APathLookup<P>> : GatewayAction<P> {
         val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
     )
 
-    sealed interface State<P : APath, PL : APathLookup<P>> {
-        data class Progress<P : APath, PL : APathLookup<P>>(
+    sealed interface State<out P : APath, out PL : APathLookup<P>> {
+        data class Progress<out P : APath, out PL : APathLookup<P>>(
             val currentSource: P,
             val currentDestination: P,
             val primaryProgress: eu.darken.butler.common.progress.Progress.Data,
@@ -31,7 +31,7 @@ interface MoveAction<P : APath, PL : APathLookup<P>> : GatewayAction<P> {
             val currentFileStartTime: Instant? = null,
         ) : State<P, PL>
 
-        data class Result<P : APath, PL : APathLookup<P>>(
+        data class Result<out P : APath, out PL : APathLookup<P>>(
             val movedFiles: Set<Pair<P, P>>,
             val skippedFiles: Set<P> = emptySet(),
             val bytesMoved: Long,

@@ -14,6 +14,8 @@ import eu.darken.butler.common.files.local.LocalGateway
 import eu.darken.butler.common.files.metadata.FileSystemInfo
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
+import eu.darken.butler.common.files.operations.copyGeneric
+import eu.darken.butler.common.files.operations.moveGeneric
 import eu.darken.butler.common.files.saf.SAFGateway
 import eu.darken.butler.common.sharedresource.SharedResource
 import eu.darken.butler.common.sharedresource.adoptChildResource
@@ -315,19 +317,18 @@ class GatewaySwitch @Inject constructor(
                 else -> {
                     for (source in sourcesGroup) {
                         val targetPath = destination.child(source.name)
-                        performCrossGatewayCopy(source, targetPath, options)
-                            .collect { state ->
-                                when (state) {
-                                    is CopyAction.State.Progress -> {
-                                        emit(state.copy(copiedBytes = totalBytesProcessed + state.copiedBytes))
-                                    }
-                                    is CopyAction.State.Result -> {
-                                        totalBytesProcessed += state.copiedBytes
-                                        allCopiedFiles.addAll(state.copied)
-                                        allSkippedFiles.addAll(state.skipped)
-                                    }
+                        performCrossGatewayCopy(source, targetPath, options).collect { state ->
+                            when (state) {
+                                is CopyAction.State.Progress -> {
+                                    emit(state.copy(copiedBytes = totalBytesProcessed + state.copiedBytes))
+                                }
+                                is CopyAction.State.Result -> {
+                                    totalBytesProcessed += state.copiedBytes
+                                    allCopiedFiles.addAll(state.copied)
+                                    allSkippedFiles.addAll(state.skipped)
                                 }
                             }
+                        }
                     }
                 }
             }
@@ -378,19 +379,18 @@ class GatewaySwitch @Inject constructor(
                 else -> {
                     for (source in sourcesGroup) {
                         val targetPath = destination.child(source.name)
-                        performCrossGatewayMove(source, targetPath, options)
-                            .collect { state ->
-                                when (state) {
-                                    is MoveAction.State.Progress -> {
-                                        emit(state.copy(movedBytes = totalBytesMoved + state.movedBytes))
-                                    }
-                                    is MoveAction.State.Result -> {
-                                        totalBytesMoved += state.bytesMoved
-                                        allMovedFiles.addAll(state.movedFiles)
-                                        allSkippedFiles.addAll(state.skippedFiles)
-                                    }
+                        performCrossGatewayMove(source, targetPath, options).collect { state ->
+                            when (state) {
+                                is MoveAction.State.Progress -> {
+                                    emit(state.copy(movedBytes = totalBytesMoved + state.movedBytes))
+                                }
+                                is MoveAction.State.Result -> {
+                                    totalBytesMoved += state.bytesMoved
+                                    allMovedFiles.addAll(state.movedFiles)
+                                    allSkippedFiles.addAll(state.skippedFiles)
                                 }
                             }
+                        }
                     }
                 }
             }
@@ -405,48 +405,38 @@ class GatewaySwitch @Inject constructor(
         )
     }
 
-
-//    suspend fun <T : APath> T.deleteWalk(
-//        gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
-//        filter: (APathLookup<*>) -> Boolean = { true }
-//    ) {
-//        try {
-//            val lookup = gateway.lookup(this)
-//
-//            if (lookup.isDirectory) {
-//                gateway.listFiles(this).forEach {
-//                    it.deleteWalk(gateway, filter) // Recursion enter
-//                }
-//            }
-//
-//            if (!filter(lookup)) {
-//                log(VERBOSE) { "Skipped due to filter: $this" }
-//                return
-//            }
-//        } catch (e: PathException) {
-//            val exists = gateway.exists(this)
-//            if (!exists) {
-//                log(WARN) { "Path failed to delete, but no longer exists: $this" }
-//                return
-//            } else {
-//                throw e
-//            }
-//        }
-//
-//        // Recursion exit
-//        this.delete(gateway, recursive = false)
-//    }
-
     private suspend fun performCrossGatewayCopy(
         source: APath,
         target: APath,
         options: CopyAction.Options<APath>
     ): Flow<CopyAction.State<APath, APathLookup<APath>>> = flow {
-        // TODO: Implement cross-gateway copy
-        // - Handle file handle transfers between different gateway types
-        // - Emit progress updates via options.onProgress
-        // - Handle conflicts via options.onIssue
-        throw NotImplementedError("TODO: Cross-gateway copy implementation")
+        log(TAG, DEBUG) { "performCrossGatewayCopy(): $source -> $target" }
+
+        when {
+            source is SAFPath && target is LocalPath -> {
+                val result = setOf(source).copyGeneric(
+                    destination = target,
+                    sourceOps = safGateway,
+                    destOps = localGateway,
+                    strategy = eu.darken.butler.common.files.operations.GenericCrossTypeCopyStrategy(),
+                    onProgress = { progress -> emit(progress) },
+                    onIssue = options.onIssue
+                )
+                emit(result)
+            }
+            source is LocalPath && target is SAFPath -> {
+                val result = setOf(source).copyGeneric(
+                    destination = target,
+                    sourceOps = localGateway,
+                    destOps = safGateway,
+                    strategy = eu.darken.butler.common.files.operations.GenericCrossTypeCopyStrategy(),
+                    onProgress = { progress -> emit(progress) },
+                    onIssue = options.onIssue
+                )
+                emit(result)
+            }
+            else -> throw IllegalArgumentException("Unsupported cross-type copy: ${source::class.simpleName} -> ${target::class.simpleName}")
+        }
     }
 
     private suspend fun performCrossGatewayMove(
@@ -454,11 +444,33 @@ class GatewaySwitch @Inject constructor(
         target: APath,
         options: MoveAction.Options<APath>
     ): Flow<MoveAction.State<APath, APathLookup<APath>>> = flow {
-        // TODO: Implement cross-gateway move (copy + delete)
-        // - Copy from source to target using cross-gateway copy
-        // - Delete source after successful copy
-        // - Handle conflicts via options.onIssue
-        throw NotImplementedError("TODO: Cross-gateway move implementation")
+        log(TAG, DEBUG) { "performCrossGatewayMove(): $source -> $target" }
+
+        when {
+            source is SAFPath && target is LocalPath -> {
+                val result = setOf(source).moveGeneric(
+                    destination = target,
+                    sourceOps = safGateway,
+                    destOps = localGateway,
+                    strategy = eu.darken.butler.common.files.operations.GenericCrossTypeMoveStrategy(),
+                    onProgress = { progress -> emit(progress) },
+                    onIssue = options.onIssue
+                )
+                emit(result)
+            }
+            source is LocalPath && target is SAFPath -> {
+                val result = setOf(source).moveGeneric(
+                    destination = target,
+                    sourceOps = localGateway,
+                    destOps = safGateway,
+                    strategy = eu.darken.butler.common.files.operations.GenericCrossTypeMoveStrategy(),
+                    onProgress = { progress -> emit(progress) },
+                    onIssue = options.onIssue
+                )
+                emit(result)
+            }
+            else -> throw IllegalArgumentException("Unsupported cross-type move: ${source::class.simpleName} -> ${target::class.simpleName}")
+        }
     }
 
     enum class Type {

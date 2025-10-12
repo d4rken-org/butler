@@ -17,8 +17,8 @@ interface DeleteAction<P : APath, PL : APathLookup<P>> : GatewayAction<P> {
         val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
     )
 
-    sealed interface State<P : APath, PL : APathLookup<P>> {
-        data class Progress<P : APath, PL : APathLookup<P>>(
+    sealed interface State<out P : APath, out PL : APathLookup<P>> {
+        data class Progress<out P : APath, out PL : APathLookup<P>>(
             val target: PL,
             val primaryProgress: eu.darken.butler.common.progress.Progress.Data,
             val secondaryProgress: eu.darken.butler.common.progress.Progress.Data? = null,
@@ -27,7 +27,7 @@ interface DeleteAction<P : APath, PL : APathLookup<P>> : GatewayAction<P> {
             val currentItemStartTime: kotlin.time.Instant? = null,
         ) : State<P, PL>
 
-        data class Result<P : APath, PL : APathLookup<P>>(
+        data class Result<out P : APath, out PL : APathLookup<P>>(
             val deleted: Set<PL>,
             val skipped: Set<PL>,
         ) : State<P, PL> {
