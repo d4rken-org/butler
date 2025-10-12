@@ -91,10 +91,11 @@ fun BreadcrumbBar(
                         // For SAF paths, show only the relative segments
                         val segmentsPath = path.segments.joinToString("/")
 
-                        // Find the SAF root breadcrumb (parent of current path's tree)
+                        // Find the SAF root breadcrumb by matching the tree root path
+                        val safRootPath = SAFPath.build(path.treeRootUri)
                         val rootBreadcrumb = breadcrumbs.find {
                             it.target is ExplorerNavigation.Target.Directory &&
-                            it.target.path == path.parent
+                            it.target.path == safRootPath
                         }
                         val locationName = safLocationManager?.findPermissionFor(path)?.location?.displayName?.get(context)
 
@@ -170,23 +171,51 @@ fun BreadcrumbBar(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    // Non-editable prefix showing root location
-                    Icon(
-                        imageVector = pathInfo.prefixIcon,
-                        contentDescription = pathInfo.prefixLabel,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Text(
-                        text = pathInfo.prefixLabel,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = File.separator,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    // Non-editable clickable prefix showing root location
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .clickable {
+                                // Navigate to root when clicking prefix
+                                when (val path = pathInfo.path) {
+                                    is SAFPath -> {
+                                        // Navigate to SAF root
+                                        val rootPath = SAFPath.build(path.treeRootUri)
+                                        onBreadcrumbClick(ExplorerNavigation.Target.Directory(rootPath))
+                                        isEditMode = false
+                                    }
+                                    is LocalPath -> {
+                                        // Navigate to filesystem root
+                                        onBreadcrumbClick(ExplorerNavigation.Target.Directory(LocalPath.build("/")))
+                                        isEditMode = false
+                                    }
+                                    else -> {
+                                        // Fallback: just exit edit mode
+                                        isEditMode = false
+                                    }
+                                }
+                            }
+                            .padding(horizontal = 2.dp, vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = pathInfo.prefixIcon,
+                            contentDescription = pathInfo.prefixLabel,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(
+                            text = pathInfo.prefixLabel,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = File.separator,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
 
                     // Editable suffix (path after root)
                     BasicTextField(
