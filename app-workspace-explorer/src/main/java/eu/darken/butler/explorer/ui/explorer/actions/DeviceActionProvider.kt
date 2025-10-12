@@ -15,10 +15,8 @@ class DeviceActionProvider @Inject constructor() : ExplorerActionProvider {
 
         if (selectionState.selectedItems.isNotEmpty()) {
             // Check if selected items are SAF storage items
-            val selectedSAFItems = location.items
-                ?.filterIsInstance<ExplorerItem.Storage.SAF>()
-                ?.filter { it.id in selectionState.selectedItems }
-                ?: emptyList()
+            val selectedSAFItems = selectionState.selectedItems
+                .filterIsInstance<ExplorerItem.Storage.SAF>()
 
             actions.add(ExplorerAction.Common.Info())
 

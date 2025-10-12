@@ -106,7 +106,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val itemInfoCalculator: ItemInfoCalculator,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
 
-    private val selectedItemsFlow = MutableStateFlow<Set<String>>(emptySet())
+    private val selectedItemsFlow = MutableStateFlow<Set<ExplorerItem>>(emptySet())
     private val viewModeFlow = MutableStateFlow(ViewMode.LIST)
     private val dialogStateFlow = MutableStateFlow<ExplorerDialogState>(None)
     private val issueStateFlow = MutableStateFlow<Issue?>(null)
@@ -204,7 +204,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             selectedItems = selectedItems,
             selectableItems = items
                 ?.filter { it is ExplorerItem.Path || it is ExplorerItem.Storage.SAF }
-                ?.map { it.id }
                 ?.toSet()
                 ?: emptySet(),
         )
@@ -377,12 +376,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             log(tag, WARN) { "toggleItemSelection($item) is not selectable" }
             return
         }
-        val itemId = item.id
         val currentSelection = selectedItemsFlow.value
-        selectedItemsFlow.value = if (currentSelection.contains(itemId)) {
-            currentSelection - itemId
+        selectedItemsFlow.value = if (currentSelection.contains(item)) {
+            currentSelection - item
         } else {
-            currentSelection + itemId
+            currentSelection + item
         }
     }
 
@@ -399,8 +397,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 dialogEvents.emit(ExplorerDialogEvent.ShowCreateItem)
             }
             is ExplorerAction.Directory.Rename -> {
-                val item = stateSnap.items.find { it.id == stateSnap.selectionState.selectedItems.single() }
-                item as ExplorerItem.Lookup
+                val item = stateSnap.selectionState.selectedItems.single() as ExplorerItem.Lookup
                 val event = ExplorerDialogEvent.ShowRename(
                     item = item.lookup.lookedUp,
                 )
@@ -413,8 +410,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 val clip = ClipboardClip.Paths(
                     mode = ClipboardClip.Paths.Mode.COPY,
                     origin = getWorkspace().id,
-                    paths = stateSnap.items
-                        .filter { it.id in selected }
+                    paths = selected
                         .filterIsInstance<ExplorerItem.Lookup>()
                         .map { it.lookup.lookedUp },
                 )
@@ -428,8 +424,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 val clip = ClipboardClip.Paths(
                     mode = ClipboardClip.Paths.Mode.CUT,
                     origin = getWorkspace().id,
-                    paths = stateSnap.items
-                        .filter { it.id in selected }
+                    paths = selected
                         .filterIsInstance<ExplorerItem.Lookup>()
                         .map { it.lookup.lookedUp },
                 )
@@ -438,19 +433,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerAction.Directory.Delete -> {
                 log(tag) { "deleteSelectedItems(): ${selectedItemsFlow.value.size} items" }
-                val selectedPaths = selectedItemsFlow.value
-                if (selectedPaths.isNotEmpty()) {
+                val selectedItems = selectedItemsFlow.value
+                if (selectedItems.isNotEmpty()) {
                     val currentLocation = stateSnap.currentLocation
                     if (currentLocation is ExplorerLocation.Directory) {
-                        // Convert string paths to APath objects
-                        val pathsToDelete = selectedPaths.mapNotNull { pathString ->
-                            try {
-                                LocalPath.build(pathString)
-                            } catch (e: Exception) {
-                                log(tag, WARN) { "Failed to parse path: $pathString" }
-                                null
-                            }
-                        }.toSet()
+                        val pathsToDelete = selectedItems
+                            .filterIsInstance<ExplorerItem.Lookup>()
+                            .map { it.lookup.lookedUp }
+                            .toSet()
 
                         if (pathsToDelete.isNotEmpty()) {
                             dialogEvents.emit(ExplorerDialogEvent.ShowDeleteConfirmation(pathsToDelete))
@@ -496,9 +486,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
                 // Only show info when items are selected
                 if (selectedItemsFlow.value.isNotEmpty()) {
-                    val selectedItems = stateSnap.items
-                        ?.filter { it.id in selectedItemsFlow.value }
-                        ?: emptyList()
+                    val selectedItems = selectedItemsFlow.value.toList()
 
                     val infoContext = itemInfoCalculator.calculateInfo(selectedItems, stateSnap.items)
                     infoContext?.let { context ->
@@ -511,11 +499,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerAction.Device.RemoveLocation -> {
                 log(tag) { "removeDeviceStorageLocation(): ${selectedItemsFlow.value.size} items" }
-                val selectedIds = selectedItemsFlow.value
-                if (selectedIds.isNotEmpty()) {
-                    val selectedSAFItems = stateSnap.items
+                val selectedItems = selectedItemsFlow.value
+                if (selectedItems.isNotEmpty()) {
+                    val selectedSAFItems = selectedItems
                         .filterIsInstance<ExplorerItem.Storage.SAF>()
-                        .filter { it.id in selectedIds }
 
                     if (selectedSAFItems.isNotEmpty()) {
                         dialogStateFlow.value = RemoveLocationConfirmation(selectedSAFItems)
@@ -524,16 +511,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerAction.Device.RenameLocation -> {
                 log(tag) { "renameDeviceStorageLocation()" }
-                val selectedItem = stateSnap.items
+                val selectedItem = selectedItemsFlow.value
                     .filterIsInstance<ExplorerItem.Storage.SAF>()
-                    .find { it.id in selectedItemsFlow.value }
+                    .single()
 
-                selectedItem?.let {
-                    dialogStateFlow.value = LocationStorageName(
-                        locationId = it.location.id,
-                        currentName = it.location.userLabel,
-                    )
-                }
+                dialogStateFlow.value = LocationStorageName(
+                    locationId = selectedItem.location.id,
+                    currentName = selectedItem.location.userLabel,
+                )
             }
         }
     }

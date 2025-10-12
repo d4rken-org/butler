@@ -127,8 +127,8 @@ fun ExplorerWorkspacePageWithSelectionPreview() {
         breadcrumbs = emptyList(),
         items = mockFileItems,
         selectionState = ExplorerSelectionState(
-            selectedItems = setOf(mockFileItems[0].path.path, mockFileItems[2].path.path),
-            selectableItems = setOf(mockFileItems[0].path.path, mockFileItems[2].path.path),
+            selectedItems = setOf(mockFileItems[0], mockFileItems[2]),
+            selectableItems = setOf(mockFileItems[0], mockFileItems[2]),
         ),
         availableActions = listOf(
             ExplorerAction.Common.Sort(),
@@ -225,8 +225,8 @@ fun ExplorerWorkspacePageWithAllBarsPreview() {
             ExplorerAction.Common.Filter(isEnabled = true),
         ),
         selectionState = ExplorerSelectionState(
-            selectedItems = setOf(mockFileItems[0].path.path, mockFileItems[2].path.path),
-            selectableItems = setOf(mockFileItems[0].path.path, mockFileItems[2].path.path),
+            selectedItems = setOf(mockFileItems[0], mockFileItems[2]),
+            selectableItems = setOf(mockFileItems[0], mockFileItems[2]),
         ),
     )
 
@@ -283,8 +283,8 @@ fun ExplorerWorkspacePageWithExpandedBarsPreview() {
             ExplorerAction.Common.Filter(isEnabled = true),
         ),
         selectionState = ExplorerSelectionState(
-            selectedItems = setOf(mockFileItems[0].path.path, mockFileItems[2].path.path),
-            selectableItems = setOf(mockFileItems[0].path.path, mockFileItems[2].path.path),
+            selectedItems = setOf(mockFileItems[0], mockFileItems[2]),
+            selectableItems = setOf(mockFileItems[0], mockFileItems[2]),
         ),
     )
 

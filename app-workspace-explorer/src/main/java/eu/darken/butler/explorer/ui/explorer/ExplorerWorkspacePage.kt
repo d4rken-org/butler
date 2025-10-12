@@ -337,9 +337,7 @@ fun ExplorerWorkspacePage(
                                                 when (item) {
                                                     is ExplorerItem.Lookup -> LookupItemRow(
                                                         item = item,
-                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                            item.id
-                                                        ),
+                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(item),
                                                         onToggleSelection = { vm?.toggleItemSelection(item) },
                                                         onClick = {
                                                             if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
@@ -350,7 +348,7 @@ fun ExplorerWorkspacePage(
                                                         },
                                                         onLongClick = { vm?.toggleItemSelection(item) },
                                                         showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
-                                                            item.id in mainStateSnap.selectionState.selectableItems
+                                                            item in mainStateSnap.selectionState.selectableItems
                                                     )
 
                                                     is ExplorerItem.Peek -> PeekRow(
@@ -364,9 +362,7 @@ fun ExplorerWorkspacePage(
 
                                                     is ExplorerItem.Storage -> StorageRow(
                                                         item = item,
-                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                            item.id
-                                                        ),
+                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(item),
                                                         onToggleSelection = { vm?.toggleItemSelection(item) },
                                                         onClick = {
                                                             if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
@@ -377,7 +373,7 @@ fun ExplorerWorkspacePage(
                                                         },
                                                         onLongClick = { vm?.toggleItemSelection(item) },
                                                         showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
-                                                            item.id in mainStateSnap.selectionState.selectableItems
+                                                            item in mainStateSnap.selectionState.selectableItems
                                                     )
                                                 }
                                             }
@@ -416,9 +412,7 @@ fun ExplorerWorkspacePage(
                                                 when (item) {
                                                     is ExplorerItem.Lookup -> LookupItemGrid(
                                                         item = item,
-                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                            item.path.path
-                                                        ),
+                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(item),
                                                         onToggleSelection = { vm?.toggleItemSelection(item) },
                                                         onClick = {
                                                             if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
@@ -429,7 +423,7 @@ fun ExplorerWorkspacePage(
                                                         },
                                                         onLongClick = { vm?.toggleItemSelection(item) },
                                                         showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
-                                                            item.id in mainStateSnap.selectionState.selectableItems
+                                                            item in mainStateSnap.selectionState.selectableItems
                                                     )
                                                     is ExplorerItem.Shortcut -> ShortcutGrid(
                                                         item = item,
@@ -438,9 +432,7 @@ fun ExplorerWorkspacePage(
 
                                                     is ExplorerItem.Storage -> StorageGrid(
                                                         item = item,
-                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                            item.id
-                                                        ),
+                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(item),
                                                         onToggleSelection = { vm?.toggleItemSelection(item) },
                                                         onClick = {
                                                             if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
@@ -451,7 +443,7 @@ fun ExplorerWorkspacePage(
                                                         },
                                                         onLongClick = { vm?.toggleItemSelection(item) },
                                                         showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
-                                                            item.id in mainStateSnap.selectionState.selectableItems
+                                                            item in mainStateSnap.selectionState.selectableItems
                                                     )
 
                                                     is ExplorerItem.Peek -> PeekGrid(
