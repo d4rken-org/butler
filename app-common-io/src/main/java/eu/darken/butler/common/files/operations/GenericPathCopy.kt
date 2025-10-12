@@ -538,10 +538,18 @@ internal class GenericPathCopy<
 
     @Suppress("UNCHECKED_CAST")
     private fun calculateDestinationPath(source: SP, topLevelSource: SP): DP {
-        // Calculate relative path from top-level source to current source
-        // Then append to destination
-        // Simplified implementation - would need proper segment handling
-        return destination.child(source.name) as DP
+        // Calculate relative path INCLUDING the top-level source's name
+        // Example: copying /source/topfolder to /dest should create /dest/topfolder/...
+        val topLevelSegments = topLevelSource.segments
+        val sourceSegments = source.segments
+
+        // Drop parent segments of top-level source, keep top-level name and below
+        // For /source/topfolder -> /dest, we want to drop [source] and keep [topfolder]
+        val segmentsToDrop = if (topLevelSegments.isEmpty()) 0 else topLevelSegments.size - 1
+        val relativeSegments = sourceSegments.drop(segmentsToDrop)
+
+        // Build destination path with relative segments
+        return destination.child(*relativeSegments.toTypedArray()) as DP
     }
 
     private fun adjustDestinationForRenames(dest: DP, source: SP): DP {

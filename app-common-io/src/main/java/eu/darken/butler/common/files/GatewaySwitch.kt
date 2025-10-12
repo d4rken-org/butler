@@ -316,8 +316,7 @@ class GatewaySwitch @Inject constructor(
                 // Cross-gateway copy - process individually
                 else -> {
                     for (source in sourcesGroup) {
-                        val targetPath = destination.child(source.name)
-                        performCrossGatewayCopy(source, targetPath, options).collect { state ->
+                        performCrossGatewayCopy(source, destination, options).collect { state ->
                             when (state) {
                                 is CopyAction.State.Progress -> {
                                     emit(state.copy(copiedBytes = totalBytesProcessed + state.copiedBytes))
@@ -378,8 +377,7 @@ class GatewaySwitch @Inject constructor(
                 // Cross-gateway move - process individually
                 else -> {
                     for (source in sourcesGroup) {
-                        val targetPath = destination.child(source.name)
-                        performCrossGatewayMove(source, targetPath, options).collect { state ->
+                        performCrossGatewayMove(source, destination, options).collect { state ->
                             when (state) {
                                 is MoveAction.State.Progress -> {
                                     emit(state.copy(movedBytes = totalBytesMoved + state.movedBytes))
