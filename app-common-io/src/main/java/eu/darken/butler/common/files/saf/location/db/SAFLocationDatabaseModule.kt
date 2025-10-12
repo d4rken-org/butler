@@ -16,7 +16,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object SAFLocationPreferenceDatabaseModule {
 
-    private val TAG = logTag("SAF", "Location", "Preference", "Database")
+    private val TAG = logTag("SAF", "Location", "Database")
 
     @Provides
     @Singleton
@@ -25,10 +25,10 @@ object SAFLocationPreferenceDatabaseModule {
     ): SAFLocationPreferenceDatabase = Room.databaseBuilder(
         context,
         SAFLocationPreferenceDatabase::class.java,
-        "saf_location_preferences.db"
+        "saf_location.db"
     ).apply {
         if (BuildConfigWrap.DEBUG) {
-            log(TAG) { "Debug mode: Enabling destructive migration for SAF location preferences database" }
+            log(TAG) { "Debug mode: Enabling destructive migration for SAF location database" }
             fallbackToDestructiveMigration(true)
         }
     }.build()

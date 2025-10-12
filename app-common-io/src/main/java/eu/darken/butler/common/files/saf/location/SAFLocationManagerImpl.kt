@@ -14,6 +14,8 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.saf.SAFDocFile
+import eu.darken.butler.common.files.saf.location.db.SAFLocationDatabase
+import eu.darken.butler.common.files.saf.location.db.SAFLocationEntity
 import eu.darken.butler.common.rngString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -25,11 +27,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.security.MessageDigest
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.collections.filter
-import kotlin.collections.map
-import kotlin.collections.sortedByDescending
 import kotlin.time.Instant
 
 /**
@@ -41,11 +41,13 @@ import kotlin.time.Instant
 @Singleton
 class SAFLocationManagerImpl @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val contentResolver: ContentResolver,
-    private val preferences: SAFLocationPreferences,
-    private val dispatcherProvider: DispatcherProvider,
     @AppScope private val appScope: CoroutineScope,
+    private val contentResolver: ContentResolver,
+    private val dispatcherProvider: DispatcherProvider,
+    private val database: SAFLocationDatabase,
 ) : SAFLocationManager {
+
+    private val dao = database.safLocations()
 
     private val refreshTrigger = MutableStateFlow(rngString)
 
@@ -55,27 +57,27 @@ class SAFLocationManagerImpl @Inject constructor(
      */
     private val cachedLocations: StateFlow<List<SAFLocation>> = combine(
         refreshTrigger,
-        preferences.locations,
-    ) { _, prefs ->
+        dao.getAllPreferences(),
+    ) { _, entities ->
         log(TAG) { "Refreshing location cache" }
+
+        val entityMap = entities.associateBy { it.locationId }
 
         // Cleanup orphaned preferences (those without active permissions)
         val activePermissions = contentResolver.persistedUriPermissions
         val activeLocationIds = activePermissions.map { it.uri.toLocationId() }
-        withContext(dispatcherProvider.IO) {
-            preferences.cleanup(activeLocationIds)
-        }
 
-        activePermissions
-            .mapNotNull { permission ->
-                log(TAG, VERBOSE) { "Loading SAFLocation from $permission" }
-                try {
-                    createSAFLocation(permission, prefs)
-                } catch (e: Exception) {
-                    log(TAG, ERROR) { "Failed to create SAFLocation from $permission: $e" }
-                    null
-                }
+        cleanup(activeLocationIds)
+
+        activePermissions.mapNotNull { permission ->
+            log(TAG, VERBOSE) { "Loading SAFLocation from $permission" }
+            try {
+                createSAFLocation(permission, entityMap)
+            } catch (e: Exception) {
+                log(TAG, ERROR) { "Failed to create SAFLocation from $permission: $e" }
+                null
             }
+        }
     }.stateIn(
         scope = appScope,
         started = SharingStarted.Eagerly,
@@ -94,7 +96,7 @@ class SAFLocationManagerImpl @Inject constructor(
             locations
         }
 
-    override fun findPermissionFor(path: SAFPath): SAFPermissionMatch? {
+    override fun findPermissionFor(path: SAFPath): SAFLocationMatch? {
         // Convert locations to permission-like structure for matching
         val availablePermissions = cachedLocations.value
             .map { location ->
@@ -114,7 +116,7 @@ class SAFLocationManagerImpl @Inject constructor(
 
                 // Check for exact tree URI match first (handles root paths with empty segments)
                 if (path.treeRoot == location.treeUri.toString()) {
-                    return SAFPermissionMatch(
+                    return SAFLocationMatch(
                         location = location,
                         missingSegments = path.segments.toList(),
                     )
@@ -123,7 +125,7 @@ class SAFLocationManagerImpl @Inject constructor(
                 val samePrefix = path.pathUri.path!!.split(":").first() == uri.path!!.split(":").first()
 
                 if (samePrefix && permSegments == targetSegments) {
-                    return SAFPermissionMatch(
+                    return SAFLocationMatch(
                         location = location,
                         missingSegments = missingSegments,
                     )
@@ -188,19 +190,18 @@ class SAFLocationManagerImpl @Inject constructor(
             log(TAG, WARN) { "No permission found for locationId=$locationId" }
         }
 
-        // Remove user preferences
-        preferences.removeLocationPreference(locationId)
+        dao.delete(locationId)
         refresh()
     }
 
     override suspend fun setLocationLabel(locationId: String, label: String?) {
         log(TAG, VERBOSE) { "setLocationLabel(locationId=$locationId, label=$label)" }
-        preferences.updateLocationPreference(locationId) { it.copy(userLabel = label) }
+        updateLocation(locationId) { it.copy(userLabel = label) }
     }
 
     override suspend fun setLocationHidden(locationId: String, hidden: Boolean) {
         log(TAG, VERBOSE) { "setLocationHidden(locationId=$locationId, hidden=$hidden)" }
-        preferences.updateLocationPreference(locationId) { it.copy(isHidden = hidden) }
+        updateLocation(locationId) { it.copy(isHidden = hidden) }
     }
 
     override suspend fun refresh() {
@@ -208,12 +209,26 @@ class SAFLocationManagerImpl @Inject constructor(
         refreshTrigger.value = rngString
     }
 
+    private suspend fun updateLocation(locationId: String, update: (SAFLocationEntity) -> SAFLocationEntity) {
+        val current = dao.getPreference(locationId) ?: SAFLocationEntity(locationId = locationId)
+        val updated = update(current)
+        dao.upsert(updated.copy(locationId = locationId))
+    }
+
+    suspend fun cleanup(activeLocationIds: List<String>) = withContext(dispatcherProvider.IO) {
+        if (activeLocationIds.isEmpty()) {
+            // Don't delete everything if the list is empty (might be a bug)
+            return@withContext
+        }
+        dao.cleanup(activeLocationIds)
+    }
+
     private fun createSAFLocation(
         permission: UriPermission,
-        prefs: Map<String, LocationPreference>,
+        entities: Map<String, SAFLocationEntity>
     ): SAFLocation {
         val locationId = permission.uri.toLocationId()
-        val userPrefs = prefs[locationId]
+        val entity = entities[locationId]
 
         return SAFLocation(
             id = locationId,
@@ -222,12 +237,24 @@ class SAFLocationManagerImpl @Inject constructor(
             hasReadPermission = permission.isReadPermission,
             hasWritePermission = permission.isWritePermission,
             grantedAt = Instant.fromEpochMilliseconds(permission.persistedTime),
-            userLabel = userPrefs?.userLabel,
-            isHidden = userPrefs?.isHidden ?: false,
+            userLabel = entity?.userLabel,
+            isHidden = entity?.isHidden ?: false,
         )
     }
 
-    private fun Uri.toLocationId(): String = toString().hashCode().toString()
+    /**
+     * Generate a stable, fixed-length location ID from a URI using MD5.
+     *
+     * MD5 provides:
+     * - Fixed 32-character length regardless of URI depth
+     * - Near-zero collision probability (2^-128)
+     * - Fast hashing for 128 max entries
+     */
+    private fun Uri.toLocationId(): String {
+        val bytes = toString().toByteArray()
+        val digest = MessageDigest.getInstance("MD5").digest(bytes)
+        return digest.joinToString("") { "%02x".format(it) }
+    }
 
     companion object {
         private val TAG = logTag("SAF", "Location", "Manager")
