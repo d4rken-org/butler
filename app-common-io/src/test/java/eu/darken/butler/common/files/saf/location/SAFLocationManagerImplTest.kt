@@ -8,6 +8,7 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.files.SAFPath
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -52,7 +53,9 @@ class SAFLocationManagerImplTest : BaseTest() {
         contentResolver = mockk(relaxed = true)
         preferences = mockk(relaxed = true) {
             // Emit an empty map - no custom preferences
-            every { locations.flow } returns flowOf(emptyMap())
+            every { locations } returns flowOf(emptyMap())
+            // Mock cleanup method to do nothing in tests
+            coEvery { cleanup(any()) } returns Unit
         }
         dispatcherProvider = mockk {
             every { IO } returns testDispatcher

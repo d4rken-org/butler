@@ -52,6 +52,7 @@ dependencies {
     addCoroutines()
     addSerialization()
     addIO()
+    addRoomDb()
 
     addTesting()
     testImplementation(project(":app-common-test"))

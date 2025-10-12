@@ -55,11 +55,18 @@ class SAFLocationManagerImpl @Inject constructor(
      */
     private val cachedLocations: StateFlow<List<SAFLocation>> = combine(
         refreshTrigger,
-        preferences.locations.flow,
+        preferences.locations,
     ) { _, prefs ->
         log(TAG) { "Refreshing location cache" }
 
-        contentResolver.persistedUriPermissions
+        // Cleanup orphaned preferences (those without active permissions)
+        val activePermissions = contentResolver.persistedUriPermissions
+        val activeLocationIds = activePermissions.map { it.uri.toLocationId() }
+        withContext(dispatcherProvider.IO) {
+            preferences.cleanup(activeLocationIds)
+        }
+
+        activePermissions
             .mapNotNull { permission ->
                 log(TAG, VERBOSE) { "Loading SAFLocation from $permission" }
                 try {
