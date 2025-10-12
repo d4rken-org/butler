@@ -100,7 +100,7 @@ class PathMapper @Inject constructor(
 
     fun releasePermission(path: SAFPath): Boolean {
         log(TAG, INFO) { "Releasing uri permission for $path" }
-        contentResolver.releasePersistableUriPermission(path.treeRootUri, SAFGateway.RW_FLAGSINT)
+        contentResolver.releasePersistableUriPermission(path.treeRootUri.toAndroidUri(), SAFGateway.RW_FLAGSINT)
         printCurrentPermissions()
         return true
     }

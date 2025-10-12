@@ -131,7 +131,7 @@ class MockSAFFileSystemOps : MockFileSystemOps<SAFPath, SAFPathLookup, SAFPathLo
 
         // Create a mock SAFDocFile with the necessary properties
         mockk<SAFDocFile>(relaxed = true) {
-            every { uri } returns path.pathUri
+            every { uri } returns path.pathUri.toAndroidUri()
             every { name } returns path.name
             every { isDirectory } returns (mockFile.type == FileType.DIRECTORY)
             every { isFile } returns (mockFile.type == FileType.FILE)

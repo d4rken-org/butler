@@ -19,20 +19,11 @@ data class SAFPath(
     override val segments: List<String>,
 ) : APath {
 
-    /**
-     * Pure Kotlin SafUri representation of tree root (framework-independent).
-     */
-    val treeRootSafUri: SafUri
+    val treeRootUri: SafUri
         get() = SafUri.parse(treeRoot)
 
-    /**
-     * Android Uri representation of tree root (for framework API boundaries).
-     */
-    val treeRootUri: Uri
-        get() = treeRootSafUri.toAndroidUri()
-
     init {
-        val paths = treeRootSafUri.pathSegments
+        val paths = treeRootUri.pathSegments
         require(paths.size >= 2 && "tree" == paths[0]) { "SAFFile URI's must be a tree uri: $treeRoot" }
     }
 
@@ -41,7 +32,7 @@ data class SAFPath(
 
     override val userReadablePath: CaString
         get() {
-            val treeRootPath = treeRootSafUri.path
+            val treeRootPath = treeRootUri.path
             return when {
                 treeRootPath?.startsWith("/tree/primary") == true -> caString {
                     "/storage/emulated/0/${segments.joinSegments("/")}"
@@ -57,9 +48,9 @@ data class SAFPath(
         }
 
     override val path: String
-        get() = "${File.separator}${(treeRootSafUri.pathSegments + segments).joinToString(File.separator)}"
+        get() = "${File.separator}${(treeRootUri.pathSegments + segments).joinToString(File.separator)}"
 
-    val pathUri: Uri
+    val pathUri: SafUri
         get() {
             if (segments.isEmpty()) return treeRootUri
 
@@ -72,13 +63,13 @@ data class SAFPath(
                     }
                 }
             }
-            return SafUri.parse(uriString.toString()).toAndroidUri()
+            return SafUri.parse(uriString.toString())
         }
 
     override val name: String
         get() = when {
             segments.isNotEmpty() -> segments.last()
-            else -> treeRootSafUri.pathSegments.last().split('/').last()
+            else -> treeRootUri.pathSegments.last().split('/').last()
         }
 
     override fun child(vararg segments: String): SAFPath {
@@ -98,6 +89,8 @@ data class SAFPath(
         fun build(base: String, vararg segs: String): SAFPath = SAFPath(base, segs.toList())
 
         fun build(base: Uri, vararg segs: String): SAFPath = build(base.toString(), *segs)
+
+        fun build(base: SafUri, vararg segs: String): SAFPath = build(base.toString(), *segs)
 
         private val URIPATH_ID_REGEX by lazy { Regex("^/tree/([a-z0-9-]+)(?::.+?)*\$") }
     }

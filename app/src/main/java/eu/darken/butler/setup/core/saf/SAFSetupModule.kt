@@ -119,7 +119,7 @@ class SAFSetupModule @Inject constructor(
                     if (grantIntent == null) {
                         grantIntent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
                             putExtra("android.content.extra.SHOW_ADVANCED", true)
-                            val navigationUri = safPath.pathUri.buildUpon().apply {
+                            val navigationUri = safPath.pathUri.toAndroidUri().buildUpon().apply {
                                 path("")
                                 appendPath("document")
                                 safPath.pathUri.pathSegments.drop(1).forEach {
@@ -198,8 +198,8 @@ class SAFSetupModule @Inject constructor(
                         // Works on Android 12, but not some devices with newer security patches
                         // content://com.android.externalstorage.documents/tree/primary%3AAndroid%2Fdata/document/primary%3AAndroid%2Fdata
                         val navTreeUri = DocumentsContract.buildDocumentUriUsingTree(
-                            safPath.pathUri,
-                            DocumentsContract.getTreeDocumentId(safPath.pathUri)
+                            safPath.pathUri.toAndroidUri(),
+                            DocumentsContract.getTreeDocumentId(safPath.pathUri.toAndroidUri())
                         )
                         log(TAG) { "NAV-TREE-URI: $navTreeUri" }
 
