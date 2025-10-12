@@ -82,8 +82,8 @@ fun ClipboardBarHeader(
             )
         }
 
-        // Clear All button on the right (when expanded)
-        if (isExpanded) {
+        // Clear All button on the right (when multiple entries)
+        if (entryCount > 1) {
             TextButton(
                 onClick = onClearAllClick,
                 modifier = Modifier

@@ -84,8 +84,8 @@ fun OperationsBarHeader(
             )
         }
 
-        // Clear completed button on the right (when expanded and has completed operations)
-        if (isExpanded && completedCount > 0) {
+        // Clear completed button on the right (when multiple completed operations)
+        if (completedCount > 1) {
             TextButton(
                 onClick = onClearCompleted,
                 modifier = Modifier
