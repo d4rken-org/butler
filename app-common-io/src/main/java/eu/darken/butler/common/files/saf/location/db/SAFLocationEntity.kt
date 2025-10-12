@@ -16,7 +16,7 @@ import androidx.room.PrimaryKey
         Index(value = ["locationId"], unique = true)
     ]
 )
-data class SAFLocationPreferenceEntity(
+data class SAFLocationEntity(
     @PrimaryKey
     val locationId: String,
 

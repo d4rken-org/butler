@@ -67,7 +67,7 @@ interface SAFLocationManager {
      * @param path The SAF path to find permission for
      * @return Permission match if found, null if no permission covers this path
      */
-    fun findPermissionFor(path: SAFPath): SAFPermissionMatch?
+    fun findPermissionFor(path: SAFPath): SAFLocationMatch?
 
     /**
      * Get the DocumentFile handle for a SAFPath by resolving to its permission root.

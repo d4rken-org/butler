@@ -6,7 +6,7 @@ package eu.darken.butler.common.files.saf.location
  * Contains the matching location and the path segments that need to be
  * traversed from the permission's root to reach the target path.
  */
-data class SAFPermissionMatch(
+data class SAFLocationMatch(
     /**
      * The SAF location that provides permission for the requested path
      */

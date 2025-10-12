@@ -6,26 +6,26 @@ import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface SAFLocationPreferenceDao {
+interface SAFLocationsDao {
 
     /**
      * Get all location preferences as a Flow.
      * Emits a new list whenever any preference changes.
      */
     @Query("SELECT * FROM saf_location_preferences")
-    fun getAllPreferences(): Flow<List<SAFLocationPreferenceEntity>>
+    fun getAllPreferences(): Flow<List<SAFLocationEntity>>
 
     /**
      * Get a specific location preference by ID
      */
     @Query("SELECT * FROM saf_location_preferences WHERE locationId = :locationId")
-    suspend fun getPreference(locationId: String): SAFLocationPreferenceEntity?
+    suspend fun getPreference(locationId: String): SAFLocationEntity?
 
     /**
      * Insert or update a location preference
      */
     @Upsert
-    suspend fun upsert(entity: SAFLocationPreferenceEntity)
+    suspend fun upsert(entity: SAFLocationEntity)
 
     /**
      * Delete a specific location preference

@@ -6,12 +6,14 @@ import android.content.UriPermission
 import android.net.Uri
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.saf.location.db.SAFLocationDatabase
+import eu.darken.butler.common.files.saf.location.db.SAFLocationEntity
+import eu.darken.butler.common.files.saf.location.db.SAFLocationsDao
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -41,7 +43,8 @@ class SAFLocationManagerImplTest : BaseTest() {
     private val testScope = TestScope(testDispatcher)
     private lateinit var context: Context
     private lateinit var contentResolver: ContentResolver
-    private lateinit var preferences: SAFLocationPreferences
+    private lateinit var database: SAFLocationDatabase
+    private lateinit var dao: SAFLocationsDao
     private lateinit var dispatcherProvider: DispatcherProvider
     private lateinit var manager: SAFLocationManagerImpl
 
@@ -51,22 +54,30 @@ class SAFLocationManagerImplTest : BaseTest() {
     fun setup() {
         context = mockk(relaxed = true)
         contentResolver = mockk(relaxed = true)
-        preferences = mockk(relaxed = true) {
-            // Emit an empty map - no custom preferences
-            every { locations } returns flowOf(emptyMap())
+
+        // Mock DAO with empty preferences
+        dao = mockk(relaxed = true) {
+            // Return empty list - no stored preferences
+            every { getAllPreferences() } returns flowOf(emptyList<SAFLocationEntity>())
             // Mock cleanup method to do nothing in tests
             coEvery { cleanup(any()) } returns Unit
         }
+
+        // Mock database to return the DAO
+        database = mockk(relaxed = true) {
+            every { safLocations() } returns dao
+        }
+
         dispatcherProvider = mockk {
             every { IO } returns testDispatcher
         }
 
         manager = SAFLocationManagerImpl(
             context = context,
-            contentResolver = contentResolver,
-            preferences = preferences,
-            dispatcherProvider = dispatcherProvider,
             appScope = testScope,
+            contentResolver = contentResolver,
+            dispatcherProvider = dispatcherProvider,
+            database = database,
         )
 
         // Advance dispatcher to allow StateFlow cache to initialize

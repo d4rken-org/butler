@@ -4,10 +4,10 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [SAFLocationPreferenceEntity::class],
+    entities = [SAFLocationEntity::class],
     version = 1,
     exportSchema = true
 )
-abstract class SAFLocationPreferenceDatabase : RoomDatabase() {
-    abstract fun safLocationPreferenceDao(): SAFLocationPreferenceDao
+abstract class SAFLocationDatabase : RoomDatabase() {
+    abstract fun safLocations(): SAFLocationsDao
 }

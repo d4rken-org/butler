@@ -14,7 +14,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object SAFLocationPreferenceDatabaseModule {
+object SAFLocationDatabaseModule {
 
     private val TAG = logTag("SAF", "Location", "Database")
 
@@ -22,9 +22,9 @@ object SAFLocationPreferenceDatabaseModule {
     @Singleton
     fun provideSAFLocationPreferenceDatabase(
         @ApplicationContext context: Context
-    ): SAFLocationPreferenceDatabase = Room.databaseBuilder(
+    ): SAFLocationDatabase = Room.databaseBuilder(
         context,
-        SAFLocationPreferenceDatabase::class.java,
+        SAFLocationDatabase::class.java,
         "saf_location.db"
     ).apply {
         if (BuildConfigWrap.DEBUG) {
@@ -35,7 +35,7 @@ object SAFLocationPreferenceDatabaseModule {
 
     @Provides
     @Singleton
-    fun provideSAFLocationPreferenceDao(database: SAFLocationPreferenceDatabase): SAFLocationPreferenceDao {
-        return database.safLocationPreferenceDao()
+    fun provideSAFLocationDao(database: SAFLocationDatabase): SAFLocationsDao {
+        return database.safLocations()
     }
 }
