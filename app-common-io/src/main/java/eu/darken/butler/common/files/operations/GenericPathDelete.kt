@@ -79,9 +79,10 @@ internal class GenericPathDelete<P : APath, PL : APathLookup<P>, PLE : APathLook
 
         /**
          * Perform actual deletion of a path.
+         * Stores lookup from scan phase to avoid redundant lookups during deletion.
          */
         data class DeletePath<P : APath, PL : APathLookup<P>>(
-            val path: P,
+            val lookup: PL,
         ) : WorkItem()
     }
 
@@ -145,7 +146,7 @@ internal class GenericPathDelete<P : APath, PL : APathLookup<P>, PLE : APathLook
                 // Files: defer deletion until scan completes (using addFirst for post-order)
                 progressTracker.totalItems++
                 progressTracker.totalBytes += lookup.size
-                deferredDeletions.addFirst(WorkItem.DeletePath(item.path))
+                deferredDeletions.addFirst(WorkItem.DeletePath(lookup))
 
                 // Report scan progress with throttling
                 if (progressTracker.shouldReportProgress()) {
@@ -160,7 +161,7 @@ internal class GenericPathDelete<P : APath, PL : APathLookup<P>, PLE : APathLook
                     // Non-recursive: defer directory deletion (will fail if not empty)
                     progressTracker.totalItems++
                     progressTracker.totalBytes += lookup.size
-                    deferredDeletions.addFirst(WorkItem.DeletePath(item.path))
+                    deferredDeletions.addFirst(WorkItem.DeletePath(lookup))
 
                     // Report scan progress with throttling
                     if (progressTracker.shouldReportProgress()) {
@@ -190,7 +191,7 @@ internal class GenericPathDelete<P : APath, PL : APathLookup<P>, PLE : APathLook
                     // After successfully scanning children, defer directory deletion (post-order)
                     progressTracker.totalItems++
                     progressTracker.totalBytes += lookup.size
-                    deferredDeletions.addFirst(WorkItem.DeletePath(item.path))
+                    deferredDeletions.addFirst(WorkItem.DeletePath(lookup))
 
                     // Report scan progress with throttling
                     if (progressTracker.shouldReportProgress()) {
@@ -206,22 +207,9 @@ internal class GenericPathDelete<P : APath, PL : APathLookup<P>, PLE : APathLook
     }
 
     private suspend fun processDeletePath(item: WorkItem.DeletePath<P, PL>) {
-        log(TAG, VERBOSE) { "Deleting path: ${item.path}" }
-
-        val lookup = try {
-            fileSystemOps.lookup(item.path)
-        } catch (e: Exception) {
-            if (ignoreMissing) {
-                log(TAG, VERBOSE) { "File already deleted (ignoreMissing=true): ${item.path}" }
-                progressTracker.completeItem()
-                return
-            }
-            throw eu.darken.butler.common.files.errors.ReadException(
-                "File does not exist",
-                item.path,
-                e
-            )
-        }
+        // Use lookup from scan phase to avoid redundant lookup
+        val lookup = item.lookup
+        log(TAG, VERBOSE) { "Deleting path: ${lookup.lookedUp}" }
 
         progressTracker.startFile(lookup.size)
 
@@ -231,11 +219,25 @@ internal class GenericPathDelete<P : APath, PL : APathLookup<P>, PLE : APathLook
                 reportProgress(lookup)
             }
 
-            fileSystemOps.delete(lookup.lookedUp)
+            val deleteResult = fileSystemOps.delete(lookup.lookedUp)
+            if (!deleteResult && ignoreMissing) {
+                // File might have been deleted between scan and delete phases
+                log(TAG, VERBOSE) { "File not found during delete (ignoreMissing=true): ${lookup.lookedUp}" }
+                progressTracker.completeItem(lookup.size)
+                return
+            }
+
             deleted += lookup
             progressTracker.completeItem(lookup.size)
 
         } catch (e: Exception) {
+            // Handle case where file was deleted between scan and delete phases
+            if (ignoreMissing && (e is java.io.FileNotFoundException ||
+                e.cause is java.io.FileNotFoundException)) {
+                log(TAG, VERBOSE) { "File already deleted (ignoreMissing=true): ${lookup.lookedUp}" }
+                progressTracker.completeItem(lookup.size)
+                return
+            }
             handleDeleteError(e, lookup)
 
         } finally {
