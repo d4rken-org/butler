@@ -2,11 +2,14 @@ package eu.darken.butler.workspace.ui.operations.bar
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -88,8 +91,8 @@ fun OperationsBar(
     AnimatedVisibility(
         visible = operations.isNotEmpty(),
         modifier = modifier,
-        enter = slideInVertically { it } + fadeIn(),
-        exit = slideOutVertically { it } + fadeOut(),
+        enter = slideInVertically { it } + fadeIn(animationSpec = tween(300)),
+        exit = slideOutVertically { it } + fadeOut(animationSpec = tween(300))
     ) {
         Card(
             modifier = Modifier
@@ -98,16 +101,18 @@ fun OperationsBar(
                     width = 1.dp,
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
                     shape = RoundedCornerShape(16.dp)
-                )
-                .animateContentSize(),
+                ),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
             ),
         ) {
-            Column {
-                // Header row (always visible)
+            Column(
+                modifier = Modifier.animateContentSize(
+                    animationSpec = tween(durationMillis = 300)
+                )
+            )  {
                 OperationsBarHeader(
                     operationCount = operations.size,
                     completedCount = operations.count {
@@ -284,5 +289,109 @@ private fun OperationsBarPreview() {
             onOperationClick = {},
             onClearCompleted = {},
         )
+    }
+}
+
+@Preview2
+@Composable
+private fun OperationsBarSingleItemPreview() {
+    val singleOperation = OperationDisplay(
+        id = Operation.Id(),
+        title = "Copying files".toCaString(),
+        description = "2 files remaining".toCaString(),
+        icon = Icons.TwoTone.Delete,
+        state = OperationDisplay.State.Running(
+            primaryProgress = Progress.Data(
+                primary = "Copying files".toCaString(),
+                secondary = "Processing...".toCaString(),
+                count = Progress.Count.Percent(8, 10)
+            )
+        ),
+        canCancel = true,
+        startedAt = Clock.System.now(),
+    )
+
+    PreviewWrapper {
+        Box(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+                .padding(16.dp)
+        ) {
+            OperationsBar(
+                operations = listOf(singleOperation),
+                onCancelOperation = {},
+                onDismissOperation = {},
+                onOperationClick = {},
+                onClearCompleted = {},
+            )
+        }
+    }
+}
+
+@Preview2
+@Composable
+private fun OperationsBarExpandedPreview() {
+    val operations = listOf(
+        OperationDisplay(
+            id = Operation.Id(),
+            title = "Deleting files".toCaString(),
+            description = "10 files deleted".toCaString(),
+            icon = Icons.TwoTone.Delete,
+            state = OperationDisplay.State.Running(
+                primaryProgress = Progress.Data(
+                    primary = "Deleting files".toCaString(),
+                    secondary = "Processing files...".toCaString(),
+                    count = Progress.Count.Percent(7, 10)
+                )
+            ),
+            canCancel = true,
+            startedAt = Clock.System.now(),
+        ),
+        OperationDisplay(
+            id = Operation.Id(),
+            title = "Copy operation".toCaString(),
+            description = "100 files copied successfully".toCaString(),
+            icon = Icons.TwoTone.Delete,
+            state = OperationDisplay.State.Completed(
+                summary = "Success".toCaString(),
+                completedAt = Clock.System.now(),
+                report = object : Operation.Report {
+                    override val summary = "Success".toCaString()
+                    override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                }
+            ),
+            canCancel = false,
+            startedAt = Clock.System.now(),
+        ),
+        OperationDisplay(
+            id = Operation.Id(),
+            title = "Move operation".toCaString(),
+            description = "Failed to move files".toCaString(),
+            icon = Icons.TwoTone.Delete,
+            state = OperationDisplay.State.Failed(
+                summary = "Permission denied".toCaString(),
+                completedAt = Clock.System.now(),
+                report = null,
+            ),
+            canCancel = false,
+            startedAt = Clock.System.now(),
+        ),
+    )
+
+    PreviewWrapper {
+        Box(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+                .padding(16.dp)
+        ) {
+            OperationsBar(
+                initialExpanded = true,
+                operations = operations,
+                onCancelOperation = {},
+                onDismissOperation = {},
+                onOperationClick = {},
+                onClearCompleted = {},
+            )
+        }
     }
 }

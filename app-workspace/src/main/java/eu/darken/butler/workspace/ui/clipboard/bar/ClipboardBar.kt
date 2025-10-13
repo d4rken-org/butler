@@ -96,30 +96,27 @@ fun ClipboardBar(
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
                     shape = RoundedCornerShape(16.dp)
                 ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
             ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         ) {
             Column(
                 modifier = Modifier.animateContentSize(
                     animationSpec = tween(durationMillis = 300)
                 )
             ) {
-                // Header row (always visible)
-                Column {
-                    ClipboardBarHeader(
-                        isExpanded = isExpanded,
-                        entryCount = clipboardEntries.size,
-                        onExpandClick = { isExpanded = !isExpanded },
-                        onClearAllClick = { clearAllAnimationTrigger = System.currentTimeMillis() },
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 32.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
-                }
+                ClipboardBarHeader(
+                    isExpanded = isExpanded,
+                    entryCount = clipboardEntries.size,
+                    onExpandClick = { isExpanded = !isExpanded },
+                    onClearAllClick = { clearAllAnimationTrigger = System.currentTimeMillis() },
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 32.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                )
 
                 // Additional entries (when expanded) - already in correct order (oldest first)
                 additionalEntries.forEachIndexed { index, entry ->
