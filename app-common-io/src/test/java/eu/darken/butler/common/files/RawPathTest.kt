@@ -5,10 +5,11 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.SerializationException
 import org.junit.jupiter.api.Test
+import testhelpers.BaseTest
 import testhelpers.json.toComparableJson
 import java.io.File
 
-class RawPathTest {
+class RawPathTest : BaseTest() {
     private val json = SerializationIOModule().json()
 
     @Test

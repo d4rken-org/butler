@@ -2,8 +2,9 @@ package eu.darken.butler.common
 
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
+import testhelpers.BaseTest
 
-class SafUriTest {
+class SafUriTest : BaseTest() {
 
     @Test
     fun `parse simple content URI`() {
