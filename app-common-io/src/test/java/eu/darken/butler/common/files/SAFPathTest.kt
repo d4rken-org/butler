@@ -140,22 +140,22 @@ class SAFPathTest : BaseTest() {
             "content://com.android.externalstorage.documents/tree/primary%3Asafstor",
             "seg1",
             "seg2",
-        ).userReadablePath.get(mockk()) shouldBe "/storage/emulated/0/seg1/seg2"
+        ).userReadablePath.get(mockk()) shouldBe "[primary]/safstor/seg1/seg2"
         SAFPath.build(
             "content://com.android.externalstorage.documents/tree/primary",
             "seg1",
             "seg2",
-        ).userReadablePath.get(mockk()) shouldBe "/storage/emulated/0/seg1/seg2"
+        ).userReadablePath.get(mockk()) shouldBe "[primary]/seg1/seg2"
         SAFPath.build(
             "content://com.android.externalstorage.documents/tree/3135-3132%3Asafstor",
             "seg1",
             "seg2",
-        ).userReadablePath.get(mockk()) shouldBe "/storage/3135-3132/seg1/seg2"
+        ).userReadablePath.get(mockk()) shouldBe "[3135-3132]/safstor/seg1/seg2"
         SAFPath.build(
             "content://com.android.externalstorage.documents/tree/3135-3132",
             "seg1",
             "seg2",
-        ).userReadablePath.get(mockk()) shouldBe "/storage/3135-3132/seg1/seg2"
+        ).userReadablePath.get(mockk()) shouldBe "[3135-3132]/seg1/seg2"
     }
 
     @Test
