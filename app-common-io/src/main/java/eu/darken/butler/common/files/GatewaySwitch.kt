@@ -314,19 +314,17 @@ class GatewaySwitch @Inject constructor(
                         }
                     }
                 }
-                // Cross-gateway copy - process individually
+                // Cross-gateway copy - use batch implementation
                 else -> {
-                    for (source in sourcesGroup) {
-                        performCrossGatewayCopy(source, destination, options).collect { state ->
-                            when (state) {
-                                is CopyAction.State.Progress -> {
-                                    emit(state.copy(copiedBytes = totalBytesProcessed + state.copiedBytes) as CopyAction.State.Progress<APath<*>, APathLookup<APath<*>>>)
-                                }
-                                is CopyAction.State.Result -> {
-                                    totalBytesProcessed += state.copiedBytes
-                                    allCopiedFiles.addAll(state.copied)
-                                    allSkippedFiles.addAll(state.skipped)
-                                }
+                    performCrossGatewayCopy(sourcesGroup, destination, options).collect { state ->
+                        when (state) {
+                            is CopyAction.State.Progress -> {
+                                emit(state.copy(copiedBytes = totalBytesProcessed + state.copiedBytes) as CopyAction.State.Progress<APath<*>, APathLookup<APath<*>>>)
+                            }
+                            is CopyAction.State.Result -> {
+                                totalBytesProcessed += state.copiedBytes
+                                allCopiedFiles.addAll(state.copied)
+                                allSkippedFiles.addAll(state.skipped)
                             }
                         }
                     }
@@ -375,19 +373,17 @@ class GatewaySwitch @Inject constructor(
                         }
                     }
                 }
-                // Cross-gateway move - process individually
+                // Cross-gateway move - use batch implementation
                 else -> {
-                    for (source in sourcesGroup) {
-                        performCrossGatewayMove(source, destination, options).collect { state ->
-                            when (state) {
-                                is MoveAction.State.Progress -> {
-                                    emit(state.copy(movedBytes = totalBytesMoved + state.movedBytes) as MoveAction.State.Progress<APath<*>, APathLookup<APath<*>>>)
-                                }
-                                is MoveAction.State.Result -> {
-                                    totalBytesMoved += state.bytesMoved
-                                    allMovedFiles.addAll(state.movedFiles)
-                                    allSkippedFiles.addAll(state.skippedFiles)
-                                }
+                    performCrossGatewayMove(sourcesGroup, destination, options).collect { state ->
+                        when (state) {
+                            is MoveAction.State.Progress -> {
+                                emit(state.copy(movedBytes = totalBytesMoved + state.movedBytes) as MoveAction.State.Progress<APath<*>, APathLookup<APath<*>>>)
+                            }
+                            is MoveAction.State.Result -> {
+                                totalBytesMoved += state.bytesMoved
+                                allMovedFiles.addAll(state.movedFiles)
+                                allSkippedFiles.addAll(state.skippedFiles)
                             }
                         }
                     }
@@ -405,15 +401,18 @@ class GatewaySwitch @Inject constructor(
     }
 
     private suspend fun performCrossGatewayCopy(
-        source: APath<*>,
+        sources: Collection<APath<*>>,
         target: APath<*>,
         options: CopyAction.Options<APath<*>>
     ): Flow<CopyAction.State<*, *>> = flow {
-        log(TAG, DEBUG) { "performCrossGatewayCopy(): $source -> $target" }
+        log(TAG, DEBUG) { "performCrossGatewayCopy(): ${sources.size} sources -> $target" }
+
+        val firstSource = sources.firstOrNull() ?: return@flow
 
         when {
-            source is SAFPath && target is LocalPath -> {
-                val result = setOf(source).copyGeneric(
+            firstSource is SAFPath && target is LocalPath -> {
+                @Suppress("UNCHECKED_CAST")
+                val result = (sources as Collection<SAFPath>).copyGeneric(
                     destination = target,
                     sourceOps = safGateway,
                     destOps = localGateway,
@@ -423,8 +422,9 @@ class GatewaySwitch @Inject constructor(
                 )
                 emit(result)
             }
-            source is LocalPath && target is SAFPath -> {
-                val result = setOf(source).copyGeneric(
+            firstSource is LocalPath && target is SAFPath -> {
+                @Suppress("UNCHECKED_CAST")
+                val result = (sources as Collection<LocalPath>).copyGeneric(
                     destination = target,
                     sourceOps = localGateway,
                     destOps = safGateway,
@@ -434,20 +434,23 @@ class GatewaySwitch @Inject constructor(
                 )
                 emit(result)
             }
-            else -> throw IllegalArgumentException("Unsupported cross-type copy: ${source::class.simpleName} -> ${target::class.simpleName}")
+            else -> throw IllegalArgumentException("Unsupported cross-type copy: ${firstSource::class.simpleName} -> ${target::class.simpleName}")
         }
     }
 
     private suspend fun performCrossGatewayMove(
-        source: APath<*>,
+        sources: Collection<APath<*>>,
         target: APath<*>,
         options: MoveAction.Options<APath<*>>
     ): Flow<MoveAction.State<*, *>> = flow {
-        log(TAG, DEBUG) { "performCrossGatewayMove(): $source -> $target" }
+        log(TAG, DEBUG) { "performCrossGatewayMove(): ${sources.size} sources -> $target" }
+
+        val firstSource = sources.firstOrNull() ?: return@flow
 
         when {
-            source is SAFPath && target is LocalPath -> {
-                val result = setOf(source).moveGeneric(
+            firstSource is SAFPath && target is LocalPath -> {
+                @Suppress("UNCHECKED_CAST")
+                val result = (sources as Collection<SAFPath>).moveGeneric(
                     destination = target,
                     sourceOps = safGateway,
                     destOps = localGateway,
@@ -457,8 +460,9 @@ class GatewaySwitch @Inject constructor(
                 )
                 emit(result)
             }
-            source is LocalPath && target is SAFPath -> {
-                val result = setOf(source).moveGeneric(
+            firstSource is LocalPath && target is SAFPath -> {
+                @Suppress("UNCHECKED_CAST")
+                val result = (sources as Collection<LocalPath>).moveGeneric(
                     destination = target,
                     sourceOps = localGateway,
                     destOps = safGateway,
@@ -468,7 +472,7 @@ class GatewaySwitch @Inject constructor(
                 )
                 emit(result)
             }
-            else -> throw IllegalArgumentException("Unsupported cross-type move: ${source::class.simpleName} -> ${target::class.simpleName}")
+            else -> throw IllegalArgumentException("Unsupported cross-type move: ${firstSource::class.simpleName} -> ${target::class.simpleName}")
         }
     }
 
