@@ -87,6 +87,11 @@ class SAFFileSystemOps @Inject constructor(
         }
     )
 
+    // Attribute operation support cache (null = unknown, true = supported, false = not supported)
+    @Volatile private var supportsSetModifiedAt: Boolean? = null
+    @Volatile private var supportsSetPermissions: Boolean? = null
+    @Volatile private var supportsSetOwnership: Boolean? = null
+
     private fun SAFPath.resolveDocFile(): SAFDocFile {
         val now = Clock.System.now()
 
@@ -284,31 +289,88 @@ class SAFFileSystemOps @Inject constructor(
         throw WriteException(path = path, cause = e)
     }
 
-    override suspend fun setModifiedAt(path: SAFPath, modifiedAt: Instant): Boolean = try {
-        val docFile = path.resolveDocFile()
-        log(TAG, VERBOSE) { "setModifiedAt(): $path -> $docFile" }
-        docFile.setLastModified(modifiedAt)
-    } catch (e: Exception) {
-        log(TAG, WARN) { "setModifiedAt($path, $modifiedAt) failed: $e" }
-        false
+    override suspend fun setModifiedAt(path: SAFPath, modifiedAt: Instant): Boolean {
+        // Check cache - skip if known to be unsupported
+        if (supportsSetModifiedAt == false) {
+            if (Bugs.isTrace) log(TAG, VERBOSE) { "setModifiedAt() skipped (cached as unsupported)" }
+            return false
+        }
+
+        return try {
+            val docFile = path.resolveDocFile()
+            log(TAG, VERBOSE) { "setModifiedAt(): $path -> $docFile" }
+            val success = docFile.setLastModified(modifiedAt)
+
+            // Update cache on first attempt
+            if (supportsSetModifiedAt == null) {
+                supportsSetModifiedAt = success
+                if (!success) {
+                    log(TAG, INFO) { "setModifiedAt() not supported by this SAF provider (cached)" }
+                }
+            }
+
+            success
+        } catch (e: Exception) {
+            log(TAG, WARN) { "setModifiedAt($path, $modifiedAt) failed: $e" }
+            supportsSetModifiedAt = false
+            false
+        }
     }
 
-    override suspend fun setPermissions(path: SAFPath, permissions: Permissions): Boolean = try {
-        val docFile = path.resolveDocFile()
-        log(TAG, VERBOSE) { "setPermissions(): $path -> $docFile" }
-        docFile.setPermissions(permissions)
-    } catch (e: Exception) {
-        log(TAG, WARN) { "setPermissions($path, $permissions) failed: ${e.asLog()}" }
-        false
+    override suspend fun setPermissions(path: SAFPath, permissions: Permissions): Boolean {
+        // Check cache - skip if known to be unsupported
+        if (supportsSetPermissions == false) {
+            if (Bugs.isTrace) log(TAG, VERBOSE) { "setPermissions() skipped (cached as unsupported)" }
+            return false
+        }
+
+        return try {
+            val docFile = path.resolveDocFile()
+            log(TAG, VERBOSE) { "setPermissions(): $path -> $docFile" }
+            val success = docFile.setPermissions(permissions)
+
+            // Update cache on first attempt
+            if (supportsSetPermissions == null) {
+                supportsSetPermissions = success
+                if (!success) {
+                    log(TAG, INFO) { "setPermissions() not supported by this file system (cached)" }
+                }
+            }
+
+            success
+        } catch (e: Exception) {
+            log(TAG, WARN) { "setPermissions($path, $permissions) failed: ${e.asLog()}" }
+            supportsSetPermissions = false
+            false
+        }
     }
 
-    override suspend fun setOwnership(path: SAFPath, ownership: Ownership): Boolean = try {
-        val docFile = path.resolveDocFile()
-        log(TAG, VERBOSE) { "setOwnership(): $path -> $docFile" }
-        docFile.setOwnership(ownership)
-    } catch (e: Exception) {
-        log(TAG, WARN) { "setOwnership($path, $ownership) failed: ${e.asLog()}" }
-        false
+    override suspend fun setOwnership(path: SAFPath, ownership: Ownership): Boolean {
+        // Check cache - skip if known to be unsupported
+        if (supportsSetOwnership == false) {
+            if (Bugs.isTrace) log(TAG, VERBOSE) { "setOwnership() skipped (cached as unsupported)" }
+            return false
+        }
+
+        return try {
+            val docFile = path.resolveDocFile()
+            log(TAG, VERBOSE) { "setOwnership(): $path -> $docFile" }
+            val success = docFile.setOwnership(ownership)
+
+            // Update cache on first attempt
+            if (supportsSetOwnership == null) {
+                supportsSetOwnership = success
+                if (!success) {
+                    log(TAG, INFO) { "setOwnership() not supported (requires root privileges, cached)" }
+                }
+            }
+
+            success
+        } catch (e: Exception) {
+            log(TAG, WARN) { "setOwnership($path, $ownership) failed: ${e.asLog()}" }
+            supportsSetOwnership = false
+            false
+        }
     }
 
     override suspend fun createSymlink(linkPath: SAFPath, targetPath: SAFPath): Boolean {
@@ -342,7 +404,7 @@ class SAFFileSystemOps @Inject constructor(
     }
 
     companion object {
-        private val TAG = logTag("SAF", "FileSystemOps")
+        private val TAG = logTag("Gateway", "SAF", "FileSystemOps")
 
         private const val INITIAL_CACHE_SIZE = 16
         private const val MAX_CACHE_SIZE = 1000
