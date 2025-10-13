@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.json.writeToFile
 import java.io.File
+import kotlin.uuid.Uuid
 
 class HasherTest : BaseTest() {
 
@@ -51,7 +52,7 @@ class HasherTest : BaseTest() {
     }
 
     @Test fun `MD5 from file`() = runTest {
-        File(testFolder, "MD5")
+        File(testFolder, "MD5-${Uuid.random()}")
             .apply { "SD Maid 2/SE".writeToFile(this) }
             .source()
             .hash(Type.MD5)
@@ -59,7 +60,7 @@ class HasherTest : BaseTest() {
     }
 
     @Test fun `SHA1 from file`() = runTest {
-        File(testFolder, "SHA1")
+        File(testFolder, "SHA1-${Uuid.random()}")
             .apply { "SD Maid 2/SE".writeToFile(this) }
             .source()
             .hash(Type.SHA1)
@@ -67,7 +68,7 @@ class HasherTest : BaseTest() {
     }
 
     @Test fun `SHA256 from file`() = runTest {
-        File(testFolder, "SHA256")
+        File(testFolder, "SHA256-${Uuid.random()}")
             .apply { "SD Maid 2/SE".writeToFile(this) }
             .source()
             .hash(Type.SHA256)
