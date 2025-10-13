@@ -17,7 +17,7 @@ sealed interface ExplorerNavigation {
             override val label: CaString = R.string.explorer_navigation_device.toCaString()
         }
 
-        data class Directory(val path: APath) : Target {
+        data class Directory(val path: APath<*>) : Target {
             override val label: CaString = path.userReadablePath
         }
     }

@@ -55,7 +55,7 @@ import kotlin.time.Instant
  * @param PL The path lookup type (LocalPathLookup, SAFPathLookup, etc.)
  * @param PLE The path lookup extended type (LocalPathLookupExtended, SAFPathLookupExtended, etc.)
  */
-interface FileSystemOps<P : APath, PL : APathLookup<P>, PLE : APathLookupExtended<P>> {
+interface FileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>> {
 
     /**
      * Look up metadata for a single path.

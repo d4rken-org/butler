@@ -78,7 +78,7 @@ fun BreadcrumbBar(
     // Detect current path type and extract relevant information
     data class PathInfo(
         val displayPath: String,
-        val path: APath?,
+        val path: APath<*>?,
         val prefixIcon: ImageVector? = null,
         val prefixLabel: String? = null,
     )

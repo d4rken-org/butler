@@ -47,14 +47,13 @@ object GenericPathNamingUtils {
      * @param ops FileSystemOps instance to check for existing paths
      * @return A unique filename that doesn't conflict with existing files
      */
-    suspend fun <P : APath> generateUniqueName(
+    suspend fun <P : APath<P>> generateUniqueName(
         parentPath: P,
         originalName: String,
         ops: FileSystemOps<P, *, *>
     ): String {
         // Check if original name is already unique
-        @Suppress("UNCHECKED_CAST")
-        val testPath = parentPath.child(originalName) as P
+        val testPath = parentPath.child(originalName)
         if (!ops.exists(testPath)) return originalName
 
         // Split into base name and extension
@@ -95,8 +94,7 @@ object GenericPathNamingUtils {
         do {
             val candidateName = "$actualBase ($counter)$extension"
 
-            @Suppress("UNCHECKED_CAST")
-            val candidatePath = parentPath.child(candidateName) as P
+            val candidatePath = parentPath.child(candidateName)
             if (!ops.exists(candidatePath)) {
                 return candidateName
             }

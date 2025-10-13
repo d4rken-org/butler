@@ -5,10 +5,10 @@ import eu.darken.butler.common.files.LocalPath
 
 interface SourceAvailable : Installed {
 
-    val sourceDir: APath?
+    val sourceDir: APath<*>?
         get() = applicationInfo?.sourceDir?.let { LocalPath.build(it) }
 
-    val splitSources: Set<APath>?
+    val splitSources: Set<APath<*>>?
         get() = applicationInfo?.splitSourceDirs?.map { LocalPath.build(it) }?.toSet()
 
 }

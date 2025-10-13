@@ -61,8 +61,8 @@ fun SearchInputCard(
     query: TextFieldValue,
     onQueryChange: (TextFieldValue) -> Unit,
     onSearch: () -> Unit,
-    path: APath,
-    onPathChange: (APath) -> Unit,
+    path: APath<*>,
+    onPathChange: (APath<*>) -> Unit,
     isSearching: Boolean,
     onCancel: (() -> Unit)? = null,
     modifier: Modifier = Modifier
@@ -230,8 +230,8 @@ fun SearchBar(
 
 @Composable
 fun SearchPathBar(
-    path: APath,
-    onPathChange: (APath) -> Unit,
+    path: APath<*>,
+    onPathChange: (APath<*>) -> Unit,
     onPerformSearch: () -> Unit = {},
     isSearching: Boolean,
     modifier: Modifier = Modifier
@@ -319,7 +319,7 @@ fun SearchPathBar(
 
 @Composable
 fun PathPickerDialog(
-    onPathSelected: (APath) -> Unit,
+    onPathSelected: (APath<*>) -> Unit,
     onDismiss: () -> Unit
 ) {
     val commonPaths = listOf(

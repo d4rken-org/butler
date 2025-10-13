@@ -46,7 +46,7 @@ class FilePickerViewModel @AssistedInject constructor(
         loadCurrentPath()
     }
 
-    private fun getDefaultPath(): APath {
+    private fun getDefaultPath(): APath<*> {
         return LocalPath.build("/storage/emulated/0")
     }
 
@@ -131,7 +131,7 @@ class FilePickerViewModel @AssistedInject constructor(
         }
     }
 
-    fun navigateTo(path: APath) {
+    fun navigateTo(path: APath<*>) {
         log(tag) { "Navigating to: $path" }
         _state.update { it.copy(currentPath = path, selectedItems = emptySet()) }
         loadCurrentPath()
@@ -166,7 +166,7 @@ class FilePickerViewModel @AssistedInject constructor(
         parentPath?.let { navigateTo(it) }
     }
 
-    fun toggleSelection(path: APath) {
+    fun toggleSelection(path: APath<*>) {
         when (config.mode) {
             SelectionMode.SingleFile, SelectionMode.SingleFolder -> {
                 _state.update { 

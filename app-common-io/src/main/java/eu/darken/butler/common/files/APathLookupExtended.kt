@@ -6,7 +6,7 @@ import eu.darken.butler.common.files.metadata.Permissions
 import kotlin.time.Instant
 
 @Keep
-interface APathLookupExtended<out T : APath> : APathLookup<T> {
+interface APathLookupExtended<T : APath<T>> : APathLookup<T> {
     val ownership: Ownership?
     val permissions: Permissions?
     val createdAt: Instant?

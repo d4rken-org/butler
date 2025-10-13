@@ -31,7 +31,7 @@ class SearcherSettings @Inject constructor(
     val wholeWord = dataStore.createValue("searcher.whole_word", false)
     val useRegex = dataStore.createValue("searcher.use_regex", false)
 
-    val defaultSearchPath = dataStore.createValue<APath?>("searcher.default.path", null, json)
+    val defaultSearchPath = dataStore.createValue<APath<*>?>("searcher.default.path", null, json)
     val maxSearchResults = dataStore.createValue("searcher.results.maximum", 1000)
     val saveHistory = dataStore.createValue("searcher.history.enabled", true)
     val maxHistoryItems = dataStore.createValue("searcher.history.maximum", 50)

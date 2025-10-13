@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import okio.FileHandle
 
 interface APathGateway<
-    P : APath,
+    P : APath<P>,
     PL : APathLookup<P>,
     PLE : APathLookupExtended<P>,
     > : HasSharedResource<Any>,
@@ -25,7 +25,7 @@ interface APathGateway<
         options: WalkOptions<P, PL> = WalkOptions()
     ): Flow<PL>
 
-    data class WalkOptions<P : APath, PLU : APathLookup<P>>(
+    data class WalkOptions<P : APath<P>, PLU : APathLookup<P>>(
         val pathDoesNotContain: Set<String>? = null,
         val onFilter: (suspend (PLU) -> Boolean)? = null,
         val onError: (suspend (PLU, Exception) -> Boolean)? = null
@@ -39,7 +39,7 @@ interface APathGateway<
         options: DuOptions<P, PL> = DuOptions()
     ): Long
 
-    data class DuOptions<P : APath, PLU : APathLookup<P>>(
+    data class DuOptions<P : APath<P>, PLU : APathLookup<P>>(
         val abortOnError: Boolean = false,
     )
 

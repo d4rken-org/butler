@@ -19,7 +19,7 @@ import java.io.File
 @TypeParceler<File, FileParcelizer>()
 data class LocalPath(
     val file: @Serializable(with = FileSerializer::class) File
-) : APath {
+) : APath<LocalPath> {
 
     @IgnoredOnParcel
     override val path: String

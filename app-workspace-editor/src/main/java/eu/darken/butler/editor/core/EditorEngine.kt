@@ -77,7 +77,7 @@ class EditorEngine @Inject constructor(
     val textBuffer: VirtualTextBuffer?
         get() = _resources.value?.textBuffer
     
-    suspend fun initialize(filePath: APath?, isReadOnly: Boolean = false) {
+    suspend fun initialize(filePath: APath<*>?, isReadOnly: Boolean = false) {
         try {
             log(tag) { "Initializing editor engine with file: ${filePath?.name ?: "No file"}" }
             
@@ -175,7 +175,7 @@ class EditorEngine @Inject constructor(
         clearState()
     }
     
-    suspend fun openFile(filePath: APath): Result<Unit> {
+    suspend fun openFile(filePath: APath<*>): Result<Unit> {
         val resources = _resources.value ?: return Result.failure(
             IllegalStateException("Editor engine not initialized")
         )

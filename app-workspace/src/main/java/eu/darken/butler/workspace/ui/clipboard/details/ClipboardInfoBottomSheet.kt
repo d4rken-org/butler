@@ -332,7 +332,7 @@ private fun ClipboardOverviewSection(
 
 @Composable
 private fun ClipboardFilesSection(
-    paths: List<APath>,
+    paths: List<APath<*>>,
     onCopyPath: ((String) -> Unit)? = null,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
@@ -525,7 +525,7 @@ private fun ClipboardActionsSection(
     }
 }
 
-private fun getPathIcon(path: APath): ImageVector {
+private fun getPathIcon(path: APath<*>): ImageVector {
     // Simple heuristic - in a real implementation, you'd use file type detection
     return if (path.name.contains('.')) {
         Icons.AutoMirrored.TwoTone.InsertDriveFile

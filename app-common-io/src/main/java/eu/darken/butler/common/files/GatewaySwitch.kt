@@ -41,18 +41,18 @@ class GatewaySwitch @Inject constructor(
     private val safGateway: SAFGateway,
     private val localGateway: LocalGateway,
     private val mapper: PathMapper,
-) : APathGateway<APath, APathLookup<APath>, APathLookupExtended<APath>> {
+) : APathGateway<APath<*>, APathLookup<APath<*>>, APathLookupExtended<APath<*>>> {
 
-    private suspend fun <T : APath, R> useGateway(
+    private suspend fun <T : APath<T>, R> useGateway(
         path: T,
-        action: suspend APathGateway<T, APathLookup<T>, APathLookupExtended<T>>.() -> R
+        action: suspend APathGateway<T, APathLookup<T>, APathLookupExtended<T>>.(T) -> R
     ): R {
         @Suppress("UNCHECKED_CAST")
         val targetGateway = getGateway(path) as APathGateway<T, APathLookup<T>, APathLookupExtended<T>>
-        return action(targetGateway)
+        return action(targetGateway, path)
     }
 
-    private suspend fun resolveGatewayType(path: APath): APathGateway<*, *, *> {
+    private suspend fun resolveGatewayType(path: APath<*>): APathGateway<out APath<*>, out APathLookup<*>, out APathLookupExtended<*>> {
         val gateway = when (path) {
             is SAFPath -> {
                 safGateway.also { adoptChildResource(it) }
@@ -67,35 +67,35 @@ class GatewaySwitch @Inject constructor(
         return gateway
     }
 
-    suspend fun getGateway(type: APath): APathGateway<*, *, *> {
+    suspend fun getGateway(type: APath<*>): APathGateway<out APath<*>, out APathLookup<*>, out APathLookupExtended<*>> {
         return resolveGatewayType(type)
     }
 
     override val sharedResource = SharedResource.createKeepAlive(TAG, appScope + dispatcherProvider.IO)
 
-    override suspend fun createDir(path: APath) {
+    override suspend fun createDir(path: APath<*>) {
         return useGateway(path) { createDir(path) }
     }
 
-    override suspend fun createFile(path: APath) {
+    override suspend fun createFile(path: APath<*>) {
         return useGateway(path) { createFile(path) }
     }
 
-    override suspend fun lookup(path: APath): APathLookup<APath> {
+    override suspend fun lookup(path: APath<*>): APathLookup<APath<*>> {
         return lookup(path, Type.CURRENT)
     }
 
-    suspend fun lookup(path: APath, type: Type): APathLookup<APath> {
+    suspend fun lookup(path: APath<*>, type: Type): APathLookup<APath<*>> {
         val mapped = path.toTargetType(type)
         return try {
-            useGateway(mapped) { lookup(mapped) }
+            useGateway(mapped) { lookup(path) }
         } catch (oge: ReadException) {
             if (type != Type.AUTO) throw oge
             log(TAG, WARN) { "lookup(...): Original lookup failed, try alternative: ${oge.asLog()}" }
 
             val fallback = path.toAlternative()
             try {
-                useGateway(fallback) { lookup(fallback) }
+                useGateway(fallback) { lookup(path) }
             } catch (e: ReadException) {
                 log(TAG, WARN) { "lookup(...): Alternative lookup failed either: ${e.asLog()}" }
                 throw oge
@@ -103,21 +103,21 @@ class GatewaySwitch @Inject constructor(
         }
     }
 
-    override suspend fun lookupFiles(path: APath): List<APathLookup<APath>> {
+    override suspend fun lookupFiles(path: APath<*>): List<APathLookup<APath<*>>> {
         return lookupFiles(path, Type.CURRENT)
     }
 
-    suspend fun lookupFiles(path: APath, type: Type): List<APathLookup<APath>> {
+    suspend fun lookupFiles(path: APath<*>, type: Type): List<APathLookup<APath<*>>> {
         val mapped = path.toTargetType(type)
         return try {
-            useGateway(mapped) { lookupFiles(mapped) }
+            useGateway(mapped) { lookupFiles(path) }
         } catch (oge: ReadException) {
             if (type != Type.AUTO) throw oge
             log(TAG, WARN) { "lookupFiles(...): Original lookup failed, try alternative: ${oge.asLog()}" }
 
             val fallback = path.toAlternative()
             try {
-                useGateway(fallback) { lookupFiles(fallback) }
+                useGateway(fallback) { lookupFiles(path) }
             } catch (e: ReadException) {
                 log(TAG, WARN) { "lookupFiles(...): Alternative lookup failed either: ${e.asLog()}" }
                 throw oge
@@ -125,21 +125,21 @@ class GatewaySwitch @Inject constructor(
         }
     }
 
-    override suspend fun lookupExtended(path: APath): APathLookupExtended<APath> {
+    override suspend fun lookupExtended(path: APath<*>): APathLookupExtended<APath<*>> {
         return lookupExtended(path, Type.CURRENT)
     }
 
-    suspend fun lookupExtended(path: APath, type: Type): APathLookupExtended<APath> {
+    suspend fun lookupExtended(path: APath<*>, type: Type): APathLookupExtended<APath<*>> {
         val mapped = path.toTargetType(type)
         return try {
-            useGateway(mapped) { lookupExtended(mapped) }
+            useGateway(mapped) { lookupExtended(path) }
         } catch (oge: ReadException) {
             if (type != Type.AUTO) throw oge
             log(TAG, WARN) { "lookupExtended(...): Original lookup failed, try alternative: ${oge.asLog()}" }
 
             val fallback = path.toAlternative()
             try {
-                useGateway(fallback) { lookupExtended(fallback) }
+                useGateway(fallback) { lookupExtended(path) }
             } catch (e: ReadException) {
                 log(TAG, WARN) { "lookupExtended(...): Alternative lookup failed either: ${e.asLog()}" }
                 throw oge
@@ -147,21 +147,21 @@ class GatewaySwitch @Inject constructor(
         }
     }
 
-    override suspend fun lookupFilesExtended(path: APath): List<APathLookupExtended<APath>> {
+    override suspend fun lookupFilesExtended(path: APath<*>): List<APathLookupExtended<APath<*>>> {
         return lookupFilesExtended(path, Type.CURRENT)
     }
 
-    suspend fun lookupFilesExtended(path: APath, type: Type): List<APathLookupExtended<APath>> {
+    suspend fun lookupFilesExtended(path: APath<*>, type: Type): List<APathLookupExtended<APath<*>>> {
         val mapped = path.toTargetType(type)
         return try {
-            useGateway(mapped) { lookupFilesExtended(mapped) }
+            useGateway(mapped) { lookupFilesExtended(path) }
         } catch (oge: ReadException) {
             if (type != Type.AUTO) throw oge
             log(TAG, WARN) { "lookupFilesExtended(...): Original lookup failed, try alternative: ${oge.asLog()}" }
 
             val fallback = path.toAlternative()
             try {
-                useGateway(fallback) { lookupFilesExtended(fallback) }
+                useGateway(fallback) { lookupFilesExtended(path) }
             } catch (e: ReadException) {
                 log(TAG, WARN) { "lookupFilesExtended(...): Alternative lookup failed either: ${e.asLog()}" }
                 throw oge
@@ -169,69 +169,70 @@ class GatewaySwitch @Inject constructor(
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     override suspend fun walk(
-        path: APath,
-        options: APathGateway.WalkOptions<APath, APathLookup<APath>>
-    ): Flow<APathLookup<APath>> {
+        path: APath<*>,
+        options: APathGateway.WalkOptions<APath<*>, APathLookup<APath<*>>>
+    ): Flow<APathLookup<APath<*>>> {
         return useGateway(path) { walk(path, options) }
     }
 
-
+    @Suppress("UNCHECKED_CAST")
     override suspend fun du(
-        path: APath,
-        options: APathGateway.DuOptions<APath, APathLookup<APath>>
+        path: APath<*>,
+        options: APathGateway.DuOptions<APath<*>, APathLookup<APath<*>>>
     ): Long {
         return useGateway(path) { du(path, options) }
     }
 
-    override suspend fun listFiles(path: APath): List<APath> {
+    override suspend fun listFiles(path: APath<*>): List<APath<*>> {
         return useGateway(path) { listFiles(path) }
     }
 
-    override suspend fun exists(path: APath): Boolean {
+    override suspend fun exists(path: APath<*>): Boolean {
         return exists(path, Type.CURRENT)
     }
 
-    suspend fun exists(path: APath, type: Type): Boolean {
+    suspend fun exists(path: APath<*>, type: Type): Boolean {
         val mapped = path.toTargetType(type)
         return try {
-            useGateway(mapped) { exists(mapped) }
+            useGateway(mapped) { exists(path) }
         } catch (e: ReadException) {
             if (type != Type.AUTO) throw e
 
             val fallback = path.toAlternative()
-            useGateway(fallback) { exists(fallback) }
+            useGateway(fallback) { exists(path) }
         }
     }
 
-    override suspend fun canWrite(path: APath): Boolean {
+    override suspend fun canWrite(path: APath<*>): Boolean {
         return useGateway(path) { canWrite(path) }
     }
 
-    override suspend fun canRead(path: APath): Boolean {
+    override suspend fun canRead(path: APath<*>): Boolean {
         return useGateway(path) { canRead(path) }
     }
 
-    override suspend fun delete(path: APath, recursive: Boolean): Boolean {
+    override suspend fun delete(path: APath<*>, recursive: Boolean): Boolean {
         return useGateway(path) { delete(path, recursive) }
     }
 
-    override suspend fun openInputStream(path: APath): InputStream {
+    override suspend fun openInputStream(path: APath<*>): InputStream {
         return useGateway(path) { openInputStream(path) }
     }
 
-    override suspend fun openOutputStream(path: APath, append: Boolean): OutputStream {
+    override suspend fun openOutputStream(path: APath<*>, append: Boolean): OutputStream {
         return useGateway(path) { openOutputStream(path, append) }
     }
 
-    override suspend fun file(path: APath, readWrite: Boolean): FileHandle {
+    override suspend fun file(path: APath<*>, readWrite: Boolean): FileHandle {
         return useGateway(path) { file(path, readWrite) }
     }
 
     override suspend fun delete(
-        targets: Set<APath>,
-        options: DeleteAction.Options<APath>
-    ): Flow<DeleteAction.State<APath, APathLookup<APath>>> = targets
+        targets: Set<APath<*>>,
+        options: DeleteAction.Options<APath<*>>
+    ): Flow<DeleteAction.State<APath<*>, APathLookup<APath<*>>>> = targets
         .groupBy { it::class }.values.asFlow()
         .flatMapConcat { group ->
             useGateway(group.first()) {
@@ -239,23 +240,23 @@ class GatewaySwitch @Inject constructor(
             }
         }
 
-    override suspend fun createSymlink(linkPath: APath, targetPath: APath): Boolean {
+    override suspend fun createSymlink(linkPath: APath<*>, targetPath: APath<*>): Boolean {
         return useGateway(linkPath) { createSymlink(linkPath, targetPath) }
     }
 
-    override suspend fun setModifiedAt(path: APath, modifiedAt: Instant): Boolean {
+    override suspend fun setModifiedAt(path: APath<*>, modifiedAt: Instant): Boolean {
         return useGateway(path) { setModifiedAt(path, modifiedAt) }
     }
 
-    override suspend fun setPermissions(path: APath, permissions: Permissions): Boolean {
+    override suspend fun setPermissions(path: APath<*>, permissions: Permissions): Boolean {
         return useGateway(path) { setPermissions(path, permissions) }
     }
 
-    override suspend fun setOwnership(path: APath, ownership: Ownership): Boolean {
+    override suspend fun setOwnership(path: APath<*>, ownership: Ownership): Boolean {
         return useGateway(path) { setOwnership(path, ownership) }
     }
 
-    private suspend fun APath.toTargetType(type: Type): APath = when (type) {
+    private suspend fun APath<*>.toTargetType(type: Type): APath<*> = when (type) {
         Type.AUTO -> this
         Type.CURRENT -> this
         Type.FORCED_LOCAL -> when (this) {
@@ -271,28 +272,28 @@ class GatewaySwitch @Inject constructor(
         }
     }
 
-    private suspend fun APath.toAlternative(): APath = when (this) {
+    private suspend fun APath<*>.toAlternative(): APath<*> = when (this) {
         is LocalPath -> mapper.toSAFPath(this) ?: throw ReadException("Can't map to SAF", this)
         is SAFPath -> mapper.toLocalPath(this) ?: throw ReadException("Can't map to LOCAL", this)
         is RawPath -> throw UnsupportedOperationException("Alternative mapping for RAW not available")
     }
 
-    override suspend fun getInfo(path: APath): FileSystemInfo {
-        return useGateway(path) { getInfo(path) }
+    override suspend fun getInfo(path: APath<*>): FileSystemInfo {
+        return useGateway(path) { this.getInfo(it) }
     }
 
     override suspend fun copy(
-        sources: Set<APath>,
-        destination: APath,
-        options: CopyAction.Options<APath>
-    ): Flow<CopyAction.State<APath, APathLookup<APath>>> = flow {
+        sources: Set<APath<*>>,
+        destination: APath<*>,
+        options: CopyAction.Options<APath<*>>
+    ): Flow<CopyAction.State<APath<*>, APathLookup<APath<*>>>> = flow {
         // Group sources by gateway type for optimal processing
         val sourcesByType = sources.groupBy { it::class }
         val destinationType = destination::class
 
         var totalBytesProcessed = 0L
-        val allCopiedFiles = mutableSetOf<Pair<APath, APath>>()
-        val allSkippedFiles = mutableSetOf<APath>()
+        val allCopiedFiles = mutableSetOf<Pair<APath<*>, APath<*>>>()
+        val allSkippedFiles = mutableSetOf<APath<*>>()
 
         for ((sourceType, sourcesGroup) in sourcesByType) {
             when {
@@ -319,7 +320,7 @@ class GatewaySwitch @Inject constructor(
                         performCrossGatewayCopy(source, destination, options).collect { state ->
                             when (state) {
                                 is CopyAction.State.Progress -> {
-                                    emit(state.copy(copiedBytes = totalBytesProcessed + state.copiedBytes))
+                                    emit(state.copy(copiedBytes = totalBytesProcessed + state.copiedBytes) as CopyAction.State.Progress<APath<*>, APathLookup<APath<*>>>)
                                 }
                                 is CopyAction.State.Result -> {
                                     totalBytesProcessed += state.copiedBytes
@@ -343,17 +344,17 @@ class GatewaySwitch @Inject constructor(
     }
 
     override suspend fun move(
-        sources: Set<APath>,
-        destination: APath,
-        options: MoveAction.Options<APath>
-    ): Flow<MoveAction.State<APath, APathLookup<APath>>> = flow {
+        sources: Set<APath<*>>,
+        destination: APath<*>,
+        options: MoveAction.Options<APath<*>>
+    ): Flow<MoveAction.State<APath<*>, APathLookup<APath<*>>>> = flow {
         // Group sources by gateway type for optimal processing
         val sourcesByType = sources.groupBy { it::class }
         val destinationType = destination::class
 
         var totalBytesMoved = 0L
-        val allMovedFiles = mutableSetOf<Pair<APath, APath>>()
-        val allSkippedFiles = mutableSetOf<APath>()
+        val allMovedFiles = mutableSetOf<Pair<APath<*>, APath<*>>>()
+        val allSkippedFiles = mutableSetOf<APath<*>>()
 
         for ((sourceType, sourcesGroup) in sourcesByType) {
             when {
@@ -380,7 +381,7 @@ class GatewaySwitch @Inject constructor(
                         performCrossGatewayMove(source, destination, options).collect { state ->
                             when (state) {
                                 is MoveAction.State.Progress -> {
-                                    emit(state.copy(movedBytes = totalBytesMoved + state.movedBytes))
+                                    emit(state.copy(movedBytes = totalBytesMoved + state.movedBytes) as MoveAction.State.Progress<APath<*>, APathLookup<APath<*>>>)
                                 }
                                 is MoveAction.State.Result -> {
                                     totalBytesMoved += state.bytesMoved
@@ -404,10 +405,10 @@ class GatewaySwitch @Inject constructor(
     }
 
     private suspend fun performCrossGatewayCopy(
-        source: APath,
-        target: APath,
-        options: CopyAction.Options<APath>
-    ): Flow<CopyAction.State<APath, APathLookup<APath>>> = flow {
+        source: APath<*>,
+        target: APath<*>,
+        options: CopyAction.Options<APath<*>>
+    ): Flow<CopyAction.State<*, *>> = flow {
         log(TAG, DEBUG) { "performCrossGatewayCopy(): $source -> $target" }
 
         when {
@@ -438,10 +439,10 @@ class GatewaySwitch @Inject constructor(
     }
 
     private suspend fun performCrossGatewayMove(
-        source: APath,
-        target: APath,
-        options: MoveAction.Options<APath>
-    ): Flow<MoveAction.State<APath, APathLookup<APath>>> = flow {
+        source: APath<*>,
+        target: APath<*>,
+        options: MoveAction.Options<APath<*>>
+    ): Flow<MoveAction.State<*, *>> = flow {
         log(TAG, DEBUG) { "performCrossGatewayMove(): $source -> $target" }
 
         when {

@@ -50,7 +50,7 @@ fun SearcherWorkspacePage(
     design: WorkspaceDesign = WorkspaceDesign(),
     state: SearcherWorkspaceViewModel.State,
     onUpdateQuery: (TextFieldValue) -> Unit = {},
-    onUpdateSearchPath: (APath) -> Unit = {},
+    onUpdateSearchPath: (APath<*>) -> Unit = {},
     onPerformSearch: () -> Unit = {},
     onExplicitSearch: () -> Unit = {},
     onCancelSearch: () -> Unit = {},

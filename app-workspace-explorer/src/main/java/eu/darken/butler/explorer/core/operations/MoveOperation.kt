@@ -109,7 +109,7 @@ class MoveOperation @AssistedInject constructor(
                 ),
             )
             .onEach { moveState ->
-                if (moveState !is MoveAction.State.Progress<APath, APathLookup<APath>>) return@onEach
+                if (moveState !is MoveAction.State.Progress<*, *>) return@onEach
 
                 val now = Clock.System.now()
                 val elapsed = lastSpeedUpdate.elapsedNow().inWholeMilliseconds / 1000.0
@@ -229,18 +229,18 @@ class MoveOperation @AssistedInject constructor(
             }
             .last()
 
-        result as MoveAction.State.Result<APath, APathLookup<APath>>
+        result as MoveAction.State.Result<*, *>
 
         // Track filesystem changes - sources were removed
         val movedSources = result.movedFiles.map { it.first }.toSet()
         val sourceLookupsForHinter = movedSources.map { path ->
             // Create a minimal lookup for removed paths (may no longer exist)
-            object : APathLookup<APath> {
-                override val lookedUp = path
+            object : APathLookup<APath<*>> {
+                override val lookedUp: APath<*> = path
                 override val fileType = eu.darken.butler.common.files.metadata.FileType.UNKNOWN
                 override val size = 0L
                 override val modifiedAt = Instant.DISTANT_PAST
-                override val target: APath? = null
+                override val target: APath<*>? = null
             }
         }
         fileSystemHinter.trackPathsRemoved(operationContext.id, sourceLookupsForHinter.toSet())

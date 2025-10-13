@@ -23,17 +23,17 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.common.R as CommonR
 
 data class DeleteConfirmationResult(
-    val items: Set<APath>,
+    val items: Set<APath<*>>,
 )
 
 @Composable
 fun DeleteConfirmationDialog(
-    items: Set<APath>,
+    items: Set<APath<*>>,
     onDismiss: () -> Unit,
     onConfirm: (DeleteConfirmationResult) -> Unit,
 ) {
     val itemCount = items.size
-    val itemsToShow = items.take(5)
+    val itemsToShow = items.toList().take(5)
     val hasMore = items.size > 5
     
     AlertDialog(

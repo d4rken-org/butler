@@ -26,7 +26,7 @@ class PathPermissionCheck @Inject constructor(
     private val setupStateProvider: SetupStateProvider,
 ) {
 
-    private fun check(path: APath): PermissionState {
+    private fun check(path: APath<*>): PermissionState {
         val pathString = when (path) {
             is LocalPath -> path.path
             else -> path.path
@@ -67,7 +67,7 @@ class PathPermissionCheck @Inject constructor(
         )
     }
 
-    fun monitor(path: APath): Flow<PermissionState> = setupStateProvider.state
+    fun monitor(path: APath<*>): Flow<PermissionState> = setupStateProvider.state
         .map { providerState ->
             // Only get relevant modules for path permissions
             val relevantModules = providerState.modules.values

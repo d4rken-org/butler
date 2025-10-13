@@ -9,13 +9,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class FilePickerConfig(
     val mode: SelectionMode = SelectionMode.SingleFile,
-    val initialPath: APath? = null,
+    val initialPath: APath<*>? = null,
     val filters: List<String> = emptyList(),
     val showHiddenFiles: Boolean = false,
     val allowCreateFolder: Boolean = true,
     val title: String? = null,
     val subtitle: String? = null,
-    val quickAccessPaths: List<APath> = emptyList(),
+    val quickAccessPaths: List<APath<*>> = emptyList(),
 ) : Parcelable
 
 enum class SelectionMode {

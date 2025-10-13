@@ -52,7 +52,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     private val searchQuery = MutableStateFlow(TextFieldValue(""))
     private val currentFilter = MutableStateFlow(SearchQuery.Filter())
-    private val searchPath = MutableStateFlow<APath>(LocalPath.build(Environment.getExternalStorageDirectory()))
+    private val searchPath = MutableStateFlow<APath<*>>(LocalPath.build(Environment.getExternalStorageDirectory()))
 
     init {
         combine(
@@ -101,7 +101,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val searchState = values[1] as SearchState
         val history = values[2] as List<SearchHistory.SearchHistoryItem>
         val filter = values[3] as SearchQuery.Filter
-        val path = values[4] as APath
+        val path = values[4] as APath<*>
 
         State(
             id = id,
@@ -233,7 +233,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun updateSearchPath(path: APath) {
+    fun updateSearchPath(path: APath<*>) {
         log(TAG) { "Updating search path: $path" }
         searchPath.value = path
     }
@@ -278,7 +278,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val searchState: SearchState = SearchState(),
         val searchHistory: List<SearchHistory.SearchHistoryItem> = emptyList(),
         val currentFilter: SearchQuery.Filter = SearchQuery.Filter(),
-        val searchPath: APath,
+        val searchPath: APath<*>,
         val caseSensitive: Boolean = false,
         val wholeWord: Boolean = false,
         val useRegex: Boolean = false,

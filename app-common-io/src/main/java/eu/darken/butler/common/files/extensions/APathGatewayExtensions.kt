@@ -19,39 +19,39 @@ import okio.FileHandle
 import okio.IOException
 import kotlin.time.Instant
 
-suspend fun <P : APath, PL : APathLookup<P>, PLE : APathLookupExtended<P>, GT : APathGateway<P, PL, PLE>> P.walk(
+suspend fun <P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>, GT : APathGateway<P, PL, PLE>> P.walk(
     gateway: GT,
     options: APathGateway.WalkOptions<P, PL> = APathGateway.WalkOptions()
 ): Flow<PL> {
     return gateway.walk(this, options)
 }
 
-suspend fun <P : APath, PL : APathLookup<P>, PLE : APathLookupExtended<P>, GT : APathGateway<P, PL, PLE>> P.du(
+suspend fun <P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>, GT : APathGateway<P, PL, PLE>> P.du(
     gateway: GT,
     options: APathGateway.DuOptions<P, PL> = APathGateway.DuOptions()
 ): Long {
     return gateway.du(this, options)
 }
 
-suspend fun <T : APath> T.exists(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): Boolean {
+suspend fun <T : APath<T>> T.exists(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): Boolean {
     return gateway.exists(this)
 }
 
-suspend fun <T : APath> T.requireExists(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): T {
+suspend fun <T : APath<T>> T.requireExists(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): T {
     if (!exists(gateway)) {
         throw IllegalStateException("Path doesn't exist, but should: $this")
     }
     return this
 }
 
-suspend fun <T : APath> T.requireNotExists(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): T {
+suspend fun <T : APath<T>> T.requireNotExists(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): T {
     if (exists(gateway)) {
         throw IllegalStateException("Path exist, but shouldn't: $this")
     }
     return this
 }
 
-suspend fun <T : APath> T.createFileIfNecessary(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): T {
+suspend fun <T : APath<T>> T.createFileIfNecessary(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): T {
     if (exists(gateway)) {
         if (gateway.lookup(this).fileType == FileType.FILE) {
             log(VERBOSE) { "File already exists, not creating: $this" }
@@ -64,13 +64,13 @@ suspend fun <T : APath> T.createFileIfNecessary(gateway: APathGateway<T, out APa
     return createFile(gateway)
 }
 
-suspend fun <T : APath> T.createFile(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): T {
+suspend fun <T : APath<T>> T.createFile(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): T {
     gateway.createFile(this)
     log(VERBOSE) { "File created: $this" }
     return this
 }
 
-suspend fun <T : APath> T.createDirIfNecessary(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): T {
+suspend fun <T : APath<T>> T.createDirIfNecessary(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): T {
     if (exists(gateway)) {
         if (gateway.lookup(this).isDirectory) {
             log(VERBOSE) { "Directory already exists, not creating: $this" }
@@ -85,12 +85,12 @@ suspend fun <T : APath> T.createDirIfNecessary(gateway: APathGateway<T, out APat
     return this
 }
 
-suspend fun <P : APath, PL : APathLookup<P>> P.delete(
+suspend fun <P : APath<P>, PL : APathLookup<P>> P.delete(
     gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
     options: DeleteAction.Options<P>,
 ) = setOf(this).delete(gateway, options)
 
-suspend fun <P : APath, PL : APathLookup<P>> Collection<P>.delete(
+suspend fun <P : APath<P>, PL : APathLookup<P>> Collection<P>.delete(
     gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
     options: DeleteAction.Options<P>,
 ): Flow<DeleteAction.State<P, PL>> {
@@ -102,78 +102,78 @@ suspend fun <P : APath, PL : APathLookup<P>> Collection<P>.delete(
         }
 }
 
-suspend fun <T : APath> T.file(
+suspend fun <T : APath<T>> T.file(
     gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
     readWrite: Boolean,
 ): FileHandle {
     return gateway.file(this, readWrite)
 }
 
-suspend fun <T : APath> T.createSymlink(
+suspend fun <T : APath<T>> T.createSymlink(
     gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
     target: T
 ): Boolean {
     return gateway.createSymlink(this, target)
 }
 
-suspend fun <T : APath> T.setModifiedAt(
+suspend fun <T : APath<T>> T.setModifiedAt(
     gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
     modifiedAt: Instant
 ): Boolean {
     return gateway.setModifiedAt(this, modifiedAt)
 }
 
-suspend fun <T : APath> T.setPermissions(
+suspend fun <T : APath<T>> T.setPermissions(
     gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
     permissions: Permissions
 ): Boolean {
     return gateway.setPermissions(this, permissions)
 }
 
-suspend fun <T : APath> T.setOwnership(
+suspend fun <T : APath<T>> T.setOwnership(
     gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>,
     ownership: Ownership
 ): Boolean {
     return gateway.setOwnership(this, ownership)
 }
 
-suspend fun <P : APath, PL : APathLookup<P>, PLE : APathLookupExtended<P>> P.lookup(gateway: APathGateway<P, PL, PLE>): PL {
+suspend fun <P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>> P.lookup(gateway: APathGateway<P, PL, PLE>): PL {
     return gateway.lookup(this)
 }
 
-suspend fun <P : APath, PL : APathLookup<P>, PLE : APathLookupExtended<P>> P.lookupFiles(gateway: APathGateway<P, PL, PLE>): Collection<PL> {
+suspend fun <P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>> P.lookupFiles(gateway: APathGateway<P, PL, PLE>): Collection<PL> {
     return gateway.lookupFiles(this)
 }
 
-suspend fun <P : APath, PL : APathLookup<P>, PLE : APathLookupExtended<P>> P.lookupFilesOrNull(gateway: APathGateway<P, PL, PLE>): Collection<PL>? {
+suspend fun <P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>> P.lookupFilesOrNull(gateway: APathGateway<P, PL, PLE>): Collection<PL>? {
     return if (exists(gateway)) gateway.lookupFiles(this) else null
 }
 
-suspend fun <T : APath> T.listFiles(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): Collection<T> {
+suspend fun <T : APath<T>> T.listFiles(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): Collection<T> {
     return gateway.listFiles(this)
 }
 
-suspend fun <T : APath> T.canRead(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): Boolean {
+suspend fun <T : APath<T>> T.canRead(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): Boolean {
     return gateway.canRead(this)
 }
 
-suspend fun <T : APath> T.canWrite(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): Boolean {
+suspend fun <T : APath<T>> T.canWrite(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): Boolean {
     return gateway.canWrite(this)
 }
 
-suspend fun <T : APath> T.isFile(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): Boolean {
+suspend fun <T : APath<T>> T.isFile(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): Boolean {
     return gateway.lookup(this).fileType == FileType.FILE
 }
 
-suspend fun <T : APath> T.isDirectory(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): Boolean {
+suspend fun <T : APath<T>> T.isDirectory(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): Boolean {
     return gateway.lookup(this).fileType == FileType.DIRECTORY
 }
 
-suspend fun <T : APath> T.getFileSystemInfo(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): FileSystemInfo {
+suspend fun <T : APath<T>> T.getFileSystemInfo(gateway: APathGateway<T, out APathLookup<T>, out APathLookupExtended<T>>): FileSystemInfo {
     return gateway.getInfo(this)
 }
 
-suspend fun <P : APath, PL : APathLookup<P>> P.copy(
+suspend fun <P : APath<P>, PL : APathLookup<P>> P.copy(
     gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
     destination: P,
     options: CopyAction.Options<P> = CopyAction.Options(),
@@ -184,7 +184,7 @@ suspend fun <P : APath, PL : APathLookup<P>> P.copy(
         }
 }
 
-suspend fun <P : APath, PL : APathLookup<P>> Set<P>.copy(
+suspend fun <P : APath<P>, PL : APathLookup<P>> Set<P>.copy(
     gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
     destination: P,
     options: CopyAction.Options<P> = CopyAction.Options(),
@@ -195,7 +195,7 @@ suspend fun <P : APath, PL : APathLookup<P>> Set<P>.copy(
         }
 }
 
-suspend fun <P : APath, PL : APathLookup<P>> P.move(
+suspend fun <P : APath<P>, PL : APathLookup<P>> P.move(
     gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
     destination: P,
     options: MoveAction.Options<P> = MoveAction.Options(),
@@ -206,7 +206,7 @@ suspend fun <P : APath, PL : APathLookup<P>> P.move(
         }
 }
 
-suspend fun <P : APath, PL : APathLookup<P>> Set<P>.move(
+suspend fun <P : APath<P>, PL : APathLookup<P>> Set<P>.move(
     gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
     destination: P,
     options: MoveAction.Options<P> = MoveAction.Options(),

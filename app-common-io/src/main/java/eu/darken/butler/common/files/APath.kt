@@ -9,10 +9,10 @@ import kotlinx.serialization.Serializable
 
 @Keep
 @Serializable
-sealed interface APath : Parcelable {
+sealed interface APath<out Self : APath<Self>> : Parcelable {
     val path: String
     val name: String
-    val parent: APath?
+    val parent: Self?
 
     val userReadablePath: CaString
         get() = path.toCaString()
@@ -21,5 +21,5 @@ sealed interface APath : Parcelable {
 
     val segments: Segments
 
-    fun child(vararg segments: String): APath
+    fun child(vararg segments: String): Self
 }

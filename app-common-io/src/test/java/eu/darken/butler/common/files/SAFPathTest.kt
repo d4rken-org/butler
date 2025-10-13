@@ -9,6 +9,7 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.mockk
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.serializer
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.json.toComparableJson
@@ -39,7 +40,7 @@ class SAFPathTest : BaseTest() {
     fun `test polymorph serialization`() {
         val original = SAFPath.build(testUri, "seg3", "seg2", "seg1")
 
-        val jsonString = json.encodeToString(original as APath)
+        val jsonString = json.encodeToString<APath<SAFPath>>(original)
         jsonString.toComparableJson() shouldBe """
             {
                 "treeRoot": "$testUri",
@@ -48,7 +49,7 @@ class SAFPathTest : BaseTest() {
             }
         """.toComparableJson()
 
-        json.decodeFromString<APath>(jsonString) shouldBe original
+        json.decodeFromString<APath<SAFPath>>(jsonString) shouldBe original
     }
 
     @Test
@@ -58,7 +59,7 @@ class SAFPathTest : BaseTest() {
             SAFPath.build(testUri, "seg4", "seg5", "seg6"),
         )
 
-        val jsonString = json.encodeToString(ListSerializer(APath.serializer()), original)
+        val jsonString = json.encodeToString(ListSerializer(serializer<APath<SAFPath>>()), original)
 
         jsonString.toComparableJson() shouldBe """
                 [
@@ -74,7 +75,7 @@ class SAFPathTest : BaseTest() {
                 ]
         """.toComparableJson()
 
-        json.decodeFromString(ListSerializer(APath.serializer()), jsonString) shouldBe original
+        json.decodeFromString(ListSerializer(serializer<APath<SAFPath>>()), jsonString) shouldBe original
     }
 
     @Test

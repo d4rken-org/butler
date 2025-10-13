@@ -12,7 +12,7 @@ import java.io.File
 @SerialName("RAW")
 data class RawPath(
     override val path: String
-) : APath {
+) : APath<RawPath> {
 
     override val name: String
         get() = path.substringAfterLast(File.separatorChar)
@@ -20,11 +20,11 @@ data class RawPath(
     override val segments: List<String>
         get() = LocalPath.build(path).segments
 
-    override fun child(vararg segments: String): APath {
+    override fun child(vararg segments: String): RawPath {
         throw NotImplementedError()
     }
 
-    override val parent: APath
+    override val parent: RawPath
         get() = throw NotImplementedError()
 
     companion object {

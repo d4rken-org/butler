@@ -53,7 +53,7 @@ fun FilePickerSimple(
         )
     }
     
-    val onNavigate: (APath) -> Unit = { path ->
+    val onNavigate: (APath<*>) -> Unit = { path ->
         state = state.copy(currentPath = path, items = getSampleItems())
     }
     
@@ -156,7 +156,7 @@ private fun getSampleItems(): List<FilePickerState.FileItem> {
 private fun FilePickerBottomSheetSimple(
     config: FilePickerConfig,
     state: FilePickerState,
-    onNavigate: (APath) -> Unit,
+    onNavigate: (APath<*>) -> Unit,
     onItemClick: (FilePickerState.FileItem) -> Unit,
     onItemLongClick: (FilePickerState.FileItem) -> Unit,
     onConfirm: () -> Unit,

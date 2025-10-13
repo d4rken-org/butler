@@ -10,7 +10,7 @@ import eu.darken.butler.common.files.APath
 
 open class ReadException @JvmOverloads constructor(
     message: String? = "Can't read from path.",
-    path: APath? = null,
+    path: APath<*>? = null,
     cause: Throwable? = null,
 ) : PathException(message = message, cause = cause, path = path), HasLocalizedError {
 

@@ -48,7 +48,7 @@ sealed interface ExplorerItem {
     }
 
     sealed interface Path : ExplorerItem {
-        val path: APath
+        val path: APath<*>
 
         override val id: String get() = path.path
         override val displayName: CaString get() = path.userReadableName
@@ -60,7 +60,7 @@ sealed interface ExplorerItem {
         val permissions: Permissions?
         val createdAt: Instant?
 
-        override val path: APath get() = lookup.lookedUp
+        override val path: APath<*> get() = lookup.lookedUp
         override val id: String get() = lookup.path
         override val displayName: CaString get() = lookup.userReadableName
 
@@ -76,7 +76,7 @@ sealed interface ExplorerItem {
     }
 
     data class Peek(
-        override val path: APath,
+        override val path: APath<*>,
     ) : Path
 
     data class RegularDirectory(

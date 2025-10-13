@@ -44,7 +44,7 @@ import kotlinx.coroutines.isActive
  * @param PL The path lookup type (LocalPathLookup, SAFPathLookup, etc.)
  * @param PLE The path lookup extended type (LocalPathLookupExtended, SAFPathLookupExtended, etc.)
  */
-internal class GenericPathDelete<P : APath, PL : APathLookup<P>, PLE : APathLookupExtended<P>>(
+internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>>(
     private val targets: Collection<P>,
     private val recursive: Boolean,
     private val ignoreMissing: Boolean,
@@ -73,7 +73,7 @@ internal class GenericPathDelete<P : APath, PL : APathLookup<P>, PLE : APathLook
         /**
          * Scan a path and queue children for deletion.
          */
-        data class ScanPath<P : APath>(
+        data class ScanPath<P : APath<P>>(
             val path: P,
         ) : WorkItem()
 
@@ -81,7 +81,7 @@ internal class GenericPathDelete<P : APath, PL : APathLookup<P>, PLE : APathLook
          * Perform actual deletion of a path.
          * Stores lookup from scan phase to avoid redundant lookups during deletion.
          */
-        data class DeletePath<P : APath, PL : APathLookup<P>>(
+        data class DeletePath<P : APath<P>, PL : APathLookup<P>>(
             val lookup: PL,
         ) : WorkItem() {
             val path: P get() = lookup.lookedUp
@@ -406,7 +406,7 @@ internal class GenericPathDelete<P : APath, PL : APathLookup<P>, PLE : APathLook
 /**
  * Extension function for easy use of GenericPathDelete.
  */
-suspend fun <P : APath, PL : APathLookup<P>, PLE : APathLookupExtended<P>> P.deleteGeneric(
+suspend fun <P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>> P.deleteGeneric(
     fileSystemOps: FileSystemOps<P, PL, PLE>,
     recursive: Boolean = true,
     ignoreMissing: Boolean = true,
@@ -414,7 +414,7 @@ suspend fun <P : APath, PL : APathLookup<P>, PLE : APathLookupExtended<P>> P.del
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
 ) = setOf(this).deleteGeneric(fileSystemOps, recursive, ignoreMissing, onProgress, onIssue)
 
-suspend fun <P : APath, PL : APathLookup<P>, PLE : APathLookupExtended<P>> Collection<P>.deleteGeneric(
+suspend fun <P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>> Collection<P>.deleteGeneric(
     fileSystemOps: FileSystemOps<P, PL, PLE>,
     recursive: Boolean = true,
     ignoreMissing: Boolean = true,

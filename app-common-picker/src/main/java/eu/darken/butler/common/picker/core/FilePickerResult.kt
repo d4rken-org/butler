@@ -6,7 +6,7 @@ import kotlinx.parcelize.Parcelize
 
 sealed class FilePickerResult : Parcelable {
     @Parcelize
-    data class Selected(val paths: List<APath>) : FilePickerResult()
+    data class Selected(val paths: List<APath<*>>) : FilePickerResult()
     
     @Parcelize
     data object Cancelled : FilePickerResult()

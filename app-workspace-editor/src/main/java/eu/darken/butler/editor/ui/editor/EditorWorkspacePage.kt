@@ -120,7 +120,7 @@ fun EditorWorkspacePage(
     workspaceActionHandler: WorkspaceActionHandler? = null,
     design: WorkspaceDesign,
     state: EditorWorkspaceViewModel.State,
-    onOpenFile: (APath) -> Unit,
+    onOpenFile: (APath<*>) -> Unit,
     onSaveFile: () -> Unit,
     onCloseFile: () -> Unit,
     onTextChange: (String) -> Unit,

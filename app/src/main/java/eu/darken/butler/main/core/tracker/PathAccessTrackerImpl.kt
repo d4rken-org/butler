@@ -17,10 +17,10 @@ import kotlin.time.Instant
 class PathAccessTrackerImpl @Inject constructor(
     private val dynamicShortcutManager: DynamicShortcutManager,
 ) : PathAccessTracker {
-    private var lastTrackedPath: APath? = null
+    private var lastTrackedPath: APath<*>? = null
     private var lastTrackedTime: Instant? = null
 
-    override suspend fun trackPathAccess(path: APath) {
+    override suspend fun trackPathAccess(path: APath<*>) {
         val now = Clock.System.now()
         val shouldTrack = when {
             // Different path than last tracked

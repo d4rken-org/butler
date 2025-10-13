@@ -9,6 +9,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.serializer
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
@@ -61,7 +62,7 @@ class LocalPathTest : BaseTest() {
             }
         """.toComparableJson()
 
-        json.decodeFromString<APath>(jsonString) shouldBe original
+        json.decodeFromString<APath<LocalPath>>(jsonString) shouldBe original
     }
 
     @Test
@@ -69,7 +70,7 @@ class LocalPathTest : BaseTest() {
         testFile.tryMkFile()
         val original = LocalPath.build(file = testFile)
 
-        val jsonString = json.encodeToString(original as APath)
+        val jsonString = json.encodeToString<APath<LocalPath>>(original)
         jsonString.toComparableJson() shouldBe """
             {
                 "file":"${testFile.path}",
@@ -77,7 +78,7 @@ class LocalPathTest : BaseTest() {
             }
         """.toComparableJson()
 
-        json.decodeFromString<APath>(jsonString) shouldBe original
+        json.decodeFromString<APath<LocalPath>>(jsonString) shouldBe original
     }
 
     @Test
@@ -88,7 +89,7 @@ class LocalPathTest : BaseTest() {
             LocalPath.build(file = testFile2),
         )
 
-        val jsonString = json.encodeToString(ListSerializer(APath.serializer()), original)
+        val jsonString = json.encodeToString(ListSerializer(serializer<APath<LocalPath>>()), original)
 
         jsonString.toComparableJson() shouldBe """
                 [
@@ -102,7 +103,7 @@ class LocalPathTest : BaseTest() {
                 ]
         """.toComparableJson()
 
-        json.decodeFromString(ListSerializer(APath.serializer()), jsonString) shouldBe original
+        json.decodeFromString(ListSerializer(serializer<APath<LocalPath>>()), jsonString) shouldBe original
     }
 
     @Test

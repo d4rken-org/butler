@@ -12,7 +12,7 @@ import eu.darken.butler.workspace.core.operations.Operation.Report.*
 
 data class MoveOperationReport(
     override val affectedPaths: Collection<PathChange>,
-    val skipped: Collection<APath>,
+    val skipped: Collection<APath<*>>,
     val movedFiles: Int,
     val movedDirectories: Int,
     val bytesMoved: Long,
@@ -56,12 +56,12 @@ data class MoveOperationReport(
 
     class Builder {
         private val affectedPaths = mutableListOf<PathChange>()
-        private val skipped = mutableListOf<APath>()
+        private val skipped = mutableListOf<APath<*>>()
         private var movedFiles: Int = 0
         private var movedDirectories: Int = 0
         private var bytesMoved: Long = 0
 
-        fun addMovedItems(sources: Collection<Pair<APath, APathLookup<*>>>) {
+        fun addMovedItems(sources: Collection<Pair<APath<*>, APathLookup<*>>>) {
             val affected = sources.flatMap { (source, destLookup) ->
                 if (destLookup.isDirectory) movedDirectories++ else movedFiles++
                 listOf(
@@ -72,7 +72,7 @@ data class MoveOperationReport(
             affectedPaths.addAll(affected)
         }
 
-        fun setSkipped(items: Set<APath>) {
+        fun setSkipped(items: Set<APath<*>>) {
             skipped.addAll(items)
         }
 

@@ -14,8 +14,8 @@ data class SearchResult(
     val matchedQuery: String,
     val matchContext: MatchContext? = null
 ) : Parcelable {
-    
-    val path: APath
+
+    val path: APath<*>
         get() = lookup.lookedUp
     
     val name: String

@@ -4,7 +4,7 @@ import eu.darken.butler.common.files.APath
 
 sealed interface ExplorerCommand {
     data class Create(
-        val parentPath: APath,
+        val parentPath: APath<*>,
         val name: String,
         val type: Type,
     ) : ExplorerCommand {
@@ -15,7 +15,7 @@ sealed interface ExplorerCommand {
     }
 
     data class Delete(
-        val targets: Set<APath>,
+        val targets: Set<APath<*>>,
         val options: Options = Options(),
     ) : ExplorerCommand {
         data class Options(
@@ -25,8 +25,8 @@ sealed interface ExplorerCommand {
     }
 
     data class Copy(
-        val sources: Set<APath>,
-        val destination: APath,
+        val sources: Set<APath<*>>,
+        val destination: APath<*>,
         val options: Options = Options(),
     ) : ExplorerCommand {
         data class Options(
@@ -36,8 +36,8 @@ sealed interface ExplorerCommand {
     }
 
     data class Move(
-        val sources: Set<APath>,
-        val destination: APath,
+        val sources: Set<APath<*>>,
+        val destination: APath<*>,
         val options: Options = Options(),
     ) : ExplorerCommand {
         data class Options(

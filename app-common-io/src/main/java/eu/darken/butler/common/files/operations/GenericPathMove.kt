@@ -53,8 +53,8 @@ import kotlinx.coroutines.isActive
  * @param DPLE The destination path lookup extended type (LocalPathLookupExtended, SAFPathLookupExtended, etc.)
  */
 internal class GenericPathMove<
-    SP : APath, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
-    DP : APath, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
+    SP : APath<SP>, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
+    DP : APath<DP>, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
 >(
     private val sources: Collection<SP>,
     private val destination: DP,
@@ -85,24 +85,24 @@ internal class GenericPathMove<
     private var workQueue = ArrayDeque<WorkItem>()
 
     private sealed class WorkItem {
-        data class ScanSource<SP : APath>(
+        data class ScanSource<SP : APath<SP>>(
             val source: SP,
             val topLevelSource: SP,
         ) : WorkItem()
 
-        data class MoveFile<SP : APath, SPL : APathLookup<SP>, DP : APath>(
+        data class MoveFile<SP : APath<SP>, SPL : APathLookup<SP>, DP : APath<DP>>(
             val sourceLookup: SPL,
             val destination: DP,
             val topLevelSource: SP,
         ) : WorkItem()
 
-        data class CreateDirectory<SP : APath, SPL : APathLookup<SP>, DP : APath>(
+        data class CreateDirectory<SP : APath<SP>, SPL : APathLookup<SP>, DP : APath<DP>>(
             val sourceLookup: SPL,
             val destination: DP,
             val topLevelSource: SP,
         ) : WorkItem()
 
-        data class ResolveConflict<SP : APath, SPL : APathLookup<SP>, DP : APath, DPL : APathLookup<DP>>(
+        data class ResolveConflict<SP : APath<SP>, SPL : APathLookup<SP>, DP : APath<DP>, DPL : APathLookup<DP>>(
             val sourceLookup: SPL,
             val destination: DP,
             val destLookup: DPL,
@@ -383,12 +383,8 @@ internal class GenericPathMove<
 
         if (issueResolver.renameSourceAllPathExists) {
             val uniqueName = generateUniqueName(adjustedDest)
-
-            @Suppress("UNCHECKED_CAST")
-            val parentPath = adjustedDest.parent as DP
-
-            @Suppress("UNCHECKED_CAST")
-            val renamedDest = parentPath.child(uniqueName) as DP
+            val parentPath = adjustedDest.parent!!
+            val renamedDest = parentPath.child(uniqueName)
             log(TAG, INFO) { "Auto-renaming (apply-to-all): $adjustedDest -> $renamedDest" }
 
             // Create new work item with renamed destination and requeue
@@ -487,10 +483,8 @@ internal class GenericPathMove<
                 progressTracker.completeItem()
             }
             is PathActionIssue.PathAlreadyExists.Resolution.RenameSource -> {
-                @Suppress("UNCHECKED_CAST")
-                val parentPath = item.destination.parent as DP
-                @Suppress("UNCHECKED_CAST")
-                val renamedDest = parentPath.child(resolution.newName) as DP
+                val parentPath = item.destination.parent!!
+                val renamedDest = parentPath.child(resolution.newName)
 
                 log(TAG, INFO) { "Renaming destination: ${item.destination} -> $renamedDest" }
 
@@ -524,10 +518,8 @@ internal class GenericPathMove<
                 }
             }
             is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
-                @Suppress("UNCHECKED_CAST")
-                val parentPath = item.destination.parent as DP
-                @Suppress("UNCHECKED_CAST")
-                val newDestPath = parentPath.child(resolution.newName) as DP
+                val parentPath = item.destination.parent!!
+                val newDestPath = parentPath.child(resolution.newName)
 
                 log(TAG, INFO) { "Renaming existing destination: ${item.destination} -> $newDestPath" }
 
@@ -544,7 +536,6 @@ internal class GenericPathMove<
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
     private fun calculateDestinationPath(source: SP, topLevelSource: SP): DP {
         // Calculate relative path INCLUDING the top-level source's name
         // Example: moving /source/topfolder to /dest should create /dest/topfolder/...
@@ -557,7 +548,7 @@ internal class GenericPathMove<
         val relativeSegments = sourceSegments.drop(segmentsToDrop)
 
         // Build destination path with relative segments
-        return destination.child(*relativeSegments.toTypedArray()) as DP
+        return destination.child(*relativeSegments.toTypedArray())
     }
 
     private fun adjustDestinationForRenames(dest: DP, source: SP): DP {
@@ -570,13 +561,11 @@ internal class GenericPathMove<
 
                 if (relativePath.isEmpty()) {
                     // Source is the renamed directory itself
-                    @Suppress("UNCHECKED_CAST")
-                    return renamedDest as DP
+                    return renamedDest
                 } else {
                     // Source is a child - append relative path to renamed dest
                     val segments = relativePath.split("/").filter { it.isNotEmpty() }
-                    @Suppress("UNCHECKED_CAST")
-                    return renamedDest.child(*segments.toTypedArray()) as DP
+                    return renamedDest.child(*segments.toTypedArray())
                 }
             }
         }
@@ -592,9 +581,8 @@ internal class GenericPathMove<
         // If parent path is null, fall back to simple "(1)" appending
         val parentPath = path.parent ?: return "${path.name} (1)"
 
-        @Suppress("UNCHECKED_CAST")
         return GenericPathNamingUtils.generateUniqueName(
-            parentPath = parentPath as DP,
+            parentPath = parentPath,
             originalName = path.name,
             ops = destOps
         )
@@ -673,8 +661,8 @@ internal class GenericPathMove<
  * - **Cross-type** (SP≠DP): Pass different FileSystemOps instances
  */
 suspend fun <
-    SP : APath, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
-    DP : APath, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
+    SP : APath<SP>, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
+    DP : APath<DP>, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
 > Collection<SP>.moveGeneric(
     destination: DP,
     sourceOps: FileSystemOps<SP, SPL, SPLE>,

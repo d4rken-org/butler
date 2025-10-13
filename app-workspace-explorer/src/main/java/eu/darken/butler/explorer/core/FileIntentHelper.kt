@@ -89,7 +89,7 @@ class FileIntentHelper @Inject constructor(
         }
     }
 
-    private fun getFileUri(path: APath): Uri? {
+    private fun getFileUri(path: APath<*>): Uri? {
         return try {
             when (path) {
                 is LocalPath -> {

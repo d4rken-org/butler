@@ -112,7 +112,7 @@ class CopyOperation @AssistedInject constructor(
                 )
             )
             .onEach { copyState ->
-                if (copyState !is CopyAction.State.Progress<APath, APathLookup<APath>>) return@onEach
+                if (copyState !is CopyAction.State.Progress<*, *>) return@onEach
                 if (Bugs.isTrace) log(tag, VERBOSE) { "Progress: $copyState" }
 
                 val now = Clock.System.now()
@@ -233,7 +233,7 @@ class CopyOperation @AssistedInject constructor(
             }
             .last()
 
-        result as CopyAction.State.Result<APath, APathLookup<APath>>
+        result as CopyAction.State.Result<*, *>
 
         val copiedDestinations = result.copied.map { it.second }.toSet()
         val copiedLookups = copiedDestinations.map { gatewaySwitch.lookup(it) }

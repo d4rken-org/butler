@@ -31,7 +31,7 @@ interface EditorDataSource {
  * File-based data source implementation.
  */
 class FileDataSource @AssistedInject constructor(
-    @Assisted private val filePath: APath,
+    @Assisted private val filePath: APath<*>,
     @Assisted private val gatewaySwitch: GatewaySwitch
 ) : EditorDataSource {
     

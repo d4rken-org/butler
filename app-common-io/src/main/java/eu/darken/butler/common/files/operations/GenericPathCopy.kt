@@ -66,8 +66,8 @@ import kotlinx.coroutines.isActive
  * @param DPLE The destination path lookup extended type (LocalPathLookupExtended, SAFPathLookupExtended, etc.)
  */
 internal class GenericPathCopy<
-    SP : APath, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
-    DP : APath, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
+    SP : APath<SP>, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
+    DP : APath<DP>, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
     >(
     private val sources: Collection<SP>,
     private val destination: DP,
@@ -106,7 +106,7 @@ internal class GenericPathCopy<
          * @param source The path to scan
          * @param topLevelSource The top-level source (for path calculations)
          */
-        data class ScanSource<SP : APath>(
+        data class ScanSource<SP : APath<SP>>(
             val source: SP,
             val topLevelSource: SP,
         ) : WorkItem()
@@ -118,7 +118,7 @@ internal class GenericPathCopy<
          * @param destination Destination path
          * @param topLevelSource Top-level source (for error reporting)
          */
-        data class CopyFile<SP : APath, SPL : APathLookup<SP>, DP : APath>(
+        data class CopyFile<SP : APath<SP>, SPL : APathLookup<SP>, DP : APath<DP>>(
             val sourceLookup: SPL,
             val destination: DP,
             val topLevelSource: SP,
@@ -131,7 +131,7 @@ internal class GenericPathCopy<
          * @param destination Destination path
          * @param topLevelSource Top-level source (for error reporting)
          */
-        data class CreateDirectory<SP : APath, SPL : APathLookup<SP>, DP : APath>(
+        data class CreateDirectory<SP : APath<SP>, SPL : APathLookup<SP>, DP : APath<DP>>(
             val sourceLookup: SPL,
             val destination: DP,
             val topLevelSource: SP,
@@ -145,7 +145,7 @@ internal class GenericPathCopy<
          * @param destLookup Destination metadata (existing file/dir)
          * @param originalItem The original work item that triggered this conflict
          */
-        data class ResolveConflict<SP : APath, SPL : APathLookup<SP>, DP : APath, DPL : APathLookup<DP>>(
+        data class ResolveConflict<SP : APath<SP>, SPL : APathLookup<SP>, DP : APath<DP>, DPL : APathLookup<DP>>(
             val sourceLookup: SPL,
             val destination: DP,
             val destLookup: DPL,
@@ -383,12 +383,8 @@ internal class GenericPathCopy<
 
         if (issueResolver.renameSourceAllPathExists) {
             val uniqueName = generateUniqueName(adjustedDest)
-
-            @Suppress("UNCHECKED_CAST")
-            val parentPath = adjustedDest.parent as DP
-
-            @Suppress("UNCHECKED_CAST")
-            val renamedDest = parentPath.child(uniqueName) as DP
+            val parentPath = adjustedDest.parent!!
+            val renamedDest = parentPath.child(uniqueName)
             log(TAG, INFO) { "Auto-renaming (apply-to-all): $adjustedDest -> $renamedDest" }
 
             // Create new work item with renamed destination and requeue
@@ -437,12 +433,8 @@ internal class GenericPathCopy<
 
         if (issueResolver.renameSourceAllPathExists) {
             val uniqueName = generateUniqueName(adjustedDest)
-
-            @Suppress("UNCHECKED_CAST")
-            val parentPath = adjustedDest.parent as DP
-
-            @Suppress("UNCHECKED_CAST")
-            val renamedDest = parentPath.child(uniqueName) as DP
+            val parentPath = adjustedDest.parent!!
+            val renamedDest = parentPath.child(uniqueName)
             log(TAG, INFO) { "Auto-renaming directory (apply-to-all): $adjustedDest -> $renamedDest" }
             destOps.createDir(renamedDest)
             copied.add(item.sourceLookup.lookedUp to renamedDest)
@@ -516,11 +508,8 @@ internal class GenericPathCopy<
                 progressTracker.completeItem()
             }
             is PathActionIssue.PathAlreadyExists.Resolution.RenameSource -> {
-                @Suppress("UNCHECKED_CAST")
-                val parentPath = item.destination.parent as DP
-
-                @Suppress("UNCHECKED_CAST")
-                val renamedDest = parentPath.child(resolution.newName) as DP
+                val parentPath = item.destination.parent!!
+                val renamedDest = parentPath.child(resolution.newName)
 
                 log(TAG, INFO) { "Renaming destination: ${item.destination} -> $renamedDest" }
 
@@ -554,11 +543,8 @@ internal class GenericPathCopy<
                 }
             }
             is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
-                @Suppress("UNCHECKED_CAST")
-                val parentPath = item.destination.parent as DP
-
-                @Suppress("UNCHECKED_CAST")
-                val newDestPath = parentPath.child(resolution.newName) as DP
+                val parentPath = item.destination.parent!!
+                val newDestPath = parentPath.child(resolution.newName)
 
                 log(TAG, INFO) { "Renaming existing destination: ${item.destination} -> $newDestPath" }
 
@@ -575,7 +561,6 @@ internal class GenericPathCopy<
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
     private fun calculateDestinationPath(source: SP, topLevelSource: SP): DP {
         // Calculate relative path INCLUDING the top-level source's name
         // Example: copying /source/topfolder to /dest should create /dest/topfolder/...
@@ -588,7 +573,7 @@ internal class GenericPathCopy<
         val relativeSegments = sourceSegments.drop(segmentsToDrop)
 
         // Build destination path with relative segments
-        return destination.child(*relativeSegments.toTypedArray()) as DP
+        return destination.child(*relativeSegments.toTypedArray())
     }
 
     private fun adjustDestinationForRenames(dest: DP, source: SP): DP {
@@ -601,13 +586,11 @@ internal class GenericPathCopy<
 
                 if (relativePath.isEmpty()) {
                     // Source is the renamed directory itself
-                    @Suppress("UNCHECKED_CAST")
-                    return renamedDest as DP
+                    return renamedDest
                 } else {
                     // Source is a child - append relative path to renamed dest
                     val segments = relativePath.split("/").filter { it.isNotEmpty() }
-                    @Suppress("UNCHECKED_CAST")
-                    return renamedDest.child(*segments.toTypedArray()) as DP
+                    return renamedDest.child(*segments.toTypedArray())
                 }
             }
         }
@@ -625,9 +608,8 @@ internal class GenericPathCopy<
         // If parent path is null, fall back to simple "(1)" appending
         val parentPath = path.parent ?: return "${path.name} (1)"
 
-        @Suppress("UNCHECKED_CAST")
         return GenericPathNamingUtils.generateUniqueName(
-            parentPath = parentPath as DP,
+            parentPath = parentPath,
             originalName = path.name,
             ops = destOps
         )
@@ -711,8 +693,8 @@ internal class GenericPathCopy<
  * - **Cross-type** (SP≠DP): Pass different FileSystemOps instances
  */
 suspend fun <
-    SP : APath, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
-    DP : APath, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
+    SP : APath<SP>, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
+    DP : APath<DP>, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
     > Collection<SP>.copyGeneric(
     destination: DP,
     sourceOps: FileSystemOps<SP, SPL, SPLE>,

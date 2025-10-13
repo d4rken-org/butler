@@ -63,7 +63,7 @@ import kotlin.time.Instant
  * @param PLE The path lookup extended type (LocalPathLookupExtended, SAFPathLookupExtended, etc.)
  * @param lookupFactory Factory function to create path lookups from mock data
  */
-open class MockFileSystemOps<P : APath, PL : APathLookup<P>, PLE : APathLookupExtended<P>>(
+open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>>(
     private val lookupFactory: (path: P, type: FileType, size: Long, modifiedAt: Instant?, permissions: Permissions?, ownership: Ownership?) -> PL
 ) : FileSystemOps<P, PL, PLE> {
 
