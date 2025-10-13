@@ -547,6 +547,25 @@ internal class GenericPathMove<
     }
 
     private fun adjustDestinationForRenames(dest: DP, source: SP): DP {
+        // Check if any ancestor was renamed and adjust the destination path
+        for ((renamedSource, renamedDest) in renamedSourceDirs) {
+            // Check if source is a descendant of a renamed directory
+            if (source.path.startsWith(renamedSource.path + "/") || source.path == renamedSource.path) {
+                // Calculate the relative path from the renamed source
+                val relativePath = source.path.removePrefix(renamedSource.path).removePrefix("/")
+
+                if (relativePath.isEmpty()) {
+                    // Source is the renamed directory itself
+                    @Suppress("UNCHECKED_CAST")
+                    return renamedDest as DP
+                } else {
+                    // Source is a child - append relative path to renamed dest
+                    val segments = relativePath.split("/").filter { it.isNotEmpty() }
+                    @Suppress("UNCHECKED_CAST")
+                    return renamedDest.child(*segments.toTypedArray()) as DP
+                }
+            }
+        }
         return dest
     }
 

@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.operations
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.APathLookupExtended
+import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
@@ -214,7 +215,10 @@ open class MockFileSystemOps<P : APath, PL : APathLookup<P>, PLE : APathLookupEx
         if (files.containsKey(path.path)) {
             val existing = files[path.path]!!
             if (existing.type != FileType.DIRECTORY) {
-                throw IllegalStateException("File exists but is not a directory: ${path.path}")
+                throw PathAlreadyExistsException(
+                    message = "File exists but is not a directory: ${path.path}",
+                    path = path
+                )
             }
             // Already exists - idempotent
             return
@@ -248,7 +252,7 @@ open class MockFileSystemOps<P : APath, PL : APathLookup<P>, PLE : APathLookupEx
         createFileCalls.add(path.path)
 
         if (files.containsKey(path.path)) {
-            throw IllegalStateException("File already exists: ${path.path}")
+            throw PathAlreadyExistsException(path = path)
         }
 
         // Ensure parent directory exists

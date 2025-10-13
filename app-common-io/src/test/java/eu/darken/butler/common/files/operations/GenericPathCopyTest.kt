@@ -294,4 +294,232 @@ class GenericPathCopyTest : BaseTest() {
             LocalPath.build("/dest/folder/file.txt")
         )
     }
+
+    // ============ CONFLICT RESOLUTION ============
+
+    @Test
+    fun `copy file with RenameSource creates new file with renamed name`() = runTest {
+        // Given - source file and conflicting destination
+        mockOps.addMockFile("/source/file.txt", "new content".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockFile("/dest/file.txt", "old content".toByteArray())
+
+        val sourcePath = LocalPath.build("/source/file.txt")
+        val destPath = LocalPath.build("/dest")
+
+        // When - copy with RenameSource resolution
+        val result = setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        PathActionIssue.PathAlreadyExists.Resolution.RenameSource("file (1).txt")
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - old file unchanged, new file created with renamed name
+        mockOps.hasFile("/dest/file.txt") shouldBe true
+        mockOps.getFileContent("/dest/file.txt") shouldBe "old content".toByteArray()
+        mockOps.hasFile("/dest/file (1).txt") shouldBe true
+        mockOps.getFileContent("/dest/file (1).txt") shouldBe "new content".toByteArray()
+
+        result.copied.size shouldBe 1
+        result.copied.first() shouldBe (LocalPath.build("/source/file.txt") to LocalPath.build("/dest/file (1).txt"))
+    }
+
+    @Test
+    fun `copy directory with RenameSource creates new directory with renamed name`() = runTest {
+        // Given - source directory and conflicting destination directory
+        mockOps.addMockDir("/source/folder")
+        mockOps.addMockFile("/source/folder/new.txt", "new".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockDir("/dest/folder")
+        mockOps.addMockFile("/dest/folder/old.txt", "old".toByteArray())
+
+        val sourcePath = LocalPath.build("/source/folder")
+        val destPath = LocalPath.build("/dest")
+
+        // When - copy with RenameSource resolution
+        val result = setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        PathActionIssue.PathAlreadyExists.Resolution.RenameSource("folder (1)")
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - old directory unchanged, new directory created with renamed name
+        mockOps.hasFile("/dest/folder/old.txt") shouldBe true
+        mockOps.hasFile("/dest/folder/new.txt") shouldBe false
+        mockOps.hasFile("/dest/folder (1)") shouldBe true
+        mockOps.hasFile("/dest/folder (1)/new.txt") shouldBe true
+        mockOps.getFileContent("/dest/folder (1)/new.txt") shouldBe "new".toByteArray()
+
+        result.copied.size shouldBe 2 // folder + file
+    }
+
+    @Test
+    fun `copy with Skip leaves existing file unchanged`() = runTest {
+        // Given - source file and conflicting destination
+        mockOps.addMockFile("/source/file.txt", "new content".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockFile("/dest/file.txt", "old content".toByteArray())
+
+        val sourcePath = LocalPath.build("/source/file.txt")
+        val destPath = LocalPath.build("/dest")
+
+        // When - copy with Skip resolution
+        val result = setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        PathActionIssue.PathAlreadyExists.Resolution.Skip()
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - destination file unchanged
+        mockOps.hasFile("/dest/file.txt") shouldBe true
+        mockOps.getFileContent("/dest/file.txt") shouldBe "old content".toByteArray()
+
+        result.copied.size shouldBe 0
+        result.skipped.size shouldBe 1
+        result.skipped shouldBe setOf(LocalPath.build("/source/file.txt"))
+    }
+
+    @Test
+    fun `copy with Overwrite replaces existing file`() = runTest {
+        // Given - source file and conflicting destination
+        mockOps.addMockFile("/source/file.txt", "new content".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockFile("/dest/file.txt", "old content".toByteArray())
+
+        val sourcePath = LocalPath.build("/source/file.txt")
+        val destPath = LocalPath.build("/dest")
+
+        // When - copy with Overwrite resolution
+        val result = setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - destination file replaced with new content
+        mockOps.hasFile("/dest/file.txt") shouldBe true
+        mockOps.getFileContent("/dest/file.txt") shouldBe "new content".toByteArray()
+
+        result.copied.size shouldBe 1
+        result.copied.first() shouldBe (LocalPath.build("/source/file.txt") to LocalPath.build("/dest/file.txt"))
+    }
+
+    @Test
+    fun `copy directory with Merge combines both directories`() = runTest {
+        // Given - source and destination directories with different files
+        mockOps.addMockDir("/source/folder")
+        mockOps.addMockFile("/source/folder/new.txt", "new".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockDir("/dest/folder")
+        mockOps.addMockFile("/dest/folder/old.txt", "old".toByteArray())
+
+        val sourcePath = LocalPath.build("/source/folder")
+        val destPath = LocalPath.build("/dest")
+
+        // When - copy with Merge resolution
+        val result = setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        PathActionIssue.PathAlreadyExists.Resolution.Merge()
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - both files exist in merged directory
+        mockOps.hasFile("/dest/folder") shouldBe true
+        mockOps.hasFile("/dest/folder/old.txt") shouldBe true
+        mockOps.hasFile("/dest/folder/new.txt") shouldBe true
+        mockOps.getFileContent("/dest/folder/old.txt") shouldBe "old".toByteArray()
+        mockOps.getFileContent("/dest/folder/new.txt") shouldBe "new".toByteArray()
+
+        result.copied.size shouldBe 2 // folder + new.txt file
+    }
+
+    @Test
+    fun `nested directory RenameSource updates all child paths`() = runTest {
+        // Given - nested source structure and conflicting destination
+        mockOps.addMockDir("/source/Parent")
+        mockOps.addMockDir("/source/Parent/SubDir")
+        mockOps.addMockFile("/source/Parent/SubDir/file.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockDir("/dest/Parent")
+        mockOps.addMockFile("/dest/Parent/existing.txt", "existing".toByteArray())
+
+        val sourcePath = LocalPath.build("/source/Parent")
+        val destPath = LocalPath.build("/dest")
+
+        // When - copy with RenameSource
+        val result = setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        PathActionIssue.PathAlreadyExists.Resolution.RenameSource("Parent-new")
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - all children copied to renamed parent
+        mockOps.hasFile("/dest/Parent/existing.txt") shouldBe true
+        mockOps.hasFile("/dest/Parent-new") shouldBe true
+        mockOps.hasFile("/dest/Parent-new/SubDir") shouldBe true
+        mockOps.hasFile("/dest/Parent-new/SubDir/file.txt") shouldBe true
+        mockOps.getFileContent("/dest/Parent-new/SubDir/file.txt") shouldBe "content".toByteArray()
+
+        result.copied.size shouldBe 3 // Parent-new + SubDir + file.txt
+    }
 }
