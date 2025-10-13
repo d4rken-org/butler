@@ -74,6 +74,8 @@ import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
 import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationDialog
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
+import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
+import eu.darken.butler.workspace.ui.scroll.setHeight
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
@@ -187,6 +189,14 @@ fun ExplorerWorkspacePage(
     }
     val hasActions by remember {
         derivedStateOf { mainState.availableActions.isNotEmpty() }
+    }
+
+    // Auto-show action bar when entering selection mode
+    LaunchedEffect(mainState.selectionState.isSelectionMode) {
+        if (mainState.selectionState.isSelectionMode) {
+            // Smoothly animate action bar to visible when selection is activated
+            bottomBarScrollBehavior.state.animateToExpanded()
+        }
     }
 
     // Track action bar visibility for clipboard animations
@@ -537,7 +547,7 @@ fun ExplorerWorkspacePage(
 
         // Floating Bottom ActionBar
         if (hasActions) {
-            ExplorerActionBar(
+            eu.darken.butler.workspace.ui.actions.WorkspaceActionBar(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(horizontal = 8.dp, vertical = 8.dp)
@@ -547,7 +557,7 @@ fun ExplorerWorkspacePage(
                         translationY = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 64.dp.toPx() else 0f
                     },
                 actions = mainState.availableActions,
-                onActionClick = { action -> vm?.executeAction(action) },
+                onActionClick = { action -> vm?.executeAction(action as eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction) },
             )
         }
 

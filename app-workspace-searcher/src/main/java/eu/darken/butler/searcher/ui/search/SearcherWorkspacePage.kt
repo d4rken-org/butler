@@ -128,6 +128,14 @@ fun SearcherWorkspacePage(
         derivedStateOf { state?.selectionState?.selectedResultIds?.isNotEmpty() == true }
     }
 
+    // Auto-show action bar when entering selection mode
+    LaunchedEffect(hasActions) {
+        if (hasActions) {
+            // Smoothly animate action bar to visible when selection is activated
+            bottomBarScrollBehavior.state.animateToExpanded()
+        }
+    }
+
     // Track action bar visibility for clipboard/operations animations
     val isActionBarHidden by remember {
         derivedStateOf {

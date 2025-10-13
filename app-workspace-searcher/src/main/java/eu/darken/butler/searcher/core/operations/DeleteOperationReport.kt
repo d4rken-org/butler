@@ -1,0 +1,89 @@
+package eu.darken.butler.searcher.core.operations
+
+import android.text.format.Formatter
+import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.caString
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.extensions.isDirectory
+import eu.darken.butler.common.getQuantityString2
+import eu.darken.butler.searcher.R
+import eu.darken.butler.workspace.core.operations.Operation.Report.*
+
+data class DeleteOperationReport(
+    override val affectedPaths: Collection<PathChange>,
+    val skipped: Collection<APathLookup<*>>,
+    val deletedFiles: Int,
+    val deletedDirectories: Int,
+    val bytesFreed: Long,
+) : SearcherOperation.Report {
+
+    override val summary: CaString = caString {
+        buildString {
+            if (deletedFiles > 0) {
+                append(
+                    it.getQuantityString2(R.plurals.searcher_operation_report_files_deleted, deletedFiles)
+                )
+                append(" ")
+            }
+            if (deletedDirectories > 0) {
+                append(
+                    it.getQuantityString2(R.plurals.searcher_operation_report_directories_deleted, deletedDirectories)
+                )
+                append(" ")
+            }
+            if (skipped.isNotEmpty()) {
+                append(
+                    it.getQuantityString2(R.plurals.searcher_operation_report_skipped_items, skipped.size)
+                )
+                append(" ")
+            }
+            if (bytesFreed > 0) {
+                append(
+                    it.getQuantityString2(
+                        R.plurals.searcher_operation_report_bytes_freed,
+                        bytesFreed.toInt(),
+                        Formatter.formatFileSize(it, bytesFreed)
+                    )
+                )
+            }
+        }
+    }
+
+    override fun toString(): String {
+        return "DeleteOperationReport(affectedPaths=${affectedPaths.size}, skipped=${skipped.size}, deletedFiles=$deletedFiles, deletedDirectories=$deletedDirectories, bytesFreed=$bytesFreed)"
+    }
+
+    class Builder {
+        private val affectedPaths = mutableListOf<PathChange>()
+        private val skipped = mutableListOf<APathLookup<*>>()
+        private var deletedFiles: Int = 0
+        private var deletedDirectories: Int = 0
+
+        fun setDeletions(items: Set<APathLookup<APath>>) {
+            val affected = items.map {
+                if (it.isDirectory) deletedDirectories++ else deletedFiles++
+                PathChange(it.lookedUp, PathChange.Change.REMOVED)
+            }
+            affectedPaths.addAll(affected)
+        }
+
+        fun setSkipped(items: Set<APathLookup<APath>>) {
+            skipped.addAll(items)
+        }
+
+        private var bytesFreed: Long = 0
+
+        fun setBytesFreed(bytesFreed: Long) {
+            this.bytesFreed = bytesFreed
+        }
+
+        fun build(): DeleteOperationReport = DeleteOperationReport(
+            affectedPaths = affectedPaths.distinct(),
+            skipped = skipped,
+            deletedFiles = deletedFiles,
+            deletedDirectories = deletedDirectories,
+            bytesFreed = bytesFreed,
+        )
+    }
+}
