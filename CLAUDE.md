@@ -52,11 +52,14 @@ Butler uses a workspace concept similar to browser tabs with 4 main workspace ty
 When debugging UI issues, layout problems, or visual elements:
 
 ```bash
-# Take screenshot and save to project's temporary folder
-mkdir -p .claude/tmp && adb shell screencap -p > .claude/tmp/screenshot.png
+# Use the screenshot script (preferred method)
+./.claude/scripts/screenshot.sh
 
-# Then read the file to view it
-# (Claude Code can view images directly)
+# Or with a custom filename
+./.claude/scripts/screenshot.sh my-ui-bug
+
+# Manual method (if script unavailable)
+mkdir -p .claude/tmp && adb shell screencap -p > .claude/tmp/screenshot.png
 ```
 
 Use cases:
