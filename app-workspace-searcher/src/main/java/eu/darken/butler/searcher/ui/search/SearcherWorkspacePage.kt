@@ -61,6 +61,9 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
+import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationDialog
+import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
+import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.setHeight
 import kotlinx.coroutines.delay
@@ -97,7 +100,6 @@ fun SearcherWorkspacePage(
     onClipboardEntryClick: (ClipboardClip) -> Unit = {},
     onClipboardEntryRemove: (ClipboardClip) -> Unit = {},
     onClipboardClearAll: () -> Unit = {},
-    onOperationClick: (OperationDisplay) -> Unit = {},
     onOperationCancel: (Operation.Id) -> Unit = {},
     onOperationDismiss: (Operation.Id) -> Unit = {},
     onOperationsClearCompleted: () -> Unit = {},
@@ -113,6 +115,10 @@ fun SearcherWorkspacePage(
     val listState = rememberLazyListState()
     var searchDebounce by remember { mutableStateOf(false) }
     var showClearHistoryDialog by remember { mutableStateOf(false) }
+
+    // Operation dialog state
+    var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
+    var showCancelConfirmation by remember { mutableStateOf<Operation.Id?>(null) }
 
     // Set the bottom bar height for scroll behavior
     bottomBarScrollBehavior.state.setHeight(64.dp)
@@ -307,8 +313,17 @@ fun SearcherWorkspacePage(
                         operations = operationsState.operations,
                         onCancelOperation = onOperationCancel,
                         onDismissOperation = onOperationDismiss,
-                        onOperationClick = onOperationClick,
-                        onClearCompleted = onOperationsClearCompleted
+                        onOperationClick = { operation ->
+                            when (operation.state) {
+                                is OperationDisplay.State.Waiting -> {
+                                    vm?.showConflictSheet(operation.id)
+                                }
+                                else -> {
+                                    operationDialogState = OperationDialogState.OperationDetails(operation.id)
+                                }
+                            }
+                        },
+                        onClearCompleted = onOperationsClearCompleted,
                     )
                 }
 
@@ -432,6 +447,29 @@ fun SearcherWorkspacePage(
         onDismiss = { vm?.dismissDialog() },
         onDeleteConfirmed = { vm?.onDeleteConfirmed(it) }
     )
+
+    // Operation dialog host
+    OperationDialogHost(
+        dialogState = operationDialogState,
+        operations = operationsState.operations,
+        onDismissDialog = { operationDialogState = OperationDialogState.None },
+        onCancelOperation = { operationId ->
+            operationDialogState = OperationDialogState.None
+            showCancelConfirmation = operationId
+        },
+        onCopyError = { vm?.copyError(it) }
+    )
+
+    // Cancel operation confirmation dialog
+    showCancelConfirmation?.let { operationId ->
+        CancelOperationConfirmationDialog(
+            onDismiss = { showCancelConfirmation = null },
+            onConfirm = {
+                vm?.cancelOperation(operationId)
+                showCancelConfirmation = null
+            }
+        )
+    }
     }  // End of state?.let
 }
 
@@ -486,7 +524,6 @@ fun SearcherWorkspacePageHost(
         onClipboardEntryClick = vm::showClipboardInfo,
         onClipboardEntryRemove = vm::removeClipboardEntry,
         onClipboardClearAll = vm::clearAllClipboard,
-        onOperationClick = {},
         onOperationCancel = vm::cancelOperation,
         onOperationDismiss = vm::dismissOperation,
         onOperationsClearCompleted = vm::clearCompletedOperations,

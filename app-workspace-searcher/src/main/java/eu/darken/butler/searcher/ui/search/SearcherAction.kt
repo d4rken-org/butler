@@ -17,13 +17,16 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchResult
+import eu.darken.butler.workspace.ui.actions.WorkspaceAction
 
-sealed interface SearcherAction {
-    val icon: ImageVector
-    val label: CaString
-    val isVisible: Boolean get() = true
-    val isEnabled: Boolean get() = true
-    val isDestructive: Boolean get() = false
+sealed interface SearcherAction : WorkspaceAction {
+    override val icon: ImageVector
+    override val label: CaString
+    override val isVisible: Boolean get() = true
+    override val isEnabled: Boolean get() = true
+    override val isDestructive: Boolean get() = false
+    override val group: WorkspaceAction.Group get() = WorkspaceAction.Group.PRIMARY
+    override val badge: Boolean get() = false
 
     // Actions that work on one or more results
     data class Copy(

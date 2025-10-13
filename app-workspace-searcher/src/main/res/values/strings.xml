@@ -61,4 +61,49 @@
 
     <!-- Permission strings -->
     <string name="searcher_permission_search_description">Grant permissions to search this location.</string>
+
+    <!-- Action strings -->
+    <string name="searcher_action_open_in_editor">Open in Editor</string>
+    <string name="searcher_action_open_in_explorer">Open in Explorer</string>
+    <string name="searcher_action_copy">Copy</string>
+    <string name="searcher_action_cut">Cut</string>
+    <string name="searcher_action_delete">Delete</string>
+    <string name="searcher_action_share">Share</string>
+    <string name="searcher_action_copy_path">Copy Path</string>
+    <string name="searcher_action_properties">Properties</string>
+    <string name="searcher_action_select_all">Select All</string>
+    <string name="searcher_action_deselect_all">Deselect All</string>
+    <string name="searcher_action_exit_selection">Exit Selection</string>
+    <string name="searcher_selection_count">%1$d selected</string>
+
+    <!-- Operation reports -->
+    <string name="searcher_operation_delete_title">File deletion</string>
+    <string name="searcher_operation_delete_description_single">Delete "%1$s" from "%2$s".</string>
+    <plurals name="searcher_operation_delete_description">
+        <item quantity="one">Delete %1$d item from "%2$s".</item>
+        <item quantity="other">Delete %1$d items from "%2$s".</item>
+    </plurals>
+    <plurals name="searcher_operation_report_files_deleted">
+        <item quantity="one">%1$d file deleted.</item>
+        <item quantity="other">%1$d files deleted.</item>
+    </plurals>
+    <plurals name="searcher_operation_report_directories_deleted">
+        <item quantity="one">%1$d directory deleted.</item>
+        <item quantity="other">%1$d directories deleted.</item>
+    </plurals>
+    <plurals name="searcher_operation_report_skipped_items">
+        <item quantity="one">%1$d item skipped.</item>
+        <item quantity="other">%1$d items skipped.</item>
+    </plurals>
+    <plurals name="searcher_operation_report_bytes_freed">
+        <item quantity="one">%1$s freed.</item>
+        <item quantity="other">%1$s freed.</item>
+    </plurals>
+    <plurals name="searcher_operation_progress_items_speed">
+        <item quantity="one">%1$d item/s</item>
+        <item quantity="other">%1$d items/s</item>
+    </plurals>
+    <string name="searcher_operation_progress_bytes_speed_freed">%1$s/s freed.</string>
+    <string name="searcher_operation_progress_bytes_freed">%1$s freed.</string>
+    <string name="searcher_operation_progress_time_remaining">%1$s remaining.</string>
 </resources>

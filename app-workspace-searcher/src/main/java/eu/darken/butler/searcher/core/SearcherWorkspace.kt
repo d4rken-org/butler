@@ -9,19 +9,27 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.issue.Issue
+import eu.darken.butler.searcher.core.operations.DeleteOperation
+import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
 import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
+import eu.darken.butler.workspace.core.operations.withStateUpdates
 import eu.darken.butler.workspace.core.preview.SearcherPreviewData
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
 
@@ -30,6 +38,7 @@ class SearcherWorkspace @AssistedInject constructor(
     @Assisted private val arguments: Arguments?,
     dispatcherProvider: DispatcherProvider,
     private val operationsManager: OperationsManager,
+    private val deleteOperationFactory: DeleteOperation.Factory,
 ) : Workspace {
 
     private val tag = logTag( "Searcher","Workspace", id.shortTag)
@@ -45,6 +54,15 @@ class SearcherWorkspace @AssistedInject constructor(
             previewData = SearcherPreviewData(),
         )
     )
+
+    data class OperationsState(
+        val operations: Collection<ManagedOperation> = emptySet(),
+        val pendingConflicts: Map<Operation.Id, Issue> = emptyMap(),
+    )
+
+    val operations: Flow<OperationsState> = operationsManager.operationsForWorkspace(id)
+        .withStateUpdates()
+        .map { ops -> OperationsState(operations = ops) }
 
     init {
         log(tag, INFO) { "Initialized" }
@@ -78,6 +96,19 @@ class SearcherWorkspace @AssistedInject constructor(
                 log(tag, VERBOSE) { "Updated operation counts: active=$operationCount, attention=$attentionCount" }
             }
             .launchIn(scope)
+    }
+
+    fun execute(command: SearcherCommand) {
+        log(tag) { "execute(): $command" }
+        scope.launch {
+            val executable = when (command) {
+                is SearcherCommand.Delete -> deleteOperationFactory.create(
+                    workspaceId = id,
+                    command = command,
+                )
+            }
+            operationsManager.submit(executable)
+        }
     }
 
     override suspend fun release() {

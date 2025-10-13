@@ -85,4 +85,22 @@
     <string name="operations_details_path_added_marker">A</string>
     <string name="operations_details_path_removed_marker">D</string>
     <string name="operations_details_path_modified_marker">M</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">Delete item?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="one">Delete %1$d item?</item>
+        <item quantity="other">Delete %1$d items?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">This item will be permanently deleted:</string>
+    <string name="workspace_dialog_delete_message_multiple">These items will be permanently deleted:</string>
+    <string name="workspace_dialog_delete_more_items">… and %1$d more</string>
+    <string name="workspace_dialog_delete_warning">This action cannot be undone.</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="one">%d selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
+    <string name="workspace_action_more">More actions</string>
 </resources>

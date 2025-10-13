@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.workspace.ui.clipboard.details.ClipboardInfoBottomSheet
+import eu.darken.butler.workspace.ui.dialogs.DeleteConfirmationDialog
 
 @Composable
 fun ExplorerDialogHost(
