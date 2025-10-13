@@ -50,12 +50,22 @@ class CopyOperation @AssistedInject constructor(
         override val icon: ImageVector = Icons.TwoTone.CopyAll
         override val title = R.string.explorer_operation_copy_title.toCaString()
         override val description = caString { cx ->
-            cx.getQuantityString2(
-                R.plurals.explorer_operation_copy_description,
-                command.sources.size,
-                command.sources.size,
-                command.destination.userReadablePath.get(cx)
-            )
+            if (command.sources.size == 1) {
+                val source = command.sources.first()
+                cx.getString(
+                    R.string.explorer_operation_copy_description_single,
+                    source.name,
+                    source.parent?.userReadablePath?.get(cx) ?: source.userReadablePath.get(cx),
+                    command.destination.userReadablePath.get(cx)
+                )
+            } else {
+                cx.getQuantityString2(
+                    R.plurals.explorer_operation_copy_description,
+                    command.sources.size,
+                    command.sources.size,
+                    command.destination.userReadablePath.get(cx)
+                )
+            }
         }
     }
 
@@ -69,11 +79,13 @@ class CopyOperation @AssistedInject constructor(
 
         data class SpeedSample(
             val timestamp: Instant,
-            val bytesPerSecond: Long
+            val bytesPerSecond: Long,
+            val itemsPerSecond: Long
         )
 
         val speedHistory = ArrayDeque<SpeedSample>(30) // 30 samples max
         var lastCopiedBytes = 0L
+        var lastProcessedItems = 0L
         var lastSpeedUpdate = TimeSource.Monotonic.markNow()
 
         val reportBuilder = CopyOperationReport.Builder()
@@ -107,23 +119,32 @@ class CopyOperation @AssistedInject constructor(
                 // Calculate instantaneous speed (every ~1 second)
                 if (elapsed >= 1.0) {
                     val bytesDelta = copyState.copiedBytes - lastCopiedBytes
-                    val currentSpeed = (bytesDelta / elapsed).toLong()
+                    val currentBytesSpeed = (bytesDelta / elapsed).toLong()
 
-                    speedHistory.addLast(SpeedSample(now, currentSpeed))
+                    val currentItems = copyState.primaryProgress.count.current
+                    val itemsDelta = currentItems - lastProcessedItems
+                    val currentItemsSpeed = (itemsDelta / elapsed).toLong()
+
+                    speedHistory.addLast(SpeedSample(now, currentBytesSpeed, currentItemsSpeed))
                     if (speedHistory.size > 30) speedHistory.removeFirst()
 
                     lastCopiedBytes = copyState.copiedBytes
+                    lastProcessedItems = currentItems
                     lastSpeedUpdate = TimeSource.Monotonic.markNow()
                 }
 
                 // Calculate overall metrics (from speed history)
-                val avgSpeed = if (speedHistory.isNotEmpty()) {
+                val avgBytesSpeed = if (speedHistory.isNotEmpty()) {
                     speedHistory.map { it.bytesPerSecond }.average().toLong()
                 } else 0L
 
-                val overallEta = if (avgSpeed > 0 && copyState.totalBytes > 0) {
+                val avgItemsSpeed = if (speedHistory.isNotEmpty()) {
+                    speedHistory.map { it.itemsPerSecond }.average().toLong()
+                } else 0L
+
+                val overallEta = if (avgBytesSpeed > 0 && copyState.totalBytes > 0) {
                     val remaining = copyState.totalBytes - copyState.copiedBytes
-                    (remaining / avgSpeed) // seconds
+                    (remaining / avgBytesSpeed) // seconds
                 } else null
 
                 // Calculate per-file metrics
@@ -139,10 +160,19 @@ class CopyOperation @AssistedInject constructor(
                 } else 0L to null
 
                 // Format overall metrics for primary progress
-                val overallMetrics = if (avgSpeed > 0) {
+                val overallMetrics = if (avgBytesSpeed > 0) {
                     caString { ctx ->
-                        val speedFormatted = Formatter.formatShortFileSize(ctx, avgSpeed)
-                        val speedPart = ctx.getString(R.string.explorer_operation_progress_bytes_speed, speedFormatted)
+                        val bytesSpeedFormatted = Formatter.formatShortFileSize(ctx, avgBytesSpeed)
+                        val bytesSpeedPart = ctx.getString(R.string.explorer_operation_progress_bytes_speed, bytesSpeedFormatted)
+
+                        val itemsSpeedPart = if (avgItemsSpeed > 0) {
+                            " • " + ctx.getQuantityString2(
+                                R.plurals.explorer_operation_progress_items_speed,
+                                avgItemsSpeed.toInt(),
+                                avgItemsSpeed
+                            )
+                        } else ""
+
                         val etaPart = if (overallEta != null) {
                             val duration = ctx.getQuantityString2(
                                 eu.darken.butler.common.R.plurals.common_duration_seconds_full,
@@ -151,7 +181,8 @@ class CopyOperation @AssistedInject constructor(
                             )
                             " • " + ctx.getString(R.string.explorer_operation_progress_time_remaining, duration)
                         } else ""
-                        speedPart + etaPart
+
+                        bytesSpeedPart + itemsSpeedPart + etaPart
                     }
                 } else null
 
@@ -182,7 +213,8 @@ class CopyOperation @AssistedInject constructor(
                     secondaryProgress.copy(
                         secondary = fileMetrics ?: secondaryProgress.secondary,
                         extra = mapOf(
-                            "overallSpeed" to avgSpeed,
+                            "overallBytesSpeed" to avgBytesSpeed,
+                            "overallItemsSpeed" to avgItemsSpeed,
                             "fileSpeed" to fileSpeed,
                             "speedHistory" to speedHistory.toList(),
                             "overallEta" to overallEta,

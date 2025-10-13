@@ -48,12 +48,21 @@ class DeleteOperation @AssistedInject constructor(
         override val icon: ImageVector = Icons.TwoTone.Delete
         override val title = R.string.explorer_operation_delete_title.toCaString()
         override val description = caString { cx ->
-            cx.getQuantityString2(
-                R.plurals.explorer_operation_delete_description,
-                command.targets.size,
-                command.targets.size,
-                command.targets.first().let { it.parent?.userReadablePath?.get(cx) ?: it.userReadablePath.get(cx) }
-            )
+            if (command.targets.size == 1) {
+                val target = command.targets.first()
+                cx.getString(
+                    R.string.explorer_operation_delete_description_single,
+                    target.name,
+                    target.parent?.userReadablePath?.get(cx) ?: target.userReadablePath.get(cx)
+                )
+            } else {
+                cx.getQuantityString2(
+                    R.plurals.explorer_operation_delete_description,
+                    command.targets.size,
+                    command.targets.size,
+                    command.targets.first().let { it.parent?.userReadablePath?.get(cx) ?: it.userReadablePath.get(cx) }
+                )
+            }
         }
     }
 

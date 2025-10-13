@@ -268,6 +268,7 @@
 
     <!-- Operations -->
     <string name="explorer_operation_delete_title">File deletion</string>
+    <string name="explorer_operation_delete_description_single">Delete \"%1$s\" from \"%2$s\".</string>
     <plurals name="explorer_operation_delete_description">
         <item quantity="one">Delete %1$d item from \"%2$s\".</item>
         <item quantity="other">Delete %1$d items from \"%2$s\".</item>
@@ -299,6 +300,7 @@
     </plurals>
 
     <string name="explorer_operation_copy_title">Copy operation</string>
+    <string name="explorer_operation_copy_description_single">Copy \"%1$s\" from \"%2$s\" to \"%3$s\".</string>
     <plurals name="explorer_operation_copy_description">
         <item quantity="one">Copy %1$d item to \"%2$s\".</item>
         <item quantity="other">Copy %1$d items to \"%2$s\".</item>
@@ -317,6 +319,7 @@
     </plurals>
 
     <string name="explorer_operation_move_title">Move operation</string>
+    <string name="explorer_operation_move_description_single">Move \"%1$s\" from \"%2$s\" to \"%3$s\".</string>
     <plurals name="explorer_operation_move_description">
         <item quantity="one">Move %1$d item to \"%2$s\".</item>
         <item quantity="other">Move %1$d items to \"%2$s\".</item>
