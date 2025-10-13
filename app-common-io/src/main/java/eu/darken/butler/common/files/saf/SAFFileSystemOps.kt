@@ -87,6 +87,19 @@ class SAFFileSystemOps @Inject constructor(
         }
     )
 
+    private data class LookupCacheEntry(
+        val lookup: SAFPathLookup,
+        val cachedAt: Instant,
+    )
+
+    private val lookupCache = java.util.Collections.synchronizedMap(
+        object : LinkedHashMap<SAFPath, LookupCacheEntry>(INITIAL_CACHE_SIZE, 0.75f, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<SAFPath, LookupCacheEntry>?): Boolean {
+                return size > MAX_CACHE_SIZE
+            }
+        }
+    )
+
     // Attribute operation support cache (null = unknown, true = supported, false = not supported)
     @Volatile private var supportsSetModifiedAt: Boolean? = null
     @Volatile private var supportsSetPermissions: Boolean? = null
@@ -119,34 +132,76 @@ class SAFFileSystemOps @Inject constructor(
         return docFile ?: throw MissingUriPermissionException(path = this)
     }
 
-    private fun SAFPath.performLookup(): Pair<SAFDocFile, SAFPathLookup> {
-        val docFile = resolveDocFile()
-
-        if (!docFile.readable) throw IOException("readable=false")
-
-        return docFile to SAFPathLookup(
-            lookedUp = this,
-            fileType = when {
-                docFile.isDirectory -> FileType.DIRECTORY
-                else -> FileType.FILE
-            },
-            size = docFile.length,
-            modifiedAt = docFile.lastModified,
+    private fun SAFDocFile.performLookup(path: SAFPath): SAFPathLookup {
+        if (!readable) throw IOException("readable=false")
+        val data = getLookupData()
+        return SAFPathLookup(
+            lookedUp = path,
+            fileType = data.fileType,
+            size = data.size,
+            modifiedAt = data.lastModified,
         )
     }
 
-    override suspend fun lookup(path: SAFPath): SAFPathLookup = try {
-        path.performLookup().second
-    } catch (e: Exception) {
-        log(TAG, WARN) { "lookup($path) failed." }
-        throw ReadException(path = path, cause = e)
+    override suspend fun lookup(path: SAFPath): SAFPathLookup {
+        return try {
+            val now = Clock.System.now()
+
+            // Check lookup cache first
+            val cached = lookupCache[path]
+            if (cached != null) {
+                val age = now - cached.cachedAt
+                if (age < CACHE_TTL) {
+                    if (Bugs.isTrace) log(TAG, VERBOSE) { "lookup() $path -> ${cached.lookup} (cached)" }
+                    return cached.lookup
+                } else {
+                    // Expired entry
+                    lookupCache.remove(path)
+                }
+            }
+
+            // Cache miss or expired - perform lookup
+            val lookup = path.resolveDocFile().performLookup(path)
+
+            // Cache the result
+            lookupCache[path] = LookupCacheEntry(lookup, now)
+
+            lookup
+        } catch (e: Exception) {
+            log(TAG, WARN) { "lookup($path) failed." }
+            throw ReadException(path = path, cause = e)
+        }
     }
 
     override suspend fun lookupExtended(path: SAFPath): SAFPathLookupExtended = try {
         log(TAG, VERBOSE) { "lookupExtended($path)" }
-        val (docFile, lookup) = path.performLookup()
+        val now = Clock.System.now()
 
-        val fstat = docFile.fstat()
+        // Resolve docFile once and reuse for both operations
+        val docFile = path.resolveDocFile()
+
+        // Check lookup cache for basic metadata
+        val cached = lookupCache[path]
+        val lookup = if (cached != null && (now - cached.cachedAt) < CACHE_TTL) {
+            // Cache hit - use cached lookup
+            if (Bugs.isTrace) log(TAG, VERBOSE) { "lookupExtended() using cached lookup for $path" }
+            cached.lookup
+        } else {
+            // Cache miss or expired - perform lookup and cache result
+            if (cached != null) {
+                lookupCache.remove(path)
+            }
+            val newLookup = docFile.performLookup(path)
+            lookupCache[path] = LookupCacheEntry(newLookup, now)
+            newLookup
+        }
+
+        // Query extended attributes using same docFile
+        val fstat = if (supportsSetOwnership != false || supportsSetPermissions != false) {
+            docFile.fstat()
+        } else {
+            null
+        }
 
         SAFPathLookupExtended(
             lookup = lookup,
@@ -163,9 +218,26 @@ class SAFFileSystemOps @Inject constructor(
         val docFile = path.resolveDocFile()
         log(TAG, VERBOSE) { "listFiles($path) -> $docFile" }
 
-        docFile.listFiles().map {
-            val name = it.name ?: it.uri.pathSegments.last().split('/').last()
-            path.child(name)
+        val now = Clock.System.now()
+
+        // Use batch query to get files + metadata in one query
+        val filesWithMetadata = docFile.listFilesWithLookupData()
+
+        // Map to SAFPath and populate lookup cache
+        filesWithMetadata.map { (file, lookupData) ->
+            val name = file.name ?: file.uri.pathSegments.last().split('/').last()
+            val childPath = path.child(name)
+
+            // Populate lookup cache with batch-queried metadata
+            val lookup = SAFPathLookup(
+                lookedUp = childPath,
+                fileType = lookupData.fileType,
+                size = lookupData.size,
+                modifiedAt = lookupData.lastModified,
+            )
+            lookupCache[childPath] = LookupCacheEntry(lookup, now)
+
+            childPath
         }
     } catch (e: Exception) {
         log(TAG, WARN) { "listFiles($path) failed." }
