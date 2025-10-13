@@ -9,6 +9,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.metadata.FileType
@@ -303,12 +304,17 @@ class SAFFileSystemOps @Inject constructor(
                 if (docFile.isDirectory) {
                     return // Already exists - idempotent
                 } else {
-                    throw WriteException("Path exists but is not a directory", path)
+                    throw PathAlreadyExistsException(
+                        message = "Path exists but is not a directory",
+                        path = path
+                    )
                 }
             } else {
                 // Create directory (parent must already exist)
                 createDocumentFile(DocumentsContract.Document.MIME_TYPE_DIR, path)
             }
+        } catch (e: PathAlreadyExistsException) {
+            throw e // Re-throw PathAlreadyExistsException as-is
         } catch (e: Exception) {
             log(TAG, WARN) { "createDir($path) failed: ${e.asLog()}" }
             throw WriteException(path = path, cause = e)
@@ -321,11 +327,13 @@ class SAFFileSystemOps @Inject constructor(
             val docFile = path.resolveDocFile()
 
             if (docFile.exists) {
-                throw WriteException("File already exists", path)
+                throw PathAlreadyExistsException(path = path)
             }
 
             // Create file with default MIME type
             createDocumentFile("application/octet-stream", path)
+        } catch (e: PathAlreadyExistsException) {
+            throw e // Re-throw PathAlreadyExistsException as-is
         } catch (e: Exception) {
             log(TAG, WARN) { "createFile($path) failed: ${e.asLog()}" }
             throw WriteException(path = path, cause = e)

@@ -6,6 +6,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.toFile
@@ -19,6 +20,7 @@ import okio.FileHandle
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.StandardOpenOption
@@ -122,6 +124,12 @@ class LocalFileSystemOps @Inject constructor(
     override suspend fun createDir(path: LocalPath) {
         try {
             Files.createDirectories(path.toNioPath())
+        } catch (e: FileAlreadyExistsException) {
+            throw PathAlreadyExistsException(
+                message = "Path exists but is not a directory",
+                path = path,
+                cause = e
+            )
         } catch (e: IOException) {
             throw WriteException(path = path, cause = e)
         }
@@ -137,6 +145,11 @@ class LocalFileSystemOps @Inject constructor(
             }
 
             Files.createFile(path.toNioPath())
+        } catch (e: FileAlreadyExistsException) {
+            throw PathAlreadyExistsException(
+                path = path,
+                cause = e
+            )
         } catch (e: IOException) {
             throw WriteException(path = path, cause = e)
         }

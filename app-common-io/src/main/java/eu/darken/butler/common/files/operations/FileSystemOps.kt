@@ -177,7 +177,8 @@ interface FileSystemOps<P : APath, PL : APathLookup<P>, PLE : APathLookupExtende
      * Does not fail if directory already exists (idempotent).
      *
      * @param path The directory path to create
-     * @throws eu.darken.butler.common.files.errors.WriteException if creation fails or path exists as a file
+     * @throws eu.darken.butler.common.files.errors.PathAlreadyExistsException if path exists as a file
+     * @throws eu.darken.butler.common.files.errors.WriteException if creation fails for other reasons
      */
     suspend fun createDir(path: P)
 
@@ -188,7 +189,8 @@ interface FileSystemOps<P : APath, PL : APathLookup<P>, PLE : APathLookupExtende
      * Fails if file already exists (not idempotent like createDir).
      *
      * @param path The file path to create
-     * @throws eu.darken.butler.common.files.errors.WriteException if creation fails or file already exists
+     * @throws eu.darken.butler.common.files.errors.PathAlreadyExistsException if file already exists
+     * @throws eu.darken.butler.common.files.errors.WriteException if creation fails for other reasons
      */
     suspend fun createFile(path: P)
 

@@ -9,6 +9,7 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.APathLookupExtended
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
 import eu.darken.butler.common.files.local.operations.core.PathOperationProgressTracker
 import eu.darken.butler.common.files.metadata.FileType
@@ -279,14 +280,7 @@ internal class GenericPathCopy<
 
         log(TAG, VERBOSE) { "Copying file: ${item.sourceLookup.lookedUp} -> $adjustedDest" }
 
-        // Check for conflicts
-        if (destOps.exists(adjustedDest)) {
-            val destLookup = destOps.lookup(adjustedDest)
-            handleFileConflict(item, adjustedDest, destLookup)
-            return
-        }
-
-        // Copy file
+        // Copy file - detect conflicts via exception
         progressTracker.startFile(item.sourceLookup.size)
 
         try {
@@ -320,6 +314,10 @@ internal class GenericPathCopy<
             if (progressTracker.shouldReportProgress(force = true)) {
                 reportProgress(item.sourceLookup)
             }
+        } catch (e: PathAlreadyExistsException) {
+            log(TAG, VERBOSE) { "File collision detected: $adjustedDest" }
+            val destLookup = destOps.lookup(adjustedDest)
+            handleFileConflict(item, adjustedDest, destLookup)
         } catch (e: Exception) {
             handleCopyError(e, item.sourceLookup, adjustedDest)
         }
@@ -338,14 +336,7 @@ internal class GenericPathCopy<
 
         log(TAG, VERBOSE) { "Creating directory: ${item.sourceLookup.lookedUp} -> $adjustedDest" }
 
-        // Check for conflicts
-        if (destOps.exists(adjustedDest)) {
-            val destLookup = destOps.lookup(adjustedDest)
-            handleDirectoryConflict(item, adjustedDest, destLookup)
-            return
-        }
-
-        // Create directory
+        // Create directory - detect conflicts via exception
         try {
             val result = strategy.createDirectory(
                 sourceLookup = item.sourceLookup,
@@ -366,6 +357,10 @@ internal class GenericPathCopy<
                     progressTracker.completeItem()
                 }
             }
+        } catch (_: PathAlreadyExistsException) {
+            log(TAG, VERBOSE) { "Directory collision detected: $adjustedDest" }
+            val destLookup = destOps.lookup(adjustedDest)
+            handleDirectoryConflict(item, adjustedDest, destLookup)
         } catch (e: Exception) {
             handleCopyError(e, item.sourceLookup, adjustedDest)
         }

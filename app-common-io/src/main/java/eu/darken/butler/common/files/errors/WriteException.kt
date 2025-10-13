@@ -8,7 +8,7 @@ import eu.darken.butler.common.error.LocalizedError
 import eu.darken.butler.common.error.localized
 import eu.darken.butler.common.files.APath
 
-class WriteException @JvmOverloads constructor(
+open class WriteException @JvmOverloads constructor(
     message: String? = "Can't write to path.",
     path: APath? = null,
     cause: Throwable? = null,
