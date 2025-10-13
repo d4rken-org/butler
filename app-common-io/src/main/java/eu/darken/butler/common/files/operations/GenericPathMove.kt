@@ -186,6 +186,12 @@ internal class GenericPathMove<
                 progressTracker.totalItems++
                 progressTracker.totalBytes += lookup.size
                 workQueue.addLast(WorkItem.MoveFile(lookup, destPath, item.topLevelSource))
+
+                // Report scan progress with throttling
+                if (progressTracker.shouldReportProgress()) {
+                    reportScanProgress(lookup)
+                }
+
                 return 0
             }
 
@@ -197,6 +203,11 @@ internal class GenericPathMove<
                 sourceDirectories.addFirst(item.source)
 
                 workQueue.addLast(WorkItem.CreateDirectory(lookup, destPath, item.topLevelSource))
+
+                // Report scan progress with throttling
+                if (progressTracker.shouldReportProgress()) {
+                    reportScanProgress(lookup)
+                }
 
                 // List and queue children
                 var childrenFound = 0
@@ -510,6 +521,31 @@ internal class GenericPathMove<
         log(TAG, ERROR) { "Move error: ${source.lookedUp} -> $dest - $error" }
         skipped.add(source.lookedUp)
         progressTracker.completeItem()
+    }
+
+    private suspend fun reportScanProgress(lookup: SPL) {
+        val snapshot = progressTracker.createSnapshot()
+
+        onProgress?.invoke(
+            MoveAction.State.Progress(
+                currentSource = lookup.lookedUp,
+                currentDestination = destination as SP,
+                primaryProgress = eu.darken.butler.common.progress.Progress.Data(
+                    primary = R.string.general_scan_progress_title.toCaString(),
+                    secondary = lookup.userReadablePath,
+                    count = eu.darken.butler.common.progress.Progress.Count.Counter(
+                        current = 0,
+                        max = snapshot.totalItems
+                    )
+                ),
+                secondaryProgress = null,
+                movedBytes = 0,
+                totalBytes = snapshot.totalBytes,
+                currentFileSize = 0,
+                currentFileBytes = 0,
+                currentFileStartTime = null
+            )
+        )
     }
 
     private suspend fun reportProgress(lookup: SPL) {

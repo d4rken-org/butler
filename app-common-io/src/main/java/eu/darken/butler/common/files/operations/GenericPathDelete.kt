@@ -152,6 +152,12 @@ internal class GenericPathDelete<P : APath, PL : APathLookup<P>, PLE : APathLook
                 progressTracker.totalItems++
                 progressTracker.totalBytes += lookup.size
                 deferredDeletions.addFirst(WorkItem.DeletePath(item.path))
+
+                // Report scan progress with throttling
+                if (progressTracker.shouldReportProgress()) {
+                    reportScanProgress(lookup)
+                }
+
                 return 0
             }
 
@@ -161,6 +167,12 @@ internal class GenericPathDelete<P : APath, PL : APathLookup<P>, PLE : APathLook
                     progressTracker.totalItems++
                     progressTracker.totalBytes += lookup.size
                     deferredDeletions.addFirst(WorkItem.DeletePath(item.path))
+
+                    // Report scan progress with throttling
+                    if (progressTracker.shouldReportProgress()) {
+                        reportScanProgress(lookup)
+                    }
+
                     return 0
                 } else {
                     // Recursive: scan children first, then defer directory deletion
@@ -185,6 +197,11 @@ internal class GenericPathDelete<P : APath, PL : APathLookup<P>, PLE : APathLook
                     progressTracker.totalItems++
                     progressTracker.totalBytes += lookup.size
                     deferredDeletions.addFirst(WorkItem.DeletePath(item.path))
+
+                    // Report scan progress with throttling
+                    if (progressTracker.shouldReportProgress()) {
+                        reportScanProgress(lookup)
+                    }
 
                     return childrenFound
                 }
@@ -331,6 +348,28 @@ internal class GenericPathDelete<P : APath, PL : APathLookup<P>, PLE : APathLook
 
     private suspend fun handleScanError(error: Exception, lookup: PL, operation: String) {
         handleError(error, lookup, operation = operation, canRetry = false)
+    }
+
+    private suspend fun reportScanProgress(lookup: PL) {
+        val snapshot = progressTracker.createSnapshot()
+
+        onProgress?.invoke(
+            DeleteAction.State.Progress(
+                target = lookup,
+                primaryProgress = eu.darken.butler.common.progress.Progress.Data(
+                    primary = R.string.general_scan_progress_title.toCaString(),
+                    secondary = lookup.userReadablePath,
+                    count = eu.darken.butler.common.progress.Progress.Count.Counter(
+                        current = 0,
+                        max = snapshot.totalItems
+                    )
+                ),
+                secondaryProgress = null,
+                deletedBytes = 0,
+                totalBytes = snapshot.totalBytes,
+                currentItemStartTime = null
+            )
+        )
     }
 
     private suspend fun reportProgress(lookup: PL) {

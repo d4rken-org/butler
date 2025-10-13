@@ -228,6 +228,12 @@ internal class GenericPathCopy<
                 progressTracker.totalItems++
                 progressTracker.totalBytes += lookup.size
                 workQueue.addLast(WorkItem.CopyFile(lookup, destPath, item.topLevelSource))
+
+                // Report scan progress with throttling
+                if (progressTracker.shouldReportProgress()) {
+                    reportScanProgress(lookup)
+                }
+
                 return 0
             }
 
@@ -235,6 +241,11 @@ internal class GenericPathCopy<
                 progressTracker.totalItems++
                 progressTracker.totalBytes += lookup.size
                 workQueue.addLast(WorkItem.CreateDirectory(lookup, destPath, item.topLevelSource))
+
+                // Report scan progress with throttling
+                if (progressTracker.shouldReportProgress()) {
+                    reportScanProgress(lookup)
+                }
 
                 // List and queue children
                 var childrenFound = 0
@@ -585,6 +596,33 @@ internal class GenericPathCopy<
         log(TAG, ERROR) { "Copy error: ${source.lookedUp} -> $dest - $error" }
         skipped.add(source.lookedUp)
         progressTracker.completeItem()
+    }
+
+    private suspend fun reportScanProgress(lookup: SPL) {
+        val snapshot = progressTracker.createSnapshot()
+
+        // For same-type operations (SP=DP), destination can be safely cast to SP
+        @Suppress("UNCHECKED_CAST")
+        onProgress?.invoke(
+            CopyAction.State.Progress(
+                currentSource = lookup.lookedUp,
+                currentDestination = destination as SP,
+                primaryProgress = eu.darken.butler.common.progress.Progress.Data(
+                    primary = R.string.general_scan_progress_title.toCaString(),
+                    secondary = lookup.userReadablePath,
+                    count = eu.darken.butler.common.progress.Progress.Count.Counter(
+                        current = 0,
+                        max = snapshot.totalItems
+                    )
+                ),
+                secondaryProgress = null,
+                copiedBytes = 0,
+                totalBytes = snapshot.totalBytes,
+                currentFileSize = 0,
+                currentFileBytes = 0,
+                currentFileStartTime = null
+            )
+        )
     }
 
     private suspend fun reportProgress(lookup: SPL) {
