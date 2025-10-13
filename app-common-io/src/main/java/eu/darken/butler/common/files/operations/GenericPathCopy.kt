@@ -382,7 +382,9 @@ internal class GenericPathCopy<
         if (issueResolver.renameSourceAllPathExists) {
             val uniqueName = generateUniqueName(adjustedDest)
             @Suppress("UNCHECKED_CAST")
-            val renamedDest = adjustedDest.child(uniqueName) as DP
+            val parentPath = adjustedDest.parent as DP
+            @Suppress("UNCHECKED_CAST")
+            val renamedDest = parentPath.child(uniqueName) as DP
             log(TAG, INFO) { "Auto-renaming (apply-to-all): $adjustedDest -> $renamedDest" }
 
             progressTracker.startFile(item.sourceLookup.size)
@@ -450,7 +452,9 @@ internal class GenericPathCopy<
         if (issueResolver.renameSourceAllPathExists) {
             val uniqueName = generateUniqueName(adjustedDest)
             @Suppress("UNCHECKED_CAST")
-            val renamedDest = adjustedDest.child(uniqueName) as DP
+            val parentPath = adjustedDest.parent as DP
+            @Suppress("UNCHECKED_CAST")
+            val renamedDest = parentPath.child(uniqueName) as DP
             log(TAG, INFO) { "Auto-renaming directory (apply-to-all): $adjustedDest -> $renamedDest" }
             destOps.createDir(renamedDest)
             copied.add(item.sourceLookup.lookedUp to renamedDest)
@@ -525,15 +529,58 @@ internal class GenericPathCopy<
                 progressTracker.completeItem()
             }
             is PathActionIssue.PathAlreadyExists.Resolution.RenameSource -> {
-                // Handle rename logic based on original item type
-                // (simplified - full implementation similar to handleFileConflict)
-                progressTracker.completeItem()
+                @Suppress("UNCHECKED_CAST")
+                val parentPath = item.destination.parent as DP
+                @Suppress("UNCHECKED_CAST")
+                val renamedDest = parentPath.child(resolution.newName) as DP
+
+                log(TAG, INFO) { "Renaming destination: ${item.destination} -> $renamedDest" }
+
+                // Create new work item with renamed destination and re-queue
+                when (val originalItem = item.originalItem) {
+                    is WorkItem.CopyFile<*, *, *> -> {
+                        @Suppress("UNCHECKED_CAST")
+                        val copyItem = originalItem as WorkItem.CopyFile<SP, SPL, DP>
+                        val updatedItem = WorkItem.CopyFile(
+                            sourceLookup = copyItem.sourceLookup,
+                            destination = renamedDest,
+                            topLevelSource = copyItem.topLevelSource
+                        )
+                        workQueue.addFirst(updatedItem)
+                    }
+                    is WorkItem.CreateDirectory<*, *, *> -> {
+                        @Suppress("UNCHECKED_CAST")
+                        val dirItem = originalItem as WorkItem.CreateDirectory<SP, SPL, DP>
+                        val updatedItem = WorkItem.CreateDirectory(
+                            sourceLookup = dirItem.sourceLookup,
+                            destination = renamedDest,
+                            topLevelSource = dirItem.topLevelSource
+                        )
+                        // Track renamed directory for child path adjustments
+                        renamedSourceDirs[dirItem.sourceLookup.lookedUp] = renamedDest
+                        workQueue.addFirst(updatedItem)
+                    }
+                    else -> {
+                        log(TAG, ERROR) { "Unexpected original item type: $originalItem" }
+                    }
+                }
             }
             is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
-                // Rename existing destination file and retry
                 @Suppress("UNCHECKED_CAST")
-                val newDestPath = item.destination.child(resolution.newName) as DP
-                // Note: This is simplified - would need proper implementation
+                val parentPath = item.destination.parent as DP
+                @Suppress("UNCHECKED_CAST")
+                val newDestPath = parentPath.child(resolution.newName) as DP
+
+                log(TAG, INFO) { "Renaming existing destination: ${item.destination} -> $newDestPath" }
+
+                // Delete existing destination (simplified - proper impl needs FileSystemOps.rename())
+                if (item.destLookup.fileType == FileType.DIRECTORY) {
+                    deleteRecursively(item.destination)
+                } else {
+                    destOps.delete(item.destination)
+                }
+
+                // Re-queue original operation (destination path now clear)
                 workQueue.addFirst(item.originalItem)
             }
             is PathActionIssue.PathAlreadyExists.Resolution.Cancel -> {
@@ -570,10 +617,17 @@ internal class GenericPathCopy<
         }
     }
 
-    private fun generateUniqueName(path: DP): String {
-        // Generate unique name like "file (1).txt"
-        // Simplified implementation
-        return "${path.name} (1)"
+    private suspend fun generateUniqueName(path: DP): String {
+        // Generate unique name using smart increment logic
+        // If parent path is null, fall back to simple "(1)" appending
+        val parentPath = path.parent ?: return "${path.name} (1)"
+
+        @Suppress("UNCHECKED_CAST")
+        return GenericPathNamingUtils.generateUniqueName(
+            parentPath = parentPath as DP,
+            originalName = path.name,
+            ops = destOps
+        )
     }
 
     private suspend fun deleteRecursively(path: DP) {

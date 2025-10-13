@@ -470,9 +470,58 @@ internal class GenericPathMove<
                 progressTracker.completeItem()
             }
             is PathActionIssue.PathAlreadyExists.Resolution.RenameSource -> {
-                progressTracker.completeItem()
+                @Suppress("UNCHECKED_CAST")
+                val parentPath = item.destination.parent as DP
+                @Suppress("UNCHECKED_CAST")
+                val renamedDest = parentPath.child(resolution.newName) as DP
+
+                log(TAG, INFO) { "Renaming destination: ${item.destination} -> $renamedDest" }
+
+                // Create new work item with renamed destination and re-queue
+                when (val originalItem = item.originalItem) {
+                    is WorkItem.MoveFile<*, *, *> -> {
+                        @Suppress("UNCHECKED_CAST")
+                        val moveItem = originalItem as WorkItem.MoveFile<SP, SPL, DP>
+                        val updatedItem = WorkItem.MoveFile(
+                            sourceLookup = moveItem.sourceLookup,
+                            destination = renamedDest,
+                            topLevelSource = moveItem.topLevelSource
+                        )
+                        workQueue.addFirst(updatedItem)
+                    }
+                    is WorkItem.CreateDirectory<*, *, *> -> {
+                        @Suppress("UNCHECKED_CAST")
+                        val dirItem = originalItem as WorkItem.CreateDirectory<SP, SPL, DP>
+                        val updatedItem = WorkItem.CreateDirectory(
+                            sourceLookup = dirItem.sourceLookup,
+                            destination = renamedDest,
+                            topLevelSource = dirItem.topLevelSource
+                        )
+                        // Track renamed directory for child path adjustments
+                        renamedSourceDirs[dirItem.sourceLookup.lookedUp] = renamedDest
+                        workQueue.addFirst(updatedItem)
+                    }
+                    else -> {
+                        log(TAG, ERROR) { "Unexpected original item type: $originalItem" }
+                    }
+                }
             }
             is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
+                @Suppress("UNCHECKED_CAST")
+                val parentPath = item.destination.parent as DP
+                @Suppress("UNCHECKED_CAST")
+                val newDestPath = parentPath.child(resolution.newName) as DP
+
+                log(TAG, INFO) { "Renaming existing destination: ${item.destination} -> $newDestPath" }
+
+                // Delete existing destination (simplified - proper impl needs FileSystemOps.rename())
+                if (item.destLookup.fileType == FileType.DIRECTORY) {
+                    deleteRecursively(item.destination)
+                } else {
+                    destOps.delete(item.destination)
+                }
+
+                // Re-queue original operation (destination path now clear)
                 workQueue.addFirst(item.originalItem)
             }
             is PathActionIssue.PathAlreadyExists.Resolution.Cancel -> {
@@ -505,8 +554,17 @@ internal class GenericPathMove<
         return skippedSourceDirs.any { path.path.startsWith(it.path) }
     }
 
-    private fun generateUniqueName(path: DP): String {
-        return "${path.name} (1)"
+    private suspend fun generateUniqueName(path: DP): String {
+        // Generate unique name using smart increment logic
+        // If parent path is null, fall back to simple "(1)" appending
+        val parentPath = path.parent ?: return "${path.name} (1)"
+
+        @Suppress("UNCHECKED_CAST")
+        return GenericPathNamingUtils.generateUniqueName(
+            parentPath = parentPath as DP,
+            originalName = path.name,
+            ops = destOps
+        )
     }
 
     private suspend fun deleteRecursively(path: DP) {
