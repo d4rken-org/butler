@@ -69,10 +69,8 @@ class GenericCrossTypeCopyStrategy<
     ): TransferStrategy.TransferResult<SP, DP> {
         log(TAG, DEBUG) { "Copying cross-type: ${sourceLookup.lookedUp} → $destination" }
 
-        // Ensure destination file exists
-        if (!destOps.exists(destination)) {
-            destOps.createFile(destination)
-        }
+        // Create destination file (GenericPathCopy guarantees destination doesn't exist)
+        destOps.createFile(destination)
 
         var totalBytesTransferred = 0L
 
