@@ -1,0 +1,98 @@
+package eu.darken.butler.searcher.ui.search
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.ContentCopy
+import androidx.compose.material.icons.twotone.ContentCut
+import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material.icons.twotone.Deselect
+import androidx.compose.material.icons.twotone.Edit
+import androidx.compose.material.icons.twotone.Folder
+import androidx.compose.material.icons.twotone.Info
+import androidx.compose.material.icons.twotone.Link
+import androidx.compose.material.icons.twotone.SelectAll
+import androidx.compose.material.icons.twotone.Share
+import androidx.compose.ui.graphics.vector.ImageVector
+import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.searcher.R
+import eu.darken.butler.searcher.core.SearchResult
+
+sealed interface SearcherAction {
+    val icon: ImageVector
+    val label: CaString
+    val isVisible: Boolean get() = true
+    val isEnabled: Boolean get() = true
+    val isDestructive: Boolean get() = false
+
+    // Actions that work on one or more results
+    data class Copy(
+        val results: List<SearchResult>,
+    ) : SearcherAction {
+        override val icon = Icons.TwoTone.ContentCopy
+        override val label = R.string.searcher_action_copy.toCaString()
+    }
+
+    data class Cut(
+        val results: List<SearchResult>,
+    ) : SearcherAction {
+        override val icon = Icons.TwoTone.ContentCut
+        override val label = R.string.searcher_action_cut.toCaString()
+    }
+
+    data class Delete(
+        val results: List<SearchResult>,
+    ) : SearcherAction {
+        override val icon = Icons.TwoTone.Delete
+        override val label = R.string.searcher_action_delete.toCaString()
+        override val isDestructive = true
+    }
+
+    data class Share(
+        val results: List<SearchResult>,
+    ) : SearcherAction {
+        override val icon = Icons.TwoTone.Share
+        override val label = R.string.searcher_action_share.toCaString()
+        override val isVisible: Boolean get() = results.size <= 10 // Reasonable limit for sharing
+    }
+
+    // Actions that only make sense for a single result
+    data class OpenInEditor(
+        val result: SearchResult,
+    ) : SearcherAction {
+        override val icon = Icons.TwoTone.Edit
+        override val label = R.string.searcher_action_open_in_editor.toCaString()
+    }
+
+    data class OpenInExplorer(
+        val result: SearchResult,
+    ) : SearcherAction {
+        override val icon = Icons.TwoTone.Folder
+        override val label = R.string.searcher_action_open_in_explorer.toCaString()
+    }
+
+    data class CopyPath(
+        val result: SearchResult,
+    ) : SearcherAction {
+        override val icon = Icons.TwoTone.Link
+        override val label = R.string.searcher_action_copy_path.toCaString()
+    }
+
+    data class Properties(
+        val result: SearchResult,
+    ) : SearcherAction {
+        override val icon = Icons.TwoTone.Info
+        override val label = R.string.searcher_action_properties.toCaString()
+    }
+
+    // Selection management actions
+    data object SelectAll : SearcherAction {
+        override val icon = Icons.TwoTone.SelectAll
+        override val label = R.string.searcher_action_select_all.toCaString()
+    }
+
+    data object DeselectAll : SearcherAction {
+        override val icon = Icons.TwoTone.Deselect
+        override val label = R.string.searcher_action_deselect_all.toCaString()
+    }
+}

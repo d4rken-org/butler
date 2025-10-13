@@ -1,7 +1,15 @@
 package eu.darken.butler.searcher.ui.search
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,18 +18,23 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -29,7 +42,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
@@ -37,18 +49,33 @@ import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchHistory
 import eu.darken.butler.searcher.core.SearchResult
+import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
 import eu.darken.butler.searcher.ui.search.rows.FileRowData
 import eu.darken.butler.searcher.ui.search.rows.SmartFileRow
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.operations.OperationDisplay
+import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
+import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
+import eu.darken.butler.workspace.ui.scroll.setHeight
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearcherWorkspacePage(
     design: WorkspaceDesign = WorkspaceDesign(),
-    state: SearcherWorkspaceViewModel.State,
+    stateSource: Flow<SearcherWorkspaceViewModel.State>,
+    clipboardStateSource: Flow<SearcherWorkspaceViewModel.ClipboardState>,
+    operationsStateSource: Flow<SearcherWorkspaceViewModel.OperationsState>,
+    workspaceStateSource: Flow<WorkspaceButtonViewModel.State?>,
+    vm: SearcherWorkspaceViewModel? = null,
+    workspaceActionHandler: WorkspaceActionHandler? = null,
     onUpdateQuery: (TextFieldValue) -> Unit = {},
     onUpdateSearchPath: (APath) -> Unit = {},
     onPerformSearch: () -> Unit = {},
@@ -62,38 +89,106 @@ fun SearcherWorkspacePage(
     onToggleCaseSensitive: () -> Unit = {},
     onToggleWholeWord: () -> Unit = {},
     onToggleRegex: () -> Unit = {},
-    workspaceButtonState: WorkspaceButtonViewModel.State?,
-    workspaceActionHandler: WorkspaceActionHandler? = null,
+    onAction: (SearcherAction) -> Unit = {},
+    onEnterSelectionMode: (SearchResult) -> Unit = {},
+    onToggleSelection: (SearchResult) -> Unit = {},
+    onExitSelectionMode: () -> Unit = {},
+    onHideQuickActions: () -> Unit = {},
+    onClipboardEntryClick: (ClipboardClip) -> Unit = {},
+    onClipboardEntryRemove: (ClipboardClip) -> Unit = {},
+    onClipboardClearAll: () -> Unit = {},
+    onOperationClick: (OperationDisplay) -> Unit = {},
+    onOperationCancel: (Operation.Id) -> Unit = {},
+    onOperationDismiss: (Operation.Id) -> Unit = {},
+    onOperationsClearCompleted: () -> Unit = {},
     onOpenSetup: () -> Unit = {},
 ) {
+    val state by waitForState(stateSource)
+    val clipboardState by clipboardStateSource.collectAsState(initial = SearcherWorkspaceViewModel.ClipboardState())
+    val operationsState by operationsStateSource.collectAsState(initial = SearcherWorkspaceViewModel.OperationsState())
+    val workspaceButtonState by workspaceStateSource.collectAsState(null)
+
+    // Setup and remember blocks at top level
+    val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
+    val listState = rememberLazyListState()
     var searchDebounce by remember { mutableStateOf(false) }
     var showClearHistoryDialog by remember { mutableStateOf(false) }
 
-    // Debounce search input
-    LaunchedEffect(state.searchQuery.text) {
-        if (state.searchQuery.text.isNotBlank()) {
-            searchDebounce = true
-            delay(500) // Wait 500ms after user stops typing
-            searchDebounce = false
-            onPerformSearch()
+    // Set the bottom bar height for scroll behavior
+    bottomBarScrollBehavior.state.setHeight(64.dp)
+
+    // Derived states for stable recomposition - at top level for immediate reactivity
+    val hasOperations by remember {
+        derivedStateOf { operationsState.operations.isNotEmpty() }
+    }
+    val hasClipboard by remember {
+        derivedStateOf { clipboardState.entries.isNotEmpty() }
+    }
+    val hasActions by remember {
+        derivedStateOf { state?.selectionState?.selectedResultIds?.isNotEmpty() == true }
+    }
+
+    // Track action bar visibility for clipboard/operations animations
+    val isActionBarHidden by remember {
+        derivedStateOf {
+            bottomBarScrollBehavior.state.collapsedFraction > 0.1f || !hasActions
         }
     }
 
-    val listState = rememberLazyListState()
+    // Animate clipboard/operations bar position based on action bar state
+    val clipboardVerticalOffset by animateFloatAsState(
+        targetValue = if (isActionBarHidden) 8f else 64f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "clipboardOffset"
+    )
 
-    LazyColumn(
-        state = listState,
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(
-            horizontal = 16.dp,
-            vertical = 8.dp
-        )
-    ) {
+    // Add slight scale animation for extra playfulness
+    val clipboardScale by animateFloatAsState(
+        targetValue = if (isActionBarHidden) 1.02f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "clipboardScale"
+    )
+
+    state?.let { currentState ->
+        // Debounce search input - needs currentState
+        LaunchedEffect(currentState.searchQuery.text) {
+            if (currentState.searchQuery.text.isNotBlank()) {
+                searchDebounce = true
+                delay(500) // Wait 500ms after user stops typing
+                searchDebounce = false
+                onPerformSearch()
+            }
+        }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 8.dp,
+                bottom = run {
+                    val actionBarHeight = if (hasActions) 64.dp else 0.dp // 48dp + 16dp padding
+                    val clipboardHeight = if (hasClipboard) 88.dp else 0.dp // ~80dp + 8dp padding
+                    val operationsHeight = if (hasOperations) 80.dp else 0.dp // Operations bar height + padding
+                    actionBarHeight + clipboardHeight + operationsHeight + 8.dp // Extra space
+                }
+            )
+        ) {
         // Search toolbar - always shown
         item {
             SearchToolbarCard(
-                state = state,
+                state = currentState,
                 design = design,
                 onUpdateQuery = onUpdateQuery,
                 onUpdateSearchPath = onUpdateSearchPath,
@@ -109,11 +204,11 @@ fun SearcherWorkspacePage(
         }
 
         // Show permission card if needed
-        if (state.needsPermissions) {
+        if (currentState.needsPermissions) {
             item {
                 PermissionSetupCard(
-                    searchPath = state.searchPath,
-                    permissionState = state.permissionState,
+                    searchPath = currentState.searchPath,
+                    permissionState = currentState.permissionState,
                     onOpenSetup = onOpenSetup,
                     modifier = Modifier.padding(top = 8.dp)
                 )
@@ -121,9 +216,9 @@ fun SearcherWorkspacePage(
         }
 
         // Show search history when no search query
-        if (state.searchQuery.text.isBlank() && state.searchHistory.isNotEmpty()) {
+        if (currentState.searchQuery.text.isBlank() && currentState.searchHistory.isNotEmpty()) {
             searchHistorySection(
-                searchHistory = state.searchHistory,
+                searchHistory = currentState.searchHistory,
                 onHistoryItemClick = onHistoryItemClick,
                 onHistoryItemRemove = onHistoryItemRemove,
                 onShowClearHistoryDialog = { showClearHistoryDialog = true }
@@ -131,10 +226,10 @@ fun SearcherWorkspacePage(
         }
 
         // Status card - always visible when there's a query or search activity
-        if (state.searchQuery.text.isNotBlank() || state.isSearching || state.searchState.results.isNotEmpty() || state.searchState.error != null) {
+        if (currentState.searchQuery.text.isNotBlank() || currentState.isSearching || currentState.searchState.results.isNotEmpty() || currentState.searchState.error != null) {
             item {
                 SearchStatusCard(
-                    state = state,
+                    state = currentState,
                     onCancel = onCancelSearch,
                     onClear = onClearResults
                 )
@@ -142,17 +237,20 @@ fun SearcherWorkspacePage(
         }
 
         // Search results
-        if (state.searchState.results.isNotEmpty()) {
-            items(state.searchState.results) { result ->
+        if (currentState.searchState.results.isNotEmpty()) {
+            items(currentState.searchState.results) { result ->
                 SearchResultRow(
                     result = result,
-                    onClick = { onResultClick(result) }
+                    selectionState = currentState.selectionState,
+                    onClick = { onResultClick(result) },
+                    onLongPress = { onEnterSelectionMode(result) },
+                    onSelectionToggle = { onToggleSelection(result) }
                 )
             }
         }
 
         // Empty state placeholder when no query and no history
-        if (state.searchQuery.text.isBlank() && state.searchHistory.isEmpty()) {
+        if (currentState.searchQuery.text.isBlank() && currentState.searchHistory.isEmpty()) {
             item {
                 Box(
                     modifier = Modifier
@@ -170,6 +268,121 @@ fun SearcherWorkspacePage(
                 }
             }
         }
+        }
+
+        // Floating Operations and Clipboard Bars Container
+        AnimatedVisibility(
+            visible = hasOperations || hasClipboard,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(
+                    start = 8.dp,
+                    end = 8.dp,
+                    bottom = clipboardVerticalOffset.coerceAtLeast(0f).dp
+                )
+                .graphicsLayer {
+                    scaleY = clipboardScale
+                },
+            enter = slideInVertically(animationSpec = tween(150)) { it },
+            exit = slideOutVertically(animationSpec = tween(150)) { it },
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Operations Bar (top)
+                AnimatedVisibility(
+                    visible = hasOperations,
+                    enter = slideInVertically(animationSpec = tween(150)) { it },
+                    exit = slideOutVertically(animationSpec = tween(150)) { it },
+                ) {
+                    OperationsBar(
+                        operations = operationsState.operations,
+                        onCancelOperation = onOperationCancel,
+                        onDismissOperation = onOperationDismiss,
+                        onOperationClick = onOperationClick,
+                        onClearCompleted = onOperationsClearCompleted
+                    )
+                }
+
+                // Clipboard Bar (bottom)
+                AnimatedVisibility(
+                    visible = hasClipboard,
+                    enter = slideInVertically(animationSpec = tween(150)) { it },
+                    exit = slideOutVertically(animationSpec = tween(150)) { it },
+                ) {
+                    ClipboardBar(
+                        clipboardEntries = clipboardState.entries,
+                        onPasteClick = {}, // Searcher doesn't support paste
+                        onRemoveClick = onClipboardEntryRemove,
+                        onEntryClick = onClipboardEntryClick,
+                        onClearAll = onClipboardClearAll
+                    )
+                }
+            }
+        }
+
+        // Floating Bottom ActionBar - Selection mode
+        if (hasActions) {
+            val actions = buildList {
+                // Select All / Deselect All
+                if (currentState.selectionState.isAllSelected) {
+                    add(SearcherAction.DeselectAll)
+                } else if (currentState.selectionState.selectableResults.isNotEmpty()) {
+                    add(SearcherAction.SelectAll)
+                }
+
+                // Copy
+                add(SearcherAction.Copy(currentState.selectionState.selectedResults))
+
+                // Cut
+                add(SearcherAction.Cut(currentState.selectionState.selectedResults))
+
+                // Share (if reasonable number of items)
+                val shareAction = SearcherAction.Share(currentState.selectionState.selectedResults)
+                if (shareAction.isVisible) {
+                    add(shareAction)
+                }
+
+                // Delete
+                add(SearcherAction.Delete(currentState.selectionState.selectedResults))
+            }
+
+            eu.darken.butler.workspace.ui.actions.WorkspaceActionBar(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 8.dp, vertical = 8.dp)
+                    .graphicsLayer {
+                        // Immediate snap behavior: fully visible or fully hidden
+                        alpha = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 0f else 1f
+                        translationY = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 64.dp.toPx() else 0f
+                    },
+                actions = actions,
+                onActionClick = { action ->
+                    val searcherAction = action as SearcherAction
+                    when (searcherAction) {
+                        is SearcherAction.DeselectAll -> onExitSelectionMode()
+                        else -> onAction(searcherAction)
+                    }
+                },
+                selectionCount = currentState.selectionState.selectionCount
+            )
+        }
+    }
+
+    // Quick actions bottom sheet
+    currentState.quickActionsResult?.let { result ->
+        SearchResultQuickActions(
+            result = result,
+            onAction = { action ->
+                onAction(action)
+                onHideQuickActions()
+            },
+            onLongPress = {
+                onEnterSelectionMode(it)
+                onHideQuickActions()
+            },
+            onDismiss = onHideQuickActions
+        )
     }
 
     // Clear history confirmation dialog
@@ -204,6 +417,14 @@ fun SearcherWorkspacePage(
             }
         )
     }
+
+    // Dialog host
+    SearcherDialogHost(
+        dialogState = currentState.dialogState,
+        onDismiss = { vm?.dismissDialog() },
+        onDeleteConfirmed = { vm?.onDeleteConfirmed(it) }
+    )
+    }  // End of state?.let
 }
 
 @Composable
@@ -218,44 +439,51 @@ fun SearcherWorkspacePageHost(
 ) {
     ErrorEventHandler(vm)
 
-    val workspaceButtonState by workspaceButtonVm.state.collectAsState(null)
-
-    val state by waitForState(vm.state)
-    log(vm.tag) { "Compose state: $state" }
-
-    state?.let { state ->
-        SearcherWorkspacePage(
-            design = design,
-            state = state,
-            onUpdateQuery = vm::updateSearchQuery,
-            onUpdateSearchPath = vm::updateSearchPath,
-            onPerformSearch = vm::performSearch,
-            onExplicitSearch = vm::performExplicitSearch,
-            onCancelSearch = vm::cancelSearch,
-            onClearResults = vm::clearResults,
-            onResultClick = vm::onSearchResultClick,
-            onClearHistory = vm::clearSearchHistory,
-            onHistoryItemRemove = vm::removeHistoryItem,
-            onHistoryItemClick = { item ->
-                item.searchQuery?.let { query ->
-                    vm.updateSearchQuery(TextFieldValue(query.query))
-                    vm.updateSearchPath(query.path)
-                    vm.updateFilter(query.filter)
-                    vm.performExplicitSearch() // Use explicit search for history items too
-                } ?: run {
-                    // Fallback to just the base query if full query unavailable
-                    vm.updateSearchQuery(TextFieldValue(item.baseQuery))
-                    vm.performExplicitSearch() // Use explicit search for history items too
-                }
-            },
-            onToggleCaseSensitive = vm::toggleCaseSensitive,
-            onToggleWholeWord = vm::toggleWholeWord,
-            onToggleRegex = vm::toggleRegex,
-            workspaceButtonState = workspaceButtonState,
-            workspaceActionHandler = workspaceButtonVm,
-            onOpenSetup = vm::navigateToSetup,
-        )
-    }
+    SearcherWorkspacePage(
+        design = design,
+        stateSource = vm.state,
+        clipboardStateSource = vm.clipboard,
+        operationsStateSource = vm.operations,
+        workspaceStateSource = workspaceButtonVm.state,
+        vm = vm,
+        workspaceActionHandler = workspaceButtonVm,
+        onUpdateQuery = vm::updateSearchQuery,
+        onUpdateSearchPath = vm::updateSearchPath,
+        onPerformSearch = vm::performSearch,
+        onExplicitSearch = vm::performExplicitSearch,
+        onCancelSearch = vm::cancelSearch,
+        onClearResults = vm::clearResults,
+        onResultClick = vm::showQuickActions,
+        onClearHistory = vm::clearSearchHistory,
+        onHistoryItemRemove = vm::removeHistoryItem,
+        onHistoryItemClick = { item ->
+            item.searchQuery?.let { query ->
+                vm.updateSearchQuery(TextFieldValue(query.query))
+                vm.updateSearchPath(query.path)
+                vm.updateFilter(query.filter)
+                vm.performExplicitSearch()
+            } ?: run {
+                vm.updateSearchQuery(TextFieldValue(item.baseQuery))
+                vm.performExplicitSearch()
+            }
+        },
+        onToggleCaseSensitive = vm::toggleCaseSensitive,
+        onToggleWholeWord = vm::toggleWholeWord,
+        onToggleRegex = vm::toggleRegex,
+        onAction = vm::onAction,
+        onEnterSelectionMode = vm::enterSelectionMode,
+        onToggleSelection = vm::toggleSelection,
+        onExitSelectionMode = vm::deselectAll,
+        onHideQuickActions = vm::hideQuickActions,
+        onClipboardEntryClick = vm::showClipboardInfo,
+        onClipboardEntryRemove = vm::removeClipboardEntry,
+        onClipboardClearAll = vm::clearAllClipboard,
+        onOperationClick = {},
+        onOperationCancel = vm::cancelOperation,
+        onOperationDismiss = vm::dismissOperation,
+        onOperationsClearCompleted = vm::clearCompletedOperations,
+        onOpenSetup = vm::navigateToSetup,
+    )
 }
 
 // SearchToolbarCard moved to SearchToolbarCard.kt
@@ -264,7 +492,13 @@ fun SearcherWorkspacePageHost(
 // Input components moved to SearchInputComponents.kt
 
 @Composable
-fun SearchResultRow(result: SearchResult, onClick: () -> Unit) {
+fun SearchResultRow(
+    result: SearchResult,
+    selectionState: SearcherSelectionState,
+    onClick: () -> Unit,
+    onLongPress: () -> Unit,
+    onSelectionToggle: () -> Unit
+) {
     val fileRowData = FileRowData(
         name = result.name,
         path = result.path.path,
@@ -274,9 +508,12 @@ fun SearchResultRow(result: SearchResult, onClick: () -> Unit) {
         metadata = extractFileMetadata(result)
     )
 
-    SmartFileRow(
+    SelectableFileRow(
         data = fileRowData,
-        onClick = onClick
+        isSelected = selectionState.isSelected(result),
+        isSelectionMode = selectionState.isSelectionMode,
+        onClick = if (selectionState.isSelectionMode) onSelectionToggle else onClick,
+        onLongPress = onLongPress
     )
 }
 
@@ -287,25 +524,10 @@ fun SearchResultRow(result: SearchResult, onClick: () -> Unit) {
 private fun extractFileMetadata(@Suppress("UNUSED_PARAMETER") result: SearchResult): Map<String, String> {
     // TODO: In the future, this could extract metadata like:
     // - Image dimensions for image files
-    // - Duration for video/audio files  
+    // - Duration for video/audio files
     // - Package name/version for APK files
     // - etc.
     return emptyMap()
-}
-
-
-@Preview2
-@Composable
-private fun SearchPagePreview() {
-    PreviewWrapper {
-        SearcherWorkspacePage(
-            state = SearcherWorkspaceViewModel.State(
-                id = Workspace.Id(),
-                searchPath = LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler")
-            ),
-            workspaceButtonState = null,
-        )
-    }
 }
 
 
