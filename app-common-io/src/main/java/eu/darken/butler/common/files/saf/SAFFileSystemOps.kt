@@ -255,9 +255,6 @@ class SAFFileSystemOps @Inject constructor(
         val docFile = findDocFile(path)
         log(TAG, VERBOSE) { "setModifiedAt(): $path -> $docFile" }
         docFile.setLastModified(modifiedAt)
-    } catch (e: UnsupportedOperationException) {
-        if (Bugs.isDebug) log(TAG, VERBOSE) { "setModifiedAt($path, $modifiedAt) not supported: $e" }
-        false
     } catch (e: Exception) {
         log(TAG, WARN) { "setModifiedAt($path, $modifiedAt) failed: $e" }
         false
@@ -267,9 +264,6 @@ class SAFFileSystemOps @Inject constructor(
         val docFile = findDocFile(path)
         log(TAG, VERBOSE) { "setPermissions(): $path -> $docFile" }
         docFile.setPermissions(permissions)
-    } catch (e: UnsupportedOperationException) {
-        if (Bugs.isDebug) log(TAG, VERBOSE) { "setPermissions($path, $permissions) not supported: $e" }
-        false
     } catch (e: Exception) {
         log(TAG, WARN) { "setPermissions($path, $permissions) failed: ${e.asLog()}" }
         false
@@ -279,9 +273,6 @@ class SAFFileSystemOps @Inject constructor(
         val docFile = findDocFile(path)
         log(TAG, VERBOSE) { "setOwnership(): $path -> $docFile" }
         docFile.setOwnership(ownership)
-    } catch (e: UnsupportedOperationException) {
-        if (Bugs.isDebug) log(TAG, VERBOSE) { "setOwnership($path, $ownership) not supported: $e" }
-        false
     } catch (e: Exception) {
         log(TAG, WARN) { "setOwnership($path, $ownership) failed: ${e.asLog()}" }
         false
