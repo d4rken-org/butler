@@ -530,12 +530,14 @@ internal class GenericPathMove<
                 secondaryProgress = eu.darken.butler.common.progress.Progress.Data(
                     primary = lookup.lookedUp.name.toCaString(),
                     count = eu.darken.butler.common.progress.Progress.Count.Size(
-                        current = snapshot.processedBytes,
-                        max = snapshot.totalBytes
+                        current = snapshot.currentFileBytes,
+                        max = snapshot.currentFileSize
                     )
                 ),
                 movedBytes = snapshot.processedBytes,
                 totalBytes = snapshot.totalBytes,
+                currentFileSize = snapshot.currentFileSize,
+                currentFileBytes = snapshot.currentFileBytes,
                 currentFileStartTime = snapshot.currentFileStartTime
             )
         )

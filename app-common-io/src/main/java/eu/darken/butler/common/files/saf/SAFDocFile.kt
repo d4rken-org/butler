@@ -1,5 +1,6 @@
 package eu.darken.butler.common.files.saf
 
+import android.R.attr.*
 import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.ContentValues
@@ -13,6 +14,7 @@ import android.system.Os
 import android.system.StructStat
 import android.text.TextUtils
 import eu.darken.butler.common.asSequence
+import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -161,9 +163,7 @@ data class SAFDocFile(
         val updated: Int = resolver.update(uri, updateValues, null, null)
         updated == 1
     } catch (e: Exception) {
-        log(SAFGateway.TAG, WARN) {
-            "setLastModified(lastModified=$lastModified) failed on $this: ${e.asLog()}"
-        }
+        if (Bugs.isDebug) log(SAFGateway.TAG, VERBOSE) { "setModifiedAt($path, $lastModified) not supported: $e" }
         false
     }
 
@@ -171,8 +171,8 @@ data class SAFDocFile(
         try {
             Os.fchmod(pfd.fileDescriptor, permissions.mode)
             true
-        } catch (e: Exception) {
-            log(SAFGateway.TAG, WARN) { "setPermissions(permissions=$permissions) failed on $this: ${e.asLog()}" }
+        } catch (e: UnsupportedOperationException) {
+            if (Bugs.isDebug) log(SAFGateway.TAG, WARN) { "setPermissions($path, $permissions) not supported: $e" }
             false
         }
     }
@@ -181,20 +181,18 @@ data class SAFDocFile(
         try {
             Os.fchown(pfd.fileDescriptor, ownership.userId.toInt(), ownership.groupId.toInt())
             true
-        } catch (e: Exception) {
-            log(SAFGateway.TAG, WARN) { "setOwnership(ownership=$ownership) failed on $this: ${e.asLog()}" }
+        } catch (e: UnsupportedOperationException) {
+            if (Bugs.isDebug) log(SAFGateway.TAG, VERBOSE) { "setOwnership($path, $ownership) not supported: $e" }
             false
         }
     }
 
-    fun fstat(): StructStat? {
-        return try {
-            val pfd = openPFD(FileMode.READ)
-            pfd.use { Os.fstat(pfd.fileDescriptor) }
-        } catch (e: Exception) {
-            log(SAFGateway.TAG, WARN) { "Failed to fstat SAFPath: $this: ${e.asLog()}" }
-            null
-        }
+    fun fstat(): StructStat? = try {
+        val pfd = openPFD(FileMode.READ)
+        pfd.use { Os.fstat(pfd.fileDescriptor) }
+    } catch (e: Exception) {
+        log(SAFGateway.TAG, WARN) { "Failed to fstat SAFPath: $this: ${e.asLog()}" }
+        null
     }
 
     fun openPFD(mode: FileMode): ParcelFileDescriptor {
