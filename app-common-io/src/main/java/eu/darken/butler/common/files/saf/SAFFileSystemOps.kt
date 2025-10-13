@@ -87,35 +87,35 @@ class SAFFileSystemOps @Inject constructor(
         }
     )
 
-    private fun findDocFile(path: SAFPath): SAFDocFile {
+    private fun SAFPath.resolveDocFile(): SAFDocFile {
         val now = Clock.System.now()
 
         // Check cache first
-        val cached = docFileCache[path]
+        val cached = docFileCache[this]
         if (cached != null) {
             val age = now - cached.cachedAt
             if (age < CACHE_TTL) {
-                if (Bugs.isTrace) log(TAG, VERBOSE) { "findDocFile() $path -> $cached.docFile (cached)" }
+                if (Bugs.isTrace) log(TAG, VERBOSE) { "resolveDocFile() $this -> ${cached.docFile} (cached)" }
                 return cached.docFile
             } else {
                 // Expired entry
-                docFileCache.remove(path)
+                docFileCache.remove(this)
             }
         }
 
         // Cache miss or expired - fetch fresh
-        val docFile = locationManager.getDocFileFor(path)
-        if (Bugs.isTrace) log(TAG, VERBOSE) { "findDocFile() $path -> $docFile" }
+        val docFile = locationManager.getDocFileFor(this)
+        if (Bugs.isTrace) log(TAG, VERBOSE) { "resolveDocFile() $this -> $docFile" }
 
         if (docFile != null) {
-            docFileCache[path] = CacheEntry(docFile, now)
+            docFileCache[this] = CacheEntry(docFile, now)
         }
 
-        return docFile ?: throw MissingUriPermissionException(path = path)
+        return docFile ?: throw MissingUriPermissionException(path = this)
     }
 
     private fun SAFPath.performLookup(): Pair<SAFDocFile, SAFPathLookup> {
-        val docFile = findDocFile(this)
+        val docFile = resolveDocFile()
 
         if (!docFile.readable) throw IOException("readable=false")
 
@@ -155,7 +155,7 @@ class SAFFileSystemOps @Inject constructor(
     }
 
     override suspend fun listFiles(path: SAFPath): List<SAFPath> = try {
-        val docFile = findDocFile(path)
+        val docFile = path.resolveDocFile()
         log(TAG, VERBOSE) { "listFiles($path) -> $docFile" }
 
         docFile.listFiles().map {
@@ -168,7 +168,7 @@ class SAFFileSystemOps @Inject constructor(
     }
 
     override suspend fun exists(path: SAFPath): Boolean = try {
-        val docFile = findDocFile(path)
+        val docFile = path.resolveDocFile()
         log(TAG, VERBOSE) { "exists(): $path -> $docFile" }
         docFile.exists
     } catch (e: Exception) {
@@ -176,7 +176,7 @@ class SAFFileSystemOps @Inject constructor(
     }
 
     override suspend fun delete(path: SAFPath): Boolean = try {
-        val docFile = findDocFile(path)
+        val docFile = path.resolveDocFile()
         log(TAG, VERBOSE) { "delete(): $path -> $docFile" }
         docFile.delete()
     } catch (e: Exception) {
@@ -196,7 +196,7 @@ class SAFFileSystemOps @Inject constructor(
             targetSafPath.copy(segments = emptyList())
         }
 
-        val targetParentDocFile = findDocFile(parentPath)
+        val targetParentDocFile = parentPath.resolveDocFile()
         if (!targetParentDocFile.exists) {
             throw WriteException("Parent directory does not exist: $parentPath", targetSafPath)
         }
@@ -220,7 +220,7 @@ class SAFFileSystemOps @Inject constructor(
     override suspend fun createDir(path: SAFPath) {
         try {
             log(TAG, VERBOSE) { "createDir(): $path" }
-            val docFile = findDocFile(path)
+            val docFile = path.resolveDocFile()
 
             if (docFile.exists) {
                 if (docFile.isDirectory) {
@@ -241,7 +241,7 @@ class SAFFileSystemOps @Inject constructor(
     override suspend fun createFile(path: SAFPath) {
         try {
             log(TAG, VERBOSE) { "createFile(): $path" }
-            val docFile = findDocFile(path)
+            val docFile = path.resolveDocFile()
 
             if (docFile.exists) {
                 throw WriteException("File already exists", path)
@@ -256,7 +256,7 @@ class SAFFileSystemOps @Inject constructor(
     }
 
     override suspend fun openInputStream(path: SAFPath): InputStream = try {
-        val docFile = findDocFile(path)
+        val docFile = path.resolveDocFile()
         log(TAG, VERBOSE) { "openInputStream(): $path -> $docFile" }
 
         if (!docFile.readable) {
@@ -271,7 +271,7 @@ class SAFFileSystemOps @Inject constructor(
     }
 
     override suspend fun openOutputStream(path: SAFPath, append: Boolean): OutputStream = try {
-        val docFile = findDocFile(path)
+        val docFile = resolveDocFile(path)
         log(TAG, VERBOSE) { "openOutputStream(append=$append): $path -> $docFile" }
 
         if (!docFile.writable) throw IOException("writable=false")
@@ -285,7 +285,7 @@ class SAFFileSystemOps @Inject constructor(
     }
 
     override suspend fun setModifiedAt(path: SAFPath, modifiedAt: Instant): Boolean = try {
-        val docFile = findDocFile(path)
+        val docFile = resolveDocFile(path)
         log(TAG, VERBOSE) { "setModifiedAt(): $path -> $docFile" }
         docFile.setLastModified(modifiedAt)
     } catch (e: Exception) {
@@ -294,7 +294,7 @@ class SAFFileSystemOps @Inject constructor(
     }
 
     override suspend fun setPermissions(path: SAFPath, permissions: Permissions): Boolean = try {
-        val docFile = findDocFile(path)
+        val docFile = resolveDocFile(path)
         log(TAG, VERBOSE) { "setPermissions(): $path -> $docFile" }
         docFile.setPermissions(permissions)
     } catch (e: Exception) {
@@ -303,7 +303,7 @@ class SAFFileSystemOps @Inject constructor(
     }
 
     override suspend fun setOwnership(path: SAFPath, ownership: Ownership): Boolean = try {
-        val docFile = findDocFile(path)
+        val docFile = resolveDocFile(path)
         log(TAG, VERBOSE) { "setOwnership(): $path -> $docFile" }
         docFile.setOwnership(ownership)
     } catch (e: Exception) {
@@ -316,7 +316,7 @@ class SAFFileSystemOps @Inject constructor(
     }
 
     override suspend fun canRead(path: SAFPath): Boolean = try {
-        val docFile = findDocFile(path)
+        val docFile = resolveDocFile(path)
         log(TAG, VERBOSE) { "canRead(): $path -> $docFile" }
         docFile.readable
     } catch (e: Exception) {
@@ -325,7 +325,7 @@ class SAFFileSystemOps @Inject constructor(
     }
 
     override suspend fun canWrite(path: SAFPath): Boolean = try {
-        val docFile = findDocFile(path)
+        val docFile = resolveDocFile(path)
         log(TAG, VERBOSE) { "canWrite(): $path -> $docFile" }
         docFile.writable
     } catch (e: Exception) {
@@ -334,7 +334,7 @@ class SAFFileSystemOps @Inject constructor(
     }
 
     fun openPFD(path: SAFPath, mode: FileMode): ParcelFileDescriptor {
-        return findDocFile(path).openPFD(mode)
+        return resolveDocFile(path).openPFD(mode)
     }
 
     enum class FileMode(val value: String) {

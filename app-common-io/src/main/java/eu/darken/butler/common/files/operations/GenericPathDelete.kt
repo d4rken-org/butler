@@ -126,12 +126,6 @@ internal class GenericPathDelete<P : APath, PL : APathLookup<P>, PLE : APathLook
     private suspend fun processScan(item: WorkItem.ScanPath<P>): Int {
         log(TAG, VERBOSE) { "Scanning path: ${item.path}" }
 
-        // Check file existence first when ignoreMissing is enabled
-        if (ignoreMissing && !fileSystemOps.exists(item.path)) {
-            log(TAG, VERBOSE) { "Skipping missing file (ignoreMissing=true): ${item.path}" }
-            return 0
-        }
-
         val lookup = try {
             fileSystemOps.lookup(item.path)
         } catch (e: Exception) {
