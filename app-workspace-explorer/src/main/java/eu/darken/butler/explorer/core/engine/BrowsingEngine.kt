@@ -121,7 +121,7 @@ class BrowsingEngine @AssistedInject constructor(
 
     suspend fun hint(event: FileSystemEvent) = hintMutex.withLock {
         log(tag) { "hint(): $event" }
-        val current = _location.value as? ExplorerLocation.Directory ?: return@withLock
+        val current = _location.value.location as? ExplorerLocation.Directory ?: return@withLock
 
         if (current.isLoading) {
             log(tag) { "hint(): Queueing event (loading in progress)" }
