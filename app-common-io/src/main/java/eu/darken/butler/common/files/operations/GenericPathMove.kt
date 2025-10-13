@@ -592,16 +592,10 @@ internal class GenericPathMove<
                     primary = R.string.general_scan_progress_title.toCaString(),
                     secondary = lookup.userReadablePath,
                     count = eu.darken.butler.common.progress.Progress.Count.Counter(
-                        current = 0,
                         max = snapshot.totalItems
                     )
                 ),
-                secondaryProgress = null,
-                movedBytes = 0,
                 totalBytes = snapshot.totalBytes,
-                currentFileSize = 0,
-                currentFileBytes = 0,
-                currentFileStartTime = null
             )
         )
     }

@@ -68,7 +68,7 @@ import kotlinx.coroutines.isActive
 internal class GenericPathCopy<
     SP : APath, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
     DP : APath, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
->(
+    >(
     private val sources: Collection<SP>,
     private val destination: DP,
     private val sourceOps: FileSystemOps<SP, SPL, SPLE>,
@@ -154,9 +154,7 @@ internal class GenericPathCopy<
     }
 
     suspend fun execute(): CopyAction.State.Result<SP, SPL> {
-        log(TAG, DEBUG) {
-            "execute(): Copying ${sources.size} sources to $destination"
-        }
+        log(TAG, DEBUG) { "execute(): Copying ${sources.size} sources to $destination" }
 
         // Ensure destination directory exists
         if (!destOps.exists(destination)) {
@@ -381,8 +379,10 @@ internal class GenericPathCopy<
 
         if (issueResolver.renameSourceAllPathExists) {
             val uniqueName = generateUniqueName(adjustedDest)
+
             @Suppress("UNCHECKED_CAST")
             val parentPath = adjustedDest.parent as DP
+
             @Suppress("UNCHECKED_CAST")
             val renamedDest = parentPath.child(uniqueName) as DP
             log(TAG, INFO) { "Auto-renaming (apply-to-all): $adjustedDest -> $renamedDest" }
@@ -451,8 +451,10 @@ internal class GenericPathCopy<
 
         if (issueResolver.renameSourceAllPathExists) {
             val uniqueName = generateUniqueName(adjustedDest)
+
             @Suppress("UNCHECKED_CAST")
             val parentPath = adjustedDest.parent as DP
+
             @Suppress("UNCHECKED_CAST")
             val renamedDest = parentPath.child(uniqueName) as DP
             log(TAG, INFO) { "Auto-renaming directory (apply-to-all): $adjustedDest -> $renamedDest" }
@@ -531,6 +533,7 @@ internal class GenericPathCopy<
             is PathActionIssue.PathAlreadyExists.Resolution.RenameSource -> {
                 @Suppress("UNCHECKED_CAST")
                 val parentPath = item.destination.parent as DP
+
                 @Suppress("UNCHECKED_CAST")
                 val renamedDest = parentPath.child(resolution.newName) as DP
 
@@ -568,6 +571,7 @@ internal class GenericPathCopy<
             is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
                 @Suppress("UNCHECKED_CAST")
                 val parentPath = item.destination.parent as DP
+
                 @Suppress("UNCHECKED_CAST")
                 val newDestPath = parentPath.child(resolution.newName) as DP
 
@@ -660,16 +664,10 @@ internal class GenericPathCopy<
                     primary = R.string.general_scan_progress_title.toCaString(),
                     secondary = lookup.userReadablePath,
                     count = eu.darken.butler.common.progress.Progress.Count.Counter(
-                        current = 0,
                         max = snapshot.totalItems
                     )
                 ),
-                secondaryProgress = null,
-                copiedBytes = 0,
                 totalBytes = snapshot.totalBytes,
-                currentFileSize = 0,
-                currentFileBytes = 0,
-                currentFileStartTime = null
             )
         )
     }
@@ -722,7 +720,7 @@ internal class GenericPathCopy<
 suspend fun <
     SP : APath, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
     DP : APath, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
-> Collection<SP>.copyGeneric(
+    > Collection<SP>.copyGeneric(
     destination: DP,
     sourceOps: FileSystemOps<SP, SPL, SPLE>,
     destOps: FileSystemOps<DP, DPL, DPLE>,

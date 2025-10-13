@@ -25,7 +25,7 @@ interface CopyAction<P : APath, PL : APathLookup<P>> : GatewayAction<P> {
             val currentDestination: P,
             val primaryProgress: eu.darken.butler.common.progress.Progress.Data,
             val secondaryProgress: eu.darken.butler.common.progress.Progress.Data? = null,
-            val copiedBytes: Long,
+            val copiedBytes: Long = 0L,
             val totalBytes: Long = 0L,
             val currentFileSize: Long = 0L,
             val currentFileBytes: Long = 0L,
