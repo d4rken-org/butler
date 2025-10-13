@@ -1,9 +1,10 @@
 package eu.darken.butler.common.files.local
 
 import android.os.StatFs
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
@@ -237,16 +238,20 @@ class LocalFileSystemOps @Inject constructor(
         return path.toFile().fileHandle(readWrite)
     }
 
-     suspend fun getInfo(path: LocalPath): FileSystemInfo {
+    suspend fun getInfo(path: LocalPath): FileSystemInfo {
         val statFs = try {
             StatFs(path.path)
         } catch (e: Exception) {
-            log(LocalGateway.Companion.TAG, ERROR) { "getInfo(): Failed on $path: ${e.asLog()}" }
+            log(TAG, ERROR) { "getInfo(): Failed on $path: ${e.asLog()}" }
             null
         }
         return FileSystemInfo(
             freeSpace = statFs?.availableBytes,
             totalSpace = statFs?.totalBytes,
         )
+    }
+
+    companion object {
+        private val TAG = logTag("Gateway", "Local", "FileSystemOps")
     }
 }
