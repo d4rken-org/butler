@@ -102,7 +102,9 @@ class MoveOperation @AssistedInject constructor(
                                 issue = issue,
                             )
                         )
-                        issueHandler.handleIssue(operationContext.id, issue) as PathActionIssue.Resolution
+                        val resolution = issueHandler.handleIssue(operationContext.id, issue) as PathActionIssue.Resolution
+                        emit(stateActive)
+                        resolution
                     },
                 ),
             )
