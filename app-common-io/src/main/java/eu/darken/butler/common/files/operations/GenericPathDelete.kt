@@ -83,7 +83,9 @@ internal class GenericPathDelete<P : APath, PL : APathLookup<P>, PLE : APathLook
          */
         data class DeletePath<P : APath, PL : APathLookup<P>>(
             val lookup: PL,
-        ) : WorkItem()
+        ) : WorkItem() {
+            val path: P get() = lookup.lookedUp
+        }
     }
 
     suspend fun execute(): DeleteAction.State.Result<P, PL> {
@@ -209,7 +211,7 @@ internal class GenericPathDelete<P : APath, PL : APathLookup<P>, PLE : APathLook
     private suspend fun processDeletePath(item: WorkItem.DeletePath<P, PL>) {
         // Use lookup from scan phase to avoid redundant lookup
         val lookup = item.lookup
-        log(TAG, VERBOSE) { "Deleting path: ${lookup.lookedUp}" }
+        log(TAG, VERBOSE) { "Deleting path: ${item.path}" }
 
         progressTracker.startFile(lookup.size)
 
@@ -222,7 +224,7 @@ internal class GenericPathDelete<P : APath, PL : APathLookup<P>, PLE : APathLook
             val deleteResult = fileSystemOps.delete(lookup.lookedUp)
             if (!deleteResult && ignoreMissing) {
                 // File might have been deleted between scan and delete phases
-                log(TAG, VERBOSE) { "File not found during delete (ignoreMissing=true): ${lookup.lookedUp}" }
+                log(TAG, VERBOSE) { "File not found during delete (ignoreMissing=true): ${item.path}" }
                 progressTracker.completeItem(lookup.size)
                 return
             }
@@ -234,7 +236,7 @@ internal class GenericPathDelete<P : APath, PL : APathLookup<P>, PLE : APathLook
             // Handle case where file was deleted between scan and delete phases
             if (ignoreMissing && (e is java.io.FileNotFoundException ||
                 e.cause is java.io.FileNotFoundException)) {
-                log(TAG, VERBOSE) { "File already deleted (ignoreMissing=true): ${lookup.lookedUp}" }
+                log(TAG, VERBOSE) { "File already deleted (ignoreMissing=true): ${item.path}" }
                 progressTracker.completeItem(lookup.size)
                 return
             }
