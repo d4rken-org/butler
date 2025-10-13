@@ -391,37 +391,19 @@ internal class GenericPathCopy<
             val renamedDest = parentPath.child(uniqueName) as DP
             log(TAG, INFO) { "Auto-renaming (apply-to-all): $adjustedDest -> $renamedDest" }
 
-            progressTracker.startFile(item.sourceLookup.size)
-            val result = strategy.transferFile(
+            // Create new work item with renamed destination and requeue
+            val renamedItem = WorkItem.CopyFile(
                 sourceLookup = item.sourceLookup,
                 destination = renamedDest,
-                sourceOps = sourceOps,
-                destOps = destOps,
-                options = TransferStrategy.Options(preserveAttributes = true),
-                onProgress = { bytes ->
-                    progressTracker.updateFileProgress(bytes)
-                    if (progressTracker.shouldReportProgress()) {
-                        reportProgress(item.sourceLookup)
-                    }
-                }
+                topLevelSource = item.topLevelSource
             )
-
-            when (result) {
-                is TransferStrategy.TransferResult.Success -> {
-                    copied.add(item.sourceLookup.lookedUp to result.destination)
-                    totalBytesTransferred += result.bytesTransferred
-                }
-                is TransferStrategy.TransferResult.Skipped -> {
-                    skipped.add(item.sourceLookup.lookedUp)
-                }
-            }
-            progressTracker.completeItem()
+            workQueue.addFirst(renamedItem)
             return
         }
 
         if (issueResolver.overwriteAllPathExists) {
             log(TAG, INFO) { "Overwriting (apply-to-all): $adjustedDest" }
-            destOps.delete(adjustedDest)
+            destOps.delete(adjustedDest, recursive = false)
             workQueue.addFirst(item)
             return
         }
@@ -478,7 +460,7 @@ internal class GenericPathCopy<
 
             if (issueResolver.overwriteAllPathExists) {
                 log(TAG, INFO) { "Overwriting directory (apply-to-all): $adjustedDest" }
-                deleteRecursively(adjustedDest)
+                destOps.delete(adjustedDest, recursive = true)
                 workQueue.addFirst(item)
                 return
             }
@@ -491,7 +473,7 @@ internal class GenericPathCopy<
             }
         } else if (issueResolver.overwriteAllPathExists) {
             log(TAG, INFO) { "Overwriting file with directory (apply-to-all): $adjustedDest" }
-            destOps.delete(adjustedDest)
+            destOps.delete(adjustedDest, recursive = false)
             workQueue.addFirst(item)
             return
         }
@@ -524,11 +506,8 @@ internal class GenericPathCopy<
                 progressTracker.completeItem()
             }
             is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
-                if (item.destLookup.fileType == FileType.DIRECTORY) {
-                    deleteRecursively(item.destination)
-                } else {
-                    destOps.delete(item.destination)
-                }
+                val recursive = item.destLookup.fileType == FileType.DIRECTORY
+                destOps.delete(item.destination, recursive = recursive)
                 workQueue.addFirst(item.originalItem)
             }
             is PathActionIssue.PathAlreadyExists.Resolution.Merge -> {
@@ -584,11 +563,8 @@ internal class GenericPathCopy<
                 log(TAG, INFO) { "Renaming existing destination: ${item.destination} -> $newDestPath" }
 
                 // Delete existing destination (simplified - proper impl needs FileSystemOps.rename())
-                if (item.destLookup.fileType == FileType.DIRECTORY) {
-                    deleteRecursively(item.destination)
-                } else {
-                    destOps.delete(item.destination)
-                }
+                val recursive = item.destLookup.fileType == FileType.DIRECTORY
+                destOps.delete(item.destination, recursive = recursive)
 
                 // Re-queue original operation (destination path now clear)
                 workQueue.addFirst(item.originalItem)
@@ -655,12 +631,6 @@ internal class GenericPathCopy<
             originalName = path.name,
             ops = destOps
         )
-    }
-
-    private suspend fun deleteRecursively(path: DP) {
-        // Recursively delete directory
-        // Simplified - would need proper implementation
-        destOps.delete(path)
     }
 
     private suspend fun handleScanError(error: Exception, lookup: SPL) {

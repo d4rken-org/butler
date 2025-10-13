@@ -188,13 +188,23 @@ open class MockFileSystemOps<P : APath, PL : APathLookup<P>, PLE : APathLookupEx
         return files.containsKey(path.path)
     }
 
-    override suspend fun delete(path: P): Boolean {
+    override suspend fun delete(path: P, recursive: Boolean): Boolean {
         deleteCalls.add(path.path)
 
         val mockFile = files[path.path] ?: return false
 
-        // Check if directory is empty
-        if (mockFile.type == FileType.DIRECTORY && mockFile.children.isNotEmpty()) {
+        // If recursive, delete children first (post-order)
+        if (recursive && mockFile.type == FileType.DIRECTORY) {
+            val children = mockFile.children.toList() // Copy to avoid ConcurrentModificationException
+            children.forEach { childName ->
+                @Suppress("UNCHECKED_CAST")
+                val childPath = path.child(childName) as P
+                delete(childPath, recursive = true)
+            }
+        }
+
+        // Check if directory is empty when not recursive
+        if (!recursive && mockFile.type == FileType.DIRECTORY && mockFile.children.isNotEmpty()) {
             throw IllegalStateException("Directory not empty: ${path.path}")
         }
 

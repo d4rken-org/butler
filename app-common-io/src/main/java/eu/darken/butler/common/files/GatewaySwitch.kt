@@ -212,8 +212,8 @@ class GatewaySwitch @Inject constructor(
         return useGateway(path) { canRead(path) }
     }
 
-    override suspend fun delete(path: APath): Boolean {
-        return useGateway(path) { delete(path) }
+    override suspend fun delete(path: APath, recursive: Boolean): Boolean {
+        return useGateway(path) { delete(path, recursive) }
     }
 
     override suspend fun openInputStream(path: APath): InputStream {

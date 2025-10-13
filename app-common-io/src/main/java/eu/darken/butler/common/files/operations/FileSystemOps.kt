@@ -159,16 +159,25 @@ interface FileSystemOps<P : APath, PL : APathLookup<P>, PLE : APathLookupExtende
     suspend fun exists(path: P): Boolean
 
     /**
-     * Delete a single file, symlink, or empty directory.
-     *
-     * This is NOT recursive - directories must be empty to be deleted.
-     * For recursive deletion, use the Delete operation class.
+     * Delete a file, symlink, or directory.
      *
      * @param path The path to delete
+     * @param recursive If true, recursively delete directory contents (post-order: children before parents).
+     *                  If false, directories must be empty to be deleted.
      * @return true if deleted successfully, false if path didn't exist
-     * @throws eu.darken.butler.common.files.errors.WriteException if deletion fails (e.g., directory not empty, permission denied)
+     * @throws eu.darken.butler.common.files.errors.WriteException if deletion fails (e.g., directory not empty when recursive=false, permission denied)
+     *
+     * ## Platform Optimization
+     * Implementations should use platform-specific optimizations when recursive=true:
+     * - LocalPath: Use Files.walkFileTree() with delete visitor
+     * - Root: Use `rm -rf` shell command
+     * - SAFPath: Recursively walk DocumentFile tree
+     *
+     * ## Usage Notes
+     * - For user-facing deletion with progress and error handling, use GenericPathDelete operation class
+     * - This is a low-level primitive for internal use by operations (e.g., Move/Copy overwrite)
      */
-    suspend fun delete(path: P): Boolean
+    suspend fun delete(path: P, recursive: Boolean = false): Boolean
 
     /**
      * Create a directory, including parent directories if needed.

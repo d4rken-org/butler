@@ -381,6 +381,26 @@ internal class GenericPathMove<
             return
         }
 
+        if (issueResolver.renameSourceAllPathExists) {
+            val uniqueName = generateUniqueName(adjustedDest)
+
+            @Suppress("UNCHECKED_CAST")
+            val parentPath = adjustedDest.parent as DP
+
+            @Suppress("UNCHECKED_CAST")
+            val renamedDest = parentPath.child(uniqueName) as DP
+            log(TAG, INFO) { "Auto-renaming (apply-to-all): $adjustedDest -> $renamedDest" }
+
+            // Create new work item with renamed destination and requeue
+            val renamedItem = WorkItem.MoveFile(
+                sourceLookup = item.sourceLookup,
+                destination = renamedDest,
+                topLevelSource = item.topLevelSource
+            )
+            workQueue.addFirst(renamedItem)
+            return
+        }
+
         if (issueResolver.overwriteAllPathExists) {
             log(TAG, INFO) { "Overwriting (apply-to-all): $adjustedDest" }
             destOps.delete(adjustedDest)
@@ -427,7 +447,7 @@ internal class GenericPathMove<
 
         if (issueResolver.overwriteAllPathExists) {
             log(TAG, INFO) { "Overwriting (apply-to-all): $adjustedDest" }
-            deleteRecursively(adjustedDest)
+            destOps.delete(adjustedDest, recursive = true)
             workQueue.addFirst(item)
             return
         }
@@ -459,11 +479,8 @@ internal class GenericPathMove<
                 progressTracker.completeItem()
             }
             is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
-                if (item.destLookup.fileType == FileType.DIRECTORY) {
-                    deleteRecursively(item.destination)
-                } else {
-                    destOps.delete(item.destination)
-                }
+                val recursive = item.destLookup.fileType == FileType.DIRECTORY
+                destOps.delete(item.destination, recursive = recursive)
                 workQueue.addFirst(item.originalItem)
             }
             is PathActionIssue.PathAlreadyExists.Resolution.Merge -> {
@@ -515,11 +532,8 @@ internal class GenericPathMove<
                 log(TAG, INFO) { "Renaming existing destination: ${item.destination} -> $newDestPath" }
 
                 // Delete existing destination (simplified - proper impl needs FileSystemOps.rename())
-                if (item.destLookup.fileType == FileType.DIRECTORY) {
-                    deleteRecursively(item.destination)
-                } else {
-                    destOps.delete(item.destination)
-                }
+                val recursive = item.destLookup.fileType == FileType.DIRECTORY
+                destOps.delete(item.destination, recursive = recursive)
 
                 // Re-queue original operation (destination path now clear)
                 workQueue.addFirst(item.originalItem)
@@ -584,10 +598,6 @@ internal class GenericPathMove<
             originalName = path.name,
             ops = destOps
         )
-    }
-
-    private suspend fun deleteRecursively(path: DP) {
-        destOps.delete(path)
     }
 
     private suspend fun handleScanError(error: Exception, lookup: SPL) {

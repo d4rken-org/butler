@@ -247,9 +247,9 @@ class GenericPathMoveTest : BaseTest() {
                 addMockDir("/dest")
             }
 
-            override suspend fun delete(path: LocalPath): Boolean {
+            override suspend fun delete(path: LocalPath, recursive: Boolean): Boolean {
                 deletionOrder.add(path.path)
-                return super.delete(path)
+                return super.delete(path, recursive)
             }
         }
 
@@ -384,5 +384,318 @@ class GenericPathMoveTest : BaseTest() {
 
         // Then
         result.bytesMoved shouldBe expectedBytes
+    }
+
+    // ============ CONFLICT RESOLUTION - APPLY TO ALL ============
+
+    @Test
+    fun `move file with apply to all - skip`() = runTest {
+        // Given - multiple files with conflicts
+        mockOps.addMockFile("/source/file1.txt", "new1".toByteArray())
+        mockOps.addMockFile("/source/file2.txt", "new2".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockFile("/dest/file1.txt", "old1".toByteArray())
+        mockOps.addMockFile("/dest/file2.txt", "old2".toByteArray())
+
+        var issueCount = 0
+
+        // When
+        val result = setOf(
+            LocalPath.build("/source/file1.txt"),
+            LocalPath.build("/source/file2.txt")
+        ).moveGeneric(
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = { issue ->
+                issueCount++
+                PathActionIssue.PathAlreadyExists.Resolution.Skip(applyToAll = true)
+            }
+        )
+
+        // Then - only asked once due to apply-to-all
+        issueCount shouldBe 1
+        result.skippedFiles.size shouldBe 2
+
+        // Destination files unchanged
+        mockOps.getFileContent("/dest/file1.txt") shouldBe "old1".toByteArray()
+        mockOps.getFileContent("/dest/file2.txt") shouldBe "old2".toByteArray()
+
+        // Source files still exist
+        mockOps.hasFile("/source/file1.txt") shouldBe true
+        mockOps.hasFile("/source/file2.txt") shouldBe true
+    }
+
+    @Test
+    fun `move file with apply to all - overwrite`() = runTest {
+        // Given - multiple files with conflicts
+        mockOps.addMockFile("/source/file1.txt", "new1".toByteArray())
+        mockOps.addMockFile("/source/file2.txt", "new2".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockFile("/dest/file1.txt", "old1".toByteArray())
+        mockOps.addMockFile("/dest/file2.txt", "old2".toByteArray())
+
+        var issueCount = 0
+
+        // When
+        val result = setOf(
+            LocalPath.build("/source/file1.txt"),
+            LocalPath.build("/source/file2.txt")
+        ).moveGeneric(
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = { issue ->
+                issueCount++
+                PathActionIssue.PathAlreadyExists.Resolution.Overwrite(applyToAll = true)
+            }
+        )
+
+        // Then - only asked once due to apply-to-all
+        issueCount shouldBe 1
+        result.movedFiles.size shouldBe 2
+
+        // Destination files overwritten
+        mockOps.getFileContent("/dest/file1.txt") shouldBe "new1".toByteArray()
+        mockOps.getFileContent("/dest/file2.txt") shouldBe "new2".toByteArray()
+
+        // Source files deleted
+        mockOps.hasFile("/source/file1.txt") shouldBe false
+        mockOps.hasFile("/source/file2.txt") shouldBe false
+    }
+
+    @Test
+    fun `move file with apply to all - rename source`() = runTest {
+        // Given - multiple files with conflicts
+        mockOps.addMockFile("/source/file.txt", "new1".toByteArray())
+        mockOps.addMockFile("/source/document.txt", "new2".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockFile("/dest/file.txt", "old1".toByteArray())
+        mockOps.addMockFile("/dest/document.txt", "old2".toByteArray())
+
+        var issueCount = 0
+
+        // When
+        val result = setOf(
+            LocalPath.build("/source/file.txt"),
+            LocalPath.build("/source/document.txt")
+        ).moveGeneric(
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = { issue ->
+                issueCount++
+                PathActionIssue.PathAlreadyExists.Resolution.RenameSource(
+                    newName = when (issue) {
+                        is PathActionIssue.PathAlreadyExists -> issue.suggestedName ?: error("No suggested name")
+                        else -> error("Unexpected issue")
+                    },
+                    applyToAll = true
+                )
+            }
+        )
+
+        // Then - only asked once due to apply-to-all
+        issueCount shouldBe 1
+        result.movedFiles.size shouldBe 2
+
+        // Original files unchanged
+        mockOps.getFileContent("/dest/file.txt") shouldBe "old1".toByteArray()
+        mockOps.getFileContent("/dest/document.txt") shouldBe "old2".toByteArray()
+
+        // New files with renamed names
+        mockOps.hasFile("/dest/file (1).txt") shouldBe true
+        mockOps.getFileContent("/dest/file (1).txt") shouldBe "new1".toByteArray()
+        mockOps.hasFile("/dest/document (1).txt") shouldBe true
+        mockOps.getFileContent("/dest/document (1).txt") shouldBe "new2".toByteArray()
+
+        // Source files deleted
+        mockOps.hasFile("/source/file.txt") shouldBe false
+        mockOps.hasFile("/source/document.txt") shouldBe false
+    }
+
+    @Test
+    fun `move directory with apply to all - merge`() = runTest {
+        // Given - multiple directories with conflicts
+        mockOps.addMockDir("/source/dir1")
+        mockOps.addMockFile("/source/dir1/new1.txt", "content1".toByteArray())
+        mockOps.addMockDir("/source/dir2")
+        mockOps.addMockFile("/source/dir2/new2.txt", "content2".toByteArray())
+
+        mockOps.addMockDir("/dest")
+        mockOps.addMockDir("/dest/dir1")
+        mockOps.addMockFile("/dest/dir1/old1.txt", "old content1".toByteArray())
+        mockOps.addMockDir("/dest/dir2")
+        mockOps.addMockFile("/dest/dir2/old2.txt", "old content2".toByteArray())
+
+        var issueCount = 0
+
+        // When
+        val result = setOf(
+            LocalPath.build("/source/dir1"),
+            LocalPath.build("/source/dir2")
+        ).moveGeneric(
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = { issue ->
+                issueCount++
+                PathActionIssue.PathAlreadyExists.Resolution.Merge(applyToAll = true)
+            }
+        )
+
+        // Then - only asked once due to apply-to-all
+        issueCount shouldBe 1
+
+        // All files exist in merged directories
+        mockOps.hasFile("/dest/dir1/new1.txt") shouldBe true
+        mockOps.hasFile("/dest/dir1/old1.txt") shouldBe true
+        mockOps.hasFile("/dest/dir2/new2.txt") shouldBe true
+        mockOps.hasFile("/dest/dir2/old2.txt") shouldBe true
+
+        // Source directories deleted
+        mockOps.hasFile("/source/dir1") shouldBe false
+        mockOps.hasFile("/source/dir2") shouldBe false
+    }
+
+    @Test
+    fun `move directory with apply to all - overwrite`() = runTest {
+        // Given - multiple directories with conflicts
+        mockOps.addMockDir("/source/dir1")
+        mockOps.addMockFile("/source/dir1/new1.txt", "content1".toByteArray())
+        mockOps.addMockDir("/source/dir2")
+        mockOps.addMockFile("/source/dir2/new2.txt", "content2".toByteArray())
+
+        mockOps.addMockDir("/dest")
+        mockOps.addMockDir("/dest/dir1")
+        mockOps.addMockFile("/dest/dir1/old1.txt", "old content1".toByteArray())
+        mockOps.addMockDir("/dest/dir2")
+        mockOps.addMockFile("/dest/dir2/old2.txt", "old content2".toByteArray())
+
+        var issueCount = 0
+
+        // When
+        val result = setOf(
+            LocalPath.build("/source/dir1"),
+            LocalPath.build("/source/dir2")
+        ).moveGeneric(
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = { issue ->
+                issueCount++
+                PathActionIssue.PathAlreadyExists.Resolution.Overwrite(applyToAll = true)
+            }
+        )
+
+        // Then - only asked once due to apply-to-all
+        issueCount shouldBe 1
+
+        // Old files deleted, new files exist
+        mockOps.hasFile("/dest/dir1/new1.txt") shouldBe true
+        mockOps.hasFile("/dest/dir1/old1.txt") shouldBe false
+        mockOps.hasFile("/dest/dir2/new2.txt") shouldBe true
+        mockOps.hasFile("/dest/dir2/old2.txt") shouldBe false
+
+        // Source directories deleted
+        mockOps.hasFile("/source/dir1") shouldBe false
+        mockOps.hasFile("/source/dir2") shouldBe false
+    }
+
+    @Test
+    fun `move directory with apply to all - skip`() = runTest {
+        // Given - multiple directories with conflicts
+        mockOps.addMockDir("/source/dir1")
+        mockOps.addMockFile("/source/dir1/new1.txt", "content1".toByteArray())
+        mockOps.addMockDir("/source/dir2")
+        mockOps.addMockFile("/source/dir2/new2.txt", "content2".toByteArray())
+
+        mockOps.addMockDir("/dest")
+        mockOps.addMockDir("/dest/dir1")
+        mockOps.addMockFile("/dest/dir1/old1.txt", "old content1".toByteArray())
+        mockOps.addMockDir("/dest/dir2")
+        mockOps.addMockFile("/dest/dir2/old2.txt", "old content2".toByteArray())
+
+        var issueCount = 0
+
+        // When
+        val result = setOf(
+            LocalPath.build("/source/dir1"),
+            LocalPath.build("/source/dir2")
+        ).moveGeneric(
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = { issue ->
+                issueCount++
+                PathActionIssue.PathAlreadyExists.Resolution.Skip(applyToAll = true)
+            }
+        )
+
+        // Then - only asked once due to apply-to-all
+        issueCount shouldBe 1
+
+        // Skipped items include directories and their children
+        result.skippedFiles.size shouldBe 4 // 2 directories + 2 files
+
+        // Original files unchanged
+        mockOps.hasFile("/dest/dir1/old1.txt") shouldBe true
+        mockOps.hasFile("/dest/dir1/new1.txt") shouldBe false
+        mockOps.hasFile("/dest/dir2/old2.txt") shouldBe true
+        mockOps.hasFile("/dest/dir2/new2.txt") shouldBe false
+
+        // Source directories still exist
+        mockOps.hasFile("/source/dir1") shouldBe true
+        mockOps.hasFile("/source/dir2") shouldBe true
+    }
+
+    @Test
+    fun `nested directory rename source updates all child paths`() = runTest {
+        // Given - nested structure with conflict
+        mockOps.addMockDir("/source/Parent")
+        mockOps.addMockDir("/source/Parent/SubDir")
+        mockOps.addMockFile("/source/Parent/SubDir/file.txt", "content".toByteArray())
+
+        mockOps.addMockDir("/dest")
+        mockOps.addMockDir("/dest/Parent")
+        mockOps.addMockFile("/dest/Parent/existing.txt", "existing".toByteArray())
+
+        // When - rename source to Parent-new
+        val result = setOf(LocalPath.build("/source/Parent")).moveGeneric(
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = { issue ->
+                PathActionIssue.PathAlreadyExists.Resolution.RenameSource("Parent-new")
+            }
+        )
+
+        // Then - all paths updated to use Parent-new
+        mockOps.hasFile("/dest/Parent-new") shouldBe true
+        mockOps.hasFile("/dest/Parent-new/SubDir") shouldBe true
+        mockOps.hasFile("/dest/Parent-new/SubDir/file.txt") shouldBe true
+        mockOps.getFileContent("/dest/Parent-new/SubDir/file.txt") shouldBe "content".toByteArray()
+
+        // Original unchanged
+        mockOps.hasFile("/dest/Parent/existing.txt") shouldBe true
+
+        // Source deleted
+        mockOps.hasFile("/source/Parent") shouldBe false
+
+        result.movedFiles.size shouldBe 3 // Parent-new + SubDir + file.txt
     }
 }

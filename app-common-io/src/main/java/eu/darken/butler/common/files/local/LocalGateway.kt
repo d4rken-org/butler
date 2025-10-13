@@ -481,24 +481,24 @@ class LocalGateway @Inject constructor(
         }
     }
 
-    override suspend fun delete(path: LocalPath): Boolean = delete(path, Mode.AUTO)
+    override suspend fun delete(path: LocalPath, recursive: Boolean): Boolean = delete(path, recursive, Mode.AUTO)
 
-    suspend fun delete(path: LocalPath, mode: Mode = Mode.AUTO): Boolean = runIO {
+    suspend fun delete(path: LocalPath, recursive: Boolean = false, mode: Mode = Mode.AUTO): Boolean = runIO {
         val javaFile = path.toFile()
         when {
             mode == Mode.NORMAL || (mode == Mode.AUTO && javaFile.canWrite()) -> {
-                fileSystemOps.delete(path)
+                fileSystemOps.delete(path, recursive)
                 true
             }
 
             hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "delete($mode->ROOT): $path" }
-                rootOps { it.delete(path) }
+                log(TAG, VERBOSE) { "delete($mode->ROOT, recursive=$recursive): $path" }
+                rootOps { it.delete(path, recursive) }
             }
 
             hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "delete($mode->ADB): $path" }
-                adbOps { it.delete(path) }
+                log(TAG, VERBOSE) { "delete($mode->ADB, recursive=$recursive): $path" }
+                adbOps { it.delete(path, recursive) }
             }
 
             else -> throw IOException("No matching mode available for delete")
