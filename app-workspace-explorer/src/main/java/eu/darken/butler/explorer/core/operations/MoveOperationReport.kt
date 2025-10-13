@@ -34,7 +34,7 @@ data class MoveOperationReport(
             }
             if (skipped.isNotEmpty()) {
                 append(
-                    it.getQuantityString2(R.plurals.explorer_operation_report_skipped_items, skipped.size)
+                    it.getQuantityString2(eu.darken.butler.workspace.R.plurals.workspace_operation_report_skipped_items, skipped.size)
                 )
                 append(" ")
             }

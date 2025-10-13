@@ -103,4 +103,39 @@
         <item quantity="other">%d selected</item>
     </plurals>
     <string name="workspace_action_more">More actions</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">File deletion</string>
+    <string name="workspace_operation_delete_description_single">Delete \"%1$s\" from \"%2$s\".</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="one">Delete %1$d item from \"%2$s\".</item>
+        <item quantity="other">Delete %1$d items from \"%2$s\".</item>
+    </plurals>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="one">%1$d file deleted.</item>
+        <item quantity="other">%1$d files deleted.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="one">%1$d directory deleted.</item>
+        <item quantity="other">%1$d directories deleted.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="one">%1$d item skipped.</item>
+        <item quantity="other">%1$d items skipped.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="one">%1$s freed.</item>
+        <item quantity="other">%1$s freed.</item>
+    </plurals>
+
+    <!-- Delete Operation Progress -->
+    <plurals name="workspace_operation_progress_items_speed">
+        <item quantity="one">%1$d item/s</item>
+        <item quantity="other">%1$d items/s</item>
+    </plurals>
+    <string name="workspace_operation_progress_bytes_speed_freed">%1$s/s freed.</string>
+    <string name="workspace_operation_progress_bytes_freed">%1$s freed.</string>
+    <string name="workspace_operation_progress_time_remaining">%1$s remaining.</string>
 </resources>

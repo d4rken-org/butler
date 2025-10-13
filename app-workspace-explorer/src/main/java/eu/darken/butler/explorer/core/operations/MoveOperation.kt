@@ -165,7 +165,7 @@ class MoveOperation @AssistedInject constructor(
 
                         val itemsSpeedPart = if (avgItemsSpeed > 0) {
                             " • " + ctx.getQuantityString2(
-                                R.plurals.explorer_operation_progress_items_speed,
+                                eu.darken.butler.workspace.R.plurals.workspace_operation_progress_items_speed,
                                 avgItemsSpeed.toInt(),
                                 avgItemsSpeed
                             )
@@ -177,7 +177,7 @@ class MoveOperation @AssistedInject constructor(
                                 overallEta.toInt(),
                                 overallEta
                             )
-                            " • " + ctx.getString(R.string.explorer_operation_progress_time_remaining, duration)
+                            " • " + ctx.getString(eu.darken.butler.workspace.R.string.workspace_operation_progress_time_remaining, duration)
                         } else ""
 
                         bytesSpeedPart + itemsSpeedPart + etaPart
@@ -195,7 +195,7 @@ class MoveOperation @AssistedInject constructor(
                                 fileEta.toInt(),
                                 fileEta
                             )
-                            " • " + ctx.getString(R.string.explorer_operation_progress_time_remaining, duration)
+                            " • " + ctx.getString(eu.darken.butler.workspace.R.string.workspace_operation_progress_time_remaining, duration)
                         } else ""
                         speedPart + etaPart
                     }

@@ -44,18 +44,18 @@ class DeleteOperation @AssistedInject constructor(
     override val metadata: Operation.Metadata = object : Operation.Metadata {
         override val origin = Operation.Metadata.Origin.Searcher(workspaceId)
         override val icon: ImageVector = Icons.TwoTone.Delete
-        override val title = R.string.searcher_operation_delete_title.toCaString()
+        override val title = eu.darken.butler.workspace.R.string.workspace_operation_delete_title.toCaString()
         override val description = caString { cx ->
             if (command.targets.size == 1) {
                 val target = command.targets.first()
                 cx.getString(
-                    R.string.searcher_operation_delete_description_single,
+                    eu.darken.butler.workspace.R.string.workspace_operation_delete_description_single,
                     target.name,
                     target.parent?.userReadablePath?.get(cx) ?: target.userReadablePath.get(cx)
                 )
             } else {
                 cx.getQuantityString2(
-                    R.plurals.searcher_operation_delete_description,
+                    eu.darken.butler.workspace.R.plurals.workspace_operation_delete_description,
                     command.targets.size,
                     command.targets.size,
                     command.targets.first().let { it.parent?.userReadablePath?.get(cx) ?: it.userReadablePath.get(cx) }
@@ -148,7 +148,7 @@ class DeleteOperation @AssistedInject constructor(
                                 if (avgItemsSpeed > 0) {
                                     parts.add(
                                         ctx.getQuantityString2(
-                                            R.plurals.searcher_operation_progress_items_speed,
+                                            eu.darken.butler.workspace.R.plurals.workspace_operation_progress_items_speed,
                                             avgItemsSpeed.toInt(),
                                             avgItemsSpeed
                                         )
@@ -158,7 +158,7 @@ class DeleteOperation @AssistedInject constructor(
                                     val bytesFormatted = Formatter.formatShortFileSize(ctx, avgBytesSpeed)
                                     parts.add(
                                         ctx.getString(
-                                            R.string.searcher_operation_progress_bytes_speed_freed,
+                                            eu.darken.butler.workspace.R.string.workspace_operation_progress_bytes_speed_freed,
                                             bytesFormatted
                                         )
                                     )
@@ -170,7 +170,7 @@ class DeleteOperation @AssistedInject constructor(
                                         overallEta.toInt(),
                                         overallEta
                                     )
-                                    " • " + ctx.getString(R.string.searcher_operation_progress_time_remaining, duration)
+                                    " • " + ctx.getString(eu.darken.butler.workspace.R.string.workspace_operation_progress_time_remaining, duration)
                                 } else ""
                                 speedPart + etaPart
                             }
@@ -187,7 +187,7 @@ class DeleteOperation @AssistedInject constructor(
                                 primary = deleteState.target.lookedUp.name.toCaString(),
                                 secondary = caString { ctx ->
                                     val bytesFormatted = Formatter.formatShortFileSize(ctx, deleteState.deletedBytes)
-                                    ctx.getString(R.string.searcher_operation_progress_bytes_freed, bytesFormatted)
+                                    ctx.getString(eu.darken.butler.workspace.R.string.workspace_operation_progress_bytes_freed, bytesFormatted)
                                 }
                             )
                         } else null

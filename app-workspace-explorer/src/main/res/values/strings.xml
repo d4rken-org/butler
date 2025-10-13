@@ -267,25 +267,6 @@
     <string name="explorer_file_action_properties_subtitle">View detailed file information</string>
 
     <!-- Operations -->
-    <string name="explorer_operation_delete_title">File deletion</string>
-    <string name="explorer_operation_delete_description_single">Delete \"%1$s\" from \"%2$s\".</string>
-    <plurals name="explorer_operation_delete_description">
-        <item quantity="one">Delete %1$d item from \"%2$s\".</item>
-        <item quantity="other">Delete %1$d items from \"%2$s\".</item>
-    </plurals>
-
-    <plurals name="explorer_operation_report_bytes_freed">
-        <item quantity="one">"%s freed.</item>
-        <item quantity="other">%s freed.</item>
-    </plurals>
-    <plurals name="explorer_operation_report_directories_deleted">
-        <item quantity="one">"%d directory deleted.</item>
-        <item quantity="other">%d directories deleted.</item>
-    </plurals>
-    <plurals name="explorer_operation_report_files_deleted">
-        <item quantity="one">%d file deleted.</item>
-        <item quantity="other">%d files deleted.</item>
-    </plurals>
     <plurals name="explorer_operation_report_files_created">
         <item quantity="one">%d file created.</item>
         <item quantity="other">%d files created.</item>
@@ -293,10 +274,6 @@
     <plurals name="explorer_operation_report_directories_created">
         <item quantity="one">%d directory created.</item>
         <item quantity="other">%d directories created.</item>
-    </plurals>
-    <plurals name="explorer_operation_report_skipped_items">
-        <item quantity="one">"%d item skipped.</item>
-        <item quantity="other">%d items skipped.</item>
     </plurals>
 
     <string name="explorer_operation_copy_title">Copy operation</string>
@@ -349,14 +326,7 @@
     <string name="explorer_operation_create_description_file">Create file \"%1$s\" at \"%2$s\"</string>
 
     <!-- Operation Progress Metrics -->
-    <plurals name="explorer_operation_progress_items_speed">
-        <item quantity="one">%d item/s</item>
-        <item quantity="other">%d items/s</item>
-    </plurals>
     <string name="explorer_operation_progress_bytes_speed">%s/s</string>
-    <string name="explorer_operation_progress_bytes_speed_freed">%s/s freed</string>
-    <string name="explorer_operation_progress_bytes_freed">%s freed</string>
-    <string name="explorer_operation_progress_time_remaining">%s remaining</string>
 
     <!-- Navigation Error Messages -->
     <string name="explorer_navigation_error_title">Navigation Failed</string>

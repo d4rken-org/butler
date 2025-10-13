@@ -22,26 +22,26 @@ data class DeleteOperationReport(
         buildString {
             if (deletedFiles > 0) {
                 append(
-                    it.getQuantityString2(R.plurals.searcher_operation_report_files_deleted, deletedFiles)
+                    it.getQuantityString2(eu.darken.butler.workspace.R.plurals.workspace_operation_report_files_deleted, deletedFiles)
                 )
                 append(" ")
             }
             if (deletedDirectories > 0) {
                 append(
-                    it.getQuantityString2(R.plurals.searcher_operation_report_directories_deleted, deletedDirectories)
+                    it.getQuantityString2(eu.darken.butler.workspace.R.plurals.workspace_operation_report_directories_deleted, deletedDirectories)
                 )
                 append(" ")
             }
             if (skipped.isNotEmpty()) {
                 append(
-                    it.getQuantityString2(R.plurals.searcher_operation_report_skipped_items, skipped.size)
+                    it.getQuantityString2(eu.darken.butler.workspace.R.plurals.workspace_operation_report_skipped_items, skipped.size)
                 )
                 append(" ")
             }
             if (bytesFreed > 0) {
                 append(
                     it.getQuantityString2(
-                        R.plurals.searcher_operation_report_bytes_freed,
+                        eu.darken.butler.workspace.R.plurals.workspace_operation_report_bytes_freed,
                         bytesFreed.toInt(),
                         Formatter.formatFileSize(it, bytesFreed)
                     )
