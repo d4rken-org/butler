@@ -5,7 +5,6 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.operations.FileSystemOps
-import eu.darken.butler.common.files.saf.SAFPathLookupExtended
 import eu.darken.butler.common.files.operations.TransferStrategy
 import okio.buffer
 import okio.sink
@@ -98,10 +97,8 @@ class SAFPathCopyStrategy : TransferStrategy<
     ): TransferStrategy.TransferResult<SAFPath, SAFPath> {
         var totalBytesTransferred = 0L
 
-        // Ensure destination file exists (create if needed)
-        if (!fileSystemOps.exists(destination)) {
-            fileSystemOps.createFile(destination)
-        }
+        // Create destination file (GenericPathCopy guarantees destination doesn't exist)
+        fileSystemOps.createFile(destination)
 
         // Copy file contents with progress tracking
         fileSystemOps.openInputStream(sourceLookup.lookedUp).source().buffer().use { source ->
