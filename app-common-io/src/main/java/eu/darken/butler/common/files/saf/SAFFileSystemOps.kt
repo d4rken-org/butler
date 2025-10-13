@@ -21,6 +21,8 @@ import java.io.InputStream
 import java.io.OutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 /**
@@ -72,9 +74,43 @@ class SAFFileSystemOps @Inject constructor(
     private val locationManager: SAFLocationManager
 ) : FileSystemOps<SAFPath, SAFPathLookup, SAFPathLookupExtended> {
 
+    private data class CacheEntry(
+        val docFile: SAFDocFile,
+        val cachedAt: Instant,
+    )
+
+    private val docFileCache = java.util.Collections.synchronizedMap(
+        object : LinkedHashMap<SAFPath, CacheEntry>(INITIAL_CACHE_SIZE, 0.75f, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<SAFPath, CacheEntry>?): Boolean {
+                return size > MAX_CACHE_SIZE
+            }
+        }
+    )
+
     private fun findDocFile(path: SAFPath): SAFDocFile {
+        val now = Clock.System.now()
+
+        // Check cache first
+        val cached = docFileCache[path]
+        if (cached != null) {
+            val age = now - cached.cachedAt
+            if (age < CACHE_TTL) {
+                if (Bugs.isTrace) log(TAG, VERBOSE) { "findDocFile() $path -> $cached.docFile (cached)" }
+                return cached.docFile
+            } else {
+                // Expired entry
+                docFileCache.remove(path)
+            }
+        }
+
+        // Cache miss or expired - fetch fresh
         val docFile = locationManager.getDocFileFor(path)
         if (Bugs.isTrace) log(TAG, VERBOSE) { "findDocFile() $path -> $docFile" }
+
+        if (docFile != null) {
+            docFileCache[path] = CacheEntry(docFile, now)
+        }
+
         return docFile ?: throw MissingUriPermissionException(path = path)
     }
 
@@ -167,9 +203,6 @@ class SAFFileSystemOps @Inject constructor(
         if (!targetParentDocFile.isDirectory) {
             throw WriteException("Parent is not a directory: $parentPath", targetSafPath)
         }
-
-        val existing = targetParentDocFile.findFile(targetName)
-        check(existing == null) { "File already exists: ${existing?.uri}" }
 
         val targetDocFile = if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
             targetParentDocFile.createDirectory(targetName)
@@ -309,6 +342,10 @@ class SAFFileSystemOps @Inject constructor(
     }
 
     companion object {
-        private val TAG = logTag("FileSystemOps", "SAF")
+        private val TAG = logTag("SAF", "FileSystemOps")
+
+        private const val INITIAL_CACHE_SIZE = 16
+        private const val MAX_CACHE_SIZE = 1000
+        private val CACHE_TTL = 10.seconds
     }
 }
