@@ -5,7 +5,6 @@ import androidx.annotation.Keep
 import eu.darken.butler.common.SafUri
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
-import eu.darken.butler.common.files.extensions.joinSegments
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -33,18 +32,33 @@ data class SAFPath(
     override val userReadablePath: CaString
         get() {
             val treeRootPath = treeRootUri.path
-            return when {
-                treeRootPath?.startsWith("/tree/primary") == true -> caString {
-                    "/storage/emulated/0/${segments.joinSegments("/")}"
-                }
+            val documentId = treeRootPath?.let { TREE_DOCUMENT_ID_REGEX.matchEntire(it)?.groupValues?.get(1) }
 
-                treeRootPath?.let { URIPATH_ID_REGEX.matches(it) } == true -> caString {
-                    val storageId = URIPATH_ID_REGEX.matchEntire(treeRootPath)
-                    "/storage/${storageId?.groupValues?.get(1)}/${segments.joinSegments("/")}"
-                }
+            if (documentId != null) {
+                // Parse document ID: "primary" or "primary:Folder1" or "primary:Folder1/SubFolder"
+                val parts = documentId.split(":", limit = 2)
+                val storageId = parts[0]
 
-                else -> super.userReadablePath
+                // Extract base path from tree root (after the colon)
+                val basePath = parts.getOrNull(1)
+                    ?.split("/")
+                    ?.filter { it.isNotEmpty() }
+                    ?: emptyList()
+
+                // Combine base path with additional segments
+                val allSegments = basePath + segments
+
+                return when {
+                    allSegments.isNotEmpty() -> caString {
+                        "[$storageId]/${allSegments.joinToString("/")}"
+                    }
+                    else -> caString {
+                        "[$storageId]"
+                    }
+                }
             }
+
+            return super.userReadablePath
         }
 
     override val path: String
@@ -92,6 +106,6 @@ data class SAFPath(
 
         fun build(base: SafUri, vararg segs: String): SAFPath = build(base.toString(), *segs)
 
-        private val URIPATH_ID_REGEX by lazy { Regex("^/tree/([a-z0-9-]+)(?::.+?)*\$") }
+        private val TREE_DOCUMENT_ID_REGEX by lazy { Regex("^/tree/(.+)$") }
     }
 }
