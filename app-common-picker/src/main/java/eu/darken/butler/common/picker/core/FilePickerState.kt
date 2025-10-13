@@ -1,11 +1,12 @@
 package eu.darken.butler.common.picker.core
 
 import eu.darken.butler.common.files.APath
+import kotlin.collections.isNotEmpty
 
 data class FilePickerState(
-    val currentPath: APath? = null,
+    val currentPath: APath<*>? = null,
     val items: List<FileItem> = emptyList(),
-    val selectedItems: Set<APath> = emptySet(),
+    val selectedItems: Set<APath<*>> = emptySet(),
     val isLoading: Boolean = false,
     val error: String? = null,
     val searchQuery: String = "",
@@ -15,7 +16,7 @@ data class FilePickerState(
         get() = selectedItems.isNotEmpty()
     
     data class FileItem(
-        val path: APath,
+        val path: APath<*>,
         val name: String,
         val isDirectory: Boolean,
         val size: Long? = null,

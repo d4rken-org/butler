@@ -117,7 +117,7 @@ class DynamicShortcutManager @Inject constructor(
         reportShortcutUsed(NEW_EXPLORER_SHORTCUT_ID)
     }
 
-    suspend fun trackDirectoryAccess(path: APath) {
+    suspend fun trackDirectoryAccess(path: APath<*>) {
         shortcutRepo.trackAccess(path)
     }
 

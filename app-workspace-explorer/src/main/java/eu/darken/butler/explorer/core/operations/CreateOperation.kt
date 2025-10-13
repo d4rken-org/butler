@@ -72,7 +72,7 @@ class CreateOperation @AssistedInject constructor(
         val reportBuilder = CreateOperationReport.Builder()
 
         var currentCommand = command
-        var destinationPath: APath
+        var destinationPath: APath<*>
 
         // Loop to handle conflicts until we have a clear destination path
         while (currentCoroutineContext().isActive) {

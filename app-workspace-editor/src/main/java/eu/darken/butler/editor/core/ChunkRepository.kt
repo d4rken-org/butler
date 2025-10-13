@@ -125,7 +125,7 @@ class ChunkRepository @AssistedInject constructor(
 }
 
 data class FileInfo(
-    val path: APath,
+    val path: APath<*>,
     val size: Long,
     val lastModified: Instant,
     val canWrite: Boolean

@@ -55,8 +55,8 @@ import okio.source
  * @param DPLE The destination path lookup extended type
  */
 class GenericCrossTypeCopyStrategy<
-    SP : APath, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,
-    DP : APath, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>
+    SP : APath<SP>, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,
+    DP : APath<DP>, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>
 > : TransferStrategy<SP, SPL, SPLE, DP, DPL, DPLE> {
 
     override suspend fun transferFile(

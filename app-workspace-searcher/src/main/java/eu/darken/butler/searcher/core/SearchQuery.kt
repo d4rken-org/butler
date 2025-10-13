@@ -12,7 +12,7 @@ import kotlin.time.Instant
 @Parcelize
 data class SearchQuery(
     val query: String,
-    val path: APath,
+    val path: APath<*>,
     val options: Options = Options(),
     val filter: Filter = Filter()
 ) : Parcelable {
@@ -51,7 +51,7 @@ data class SearchQuery(
     companion object {
         fun create(
             query: String,
-            path: APath,
+            path: APath<*>,
             searchContent: Boolean = false,
             caseSensitive: Boolean = false,
             useRegex: Boolean = false,

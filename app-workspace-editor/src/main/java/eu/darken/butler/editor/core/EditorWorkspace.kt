@@ -52,7 +52,7 @@ class EditorWorkspace @AssistedInject constructor(
     )
     override val info: MutableStateFlow<Workspace.Info> = _info
 
-    val filePath: APath? get() = arguments?.filePath
+    val filePath: APath<*>? get() = arguments?.filePath
     val chunkSize: Long get() = arguments?.chunkSize ?: ChunkManager.DEFAULT_CHUNK_SIZE
     val memoryLimit: Long get() = arguments?.memoryLimit ?: MemoryManager.DEFAULT_MAX_MEMORY_BYTES
     val isReadOnly: Boolean get() = arguments?.isReadOnly ?: false
@@ -175,7 +175,7 @@ class EditorWorkspace @AssistedInject constructor(
     }
     
     // Editor operations
-    suspend fun openFile(filePath: APath) = editorEngine.openFile(filePath)
+    suspend fun openFile(filePath: APath<*>) = editorEngine.openFile(filePath)
     suspend fun closeFile() = editorEngine.closeFile()
     suspend fun saveFile() = editorEngine.saveFile()
     suspend fun search(query: String) = editorEngine.search(query)
@@ -202,7 +202,7 @@ class EditorWorkspace @AssistedInject constructor(
 
     @Parcelize
     data class Arguments(
-        val filePath: APath? = null,
+        val filePath: APath<*>? = null,
         val chunkSize: Long = ChunkManager.DEFAULT_CHUNK_SIZE,
         val memoryLimit: Long = MemoryManager.DEFAULT_MAX_MEMORY_BYTES,
         val isReadOnly: Boolean = false,
@@ -213,7 +213,7 @@ class EditorWorkspace @AssistedInject constructor(
             get() = Workspace.Type.EDITOR
 
         companion object {
-            fun withFile(filePath: APath, isReadOnly: Boolean = false): Arguments {
+            fun withFile(filePath: APath<*>, isReadOnly: Boolean = false): Arguments {
                 return Arguments(
                     filePath = filePath,
                     isReadOnly = isReadOnly
@@ -221,7 +221,7 @@ class EditorWorkspace @AssistedInject constructor(
             }
 
             fun withFileAndSettings(
-                filePath: APath, 
+                filePath: APath<*>,
                 chunkSize: Long = ChunkManager.DEFAULT_CHUNK_SIZE,
                 memoryLimit: Long = MemoryManager.DEFAULT_MAX_MEMORY_BYTES,
                 isReadOnly: Boolean = false
@@ -235,7 +235,7 @@ class EditorWorkspace @AssistedInject constructor(
             }
 
             fun withFileAndNavigation(
-                filePath: APath,
+                filePath: APath<*>,
                 goToLine: Int? = null,
                 searchQuery: String? = null,
                 isReadOnly: Boolean = false

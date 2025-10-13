@@ -13,8 +13,8 @@ sealed interface PathActionIssue : Issue {
 
     data class PathAlreadyExists(
         override val id: Issue.Id = Issue.Id(),
-        val source: APathLookup<APath>? = null,
-        val destination: APathLookup<APath>,
+        val source: APathLookup<out APath<*>>? = null,
+        val destination: APathLookup<out APath<*>>,
         val canSkip: Boolean = false,
         val canOverwrite: Boolean = false,
         val canMerge: Boolean = false,
@@ -49,8 +49,8 @@ sealed interface PathActionIssue : Issue {
 
     data class InsufficientPermission(
         override val id: Issue.Id = Issue.Id(),
-        val source: APathLookup<APath>? = null,
-        val destination: APathLookup<APath>,
+        val source: APathLookup<out APath<*>>? = null,
+        val destination: APathLookup<out APath<*>>,
         val canSkip: Boolean = false,
         val exception: Throwable? = null,
     ) : PathActionIssue {
@@ -69,8 +69,8 @@ sealed interface PathActionIssue : Issue {
 
     data class InsufficientSpace(
         override val id: Issue.Id = Issue.Id(),
-        val source: APathLookup<APath>,
-        val destination: APathLookup<APath>,
+        val source: APathLookup<out APath<*>>,
+        val destination: APathLookup<out APath<*>>,
     ) : PathActionIssue {
         override val title: CaString = caString {
             getString(eu.darken.butler.common.io.R.string.path_action_insufficient_space_title)
@@ -87,8 +87,8 @@ sealed interface PathActionIssue : Issue {
 
     data class UnknownError(
         override val id: Issue.Id = Issue.Id(),
-        val source: APathLookup<APath>? = null,
-        val destination: APathLookup<APath>? = null,
+        val source: APathLookup<out APath<*>>? = null,
+        val destination: APathLookup<out APath<*>>? = null,
         val exception: Throwable,
         val errorMessage: CaString = caString { exception.localized(it).description.get(it) },
         val canSkip: Boolean = false,

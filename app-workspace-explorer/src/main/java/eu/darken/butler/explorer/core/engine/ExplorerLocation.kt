@@ -46,7 +46,7 @@ sealed interface ExplorerLocation {
         override val info: Info? = null,
         override val permissionState: PermissionState = PermissionState(),
         override val progress: Progress.Data? = Progress.Data(),
-        val path: APath,
+        val path: APath<*>,
         val parent: ExplorerNavigation.Target? = null,
     ) : ExplorerLocation {
         data class Info(

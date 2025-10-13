@@ -16,7 +16,7 @@ import java.io.File
 data class SAFPath(
     internal val treeRoot: String,
     override val segments: List<String>,
-) : APath {
+) : APath<SAFPath> {
 
     val treeRootUri: SafUri
         get() = SafUri.parse(treeRoot)

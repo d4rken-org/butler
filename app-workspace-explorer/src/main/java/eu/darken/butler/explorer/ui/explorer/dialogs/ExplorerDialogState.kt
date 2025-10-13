@@ -12,7 +12,7 @@ sealed interface ExplorerDialogState {
 
     data object CreateItem : ExplorerDialogState
 
-    data class DeleteConfirmation(val items: Set<APath>) : ExplorerDialogState
+    data class DeleteConfirmation(val items: Set<APath<*>>) : ExplorerDialogState
 
     data class RemoveLocationConfirmation(val items: List<ExplorerItem.Storage.SAF>) : ExplorerDialogState
 
@@ -21,7 +21,7 @@ sealed interface ExplorerDialogState {
         val currentName: String?,
     ) : ExplorerDialogState
 
-    data class Rename(val item: APath) : ExplorerDialogState
+    data class Rename(val item: APath<*>) : ExplorerDialogState
 
     data class EditSortOptions(val currentSortSettings: SortSettings) : ExplorerDialogState
 

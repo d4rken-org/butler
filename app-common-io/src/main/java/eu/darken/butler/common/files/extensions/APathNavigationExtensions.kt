@@ -14,7 +14,7 @@ import eu.darken.butler.common.files.saf.removePrefix
 import eu.darken.butler.common.files.saf.startsWith
 import java.util.Collections
 
-fun APath.isAncestorOf(descendant: APath): Boolean {
+fun APath<*>.isAncestorOf(descendant: APath<*>): Boolean {
     if (this::class != descendant::class) return false
     return when (this) {
         is LocalPath -> (this as LocalPath).isAncestorOf(descendant as LocalPath)
@@ -23,7 +23,7 @@ fun APath.isAncestorOf(descendant: APath): Boolean {
     }
 }
 
-fun APath.isDescendantOf(ancestor: APath): Boolean {
+fun APath<*>.isDescendantOf(ancestor: APath<*>): Boolean {
     if (this::class != ancestor::class) return false
     return ancestor.isAncestorOf(this)
 }
@@ -32,7 +32,7 @@ fun APath.isDescendantOf(ancestor: APath): Boolean {
  * A parent is a DIRECT ancestor
  * See [isAncestorOf]
  */
-fun APath.isParentOf(child: APath): Boolean {
+fun APath<*>.isParentOf(child: APath<*>): Boolean {
     if (this::class != child::class) return false
     return when (this) {
         is LocalPath -> this.isParentOf(child as LocalPath)
@@ -41,12 +41,12 @@ fun APath.isParentOf(child: APath): Boolean {
     }
 }
 
-fun APath.isChildOf(parent: APath): Boolean {
+fun APath<*>.isChildOf(parent: APath<*>): Boolean {
     if (this::class != parent::class) return false
     return parent.isParentOf(this)
 }
 
-fun APath.matches(other: APath): Boolean {
+fun APath<*>.matches(other: APath<*>): Boolean {
     if (this::class != other::class) return false
     return when (this) {
         is LocalPath -> this.path == (other as LocalPath).path
@@ -55,11 +55,11 @@ fun APath.matches(other: APath): Boolean {
     }
 }
 
-fun APath.containsSegments(vararg target: String): Boolean {
+fun APath<*>.containsSegments(vararg target: String): Boolean {
     return Collections.indexOfSubList(this.segments, target.toList()) != -1
 }
 
-fun APath.startsWith(prefix: APath): Boolean {
+fun APath<*>.startsWith(prefix: APath<*>): Boolean {
     if (this::class != prefix::class) return false
     return when (this) {
         is LocalPath -> this.startsWith(prefix as LocalPath)
@@ -68,7 +68,7 @@ fun APath.startsWith(prefix: APath): Boolean {
     }
 }
 
-fun APath.removePrefix(prefix: APath, overlap: Int = 0): Segments {
+fun APath<*>.removePrefix(prefix: APath<*>, overlap: Int = 0): Segments {
     if (this::class != prefix::class) {
         throw IllegalArgumentException("removePrefix(): Can't compare different types ($this and $prefix)")
     }
@@ -79,9 +79,9 @@ fun APath.removePrefix(prefix: APath, overlap: Int = 0): Segments {
     }
 }
 
-fun Collection<APath>.filterDistinctRoots(): Set<APath> = this
+fun Collection<APath<*>>.filterDistinctRoots(): Set<APath<*>> = this
     .sortedBy { it.segments.size }
-    .fold<APath, Set<APath>>(emptySet()) { acc, path ->
+    .fold<APath<*>, Set<APath<*>>>(emptySet()) { acc, path ->
         if (acc.none { it.isAncestorOf(path) }) {
             acc + path
         } else {

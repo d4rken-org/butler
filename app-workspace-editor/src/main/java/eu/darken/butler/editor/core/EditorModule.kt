@@ -28,7 +28,7 @@ interface EditorModule {
 
     @AssistedFactory
     interface FileDataSourceFactory {
-        fun create(filePath: APath, gatewaySwitch: GatewaySwitch): FileDataSource
+        fun create(filePath: APath<*>, gatewaySwitch: GatewaySwitch): FileDataSource
     }
 
     @AssistedFactory

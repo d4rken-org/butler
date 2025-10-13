@@ -114,7 +114,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     // All operations delegate to workspace
 
-    fun openFile(filePath: APath) {
+    fun openFile(filePath: APath<*>) {
         launch {
             try {
                 _isLoading.value = true

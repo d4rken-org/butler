@@ -108,7 +108,7 @@ class DeleteOperation @AssistedInject constructor(
             )
             .onEach { deleteState ->
                 when (deleteState) {
-                    is DeleteAction.State.Progress<APath, APathLookup<APath>> -> {
+                    is DeleteAction.State.Progress<*, *> -> {
                         val now = Clock.System.now()
                         val elapsed = lastSpeedUpdate.elapsedNow().inWholeMilliseconds / 1000.0
 
@@ -185,8 +185,10 @@ class DeleteOperation @AssistedInject constructor(
 
                         // Build secondary progress with bytes freed info
                         val secondaryProgress = if (deleteState.deletedBytes > 0) {
+                            @Suppress("UNCHECKED_CAST")
+                            val target = deleteState.target as APathLookup<*>
                             eu.darken.butler.common.progress.Progress.Data(
-                                primary = deleteState.target.lookedUp.name.toCaString(),
+                                primary = target.lookedUp.name.toCaString(),
                                 secondary = caString { ctx ->
                                     val bytesFormatted = Formatter.formatShortFileSize(ctx, deleteState.deletedBytes)
                                     ctx.getString(eu.darken.butler.workspace.R.string.workspace_operation_progress_bytes_freed, bytesFormatted)
@@ -200,11 +202,16 @@ class DeleteOperation @AssistedInject constructor(
                         )
                         emit(stateActive)
                     }
-                    is DeleteAction.State.Result<APath, APathLookup<APath>> -> {
-                        fileSystemHinter.trackPathsRemoved(operationContext.id, deleteState.deleted)
-                        reportBuilder.setDeletions(deleteState.deleted)
-                        reportBuilder.setSkipped(deleteState.skipped)
-                        reportBuilder.setBytesFreed(deleteState.deleted.sumOf { it.size })
+                    is DeleteAction.State.Result<*, *> -> {
+                        @Suppress("UNCHECKED_CAST")
+                        val deleted = deleteState.deleted as Set<APathLookup<*>>
+                        @Suppress("UNCHECKED_CAST")
+                        val skipped = deleteState.skipped as Set<APathLookup<*>>
+
+                        fileSystemHinter.trackPathsRemoved(operationContext.id, deleted)
+                        reportBuilder.setDeletions(deleted)
+                        reportBuilder.setSkipped(skipped)
+                        reportBuilder.setBytesFreed(deleted.sumOf { it.size })
                     }
                 }
             }

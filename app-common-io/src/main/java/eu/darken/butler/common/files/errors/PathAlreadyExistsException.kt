@@ -10,6 +10,6 @@ import eu.darken.butler.common.files.APath
  */
 class PathAlreadyExistsException(
     message: String? = null,
-    path: APath,
+    path: APath<*>,
     cause: Throwable? = null
 ) : WriteException(message ?: "Path already exists: $path", path, cause)

@@ -118,7 +118,7 @@ class SearcherWorkspace @AssistedInject constructor(
 
     @Parcelize
     data class Arguments(
-        val startPath: APath? = null,
+        val startPath: APath<*>? = null,
     ) : Workspace.Arguments {
         override val type: Workspace.Type
             get() = Workspace.Type.SEARCHER

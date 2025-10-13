@@ -34,7 +34,7 @@ class ShortcutRepo @Inject constructor(
             .take(maxCount)
     }
 
-    suspend fun trackAccess(path: APath) {
+    suspend fun trackAccess(path: APath<*>) {
         try {
             if (!settings.autoRememberEnabled.value()) {
                 log(TAG, DEBUG) { "Auto-remembering disabled, skipping: $path" }
@@ -53,7 +53,7 @@ class ShortcutRepo @Inject constructor(
 
     private fun updateLastAccessedList(
         current: List<RecentPath>,
-        accessedPath: APath,
+        accessedPath: APath<*>,
     ): List<RecentPath> {
         val existing = current.find { it.path == accessedPath }
         val updated = existing?.copy(

@@ -481,30 +481,6 @@ class LocalGateway @Inject constructor(
         }
     }
 
-    override suspend fun delete(path: LocalPath): Boolean = delete(path, Mode.AUTO)
-
-    suspend fun delete(path: LocalPath, mode: Mode = Mode.AUTO): Boolean = runIO {
-        val javaFile = path.toFile()
-        when {
-            mode == Mode.NORMAL || (mode == Mode.AUTO && javaFile.canWrite()) -> {
-                fileSystemOps.delete(path)
-                true
-            }
-
-            hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "delete($mode->ROOT): $path" }
-                rootOps { it.delete(path) }
-            }
-
-            hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "delete($mode->ADB): $path" }
-                adbOps { it.delete(path) }
-            }
-
-            else -> throw IOException("No matching mode available for delete")
-        }
-    }
-
     override suspend fun openInputStream(path: LocalPath): InputStream = openInputStream(path, Mode.AUTO)
 
     suspend fun openInputStream(path: LocalPath, mode: Mode = Mode.AUTO): InputStream = runIO {
@@ -727,6 +703,63 @@ class LocalGateway @Inject constructor(
         }
     }
 
+    /**
+     * Delete a single file or directory (primitive operation).
+     *
+     * This is a low-level primitive from [FileSystemOps] used internally by operations
+     * like Move/Copy for overwrite scenarios. It provides simple Boolean success/failure
+     * with no progress tracking or error handling.
+     *
+     * For user-facing deletions with progress updates, error handling, and "apply to all"
+     * conflict resolution, use [delete] with Set<LocalPath> and Options instead.
+     *
+     * @param path The file or directory to delete
+     * @param recursive If true, recursively delete directory contents (children before parents)
+     * @return true if deleted successfully, false if path didn't exist
+     * @see delete For high-level delete operation with progress tracking
+     */
+    override suspend fun delete(path: LocalPath, recursive: Boolean): Boolean = delete(path, recursive, Mode.AUTO)
+
+    suspend fun delete(path: LocalPath, recursive: Boolean = false, mode: Mode = Mode.AUTO): Boolean = runIO {
+        val javaFile = path.toFile()
+        when {
+            mode == Mode.NORMAL || (mode == Mode.AUTO && javaFile.canWrite()) -> {
+                fileSystemOps.delete(path, recursive)
+                true
+            }
+
+            hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
+                log(TAG, VERBOSE) { "delete($mode->ROOT, recursive=$recursive): $path" }
+                rootOps { it.delete(path, recursive) }
+            }
+
+            hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
+                log(TAG, VERBOSE) { "delete($mode->ADB, recursive=$recursive): $path" }
+                adbOps { it.delete(path, recursive) }
+            }
+
+            else -> throw IOException("No matching mode available for delete")
+        }
+    }
+
+    /**
+     * Delete multiple files and directories with progress tracking and error handling.
+     *
+     * This is the high-level operation from [DeleteAction] used for user-initiated deletions.
+     * It orchestrates deletion via [GenericPathDelete], providing:
+     * - Real-time progress updates via Flow
+     * - "Apply to all" conflict resolution
+     * - Error handling with skip/retry/cancel options
+     * - Recursive directory traversal with post-order deletion
+     *
+     * For internal/primitive deletion (e.g., in Move/Copy overwrite scenarios) without
+     * progress tracking, use [delete] with LocalPath instead.
+     *
+     * @param targets Set of files/directories to delete
+     * @param options Deletion options (recursive, ignoreMissing, issue handler)
+     * @return Flow of State updates (Progress and final Result)
+     * @see delete For low-level primitive deletion without progress tracking
+     */
     override suspend fun delete(
         targets: Set<LocalPath>,
         options: DeleteAction.Options<LocalPath>

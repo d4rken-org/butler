@@ -23,8 +23,8 @@ import eu.darken.butler.common.files.RawPath
 
 @Composable
 fun FilePickerBreadcrumbs(
-    currentPath: APath?,
-    onNavigate: (APath) -> Unit,
+    currentPath: APath<*>?,
+    onNavigate: (APath<*>) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (currentPath == null) return

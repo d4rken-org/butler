@@ -22,7 +22,7 @@ import eu.darken.butler.common.user.UserHandle2
 
 data class LibraryPkg(
     private val sharedLibraryInfo: SharedLibraryInfo,
-    private val apkPath: APath,
+    private val apkPath: APath<*>,
     override val packageInfo: PackageInfo,
     override val userHandle: UserHandle2,
 ) : SourceAvailable, PermissionDetails {
@@ -45,7 +45,7 @@ data class LibraryPkg(
             sharedLibraryInfo.version.toLong()
         }
 
-    override val sourceDir: APath
+    override val sourceDir: APath<*>
         get() = apkPath
 
     override val label: CaString = caString { context ->

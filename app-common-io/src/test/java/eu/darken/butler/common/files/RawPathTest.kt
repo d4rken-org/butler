@@ -5,17 +5,18 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.SerializationException
 import org.junit.jupiter.api.Test
+import testhelpers.BaseTest
 import testhelpers.json.toComparableJson
 import java.io.File
 
-class RawPathTest {
+class RawPathTest : BaseTest() {
     private val json = SerializationIOModule().json()
 
     @Test
     fun `test polymorph serialization`() {
         val original = RawPath.build("test", "file")
 
-        val jsonString = json.encodeToString(original as APath)
+        val jsonString = json.encodeToString<APath<RawPath>>(original)
         jsonString.toComparableJson() shouldBe """
             {
                 "path": "test/file",
@@ -23,7 +24,7 @@ class RawPathTest {
             }
         """.toComparableJson()
 
-        json.decodeFromString<APath>(jsonString) shouldBe original
+        json.decodeFromString<APath<RawPath>>(jsonString) shouldBe original
     }
 
     @Test

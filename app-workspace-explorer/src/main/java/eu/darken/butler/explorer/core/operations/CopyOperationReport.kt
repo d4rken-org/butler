@@ -12,7 +12,7 @@ import eu.darken.butler.workspace.core.operations.Operation.Report.*
 
 data class CopyOperationReport(
     override val affectedPaths: Collection<PathChange>,
-    val skipped: Collection<APath>,
+    val skipped: Collection<APath<*>>,
     val copiedFiles: Int,
     val copiedDirectories: Int,
     val copiedBytes: Long,
@@ -56,7 +56,7 @@ data class CopyOperationReport(
 
     class Builder {
         private val affectedPaths = mutableListOf<PathChange>()
-        private val skipped = mutableListOf<APath>()
+        private val skipped = mutableListOf<APath<*>>()
         private var copiedFiles: Int = 0
         private var copiedDirectories: Int = 0
         private var copiedBytes: Long = 0
@@ -69,7 +69,7 @@ data class CopyOperationReport(
             affectedPaths.addAll(affected)
         }
 
-        fun setSkipped(items: Set<APath>) {
+        fun setSkipped(items: Set<APath<*>>) {
             skipped.addAll(items)
         }
 

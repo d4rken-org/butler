@@ -27,13 +27,13 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.common.R as CommonR
 
 data class RenameResult(
-    val item: APath,
+    val item: APath<*>,
     val newName: String,
 )
 
 @Composable
 fun RenameDialog(
-    item: APath,
+    item: APath<*>,
     currentName: String,
     onValidate: (String) -> FilenameValidator.ValidationResult = { FilenameValidator.ValidationResult.Valid },
     onDismiss: () -> Unit,

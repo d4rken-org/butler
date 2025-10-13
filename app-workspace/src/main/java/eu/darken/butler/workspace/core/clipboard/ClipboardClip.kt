@@ -22,7 +22,7 @@ sealed interface ClipboardClip {
         override val clippedAt: Instant = Clock.System.now(),
         override val origin: Workspace.Id,
         val mode: Mode,
-        val paths: List<APath>,
+        val paths: List<APath<*>>,
     ) : ClipboardClip {
         override val title: CaString
             get() = caString {

@@ -11,7 +11,7 @@ import kotlin.uuid.Uuid
 @Serializable
 data class RecentPath(
     @Contextual val id: ShortcutId = Uuid.random(),
-    val path: APath,
+    val path: APath<*>,
     val accessCount: Int = 1,
     @Contextual val lastAccessed: Instant = Clock.System.now(),
 )

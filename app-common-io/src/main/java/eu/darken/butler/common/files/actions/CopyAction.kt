@@ -5,22 +5,22 @@ import eu.darken.butler.common.files.APathLookup
 import kotlinx.coroutines.flow.Flow
 import kotlin.time.Instant
 
-interface CopyAction<P : APath, PL : APathLookup<P>> : GatewayAction<P> {
+interface CopyAction<P : APath<P>, PL : APathLookup<P>> : GatewayAction<P> {
     suspend fun copy(
         sources: Set<P>,
         destination: P,
         options: Options<P> = Options()
     ): Flow<State<P, PL>>
 
-    data class Options<P : APath>(
+    data class Options<P : APath<P>>(
         val overwrite: Boolean = false,
         val preserveAttributes: Boolean = true,
         val followSymlinks: Boolean = false,
         val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
     )
 
-    sealed interface State<out P : APath, out PL : APathLookup<P>> {
-        data class Progress<out P : APath, out PL : APathLookup<P>>(
+    sealed interface State<P : APath<P>, PL : APathLookup<P>> {
+        data class Progress<P : APath<P>, PL : APathLookup<P>>(
             val currentSource: P,
             val currentDestination: P,
             val primaryProgress: eu.darken.butler.common.progress.Progress.Data,
@@ -32,7 +32,7 @@ interface CopyAction<P : APath, PL : APathLookup<P>> : GatewayAction<P> {
             val currentFileStartTime: Instant? = null,
         ) : State<P, PL>
 
-        data class Result<out P : APath, out PL : APathLookup<P>>(
+        data class Result<P : APath<P>, PL : APathLookup<P>>(
             val copied: Set<Pair<P, P>>,
             val skipped: Set<P> = emptySet(),
             val copiedBytes: Long,

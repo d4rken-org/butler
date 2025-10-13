@@ -221,7 +221,7 @@ class PkgOps @Inject constructor(
         }
     }
 
-    suspend fun viewArchive(path: APath, flags: Int = 0): PkgArchive? = ipcFunnel.use {
+    suspend fun viewArchive(path: APath<*>, flags: Int = 0): PkgArchive? = ipcFunnel.use {
         // TODO Can we support SAF here?
         val jFile = path.toFile()
         if (!jFile.exists()) return@use null

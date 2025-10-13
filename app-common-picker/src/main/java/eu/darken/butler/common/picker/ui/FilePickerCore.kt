@@ -44,7 +44,7 @@ fun FilePickerCore(
     config: FilePickerConfig,
     state: FilePickerState,
     modifier: Modifier = Modifier,
-    onNavigate: (APath) -> Unit,
+    onNavigate: (APath<*>) -> Unit,
     onItemClick: (FilePickerState.FileItem) -> Unit,
     onItemLongClick: (FilePickerState.FileItem) -> Unit,
     onConfirm: () -> Unit,

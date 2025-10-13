@@ -31,7 +31,7 @@ class DirectoryLocationLoader @AssistedInject constructor(
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "DirectoryLoader")
 
     private class LoaderContext(
-        private val path: APath,
+        private val path: APath<*>,
         private val permissionState: eu.darken.butler.workspace.core.permissions.PermissionState,
         private val emit: suspend (ExplorerLocation.Directory) -> Unit,
     ) {
@@ -66,10 +66,10 @@ class DirectoryLocationLoader @AssistedInject constructor(
             emit(currentState)
         }
 
-        val targetPath: APath get() = currentState.path
+        val targetPath: APath<*> get() = currentState.path
     }
 
-    fun loadDirectory(path: APath): Flow<ExplorerLocation> {
+    fun loadDirectory(path: APath<*>): Flow<ExplorerLocation> {
         return pathPermissionCheck.monitor(path).flatMapLatest { permissionState ->
             flow {
                 log(tag, INFO) { "loadDirectory(): Loading directory with permission state: $permissionState" }

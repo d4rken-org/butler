@@ -7,12 +7,12 @@ import eu.darken.butler.common.files.metadata.FileType
 import kotlin.time.Instant
 
 @Keep
-interface APathLookup<out T : APath> {
+interface APathLookup<T : APath<T>> {
     val lookedUp: T
     val fileType: FileType
     val size: Long
     val modifiedAt: Instant
-    val target: APath?
+    val target: APath<*>?
 
     val path: String
         get() = lookedUp.path
@@ -26,5 +26,5 @@ interface APathLookup<out T : APath> {
     val segments: Segments
         get() = lookedUp.segments
 
-    fun child(vararg segments: String): APath = lookedUp.child(*segments)
+    fun child(vararg segments: String): T = lookedUp.child(*segments)
 }

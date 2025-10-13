@@ -6,12 +6,13 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 import testhelper.EmptyApp
+import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
 
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [29], application = EmptyApp::class)
-class SAFGatewayTest {
+class SAFGatewayTest : BaseTest() {
 
     @Test
     fun `init`() = runTest2(autoCancel = true) {

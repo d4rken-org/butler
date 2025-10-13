@@ -253,12 +253,28 @@ class SAFFileSystemOps @Inject constructor(
         throw ReadException(path = path, cause = e)
     }
 
-    override suspend fun delete(path: SAFPath): Boolean = try {
-        val docFile = path.resolveDocFile()
-        log(TAG, VERBOSE) { "delete(): $path -> $docFile" }
-        docFile.delete()
-    } catch (e: Exception) {
-        throw WriteException(path = path, cause = e)
+    override suspend fun delete(path: SAFPath, recursive: Boolean): Boolean {
+        return try {
+            log(TAG, VERBOSE) { "delete(recursive=$recursive): $path" }
+            val docFile = path.resolveDocFile()
+
+            if (!docFile.exists) {
+                return false
+            }
+
+            // If recursive and it's a directory, delete children first (post-order)
+            if (recursive && docFile.isDirectory) {
+                val children = listFiles(path)
+                children.forEach { childPath ->
+                    delete(childPath, recursive = true)
+                }
+            }
+
+            // Delete the path itself
+            docFile.delete()
+        } catch (e: Exception) {
+            throw WriteException(path = path, cause = e)
+        }
     }
 
     private fun createDocumentFile(mimeType: String, targetSafPath: SAFPath): SAFDocFile {

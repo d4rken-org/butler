@@ -57,8 +57,8 @@ import eu.darken.butler.common.files.APathLookupExtended
  * @param DPLE The destination path lookup extended type (LocalPathLookupExtended, SAFPathLookupExtended, etc.)
  */
 interface TransferStrategy<
-    SP : APath, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
-    DP : APath, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
+    SP : APath<SP>, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
+    DP : APath<DP>, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
 > {
 
     /**
@@ -91,7 +91,7 @@ interface TransferStrategy<
      *
      * Supports both same-type (SP=DP) and cross-type (SP≠DP) transfers.
      */
-    sealed class TransferResult<SP : APath, DP : APath> {
+    sealed class TransferResult<SP : APath<SP>, DP : APath<DP>> {
         /**
          * Transfer completed successfully.
          *
@@ -99,7 +99,7 @@ interface TransferStrategy<
          * @param destination The actual destination path (may differ from requested if renamed)
          * @param bytesTransferred Number of bytes transferred
          */
-        data class Success<SP : APath, DP : APath>(
+        data class Success<SP : APath<SP>, DP : APath<DP>>(
             val source: SP,
             val destination: DP,
             val bytesTransferred: Long
@@ -116,7 +116,7 @@ interface TransferStrategy<
          * @param source The source path
          * @param reason Human-readable reason for skip
          */
-        data class Skipped<SP : APath, DP : APath>(
+        data class Skipped<SP : APath<SP>, DP : APath<DP>>(
             val source: SP,
             val reason: String
         ) : TransferResult<SP, DP>()

@@ -5,20 +5,20 @@ import eu.darken.butler.common.files.APathLookup
 import kotlinx.coroutines.flow.Flow
 
 
-interface DeleteAction<P : APath, PL : APathLookup<P>> : GatewayAction<P> {
+interface DeleteAction<P : APath<P>, PL : APathLookup<P>> : GatewayAction<P> {
     suspend fun delete(
         targets: Set<P>,
         options: Options<P> = Options()
     ): Flow<State<P, PL>>
 
-    data class Options<P : APath>(
+    data class Options<P : APath<P>>(
         val recursive: Boolean = false,
         val ignoreMissing: Boolean = true,
         val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
     )
 
-    sealed interface State<out P : APath, out PL : APathLookup<P>> {
-        data class Progress<out P : APath, out PL : APathLookup<P>>(
+    sealed interface State<out P, out PL> {
+        data class Progress<out P, out PL>(
             val target: PL,
             val primaryProgress: eu.darken.butler.common.progress.Progress.Data,
             val secondaryProgress: eu.darken.butler.common.progress.Progress.Data? = null,
@@ -27,11 +27,12 @@ interface DeleteAction<P : APath, PL : APathLookup<P>> : GatewayAction<P> {
             val currentItemStartTime: kotlin.time.Instant? = null,
         ) : State<P, PL>
 
-        data class Result<out P : APath, out PL : APathLookup<P>>(
+        data class Result<out P, out PL>(
             val deleted: Set<PL>,
             val skipped: Set<PL>,
         ) : State<P, PL> {
-            val bytesTotal: Long get() = deleted.sumOf { it.size }
+            @Suppress("UNCHECKED_CAST")
+            val bytesTotal: Long get() = (deleted as Set<APathLookup<*>>).sumOf { it.size }
         }
     }
 }

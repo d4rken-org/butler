@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.operations
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.APathLookupExtended
+import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
@@ -62,7 +63,7 @@ import kotlin.time.Instant
  * @param PLE The path lookup extended type (LocalPathLookupExtended, SAFPathLookupExtended, etc.)
  * @param lookupFactory Factory function to create path lookups from mock data
  */
-open class MockFileSystemOps<P : APath, PL : APathLookup<P>, PLE : APathLookupExtended<P>>(
+open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>>(
     private val lookupFactory: (path: P, type: FileType, size: Long, modifiedAt: Instant?, permissions: Permissions?, ownership: Ownership?) -> PL
 ) : FileSystemOps<P, PL, PLE> {
 
@@ -187,13 +188,23 @@ open class MockFileSystemOps<P : APath, PL : APathLookup<P>, PLE : APathLookupEx
         return files.containsKey(path.path)
     }
 
-    override suspend fun delete(path: P): Boolean {
+    override suspend fun delete(path: P, recursive: Boolean): Boolean {
         deleteCalls.add(path.path)
 
         val mockFile = files[path.path] ?: return false
 
-        // Check if directory is empty
-        if (mockFile.type == FileType.DIRECTORY && mockFile.children.isNotEmpty()) {
+        // If recursive, delete children first (post-order)
+        if (recursive && mockFile.type == FileType.DIRECTORY) {
+            val children = mockFile.children.toList() // Copy to avoid ConcurrentModificationException
+            children.forEach { childName ->
+                @Suppress("UNCHECKED_CAST")
+                val childPath = path.child(childName) as P
+                delete(childPath, recursive = true)
+            }
+        }
+
+        // Check if directory is empty when not recursive
+        if (!recursive && mockFile.type == FileType.DIRECTORY && mockFile.children.isNotEmpty()) {
             throw IllegalStateException("Directory not empty: ${path.path}")
         }
 
@@ -214,7 +225,10 @@ open class MockFileSystemOps<P : APath, PL : APathLookup<P>, PLE : APathLookupEx
         if (files.containsKey(path.path)) {
             val existing = files[path.path]!!
             if (existing.type != FileType.DIRECTORY) {
-                throw IllegalStateException("File exists but is not a directory: ${path.path}")
+                throw PathAlreadyExistsException(
+                    message = "File exists but is not a directory: ${path.path}",
+                    path = path
+                )
             }
             // Already exists - idempotent
             return
@@ -248,7 +262,7 @@ open class MockFileSystemOps<P : APath, PL : APathLookup<P>, PLE : APathLookupEx
         createFileCalls.add(path.path)
 
         if (files.containsKey(path.path)) {
-            throw IllegalStateException("File already exists: ${path.path}")
+            throw PathAlreadyExistsException(path = path)
         }
 
         // Ensure parent directory exists

@@ -21,9 +21,13 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.FileAlreadyExistsException
+import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
+import java.nio.file.Path
+import java.nio.file.SimpleFileVisitor
 import java.nio.file.StandardOpenOption
+import java.nio.file.attribute.BasicFileAttributes
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Instant
@@ -110,10 +114,31 @@ class LocalFileSystemOps @Inject constructor(
         return Files.exists(path.toNioPath())
     }
 
-    override suspend fun delete(path: LocalPath): Boolean {
+    override suspend fun delete(path: LocalPath, recursive: Boolean): Boolean {
         return try {
-            Files.delete(path.toNioPath())
-            true
+            val nioPath = path.toNioPath()
+
+            if (recursive) {
+                // Use Files.walkFileTree with a visitor that deletes in post-order
+                Files.walkFileTree(nioPath, object : SimpleFileVisitor<Path>() {
+                    override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
+                        Files.delete(file)
+                        return FileVisitResult.CONTINUE
+                    }
+
+                    override fun postVisitDirectory(dir: Path, exc: IOException?): FileVisitResult {
+                        if (exc != null) {
+                            throw exc
+                        }
+                        Files.delete(dir)
+                        return FileVisitResult.CONTINUE
+                    }
+                })
+                true
+            } else {
+                Files.delete(nioPath)
+                true
+            }
         } catch (e: NoSuchFileException) {
             false // File doesn't exist - return false (not an error)
         } catch (e: IOException) {

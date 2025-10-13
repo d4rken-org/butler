@@ -30,7 +30,7 @@ class SearchEngine @Inject constructor(
     
     
     data class SearchProgress(
-        val currentPath: APath,
+        val currentPath: APath<*>,
         val itemsScanned: Int,
         val resultsFound: Int
     )
@@ -47,9 +47,9 @@ class SearchEngine @Inject constructor(
         when (val gateway = gatewaySwitch.getGateway(searchQuery.path)) {
             is APathGateway<*, *, *> -> {
                 @Suppress("UNCHECKED_CAST")
-                val typedGateway = gateway as APathGateway<APath, APathLookup<APath>, *>
-                
-                val walkOptions = APathGateway.WalkOptions<APath, APathLookup<APath>>(
+                val typedGateway = gateway as APathGateway<APath<*>, APathLookup<APath<*>>, *>
+
+                val walkOptions = APathGateway.WalkOptions<APath<*>, APathLookup<APath<*>>>(
                     onFilter = { lookup ->
                         if (!currentCoroutineContext().isActive) throw CancellationException()
                         

@@ -36,7 +36,7 @@ import eu.darken.butler.workspace.core.permissions.SetupRequirement
 
 @Composable
 fun PermissionSetupCard(
-    searchPath: APath,
+    searchPath: APath<*>,
     permissionState: PermissionState,
     onOpenSetup: () -> Unit,
     modifier: Modifier = Modifier,

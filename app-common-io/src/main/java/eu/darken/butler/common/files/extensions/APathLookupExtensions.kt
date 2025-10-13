@@ -21,21 +21,21 @@ val APathLookup<*>.isSymlink: Boolean
 val APathLookup<*>.isFile: Boolean
     get() = fileType == FileType.FILE
 
-suspend fun <P : APath, PL : APathLookup<P>, PLE : APathLookupExtended<P>, GT : APathGateway<P, PL, PLE>> PL.walk(
+suspend fun <P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>, GT : APathGateway<P, PL, PLE>> PL.walk(
     gateway: GT,
     options: APathGateway.WalkOptions<P, PL> = APathGateway.WalkOptions()
 ): Flow<PL> = lookedUp.walk(gateway, options)
 
-suspend fun <P : APath, PL : APathLookup<P>, PLE : APathLookupExtended<P>, GT : APathGateway<P, PL, PLE>> PL.du(
+suspend fun <P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>, GT : APathGateway<P, PL, PLE>> PL.du(
     gateway: GT,
     options: APathGateway.DuOptions<P, PL> = APathGateway.DuOptions()
 ): Long = lookedUp.du(gateway, options)
 
-suspend fun <P : APath, PL : APathLookup<P>> PL.exists(
+suspend fun <P : APath<P>, PL : APathLookup<P>> PL.exists(
     gateway: APathGateway<P, out APathLookup<P>, out APathLookupExtended<P>>
 ): Boolean = lookedUp.exists(gateway)
 
-suspend fun <P : APath, PL : APathLookup<P>, PLE : APathLookupExtended<P>> PL.delete(
+suspend fun <P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>> PL.delete(
     gateway: APathGateway<P, PL, PLE>,
     options: DeleteAction.Options<P>,
 ) = setOf(this).delete(
@@ -43,7 +43,7 @@ suspend fun <P : APath, PL : APathLookup<P>, PLE : APathLookupExtended<P>> PL.de
     options = options
 )
 
-suspend fun <P : APath, PL : APathLookup<P>, PLE : APathLookupExtended<P>> Collection<PL>.delete(
+suspend fun <P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>> Collection<PL>.delete(
     gateway: APathGateway<P, PL, PLE>,
     options: DeleteAction.Options<P>,
 ) = this.map { it.lookedUp }.delete(
@@ -51,54 +51,54 @@ suspend fun <P : APath, PL : APathLookup<P>, PLE : APathLookupExtended<P>> Colle
     options = options
 )
 
-suspend fun <P : APath, PL : APathLookup<P>> PL.file(
+suspend fun <P : APath<P>, PL : APathLookup<P>> PL.file(
     gateway: APathGateway<P, out APathLookup<P>, out APathLookupExtended<P>>,
     readWrite: Boolean
 ): FileHandle = lookedUp.file(gateway, readWrite)
 
-suspend fun <P : APath, PL : APathLookup<P>> PL.canRead(
+suspend fun <P : APath<P>, PL : APathLookup<P>> PL.canRead(
     gateway: APathGateway<P, out APathLookup<P>, out APathLookupExtended<P>>
 ): Boolean = lookedUp.canRead(gateway)
 
-suspend fun <P : APath, PL : APathLookup<P>> PL.canWrite(
+suspend fun <P : APath<P>, PL : APathLookup<P>> PL.canWrite(
     gateway: APathGateway<P, out APathLookup<P>, out APathLookupExtended<P>>
 ): Boolean = lookedUp.canWrite(gateway)
 
-suspend fun <P : APath, PL : APathLookup<P>> PL.lookupFiles(
+suspend fun <P : APath<P>, PL : APathLookup<P>> PL.lookupFiles(
     gateway: APathGateway<P, out APathLookup<P>, out APathLookupExtended<P>>
 ): Collection<APathLookup<*>> = lookedUp.lookupFiles(gateway)
 
-fun APathLookup<*>.matches(other: APath): Boolean = lookedUp.matches(other)
-fun APath.matches(other: APathLookup<*>): Boolean = matches(other.lookedUp)
+fun APathLookup<*>.matches(other: APath<*>): Boolean = lookedUp.matches(other)
+fun APath<*>.matches(other: APathLookup<*>): Boolean = matches(other.lookedUp)
 fun APathLookup<*>.matches(other: APathLookup<*>): Boolean = lookedUp.matches(other.lookedUp)
 
-fun APathLookup<*>.startsWith(prefix: APath): Boolean = lookedUp.startsWith(prefix)
+fun APathLookup<*>.startsWith(prefix: APath<*>): Boolean = lookedUp.startsWith(prefix)
 fun APathLookup<*>.startsWith(prefix: APathLookup<*>): Boolean = lookedUp.startsWith(prefix.lookedUp)
-fun APath.startsWith(prefix: APathLookup<*>): Boolean = startsWith(prefix.lookedUp)
+fun APath<*>.startsWith(prefix: APathLookup<*>): Boolean = startsWith(prefix.lookedUp)
 
-fun APath.isChildOf(parent: APathLookup<*>): Boolean = isChildOf(parent.lookedUp)
+fun APath<*>.isChildOf(parent: APathLookup<*>): Boolean = isChildOf(parent.lookedUp)
 fun APathLookup<*>.isChildOf(parent: APathLookup<*>): Boolean = lookedUp.isChildOf(parent.lookedUp)
-fun APathLookup<*>.isChildOf(parent: APath): Boolean = lookedUp.isChildOf(parent)
+fun APathLookup<*>.isChildOf(parent: APath<*>): Boolean = lookedUp.isChildOf(parent)
 
-fun APathLookup<*>.isAncestorOf(descendant: APath): Boolean = lookedUp.isAncestorOf(descendant)
-fun APath.isAncestorOf(descendant: APathLookup<*>): Boolean = isAncestorOf(descendant.lookedUp)
+fun APathLookup<*>.isAncestorOf(descendant: APath<*>): Boolean = lookedUp.isAncestorOf(descendant)
+fun APath<*>.isAncestorOf(descendant: APathLookup<*>): Boolean = isAncestorOf(descendant.lookedUp)
 fun APathLookup<*>.isAncestorOf(descendant: APathLookup<*>): Boolean = lookedUp.isAncestorOf(descendant.lookedUp)
 
-fun APathLookup<*>.isDescendantOf(ancestor: APath): Boolean = lookedUp.isDescendantOf(ancestor)
-fun APath.isDescendantOf(ancestor: APathLookup<*>) = isDescendantOf(ancestor.lookedUp)
+fun APathLookup<*>.isDescendantOf(ancestor: APath<*>): Boolean = lookedUp.isDescendantOf(ancestor)
+fun APath<*>.isDescendantOf(ancestor: APathLookup<*>) = isDescendantOf(ancestor.lookedUp)
 fun APathLookup<*>.isDescendantOf(ancestor: APathLookup<*>): Boolean = lookedUp.isDescendantOf(ancestor.lookedUp)
 
-fun APathLookup<*>.isParentOf(child: APath): Boolean = lookedUp.isParentOf(child)
-fun APath.isParentOf(child: APathLookup<*>): Boolean = isParentOf(child.lookedUp)
+fun APathLookup<*>.isParentOf(child: APath<*>): Boolean = lookedUp.isParentOf(child)
+fun APath<*>.isParentOf(child: APathLookup<*>): Boolean = isParentOf(child.lookedUp)
 fun APathLookup<*>.isParentOf(child: APathLookup<*>): Boolean = lookedUp.isParentOf(child.lookedUp)
 
 fun APathLookup<*>.removePrefix(prefix: APathLookup<*>, overlap: Int = 0) =
     lookedUp.removePrefix(prefix.lookedUp, overlap)
 
-fun APath.removePrefix(prefix: APathLookup<*>, overlap: Int = 0) =
+fun APath<*>.removePrefix(prefix: APathLookup<*>, overlap: Int = 0) =
     this.removePrefix(prefix.lookedUp, overlap)
 
-fun APathLookup<*>.removePrefix(prefix: APath, overlap: Int = 0) =
+fun APathLookup<*>.removePrefix(prefix: APath<*>, overlap: Int = 0) =
     lookedUp.removePrefix(prefix, overlap)
 
 fun Collection<APathLookup<*>>.filterDistinctRoots(): Set<APathLookup<*>> {

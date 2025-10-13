@@ -7,13 +7,13 @@ sealed interface ExplorerDialogEvent {
     data object ShowCreateItem : ExplorerDialogEvent
 
     data class ShowDeleteConfirmation(
-        val items: Set<APath>,
+        val items: Set<APath<*>>,
     ) : ExplorerDialogEvent {
         override fun toString(): String = "ShowDeleteConfirmation(${items.size})"
     }
 
     data class ShowRename(
-        val item: APath,
+        val item: APath<*>,
     ) : ExplorerDialogEvent
 
     data object ShowFilterOptions : ExplorerDialogEvent

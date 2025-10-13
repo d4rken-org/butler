@@ -21,24 +21,24 @@ import java.nio.file.NoSuchFileException
  */
 class PathOperationErrorHandler(
     private val issueResolver: PathOperationIssueResolver,
-    private val onItemSkipped: (suspend (APathLookup<APath>) -> Unit)? = null
+    private val onItemSkipped: (suspend (APathLookup<*>) -> Unit)? = null
 ) {
 
     /**
      * Context for error handling operations
      */
     sealed class ErrorContext {
-        abstract val lookup: APathLookup<APath>
+        abstract val lookup: APathLookup<*>
         abstract val operation: String
 
         data class Read(
-            override val lookup: APathLookup<APath>,
+            override val lookup: APathLookup<*>,
             override val operation: String,
         ) : ErrorContext()
 
         data class Write(
-            override val lookup: APathLookup<APath>,
-            val destPath: APath,
+            override val lookup: APathLookup<*>,
+            val destPath: APath<*>,
             override val operation: String,
         ) : ErrorContext()
     }

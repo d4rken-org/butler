@@ -16,7 +16,7 @@ import java.util.LinkedList
 // TODO support symlinks?
 // TODO unit test coverage
 class PathWalker<
-        P : APath,
+        P : APath<P>,
         PL : APathLookup<P>,
         PLE : APathLookupExtended<P>,
         GT : APathGateway<P, PL, PLE>

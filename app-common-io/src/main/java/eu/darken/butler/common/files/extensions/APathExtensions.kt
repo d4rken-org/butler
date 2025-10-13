@@ -8,7 +8,7 @@ import eu.darken.butler.common.files.local.relativeSegmentsTo
 import eu.darken.butler.common.files.saf.crumbsTo
 import java.io.File
 
-fun APath.crumbsTo(child: APath): Array<String> {
+fun APath<*>.crumbsTo(child: APath<*>): Array<String> {
     require(this::class == child::class)
 
     return when (this) {
@@ -18,13 +18,10 @@ fun APath.crumbsTo(child: APath): Array<String> {
     }
 }
 
-@Suppress("UNCHECKED_CAST")
-fun <P : APath> P.childCast(vararg segments: String): P = child(*segments) as P
-
-fun APath.toFile(): File = when (this) {
+fun APath<*>.toFile(): File = when (this) {
     is LocalPath -> this.file
     else -> File(this.path)
 }
 
-val APath.extension: String?
+val APath<*>.extension: String?
     get() = name.substringAfterLast('.', "").takeIf { it.isNotEmpty() }

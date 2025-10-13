@@ -96,7 +96,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         }
     }
 
-    override suspend fun openFile(filePath: APath): Result<Unit> = bufferMutex.withLock {
+    override suspend fun openFile(filePath: APath<*>): Result<Unit> = bufferMutex.withLock {
         try {
             log(tag) { "Opening file: $filePath" }
             
@@ -378,7 +378,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         }
     }
     
-    override suspend fun saveFileAs(filePath: APath): Result<Unit> {
+    override suspend fun saveFileAs(filePath: APath<*>): Result<Unit> {
         // This would require implementing file copying with chunks
         return Result.failure(UnsupportedOperationException("Save As not implemented yet"))
     }

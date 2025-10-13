@@ -80,7 +80,7 @@ fun SearcherWorkspacePage(
     vm: SearcherWorkspaceViewModel? = null,
     workspaceActionHandler: WorkspaceActionHandler? = null,
     onUpdateQuery: (TextFieldValue) -> Unit = {},
-    onUpdateSearchPath: (APath) -> Unit = {},
+    onUpdateSearchPath: (APath<*>) -> Unit = {},
     onPerformSearch: () -> Unit = {},
     onExplicitSearch: () -> Unit = {},
     onCancelSearch: () -> Unit = {},

@@ -21,7 +21,7 @@ class FilenameValidator @Inject constructor() {
         ) : ValidationResult()
     }
 
-    fun validate(name: String, parentPath: APath): ValidationResult {
+    fun validate(name: String, parentPath: APath<*>): ValidationResult {
         if (name.isBlank()) return ValidationResult.Valid
 
         val context = detectStorageContext(parentPath)
@@ -40,7 +40,7 @@ class FilenameValidator @Inject constructor() {
         }
     }
 
-    private fun detectStorageContext(path: APath): StorageContext {
+    private fun detectStorageContext(path: APath<*>): StorageContext {
         return when (path) {
             is LocalPath -> when {
                 path.path.startsWith("/storage/emulated/") -> StorageContext.PUBLIC

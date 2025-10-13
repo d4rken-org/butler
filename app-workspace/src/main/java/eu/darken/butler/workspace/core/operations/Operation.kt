@@ -76,7 +76,7 @@ interface Operation {
         val affectedPaths: Collection<PathChange>
 
         data class PathChange(
-            val path: APath,
+            val path: APath<*>,
             val change: Change,
         ) {
             enum class Change {

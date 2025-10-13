@@ -35,7 +35,7 @@ import java.util.Date
 
 @Composable
 fun PathIssueFileComparisonCard(
-    lookup: APathLookup<APath>,
+    lookup: APathLookup<*>,
     modifier: Modifier = Modifier,
 ) {
     val dateFormat = remember { DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM) }
