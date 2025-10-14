@@ -12,11 +12,13 @@ import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
+import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.operations.FileSystemOps
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import okio.FileHandle
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -385,6 +387,21 @@ class SAFFileSystemOps @Inject constructor(
         throw WriteException(path = path, cause = e)
     }
 
+    override suspend fun file(path: SAFPath, readWrite: Boolean): FileHandle {
+        return try {
+            log(TAG, VERBOSE) { "file(readWrite=$readWrite): $path" }
+
+            if (readWrite && !canWrite(path)) throw IOException("writable=false")
+            else if (!canRead(path)) throw IOException("readable=false")
+
+            val pfd = openPFD(path, if (readWrite) FileMode.READ_WRITE else FileMode.READ)
+            pfd.toFileHandle(readWrite)
+        } catch (e: Exception) {
+            log(TAG, WARN) { "file($path, readWrite=$readWrite) failed: ${e.asLog()}" }
+            throw ReadException(path = path, cause = e)
+        }
+    }
+
     override suspend fun setModifiedAt(path: SAFPath, modifiedAt: Instant): Boolean {
         // Check cache - skip if known to be unsupported
         if (supportsSetModifiedAt == false) {
@@ -493,6 +510,23 @@ class SAFFileSystemOps @Inject constructor(
 
     fun openPFD(path: SAFPath, mode: FileMode): ParcelFileDescriptor {
         return path.resolveDocFile().openPFD(mode)
+    }
+
+    override suspend fun getFileSystem(path: SAFPath): FileSystem {
+        val statvfs = try {
+            log(TAG, VERBOSE) { "getFileSystem(): $path" }
+
+            val pfd = openPFD(path, FileMode.READ)
+            pfd.use { android.system.Os.fstatvfs(it.fileDescriptor) }
+        } catch (e: Exception) {
+            log(TAG, WARN) { "getFileSystem($path) failed: ${e.asLog()}" }
+            null
+        }
+
+        return FileSystem(
+            freeSpace = statvfs?.let { it.f_bavail * it.f_frsize },
+            totalSpace = statvfs?.let { it.f_blocks * it.f_frsize },
+        )
     }
 
     enum class FileMode(val value: String) {
