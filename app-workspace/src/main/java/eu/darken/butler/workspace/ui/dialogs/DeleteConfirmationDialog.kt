@@ -11,10 +11,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
@@ -22,15 +22,11 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.workspace.R
 import eu.darken.butler.common.R as CommonR
 
-data class DeleteConfirmationResult(
-    val items: Set<APath<*>>,
-)
-
 @Composable
 fun DeleteConfirmationDialog(
     items: Set<APath<*>>,
     onDismiss: () -> Unit,
-    onConfirm: (DeleteConfirmationResult) -> Unit,
+    onConfirm: (items: Set<APath<*>>) -> Unit,
 ) {
     val itemCount = items.size
     val itemsToShow = items.toList().take(5)
@@ -97,9 +93,7 @@ fun DeleteConfirmationDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = {
-                    onConfirm(DeleteConfirmationResult(items))
-                }
+                onClick = { onConfirm(items) }
             ) {
                 Text(
                     stringResource(CommonR.string.general_delete_action),

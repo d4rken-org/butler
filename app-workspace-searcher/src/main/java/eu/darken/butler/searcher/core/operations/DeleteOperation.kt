@@ -19,7 +19,6 @@ import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.delete
 import eu.darken.butler.common.getQuantityString2
-import eu.darken.butler.searcher.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
@@ -106,7 +105,7 @@ class DeleteOperation @AssistedInject constructor(
             )
             .onEach { deleteState ->
                 when (deleteState) {
-                    is DeleteAction.State.Progress<APath, APathLookup<APath>> -> {
+                    is DeleteAction.State.Progress<APath<*>, APathLookup<APath<*>>> -> {
                         val now = Clock.System.now()
                         val elapsed = lastSpeedUpdate.elapsedNow().inWholeMilliseconds / 1000.0
 
@@ -198,7 +197,7 @@ class DeleteOperation @AssistedInject constructor(
                         )
                         emit(stateActive)
                     }
-                    is DeleteAction.State.Result<APath, APathLookup<APath>> -> {
+                    is DeleteAction.State.Result<APath<*>, APathLookup<APath<*>>> -> {
                         reportBuilder.setDeletions(deleteState.deleted)
                         reportBuilder.setSkipped(deleteState.skipped)
                         reportBuilder.setBytesFreed(deleteState.deleted.sumOf { it.size })

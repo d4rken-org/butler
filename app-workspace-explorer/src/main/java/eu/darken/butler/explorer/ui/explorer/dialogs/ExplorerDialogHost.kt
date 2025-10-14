@@ -15,7 +15,7 @@ fun ExplorerDialogHost(
         is ExplorerDialogState.None -> {
             // No dialog to show
         }
-        
+
         is ExplorerDialogState.CreateItem -> {
             CreateItemDialog(
                 onValidate = vm?.let { vm::validateFilename } ?: { FilenameValidator.ValidationResult.Valid },
@@ -23,12 +23,12 @@ fun ExplorerDialogHost(
                 onConfirm = { result -> vm?.onCreateItem(result) }
             )
         }
-        
+
         is ExplorerDialogState.DeleteConfirmation -> {
             DeleteConfirmationDialog(
                 items = dialogState.items,
                 onDismiss = { vm?.dismissDialog() },
-                onConfirm = { result -> vm?.onDeleteConfirmed(result) }
+                onConfirm = { vm?.onDeleteConfirmed(dialogState.items) }
             )
         }
 

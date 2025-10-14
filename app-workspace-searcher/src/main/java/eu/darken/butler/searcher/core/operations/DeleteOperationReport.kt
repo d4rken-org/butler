@@ -7,7 +7,6 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.getQuantityString2
-import eu.darken.butler.searcher.R
 import eu.darken.butler.workspace.core.operations.Operation.Report.*
 
 data class DeleteOperationReport(
@@ -60,7 +59,7 @@ data class DeleteOperationReport(
         private var deletedFiles: Int = 0
         private var deletedDirectories: Int = 0
 
-        fun setDeletions(items: Set<APathLookup<APath>>) {
+        fun setDeletions(items: Set<APathLookup<APath<*>>>) {
             val affected = items.map {
                 if (it.isDirectory) deletedDirectories++ else deletedFiles++
                 PathChange(it.lookedUp, PathChange.Change.REMOVED)
@@ -68,7 +67,7 @@ data class DeleteOperationReport(
             affectedPaths.addAll(affected)
         }
 
-        fun setSkipped(items: Set<APathLookup<APath>>) {
+        fun setSkipped(items: Set<APathLookup<APath<*>>>) {
             skipped.addAll(items)
         }
 

@@ -17,7 +17,7 @@ import eu.darken.butler.common.datastore.valueBlocking
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.files.validation.FilenameValidator
@@ -48,7 +48,6 @@ import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemType
-import eu.darken.butler.workspace.ui.dialogs.DeleteConfirmationResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.*
@@ -216,8 +215,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 // Add badge to Filter action if filters are active
                 if (action is ExplorerAction.Common.Filter) {
                     val hasActiveFilters = filterState.fileTypeFilter != FileTypeFilter.ALL
-                            || filterState.includePattern.isNotBlank()
-                            || filterState.excludePattern.isNotBlank()
+                        || filterState.includePattern.isNotBlank()
+                        || filterState.excludePattern.isNotBlank()
 
                     if (hasActiveFilters) {
                         action.copy(badge = true)
@@ -702,15 +701,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun onDeleteConfirmed(result: DeleteConfirmationResult) = launch {
-        log(tag) { "onDeleteConfirmed($result)" }
+    fun onDeleteConfirmed(items: Set<APath<*>>) = launch {
+        log(tag) { "onDeleteConfirmed($items)" }
         dialogStateFlow.value = None
 
-        if (result.items.isNotEmpty()) {
+        if (items.isNotEmpty()) {
             getWorkspace().execute(
-                ExplorerCommand.Delete(
-                    targets = result.items,
-                )
+                ExplorerCommand.Delete(targets = items)
             )
             clearSelection()
         }

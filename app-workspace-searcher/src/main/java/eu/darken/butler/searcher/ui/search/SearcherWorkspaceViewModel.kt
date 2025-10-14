@@ -20,7 +20,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
-import java.io.File
+import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.destSetup
@@ -30,35 +30,31 @@ import eu.darken.butler.searcher.core.SearchHistory
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchResult
 import eu.darken.butler.searcher.core.SearcherSettings
+import eu.darken.butler.searcher.core.SearcherWorkspace
+import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogEvent
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
 import eu.darken.butler.setup.core.SetupModule
-import eu.darken.butler.searcher.core.SearcherWorkspace
-import eu.darken.butler.searcher.core.operations.SearcherCommand
-import eu.darken.butler.workspace.ui.dialogs.DeleteConfirmationResult
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.WorkspaceProvider
-import eu.darken.butler.workspace.core.permissions.PathPermissionCheck
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
-import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
+import eu.darken.butler.workspace.core.permissions.PathPermissionCheck
 import eu.darken.butler.workspace.core.permissions.PermissionState
+import eu.darken.butler.workspace.core.permissions.check
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
-import eu.darken.butler.workspace.core.permissions.check
-import eu.darken.butler.common.flow.SingleEventFlow
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -66,6 +62,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.File
 
 @HiltViewModel(assistedFactory = SearcherWorkspaceViewModel.Factory::class)
 class SearcherWorkspaceViewModel @AssistedInject constructor(
@@ -90,7 +87,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     private val searchQuery = MutableStateFlow(TextFieldValue(""))
     private val currentFilter = MutableStateFlow(SearchQuery.Filter())
-    private val searchPath = MutableStateFlow<APath>(LocalPath.build(Environment.getExternalStorageDirectory()))
+    private val searchPath = MutableStateFlow<APath<*>>(LocalPath.build(Environment.getExternalStorageDirectory()))
     private val selectionState = MutableStateFlow(SearcherSelectionState())
     private val quickActionsResult = MutableStateFlow<SearchResult?>(null)
     private val dialogStateFlow = MutableStateFlow<SearcherDialogState>(SearcherDialogState.None)
@@ -188,7 +185,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val searchState = values[1] as SearchState
         val history = values[2] as List<SearchHistory.SearchHistoryItem>
         val filter = values[3] as SearchQuery.Filter
-        val path = values[4] as APath
+        val path = values[4] as APath<*>
         val selection = values[5] as SearcherSelectionState
         val quickActions = values[6] as SearchResult?
         val dialogState = values[7] as SearcherDialogState
@@ -668,14 +665,14 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         dialogStateFlow.value = SearcherDialogState.None
     }
 
-    fun onDeleteConfirmed(result: DeleteConfirmationResult) = launch {
-        log(TAG, INFO) { "onDeleteConfirmed(${result.items.size} items)" }
+    fun onDeleteConfirmed(items: Set<APath<*>>,) = launch {
+        log(TAG, INFO) { "onDeleteConfirmed(${items.size} items)" }
         dialogStateFlow.value = SearcherDialogState.None
 
-        if (result.items.isNotEmpty()) {
+        if (items.isNotEmpty()) {
             getWorkspace().execute(
                 SearcherCommand.Delete(
-                    targets = result.items,
+                    targets = items,
                 )
             )
             deselectAll()
