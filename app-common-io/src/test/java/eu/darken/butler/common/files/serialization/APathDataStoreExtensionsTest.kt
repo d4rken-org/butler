@@ -8,6 +8,8 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.serialization.SerializationCommonModule
+import eu.darken.butler.common.serialization.SerializationIOModule
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
@@ -21,6 +23,7 @@ import java.io.File
 class APathDataStoreExtensionsTest : BaseTest() {
 
     private val testFiles = mutableListOf<File>()
+    private val json = SerializationIOModule().json(SerializationCommonModule().json())
 
     private fun createDataStore(scope: TestScope): DataStore<Preferences> {
         val testFile = File(
@@ -44,7 +47,6 @@ class APathDataStoreExtensionsTest : BaseTest() {
     @Test
     fun `read and write LocalPath`() = runTest {
         val testStore = createDataStore(this)
-        val json = Json { encodeDefaults = true }
 
         val testPath = LocalPath.build("/storage/emulated/0/Download")
 
@@ -73,7 +75,6 @@ class APathDataStoreExtensionsTest : BaseTest() {
     @Test
     fun `read and write RawPath`() = runTest {
         val testStore = createDataStore(this)
-        val json = Json { encodeDefaults = true }
 
         val testPath = RawPath("/data/data/com.example.app")
 
@@ -91,7 +92,6 @@ class APathDataStoreExtensionsTest : BaseTest() {
     @Test
     fun `read and write SAFPath`() = runTest {
         val testStore = createDataStore(this)
-        val json = Json { encodeDefaults = true }
 
         val testPath = SAFPath(
             treeRoot = "content://com.android.externalstorage.documents/tree/primary%3ADocuments",
@@ -112,7 +112,6 @@ class APathDataStoreExtensionsTest : BaseTest() {
     @Test
     fun `use custom default value`() = runTest {
         val testStore = createDataStore(this)
-        val json = Json { encodeDefaults = true }
 
         val defaultPath = LocalPath.build("/sdcard")
 
@@ -137,7 +136,6 @@ class APathDataStoreExtensionsTest : BaseTest() {
     @Test
     fun `polymorphic serialization preserves type information`() = runTest {
         val testStore = createDataStore(this)
-        val json = Json { encodeDefaults = true }
 
         val paths = listOf<APath<*>>(
             LocalPath.build("/storage/emulated/0"),
@@ -173,7 +171,6 @@ class APathDataStoreExtensionsTest : BaseTest() {
     @Test
     fun `multiple instances with different keys work independently`() = runTest {
         val testStore = createDataStore(this)
-        val json = Json { encodeDefaults = true }
 
         val path1 = LocalPath.build("/path1")
         val path2 = LocalPath.build("/path2")
