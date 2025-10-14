@@ -12,6 +12,7 @@ import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.LocalPathLookupExtended
 import eu.darken.butler.common.files.local.walkers.DirectLocalWalker
+import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.ipc.IpcHostModule
@@ -60,7 +61,7 @@ class FileOpsHost @Inject constructor(
         throw e.wrapToPropagate()
     }
 
-    override fun lookUpExtended(path: LocalPath): LocalPathLookupExtended = try {
+    override fun lookupExtended(path: LocalPath): LocalPathLookupExtended = try {
         if (Bugs.isTrace) log(TAG, VERBOSE) { "lookUpExtended($path)..." }
         runBlocking { fileSystemOps.lookupExtended(path) }
     } catch (e: Exception) {
@@ -198,6 +199,14 @@ class FileOpsHost @Inject constructor(
         runBlocking { fileSystemOps.setOwnership(path, ownership) }
     } catch (e: Exception) {
         log(TAG, ERROR) { "setModifiedAt(path=$path, ownership=$ownership) failed\n${e.asLog()}" }
+        throw e.wrapToPropagate()
+    }
+
+    override fun getFileSystem(path: LocalPath): FileSystem = try {
+        if (Bugs.isTrace) log(TAG, VERBOSE) { "getFileSystem($path)..." }
+        runBlocking { fileSystemOps.getFileSystem(path) }
+    } catch (e: Exception) {
+        log(TAG, ERROR) { "getFileSystem(path=$path) failed\n${e.asLog()}" }
         throw e.wrapToPropagate()
     }
 

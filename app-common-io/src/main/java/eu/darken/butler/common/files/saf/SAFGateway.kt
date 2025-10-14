@@ -1,6 +1,7 @@
 package eu.darken.butler.common.files.saf
 
 import android.content.Intent
+import android.system.Os
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.Bugs
@@ -16,7 +17,7 @@ import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
-import eu.darken.butler.common.files.metadata.FileSystemInfo
+import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.operations.FileSystemOps
 import eu.darken.butler.common.files.saf.SAFFileSystemOps.*
 import eu.darken.butler.common.sharedresource.SharedResource
@@ -149,18 +150,18 @@ class SAFGateway @Inject constructor(
         }
     }
 
-    override suspend fun getInfo(path: SAFPath): FileSystemInfo = runIO {
+    override suspend fun getFileSystem(path: SAFPath): FileSystem = runIO {
         val statvfs = try {
             log(TAG, VERBOSE) { "getInfo(): $path" }
 
             val pfd = fileSystemOps.openPFD(path, FileMode.READ)
-            pfd.use { android.system.Os.fstatvfs(it.fileDescriptor) }
+            pfd.use { Os.fstatvfs(it.fileDescriptor) }
         } catch (e: Exception) {
             log(TAG, ERROR) { "getInfo(): Failed on $path: ${e.asLog()}" }
             null
         }
 
-        FileSystemInfo(
+        FileSystem(
             freeSpace = statvfs?.let { statvfs.f_bavail * statvfs.f_frsize },
             totalSpace = statvfs?.let { statvfs.f_blocks * statvfs.f_frsize },
         )

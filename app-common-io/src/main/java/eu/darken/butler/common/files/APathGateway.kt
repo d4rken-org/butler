@@ -42,30 +42,4 @@ interface APathGateway<
     data class DuOptions<P : APath<P>, PLU : APathLookup<P>>(
         val abortOnError: Boolean = false,
     )
-
-    /**
-     * Get a FileHandle for advanced file operations (random access, seeking).
-     *
-     * ## Why is file() Gateway-only and not in FileSystemOps?
-     *
-     * FileHandle (Okio) provides advanced capabilities like random access and seeking,
-     * but is not needed for basic file operations. The separation follows this design:
-     *
-     * - **FileSystemOps** (primitives): Provides openInputStream/openOutputStream for
-     *   sequential access. These are standard Java streams used by copy/move operations.
-     *   Required for all file system implementations.
-     *
-     * - **APathGateway** (advanced): Provides file() for random access use cases like
-     *   image loading, video streaming, or large file manipulation. Gateway-specific
-     *   feature, not all operations need it.
-     *
-     * This separation keeps FileSystemOps focused on essential primitives while allowing
-     * gateways to provide advanced features. Operations like copy/move only need streams,
-     * not FileHandle.
-     *
-     * @param path The file path to open
-     * @param readWrite If true, open for read/write; if false, open read-only
-     * @return FileHandle for advanced file operations
-     */
-    suspend fun file(path: P, readWrite: Boolean): FileHandle
 }

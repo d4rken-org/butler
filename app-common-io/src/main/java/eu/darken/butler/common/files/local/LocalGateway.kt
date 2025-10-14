@@ -20,7 +20,7 @@ import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
 import eu.darken.butler.common.files.local.ipc.FileOpsClient
 import eu.darken.butler.common.files.local.walkers.DirectLocalWalker
 import eu.darken.butler.common.files.local.walkers.IndirectLocalWalker
-import eu.darken.butler.common.files.metadata.FileSystemInfo
+import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.root.RootManager
@@ -38,7 +38,6 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import okio.FileHandle
-import okio.buffer
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -231,8 +230,8 @@ class LocalGateway @Inject constructor(
         path = path,
         forWriting = false,
         normalOp = { fileSystemOps.lookupExtended(path) },
-        rootOp = { TODO() },
-        adbOp = { TODO() }
+        rootOp = { rootOps { it.lookupExtended(path) } },
+        adbOp = { adbOps { it.lookupExtended(path) } }
     )
 
     override suspend fun lookupFiles(path: LocalPath): List<LocalPathLookup> = lookupFiles(path, Mode.AUTO)
@@ -243,8 +242,8 @@ class LocalGateway @Inject constructor(
         path = path,
         forWriting = false,
         normalOp = { fileSystemOps.lookupFiles(path) },
-        rootOp = { TODO() },
-        adbOp = { TODO() }
+        rootOp = { rootOps { it.lookupFiles(path) } },
+        adbOp = { adbOps { it.lookupFiles(path) } }
     )
 
     override suspend fun lookupFilesExtended(
@@ -433,16 +432,8 @@ class LocalGateway @Inject constructor(
         path = path,
         forWriting = false,
         normalOp = { fileSystemOps.openInputStream(path) },
-        rootOp = {
-            rootOps { client ->
-                client.file(path, readWrite = false).source().buffer().inputStream()
-            }
-        },
-        adbOp = {
-            adbOps { client ->
-                client.file(path, readWrite = false).source().buffer().inputStream()
-            }
-        }
+        rootOp = { rootOps { it.openInputStream(path) } },
+        adbOp = { adbOps { it.openInputStream(path) } },
     )
 
     override suspend fun openOutputStream(path: LocalPath, append: Boolean): OutputStream =
@@ -458,14 +449,9 @@ class LocalGateway @Inject constructor(
         path = path,
         forWriting = true,
         normalOp = { fileSystemOps.openOutputStream(path, append) },
-        rootOp = {
-            it.file(path, readWrite = true).sink().buffer().outputStream()
-        },
-        adbOp = {
-            it.file(path, readWrite = true).sink().buffer().outputStream()
-        }
+        rootOp = { it.openOutputStream(path, append) },
+        adbOp = { it.openOutputStream(path, append) }
     )
-
 
     override suspend fun setModifiedAt(path: LocalPath, modifiedAt: Instant): Boolean = setModifiedAt(
         path,
@@ -523,19 +509,19 @@ class LocalGateway @Inject constructor(
         adbOp = { adbOps { it.setOwnership(path, ownership) } }
     )
 
-    override suspend fun getInfo(path: LocalPath): FileSystemInfo = getInfo(path, Mode.AUTO)
+    override suspend fun getFileSystem(path: LocalPath): FileSystem = getFileSystem(path, Mode.AUTO)
 
-    suspend fun getInfo(
+    suspend fun getFileSystem(
         path: LocalPath,
         mode: Mode
-    ): FileSystemInfo = executeWithModeSelection(
+    ): FileSystem = executeWithModeSelection(
         mode = mode,
         operation = "getInfo",
         path = path,
         forWriting = false,
-        normalOp = { fileSystemOps.getInfo(path) },
-        rootOp = { TODO() },
-        adbOp = { TODO() },
+        normalOp = { fileSystemOps.getFileSystem(path) },
+        rootOp = { rootOps { it.getFileSystem(path) } },
+        adbOp = { adbOps { it.getFileSystem(path) } },
     )
 
     /**

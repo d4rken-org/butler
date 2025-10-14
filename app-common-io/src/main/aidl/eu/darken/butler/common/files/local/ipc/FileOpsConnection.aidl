@@ -8,6 +8,7 @@ import eu.darken.butler.common.files.local.LocalPathLookup;
 import eu.darken.butler.common.files.local.LocalPathLookupExtended;
 import eu.darken.butler.common.files.metadata.Ownership;
 import eu.darken.butler.common.files.metadata.Permissions;
+import eu.darken.butler.common.files.metadata.FileSystem;
 
 interface FileOpsConnection {
 
@@ -28,7 +29,7 @@ interface FileOpsConnection {
     LocalPathLookup lookup(in LocalPath path);
     RemoteInputStream lookupFilesStream(in LocalPath path);
 
-    LocalPathLookupExtended lookUpExtended(in LocalPath path);
+    LocalPathLookupExtended lookupExtended(in LocalPath path);
     List<LocalPathLookupExtended> lookupFilesExtended(in LocalPath path);
     RemoteInputStream lookupFilesExtendedStream(in LocalPath path);
 
@@ -43,4 +44,6 @@ interface FileOpsConnection {
     boolean setPermissions(in LocalPath path, in Permissions permissions);
 
     boolean setOwnership(in LocalPath path, in Ownership ownership);
+
+    FileSystem getFileSystem(in LocalPath path);
 }

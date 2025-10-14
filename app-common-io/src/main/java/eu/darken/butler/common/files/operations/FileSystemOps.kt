@@ -3,8 +3,11 @@ package eu.darken.butler.common.files.operations
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.APathLookupExtended
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
+import okio.FileHandle
 import java.io.InputStream
 import java.io.OutputStream
 import kotlin.time.Instant
@@ -242,6 +245,8 @@ interface FileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExte
      */
     suspend fun openOutputStream(path: P, append: Boolean = false): OutputStream
 
+    suspend fun file(path: P, readWrite: Boolean): FileHandle
+
     /**
      * Set last modified timestamp.
      *
@@ -310,4 +315,6 @@ interface FileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExte
             false
         }
     }
+
+    suspend fun getFileSystem(path: P): FileSystem
 }

@@ -11,7 +11,7 @@ import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.local.LocalGateway
-import eu.darken.butler.common.files.metadata.FileSystemInfo
+import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.operations.copyGeneric
@@ -79,6 +79,10 @@ class GatewaySwitch @Inject constructor(
 
     override suspend fun createFile(path: APath<*>) {
         return useGateway(path) { createFile(path) }
+    }
+
+    override suspend fun createSymlink(linkPath: APath<*>, targetPath: APath<*>): Boolean {
+        return useGateway(linkPath) { createSymlink(linkPath, targetPath) }
     }
 
     override suspend fun lookup(path: APath<*>): APathLookup<APath<*>> {
@@ -240,10 +244,6 @@ class GatewaySwitch @Inject constructor(
             }
         }
 
-    override suspend fun createSymlink(linkPath: APath<*>, targetPath: APath<*>): Boolean {
-        return useGateway(linkPath) { createSymlink(linkPath, targetPath) }
-    }
-
     override suspend fun setModifiedAt(path: APath<*>, modifiedAt: Instant): Boolean {
         return useGateway(path) { setModifiedAt(path, modifiedAt) }
     }
@@ -278,8 +278,8 @@ class GatewaySwitch @Inject constructor(
         is RawPath -> throw UnsupportedOperationException("Alternative mapping for RAW not available")
     }
 
-    override suspend fun getInfo(path: APath<*>): FileSystemInfo {
-        return useGateway(path) { this.getInfo(it) }
+    override suspend fun getFileSystem(path: APath<*>): FileSystem {
+        return useGateway(path) { this.getFileSystem(it) }
     }
 
     override suspend fun copy(

@@ -10,7 +10,7 @@ import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.toFile
-import eu.darken.butler.common.files.metadata.FileSystemInfo
+import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.operations.FileSystemOps
@@ -272,18 +272,18 @@ class LocalFileSystemOps @Inject constructor(
         return path.toFile().walkTopDown().map { it.length() }.sum()
     }
 
-    suspend fun file(path: LocalPath, readWrite: Boolean): FileHandle {
+    override suspend fun file(path: LocalPath, readWrite: Boolean): FileHandle {
         return path.toFile().fileHandle(readWrite)
     }
 
-    suspend fun getInfo(path: LocalPath): FileSystemInfo {
+    override suspend fun getFileSystem(path: LocalPath): FileSystem {
         val statFs = try {
             StatFs(path.path)
         } catch (e: Exception) {
             log(TAG, ERROR) { "getInfo(): Failed on $path: ${e.asLog()}" }
             null
         }
-        return FileSystemInfo(
+        return FileSystem(
             freeSpace = statFs?.availableBytes,
             totalSpace = statFs?.totalBytes,
         )
