@@ -1,7 +1,6 @@
 package eu.darken.butler.common.files.local
 
 import android.R
-import android.R.attr.*
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.adb.AdbUnavailableException
 import eu.darken.butler.common.adb.canUseAdbNow
@@ -602,27 +601,9 @@ class LocalGateway @Inject constructor(
         mode: Mode,
     ): Flow<DeleteAction.State<LocalPath, LocalPathLookup>> = flow {
         log(TAG, VERBOSE) { "delete(): ${targets.size} targets" }
-        val result = when {
-            hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "delete($mode->ROOT): $path" }
-                rootOps {
-                    TODO()
-//                        val success = it.delete(targets, recursive = true)
-//                        if (!success) throw IOException("Root delete() call returned false")
-                }
-            }
-
-            hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "delete($mode->ADB): $path" }
-                adbOps {
-                    TODO()
-//                        val success = it.delete(targets, recursive = true)
-//                        if (!success) throw IOException("ADB delete() call returned false")
-                }
-            }
-
-            mode == Mode.NORMAL || mode == Mode.AUTO -> {
-                log(TAG, VERBOSE) { "delete($mode->NORMAL): $path" }
+        val result = when (mode) {
+            Mode.NORMAL -> {
+                log(TAG, VERBOSE) { "delete(NORMAL): ${targets.size} targets" }
                 targets.delete(
                     recursive = options.recursive,
                     ignoreMissing = options.ignoreMissing,
@@ -631,7 +612,44 @@ class LocalGateway @Inject constructor(
                 )
             }
 
-            else -> throw IOException("No matching mode available.")
+            Mode.ROOT -> {
+                log(TAG, VERBOSE) { "delete(ROOT): ${targets.size} targets" }
+                rootOps {
+                    TODO()
+                }
+            }
+
+            Mode.ADB -> {
+                log(TAG, VERBOSE) { "delete(ADB): ${targets.size} targets" }
+                adbOps {
+                    TODO()
+                }
+            }
+
+            Mode.AUTO -> {
+                val shouldTry = accessibilityChecker.shouldTryNormalAccess(targets.first(), forWriting = true)
+                when {
+                    shouldTry || (!hasAdb() && !hasRoot()) -> {
+                        // No escalation available, try normal anyway as fallback
+                        log(TAG, VERBOSE) { "delete(AUTO->NORMAL, $shouldTry): ${targets.size} targets" }
+                        targets.delete(
+                            recursive = options.recursive,
+                            ignoreMissing = options.ignoreMissing,
+                            onIssue = options.onIssue,
+                            onProgress = { progress -> emit(progress) }
+                        )
+                    }
+                    hasRoot() -> {
+                        log(TAG, VERBOSE) { "delete(AUTO->ROOT): ${targets.size} targets" }
+                        rootOps { TODO() }
+                    }
+                    hasAdb() -> {
+                        log(TAG, VERBOSE) { "delete(AUTO->ADB): ${targets.size} targets" }
+                        adbOps { TODO() }
+                    }
+                    else -> throw IllegalStateException("No matching mode available.")
+                }
+            }
         }
 
         log(TAG, INFO) { "delete(): Finished, deleted ${result.deleted} items" }
@@ -653,27 +671,9 @@ class LocalGateway @Inject constructor(
     ): Flow<CopyAction.State<LocalPath, LocalPathLookup>> = flow {
         log(TAG, VERBOSE) { "copy(): ${sources.size} sources to $destination" }
 
-        val result = when {
-            hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "copy($mode->ROOT): To $destination" }
-                rootOps {
-                    TODO()
-//                        val success = it.delete(targets, recursive = true)
-//                        if (!success) throw IOException("Root delete() call returned false")
-                }
-            }
-
-            hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "copy($mode->ADB): To $destination" }
-                adbOps {
-                    TODO()
-//                        val success = it.delete(targets, recursive = true)
-//                        if (!success) throw IOException("ADB delete() call returned false")
-                }
-            }
-
-            mode == Mode.NORMAL || mode == Mode.AUTO -> {
-                log(TAG, VERBOSE) { "copy($mode->NORMAL): To $destination" }
+        val result = when (mode) {
+            Mode.NORMAL -> {
+                log(TAG, VERBOSE) { "copy(NORMAL): To $destination" }
                 sources.copy(
                     destination,
                     onIssue = options.onIssue,
@@ -681,7 +681,42 @@ class LocalGateway @Inject constructor(
                 )
             }
 
-            else -> throw IOException("No matching mode available.")
+            Mode.ROOT -> {
+                log(TAG, VERBOSE) { "copy(ROOT): To $destination" }
+                rootOps {
+                    TODO()
+                }
+            }
+
+            Mode.ADB -> {
+                log(TAG, VERBOSE) { "copy(ADB): To $destination" }
+                adbOps {
+                    TODO()
+                }
+            }
+
+            Mode.AUTO -> {
+                val shouldTry = accessibilityChecker.shouldTryNormalAccess(destination, forWriting = true)
+                when {
+                    shouldTry || (!hasAdb() && !hasRoot()) -> {
+                        log(TAG, VERBOSE) { "copy(AUTO->NORMAL, $shouldTry): To $destination" }
+                        sources.copy(
+                            destination,
+                            onIssue = options.onIssue,
+                            onProgress = { progress -> emit(progress) }
+                        )
+                    }
+                    hasRoot() -> {
+                        log(TAG, VERBOSE) { "copy(AUTO->ROOT): To $destination" }
+                        rootOps { TODO() }
+                    }
+                    hasAdb() -> {
+                        log(TAG, VERBOSE) { "copy(AUTO->ADB): To $destination" }
+                        adbOps { TODO() }
+                    }
+                    else -> throw IllegalStateException("No matching mode available.")
+                }
+            }
         }
 
         log(TAG, INFO) { "copy(): Finished, copied ${result.copied} items" }
@@ -701,23 +736,9 @@ class LocalGateway @Inject constructor(
         mode: Mode = Mode.AUTO,
     ): Flow<MoveAction.State<LocalPath, LocalPathLookup>> = flow {
         log(TAG, VERBOSE) { "move(): ${sources.size} sources to $destination" }
-        val result = when {
-            hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "move($mode->ROOT): To $destination" }
-                rootOps {
-                    TODO("Root move implementation")
-                }
-            }
-
-            hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "move($mode->ADB): To $destination" }
-                adbOps {
-                    TODO("ADB move implementation")
-                }
-            }
-
-            mode == Mode.NORMAL || mode == Mode.AUTO -> {
-                log(TAG, VERBOSE) { "move($mode->NORMAL): To $destination" }
+        val result = when (mode) {
+            Mode.NORMAL -> {
+                log(TAG, VERBOSE) { "move(NORMAL): To $destination" }
                 sources.move(
                     destination,
                     options,
@@ -726,7 +747,43 @@ class LocalGateway @Inject constructor(
                 )
             }
 
-            else -> throw IOException("No matching mode available.")
+            Mode.ROOT -> {
+                log(TAG, VERBOSE) { "move(ROOT): To $destination" }
+                rootOps {
+                    TODO("Root move implementation")
+                }
+            }
+
+            Mode.ADB -> {
+                log(TAG, VERBOSE) { "move(ADB): To $destination" }
+                adbOps {
+                    TODO("ADB move implementation")
+                }
+            }
+
+            Mode.AUTO -> {
+                val shouldTry = accessibilityChecker.shouldTryNormalAccess(destination, forWriting = true)
+                when {
+                    shouldTry || (!hasAdb() && !hasRoot()) -> {
+                        log(TAG, VERBOSE) { "move(AUTO->NORMAL, $shouldTry): To $destination" }
+                        sources.move(
+                            destination,
+                            options,
+                            onProgress = { progress -> emit(progress) },
+                            onIssue = options.onIssue,
+                        )
+                    }
+                    hasRoot() -> {
+                        log(TAG, VERBOSE) { "move(AUTO->ROOT): To $destination" }
+                        rootOps { TODO("Root move implementation") }
+                    }
+                    hasAdb() -> {
+                        log(TAG, VERBOSE) { "move(AUTO->ADB): To $destination" }
+                        adbOps { TODO("ADB move implementation") }
+                    }
+                    else -> throw IllegalStateException("No matching mode available.")
+                }
+            }
         }
 
         log(TAG, INFO) { "move(): Finished, moved ${result.movedFiles} items" }
