@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.local
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.local.accessibility.LocalPathAccessibilityChecker
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.storage.StorageEnvironment
 import io.kotest.matchers.shouldBe
@@ -45,6 +46,7 @@ class LocalGatewayTest : BaseTest() {
     private lateinit var mockStorageEnvironment: StorageEnvironment
     private lateinit var mockRootManager: RootManager
     private lateinit var mockAdbManager: AdbManager
+    private lateinit var mockAccessibilityChecker: LocalPathAccessibilityChecker
     private lateinit var dispatcherProvider: TestDispatcherProvider
     private lateinit var testScope: TestScope
     private lateinit var gateway: LocalGateway
@@ -55,6 +57,7 @@ class LocalGatewayTest : BaseTest() {
         mockStorageEnvironment = mockk(relaxed = true)
         mockRootManager = mockk()
         mockAdbManager = mockk()
+        mockAccessibilityChecker = mockk(relaxed = true)
         dispatcherProvider = TestDispatcherProvider()
         testScope = TestScope()
 
@@ -63,6 +66,8 @@ class LocalGatewayTest : BaseTest() {
         every { mockAdbManager.useAdb } returns flowOf(false)
         every { mockRootManager.serviceClient } returns mockk(relaxed = true)
         every { mockAdbManager.serviceClient } returns mockk(relaxed = true)
+        // Default: paths are accessible (checker returns false for "definitely inaccessible")
+        every { mockAccessibilityChecker.isDefinitelyInaccessible(any(), any()) } returns false
 
         gateway = LocalGateway(
             appScope = testScope,
@@ -70,7 +75,8 @@ class LocalGatewayTest : BaseTest() {
             fileSystemOps = mockFileSystemOps,
             storageEnvironment = mockStorageEnvironment,
             rootManager = mockRootManager,
-            adbManager = mockAdbManager
+            adbManager = mockAdbManager,
+            accessibilityChecker = mockAccessibilityChecker
         )
     }
 
@@ -277,6 +283,8 @@ class LocalGatewayTest : BaseTest() {
 
         // Enable root
         every { mockRootManager.useRoot } returns flowOf(true)
+        // Mock checker to say system paths are definitely inaccessible
+        every { mockAccessibilityChecker.isDefinitelyInaccessible(path, forWriting = true) } returns true
 
         // Note: We can't fully test the escalation without complex mocking,
         // but we can verify that the normal path is skipped by checking
