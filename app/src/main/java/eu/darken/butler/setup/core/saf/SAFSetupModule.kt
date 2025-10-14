@@ -165,7 +165,7 @@ class SAFSetupModule @Inject constructor(
 
             log(TAG) { "Files-DocumentsUI: is restricted? $isRestricted" }
 
-            storageEnvironment.externalDirs
+            storageEnvironment.publicStorages
                 .map { baseDir ->
                     val viableTargets = mutableListOf<LocalPath>()
 

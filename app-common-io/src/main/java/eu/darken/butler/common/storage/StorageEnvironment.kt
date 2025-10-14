@@ -24,24 +24,19 @@ class StorageEnvironment @Inject constructor(
 
     fun getVariable(variableName: String): String? = System.getenv(variableName)
 
-    val ourCodeCacheDirs: Collection<LocalPath>
-        get() = listOf(context.codeCacheDir.toLocalPath())
-
-    val ourCacheDirs: Collection<LocalPath>
-        get() = listOf(context.cacheDir.toLocalPath())
-
-    val ourExternalCacheDirs: Collection<LocalPath>
-        get() = context.externalCacheDirs
-            .filterNotNull()  // Can be non-empty and contains a NULL values
+    val ourPrivateDirs: Collection<LocalPath>
+        get() = listOf(context.cacheDir)
+            .map { it.parentFile!! }
             .map { it.toLocalPath() }
 
-    val downloadCacheDirs: Collection<LocalPath>
-        get() = setOf(
-            Environment.getDownloadCacheDirectory().toLocalPath(),
-            dataDir.child("cache"),
-            LocalPath.build("/cache"),
-        )
-            .sortedBy { it.path == Environment.getDownloadCacheDirectory().path }
+    val ourPublicDirs: Collection<LocalPath>
+        get() = context.externalCacheDirs
+            .filterNotNull()  // Can be non-empty and contains a NULL values
+            .map { it.parentFile!! }
+            .map { it.toLocalPath() }
+
+    val rootDir: LocalPath
+        get() = Environment.getRootDirectory().toLocalPath()
 
     val systemDir: LocalPath
         get() = Environment.getRootDirectory().toLocalPath()
@@ -49,8 +44,8 @@ class StorageEnvironment @Inject constructor(
     val dataDir: LocalPath
         get() = Environment.getDataDirectory().toLocalPath()
 
-    val externalDirs: List<LocalPath>
-        get() = ContextCompat.getExternalFilesDirs(context, null)
+    val publicStorages: List<LocalPath>
+        get() = context.getExternalFilesDirs(null)
             .filter { it != null && it.isAbsolute }
             .mapNotNull { base ->
                 var root = base
@@ -62,7 +57,7 @@ class StorageEnvironment @Inject constructor(
             }
 
     val publicDataDirs: List<LocalPath>
-        get() = ContextCompat.getExternalFilesDirs(context, null)
+        get() = context.getExternalFilesDirs(null)
             .filter { it != null && it.isAbsolute }
             .mapNotNull { base ->
                 var root = base

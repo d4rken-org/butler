@@ -1,5 +1,6 @@
 package eu.darken.butler.common.files.local
 
+import android.R
 import android.R.attr.*
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.adb.AdbUnavailableException
@@ -15,21 +16,14 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
-import eu.darken.butler.common.files.core.local.isReadable
-import eu.darken.butler.common.files.core.local.listFiles2
-import eu.darken.butler.common.files.core.local.parentsInclusive
-import eu.darken.butler.common.files.errors.ReadException
-import eu.darken.butler.common.files.extensions.toFile
 import eu.darken.butler.common.files.io.callbacks
-import eu.darken.butler.common.files.local.accessibility.LocalPathAccessibilityChecker
+import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
 import eu.darken.butler.common.files.local.ipc.FileOpsClient
 import eu.darken.butler.common.files.local.walkers.DirectLocalWalker
-import eu.darken.butler.common.files.local.walkers.EscalatingWalker
 import eu.darken.butler.common.files.local.walkers.IndirectLocalWalker
 import eu.darken.butler.common.files.metadata.FileSystemInfo
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
-import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.root.RootUnavailableException
 import eu.darken.butler.common.root.canUseRootNow
@@ -61,7 +55,7 @@ class LocalGateway @Inject constructor(
     private val storageEnvironment: StorageEnvironment,
     private val rootManager: RootManager,
     private val adbManager: AdbManager,
-    private val accessibilityChecker: LocalPathAccessibilityChecker,
+    private val accessibilityChecker: LocalPathAccessChecker,
 ) : APathGateway<LocalPath, LocalPathLookup, LocalPathLookupExtended> {
 
     // Represents the resource that keeps the gateway resources alive
@@ -109,51 +103,50 @@ class LocalGateway @Inject constructor(
     private suspend fun <T> executeWithModeSelection(
         mode: Mode,
         operation: String,
-        path: LocalPath? = null,
+        path: LocalPath,
+        forWriting: Boolean,
         normalOp: suspend () -> T,
         rootOp: suspend (FileOpsClient) -> T,
         adbOp: suspend (FileOpsClient) -> T
-    ): T {
-        val pathStr = path?.let { ": $it" } ?: ""
-
-        return when (mode) {
+    ): T = runIO {
+        when (mode) {
             Mode.NORMAL -> {
-                log(TAG, VERBOSE) { "$operation(NORMAL)$pathStr" }
+                log(TAG, VERBOSE) { "$operation(NORMAL) -> $path" }
                 normalOp()
             }
             Mode.ROOT -> {
-                log(TAG, VERBOSE) { "$operation(ROOT)$pathStr" }
+                log(TAG, VERBOSE) { "$operation(ROOT) -> $path" }
                 rootOps { rootOp(it) }
             }
             Mode.ADB -> {
-                log(TAG, VERBOSE) { "$operation(ADB)$pathStr" }
+                log(TAG, VERBOSE) { "$operation(ADB) -> $path" }
                 adbOps { adbOp(it) }
             }
             Mode.AUTO -> {
-                // Optimization: skip normal attempt for definitely inaccessible paths
-                if (path != null && accessibilityChecker.isDefinitelyInaccessible(path, forWriting = true) && hasRoot()) {
-                    log(TAG, VERBOSE) { "$operation(AUTO->ROOT, inaccessible)$pathStr" }
-                    rootOps { rootOp(it) }
-                } else {
-                    // Default: try normal first (critical for correct ownership)
+                suspend fun escalation(): T = when {
+                    hasRoot() -> {
+                        log(TAG, VERBOSE) { "$operation(AUTO:ROOT) -> $path" }
+                        rootOps { rootOp(it) }
+                    }
+                    hasAdb() -> {
+                        log(TAG, VERBOSE) { "$operation(AUTO:ADB) -> $path" }
+                        adbOps { adbOp(it) }
+                    }
+                    else -> throw IllegalStateException("No matching mode available.")
+                }
+                if (accessibilityChecker.shouldTryNormalAccess(path, forWriting)) {
                     try {
-                        normalOp().also {
-                            log(TAG, VERBOSE) { "$operation(AUTO->NORMAL)$pathStr" }
-                        }
+                        normalOp().also { log(TAG, VERBOSE) { "$operation(AUTO:NORMAL) -> $path" } }
                     } catch (e: IOException) {
-                        log(TAG, VERBOSE) { "$operation normal failed: ${e.message}" }
-                        when {
-                            hasRoot() -> {
-                                log(TAG, VERBOSE) { "$operation(AUTO->ROOT)$pathStr" }
-                                rootOps { rootOp(it) }
-                            }
-                            hasAdb() -> {
-                                log(TAG, VERBOSE) { "$operation(AUTO->ADB)$pathStr" }
-                                adbOps { adbOp(it) }
-                            }
-                            else -> throw e
+                        log(TAG, VERBOSE) { "$operation(AUTO) failed: ${e.message}" }
+                        try {
+                            escalation()
+                        } catch (_: IllegalStateException) {
+                            throw e
                         }
                     }
+                } else {
+                    escalation()
                 }
             }
         }
@@ -162,90 +155,98 @@ class LocalGateway @Inject constructor(
 
     override suspend fun createDir(path: LocalPath): Unit = createDir(path, Mode.AUTO)
 
-    suspend fun createDir(path: LocalPath, mode: Mode = Mode.AUTO): Unit = runIO {
-        executeWithModeSelection(
-            mode = mode,
-            operation = "createDir",
-            path = path,
-            normalOp = { fileSystemOps.createDir(path) },
-            rootOp = { it.createDir(path) },
-            adbOp = { it.createDir(path) }
-        )
-    }
+    suspend fun createDir(path: LocalPath, mode: Mode = Mode.AUTO): Unit = executeWithModeSelection(
+        mode = mode,
+        operation = "createDir",
+        path = path,
+        forWriting = true,
+        normalOp = { fileSystemOps.createDir(path) },
+        rootOp = { it.createDir(path) },
+        adbOp = { it.createDir(path) }
+    )
+
 
     override suspend fun createFile(path: LocalPath): Unit = createFile(path, Mode.AUTO)
 
-    suspend fun createFile(path: LocalPath, mode: Mode = Mode.AUTO): Unit = runIO {
-        executeWithModeSelection(
-            mode = mode,
-            operation = "createFile",
-            path = path,
-            normalOp = { fileSystemOps.createFile(path) },
-            rootOp = { it.createFile(path) },
-            adbOp = { it.createFile(path) }
-        )
-    }
+    suspend fun createFile(path: LocalPath, mode: Mode = Mode.AUTO): Unit = executeWithModeSelection(
+        mode = mode,
+        operation = "createFile",
+        path = path,
+        forWriting = true,
+        normalOp = { fileSystemOps.createFile(path) },
+        rootOp = { it.createFile(path) },
+        adbOp = { it.createFile(path) }
+    )
+
+    override suspend fun createSymlink(linkPath: LocalPath, targetPath: LocalPath): Boolean =
+        createSymlink(linkPath, targetPath, Mode.AUTO)
+
+    suspend fun createSymlink(
+        linkPath: LocalPath,
+        targetPath: LocalPath,
+        mode: Mode = Mode.AUTO
+    ): Boolean = executeWithModeSelection(
+        mode = mode,
+        operation = "createSymlink",
+        path = linkPath,
+        forWriting = true,
+        normalOp = { fileSystemOps.createSymlink(linkPath, targetPath) },
+        rootOp = { it.createSymlink(linkPath, targetPath) },
+        adbOp = { it.createSymlink(linkPath, targetPath) }
+    )
 
     override suspend fun lookup(path: LocalPath): LocalPathLookup = lookup(path, Mode.AUTO)
 
-    suspend fun lookup(path: LocalPath, mode: Mode = Mode.AUTO): LocalPathLookup = runIO {
-        executeWithModeSelection(
-            mode = mode,
-            operation = "lookup",
-            path = path,
-            normalOp = { fileSystemOps.lookup(path) },
-            rootOp = { it.lookup(path) },
-            adbOp = { it.lookup(path) }
-        )
-    }
+    suspend fun lookup(path: LocalPath, mode: Mode = Mode.AUTO): LocalPathLookup = executeWithModeSelection(
+        mode = mode,
+        operation = "lookup",
+        path = path,
+        forWriting = false,
+        normalOp = { fileSystemOps.lookup(path) },
+        rootOp = { it.lookup(path) },
+        adbOp = { it.lookup(path) }
+    )
+
 
     override suspend fun listFiles(path: LocalPath): List<LocalPath> = listFiles(path, Mode.AUTO)
 
-    suspend fun listFiles(path: LocalPath, mode: Mode = Mode.AUTO): List<LocalPath> = runIO {
-        executeWithModeSelection(
-            mode = mode,
-            operation = "listFiles",
-            path = path,
-            normalOp = { fileSystemOps.listFiles(path) },
-            rootOp = { it.listFiles(path) },
-            adbOp = { it.listFiles(path) }
-        )
-    }
+    suspend fun listFiles(path: LocalPath, mode: Mode = Mode.AUTO): List<LocalPath> = executeWithModeSelection(
+        mode = mode,
+        operation = "listFiles",
+        path = path,
+        forWriting = false,
+        normalOp = { fileSystemOps.listFiles(path) },
+        rootOp = { it.listFiles(path) },
+        adbOp = { it.listFiles(path) }
+    )
+
 
     override suspend fun lookupExtended(path: LocalPath): LocalPathLookupExtended = lookupExtended(path, Mode.AUTO)
 
-    suspend fun lookupExtended(path: LocalPath, mode: Mode = Mode.AUTO): LocalPathLookupExtended = runIO {
-        when {
-            hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
-                TODO()
-            }
-            hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
-                TODO()
-            }
-            mode == Mode.NORMAL || mode == Mode.AUTO -> {
-                fileSystemOps.lookupExtended(path)
-            }
-            else -> throw IOException("No matching mode available.")
-        }
-    }
+    suspend fun lookupExtended(
+        path: LocalPath,
+        mode: Mode = Mode.AUTO
+    ): LocalPathLookupExtended = executeWithModeSelection(
+        mode = mode,
+        operation = "lookupExtended",
+        path = path,
+        forWriting = false,
+        normalOp = { fileSystemOps.lookupExtended(path) },
+        rootOp = { TODO() },
+        adbOp = { TODO() }
+    )
 
     override suspend fun lookupFiles(path: LocalPath): List<LocalPathLookup> = lookupFiles(path, Mode.AUTO)
 
-    suspend fun lookupFiles(path: LocalPath, mode: Mode = Mode.AUTO): List<LocalPathLookup> = runIO {
-
-        when {
-            hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
-                TODO()
-            }
-            hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
-                TODO()
-            }
-            mode == Mode.NORMAL || mode == Mode.AUTO -> {
-                fileSystemOps.lookupFiles(path)
-            }
-            else -> throw IOException("No matching mode available.")
-        }
-    }
+    suspend fun lookupFiles(path: LocalPath, mode: Mode = Mode.AUTO): List<LocalPathLookup> = executeWithModeSelection(
+        mode = mode,
+        operation = "lookupFiles",
+        path = path,
+        forWriting = false,
+        normalOp = { fileSystemOps.lookupFiles(path) },
+        rootOp = { TODO() },
+        adbOp = { TODO() }
+    )
 
     override suspend fun lookupFilesExtended(
         path: LocalPath
@@ -254,20 +255,15 @@ class LocalGateway @Inject constructor(
     suspend fun lookupFilesExtended(
         path: LocalPath,
         mode: Mode = Mode.AUTO
-    ): List<LocalPathLookupExtended> = runIO {
-        when {
-            hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
-                rootOps { it.lookupFilesExtendedStream(path) }
-            }
-            hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
-                adbOps { it.lookupFilesExtendedStream(path) }
-            }
-            mode == Mode.NORMAL || mode == Mode.AUTO -> {
-                fileSystemOps.lookupFilesExtended(path)
-            }
-            else -> throw IOException("No matching mode available.")
-        }
-    }
+    ): List<LocalPathLookupExtended> = executeWithModeSelection(
+        mode = mode,
+        operation = "lookupFilesExtended",
+        path = path,
+        forWriting = false,
+        normalOp = { fileSystemOps.lookupFilesExtended(path) },
+        rootOp = { rootOps { it.lookupFilesExtendedStream(path) } },
+        adbOp = { adbOps { it.lookupFilesExtendedStream(path) } }
+    )
 
     override suspend fun walk(
         path: LocalPath,
@@ -278,52 +274,28 @@ class LocalGateway @Inject constructor(
         path: LocalPath,
         options: APathGateway.WalkOptions<LocalPath, LocalPathLookup>,
         mode: Mode = Mode.AUTO,
-    ): Flow<LocalPathLookup> = runIO {
-        val javaFile = path.toFile()
-        val canRead = when (mode) {
-            Mode.AUTO, Mode.NORMAL -> if (javaFile.canRead()) {
-                try {
-                    javaFile.listFiles2()
-                    true
-                } catch (e: IOException) {
-                    false
-                }
-            } else {
-                false
-            }
-
-            else -> false
-        }
-
-        when {
-            mode == Mode.NORMAL -> {
-                log(TAG, VERBOSE) { "walk($mode->NORMAL, direct): $path" }
-                if (!canRead) throw ReadException(path = path)
+    ): Flow<LocalPathLookup> =
+        executeWithModeSelection(
+            mode = mode,
+            operation = "walk",
+            path = path,
+            forWriting = false,
+            normalOp = {
                 DirectLocalWalker(
                     fileSystemOps = fileSystemOps,
                     start = path,
                     onFilter = { lookup -> options.onFilter?.invoke(lookup) ?: true },
                     onError = { lookup, exception -> options.onError?.invoke(lookup, exception) ?: true },
                 )
-            }
-
-            canRead && mode == Mode.AUTO -> {
-                log(TAG, VERBOSE) { "walk($mode->NORMAL, escalating): $path" }
-                EscalatingWalker(
-                    gateway = this@LocalGateway,
-                    start = path,
-                    options = options,
-                )
-            }
-
-            hasRoot() && (mode == Mode.ROOT || !canRead && mode == Mode.AUTO) -> {
+            },
+            rootOp = {
                 if (options.isDirect) {
-                    log(TAG, VERBOSE) { "walk($mode->ROOT, direct): $path" }
+                    log(TAG, VERBOSE) { "walk(${R.attr.mode}->ROOT, direct): ${R.attr.path}" }
                     // We need to keep the resource alive until the caller is done with the Flow
                     val resource = rootManager.serviceClient.get()
                     rootOps { it.walk(path, options).onCompletion { resource.close() } }
                 } else {
-                    log(TAG, VERBOSE) { "walk($mode->ROOT, indirect): $path" }
+                    log(TAG, VERBOSE) { "walk(${R.attr.mode}->ROOT, indirect): ${R.attr.path}" }
                     // Can't pass functions via IPC
                     IndirectLocalWalker(
                         gateway = this@LocalGateway,
@@ -333,16 +305,15 @@ class LocalGateway @Inject constructor(
                         onError = { lookup, exception -> options.onError?.invoke(lookup, exception) ?: true },
                     )
                 }
-            }
-
-            hasAdb() && (mode == Mode.ADB || !canRead && mode == Mode.AUTO) -> {
+            },
+            adbOp = {
                 if (options.isDirect) {
-                    log(TAG, VERBOSE) { "walk($mode->ADB, direct): $path" }
+                    log(TAG, VERBOSE) { "walk(${R.attr.mode}->ADB, direct): ${R.attr.path}" }
                     // We need to keep the resource alive until the caller is done with the Flow
                     val resource = adbManager.serviceClient.get()
                     adbOps { it.walk(path, options).onCompletion { resource.close() } }
                 } else {
-                    log(TAG, VERBOSE) { "walk($mode->ADB, indirect): $path" }
+                    log(TAG, VERBOSE) { "walk(${R.attr.mode}->ADB, indirect): ${R.attr.path}" }
                     // Can't pass functions via IPC
                     IndirectLocalWalker(
                         gateway = this@LocalGateway,
@@ -353,10 +324,7 @@ class LocalGateway @Inject constructor(
                     )
                 }
             }
-
-            else -> throw IOException("No matching mode available.")
-        }
-    }
+        )
 
     override suspend fun du(
         path: LocalPath,
@@ -367,222 +335,116 @@ class LocalGateway @Inject constructor(
         path: LocalPath,
         options: APathGateway.DuOptions<LocalPath, LocalPathLookup> = APathGateway.DuOptions(),
         mode: Mode = Mode.AUTO,
-    ): Long = runIO {
-        executeWithModeSelection(
-            mode = mode,
-            operation = "du",
-            path = path,
-            normalOp = { fileSystemOps.du(path) },
-            rootOp = { it.du(path) },
-            adbOp = { it.du(path) }
-        )
-    }
+    ): Long = executeWithModeSelection(
+        mode = mode,
+        operation = "du",
+        path = path,
+        forWriting = false,
+        normalOp = { fileSystemOps.du(path) },
+        rootOp = { it.du(path) },
+        adbOp = { it.du(path) }
+    )
+
 
     override suspend fun exists(path: LocalPath): Boolean = exists(path, Mode.AUTO)
 
-    suspend fun exists(path: LocalPath, mode: Mode = Mode.AUTO): Boolean = runIO {
-        val javaFile = path.toFile()
-        val javaFileParent = javaFile.parentFile
-
-        val canCheckNormal = when (mode) {
-            Mode.ROOT -> false
-            Mode.ADB -> false
-            else -> when {
-                // exists() = true is never a false positive
-                javaFile.exists() -> true
-                // This is a bit iffy, but checking readability on the parent has proven reliable
-                javaFileParent?.exists() == true && javaFileParent.canRead() -> true
-                // On Android 12+ Android/data isn't accessible anymore via normal java file access.
-                hasApiLevel(32) && storageEnvironment.publicDataDirs.any { it.isAncestorOf(path) } -> false
-                // If the file path is on public storage, and it wasn't Android/data then, assume true
-                else -> storageEnvironment.externalDirs
-                    .firstOrNull { it.isAncestorOf(path) }
-                    ?.toFile()
-                    ?.canRead() ?: false
-            }
-        }
-
-        when {
-            mode == Mode.NORMAL || mode == Mode.AUTO && canCheckNormal -> {
-                log(TAG, VERBOSE) { "exists($mode->NORMAL): $path" }
-                fileSystemOps.exists(path)
-            }
-
-            hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "exists($mode->ROOT): $path" }
-                rootOps { it.exists(path) }
-            }
-
-            hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "exists($mode->ADB): $path" }
-                adbOps { it.exists(path) }
-            }
-
-            else -> throw IOException("No matching mode available.")
-        }
-    }
+    suspend fun exists(
+        path: LocalPath,
+        mode: Mode = Mode.AUTO
+    ): Boolean = executeWithModeSelection(
+        mode = mode,
+        operation = "exists",
+        path = path,
+        forWriting = false,
+        normalOp = { fileSystemOps.exists(path) },
+        rootOp = { rootOps { it.exists(path) } },
+        adbOp = { adbOps { it.exists(path) } }
+    )
 
     override suspend fun canWrite(path: LocalPath): Boolean = canWrite(path, Mode.AUTO)
 
-    suspend fun canWrite(path: LocalPath, mode: Mode = Mode.AUTO): Boolean = runIO {
-        val file = path.toFile()
-        val canNormalWrite = when (mode) {
-            Mode.ROOT -> false
-            Mode.ADB -> false
-            else -> file.exists() && file.parentsInclusive.firstOrNull { it.exists() }?.canWrite() ?: false
-        }
-
-        when {
-            mode == Mode.NORMAL || mode == Mode.AUTO && canNormalWrite -> {
-                log(TAG, VERBOSE) { "canWrite($mode->NORMAL): $path" }
-                canNormalWrite
-            }
-
-            hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "canWrite($mode->ROOT): $path" }
-                rootOps { it.canWrite(path) }
-            }
-
-            hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "canWrite($mode->ADB): $path" }
-                adbOps { it.canWrite(path) }
-            }
-
-            else -> false
-        }
-    }
+    suspend fun canWrite(
+        path: LocalPath,
+        mode: Mode = Mode.AUTO
+    ): Boolean = executeWithModeSelection(
+        mode = mode,
+        operation = "canWrite",
+        path = path,
+        forWriting = false,
+        normalOp = { fileSystemOps.canWrite(path) },
+        rootOp = { rootOps { it.canWrite(path) } },
+        adbOp = { adbOps { it.canWrite(path) } }
+    )
 
     override suspend fun canRead(path: LocalPath): Boolean = canRead(path, Mode.AUTO)
 
-    suspend fun canRead(path: LocalPath, mode: Mode = Mode.AUTO): Boolean = runIO {
-        val file = path.toFile()
-        val canNormalOpen = when (mode) {
-            Mode.ROOT -> false
-            Mode.ADB -> false
-            // TODO This isn't a great way to check readability
-            else -> file.exists() && file.parentsInclusive.firstOrNull { it.exists() }?.isReadable() ?: false
-        }
-
-        when {
-            mode == Mode.NORMAL || mode == Mode.AUTO && canNormalOpen -> {
-                log(TAG, VERBOSE) { "canRead($mode->NORMAL): $path" }
-                canNormalOpen
-            }
-
-            hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "canRead($mode->ROOT): $path" }
-                rootOps { it.canRead(path) }
-            }
-
-            hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "canRead($mode->ADB): $path" }
-                adbOps { it.canRead(path) }
-            }
-
-            else -> false
-        }
-    }
+    suspend fun canRead(
+        path: LocalPath,
+        mode: Mode = Mode.AUTO
+    ): Boolean = executeWithModeSelection(
+        mode = mode,
+        operation = "canRead",
+        path = path,
+        forWriting = false,
+        normalOp = { fileSystemOps.canRead(path) },
+        rootOp = { rootOps { it.canRead(path) } },
+        adbOp = { adbOps { it.canRead(path) } }
+    )
 
     override suspend fun file(path: LocalPath, readWrite: Boolean): FileHandle = file(path, readWrite, Mode.AUTO)
 
-    suspend fun file(path: LocalPath, readWrite: Boolean, mode: Mode = Mode.AUTO): FileHandle = runIO {
-        when (mode) {
-            Mode.NORMAL -> {
-                log(TAG, VERBOSE) { "file(NORMAL, RW=$readWrite): $path" }
-                fileSystemOps.file(path, readWrite)
-            }
-            Mode.ROOT -> {
-                log(TAG, VERBOSE) { "file(ROOT, RW=$readWrite): $path" }
-                val resource = rootManager.serviceClient.get()
-                rootOps {
-                    it.file(path, readWrite).callbacks {
-                        resource.close()
-                        log(TAG, VERBOSE) { "file(ROOT, RW=$readWrite): Closing resource for $path" }
-                    }
+    suspend fun file(
+        path: LocalPath,
+        readWrite: Boolean,
+        mode: Mode = Mode.AUTO
+    ): FileHandle = executeWithModeSelection(
+        mode = mode,
+        operation = "file",
+        path = path,
+        forWriting = readWrite,
+        normalOp = { fileSystemOps.file(path, readWrite) },
+        rootOp = {
+            val resource = rootManager.serviceClient.get()
+            rootOps {
+                it.file(path, readWrite).callbacks {
+                    resource.close()
+                    log(TAG, VERBOSE) { "file(ROOT, RW=$readWrite): Closing resource for $path" }
                 }
             }
-            Mode.ADB -> {
-                log(TAG, VERBOSE) { "file(ADB, RW=$readWrite): $path" }
-                val resource = adbManager.serviceClient.get()
-                adbOps {
-                    it.file(path, readWrite).callbacks {
-                        resource.close()
-                        log(TAG, VERBOSE) { "file(ADB, RW=$readWrite): Closing resource for $path" }
-                    }
-                }
-            }
-            Mode.AUTO -> {
-                if (accessibilityChecker.isDefinitelyInaccessible(path, forWriting = readWrite) && hasRoot()) {
-                    log(TAG, VERBOSE) { "file(AUTO->ROOT, inaccessible, RW=$readWrite): $path" }
-                    val resource = rootManager.serviceClient.get()
-                    rootOps {
-                        it.file(path, readWrite).callbacks {
-                            resource.close()
-                            log(TAG, VERBOSE) { "file(ROOT, RW=$readWrite): Closing resource for $path" }
-                        }
-                    }
-                } else {
-                    try {
-                        fileSystemOps.file(path, readWrite).also {
-                            log(TAG, VERBOSE) { "file(AUTO->NORMAL, RW=$readWrite): $path" }
-                        }
-                    } catch (e: IOException) {
-                        log(TAG, VERBOSE) { "file normal failed: ${e.message}" }
-                        when {
-                            hasRoot() -> {
-                                log(TAG, VERBOSE) { "file(AUTO->ROOT, RW=$readWrite): $path" }
-                                val resource = rootManager.serviceClient.get()
-                                rootOps {
-                                    it.file(path, readWrite).callbacks {
-                                        resource.close()
-                                        log(TAG, VERBOSE) { "file(ROOT, RW=$readWrite): Closing resource for $path" }
-                                    }
-                                }
-                            }
-                            hasAdb() -> {
-                                log(TAG, VERBOSE) { "file(AUTO->ADB, RW=$readWrite): $path" }
-                                val resource = adbManager.serviceClient.get()
-                                adbOps {
-                                    it.file(path, readWrite).callbacks {
-                                        resource.close()
-                                        log(TAG, VERBOSE) { "file(ADB, RW=$readWrite): Closing resource for $path" }
-                                    }
-                                }
-                            }
-                            else -> throw e
-                        }
-                    }
+        },
+        adbOp = {
+            val resource = adbManager.serviceClient.get()
+            adbOps {
+                it.file(path, readWrite).callbacks {
+                    resource.close()
+                    log(TAG, VERBOSE) { "file(ADB, RW=$readWrite): Closing resource for $path" }
                 }
             }
         }
-    }
+    )
 
     override suspend fun openInputStream(path: LocalPath): InputStream = openInputStream(path, Mode.AUTO)
 
-    suspend fun openInputStream(path: LocalPath, mode: Mode = Mode.AUTO): InputStream = runIO {
-        val javaFile = path.toFile()
-        when {
-            mode == Mode.NORMAL || (mode == Mode.AUTO && javaFile.canRead()) -> {
-                fileSystemOps.openInputStream(path)
+    suspend fun openInputStream(
+        path: LocalPath,
+        mode: Mode = Mode.AUTO
+    ): InputStream = executeWithModeSelection(
+        mode = mode,
+        operation = "openInputStream",
+        path = path,
+        forWriting = false,
+        normalOp = { fileSystemOps.openInputStream(path) },
+        rootOp = {
+            rootOps { client ->
+                client.file(path, readWrite = false).source().buffer().inputStream()
             }
-
-            hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "openInputStream($mode->ROOT): $path" }
-                rootOps { client ->
-                    client.file(path, readWrite = false).source().buffer().inputStream()
-                }
+        },
+        adbOp = {
+            adbOps { client ->
+                client.file(path, readWrite = false).source().buffer().inputStream()
             }
-
-            hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "openInputStream($mode->ADB): $path" }
-                adbOps { client ->
-                    client.file(path, readWrite = false).source().buffer().inputStream()
-                }
-            }
-
-            else -> throw IOException("No matching mode available for openInputStream")
         }
-    }
+    )
 
     override suspend fun openOutputStream(path: LocalPath, append: Boolean): OutputStream =
         openOutputStream(path, append, Mode.AUTO)
@@ -591,36 +453,20 @@ class LocalGateway @Inject constructor(
         path: LocalPath,
         append: Boolean = false,
         mode: Mode = Mode.AUTO
-    ): OutputStream = runIO {
-        executeWithModeSelection(
-            mode = mode,
-            operation = "openOutputStream",
-            path = path,
-            normalOp = { fileSystemOps.openOutputStream(path, append) },
-            rootOp = {
-                if (append) throw UnsupportedOperationException("Append mode not supported via root/ADB")
-                it.file(path, readWrite = true).sink().buffer().outputStream()
-            },
-            adbOp = {
-                if (append) throw UnsupportedOperationException("Append mode not supported via root/ADB")
-                it.file(path, readWrite = true).sink().buffer().outputStream()
-            }
-        )
-    }
+    ): OutputStream = executeWithModeSelection(
+        mode = mode,
+        operation = "openOutputStream",
+        path = path,
+        forWriting = true,
+        normalOp = { fileSystemOps.openOutputStream(path, append) },
+        rootOp = {
+            it.file(path, readWrite = true).sink().buffer().outputStream()
+        },
+        adbOp = {
+            it.file(path, readWrite = true).sink().buffer().outputStream()
+        }
+    )
 
-    override suspend fun createSymlink(linkPath: LocalPath, targetPath: LocalPath): Boolean =
-        createSymlink(linkPath, targetPath, Mode.AUTO)
-
-    suspend fun createSymlink(linkPath: LocalPath, targetPath: LocalPath, mode: Mode = Mode.AUTO): Boolean = runIO {
-        executeWithModeSelection(
-            mode = mode,
-            operation = "createSymlink",
-            path = linkPath,
-            normalOp = { fileSystemOps.createSymlink(linkPath, targetPath) },
-            rootOp = { it.createSymlink(linkPath, targetPath) },
-            adbOp = { it.createSymlink(linkPath, targetPath) }
-        )
-    }
 
     override suspend fun setModifiedAt(path: LocalPath, modifiedAt: Instant): Boolean = setModifiedAt(
         path,
@@ -628,62 +474,36 @@ class LocalGateway @Inject constructor(
         Mode.AUTO
     )
 
-    suspend fun setModifiedAt(path: LocalPath, modifiedAt: Instant, mode: Mode = Mode.AUTO): Boolean = runIO {
-        val canNormalWrite = when (mode) {
-            Mode.ROOT -> false
-            Mode.ADB -> false
-            else -> path.file.canWrite()
-        }
-        when {
-            mode == Mode.NORMAL || mode == Mode.AUTO && canNormalWrite -> {
-                log(TAG, VERBOSE) { "setModifiedAt($mode->NORMAL): $path" }
-                fileSystemOps.setModifiedAt(path, modifiedAt)
-            }
-
-            hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "setModifiedAt($mode->ROOT): $path" }
-                rootOps { it.setModifiedAt(path, modifiedAt) }
-            }
-
-            hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "setModifiedAt($mode->ADB): $path" }
-                adbOps { it.setModifiedAt(path, modifiedAt) }
-            }
-
-            else -> throw IOException("No matching mode available.")
-        }
-    }
+    suspend fun setModifiedAt(
+        path: LocalPath,
+        modifiedAt: Instant,
+        mode: Mode = Mode.AUTO,
+    ): Boolean = executeWithModeSelection(
+        mode = mode,
+        operation = "setModifiedAt",
+        path = path,
+        forWriting = true,
+        normalOp = { fileSystemOps.setModifiedAt(path, modifiedAt) },
+        rootOp = { rootOps { it.setModifiedAt(path, modifiedAt) } },
+        adbOp = { adbOps { it.setModifiedAt(path, modifiedAt) } }
+    )
 
     override suspend fun setPermissions(path: LocalPath, permissions: Permissions): Boolean =
         setPermissions(path, permissions, Mode.AUTO)
 
-    suspend fun setPermissions(path: LocalPath, permissions: Permissions, mode: Mode = Mode.AUTO): Boolean = runIO {
-        val canNormalWrite = when (mode) {
-            Mode.ROOT -> false
-            Mode.ADB -> false
-            else -> path.file.canWrite()
-        }
-
-        when {
-            mode == Mode.NORMAL || mode == Mode.AUTO && canNormalWrite -> {
-                log(TAG, VERBOSE) { "setPermissions($mode->NORMAL): $path" }
-                fileSystemOps.setPermissions(path, permissions)
-            }
-
-            hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "setPermissions($mode->ROOT): $path" }
-                rootOps { it.setPermissions(path, permissions) }
-            }
-
-
-            hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "setPermissions($mode->ADB): $path" }
-                adbOps { it.setPermissions(path, permissions) }
-            }
-
-            else -> throw IOException("No matching mode available.")
-        }
-    }
+    suspend fun setPermissions(
+        path: LocalPath,
+        permissions: Permissions,
+        mode: Mode = Mode.AUTO
+    ): Boolean = executeWithModeSelection(
+        mode = mode,
+        operation = "setPermissions",
+        path = path,
+        forWriting = true,
+        normalOp = { fileSystemOps.setPermissions(path, permissions) },
+        rootOp = { rootOps { it.setPermissions(path, permissions) } },
+        adbOp = { adbOps { it.setPermissions(path, permissions) } }
+    )
 
     override suspend fun setOwnership(
         path: LocalPath,
@@ -694,62 +514,30 @@ class LocalGateway @Inject constructor(
         path: LocalPath,
         ownership: Ownership,
         mode: Mode = Mode.AUTO
-    ): Boolean = runIO {
-        val canNormalWrite = when (mode) {
-            Mode.ROOT -> false
-            Mode.ADB -> false
-            else -> path.file.canWrite()
-        }
-
-        when {
-            mode == Mode.NORMAL || mode == Mode.AUTO && canNormalWrite -> {
-                log(TAG, VERBOSE) { "setOwnership($mode->NORMAL): $path" }
-                fileSystemOps.setOwnership(path, ownership)
-            }
-
-            hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "setOwnership($mode->ROOT): $path" }
-                rootOps { it.setOwnership(path, ownership) }
-            }
-
-            hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "setOwnership($mode->ADB): $path" }
-                adbOps { it.setOwnership(path, ownership) }
-            }
-
-            else -> throw IOException("No matching mode available.")
-        }
-    }
+    ): Boolean = executeWithModeSelection(
+        mode = mode,
+        operation = "setOwnership",
+        path = path,
+        forWriting = true,
+        normalOp = { fileSystemOps.setOwnership(path, ownership) },
+        rootOp = { rootOps { it.setOwnership(path, ownership) } },
+        adbOp = { adbOps { it.setOwnership(path, ownership) } }
+    )
 
     override suspend fun getInfo(path: LocalPath): FileSystemInfo = getInfo(path, Mode.AUTO)
 
-    suspend fun getInfo(path: LocalPath, mode: Mode): FileSystemInfo = runIO {
-        log(TAG, VERBOSE) { "getInfo(): $path" }
-        val canNormalRead = when (mode) {
-            Mode.ROOT -> false
-            Mode.ADB -> false
-            else -> path.file.canRead()
-        }
-
-        when {
-            mode == Mode.NORMAL || mode == Mode.AUTO && canNormalRead -> {
-                log(TAG, VERBOSE) { "getInfo($mode->NORMAL): $path" }
-                fileSystemOps.getInfo(path)
-            }
-
-            hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "getInfo($mode->ROOT): $path" }
-                rootOps { TODO() }
-            }
-
-            hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "getInfo($mode->ADB): $path" }
-                adbOps { TODO() }
-            }
-
-            else -> throw IOException("No matching mode available.")
-        }
-    }
+    suspend fun getInfo(
+        path: LocalPath,
+        mode: Mode
+    ): FileSystemInfo = executeWithModeSelection(
+        mode = mode,
+        operation = "getInfo",
+        path = path,
+        forWriting = false,
+        normalOp = { fileSystemOps.getInfo(path) },
+        rootOp = { TODO() },
+        adbOp = { TODO() },
+    )
 
     /**
      * Delete a single file or directory (primitive operation).
@@ -768,27 +556,22 @@ class LocalGateway @Inject constructor(
      */
     override suspend fun delete(path: LocalPath, recursive: Boolean): Boolean = delete(path, recursive, Mode.AUTO)
 
-    suspend fun delete(path: LocalPath, recursive: Boolean = false, mode: Mode = Mode.AUTO): Boolean = runIO {
-        val javaFile = path.toFile()
-        when {
-            mode == Mode.NORMAL || (mode == Mode.AUTO && javaFile.canWrite()) -> {
-                fileSystemOps.delete(path, recursive)
-                true
-            }
-
-            hasRoot() && (mode == Mode.ROOT || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "delete($mode->ROOT, recursive=$recursive): $path" }
-                rootOps { it.delete(path, recursive) }
-            }
-
-            hasAdb() && (mode == Mode.ADB || mode == Mode.AUTO) -> {
-                log(TAG, VERBOSE) { "delete($mode->ADB, recursive=$recursive): $path" }
-                adbOps { it.delete(path, recursive) }
-            }
-
-            else -> throw IOException("No matching mode available for delete")
-        }
-    }
+    suspend fun delete(
+        path: LocalPath,
+        recursive: Boolean = false,
+        mode: Mode = Mode.AUTO
+    ): Boolean = executeWithModeSelection(
+        mode = mode,
+        operation = "delete",
+        path = path,
+        forWriting = true,
+        normalOp = {
+            fileSystemOps.delete(path, recursive)
+            true
+        },
+        rootOp = { rootOps { it.delete(path, recursive) } },
+        adbOp = { adbOps { it.delete(path, recursive) } }
+    )
 
     /**
      * Delete multiple files and directories with progress tracking and error handling.

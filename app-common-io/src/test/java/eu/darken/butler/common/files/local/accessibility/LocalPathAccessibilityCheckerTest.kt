@@ -1,6 +1,5 @@
 package eu.darken.butler.common.files.local.accessibility
 
-import android.content.Context
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.storage.StorageEnvironment
@@ -15,7 +14,7 @@ import testhelper.EmptyApp
 import testhelpers.BaseTest
 
 /**
- * Tests for LocalPathAccessibilityChecker.
+ * Tests for LocalPathAccessChecker.
  *
  * Tests are organized into three main categories:
  * 1. Tier 1 (Fast Path): Hardcoded universal rules - no mocking needed
@@ -26,24 +25,32 @@ import testhelpers.BaseTest
 @Config(sdk = [29], application = EmptyApp::class)
 class LocalPathAccessibilityCheckerTest : BaseTest() {
 
-    private lateinit var mockContext: Context
     private lateinit var mockStorageEnvironment: StorageEnvironment
-    private lateinit var checker: LocalPathAccessibilityChecker
+    private lateinit var checker: LocalPathAccessChecker
 
     @Before
     fun setup() {
-        mockContext = mockk(relaxed = true)
-        mockStorageEnvironment = mockk(relaxed = true)
+        mockStorageEnvironment = mockk(relaxed = false)
 
-        // Default mock setup: Basic external storage and package name
-        every { mockContext.packageName } returns "eu.darken.butler"
-        every { mockStorageEnvironment.externalDirs } returns listOf(
+        every { mockStorageEnvironment.publicStorages } returns listOf(
             LocalPath.build("/sdcard"),
-            LocalPath.build("/storage/emulated/0")
+            LocalPath.build("/storage/emulated/0"),
+            LocalPath.build("/storage/ABCD-12324"),
         )
-        every { mockStorageEnvironment.publicDataDirs } returns emptyList()
+        every { mockStorageEnvironment.publicDataDirs } returns listOf(
+            LocalPath.build("/sdcard"),
+            LocalPath.build("/storage/emulated/0/Android/data"),
+            LocalPath.build("/storage/ABCD-12324/Android/data"),
+        )
+        every { mockStorageEnvironment.ourPrivateDirs } returns listOf(
+            LocalPath.build("/data/user/0/eu.darken.butler"),
+        )
+        every { mockStorageEnvironment.ourPublicDirs } returns listOf(
+            LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler"),
+            LocalPath.build("/storage/ABCD-12324/Android/data/eu.darken.butler"),
+        )
 
-        checker = LocalPathAccessibilityChecker(mockContext, mockStorageEnvironment)
+        checker = LocalPathAccessChecker(mockStorageEnvironment)
     }
 
     // ========================================================================
@@ -51,15 +58,15 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
     // ========================================================================
 
     @Test
-    fun `root path is definitely inaccessible for both read and write`() {
+    fun `root path should not try normal access for both read and write`() {
         val path = LocalPath.build("/")
 
-        checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe true
-        checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
     }
 
     @Test
-    fun `proc filesystem is definitely inaccessible for both read and write`() {
+    fun `proc filesystem should try normal access for reads but not writes`() {
         val paths = listOf(
             "/proc/cpuinfo",
             "/proc/meminfo",
@@ -69,13 +76,15 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
 
         paths.forEach { pathStr ->
             val path = LocalPath.build(pathStr)
-            checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe true
-            checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe true
+            // Many /proc files are readable via normal access
+            checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+            // But never writable without root
+            checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
         }
     }
 
     @Test
-    fun `sys filesystem is definitely inaccessible for both read and write`() {
+    fun `sys filesystem should not try normal access`() {
         val paths = listOf(
             "/sys/class/net/wlan0/address",
             "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor",
@@ -84,13 +93,13 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
 
         paths.forEach { pathStr ->
             val path = LocalPath.build(pathStr)
-            checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe true
-            checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe true
+            checker.shouldTryNormalAccess(path, forWriting = false) shouldBe false
+            checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
         }
     }
 
     @Test
-    fun `dev filesystem is definitely inaccessible for both read and write`() {
+    fun `dev filesystem should not try normal access for both read and write`() {
         val paths = listOf(
             "/dev/null",
             "/dev/zero",
@@ -100,8 +109,8 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
 
         paths.forEach { pathStr ->
             val path = LocalPath.build(pathStr)
-            checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe true
-            checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe true
+            checker.shouldTryNormalAccess(path, forWriting = false) shouldBe false
+            checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
         }
     }
 
@@ -110,7 +119,7 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
     // ========================================================================
 
     @Test
-    fun `system partition is definitely inaccessible for both read and write`() {
+    fun `system partition should try normal access for reads but not writes`() {
         val paths = listOf(
             "/system/bin/sh",
             "/system/framework/framework.jar",
@@ -120,15 +129,15 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
 
         paths.forEach { pathStr ->
             val path = LocalPath.build(pathStr)
-            // Conservative: treat as inaccessible even for read
-            // (some files might be readable but unreliable)
-            checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe true
-            checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe true
+            // Many system files are readable via normal access
+            checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+            // But never writable without root
+            checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
         }
     }
 
     @Test
-    fun `vendor partition is definitely inaccessible for both read and write`() {
+    fun `vendor partition should try normal access for reads but not writes`() {
         val paths = listOf(
             "/vendor/lib/libvendor.so",
             "/vendor/etc/vintf/manifest.xml",
@@ -137,33 +146,41 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
 
         paths.forEach { pathStr ->
             val path = LocalPath.build(pathStr)
-            checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe true
-            checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe true
+            // Vendor files are often readable via normal access
+            checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+            // But never writable without root
+            checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
         }
     }
 
     @Test
-    fun `product partition is definitely inaccessible for both read and write`() {
+    fun `product partition should try normal access for reads but not writes`() {
         val path = LocalPath.build("/product/app/MyApp.apk")
 
-        checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe true
-        checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe true
+        // Product files are often readable via normal access
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        // But never writable without root
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
     }
 
     @Test
-    fun `system_ext partition is definitely inaccessible for both read and write`() {
+    fun `system_ext partition should try normal access for reads but not writes`() {
         val path = LocalPath.build("/system_ext/lib/libext.so")
 
-        checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe true
-        checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe true
+        // System extension files are often readable via normal access
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        // But never writable without root
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
     }
 
     @Test
-    fun `apex partition is definitely inaccessible for both read and write`() {
+    fun `apex partition should try normal access for reads but not writes`() {
         val path = LocalPath.build("/apex/com.android.runtime/lib/libart.so")
 
-        checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe true
-        checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe true
+        // APEX module files are often readable via normal access
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        // But never writable without root
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
     }
 
     // ========================================================================
@@ -171,7 +188,7 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
     // ========================================================================
 
     @Test
-    fun `sdcard paths are accessible for both read and write`() {
+    fun `sdcard paths should try normal access for both read and write`() {
         val paths = listOf(
             "/sdcard/Download/file.zip",
             "/sdcard/DCIM/photo.jpg",
@@ -181,13 +198,13 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
 
         paths.forEach { pathStr ->
             val path = LocalPath.build(pathStr)
-            checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe false
-            checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe false
+            checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+            checker.shouldTryNormalAccess(path, forWriting = true) shouldBe true
         }
     }
 
     @Test
-    fun `storage emulated paths are accessible for both read and write`() {
+    fun `storage emulated paths should try normal access for both read and write`() {
         val paths = listOf(
             "/storage/emulated/0/Download/file.zip",
             "/storage/emulated/0/DCIM/photo.jpg",
@@ -196,17 +213,9 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
 
         paths.forEach { pathStr ->
             val path = LocalPath.build(pathStr)
-            checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe false
-            checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe false
+            checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+            checker.shouldTryNormalAccess(path, forWriting = true) shouldBe true
         }
-    }
-
-    @Test
-    fun `storage self primary paths are accessible for both read and write`() {
-        val path = LocalPath.build("/storage/self/primary/Download/file.zip")
-
-        checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe false
-        checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe false
     }
 
     // ========================================================================
@@ -214,7 +223,7 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
     // ========================================================================
 
     @Test
-    fun `storage emulated with different user ID is inaccessible`() {
+    fun `storage emulated with different user ID should not try normal access`() {
         val paths = listOf(
             "/storage/emulated/11/Documents/file.txt",
             "/storage/emulated/999/file.txt",
@@ -223,13 +232,13 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
 
         paths.forEach { pathStr ->
             val path = LocalPath.build(pathStr)
-            checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe true
-            checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe true
+            checker.shouldTryNormalAccess(path, forWriting = false) shouldBe false
+            checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
         }
     }
 
     @Test
-    fun `storage self with non-primary storage is inaccessible`() {
+    fun `storage self with non-primary storage should not try normal access`() {
         val paths = listOf(
             "/storage/self/secondary/file.txt",
             "/storage/self/other/document.pdf"
@@ -237,8 +246,8 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
 
         paths.forEach { pathStr ->
             val path = LocalPath.build(pathStr)
-            checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe true
-            checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe true
+            checker.shouldTryNormalAccess(path, forWriting = false) shouldBe false
+            checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
         }
     }
 
@@ -248,7 +257,7 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
 
     @Test
     @Config(sdk = [30])
-    fun `Android data directory is inaccessible on API 30+ for both read and write`() {
+    fun `Android data directory should not try normal access on API 30+ for both read and write`() {
         // Setup scoped storage restrictions
         every { mockStorageEnvironment.publicDataDirs } returns listOf(
             LocalPath.build("/sdcard/Android/data"),
@@ -256,7 +265,7 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
         )
 
         // Recreate checker to pick up new mocks
-        checker = LocalPathAccessibilityChecker(mockContext, mockStorageEnvironment)
+        checker = LocalPathAccessChecker(mockStorageEnvironment)
 
         val paths = listOf(
             "/sdcard/Android/data/com.other.app/files/data.db",
@@ -265,24 +274,24 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
 
         paths.forEach { pathStr ->
             val path = LocalPath.build(pathStr)
-            checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe true
-            checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe true
+            checker.shouldTryNormalAccess(path, forWriting = false) shouldBe false
+            checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
         }
     }
 
     @Test
     @Config(sdk = [29])
-    fun `Android data directory is accessible on API 29 for both read and write`() {
+    fun `Android data directory should try normal access on API 29 for both read and write`() {
         // On API 29, scoped storage not enforced
         every { mockStorageEnvironment.publicDataDirs } returns emptyList()
 
-        checker = LocalPathAccessibilityChecker(mockContext, mockStorageEnvironment)
+        checker = LocalPathAccessChecker(mockStorageEnvironment)
 
         val path = LocalPath.build("/sdcard/Android/data/com.other.app/files/data.db")
 
-        // Accessible on older API levels
-        checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe false
-        checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe false
+        // Should try normal access on older API levels
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe true
     }
 
     // ========================================================================
@@ -290,39 +299,39 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
     // ========================================================================
 
     @Test
-    fun `custom SD card detected by StorageEnvironment is accessible`() {
+    fun `custom SD card detected by StorageEnvironment should try normal access`() {
         // Mock StorageEnvironment to include custom SD card
-        every { mockStorageEnvironment.externalDirs } returns listOf(
+        every { mockStorageEnvironment.publicStorages } returns listOf(
             LocalPath.build("/sdcard"),
             LocalPath.build("/storage/1234-5678") // SD card UUID
         )
 
-        checker = LocalPathAccessibilityChecker(mockContext, mockStorageEnvironment)
+        checker = LocalPathAccessChecker(mockStorageEnvironment)
 
         val path = LocalPath.build("/storage/1234-5678/Documents/file.pdf")
 
-        checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe false
-        checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe false
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe true
     }
 
     @Test
-    fun `USB OTG drive detected by StorageEnvironment is accessible`() {
+    fun `USB OTG drive detected by StorageEnvironment should try normal access`() {
         // Mock StorageEnvironment to include USB OTG
-        every { mockStorageEnvironment.externalDirs } returns listOf(
+        every { mockStorageEnvironment.publicStorages } returns listOf(
             LocalPath.build("/sdcard"),
             LocalPath.build("/storage/usbotg")
         )
 
-        checker = LocalPathAccessibilityChecker(mockContext, mockStorageEnvironment)
+        checker = LocalPathAccessChecker(mockStorageEnvironment)
 
         val path = LocalPath.build("/storage/usbotg/backup/data.zip")
 
-        checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe false
-        checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe false
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe true
     }
 
     @Test
-    fun `app own data directory is always accessible`() {
+    fun `app own data directory should always try normal access`() {
         val paths = listOf(
             "/data/data/eu.darken.butler/cache/temp.db",
             "/data/data/eu.darken.butler/files/config.json",
@@ -331,13 +340,13 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
 
         paths.forEach { pathStr ->
             val path = LocalPath.build(pathStr)
-            checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe false
-            checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe false
+            checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+            checker.shouldTryNormalAccess(path, forWriting = true) shouldBe true
         }
     }
 
     @Test
-    fun `other app data directory is definitely inaccessible`() {
+    fun `other app data directory should not try normal access`() {
         val paths = listOf(
             "/data/data/com.other.app/databases/db.db",
             "/data/data/com.other.app/files/file.txt",
@@ -346,8 +355,8 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
 
         paths.forEach { pathStr ->
             val path = LocalPath.build(pathStr)
-            checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe true
-            checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe true
+            checker.shouldTryNormalAccess(path, forWriting = false) shouldBe false
+            checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
         }
     }
 
@@ -356,13 +365,13 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
     // ========================================================================
 
     @Test
-    fun `unknown path is conservatively treated as inaccessible`() {
+    fun `unknown path should conservatively try normal access`() {
         // Custom ROM partition not in StorageEnvironment
         val path = LocalPath.build("/mnt/vendor/persist/data.db")
 
-        // Conservative fallback: unknown = inaccessible
-        checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe true
-        checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe true
+        // Conservative fallback: try normal access first
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe true
     }
 
     @Test
@@ -371,8 +380,8 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
         val path = LocalPath.build("/sdcard/system/backup.tar")
 
         // Should NOT be confused with /system/ partition
-        checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe false
-        checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe false
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe true
     }
 
     @Test
@@ -381,52 +390,52 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
         val path1 = LocalPath.build("/sdcard/test.txt")
         val path2 = LocalPath.build("/storage/emulated/0/test.txt")
 
-        // Both should be accessible
-        checker.isDefinitelyInaccessible(path1, forWriting = false) shouldBe false
-        checker.isDefinitelyInaccessible(path1, forWriting = true) shouldBe false
+        // Both should try normal access
+        checker.shouldTryNormalAccess(path1, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path1, forWriting = true) shouldBe true
 
-        checker.isDefinitelyInaccessible(path2, forWriting = false) shouldBe false
-        checker.isDefinitelyInaccessible(path2, forWriting = true) shouldBe false
+        checker.shouldTryNormalAccess(path2, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path2, forWriting = true) shouldBe true
     }
 
     @Test
     fun `empty StorageEnvironment externalDirs still has baseline accessible paths`() {
         // Mock empty external dirs (unusual but possible)
-        every { mockStorageEnvironment.externalDirs } returns emptyList()
+        every { mockStorageEnvironment.publicStorages } returns emptyList()
 
-        checker = LocalPathAccessibilityChecker(mockContext, mockStorageEnvironment)
+        checker = LocalPathAccessChecker(mockStorageEnvironment)
 
         // Common paths should still work via hardcoded Tier 1 rules
         val path = LocalPath.build("/sdcard/test.txt")
-        checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe false
-        checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe false
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe true
     }
 
     @Test
-    fun `data local tmp is treated as inaccessible by default`() {
+    fun `data local tmp should not try normal access by default`() {
         // /data/local/tmp is sometimes accessible but not reliably
         val path = LocalPath.build("/data/local/tmp/test.txt")
 
-        // Not our package, so treated as inaccessible
-        checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe true
-        checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe true
+        // Not our package, so don't try normal access
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe false
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
     }
 
     @Test
-    fun `cache partition is inaccessible`() {
+    fun `cache partition should not try normal access`() {
         // /cache is a system partition
         val path = LocalPath.build("/cache/recovery/last_log")
 
-        checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe true
-        checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe false
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
     }
 
     @Test
-    fun `mnt paths are conservatively treated as inaccessible unless in StorageEnvironment`() {
+    fun `mnt paths should conservatively try normal access unless in StorageEnvironment`() {
         val path = LocalPath.build("/mnt/media_rw/1234-5678/test.txt")
 
-        // Not in StorageEnvironment, so treated as inaccessible
-        checker.isDefinitelyInaccessible(path, forWriting = false) shouldBe true
-        checker.isDefinitelyInaccessible(path, forWriting = true) shouldBe true
+        // Not in StorageEnvironment, but try normal access anyway (conservative)
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe true
     }
 }
