@@ -17,16 +17,17 @@ import eu.darken.butler.common.files.local.operations.strategies.LocalPathMoveSt
 import eu.darken.butler.common.files.local.operations.strategies.TransferStrategy
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.io.R
-import java.nio.file.AccessDeniedException
 import java.nio.file.Files
 
 internal class LocalPathMove(
+    private val fileSystemOps: LocalFileSystemOps,
     private val sources: Collection<LocalPath>,
     private val destination: LocalPath,
     private val options: MoveAction.Options<LocalPath>,
     private val onProgress: (suspend (MoveAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)?,
     private val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
 ) {
+    private val fileOperatUtils = PathOperationUtils(fileSystemOps)
     private val progressTracker = PathOperationProgressTracker()
     private var hasExecuted = false
 
@@ -37,7 +38,7 @@ internal class LocalPathMove(
         log(TAG, DEBUG) { "Starting move operation: $sources -> $destination" }
 
         // Ensure destination exists
-        PathOperationUtils.ensureDestinationExists(destination, sources, onIssue)
+        fileOperatUtils.ensureDestinationExists(destination, sources, onIssue)
 
         // Create components
         val issueResolver = PathOperationIssueResolver(onIssue)
@@ -47,7 +48,7 @@ internal class LocalPathMove(
                 reportProgress(lookup.lookedUp as LocalPath, destination, lookup as LocalPathLookup)
             }
         )
-        val spaceValidator = SpaceValidator(issueResolver)
+        val spaceValidator = SpaceValidator(fileSystemOps, issueResolver)
         val strategy = LocalPathMoveStrategy()
         val transferOptions = TransferStrategy.Options(
             preserveAttributes = options.preserveAttributes,
@@ -56,6 +57,7 @@ internal class LocalPathMove(
 
         // Create executor
         val executor = PathOperationExecutor(
+            fileSystemOps = fileSystemOps,
             strategy = strategy,
             sources = sources,
             destination = destination,
@@ -88,14 +90,14 @@ internal class LocalPathMove(
         )
     }
 
-    private fun cleanupSourceDirectories(result: PathOperationExecutor.Result) {
+    private suspend fun cleanupSourceDirectories(result: PathOperationExecutor.Result) {
         for (source in sources) {
             if (source in result.skipped) continue
 
             // Check if source was a directory
             val sourceLookup = try {
                 if (Files.exists(source.toNioPath())) {
-                    source.performLookup()
+                    fileSystemOps.lookup(source)
                 } else {
                     // Source no longer exists - it was a file that was moved atomically
                     null
@@ -108,7 +110,7 @@ internal class LocalPathMove(
             if (sourceLookup != null && sourceLookup.fileType == FileType.DIRECTORY) {
                 // Delete source directory tree (all contents have been moved individually)
                 try {
-                    PathOperationUtils.deleteRecursively(source)
+                    fileOperatUtils.deleteRecursively(source)
                     log(TAG, DEBUG) { "Deleted source directory after move: $source" }
                 } catch (e: Exception) {
                     log(TAG, WARN) { "Failed to delete source directory: $source - $e" }
@@ -158,13 +160,15 @@ internal class LocalPathMove(
 }
 
 suspend fun LocalPath.move(
+    fileSystemOps: LocalFileSystemOps,
     destination: LocalPath,
     options: MoveAction.Options<LocalPath> = MoveAction.Options(),
     onProgress: (suspend (MoveAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
-) = setOf(this).move(destination, options, onProgress, onIssue)
+) = setOf(this).move(fileSystemOps, destination, options, onProgress, onIssue)
 
 suspend fun Collection<LocalPath>.move(
+    fileSystemOps: LocalFileSystemOps,
     destination: LocalPath,
     options: MoveAction.Options<LocalPath> = MoveAction.Options(),
     onProgress: (suspend (MoveAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
@@ -173,8 +177,8 @@ suspend fun Collection<LocalPath>.move(
     log(TAG, DEBUG) {
         "move(): Moving $size targets to $destination (options=$options, onProgress=$onProgress, onIssue=$onIssue)"
     }
-
     return LocalPathMove(
+        fileSystemOps = fileSystemOps,
         sources = this,
         destination = destination,
         options = options,

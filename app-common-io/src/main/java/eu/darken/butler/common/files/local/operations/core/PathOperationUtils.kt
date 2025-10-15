@@ -5,8 +5,8 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.local.isAncestorOf
-import eu.darken.butler.common.files.local.performLookup
 import eu.darken.butler.common.files.local.relativeSegmentsTo
 import eu.darken.butler.common.files.local.toNioPath
 import java.io.File
@@ -18,7 +18,9 @@ import java.nio.file.Files
  *
  * These are stateless helper functions used across copy/move operations.
  */
-object PathOperationUtils {
+class PathOperationUtils(
+    private val fileSystemOps: LocalFileSystemOps,
+) {
 
     /**
      * Generates a unique filename by appending (1), (2), etc. until no conflict exists.
@@ -216,8 +218,8 @@ object PathOperationUtils {
         }
 
         val existsError = java.nio.file.FileAlreadyExistsException(destination.path)
-        val destLookup = destination.performLookup()
-        val sourceLookup = sources.first().performLookup()
+        val destLookup = fileSystemOps.lookup(destination)
+        val sourceLookup = fileSystemOps.lookup(sources.first())
 
         val issue = PathActionIssue.PathAlreadyExists(
             source = sourceLookup,

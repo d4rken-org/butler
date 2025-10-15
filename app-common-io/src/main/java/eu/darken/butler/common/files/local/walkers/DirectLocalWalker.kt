@@ -9,7 +9,6 @@ import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.local.LocalPathLookup
-import eu.darken.butler.common.files.local.performLookup
 import kotlinx.coroutines.flow.AbstractFlow
 import kotlinx.coroutines.flow.FlowCollector
 import java.util.LinkedList
@@ -25,7 +24,7 @@ class DirectLocalWalker(
     private val tag = "$TAG#${hashCode()}"
 
     override suspend fun collectSafely(collector: FlowCollector<LocalPathLookup>) {
-        val startLookUp = start.performLookup()
+        val startLookUp = fileSystemOps.lookup(start)
         if (startLookUp.isFile) {
             collector.emit(startLookUp)
             return

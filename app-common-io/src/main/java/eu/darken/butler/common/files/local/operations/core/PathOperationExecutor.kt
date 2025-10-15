@@ -5,10 +5,10 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.operations.scanning.SpaceValidator
 import eu.darken.butler.common.files.local.operations.strategies.TransferStrategy
-import eu.darken.butler.common.files.local.performLookup
 import eu.darken.butler.common.files.local.relativeSegmentsTo
 import eu.darken.butler.common.files.local.toNioPath
 import eu.darken.butler.common.files.metadata.FileType
@@ -39,6 +39,7 @@ import java.nio.file.Files
  * @param followSymlinks Whether to follow symlinks to their targets
  */
 class PathOperationExecutor(
+    private val fileSystemOps: LocalFileSystemOps,
     private val strategy: TransferStrategy,
     private val sources: Collection<LocalPath>,
     private val destination: LocalPath,
@@ -50,7 +51,7 @@ class PathOperationExecutor(
     private val followSymlinks: Boolean = false,
     private val onProgress: (suspend (LocalPath, LocalPath, LocalPathLookup) -> Unit)? = null,
 ) {
-
+    private val fileOpsUtils = PathOperationUtils(fileSystemOps)
     private val transferred = linkedSetOf<Pair<LocalPath, LocalPath>>()
     private val skipped = linkedSetOf<LocalPath>()
 
@@ -132,7 +133,7 @@ class PathOperationExecutor(
         log(TAG, VERBOSE) { "Scanning source: ${item.source}" }
 
         val lookup = try {
-            item.source.performLookup()
+            fileSystemOps.lookup(item.source)
         } catch (e: Exception) {
             if (item.source == item.topLevelSource) {
                 throw e // Top-level source must exist
@@ -250,7 +251,7 @@ class PathOperationExecutor(
     }
 
     private suspend fun processCreateDirectory(item: WorkItem.CreateDirectory) {
-        val adjustedDest = PathOperationUtils.adjustDestinationForRenames(
+        val adjustedDest = fileOpsUtils.adjustDestinationForRenames(
             item.dest,
             item.sourceLookup.lookedUp,
             renamedSourceDirs
@@ -267,7 +268,7 @@ class PathOperationExecutor(
 
         // Check for conflicts
         if (Files.exists(adjustedDest.toNioPath())) {
-            val destLookup = adjustedDest.performLookup()
+            val destLookup = fileSystemOps.lookup(adjustedDest)
             handleDirectoryConflict(item, adjustedDest, destLookup)
             return
         }
@@ -311,7 +312,7 @@ class PathOperationExecutor(
         }
 
         if (issueResolver.renameSourceAllPathExists) {
-            val uniqueName = PathOperationUtils.generateUniqueName(adjustedDest.name, adjustedDest.file.parentFile!!)
+            val uniqueName = fileOpsUtils.generateUniqueName(adjustedDest.name, adjustedDest.file.parentFile!!)
             val renamedDest = LocalPath.build(File(adjustedDest.file.parentFile!!, uniqueName))
             log(TAG, INFO) { "Auto-renaming (rename apply-to-all): $adjustedDest -> $renamedDest" }
             Files.createDirectories(renamedDest.toNioPath())
@@ -330,7 +331,7 @@ class PathOperationExecutor(
 
             if (issueResolver.overwriteAllPathExists) {
                 log(TAG, INFO) { "Overwriting directory (overwrite apply-to-all): $adjustedDest" }
-                PathOperationUtils.deleteRecursively(adjustedDest)
+                fileOpsUtils.deleteRecursively(adjustedDest)
                 workQueue.addFirst(item)
                 return
             }
@@ -363,14 +364,14 @@ class PathOperationExecutor(
 
     private suspend fun processTransferFile(item: WorkItem.TransferFile) {
         // Skip if parent directory was skipped
-        if (PathOperationUtils.isDescendantOfSkippedDir(item.sourceLookup.lookedUp, skippedSourceDirs)) {
+        if (fileOpsUtils.isDescendantOfSkippedDir(item.sourceLookup.lookedUp, skippedSourceDirs)) {
             log(TAG, VERBOSE) { "Skipping file - parent directory was skipped" }
             skipped.add(item.sourceLookup.lookedUp)
             progressTracker.completeItem()
             return
         }
 
-        val adjustedDest = PathOperationUtils.adjustDestinationForRenames(
+        val adjustedDest = fileOpsUtils.adjustDestinationForRenames(
             item.dest,
             item.sourceLookup.lookedUp,
             renamedSourceDirs
@@ -454,7 +455,7 @@ class PathOperationExecutor(
         }
 
         if (issueResolver.renameSourceAllPathExists) {
-            val uniqueName = PathOperationUtils.generateUniqueName(adjustedDest.name, adjustedDest.file.parentFile!!)
+            val uniqueName = fileOpsUtils.generateUniqueName(adjustedDest.name, adjustedDest.file.parentFile!!)
             val renamedDest = LocalPath.build(File(adjustedDest.file.parentFile!!, uniqueName))
             log(TAG, INFO) { "Auto-renaming (rename apply-to-all): $adjustedDest -> $renamedDest" }
 
@@ -504,7 +505,7 @@ class PathOperationExecutor(
         }
 
         // Queue conflict resolution
-        val destLookup = adjustedDest.performLookup()
+        val destLookup = fileSystemOps.lookup(adjustedDest)
         workQueue.addFirst(WorkItem.ResolveConflict(item.sourceLookup, adjustedDest, destLookup, item))
     }
 
@@ -520,7 +521,7 @@ class PathOperationExecutor(
             canMerge = canMerge,
             canRenameSource = true,
             canRenameDestination = true,
-            suggestedName = PathOperationUtils.generateUniqueName(
+            suggestedName = fileOpsUtils.generateUniqueName(
                 item.dest.name,
                 item.dest.file.parentFile!!
             ),
@@ -536,7 +537,7 @@ class PathOperationExecutor(
             }
             is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
                 if (Files.isDirectory(item.dest.toNioPath())) {
-                    PathOperationUtils.deleteRecursively(item.dest)
+                    fileOpsUtils.deleteRecursively(item.dest)
                 } else {
                     Files.delete(item.dest.toNioPath())
                 }

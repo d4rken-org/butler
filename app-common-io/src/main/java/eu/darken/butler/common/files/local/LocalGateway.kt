@@ -591,6 +591,7 @@ class LocalGateway @Inject constructor(
             Mode.NORMAL -> {
                 log(TAG, VERBOSE) { "delete(NORMAL): ${targets.size} targets" }
                 targets.delete(
+                    fileSystemOps,
                     recursive = options.recursive,
                     ignoreMissing = options.ignoreMissing,
                     onIssue = options.onIssue,
@@ -619,6 +620,7 @@ class LocalGateway @Inject constructor(
                         // No escalation available, try normal anyway as fallback
                         log(TAG, VERBOSE) { "delete(AUTO->NORMAL, $shouldTry): ${targets.size} targets" }
                         targets.delete(
+                            fileSystemOps,
                             recursive = options.recursive,
                             ignoreMissing = options.ignoreMissing,
                             onIssue = options.onIssue,
@@ -661,7 +663,8 @@ class LocalGateway @Inject constructor(
             Mode.NORMAL -> {
                 log(TAG, VERBOSE) { "copy(NORMAL): To $destination" }
                 sources.copy(
-                    destination,
+                    fileSystemOps = fileSystemOps,
+                    destination = destination,
                     onIssue = options.onIssue,
                     onProgress = { progress -> emit(progress) }
                 )
@@ -687,7 +690,8 @@ class LocalGateway @Inject constructor(
                     shouldTry || (!hasAdb() && !hasRoot()) -> {
                         log(TAG, VERBOSE) { "copy(AUTO->NORMAL, $shouldTry): To $destination" }
                         sources.copy(
-                            destination,
+                            fileSystemOps = fileSystemOps,
+                            destination = destination,
                             onIssue = options.onIssue,
                             onProgress = { progress -> emit(progress) }
                         )
@@ -726,6 +730,7 @@ class LocalGateway @Inject constructor(
             Mode.NORMAL -> {
                 log(TAG, VERBOSE) { "move(NORMAL): To $destination" }
                 sources.move(
+                    fileSystemOps,
                     destination,
                     options,
                     onProgress = { progress -> emit(progress) },
@@ -753,6 +758,7 @@ class LocalGateway @Inject constructor(
                     shouldTry || (!hasAdb() && !hasRoot()) -> {
                         log(TAG, VERBOSE) { "move(AUTO->NORMAL, $shouldTry): To $destination" }
                         sources.move(
+                            fileSystemOps,
                             destination,
                             options,
                             onProgress = { progress -> emit(progress) },

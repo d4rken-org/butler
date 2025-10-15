@@ -22,6 +22,7 @@ import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
 
 internal class LocalPathDelete(
+    private val fileSystemOps: LocalFileSystemOps,
     private val targets: Collection<LocalPath>,
     private val recursive: Boolean,
     private val ignoreMissing: Boolean,
@@ -207,7 +208,7 @@ internal class LocalPathDelete(
         }
 
         val lookup = try {
-            item.path.performLookup()
+            fileSystemOps.lookup(item.path)
         } catch (e: NoSuchFileException) {
             if (ignoreMissing) {
                 log(TAG, VERBOSE) { "Skipping missing file (ignoreMissing=true): ${item.path}" }
@@ -303,7 +304,7 @@ internal class LocalPathDelete(
         log(TAG, VERBOSE) { "Deleting path: ${item.path}" }
 
         val lookup = try {
-            item.path.performLookup()
+            fileSystemOps.lookup(item.path)
         } catch (e: NoSuchFileException) {
             if (ignoreMissing) {
                 log(TAG, VERBOSE) { "File already deleted (ignoreMissing=true): ${item.path}" }
@@ -410,18 +411,21 @@ internal class LocalPathDelete(
 }
 
 suspend fun LocalPath.delete(
+    fileSystemOps: LocalFileSystemOps,
     recursive: Boolean = true,
     ignoreMissing: Boolean = true,
     onProgress: (suspend (DeleteAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-) = setOf(this).delete(recursive, ignoreMissing, onProgress, onIssue)
+) = setOf(this).delete(fileSystemOps, recursive, ignoreMissing, onProgress, onIssue)
 
 suspend fun Collection<LocalPath>.delete(
+    fileSystemOps: LocalFileSystemOps,
     recursive: Boolean = true,
     ignoreMissing: Boolean = true,
     onProgress: (suspend (DeleteAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
 ): DeleteAction.State.Result<LocalPath, LocalPathLookup> = LocalPathDelete(
+    fileSystemOps = fileSystemOps,
     targets = this,
     recursive = recursive,
     ignoreMissing = ignoreMissing,

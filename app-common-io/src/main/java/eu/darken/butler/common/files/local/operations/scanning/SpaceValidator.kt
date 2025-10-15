@@ -6,8 +6,8 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.WriteException
+import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
-import eu.darken.butler.common.files.local.performLookup
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import java.io.IOException
@@ -20,6 +20,7 @@ import java.io.IOException
  * freeing up space or cancel the operation.
  */
 class SpaceValidator(
+    private val fileSystemOps: LocalFileSystemOps,
     private val issueResolver: PathOperationIssueResolver
 ) {
 
@@ -69,24 +70,26 @@ class SpaceValidator(
                     cause = IOException("Insufficient space: need $requiredBytes bytes, available $availableSpace bytes")
                 )
 
+                // TODO why are we doing extra look ups here, can we already pass the looked up data in here?
                 val sourceLookup = if (sources.size == 1) {
-                    sources.first().performLookup()
+                    fileSystemOps.lookup(sources.first())
                 } else {
-                    destination.performLookup()
+                    fileSystemOps.lookup(destination)
                 }
 
                 // For rename operations (single source + file-like destination),
                 // destination doesn't exist yet - use parent directory for lookup instead
                 val destinationLookup = if (isRename) {
+                    // TODO why not use LocalPath.parent?
                     val parent = destination.file.absoluteFile.parentFile
                     if (parent != null && parent.exists()) {
-                        LocalPath.build(parent).performLookup()
+                        fileSystemOps.lookup(LocalPath.build(parent))
                     } else {
                         // No parent or doesn't exist? Fall back to destination
-                        destination.performLookup()
+                        fileSystemOps.lookup(destination)
                     }
                 } else {
-                    destination.performLookup()
+                    fileSystemOps.lookup(destination)
                 }
 
                 val issue = PathActionIssue.InsufficientSpace(

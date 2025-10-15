@@ -12,4 +12,5 @@ data class SAFPathLookup(
     override val size: Long,
     override val modifiedAt: Instant,
     override val target: LocalPath? = null,
+    override val error: String? = null,
 ) : APathLookup<SAFPath>

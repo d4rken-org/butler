@@ -13,6 +13,7 @@ interface APathLookup<T : APath<T>> {
     val size: Long
     val modifiedAt: Instant
     val target: APath<*>?
+    val error: String? get() = null
 
     val path: String
         get() = lookedUp.path

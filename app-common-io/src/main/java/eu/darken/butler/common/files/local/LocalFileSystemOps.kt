@@ -1,16 +1,20 @@
 package eu.darken.butler.common.files.local
 
 import android.os.StatFs
+import android.system.Os
+import android.system.StructStat
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.core.local.readLink
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.toFile
 import eu.darken.butler.common.files.metadata.FileSystem
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.operations.FileSystemOps
@@ -60,42 +64,93 @@ class LocalFileSystemOps @Inject constructor(
     private val libcoreTool: LibcoreTool,
 ) : FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended> {
 
-    override suspend fun lookup(path: LocalPath): LocalPathLookup {
-        return try {
-            path.performLookup() // Uses existing extension function
+    override suspend fun lookup(path: LocalPath): LocalPathLookup = try {
+        var fileType = FileType.UNKNOWN
+        var size = -1L
+        var modifiedAt = Instant.DISTANT_PAST
+        var target: LocalPath? = null
+        val errors = mutableListOf<String>()
+
+        // Try to get file type (most important, cheapest operation)
+        try {
+            fileType = path.file.getAPathFileType() ?: FileType.UNKNOWN
         } catch (e: Exception) {
-            throw ReadException(path = path, cause = e)
+            errors.add("Type: ${e.message}")
         }
+
+        // Try to get size and modified time (requires stat - might fail on restricted files)
+        try {
+            size = path.file.length()
+            modifiedAt = Instant.fromEpochMilliseconds(path.file.lastModified())
+        } catch (e: Exception) {
+            errors.add("Attributes: ${e.message}")
+        }
+
+        // Try to read symlink target if applicable
+        if (fileType == FileType.SYMBOLIC_LINK) {
+            try {
+                target = path.file.readLink()?.let { LocalPath.build(it) }
+            } catch (e: Exception) {
+                errors.add("Link target: ${e.message}")
+            }
+        }
+
+        LocalPathLookup(
+            lookedUp = path,
+            fileType = fileType,
+            size = size,
+            modifiedAt = modifiedAt,
+            target = target,
+            error = errors.joinToString("; ").ifEmpty { null }
+        )
+    } catch (e: Exception) {
+        throw ReadException(path = path, cause = e)
     }
 
-    override suspend fun lookupExtended(path: LocalPath): LocalPathLookupExtended {
-        return try {
-            val basicLookup = lookup(path)
+    override suspend fun lookupExtended(path: LocalPath): LocalPathLookupExtended = try {
+        val basicLookup = lookup(path)
 
-            // Try to get extended metadata via Os.lstat
-            val fstat = try {
-                android.system.Os.lstat(path.file.path)
-            } catch (e: Exception) {
-                null // Not available or no permission
-            }
+        val fstat: StructStat? = try {
+            Os.lstat(path.file.path)
+        } catch (e: Exception) {
+            log(LocalGateway.TAG, WARN) { "fstat failed on $this: ${e.asLog()}" }
+            null
+        }
 
-            val ownership: Ownership? = fstat?.let {
-                Ownership(userId = it.st_uid.toLong(), groupId = it.st_gid.toLong())
-            }
+        val ownership = fstat?.let {
+            val uid = it.st_uid
+            val gid = it.st_gid
 
-            val permissions = fstat?.let {
-                Permissions(mode = it.st_mode)
-            }
+            val userName: String? = libcoreTool.getNameForUid(uid)
+            val groupName: String? = libcoreTool.getNameForGid(gid)
 
-            LocalPathLookupExtended(
-                lookup = basicLookup,
-                ownership = ownership,
-                permissions = permissions,
-                createdAt = null // Not reliably available on all file systems
+            // TODO use Files.readAttributes as fallback?
+
+            Ownership(uid, gid, userName, groupName)
+        }
+
+        val basicAttributes = try {
+            Files.readAttributes(
+                path.toNioPath(),
+                BasicFileAttributes::class.java
             )
         } catch (e: Exception) {
-            throw ReadException(path = path, cause = e)
+            log(LocalGateway.TAG, WARN) { "BasicFileAttributes failed on $this: ${e.asLog()}" }
+            null
         }
+
+        val permissions = fstat?.let {
+            Permissions(mode = it.st_mode)
+        }
+
+        LocalPathLookupExtended(
+            lookup = basicLookup,
+            ownership = ownership,
+            permissions = permissions,
+            createdAt = basicAttributes?.let { Instant.fromEpochMilliseconds(it.creationTime().toMillis()) },
+        )
+    } catch (e: Exception) {
+        throw ReadException(path = path, cause = e)
     }
 
     override suspend fun listFiles(path: LocalPath): List<LocalPath> {

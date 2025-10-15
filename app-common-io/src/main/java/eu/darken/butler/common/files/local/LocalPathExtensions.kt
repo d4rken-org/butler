@@ -1,23 +1,9 @@
 package eu.darken.butler.common.files.local
 
-import android.system.Os
-import android.system.StructStat
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
-import eu.darken.butler.common.debug.logging.asLog
-import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.core.local.readLink
-import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.extensions.Segments
 import eu.darken.butler.common.files.extensions.toFile
-import eu.darken.butler.common.files.metadata.Ownership
-import eu.darken.butler.common.files.metadata.Permissions
-import eu.darken.butler.common.funnel.IPCFunnel
-import eu.darken.butler.common.pkgs.pkgops.LibcoreTool
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.attribute.BasicFileAttributes
-import kotlin.time.Instant
 
 
 fun LocalPath.relativeSegmentsTo(child: LocalPath): Array<String> {
@@ -41,63 +27,6 @@ fun LocalPath.toCrumbs(): List<LocalPath> {
 }
 
 fun LocalPath.toNioPath(): java.nio.file.Path = file.toPath()
-
-fun LocalPath.performLookup(): LocalPathLookup {
-    val type = file.getAPathFileType() ?: throw ReadException("Does not exist or can't be read", this)
-
-    return LocalPathLookup(
-        fileType = type,
-
-        lookedUp = this,
-        size = file.length(),
-        modifiedAt = Instant.fromEpochMilliseconds(file.lastModified()),
-        target = file.readLink()?.let { LocalPath.build(it) }
-    )
-}
-
-fun LocalPath.performLookupExtended(
-    ipcFunnel: IPCFunnel,
-    libcoreTool: LibcoreTool,
-): LocalPathLookupExtended {
-
-    val lookup = this.performLookup()
-
-    val fstat: StructStat? = try {
-        Os.lstat(file.path)
-    } catch (e: Exception) {
-        log(LocalGateway.TAG, WARN) { "fstat failed on $this: ${e.asLog()}" }
-        null
-    }
-
-    val ownership = fstat?.let {
-        val uid = it.st_uid
-        val gid = it.st_gid
-
-        val userName: String? = libcoreTool.getNameForUid(uid)
-        val groupName: String? = libcoreTool.getNameForGid(gid)
-
-        // TODO use Files.readAttributes as fallback?
-
-        Ownership(uid, gid, userName, groupName)
-    }
-
-    val basicAttributes = try {
-        Files.readAttributes(
-            file.toPath(),
-            BasicFileAttributes::class.java
-        )
-    } catch (e: Exception) {
-        log(LocalGateway.TAG, WARN) { "BasicFileAttributes failed on $this: ${e.asLog()}" }
-        null
-    }
-
-    return LocalPathLookupExtended(
-        lookup = lookup,
-        ownership = ownership,
-        permissions = fstat?.let { Permissions(it.st_mode) },
-        createdAt = basicAttributes?.let { Instant.fromEpochMilliseconds(it.creationTime().toMillis()) }
-    )
-}
 
 fun LocalPath.isAncestorOf(child: LocalPath): Boolean {
     val parentPath = this.toFile().path

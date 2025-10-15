@@ -170,7 +170,7 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
 
         @Suppress("UNCHECKED_CAST")
         return mockFile.children.map { childName ->
-            val childPath = "${path.path}/$childName".replace("//", "/")
+            "${path.path}/$childName".replace("//", "/")
             path.child(childName) as P
         }
     }
@@ -359,6 +359,14 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
         addMockFile(linkPath.path, ByteArray(0))
         files[linkPath.path] = files[linkPath.path]!!.copy(type = FileType.SYMBOLIC_LINK)
         return true
+    }
+
+    override suspend fun file(path: P, readWrite: Boolean): okio.FileHandle {
+        throw UnsupportedOperationException("file() not implemented in MockFileSystemOps")
+    }
+
+    override suspend fun getFileSystem(path: P): eu.darken.butler.common.files.metadata.FileSystem {
+        throw UnsupportedOperationException("getFileSystem() not implemented in MockFileSystemOps")
     }
 
     // Test helper methods

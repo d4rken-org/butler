@@ -16,16 +16,16 @@ import eu.darken.butler.common.files.local.operations.scanning.SpaceValidator
 import eu.darken.butler.common.files.local.operations.strategies.LocalPathCopyStrategy
 import eu.darken.butler.common.files.local.operations.strategies.TransferStrategy
 import eu.darken.butler.common.io.R
-import java.nio.file.AccessDeniedException
-import java.nio.file.Files
 
 internal class LocalPathCopy(
+    private val fileSystemOps: LocalFileSystemOps,
     private val sources: Collection<LocalPath>,
     private val destination: LocalPath,
     private val options: CopyAction.Options<LocalPath>,
     private val onProgress: (suspend (CopyAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)?,
     private val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
 ) {
+    private val pathOperationUtils = PathOperationUtils(fileSystemOps)
     private val progressTracker = PathOperationProgressTracker()
     private var hasExecuted = false
 
@@ -36,7 +36,7 @@ internal class LocalPathCopy(
         log(TAG, DEBUG) { "Starting copy operation: $sources -> $destination" }
 
         // Ensure destination exists
-        PathOperationUtils.ensureDestinationExists(destination, sources, onIssue)
+        pathOperationUtils.ensureDestinationExists(destination, sources, onIssue)
 
         // Create components
         val issueResolver = PathOperationIssueResolver(onIssue)
@@ -46,7 +46,7 @@ internal class LocalPathCopy(
                 reportProgress(lookup.lookedUp as LocalPath, destination, lookup as LocalPathLookup)
             }
         )
-        val spaceValidator = SpaceValidator(issueResolver)
+        val spaceValidator = SpaceValidator(fileSystemOps, issueResolver)
         val strategy = LocalPathCopyStrategy()
         val transferOptions = TransferStrategy.Options(
             preserveAttributes = options.preserveAttributes,
@@ -55,6 +55,7 @@ internal class LocalPathCopy(
 
         // Create executor
         val executor = PathOperationExecutor(
+            fileSystemOps = fileSystemOps,
             strategy = strategy,
             sources = sources,
             destination = destination,
@@ -125,13 +126,15 @@ internal class LocalPathCopy(
 }
 
 suspend fun LocalPath.copy(
+    fileSystemOps: LocalFileSystemOps,
     destination: LocalPath,
     options: CopyAction.Options<LocalPath> = CopyAction.Options(),
     onProgress: (suspend (CopyAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
-) = setOf(this).copy(destination, options, onProgress, onIssue)
+) = setOf(this).copy(fileSystemOps, destination, options, onProgress, onIssue)
 
 suspend fun Collection<LocalPath>.copy(
+    fileSystemOps: LocalFileSystemOps,
     destination: LocalPath,
     options: CopyAction.Options<LocalPath> = CopyAction.Options(),
     onProgress: (suspend (CopyAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
@@ -142,6 +145,7 @@ suspend fun Collection<LocalPath>.copy(
     }
 
     return LocalPathCopy(
+        fileSystemOps = fileSystemOps,
         sources = this,
         destination = destination,
         options = options,
