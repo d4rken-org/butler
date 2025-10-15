@@ -13,7 +13,6 @@ import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.metadata.FileSystem
-import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.operations.FileSystemOps
@@ -488,6 +487,63 @@ class SAFFileSystemOps @Inject constructor(
 
     override suspend fun createSymlink(linkPath: SAFPath, targetPath: SAFPath): Boolean {
         throw UnsupportedOperationException("SAF (Storage Access Framework) does not support symlinks")
+    }
+
+    override suspend fun readSymbolicLink(linkPath: SAFPath): SAFPath {
+        throw UnsupportedOperationException("SAF (Storage Access Framework) does not support symlinks")
+    }
+
+    override suspend fun move(source: SAFPath, destination: SAFPath): Boolean = try {
+        log(TAG, VERBOSE) { "move(): $source -> $destination" }
+
+        val sourceDocFile = source.resolveDocFile()
+
+        if (!sourceDocFile.exists) {
+            throw ReadException("Source does not exist", source)
+        }
+
+        // Get source parent directory
+        val sourceParentPath = if (source.segments.size > 1) {
+            source.copy(segments = source.segments.dropLast(1))
+        } else {
+            source.copy(segments = emptyList())
+        }
+        val sourceParentDocFile = sourceParentPath.resolveDocFile()
+
+        // Get destination parent directory
+        val destParentPath = if (destination.segments.size > 1) {
+            destination.copy(segments = destination.segments.dropLast(1))
+        } else {
+            destination.copy(segments = emptyList())
+        }
+        val destParentDocFile = destParentPath.resolveDocFile()
+
+        if (!destParentDocFile.exists || !destParentDocFile.isDirectory) {
+            throw WriteException("Destination parent does not exist or is not a directory", destination)
+        }
+
+        // Use DocumentsContract.moveDocument (requires API 24+)
+        val movedUri = DocumentsContract.moveDocument(
+            contentResolver,
+            sourceDocFile.uri,
+            sourceParentDocFile.uri,
+            destParentDocFile.uri
+        )
+
+        val success = movedUri != null
+
+        if (success) {
+            // Invalidate cache entries for both source and destination
+            docFileCache.remove(source)
+            docFileCache.remove(destination)
+            lookupCache.remove(source)
+            lookupCache.remove(destination)
+        }
+
+        success
+    } catch (e: Exception) {
+        log(TAG, WARN) { "move($source, $destination) failed: ${e.asLog()}" }
+        throw WriteException(path = source, cause = e)
     }
 
     override suspend fun canRead(path: SAFPath): Boolean = try {

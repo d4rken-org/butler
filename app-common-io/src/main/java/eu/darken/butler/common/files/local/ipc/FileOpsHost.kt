@@ -178,6 +178,22 @@ class FileOpsHost @Inject constructor(
         throw e.wrapToPropagate()
     }
 
+    override fun readSymbolicLink(linkPath: LocalPath): LocalPath = try {
+        if (Bugs.isTrace) log(TAG, VERBOSE) { "readSymbolicLink($linkPath)..." }
+        runBlocking { fileSystemOps.readSymbolicLink(linkPath) }
+    } catch (e: Exception) {
+        log(TAG, ERROR) { "readSymbolicLink(linkPath=$linkPath) failed\n${e.asLog()}" }
+        throw e.wrapToPropagate()
+    }
+
+    override fun move(source: LocalPath, destination: LocalPath): Boolean = try {
+        if (Bugs.isTrace) log(TAG, VERBOSE) { "move($source,$destination)..." }
+        runBlocking { fileSystemOps.move(source, destination) }
+    } catch (e: Exception) {
+        log(TAG, ERROR) { "move(source=$source, destination=$destination) failed\n${e.asLog()}" }
+        throw e.wrapToPropagate()
+    }
+
     override fun setModifiedAt(path: LocalPath, modifiedAt: Long): Boolean = try {
         if (Bugs.isTrace) log(TAG, VERBOSE) { "setModifiedAt($path,$modifiedAt)..." }
         runBlocking { fileSystemOps.setModifiedAt(path, Instant.fromEpochMilliseconds(modifiedAt)) }

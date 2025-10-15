@@ -205,6 +205,22 @@ class MockSAFFileSystemOps : MockFileSystemOps<SAFPath, SAFPathLookup, SAFPathLo
         throw UnsupportedOperationException("SAF (Storage Access Framework) does not support symlinks")
     }
 
+    override suspend fun readSymbolicLink(linkPath: SAFPath): SAFPath {
+        throw UnsupportedOperationException("SAF (Storage Access Framework) does not support symlinks")
+    }
+
+    override suspend fun move(source: SAFPath, destination: SAFPath): Boolean {
+        // Check permissions for both source and destination
+        if (pathsWithoutPermission.contains(source.path)) {
+            throw MissingUriPermissionException(path = source)
+        }
+        if (pathsWithoutPermission.contains(destination.path)) {
+            throw MissingUriPermissionException(path = destination)
+        }
+
+        return super.move(source, destination)
+    }
+
     /**
      * Get document MIME type for verification.
      */

@@ -355,9 +355,72 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
     }
 
     override suspend fun createSymlink(linkPath: P, targetPath: P): Boolean {
-        // For mock purposes, create an empty file and mark it as symlink
-        addMockFile(linkPath.path, ByteArray(0))
-        files[linkPath.path] = files[linkPath.path]!!.copy(type = FileType.SYMBOLIC_LINK)
+        // Store target path in content field for later retrieval
+        addMockSymlink(linkPath.path, targetPath.path)
+        return true
+    }
+
+    override suspend fun readSymbolicLink(linkPath: P): P {
+        val mockFile = files[linkPath.path]
+            ?: throw NoSuchFileException(linkPath.path)
+
+        if (mockFile.type != FileType.SYMBOLIC_LINK) {
+            throw IllegalStateException("Not a symbolic link: ${linkPath.path}")
+        }
+
+        // Target path stored in content field
+        val targetPathString = String(mockFile.content)
+
+        // Build path from the target string - handle both absolute and relative paths
+        @Suppress("UNCHECKED_CAST")
+        return if (targetPathString.startsWith("/")) {
+            // Absolute path - create directly
+            linkPath.child(targetPathString.removePrefix("/")) as P
+        } else {
+            // Relative path - resolve relative to link's parent
+            val linkParent = linkPath.path.substringBeforeLast('/', "")
+            val targetPath = if (linkParent.isNotEmpty()) {
+                "$linkParent/$targetPathString".replace("//", "/")
+            } else {
+                targetPathString
+            }
+            linkPath.child(targetPath.removePrefix("/")) as P
+        }
+    }
+
+    override suspend fun move(source: P, destination: P): Boolean {
+        val mockFile = files[source.path] ?: return false
+
+        // Check if destination already exists
+        if (files.containsKey(destination.path)) {
+            throw PathAlreadyExistsException(
+                message = "Destination already exists: ${destination.path}",
+                path = destination
+            )
+        }
+
+        // Remove from source parent's children list
+        val sourceParentPath = source.path.substringBeforeLast('/', "")
+        if (sourceParentPath.isNotEmpty()) {
+            val sourceParent = files[sourceParentPath]
+            sourceParent?.children?.remove(source.name)
+        }
+
+        // Remove from source location
+        files.remove(source.path)
+
+        // Add to destination location
+        files[destination.path] = mockFile
+
+        // Add to destination parent's children list
+        val destParentPath = destination.path.substringBeforeLast('/', "")
+        if (destParentPath.isNotEmpty()) {
+            val destParent = files[destParentPath]
+            if (destParent != null && !destParent.children.contains(destination.name)) {
+                destParent.children.add(destination.name)
+            }
+        }
+
         return true
     }
 

@@ -85,6 +85,14 @@ class GatewaySwitch @Inject constructor(
         return useGateway(linkPath) { createSymlink(linkPath, targetPath) }
     }
 
+    override suspend fun readSymbolicLink(linkPath: APath<*>): APath<*> {
+        return useGateway(linkPath) { readSymbolicLink(linkPath) }
+    }
+
+    override suspend fun move(source: APath<*>, destination: APath<*>): Boolean {
+        return useGateway(source) { move(source, destination) }
+    }
+
     override suspend fun lookup(path: APath<*>): APathLookup<APath<*>> {
         return lookup(path, Type.CURRENT)
     }

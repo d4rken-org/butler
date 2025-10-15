@@ -4,17 +4,14 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.LocalPathLookupExtended
-import eu.darken.butler.common.files.local.toNioPath
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.operations.FileSystemOps
 import okio.buffer
 import okio.sink
 import okio.source
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
-import java.nio.file.attribute.PosixFileAttributeView
 
 /**
  * Strategy for copying files and directories using LocalPath.
@@ -27,7 +24,7 @@ import java.nio.file.attribute.PosixFileAttributeView
  * Note: This implements both the old TransferStrategy (for backward compatibility)
  * and the new generic TransferStrategy<LocalPath, LocalPathLookup> interface.
  */
-class LocalPathCopyStrategy :
+class LocalPathCopyStrategy(private val fileSystemOps: LocalFileSystemOps) :
     TransferStrategy,
     eu.darken.butler.common.files.operations.TransferStrategy<
         LocalPath, LocalPathLookup, LocalPathLookupExtended,  // Source types
@@ -41,7 +38,7 @@ class LocalPathCopyStrategy :
         options: TransferStrategy.Options,
         onProgress: suspend (bytesTransferred: Long) -> Unit
     ): TransferStrategy.TransferResult {
-        return transferFileInternal(sourceLookup, destination, options, onProgress)
+        return transferFileInternal(sourceLookup, destination, options, onProgress, fileSystemOps, fileSystemOps)
     }
 
     // New generic interface implementation
@@ -58,7 +55,7 @@ class LocalPathCopyStrategy :
             preserveAttributes = options.preserveAttributes,
             followSymlinks = options.followSymlinks
         )
-        val result = transferFileInternal(sourceLookup, destination, localOptions, onProgress, destOps)
+        val result = transferFileInternal(sourceLookup, destination, localOptions, onProgress, sourceOps, destOps)
         // Convert result to generic type
         return when (result) {
             is TransferStrategy.TransferResult.Success ->
@@ -81,23 +78,22 @@ class LocalPathCopyStrategy :
         destination: LocalPath,
         options: TransferStrategy.Options,
         onProgress: suspend (bytesTransferred: Long) -> Unit,
-        destOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>? = null
+        sourceOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>,
+        destOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>
     ): TransferStrategy.TransferResult {
         log(TAG, DEBUG) { "Copying file: ${sourceLookup.lookedUp} -> $destination" }
-
-        sourceLookup.lookedUp.toNioPath()
 
         // Handle symlinks based on options
         if (sourceLookup.fileType == FileType.SYMBOLIC_LINK) {
             return if (options.followSymlinks) {
-                copySymlinkTarget(sourceLookup, destination, options, onProgress)
+                copySymlinkTarget(sourceLookup, destination, options, onProgress, sourceOps, destOps)
             } else {
-                copySymlink(sourceLookup, destination, onProgress, destOps)
+                copySymlink(sourceLookup, destination, onProgress, sourceOps, destOps)
             }
         }
 
         // Regular file copy with progress tracking
-        return copyRegularFile(sourceLookup, destination, options, onProgress)
+        return copyRegularFile(sourceLookup, destination, options, onProgress, sourceOps, destOps)
     }
 
     // Old interface implementation (backward compatibility)
@@ -106,7 +102,7 @@ class LocalPathCopyStrategy :
         destination: LocalPath,
         options: TransferStrategy.Options
     ): TransferStrategy.TransferResult {
-        return createDirectoryInternal(sourceLookup, destination, options)
+        return createDirectoryInternal(sourceLookup, destination, options, fileSystemOps, fileSystemOps)
     }
 
     // New generic interface implementation
@@ -122,7 +118,7 @@ class LocalPathCopyStrategy :
             preserveAttributes = options.preserveAttributes,
             followSymlinks = options.followSymlinks
         )
-        val result = createDirectoryInternal(sourceLookup, destination, localOptions, destOps)
+        val result = createDirectoryInternal(sourceLookup, destination, localOptions, sourceOps, destOps)
         // Convert result to generic type
         return when (result) {
             is TransferStrategy.TransferResult.Success ->
@@ -144,39 +140,36 @@ class LocalPathCopyStrategy :
         sourceLookup: LocalPathLookup,
         destination: LocalPath,
         options: TransferStrategy.Options,
-        destOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>? = null
+        sourceOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>,
+        destOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>
     ): TransferStrategy.TransferResult {
         log(TAG, DEBUG) { "Creating directory: $destination" }
 
         // If the source is a symlink and we're not following symlinks, recreate the symlink
         if (sourceLookup.fileType == FileType.SYMBOLIC_LINK && !options.followSymlinks) {
-            val sourcePath = sourceLookup.lookedUp.toNioPath()
-            val linkTarget = Files.readSymbolicLink(sourcePath)
+            val linkTarget = sourceOps.readSymbolicLink(sourceLookup.lookedUp)
 
             // Adjust symlink target if it's relative
-            val newTarget = if (linkTarget.isAbsolute) {
+            val newTarget = if (linkTarget.file.isAbsolute) {
                 linkTarget
             } else {
-                val absoluteTarget = sourcePath.parent.resolve(linkTarget).normalize()
-                destination.toNioPath().parent.relativize(absoluteTarget)
+                val sourceParent = sourceLookup.lookedUp.file.parentFile!!
+                val absoluteTarget = sourceParent.resolve(linkTarget.file.path).normalize()
+                val destParent = destination.file.parentFile!!
+                val relativePath = destParent.toPath().relativize(absoluteTarget.toPath())
+                LocalPath.build(relativePath.toFile())
             }
 
             // Delete existing destination if present (conflict resolution happens before this)
-            if (Files.exists(destination.toNioPath())) {
-                Files.delete(destination.toNioPath())
+            if (destOps.exists(destination)) {
+                destOps.delete(destination, recursive = false)
             }
 
-            if (destOps != null) {
-                // Use FileSystemOps abstraction
-                val targetLocalPath = LocalPath.build(newTarget.toFile())
-                destOps.createSymlink(destination, targetLocalPath)
-            } else {
-                // Fallback to direct Files API for backward compatibility
-                Files.createSymbolicLink(destination.toNioPath(), newTarget)
-            }
+            // Create symlink at destination
+            destOps.createSymlink(destination, newTarget)
         } else {
             // Create regular directory
-            Files.createDirectories(destination.toNioPath())
+            destOps.createDir(destination)
         }
 
         return TransferStrategy.TransferResult.Success(
@@ -190,33 +183,29 @@ class LocalPathCopyStrategy :
         sourceLookup: LocalPathLookup,
         destination: LocalPath,
         onProgress: suspend (bytesTransferred: Long) -> Unit,
-        destOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>? = null
+        sourceOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>,
+        destOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>
     ): TransferStrategy.TransferResult {
-        val sourcePath = sourceLookup.lookedUp.toNioPath()
-        val linkTarget = Files.readSymbolicLink(sourcePath)
+        val linkTarget = sourceOps.readSymbolicLink(sourceLookup.lookedUp)
 
         // Adjust symlink target if it's relative
-        val newTarget = if (linkTarget.isAbsolute) {
+        val newTarget = if (linkTarget.file.isAbsolute) {
             linkTarget
         } else {
-            val absoluteTarget = sourcePath.parent.resolve(linkTarget).normalize()
-            destination.toNioPath().parent.relativize(absoluteTarget)
+            val sourceParent = sourceLookup.lookedUp.file.parentFile!!
+            val absoluteTarget = sourceParent.resolve(linkTarget.file.path).normalize()
+            val destParent = destination.file.parentFile!!
+            val relativePath = destParent.toPath().relativize(absoluteTarget.toPath())
+            LocalPath.build(relativePath.toFile())
         }
 
         // Delete existing destination if present (conflict resolution happens before this)
-        if (Files.exists(destination.toNioPath())) {
-            Files.delete(destination.toNioPath())
+        if (destOps.exists(destination)) {
+            destOps.delete(destination, recursive = false)
         }
 
         // Create new symlink at destination
-        if (destOps != null) {
-            // Use FileSystemOps abstraction
-            val targetLocalPath = LocalPath.build(newTarget.toFile())
-            destOps.createSymlink(destination, targetLocalPath)
-        } else {
-            // Fallback to direct Files API for backward compatibility
-            Files.createSymbolicLink(destination.toNioPath(), newTarget)
-        }
+        destOps.createSymlink(destination, newTarget)
 
         onProgress(sourceLookup.size)
 
@@ -231,19 +220,33 @@ class LocalPathCopyStrategy :
         sourceLookup: LocalPathLookup,
         destination: LocalPath,
         options: TransferStrategy.Options,
-        onProgress: suspend (bytesTransferred: Long) -> Unit
+        onProgress: suspend (bytesTransferred: Long) -> Unit,
+        sourceOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>,
+        destOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>
     ): TransferStrategy.TransferResult {
-        val sourcePath = sourceLookup.lookedUp.toNioPath()
-        val linkTarget = Files.readSymbolicLink(sourcePath)
-        val resolvedPath = sourcePath.parent.resolve(linkTarget).normalize()
+        // Read the symlink target
+        val linkTarget = sourceOps.readSymbolicLink(sourceLookup.lookedUp)
 
-        // Copy the resolved target (file or directory)
-        Files.copy(
-            resolvedPath,
-            destination.toNioPath(),
-            StandardCopyOption.REPLACE_EXISTING,
-            StandardCopyOption.COPY_ATTRIBUTES
-        )
+        // Resolve to absolute path
+        val resolvedPath = if (linkTarget.file.isAbsolute) {
+            linkTarget
+        } else {
+            val sourceParent = sourceLookup.lookedUp.file.parentFile!!
+            LocalPath.build(sourceParent.resolve(linkTarget.file.path).normalize())
+        }
+
+        // Copy the resolved target using stream-based approach
+        sourceOps.openInputStream(resolvedPath).source().buffer().use { source ->
+            destOps.openOutputStream(destination).sink().buffer().use { sink ->
+                source.readAll(sink)
+                sink.flush()
+            }
+        }
+
+        // Copy attributes if requested
+        if (options.preserveAttributes) {
+            copyAttributes(resolvedPath, destination, sourceOps, destOps)
+        }
 
         onProgress(sourceLookup.size)
 
@@ -258,14 +261,15 @@ class LocalPathCopyStrategy :
         sourceLookup: LocalPathLookup,
         destination: LocalPath,
         options: TransferStrategy.Options,
-        onProgress: suspend (bytesTransferred: Long) -> Unit
+        onProgress: suspend (bytesTransferred: Long) -> Unit,
+        sourceOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>,
+        destOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>
     ): TransferStrategy.TransferResult {
-        val sourcePath = sourceLookup.lookedUp.toNioPath()
         var totalBytesTransferred = 0L
 
         // Chunked file copy with progress tracking
-        Files.newInputStream(sourcePath).source().buffer().use { source ->
-            Files.newOutputStream(destination.toNioPath()).sink().buffer().use { sink ->
+        sourceOps.openInputStream(sourceLookup.lookedUp).source().buffer().use { source ->
+            destOps.openOutputStream(destination).sink().buffer().use { sink ->
                 val buffer = okio.Buffer()
                 var bytesRead: Long
 
@@ -280,7 +284,7 @@ class LocalPathCopyStrategy :
 
         // Copy file attributes if requested
         if (options.preserveAttributes) {
-            copyAttributes(sourcePath, destination)
+            copyAttributes(sourceLookup.lookedUp, destination, sourceOps, destOps)
         }
 
         return TransferStrategy.TransferResult.Success(
@@ -290,15 +294,23 @@ class LocalPathCopyStrategy :
         )
     }
 
-    private fun copyAttributes(sourcePath: java.nio.file.Path, destination: LocalPath) {
+    private suspend fun copyAttributes(
+        source: LocalPath,
+        destination: LocalPath,
+        sourceOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>,
+        destOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>
+    ) {
         try {
-            val lastModified = Files.getLastModifiedTime(sourcePath)
-            Files.setLastModifiedTime(destination.toNioPath(), lastModified)
+            // Get source attributes
+            val sourceLookup = sourceOps.lookup(source)
+            val sourceExtended = sourceOps.lookupExtended(source)
+
+            // Set modified time
+            destOps.setModifiedAt(destination, sourceLookup.modifiedAt)
 
             // Copy POSIX permissions if available
-            if (Files.getFileAttributeView(sourcePath, PosixFileAttributeView::class.java) != null) {
-                val permissions = Files.getPosixFilePermissions(sourcePath)
-                Files.setPosixFilePermissions(destination.toNioPath(), permissions)
+            sourceExtended.permissions?.let { permissions ->
+                destOps.setPermissions(destination, permissions)
             }
         } catch (e: Exception) {
             log(TAG, WARN) { "Failed to copy attributes: $e" }

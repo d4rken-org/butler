@@ -8,19 +8,15 @@ import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.local.isAncestorOf
 import eu.darken.butler.common.files.local.relativeSegmentsTo
-import eu.darken.butler.common.files.local.toNioPath
 import java.io.File
 import java.nio.file.AccessDeniedException
-import java.nio.file.Files
 
 /**
  * Utility functions for path operations.
  *
  * These are stateless helper functions used across copy/move operations.
  */
-class PathOperationUtils(
-    private val fileSystemOps: LocalFileSystemOps,
-) {
+class PathOperationUtils(private val fileSystemOps: LocalFileSystemOps) {
 
     /**
      * Generates a unique filename by appending (1), (2), etc. until no conflict exists.
@@ -66,12 +62,9 @@ class PathOperationUtils(
      *
      * @param path The path to delete recursively
      */
-    fun deleteRecursively(path: LocalPath) {
-        if (!Files.exists(path.toNioPath())) return
-
-        Files.walk(path.toNioPath())
-            .sorted(Comparator.reverseOrder())
-            .forEach { Files.deleteIfExists(it) }
+    suspend fun deleteRecursively(path: LocalPath) {
+        if (!fileSystemOps.exists(path)) return
+        fileSystemOps.delete(path, recursive = true)
     }
 
     /**
@@ -115,35 +108,9 @@ class PathOperationUtils(
      * @param skippedDirs Set of directories that were skipped
      * @return true if source is a child/descendant of a skipped directory
      */
-    fun isDescendantOfSkippedDir(
-        source: LocalPath,
-        skippedDirs: Set<LocalPath>
-    ): Boolean {
+    fun isDescendantOfSkippedDir(source: LocalPath, skippedDirs: Set<LocalPath>): Boolean {
         return skippedDirs.any { skippedDir ->
             skippedDir.isAncestorOf(source)
-        }
-    }
-
-    /**
-     * Calculates the total size of a directory recursively.
-     *
-     * @param path The directory path
-     * @return Total size in bytes
-     */
-    fun calculateDirectorySize(path: LocalPath): Long {
-        return try {
-            Files.walk(path.toNioPath())
-                .filter { Files.isRegularFile(it) }
-                .mapToLong { file ->
-                    try {
-                        Files.size(file)
-                    } catch (e: Exception) {
-                        0L
-                    }
-                }
-                .sum()
-        } catch (e: Exception) {
-            0L
         }
     }
 
@@ -165,7 +132,7 @@ class PathOperationUtils(
         sources: Collection<LocalPath>,
         onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
     ) {
-        if (!Files.exists(destination.toNioPath())) {
+        if (!fileSystemOps.exists(destination)) {
             // Detect rename: single source with same parent directory as destination
             // - Same parent = RENAME (e.g., /dir/old.txt → /dir/new.txt)
             // - Different parent = MOVE (e.g., /dir1/file.txt → /dir2/ or /dir2/file.txt)
@@ -176,8 +143,9 @@ class PathOperationUtils(
             try {
                 if (isRename && parent != null) {
                     // Rename case: ensure parent directory exists, but don't create destination
-                    if (!parent.exists()) {
-                        Files.createDirectories(parent.toPath())
+                    val parentPath = LocalPath.build(parent)
+                    if (!fileSystemOps.exists(parentPath)) {
+                        fileSystemOps.createDir(parentPath)
                         log(TAG, DEBUG) { "Created parent directory for rename: $parent" }
                     } else {
                         log(TAG, DEBUG) { "Rename operation detected, parent exists: $parent" }
@@ -203,7 +171,8 @@ class PathOperationUtils(
             return
         }
 
-        if (Files.isDirectory(destination.toNioPath())) {
+        val destLookup = fileSystemOps.lookup(destination)
+        if (destLookup.fileType == eu.darken.butler.common.files.metadata.FileType.DIRECTORY) {
             log(TAG, DEBUG) { "Destination is an existing directory: $destination" }
             return
         }
@@ -218,7 +187,6 @@ class PathOperationUtils(
         }
 
         val existsError = java.nio.file.FileAlreadyExistsException(destination.path)
-        val destLookup = fileSystemOps.lookup(destination)
         val sourceLookup = fileSystemOps.lookup(sources.first())
 
         val issue = PathActionIssue.PathAlreadyExists(
@@ -232,12 +200,12 @@ class PathOperationUtils(
         when (val resolution = onIssue.invoke(issue) as PathActionIssue.PathAlreadyExists.Resolution) {
             is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
                 log(TAG, DEBUG) { "Overwriting file at destination: $destination" }
-                Files.delete(destination.toNioPath())
+                fileSystemOps.delete(destination, recursive = false)
             }
             is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
                 log(TAG, DEBUG) { "Renaming existing file: $destination -> ${resolution.newName}" }
                 val newDestPath = LocalPath.build(File(destination.file.parentFile!!, resolution.newName))
-                Files.move(destination.toNioPath(), newDestPath.toNioPath())
+                fileSystemOps.move(destination, newDestPath)
             }
             is PathActionIssue.PathAlreadyExists.Resolution.Cancel -> throw kotlin.coroutines.cancellation.CancellationException(
                 "User cancelled",
@@ -251,7 +219,7 @@ class PathOperationUtils(
         }
 
         try {
-            Files.createDirectories(destination.toNioPath())
+            fileSystemOps.createDir(destination)
         } catch (e: AccessDeniedException) {
             throw eu.darken.butler.common.files.errors.WriteException(
                 path = destination,

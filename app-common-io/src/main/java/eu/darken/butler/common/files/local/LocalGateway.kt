@@ -193,6 +193,39 @@ class LocalGateway @Inject constructor(
         adbOp = { it.createSymlink(linkPath, targetPath) }
     )
 
+    override suspend fun readSymbolicLink(linkPath: LocalPath): LocalPath =
+        readSymbolicLink(linkPath, Mode.AUTO)
+
+    suspend fun readSymbolicLink(
+        linkPath: LocalPath,
+        mode: Mode = Mode.AUTO
+    ): LocalPath = executeWithModeSelection(
+        mode = mode,
+        operation = "readSymbolicLink",
+        path = linkPath,
+        forWriting = false,
+        normalOp = { fileSystemOps.readSymbolicLink(linkPath) },
+        rootOp = { it.readSymbolicLink(linkPath) },
+        adbOp = { it.readSymbolicLink(linkPath) }
+    )
+
+    override suspend fun move(source: LocalPath, destination: LocalPath): Boolean =
+        move(source, destination, Mode.AUTO)
+
+    suspend fun move(
+        source: LocalPath,
+        destination: LocalPath,
+        mode: Mode = Mode.AUTO
+    ): Boolean = executeWithModeSelection(
+        mode = mode,
+        operation = "move",
+        path = source,
+        forWriting = true,
+        normalOp = { fileSystemOps.move(source, destination) },
+        rootOp = { it.move(source, destination) },
+        adbOp = { it.move(source, destination) }
+    )
+
     override suspend fun lookup(path: LocalPath): LocalPathLookup = lookup(path, Mode.AUTO)
 
     suspend fun lookup(path: LocalPath, mode: Mode = Mode.AUTO): LocalPathLookup = executeWithModeSelection(

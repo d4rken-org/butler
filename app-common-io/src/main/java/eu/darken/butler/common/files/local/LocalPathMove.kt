@@ -48,7 +48,7 @@ internal class LocalPathMove(
             }
         )
         val spaceValidator = SpaceValidator(fileSystemOps, issueResolver)
-        val strategy = LocalPathMoveStrategy()
+        val strategy = LocalPathMoveStrategy(fileSystemOps)
         val transferOptions = TransferStrategy.Options(
             preserveAttributes = options.preserveAttributes,
             followSymlinks = false

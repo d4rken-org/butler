@@ -3,7 +3,6 @@ package eu.darken.butler.common.files.operations
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.APathLookupExtended
-import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
@@ -219,6 +218,32 @@ interface FileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExte
      * @throws UnsupportedOperationException if file system doesn't support symlinks
      */
     suspend fun createSymlink(linkPath: P, targetPath: P): Boolean
+
+    /**
+     * Read the target of a symbolic link.
+     *
+     * Returns the target path that the symlink points to (which may be relative or absolute).
+     * Some file systems (like SAF) do not support symlinks and will throw UnsupportedOperationException.
+     *
+     * @param linkPath The symlink path to read
+     * @return The target path the symlink points to
+     * @throws eu.darken.butler.common.files.errors.ReadException if symlink cannot be read or doesn't exist
+     * @throws UnsupportedOperationException if file system doesn't support symlinks
+     */
+    suspend fun readSymbolicLink(linkPath: P): P
+
+    /**
+     * Move/rename a file or directory.
+     *
+     * Attempts atomic move when source and destination are on the same file system.
+     * Falls back to copy+delete if atomic move is not possible.
+     *
+     * @param source The source path to move
+     * @param destination The destination path
+     * @return true if moved successfully
+     * @throws eu.darken.butler.common.files.errors.WriteException if move fails
+     */
+    suspend fun move(source: P, destination: P): Boolean
 
     /**
      * Open input stream for reading file contents.

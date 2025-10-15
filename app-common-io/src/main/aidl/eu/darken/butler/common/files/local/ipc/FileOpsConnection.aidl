@@ -39,6 +39,10 @@ interface FileOpsConnection {
 
     boolean createSymlink(in LocalPath linkPath, in LocalPath targetPath);
 
+    LocalPath readSymbolicLink(in LocalPath linkPath);
+
+    boolean move(in LocalPath source, in LocalPath destination);
+
     boolean setModifiedAt(in LocalPath path, in long modifiedAt);
 
     boolean setPermissions(in LocalPath path, in Permissions permissions);

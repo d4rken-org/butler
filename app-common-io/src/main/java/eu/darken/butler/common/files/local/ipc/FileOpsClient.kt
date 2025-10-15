@@ -126,6 +126,18 @@ class FileOpsClient @AssistedInject constructor(
         throw e.refineException()
     }
 
+    override suspend fun readSymbolicLink(linkPath: LocalPath): LocalPath = try {
+        fileOpsConnection.readSymbolicLink(linkPath)
+    } catch (e: Exception) {
+        throw e.refineException()
+    }
+
+    override suspend fun move(source: LocalPath, destination: LocalPath): Boolean = try {
+        fileOpsConnection.move(source, destination)
+    } catch (e: Exception) {
+        throw e.refineException()
+    }
+
     override suspend fun canRead(path: LocalPath): Boolean = try {
         fileOpsConnection.canRead(path)
     } catch (e: Exception) {
@@ -188,6 +200,7 @@ class FileOpsClient @AssistedInject constructor(
 
     override suspend fun getFileSystem(path: LocalPath): FileSystem = try {
         fileOpsConnection.getFileSystem(path)
+            ?: throw IllegalStateException("IPC connection returned null for getFileSystem($path)")
     } catch (e: Exception) {
         throw e.refineException()
     }

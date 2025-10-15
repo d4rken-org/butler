@@ -10,12 +10,10 @@ import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.operations.scanning.SpaceValidator
 import eu.darken.butler.common.files.local.operations.strategies.TransferStrategy
 import eu.darken.butler.common.files.local.relativeSegmentsTo
-import eu.darken.butler.common.files.local.toNioPath
 import eu.darken.butler.common.files.metadata.FileType
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import java.io.File
-import java.nio.file.Files
 
 /**
  * Generic executor for path operations (copy, move) that coordinates scanning,
@@ -169,21 +167,19 @@ class PathOperationExecutor(
                 // List and queue children
                 val context = PathOperationErrorHandler.ErrorContext.Read(lookup, "List directory contents")
                 val result = errorHandler.handleErrors("List directory", context) {
+                    val childPaths = fileSystemOps.listFiles(item.source)
                     val children = mutableListOf<WorkItem.ScanSource>()
-                    Files.newDirectoryStream(item.source.toNioPath()).use { ds ->
-                        for (child in ds) {
-                            if (!currentCoroutineContext().isActive) return@handleErrors children
-                            val childPath = LocalPath.build(child.toFile())
-                            val childDisplayPath =
-                                LocalPath.build(File(item.displayPath.file, child.fileName.toString()))
-                            children.add(
-                                WorkItem.ScanSource(
-                                    source = childPath,
-                                    displayPath = childDisplayPath,
-                                    topLevelSource = item.topLevelSource
-                                )
+                    for (childPath in childPaths) {
+                        if (!currentCoroutineContext().isActive) return@handleErrors children
+                        val childDisplayPath =
+                            LocalPath.build(File(item.displayPath.file, childPath.name))
+                        children.add(
+                            WorkItem.ScanSource(
+                                source = childPath,
+                                displayPath = childDisplayPath,
+                                topLevelSource = item.topLevelSource
                             )
-                        }
+                        )
                     }
                     children
                 }
@@ -203,10 +199,16 @@ class PathOperationExecutor(
                 if (followSymlinks) {
                     // Resolve symlink to its target
                     try {
-                        val targetPath = Files.readSymbolicLink(item.source.toNioPath())
-                        val resolvedPath = item.source.toNioPath().parent.resolve(targetPath).normalize()
+                        val targetPath = fileSystemOps.readSymbolicLink(item.source)
+                        // Resolve relative paths relative to symlink's parent
+                        val resolvedPath = if (targetPath.file.isAbsolute) {
+                            targetPath
+                        } else {
+                            LocalPath.build(item.source.file.parentFile!!.resolve(targetPath.file.path).normalize())
+                        }
 
-                        if (Files.isDirectory(resolvedPath)) {
+                        val resolvedLookup = fileSystemOps.lookup(resolvedPath)
+                        if (resolvedLookup.fileType == FileType.DIRECTORY) {
                             // Symlink points to directory - create directory and scan contents
                             workQueue.addLast(WorkItem.CreateDirectory(lookup, destinationPath, item.topLevelSource))
                             progressTracker.totalBytes += lookup.size
@@ -215,7 +217,7 @@ class PathOperationExecutor(
                             // Re-queue to scan the resolved directory's contents
                             workQueue.addFirst(
                                 WorkItem.ScanSource(
-                                    source = LocalPath.build(resolvedPath.toFile()),
+                                    source = resolvedPath,
                                     displayPath = item.displayPath,
                                     topLevelSource = item.topLevelSource
                                 )
@@ -267,7 +269,7 @@ class PathOperationExecutor(
         }
 
         // Check for conflicts
-        if (Files.exists(adjustedDest.toNioPath())) {
+        if (fileSystemOps.exists(adjustedDest)) {
             val destLookup = fileSystemOps.lookup(adjustedDest)
             handleDirectoryConflict(item, adjustedDest, destLookup)
             return
@@ -315,7 +317,7 @@ class PathOperationExecutor(
             val uniqueName = fileOpsUtils.generateUniqueName(adjustedDest.name, adjustedDest.file.parentFile!!)
             val renamedDest = LocalPath.build(File(adjustedDest.file.parentFile!!, uniqueName))
             log(TAG, INFO) { "Auto-renaming (rename apply-to-all): $adjustedDest -> $renamedDest" }
-            Files.createDirectories(renamedDest.toNioPath())
+            fileSystemOps.createDir(renamedDest)
             transferred.add(item.sourceLookup.lookedUp to renamedDest)
             renamedSourceDirs[item.sourceLookup.lookedUp] = renamedDest
             progressTracker.completeItem()
@@ -344,7 +346,7 @@ class PathOperationExecutor(
             }
         } else if (issueResolver.overwriteAllPathExists) {
             log(TAG, INFO) { "Overwriting file with directory (overwrite apply-to-all): $adjustedDest" }
-            Files.delete(adjustedDest.toNioPath())
+            fileSystemOps.delete(adjustedDest, recursive = false)
             workQueue.addFirst(item)
             return
         }
@@ -389,13 +391,13 @@ class PathOperationExecutor(
         // Ensure parent directory exists
         adjustedDest.file.parentFile?.let { parent ->
             val parentPath = LocalPath.build(parent)
-            if (!Files.exists(parentPath.toNioPath())) {
-                Files.createDirectories(parentPath.toNioPath())
+            if (!fileSystemOps.exists(parentPath)) {
+                fileSystemOps.createDir(parentPath)
             }
         }
 
         // Check for conflicts
-        if (Files.exists(adjustedDest.toNioPath())) {
+        if (fileSystemOps.exists(adjustedDest)) {
             handleFileConflict(item, adjustedDest)
             return
         }
@@ -490,7 +492,7 @@ class PathOperationExecutor(
 
         if (issueResolver.overwriteAllPathExists) {
             log(TAG, INFO) { "Overwriting (overwrite apply-to-all): $adjustedDest" }
-            Files.delete(adjustedDest.toNioPath())
+            fileSystemOps.delete(adjustedDest, recursive = false)
             workQueue.addFirst(item)
             return
         }
@@ -536,10 +538,11 @@ class PathOperationExecutor(
                 progressTracker.completeItem()
             }
             is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
-                if (Files.isDirectory(item.dest.toNioPath())) {
+                val destLookup = fileSystemOps.lookup(item.dest)
+                if (destLookup.fileType == FileType.DIRECTORY) {
                     fileOpsUtils.deleteRecursively(item.dest)
                 } else {
-                    Files.delete(item.dest.toNioPath())
+                    fileSystemOps.delete(item.dest, recursive = false)
                 }
                 workQueue.addFirst(item.originalItem)
             }
@@ -550,7 +553,7 @@ class PathOperationExecutor(
                 when (val orig = item.originalItem) {
                     is WorkItem.CreateDirectory -> {
                         val newDestPath = LocalPath.build(File(item.dest.file.parentFile!!, resolution.newName))
-                        Files.createDirectories(newDestPath.toNioPath())
+                        fileSystemOps.createDir(newDestPath)
                         transferred.add(item.sourceLookup.lookedUp to newDestPath)
                         renamedSourceDirs[item.sourceLookup.lookedUp] = newDestPath
                         progressTracker.completeItem()
@@ -589,7 +592,7 @@ class PathOperationExecutor(
             }
             is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
                 val newDestPath = LocalPath.build(File(item.dest.file.parentFile!!, resolution.newName))
-                Files.move(item.dest.toNioPath(), newDestPath.toNioPath())
+                fileSystemOps.move(item.dest, newDestPath)
                 workQueue.addFirst(item.originalItem)
             }
             is PathActionIssue.PathAlreadyExists.Resolution.Cancel -> {

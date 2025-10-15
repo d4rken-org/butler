@@ -292,6 +292,20 @@ class LocalFileSystemOps @Inject constructor(
         }
     }
 
+    override suspend fun readSymbolicLink(linkPath: LocalPath): LocalPath = try {
+        val targetNioPath = Files.readSymbolicLink(linkPath.toNioPath())
+        LocalPath.build(targetNioPath.toFile())
+    } catch (e: IOException) {
+        throw ReadException(path = linkPath, cause = e)
+    }
+
+    override suspend fun move(source: LocalPath, destination: LocalPath): Boolean = try {
+        Files.move(source.toNioPath(), destination.toNioPath(), LinkOption.NOFOLLOW_LINKS)
+        true
+    } catch (e: IOException) {
+        throw WriteException(path = source, cause = e)
+    }
+
     override suspend fun canRead(path: LocalPath): Boolean {
         return try {
             path.file.canRead()
