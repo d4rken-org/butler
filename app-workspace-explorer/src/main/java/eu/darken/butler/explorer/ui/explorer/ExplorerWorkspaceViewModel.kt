@@ -43,6 +43,8 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.locationId
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
+import eu.darken.butler.explorer.ui.picker.PickerConfig
+import eu.darken.butler.explorer.ui.picker.PickerMode
 import eu.darken.butler.explorer.core.sorting.ExplorerItemSorter
 import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
@@ -59,6 +61,7 @@ import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.upgrade.isPro
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
@@ -131,6 +134,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         ws?.state ?: flowOf(ExplorerWorkspace.State())
     }
 
+    // Picker configuration (null for non-picker workspaces)
+    private val pickerConfigFlow: Flow<PickerConfig?> = workspaceSource.map { it?.pickerConfig }
+
     init {
         // Handle dialog events
         dialogEvents
@@ -180,6 +186,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val isPro: Boolean = false,
         val filterState: FilterState = FilterState(),
         val useRegexPatterns: Boolean = false,
+        val pickerConfig: PickerConfig? = null,
     ) {
         val progress = currentLocation?.progress
         val info = currentLocation?.info
@@ -194,7 +201,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         upgradeRepo.upgradeInfo,
         filterStateFlow,
         explorerSettings.useRegexPatterns.flow,
-    ) { wsState, selectedItems, viewMode, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns ->
+        pickerConfigFlow,
+    ) { wsState, selectedItems, viewMode, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, pickerConfig ->
         val items = wsState.currentLocation?.items
             ?.let { itemSorter.sortItems(it, sortSetting) }
             ?.let { sortedItems -> applyFilters(sortedItems, filterState, useRegexPatterns) }
@@ -211,22 +219,31 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             actionProvider.getActions(
                 location = it,
                 selectionState = selectionState,
-            ).map { action ->
-                // Add badge to Filter action if filters are active
-                if (action is ExplorerAction.Common.Filter) {
-                    val hasActiveFilters = filterState.fileTypeFilter != FileTypeFilter.ALL
-                        || filterState.includePattern.isNotBlank()
-                        || filterState.excludePattern.isNotBlank()
+            )
+                .filter { action ->
+                    // In picker mode, only allow browse/create/select actions
+                    if (pickerConfig != null) {
+                        isActionAllowedInPicker(action)
+                    } else {
+                        true // Normal mode: all actions allowed
+                    }
+                }
+                .map { action ->
+                    // Add badge to Filter action if filters are active
+                    if (action is ExplorerAction.Common.Filter) {
+                        val hasActiveFilters = filterState.fileTypeFilter != FileTypeFilter.ALL
+                            || filterState.includePattern.isNotBlank()
+                            || filterState.excludePattern.isNotBlank()
 
-                    if (hasActiveFilters) {
-                        action.copy(badge = true)
+                        if (hasActiveFilters) {
+                            action.copy(badge = true)
+                        } else {
+                            action
+                        }
                     } else {
                         action
                     }
-                } else {
-                    action
                 }
-            }
         } ?: emptyList()
 
         State(
@@ -245,6 +262,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             isPro = upgradeInfo.isUpgraded,
             filterState = filterState,
             useRegexPatterns = useRegexPatterns,
+            pickerConfig = pickerConfig,
         )
     }.asStateFlow()
 
@@ -1006,6 +1024,101 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         } else {
             FilenameValidator.ValidationResult.Valid
         }
+    }
+
+    private fun isActionAllowedInPicker(action: ExplorerAction): Boolean {
+        return when (action) {
+            // Allowed: browsing, creation, and selection actions
+            is ExplorerAction.Common.Refresh,
+            is ExplorerAction.Common.Sort,
+            is ExplorerAction.Common.Filter,
+            is ExplorerAction.Common.ToggleView,
+            is ExplorerAction.Directory.Create,
+            is ExplorerAction.Directory.SelectAll,
+            is ExplorerAction.Directory.DeselectAll -> true
+
+            // Blocked: modification, clipboard, and device actions
+            is ExplorerAction.Directory.Copy,
+            is ExplorerAction.Directory.Cut,
+            is ExplorerAction.Directory.Delete,
+            is ExplorerAction.Directory.Share,
+            is ExplorerAction.Directory.Rename,
+            is ExplorerAction.Common.Info,
+            is ExplorerAction.Device.AddLocation,
+            is ExplorerAction.Device.RemoveLocation,
+            is ExplorerAction.Device.RenameLocation -> false
+        }
+    }
+
+    // Picker mode methods
+    fun confirmPickerSelection() = launch {
+        log(tag) { "confirmPickerSelection()" }
+        val workspace = getWorkspace()
+        val config = workspace.pickerConfig ?: run {
+            log(tag, WARN) { "confirmPickerSelection() called but not in picker mode" }
+            return@launch
+        }
+
+        val stateSnap = state.first()
+        val selectedPaths: List<APath<*>> = when (config.pickerMode) {
+            PickerMode.DIRECTORY -> {
+                // If items are selected via selection mode, return those
+                val selectedItems = stateSnap.selectionState.selectedItems
+                if (selectedItems.isNotEmpty()) {
+                    selectedItems
+                        .filterIsInstance<ExplorerItem.Lookup>()
+                        .map { it.lookup.lookedUp }
+                } else {
+                    // Otherwise select current directory
+                    val currentLocation = stateSnap.currentLocation as? ExplorerLocation.Directory
+                    if (currentLocation != null) listOf(currentLocation.path) else emptyList()
+                }
+            }
+            PickerMode.FILE -> {
+                // Get selected files
+                stateSnap.selectionState.selectedItems
+                    .filterIsInstance<ExplorerItem.Lookup>()
+                    .map { it.lookup.lookedUp }
+            }
+        }
+
+        if (selectedPaths.isEmpty()) {
+            log(tag, WARN) { "No paths selected" }
+            return@launch
+        }
+
+        log(tag, INFO) { "Picker selection confirmed: ${selectedPaths.size} path(s)" }
+
+        // Emit PickerResult event
+        workspaceRemote.emitEvent(
+            WorkspaceEvent.PickerResult(
+                pickerWorkspaceId = id,
+                callerWorkspaceId = config.callerWorkspaceId,
+                selectedPaths = selectedPaths,
+            )
+        )
+
+        // Close this picker workspace
+        workspaceRemote.execute(WorkspaceAction.Close(id))
+    }
+
+    fun cancelPicker() = launch {
+        log(tag) { "cancelPicker()" }
+        val workspace = getWorkspace()
+        if (workspace.pickerConfig == null) {
+            log(tag, WARN) { "cancelPicker() called but not in picker mode" }
+            return@launch
+        }
+
+        log(tag, INFO) { "Picker cancelled" }
+
+        // Simply close without emitting result
+        workspaceRemote.execute(WorkspaceAction.Close(id))
+    }
+
+    fun goBack() {
+        log(tag) { "goBack()" }
+        navigate(ExplorerNavigation.Back)
     }
 
     @AssistedFactory

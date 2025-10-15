@@ -37,6 +37,7 @@ import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
 import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
@@ -115,6 +116,21 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         // Handle dialog events
         dialogEvents
             .onEach { event -> handleDialogEvent(event) }
+            .launchIn(vmScope)
+
+        // Listen for picker results
+        workspaceRemote.events
+            .onEach { event ->
+                if (event is WorkspaceEvent.PickerResult && event.callerWorkspaceId == id) {
+                    log(tag, INFO) { "Received picker result: ${event.selectedPaths}" }
+                    val selectedPath = event.selectedPaths.firstOrNull()
+                    if (selectedPath != null) {
+                        // Update search path
+                        searchPath.value = selectedPath
+                        searcherSettings.defaultSearchPath.value(selectedPath)
+                    }
+                }
+            }
             .launchIn(vmScope)
     }
 
@@ -761,6 +777,41 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             log(TAG, WARN) { "Conflict sheet not yet implemented for searcher: $issue" }
         } else {
             log(TAG, WARN) { "Cannot show conflict sheet: no conflict for operation $operationId" }
+        }
+    }
+
+    fun openPathPicker() = launch {
+        log(tag, INFO) { "openPathPicker()" }
+
+        // Create picker arguments using reflection to avoid direct dependency
+        try {
+            val pickerArgsClass = Class.forName("eu.darken.butler.explorer.ui.picker.ExplorerPickerArguments")
+            val pickerModeClass = Class.forName("eu.darken.butler.explorer.ui.picker.PickerMode")
+            val directoryMode = pickerModeClass.enumConstants?.find { it.toString() == "DIRECTORY" }
+
+            val constructor = pickerArgsClass.getConstructor(
+                eu.darken.butler.common.files.APath::class.java,
+                pickerModeClass,
+                Boolean::class.java,
+                Workspace.Id::class.java
+            )
+
+            val pickerArgs = constructor.newInstance(
+                null, // startPath - start at home
+                directoryMode,
+                false, // allowMultiSelect
+                id // callerWorkspaceId
+            ) as Workspace.Arguments
+
+            workspaceRemote.execute(
+                WorkspaceAction.Create(
+                    type = Workspace.Type.EXPLORER,
+                    arguments = pickerArgs
+                )
+            )
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to create picker workspace: ${e.asLog()}" }
+            errorEvents.tryEmit(e)
         }
     }
 

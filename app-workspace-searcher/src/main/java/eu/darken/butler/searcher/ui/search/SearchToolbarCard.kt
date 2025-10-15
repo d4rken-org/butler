@@ -39,6 +39,7 @@ fun SearchToolbarCard(
     onToggleCaseSensitive: () -> Unit,
     onToggleWholeWord: () -> Unit,
     onToggleRegex: () -> Unit,
+    onOpenPathPicker: (() -> Unit)? = null,
     workspaceButtonState: WorkspaceButtonViewModel.State? = null,
     workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
@@ -84,7 +85,8 @@ fun SearchToolbarCard(
                 path = state.searchPath,
                 onPathChange = onUpdateSearchPath,
                 onPerformSearch = onPerformSearch,
-                isSearching = state.isSearching
+                isSearching = state.isSearching,
+                onOpenPathPicker = onOpenPathPicker,
             )
 
             SearchOptionsRow(

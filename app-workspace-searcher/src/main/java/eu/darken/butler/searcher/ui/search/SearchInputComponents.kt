@@ -234,6 +234,7 @@ fun SearchPathBar(
     onPathChange: (APath<*>) -> Unit,
     onPerformSearch: () -> Unit = {},
     isSearching: Boolean,
+    onOpenPathPicker: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var pathText by remember { mutableStateOf(TextFieldValue(path.path)) }
@@ -244,9 +245,9 @@ fun SearchPathBar(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    // Update pathText only when path changes from external source and field is not focused
-    LaunchedEffect(path, isFocused) {
-        if (!isFocused && pathText.text != path.path) {
+    // Update pathText when path changes from external source (picker, history, etc.)
+    LaunchedEffect(path) {
+        if (pathText.text != path.path) {
             pathText = TextFieldValue(path.path)
         }
     }
@@ -283,7 +284,13 @@ fun SearchPathBar(
                 imageVector = Icons.TwoTone.FolderOpen,
                 contentDescription = "Browse",
                 modifier = Modifier
-                    .clickable { showPathPicker = true }
+                    .clickable {
+                        if (onOpenPathPicker != null) {
+                            onOpenPathPicker()
+                        } else {
+                            showPathPicker = true
+                        }
+                    }
                     .size(24.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )

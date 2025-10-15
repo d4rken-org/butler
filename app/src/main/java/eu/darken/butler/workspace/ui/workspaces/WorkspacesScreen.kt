@@ -103,7 +103,7 @@ fun WorkspaceScreen(
         if (!design.isSingle) {
             AdaptiveWorkspaceLayout(
                 design = design,
-                workspaces = state.all,
+                workspaces = state.tabWorkspaces,
                 selected = state.selected,
                 focusedId = state.focused,
                 dividerPositions = dividerPositions,
@@ -140,6 +140,19 @@ fun WorkspaceScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
+    }
+
+    // Modal workspace overlay (picker dialogs, etc.)
+    state.modalWorkspace?.let { modalWorkspace ->
+        WorkspaceModalDialog(
+            workspace = modalWorkspace,
+            onDismissRequest = {
+                // Dismiss by closing the modal workspace
+                workspaceActionHandler?.executeWorkspaceAction(
+                    eu.darken.butler.workspace.core.WorkspaceAction.Close(modalWorkspace.id)
+                )
+            },
+        )
     }
 }
 

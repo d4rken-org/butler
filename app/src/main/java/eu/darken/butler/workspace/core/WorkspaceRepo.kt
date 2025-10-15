@@ -9,6 +9,7 @@ import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.flow.setupCommonEventHandlers
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.explorer.core.ExplorerWorkspace
+import eu.darken.butler.explorer.ui.picker.ExplorerPickerArguments
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.templates.core.TemplatesWorkspace
 import eu.darken.butler.workspace.core.operations.OperationsManager
@@ -39,6 +40,8 @@ class WorkspaceRepo @Inject constructor(
     private val lock = Mutex()
     private val _workspaces = MutableStateFlow<List<Workspace>>(emptyList())
     private val _events = MutableSharedFlow<WorkspaceEvent>()
+    // Track parent-child relationships for picker workspaces (picker → caller)
+    private val pickerParents = mutableMapOf<Workspace.Id, Workspace.Id>()
     private val infos: Flow<List<Workspace.Info>> = _workspaces.flatMapLatest { workspaces ->
         if (workspaces.isEmpty()) {
             flowOf(emptyList())
@@ -61,6 +64,11 @@ class WorkspaceRepo @Inject constructor(
         .setupCommonEventHandlers(TAG, enabled = Bugs.isDebug) { "WorkspaceEvents" }
         .replayingShare(appScope)
 
+    override suspend fun emitEvent(event: WorkspaceEvent) {
+        log(TAG) { "emitEvent($event)" }
+        _events.emit(event)
+    }
+
     private fun create(
         type: Workspace.Type,
         arguments: Workspace.Arguments? = null,
@@ -76,7 +84,7 @@ class WorkspaceRepo @Inject constructor(
             )
             Workspace.Type.EXPLORER -> explorerWorkspaceFactory.create(
                 id = Workspace.Id(),
-                arguments = arguments as ExplorerWorkspace.Arguments?
+                arguments = arguments
             )
             Workspace.Type.SEARCHER -> searcherWorkspaceFactory.create(
                 id = Workspace.Id(),
@@ -97,6 +105,15 @@ class WorkspaceRepo @Inject constructor(
         }
 
         _workspaces.value = wip
+
+        // Track parent-child relationship for picker workspaces
+        if (arguments is ExplorerPickerArguments) {
+            val callerId = arguments.callerWorkspaceId
+            if (callerId != null) {
+                pickerParents[newWorkspace.id] = callerId
+                log(TAG) { "Tracked picker relationship: ${newWorkspace.id} -> $callerId" }
+            }
+        }
 
         return newWorkspace.id
     }
@@ -127,7 +144,20 @@ class WorkspaceRepo @Inject constructor(
 
             is WorkspaceAction.Close -> {
                 log(TAG, INFO) { "Closing workspace with id ${action.id}" }
+
+                // Find and close all child pickers owned by this workspace
+                val childPickers = pickerParents.filterValues { it == action.id }.keys
+                if (childPickers.isNotEmpty()) {
+                    log(TAG) { "Auto-closing ${childPickers.size} child picker(s): $childPickers" }
+                    childPickers.forEach { childId ->
+                        _workspaces.value = _workspaces.value.filter { it.id != childId }
+                        pickerParents.remove(childId)
+                        _events.emit(WorkspaceEvent.Closed(workspaceId = childId))
+                    }
+                }
+
                 _workspaces.value = _workspaces.value.filter { it.id != action.id }
+                pickerParents.remove(action.id)  // Clean up if this was a picker
                 _events.emit(WorkspaceEvent.Closed(workspaceId = action.id))
                 WorkspaceAction.Close.Result
             }
@@ -157,6 +187,7 @@ class WorkspaceRepo @Inject constructor(
                     operationsManager.removeWorkspace(it.id)
                 }
                 _workspaces.value = emptyList()
+                pickerParents.clear()  // Clean up all picker relationships
                 _events.emit(WorkspaceEvent.AllClosed)
                 WorkspaceAction.CloseAll.Result
             }

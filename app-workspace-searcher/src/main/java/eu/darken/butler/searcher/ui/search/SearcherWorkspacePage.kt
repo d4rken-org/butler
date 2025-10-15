@@ -99,6 +99,7 @@ fun SearcherWorkspacePage(
     onOperationDismiss: (Operation.Id) -> Unit = {},
     onOperationsClearCompleted: () -> Unit = {},
     onOpenSetup: () -> Unit = {},
+    onOpenPathPicker: (() -> Unit)? = null,
 ) {
     val state by waitForState(stateSource)
     val clipboardState by clipboardStateSource.collectAsState(initial = SearcherWorkspaceViewModel.ClipboardState())
@@ -207,6 +208,7 @@ fun SearcherWorkspacePage(
                         onToggleCaseSensitive = onToggleCaseSensitive,
                         onToggleWholeWord = onToggleWholeWord,
                         onToggleRegex = onToggleRegex,
+                        onOpenPathPicker = onOpenPathPicker,
                         workspaceButtonState = workspaceButtonState,
                         workspaceActionHandler = workspaceActionHandler,
                     )
@@ -524,6 +526,7 @@ fun SearcherWorkspacePageHost(
         onOperationDismiss = vm::dismissOperation,
         onOperationsClearCompleted = vm::clearCompletedOperations,
         onOpenSetup = vm::navigateToSetup,
+        onOpenPathPicker = vm::openPathPicker,
     )
 }
 

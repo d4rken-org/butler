@@ -23,6 +23,9 @@ import eu.darken.butler.explorer.core.operations.CreateOperation
 import eu.darken.butler.explorer.core.operations.DeleteOperation
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.explorer.core.operations.MoveOperation
+import eu.darken.butler.explorer.ui.picker.ExplorerPickerArguments
+import eu.darken.butler.explorer.ui.picker.PickerConfig
+import eu.darken.butler.workspace.core.PresentationMode
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
@@ -49,7 +52,7 @@ import kotlinx.parcelize.Parcelize
 
 class ExplorerWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
-    @Assisted private val arguments: Arguments?,
+    @Assisted private val arguments: Workspace.Arguments?,
     dispatcherProvider: DispatcherProvider,
     browsingEngineFactory: BrowsingEngine.Factory,
     fileSystemHinter: FileSystemHinter,
@@ -67,6 +70,16 @@ class ExplorerWorkspace @AssistedInject constructor(
     private val scope = CoroutineScope(dispatcherProvider.IO + CoroutineName(tag))
 
     private val browsingEngine = browsingEngineFactory.create(id, scope)
+
+    // Picker configuration if this is a picker workspace
+    val pickerConfig: PickerConfig? = (arguments as? ExplorerPickerArguments)?.let {
+        PickerConfig(
+            callerWorkspaceId = it.callerWorkspaceId
+                ?: error("callerWorkspaceId required for picker mode"),
+            pickerMode = it.pickerMode,
+            allowMultiSelect = it.allowMultiSelect,
+        )
+    }
 
     override val type: Workspace.Type = Workspace.Type.EXPLORER
 
@@ -118,6 +131,7 @@ class ExplorerWorkspace @AssistedInject constructor(
             previewData = ExplorerPreviewData(),
             operationCount = activeOperations,
             attentionCount = attentionCount,
+            presentationMode = if (pickerConfig != null) PresentationMode.MODAL else PresentationMode.TAB,
         )
     }
 
@@ -187,7 +201,15 @@ class ExplorerWorkspace @AssistedInject constructor(
         scope.launch {
             log(tag, INFO) { "Loading initial data... ($arguments)" }
             try {
-                val startPath = arguments?.startPath
+                val startPath = when (arguments) {
+                    is ExplorerPickerArguments -> arguments.startPath
+                    is Arguments -> arguments.startPath
+                    null -> null
+                    else -> error(
+                        "ExplorerWorkspace received unsupported arguments type: ${arguments::class.qualifiedName}. " +
+                        "Expected ExplorerWorkspace.Arguments or ExplorerPickerArguments."
+                    )
+                }
                 if (startPath != null) {
                     navigationRequests.emit(ExplorerNavigation.Target.Directory(startPath))
                 } else {
@@ -348,6 +370,6 @@ class ExplorerWorkspace @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(id: Workspace.Id, arguments: Arguments?): ExplorerWorkspace
+        fun create(id: Workspace.Id, arguments: Workspace.Arguments?): ExplorerWorkspace
     }
 }

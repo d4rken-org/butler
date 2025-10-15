@@ -40,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -180,6 +181,19 @@ fun ExplorerWorkspacePage(
     // Set the bottom bar height for scroll behavior
     bottomBarScrollBehavior.state.setHeight(64.dp)
 
+    // Handle back button for picker mode
+    if (mainState.pickerConfig != null) {
+        BackHandler(enabled = true) {
+            if (mainState.canGoBack) {
+                // Navigate up in directory hierarchy
+                vm?.goBack()
+            } else {
+                // At root, dismiss picker
+                vm?.cancelPicker()
+            }
+        }
+    }
+
     // Derived states for stable recomposition
     val hasOperations by remember {
         derivedStateOf { operationsState.operations.isNotEmpty() }
@@ -239,16 +253,28 @@ fun ExplorerWorkspacePage(
                 }
             },
             topBar = {
-                ExplorerTopBar(
-                    breadcrumbs = mainState.breadcrumbs,
-                    scrollBehavior = scrollBehavior,
-                    onBreadcrumbClick = { target -> vm?.navigate(target) },
-                    onNavigateToPath = { path -> vm?.navigateToPathString(path) },
-                    workspaceButtonState = workspaceButtonState,
-                    showWorkspaceButton = design.isSingle,
-                    workspaceActionHandler = workspaceActionHandler,
-                    safLocationManager = vm?.safLocationManager,
-                )
+                val pickerConfig = mainState.pickerConfig
+                if (pickerConfig != null) {
+                    // Picker mode - use simplified picker top bar
+                    eu.darken.butler.explorer.ui.picker.ExplorerPickerTopBar(
+                        pickerMode = pickerConfig.pickerMode,
+                        selectionCount = mainState.selectionState.selectedItems.size,
+                        onCancel = { vm?.cancelPicker() },
+                        onConfirm = { vm?.confirmPickerSelection() },
+                    )
+                } else {
+                    // Normal mode - use full explorer top bar
+                    ExplorerTopBar(
+                        breadcrumbs = mainState.breadcrumbs,
+                        scrollBehavior = scrollBehavior,
+                        onBreadcrumbClick = { target -> vm?.navigate(target) },
+                        onNavigateToPath = { path -> vm?.navigateToPathString(path) },
+                        workspaceButtonState = workspaceButtonState,
+                        showWorkspaceButton = design.isSingle,
+                        workspaceActionHandler = workspaceActionHandler,
+                        safLocationManager = vm?.safLocationManager,
+                    )
+                }
             },
         ) { paddingValues ->
             Box(

@@ -51,5 +51,7 @@ interface Workspace {
         val operationCount: Int = 0,
         val attentionCount: Int = 0,
         val previewData: PreviewData? = null,
+        val presentationMode: PresentationMode = PresentationMode.TAB,
     )
 }
+
