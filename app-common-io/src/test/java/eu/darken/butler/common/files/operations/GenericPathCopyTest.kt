@@ -765,4 +765,183 @@ class GenericPathCopyTest : BaseTest() {
 
         result.copied.size shouldBe 3 // Parent-new + SubDir + file.txt
     }
+
+    // ============ RETRY FUNCTIONALITY ============
+
+    @Test
+    fun `copy file with transient error retries and succeeds`() = runTest {
+        // Given - source file and destination
+        mockOps.addMockFile("/source/file.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
+
+        // Configure mock to fail once for output stream
+        mockOps.setFailOpenOutputStream(1)
+
+        val sourcePath = LocalPath.build("/source/file.txt")
+        val destPath = LocalPath.build("/dest")
+
+        var issueCount = 0
+
+        // When - copy with retry on first error
+        val result = setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = { issue ->
+                issueCount++
+                when (issue) {
+                    is PathActionIssue.UnknownError -> {
+                        // First failure - retry
+                        PathActionIssue.UnknownError.Resolution.Retry
+                    }
+                    is PathActionIssue.PathAlreadyExists -> {
+                        // Failed copy left partial file - overwrite and continue
+                        PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - file copied successfully after retry
+        mockOps.hasFile("/dest/file.txt") shouldBe true
+        mockOps.getFileContent("/dest/file.txt") shouldBe "content".toByteArray()
+        (issueCount >= 1) shouldBe true  // At least one issue encountered
+        result.copied.size shouldBe 1
+        result.skipped.size shouldBe 0
+    }
+
+    @Test
+    fun `copy file with persistent error retries multiple times then skips`() = runTest {
+        // Given - source file that always fails
+        mockOps.addMockFile("/source/file.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
+
+        // Configure mock to fail 4 times
+        mockOps.setFailOpenOutputStream(4)
+
+        val sourcePath = LocalPath.build("/source/file.txt")
+        val destPath = LocalPath.build("/dest")
+
+        var issueCount = 0
+        val maxRetries = 3
+
+        // When - copy with multiple retries then skip
+        val result = setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = { issue ->
+                issueCount++
+                when (issue) {
+                    is PathActionIssue.UnknownError -> {
+                        if (issueCount <= maxRetries) {
+                            PathActionIssue.UnknownError.Resolution.Retry
+                        } else {
+                            PathActionIssue.UnknownError.Resolution.Skip()
+                        }
+                    }
+                    is PathActionIssue.PathAlreadyExists -> {
+                        // Failed copy left partial file - handle it
+                        if (issueCount <= maxRetries) {
+                            PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                        } else {
+                            PathActionIssue.PathAlreadyExists.Resolution.Skip()
+                        }
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - file skipped after max retries
+        // Note: partial file may or may not exist depending on when failures occurred
+        (issueCount >= maxRetries) shouldBe true
+        result.copied.size shouldBe 0
+        result.skipped.size shouldBe 1
+        result.skipped shouldBe setOf(LocalPath.build("/source/file.txt"))
+    }
+
+    @Test
+    fun `copy file retry does not regress progress tracking`() = runTest {
+        // Given - source file
+        mockOps.addMockFile("/source/file.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
+
+        // Configure mock to fail once
+        mockOps.setFailOpenOutputStream(1)
+
+        val sourcePath = LocalPath.build("/source/file.txt")
+        val destPath = LocalPath.build("/dest")
+
+        val progressUpdates = mutableListOf<CopyAction.State.Progress<LocalPath, LocalPathLookup>>()
+
+        // When - copy with progress tracking
+        setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = { progress -> progressUpdates.add(progress) },
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Retry
+                    is PathActionIssue.PathAlreadyExists -> {
+                        // Failed copy left partial file - overwrite
+                        PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - progress never goes backwards
+        if (progressUpdates.size > 1) {
+            progressUpdates.zipWithNext().forEach { (prev, next) ->
+                (next.copiedBytes >= prev.copiedBytes) shouldBe true
+            }
+        }
+    }
+
+    @Test
+    fun `copy directory with child file retry succeeds after transient error`() = runTest {
+        // Given - directory with file
+        mockOps.addMockDir("/source/folder")
+        mockOps.addMockFile("/source/folder/file.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
+
+        // Configure mock to fail once for output stream
+        mockOps.setFailOpenOutputStream(1)
+
+        val sourcePath = LocalPath.build("/source/folder")
+        val destPath = LocalPath.build("/dest")
+
+        // When - copy with retry
+        val result = setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Retry
+                    is PathActionIssue.PathAlreadyExists -> {
+                        // Failed copy left partial file - overwrite
+                        PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - both directory and file copied
+        mockOps.hasFile("/dest/folder") shouldBe true
+        mockOps.hasFile("/dest/folder/file.txt") shouldBe true
+        result.copied.size shouldBe 2 // folder + file
+    }
 }

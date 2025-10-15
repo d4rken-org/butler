@@ -121,6 +121,18 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
     val createFileCalls = mutableListOf<String>()
 
     /**
+     * Failure injection for testing retry scenarios.
+     */
+    private var failOpenInputStreamCount = 0
+    private var failOpenInputStreamException: (() -> Exception)? = null
+    private var failOpenOutputStreamCount = 0
+    private var failOpenOutputStreamException: (() -> Exception)? = null
+    private var failDeleteCount = 0
+    private var failDeleteException: (() -> Exception)? = null
+    private var failCreateDirCount = 0
+    private var failCreateDirException: (() -> Exception)? = null
+
+    /**
      * Wrapper class that implements APathLookupExtended for mock testing.
      */
     private inner class MockPathLookupExtended(
@@ -192,6 +204,12 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
     override suspend fun delete(path: P, recursive: Boolean): Boolean {
         deleteCalls.add(path.path)
 
+        // Check for injected failure
+        if (failDeleteCount > 0) {
+            failDeleteCount--
+            throw failDeleteException?.invoke() ?: java.io.IOException("Injected failure")
+        }
+
         val mockFile = files[path.path] ?: return false
 
         // If recursive, delete children first (post-order)
@@ -222,6 +240,12 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
 
     override suspend fun createDir(path: P, createParents: Boolean) {
         createDirCalls.add(path.path)
+
+        // Check for injected failure
+        if (failCreateDirCount > 0) {
+            failCreateDirCount--
+            throw failCreateDirException?.invoke() ?: java.io.IOException("Injected failure")
+        }
 
         if (files.containsKey(path.path)) {
             val existing = files[path.path]!!
@@ -297,6 +321,12 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
     }
 
     override suspend fun openInputStream(path: P): InputStream {
+        // Check for injected failure
+        if (failOpenInputStreamCount > 0) {
+            failOpenInputStreamCount--
+            throw failOpenInputStreamException?.invoke() ?: java.io.IOException("Injected failure")
+        }
+
         val mockFile = files[path.path]
             ?: throw NoSuchFileException(path.path)
 
@@ -308,6 +338,12 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
     }
 
     override suspend fun openOutputStream(path: P, append: Boolean): OutputStream {
+        // Check for injected failure
+        if (failOpenOutputStreamCount > 0) {
+            failOpenOutputStreamCount--
+            throw failOpenOutputStreamException?.invoke() ?: java.io.IOException("Injected failure")
+        }
+
         // Ensure parent exists
         val parentPath = path.path.substringBeforeLast('/', "")
         if (parentPath.isNotEmpty() && !files.containsKey(parentPath)) {
@@ -557,6 +593,53 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
         deleteCalls.clear()
         createDirCalls.clear()
         createFileCalls.clear()
+        clearFailureInjection()
+    }
+
+    /**
+     * Configure openInputStream to fail the next N times with specified exception.
+     */
+    fun setFailOpenInputStream(count: Int, exceptionFactory: () -> Exception = { java.io.IOException("Temporary failure") }) {
+        failOpenInputStreamCount = count
+        failOpenInputStreamException = exceptionFactory
+    }
+
+    /**
+     * Configure openOutputStream to fail the next N times with specified exception.
+     */
+    fun setFailOpenOutputStream(count: Int, exceptionFactory: () -> Exception = { java.io.IOException("Temporary failure") }) {
+        failOpenOutputStreamCount = count
+        failOpenOutputStreamException = exceptionFactory
+    }
+
+    /**
+     * Configure delete to fail the next N times with specified exception.
+     */
+    fun setFailDelete(count: Int, exceptionFactory: () -> Exception = { java.io.IOException("Temporary failure") }) {
+        failDeleteCount = count
+        failDeleteException = exceptionFactory
+    }
+
+    /**
+     * Configure createDir to fail the next N times with specified exception.
+     */
+    fun setFailCreateDir(count: Int, exceptionFactory: () -> Exception = { java.io.IOException("Temporary failure") }) {
+        failCreateDirCount = count
+        failCreateDirException = exceptionFactory
+    }
+
+    /**
+     * Clear all failure injection settings.
+     */
+    fun clearFailureInjection() {
+        failOpenInputStreamCount = 0
+        failOpenInputStreamException = null
+        failOpenOutputStreamCount = 0
+        failOpenOutputStreamException = null
+        failDeleteCount = 0
+        failDeleteException = null
+        failCreateDirCount = 0
+        failCreateDirException = null
     }
 
     /**

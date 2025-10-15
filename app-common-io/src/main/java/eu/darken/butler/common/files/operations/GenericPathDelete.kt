@@ -214,7 +214,10 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
         val lookup = item.lookup
         log(TAG, VERBOSE) { "Deleting path: ${item.path}" }
 
-        progressTracker.startFile(lookup.size)
+        // Only start tracking if not already started (handles retry case)
+        if (progressTracker.currentFileSize == 0L) {
+            progressTracker.startFile(lookup.size)
+        }
 
         try {
             // Report progress with throttling
@@ -241,7 +244,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
                 progressTracker.completeItem(lookup.size)
                 return
             }
-            handleDeleteError(e, lookup)
+            handleDeleteError(e, item)
 
         } finally {
             // Force final progress report
@@ -257,8 +260,9 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
     private suspend fun handleError(
         error: Exception,
         lookup: PL,
-        operation: String,
-        canRetry: Boolean = false
+        operation: String, // TODO why do we need to pass operation here?
+        canRetry: Boolean = false,
+        originalItem: WorkItem.DeletePath<P, PL>? = null
     ) {
         log(TAG, ERROR) { "$operation failed: ${lookup.lookedUp} - $error" }
 
@@ -332,7 +336,16 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
                     progressTracker.completeItem()
                 }
                 is PathActionIssue.UnknownError.Resolution.Retry -> {
-                    // Retry not implemented
+                    if (originalItem != null) {
+                        log(TAG, INFO) { "Retrying delete operation: ${lookup.lookedUp}" }
+                        // Re-queue the original work item to try again
+                        // Progress stays in-flight, will be completed on success or skip
+                        workQueue.addFirst(originalItem)
+                    } else {
+                        log(TAG, WARN) { "Retry requested but no work item available, skipping: ${lookup.lookedUp}" }
+                        skipped.add(lookup)
+                        progressTracker.completeItem()
+                    }
                 }
                 is PathActionIssue.UnknownError.Resolution.Cancel -> {
                     // Already thrown by resolveIssue
@@ -341,8 +354,8 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
         }
     }
 
-    private suspend fun handleDeleteError(error: Exception, lookup: PL) {
-        handleError(error, lookup, operation = "Delete", canRetry = false)
+    private suspend fun handleDeleteError(error: Exception, originalItem: WorkItem.DeletePath<P, PL>) {
+        handleError(error, originalItem.lookup, operation = "Delete", canRetry = true, originalItem = originalItem)
     }
 
     private suspend fun handleScanError(error: Exception, lookup: PL, operation: String) {

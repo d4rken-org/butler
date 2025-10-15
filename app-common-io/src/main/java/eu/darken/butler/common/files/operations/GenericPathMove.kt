@@ -260,7 +260,10 @@ internal class GenericPathMove<
         }
 
         // Move file (strategy handles whether it's atomic or copy+delete)
-        progressTracker.startFile(item.sourceLookup.size)
+        // Only start tracking if not already started (handles retry case)
+        if (progressTracker.currentFileSize == 0L) {
+            progressTracker.startFile(item.sourceLookup.size)
+        }
 
         try {
             val result = strategy.transferFile(
@@ -293,7 +296,7 @@ internal class GenericPathMove<
                 reportProgress(item.sourceLookup)
             }
         } catch (e: Exception) {
-            handleMoveError(e, item.sourceLookup, adjustedDest)
+            handleMoveError(e, item)
         }
     }
 
@@ -339,7 +342,7 @@ internal class GenericPathMove<
                 }
             }
         } catch (e: Exception) {
-            handleMoveError(e, item.sourceLookup, adjustedDest)
+            handleDirectoryError(e, item)
         }
     }
 
@@ -653,7 +656,10 @@ internal class GenericPathMove<
         log(TAG, ERROR) { "Scan error: ${lookup.lookedUp} - $error" }
     }
 
-    private suspend fun handleMoveError(error: Exception, source: SPL, dest: DP) {
+    private suspend fun handleMoveError(error: Exception, originalItem: WorkItem.MoveFile<SP, SPL, DP>) {
+        val source = originalItem.sourceLookup
+        val dest = originalItem.destination
+
         log(TAG, ERROR) { "Move error: ${source.lookedUp} -> $dest - $error" }
 
         // Categorize exception type
@@ -691,7 +697,7 @@ internal class GenericPathMove<
             PathActionIssue.UnknownError(
                 destination = source,
                 exception = error,
-                canRetry = false,  // Can't retry file operations easily
+                canRetry = true,
                 canSkip = true
             )
         }
@@ -708,10 +714,81 @@ internal class GenericPathMove<
                 progressTracker.completeItem()
             }
             is PathActionIssue.UnknownError.Resolution.Retry -> {
-                // Retry not implemented for now - just skip
-                log(TAG, WARN) { "Retry not implemented, skipping: $dest" }
+                log(TAG, INFO) { "Retrying move operation: ${source.lookedUp} -> $dest" }
+                // Re-queue the original work item to try again
+                // Progress stays in-flight, will be completed on success or skip
+                workQueue.addFirst(originalItem)
+            }
+            else -> {
+                // Cancel is handled by issueResolver.resolveIssue() throwing CancellationException
+            }
+        }
+    }
+
+    private suspend fun handleDirectoryError(error: Exception, originalItem: WorkItem.CreateDirectory<SP, SPL, DP>) {
+        val source = originalItem.sourceLookup
+        val dest = originalItem.destination
+
+        log(TAG, ERROR) { "Directory creation error: ${source.lookedUp} -> $dest - $error" }
+
+        // Categorize exception type
+        val isPermissionError = error is SecurityException ||
+                               error is java.nio.file.AccessDeniedException
+
+        // Check "apply to all" flags first (fast path)
+        if (isPermissionError && issueResolver.skipAllPermission) {
+            log(TAG, INFO) { "Skipping permission error (apply-to-all): $dest" }
+            skipped.add(source.lookedUp)
+            skippedSourceDirs.add(source.lookedUp)
+            progressTracker.completeItem()
+            return
+        }
+
+        if (!isPermissionError && issueResolver.skipAllUnknown) {
+            log(TAG, INFO) { "Skipping unknown error (apply-to-all): $dest" }
+            skipped.add(source.lookedUp)
+            skippedSourceDirs.add(source.lookedUp)
+            progressTracker.completeItem()
+            return
+        }
+
+        // No issue handler configured? Re-throw exception immediately
+        if (onIssue == null) {
+            throw error
+        }
+
+        // Convert exception to appropriate PathActionIssue type
+        val issue = if (isPermissionError) {
+            PathActionIssue.InsufficientPermission(
+                destination = source,
+                exception = error,
+                canSkip = true
+            )
+        } else {
+            PathActionIssue.UnknownError(
+                destination = source,
+                exception = error,
+                canRetry = true,
+                canSkip = true
+            )
+        }
+
+        // Resolve issue with user callback (may throw CancellationException)
+        val resolution = issueResolver.resolveIssue(issue)
+
+        // Handle resolution
+        when (resolution) {
+            is PathActionIssue.InsufficientPermission.Resolution.Skip,
+            is PathActionIssue.UnknownError.Resolution.Skip -> {
+                // User chose to skip this directory
                 skipped.add(source.lookedUp)
+                skippedSourceDirs.add(source.lookedUp)
                 progressTracker.completeItem()
+            }
+            is PathActionIssue.UnknownError.Resolution.Retry -> {
+                log(TAG, INFO) { "Retrying directory creation: ${source.lookedUp} -> $dest" }
+                // Re-queue the original work item to try again
+                workQueue.addFirst(originalItem)
             }
             else -> {
                 // Cancel is handled by issueResolver.resolveIssue() throwing CancellationException

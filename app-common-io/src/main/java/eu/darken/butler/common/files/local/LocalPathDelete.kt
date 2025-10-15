@@ -121,12 +121,14 @@ internal class LocalPathDelete(
      * @param lookup The path lookup that failed
      * @param operation Description of the operation for logging
      * @param canRetry Whether retry is supported for this operation
+     * @param originalItem The original work item (for retry support)
      */
     private suspend fun handleError(
         error: Throwable,
         lookup: LocalPathLookup,
         operation: String,
-        canRetry: Boolean = false
+        canRetry: Boolean = false,
+        originalItem: WorkItem.DeletePath? = null
     ) {
         log(TAG, ERROR) { "$operation failed: ${lookup.lookedUp} - $error" }
 
@@ -181,7 +183,16 @@ internal class LocalPathDelete(
                     progressTracker.completeItem()
                 }
                 is PathActionIssue.UnknownError.Resolution.Retry -> {
-                    // Retry not implemented in delete operation
+                    if (originalItem != null) {
+                        log(TAG, INFO) { "Retrying delete operation: ${lookup.lookedUp}" }
+                        // Re-queue the original work item to try again
+                        // Progress stays in-flight, will be completed on success or skip
+                        workQueue.addFirst(originalItem)
+                    } else {
+                        log(TAG, WARN) { "Retry requested but no work item available, skipping: ${lookup.lookedUp}" }
+                        skipped.add(lookup)
+                        progressTracker.completeItem()
+                    }
                 }
                 is PathActionIssue.UnknownError.Resolution.Cancel -> {
                     // Already thrown by resolveIssue
@@ -190,8 +201,8 @@ internal class LocalPathDelete(
         }
     }
 
-    private suspend fun handleDeleteError(error: Exception, lookup: LocalPathLookup) {
-        handleError(error, lookup, operation = "Delete", canRetry = false)
+    private suspend fun handleDeleteError(error: Exception, originalItem: WorkItem.DeletePath) {
+        handleError(error, originalItem.cachedLookup, operation = "Delete", canRetry = true, originalItem = originalItem)
     }
 
     private suspend fun handleScanError(error: Throwable, lookup: LocalPathLookup, operation: String) {
@@ -309,7 +320,10 @@ internal class LocalPathDelete(
         log(TAG, VERBOSE) { "Deleting path: ${item.path}" }
 
         val lookup = item.cachedLookup
-        progressTracker.startFile(lookup.size)
+        // Only start tracking if not already started (handles retry case)
+        if (progressTracker.currentFileSize == 0L) {
+            progressTracker.startFile(lookup.size)
+        }
 
         try {
             // Report progress with throttling
@@ -333,10 +347,10 @@ internal class LocalPathDelete(
                         log(TAG, WARN) { "Directory not empty: ${lookup.lookedUp}" }
                         throw e
                     }
-                    handleDeleteError(e, lookup)
+                    handleDeleteError(e, item)
                 }
                 else -> {
-                    handleDeleteError(e, lookup)
+                    handleDeleteError(e, item)
                 }
             }
         } finally {

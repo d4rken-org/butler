@@ -6,6 +6,7 @@ import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.LocalPathLookupExtended
 import eu.darken.butler.common.files.metadata.FileType
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
@@ -981,5 +982,136 @@ class GenericPathMoveTest : BaseTest() {
         mockOps.hasFile("/source/Parent") shouldBe false
 
         result.movedFiles.size shouldBe 3 // Parent-new + SubDir + file.txt
+    }
+
+    // ============ RETRY TESTS ============
+
+    @Test
+    fun `move file with transient error retries and succeeds`() = runTest {
+        // Given - file with injected failure on first write attempt
+        mockOps.addMockFile("/source/file.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
+
+        // Fail once on openOutputStream, then succeed
+        mockOps.setFailOpenOutputStream(1)
+
+        // When - move with retry on UnknownError
+        val result = setOf(LocalPath.build("/source/file.txt")).moveGeneric(
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Retry
+                    is PathActionIssue.PathAlreadyExists -> {
+                        // Failed move left partial file - overwrite
+                        PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - file successfully moved after retry
+        mockOps.hasFile("/dest/file.txt") shouldBe true
+        mockOps.getFileContent("/dest/file.txt") shouldBe "content".toByteArray()
+        mockOps.hasFile("/source/file.txt") shouldBe false
+
+        result.movedFiles.size shouldBe 1
+    }
+
+    @Test
+    fun `move file with persistent error retries multiple times then skips`() = runTest {
+        // Given - file with persistent failure (fails 4 times)
+        mockOps.addMockFile("/source/file.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
+
+        // Fail 4 times on openOutputStream
+        mockOps.setFailOpenOutputStream(4)
+
+        var retryCount = 0
+
+        // When - retry 3 times, then skip
+        val result = setOf(LocalPath.build("/source/file.txt")).moveGeneric(
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.UnknownError -> {
+                        retryCount++
+                        if (retryCount < 4) {
+                            PathActionIssue.UnknownError.Resolution.Retry
+                        } else {
+                            PathActionIssue.UnknownError.Resolution.Skip()
+                        }
+                    }
+                    is PathActionIssue.PathAlreadyExists -> {
+                        // Failed move may leave partial file - overwrite it on retry
+                        retryCount++
+                        if (retryCount < 4) {
+                            PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                        } else {
+                            PathActionIssue.PathAlreadyExists.Resolution.Skip()
+                        }
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - file skipped after retries
+        // Note: partial file may or may not exist depending on when failures occurred
+        mockOps.hasFile("/source/file.txt") shouldBe true  // Source still exists
+
+        retryCount shouldBe 4
+        result.skippedFiles.size shouldBe 1
+        result.movedFiles.size shouldBe 0
+    }
+
+    @Test
+    fun `move file retry does not regress progress tracking`() = runTest {
+        // Given - file with injected failure
+        mockOps.addMockFile("/source/file.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
+
+        mockOps.setFailOpenOutputStream(1)
+
+        val progressUpdates = mutableListOf<Long>()
+
+        // When - move with progress tracking
+        setOf(LocalPath.build("/source/file.txt")).moveGeneric(
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = { state ->
+                progressUpdates.add(state.movedBytes)
+            },
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Retry
+                    is PathActionIssue.PathAlreadyExists -> {
+                        // Failed move may leave partial file - overwrite it on retry
+                        PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - progress should never decrease (no regression)
+        var previousProgress = 0L
+        for (progress in progressUpdates) {
+            progress should { it >= previousProgress }
+            previousProgress = progress
+        }
+
+        // File successfully moved
+        mockOps.hasFile("/dest/file.txt") shouldBe true
     }
 }
