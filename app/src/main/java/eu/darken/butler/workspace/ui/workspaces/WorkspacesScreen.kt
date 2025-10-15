@@ -21,6 +21,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.main.ui.motd.MotdCard
+import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.ui.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
@@ -149,7 +150,7 @@ fun WorkspaceScreen(
             onDismissRequest = {
                 // Dismiss by closing the modal workspace
                 workspaceActionHandler?.executeWorkspaceAction(
-                    eu.darken.butler.workspace.core.WorkspaceAction.Close(modalWorkspace.id)
+                    WorkspaceAction.Close(modalWorkspace.id)
                 )
             },
         )

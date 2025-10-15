@@ -259,6 +259,8 @@ fun ExplorerWorkspacePage(
                     eu.darken.butler.explorer.ui.picker.ExplorerPickerTopBar(
                         pickerMode = pickerConfig.pickerMode,
                         selectionCount = mainState.selectionState.selectedItems.size,
+                        breadcrumbs = mainState.breadcrumbs,
+                        onBreadcrumbClick = { navigation -> vm?.navigate(navigation) },
                         onCancel = { vm?.cancelPicker() },
                         onConfirm = { vm?.confirmPickerSelection() },
                     )
