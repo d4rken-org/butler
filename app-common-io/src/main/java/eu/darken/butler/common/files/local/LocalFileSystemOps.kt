@@ -65,20 +65,15 @@ class LocalFileSystemOps @Inject constructor(
 ) : FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended> {
 
     override suspend fun lookup(path: LocalPath): LocalPathLookup = try {
-        var fileType = FileType.UNKNOWN
+        // In cases like reading "/" we can still get the file type for restricted items
+        val fileType: FileType =
+            path.file.getAPathFileType() ?: throw ReadException("Does not exist or can't be read", path)
+
         var size = -1L
         var modifiedAt = Instant.DISTANT_PAST
         var target: LocalPath? = null
         val errors = mutableListOf<String>()
 
-        // Try to get file type (most important, cheapest operation)
-        try {
-            fileType = path.file.getAPathFileType() ?: FileType.UNKNOWN
-        } catch (e: Exception) {
-            errors.add("Type: ${e.message}")
-        }
-
-        // Try to get size and modified time (requires stat - might fail on restricted files)
         try {
             size = path.file.length()
             modifiedAt = Instant.fromEpochMilliseconds(path.file.lastModified())
@@ -86,7 +81,6 @@ class LocalFileSystemOps @Inject constructor(
             errors.add("Attributes: ${e.message}")
         }
 
-        // Try to read symlink target if applicable
         if (fileType == FileType.SYMBOLIC_LINK) {
             try {
                 target = path.file.readLink()?.let { LocalPath.build(it) }
