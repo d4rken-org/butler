@@ -12,6 +12,24 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.io.File
 
+/**
+ * Represents a path on the local file system.
+ *
+ * **IMPORTANT: LocalPath only accepts ABSOLUTE paths.**
+ *
+ * This requirement ensures:
+ * - Unambiguous file operations (especially with root/ADB access)
+ * - Consistency with Android file system APIs
+ * - Safe serialization/deserialization (no context-dependent path resolution)
+ *
+ * @throws IllegalArgumentException if the provided File is not absolute
+ *
+ * Example usage:
+ * ```
+ * LocalPath.build("/storage/emulated/0/file.txt")  // ✓ Valid
+ * LocalPath.build("relative/path")                  // ✗ Throws exception
+ * ```
+ */
 @Keep
 @Serializable
 @SerialName("LOCAL")
@@ -20,6 +38,10 @@ import java.io.File
 data class LocalPath(
     val file: @Serializable(with = FileSerializer::class) File
 ) : APath<LocalPath> {
+
+    init {
+        require(file.isAbsolute) { "LocalPath must be ABSOLUTE: $file" }
+    }
 
     @IgnoredOnParcel
     override val path: String
@@ -55,12 +77,14 @@ data class LocalPath(
         }
 
     companion object {
-        fun build(base: LocalPath, vararg crumbs: String): LocalPath {
-            return build(base.path, *crumbs)
-        }
-
         fun build(base: File, vararg crumbs: String): LocalPath {
-            return build(base.path, *crumbs)
+            var result = base
+            for (crumb in crumbs) {
+                if (crumb.isNotEmpty()) {
+                    result = File(result, crumb)
+                }
+            }
+            return build(result)
         }
 
         fun build(vararg crumbs: String): LocalPath {

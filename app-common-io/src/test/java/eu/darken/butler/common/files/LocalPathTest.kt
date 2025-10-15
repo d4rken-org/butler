@@ -18,8 +18,8 @@ import java.io.File
 import kotlin.time.Instant
 
 class LocalPathTest : BaseTest() {
-    private val testFile = File("./testfile")
-    private val testFile2 = File("./testfile2")
+    private val testFile = File(IO_TEST_BASEDIR, "testfile")
+    private val testFile2 = File(IO_TEST_BASEDIR, "testfile2")
 
     private val json = SerializationIOModule().json()
 
@@ -177,5 +177,33 @@ class LocalPathTest : BaseTest() {
         lookup1a shouldNotBe lookup1b
         lookup1a shouldNotBe lookup1c
         lookup1a shouldNotBe lookup2
+    }
+
+    @Test
+    fun `reject relative paths`() {
+        val exception = shouldThrow<IllegalArgumentException> {
+            LocalPath.build(File("relative/path"))
+        }
+        exception.message shouldBe "LocalPath must be ABSOLUTE: relative/path"
+    }
+
+    @Test
+    fun `reject dot paths`() {
+        shouldThrow<IllegalArgumentException> {
+            LocalPath.build(File("."))
+        }
+        shouldThrow<IllegalArgumentException> {
+            LocalPath.build(File(".."))
+        }
+        shouldThrow<IllegalArgumentException> {
+            LocalPath.build(File("./file"))
+        }
+    }
+
+    @Test
+    fun `accept all absolute paths`() {
+        LocalPath.build(File("/")).path shouldBe "/"
+        LocalPath.build(File("/foo")).path shouldBe "/foo"
+        LocalPath.build(File("/foo/bar")).path shouldBe "/foo/bar"
     }
 }
