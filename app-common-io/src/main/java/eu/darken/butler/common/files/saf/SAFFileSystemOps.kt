@@ -312,28 +312,118 @@ class SAFFileSystemOps @Inject constructor(
         return targetDocFile
     }
 
+    /**
+     * Ensures that the parent directory of the given path exists.
+     *
+     * If createParents is true, recursively creates any missing parent directories.
+     * If createParents is false, throws WriteException if the parent doesn't exist.
+     *
+     * @param path The path whose parent should exist
+     * @param createParents Whether to create missing parent directories
+     * @throws WriteException if parent doesn't exist and createParents is false,
+     *         or if parent exists but is not a directory
+     */
+    private suspend fun ensureParentExists(path: SAFPath, createParents: Boolean) {
+        // Base case: if path has no segments, it's the tree root which always exists
+        if (path.segments.isEmpty()) return
+
+        val parentPath = path.parent ?: return // No parent (tree root)
+
+        // If parent is tree root (no segments), it always exists
+        if (parentPath.segments.isEmpty()) return
+
+        // Try to resolve the parent DocFile
+        val parentDocFile = try {
+            parentPath.resolveDocFile()
+        } catch (e: MissingUriPermissionException) {
+            // Permission issue - can't proceed
+            throw e
+        } catch (e: Exception) {
+            // Parent might not exist
+            if (!createParents) {
+                throw WriteException("Parent directory does not exist: $parentPath", path, e)
+            }
+
+            // Recursively ensure the parent's parent exists
+            ensureParentExists(parentPath, createParents = true)
+
+            // Now create this missing parent directory
+            createMissingParentDir(parentPath)
+            return
+        }
+
+        // Parent DocFile resolved - check if it exists
+        if (!parentDocFile.exists) {
+            if (!createParents) {
+                throw WriteException("Parent directory does not exist: $parentPath", path)
+            }
+
+            // Recursively ensure the parent's parent exists
+            ensureParentExists(parentPath, createParents = true)
+
+            // Now create this missing parent directory
+            createMissingParentDir(parentPath)
+        } else if (!parentDocFile.isDirectory) {
+            // Parent exists but is not a directory - this is an error
+            throw WriteException("Parent exists but is not a directory: $parentPath", path)
+        }
+        // Otherwise parent exists and is a directory - we're done
+    }
+
+    /**
+     * Creates a missing parent directory and updates the caches.
+     * Assumes the parent's parent already exists.
+     */
+    private suspend fun createMissingParentDir(parentPath: SAFPath) {
+        require(parentPath.segments.isNotEmpty()) { "Cannot create tree root" }
+
+        val parentName = parentPath.segments.last()
+        val grandParentPath = if (parentPath.segments.size > 1) {
+            parentPath.copy(segments = parentPath.segments.dropLast(1))
+        } else {
+            parentPath.copy(segments = emptyList())
+        }
+
+        val grandParentDocFile = grandParentPath.resolveDocFile()
+
+        if (!grandParentDocFile.exists || !grandParentDocFile.isDirectory) {
+            throw WriteException(
+                "Grandparent directory does not exist or is not a directory: $grandParentPath",
+                parentPath
+            )
+        }
+
+        val newParentDocFile = grandParentDocFile.createDirectory(parentName)
+
+        log(TAG, VERBOSE) { "createMissingParentDir() created: $parentPath" }
+
+        // Update caches
+        val now = Clock.System.now()
+        docFileCache[parentPath] = CacheEntry(newParentDocFile, now)
+
+        // Also cache lookup data
+        val lookup = newParentDocFile.performLookup(parentPath)
+        lookupCache[parentPath] = LookupCacheEntry(lookup, now)
+    }
+
     override suspend fun createDir(path: SAFPath, createParents: Boolean) {
         try {
             log(TAG, VERBOSE) { "createDir(createParents=$createParents): $path" }
+
+            ensureParentExists(path, createParents)
+
             val docFile = path.resolveDocFile()
 
             if (docFile.exists) {
-                if (docFile.isDirectory) {
-                    return // Already exists - idempotent
-                } else {
+                if (docFile.isDirectory)                     return // Already exists - idempotent
+
                     throw PathAlreadyExistsException(
                         message = "Path exists but is not a directory",
                         path = path
                     )
-                }
-            } else {
-                // TODO: Implement createParents support for SAF if needed
-                if (createParents) {
-                    throw UnsupportedOperationException("createParents=true not yet implemented for SAF")
-                }
-                // Create directory (parent must already exist)
-                createDocumentFile(DocumentsContract.Document.MIME_TYPE_DIR, path)
             }
+
+            createDocumentFile(DocumentsContract.Document.MIME_TYPE_DIR, path)
         } catch (e: PathAlreadyExistsException) {
             throw e // Re-throw PathAlreadyExistsException as-is
         } catch (e: Exception) {
@@ -345,17 +435,12 @@ class SAFFileSystemOps @Inject constructor(
     override suspend fun createFile(path: SAFPath, createParents: Boolean) {
         try {
             log(TAG, VERBOSE) { "createFile(createParents=$createParents): $path" }
+
+            ensureParentExists(path, createParents)
+
             val docFile = path.resolveDocFile()
+            if (docFile.exists)                 throw PathAlreadyExistsException(path = path)
 
-            if (docFile.exists) {
-                throw PathAlreadyExistsException(path = path)
-            }
-
-            // TODO: Implement createParents support for SAF if needed
-            if (createParents) {
-                throw UnsupportedOperationException("createParents=true not yet implemented for SAF")
-            }
-            // Create file with default MIME type
             createDocumentFile("application/octet-stream", path)
         } catch (e: PathAlreadyExistsException) {
             throw e // Re-throw PathAlreadyExistsException as-is
