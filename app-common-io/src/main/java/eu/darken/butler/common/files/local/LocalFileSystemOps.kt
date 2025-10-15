@@ -121,7 +121,12 @@ class LocalFileSystemOps @Inject constructor(
 
             // TODO use Files.readAttributes as fallback?
 
-            Ownership(uid, gid, userName, groupName)
+            Ownership(
+                userId = uid,
+                groupId = gid,
+                userName = userName,
+                groupName = groupName
+            )
         }
 
         val basicAttributes = try {
