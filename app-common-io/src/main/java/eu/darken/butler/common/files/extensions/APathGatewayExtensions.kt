@@ -9,6 +9,7 @@ import eu.darken.butler.common.files.APathLookupExtended
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
@@ -177,10 +178,11 @@ suspend fun <P : APath<P>, PL : APathLookup<P>> P.copy(
     gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
     destination: P,
     options: CopyAction.Options<P> = CopyAction.Options(),
+    onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
 ): Flow<CopyAction.State<P, PL>> {
-    return gateway.copy(sources = setOf(this), destination = destination, options = options)
+    return gateway.copy(sources = setOf(this), destination = destination, options = options, onIssue = onIssue)
         .onCompletion {
-            log(VERBOSE) { "P.copy(destination=$destination, options=$options): Copied $this" }
+            log(VERBOSE) { "P.copy(destination=$destination, options=$options, onIssue=$onIssue): Copied $this" }
         }
 }
 
@@ -188,10 +190,11 @@ suspend fun <P : APath<P>, PL : APathLookup<P>> Set<P>.copy(
     gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
     destination: P,
     options: CopyAction.Options<P> = CopyAction.Options(),
+    onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
 ): Flow<CopyAction.State<P, PL>> {
-    return gateway.copy(sources = this, destination = destination, options = options)
+    return gateway.copy(sources = this, destination = destination, options = options, onIssue = onIssue)
         .onCompletion {
-            log(VERBOSE) { "Set<P>.copy(destination=$destination, options=$options): Copied $this" }
+            log(VERBOSE) { "Set<P>.copy(destination=$destination, options=$options, onIssue=onIssue): Copied $this" }
         }
 }
 
@@ -199,10 +202,11 @@ suspend fun <P : APath<P>, PL : APathLookup<P>> P.move(
     gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
     destination: P,
     options: MoveAction.Options<P> = MoveAction.Options(),
+    onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
 ): Flow<MoveAction.State<P, PL>> {
-    return gateway.move(sources = setOf(this), destination = destination, options = options)
+    return gateway.move(sources = setOf(this), destination = destination, options = options, onIssue = onIssue)
         .onCompletion {
-            log(VERBOSE) { "T.move(destination=$destination, options=$options): Moved $this" }
+            log(VERBOSE) { "T.move(destination=$destination, options=$options, onIssue=$onIssue): Moved $this" }
         }
 }
 
@@ -210,9 +214,10 @@ suspend fun <P : APath<P>, PL : APathLookup<P>> Set<P>.move(
     gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
     destination: P,
     options: MoveAction.Options<P> = MoveAction.Options(),
+    onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
 ): Flow<MoveAction.State<P, PL>> {
-    return gateway.move(sources = this, destination = destination, options = options)
+    return gateway.move(sources = this, destination = destination, options = options, onIssue = onIssue)
         .onCompletion {
-            log(VERBOSE) { "Set<T>.move(destination=$destination, options=$options): Moved $this" }
+            log(VERBOSE) { "Set<T>.move(destination=$destination, options=$options, onIssue=$onIssue): Moved $this" }
         }
 }

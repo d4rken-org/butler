@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
+import java.util.ArrayDeque
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.time.TimeSource
@@ -94,19 +95,19 @@ class MoveOperation @AssistedInject constructor(
                 destination = command.destination,
                 options = MoveAction.Options(
                     preserveAttributes = command.options.preserveAttributes,
-                    onIssue = { issue ->
-                        emit(
-                            State.Waiting(
-                                startedAt = operationContext.startedAt,
-                                waitingSince = Clock.System.now(),
-                                issue = issue,
-                            )
-                        )
-                        val resolution = issueHandler.handleIssue(operationContext.id, issue) as PathActionIssue.Resolution
-                        emit(stateActive)
-                        resolution
-                    },
                 ),
+                onIssue = { issue ->
+                    emit(
+                        State.Waiting(
+                            startedAt = operationContext.startedAt,
+                            waitingSince = Clock.System.now(),
+                            issue = issue,
+                        )
+                    )
+                    val resolution = issueHandler.handleIssue(operationContext.id, issue) as PathActionIssue.Resolution
+                    emit(stateActive)
+                    resolution
+                },
             )
             .onEach { moveState ->
                 if (moveState !is MoveAction.State.Progress<*, *>) return@onEach
@@ -161,7 +162,8 @@ class MoveOperation @AssistedInject constructor(
                 val overallMetrics = if (avgBytesSpeed > 0) {
                     caString { ctx ->
                         val bytesSpeedFormatted = Formatter.formatShortFileSize(ctx, avgBytesSpeed)
-                        val bytesSpeedPart = ctx.getString(R.string.explorer_operation_progress_bytes_speed, bytesSpeedFormatted)
+                        val bytesSpeedPart =
+                            ctx.getString(R.string.explorer_operation_progress_bytes_speed, bytesSpeedFormatted)
 
                         val itemsSpeedPart = if (avgItemsSpeed > 0) {
                             " • " + ctx.getQuantityString2(
@@ -177,7 +179,10 @@ class MoveOperation @AssistedInject constructor(
                                 overallEta.toInt(),
                                 overallEta
                             )
-                            " • " + ctx.getString(eu.darken.butler.workspace.R.string.workspace_operation_progress_time_remaining, duration)
+                            " • " + ctx.getString(
+                                eu.darken.butler.workspace.R.string.workspace_operation_progress_time_remaining,
+                                duration
+                            )
                         } else ""
 
                         bytesSpeedPart + itemsSpeedPart + etaPart
@@ -195,7 +200,10 @@ class MoveOperation @AssistedInject constructor(
                                 fileEta.toInt(),
                                 fileEta
                             )
-                            " • " + ctx.getString(eu.darken.butler.workspace.R.string.workspace_operation_progress_time_remaining, duration)
+                            " • " + ctx.getString(
+                                eu.darken.butler.workspace.R.string.workspace_operation_progress_time_remaining,
+                                duration
+                            )
                         } else ""
                         speedPart + etaPart
                     }

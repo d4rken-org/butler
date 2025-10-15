@@ -14,8 +14,6 @@ import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.PathActionIssue
@@ -97,19 +95,19 @@ class CopyOperation @AssistedInject constructor(
                 options = CopyAction.Options(
                     preserveAttributes = command.options.preserveAttributes,
                     followSymlinks = command.options.followSymlinks,
-                    onIssue = { issue ->
-                        emit(
-                            State.Waiting(
-                                startedAt = operationContext.startedAt,
-                                waitingSince = Clock.System.now(),
-                                issue = issue,
-                            )
+                ),
+                onIssue = { issue ->
+                    emit(
+                        State.Waiting(
+                            startedAt = operationContext.startedAt,
+                            waitingSince = Clock.System.now(),
+                            issue = issue,
                         )
-                        val resolution = issueHandler.handleIssue(operationContext.id, issue) as PathActionIssue.Resolution
-                        emit(stateActive)
-                        resolution
-                    }
-                )
+                    )
+                    val resolution = issueHandler.handleIssue(operationContext.id, issue) as PathActionIssue.Resolution
+                    emit(stateActive)
+                    resolution
+                },
             )
             .onEach { copyState ->
                 if (copyState !is CopyAction.State.Progress<*, *>) return@onEach
