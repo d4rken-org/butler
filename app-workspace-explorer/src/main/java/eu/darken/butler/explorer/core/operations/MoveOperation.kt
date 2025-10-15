@@ -232,6 +232,7 @@ class MoveOperation @AssistedInject constructor(
         result as MoveAction.State.Result<*, *>
 
         // Track filesystem changes - sources were removed
+        // TODO don't we have the lookup from earlier?
         val movedSources = result.movedFiles.map { it.first }.toSet()
         val sourceLookupsForHinter = movedSources.map { path ->
             // Create a minimal lookup for removed paths (may no longer exist)
