@@ -35,6 +35,25 @@ Butler uses a workspace concept similar to browser tabs with 4 main workspace ty
 ./gradlew clean
 ```
 
+#### Build Context Management
+
+When running gradle build commands, use the Task tool with a sub-agent to keep verbose build output isolated from the main context:
+
+**Default approach (preferred):**
+
+- Use Task tool → general-purpose agent → run gradle command
+- Sub-agent should report back only:
+    - Success/failure status
+    - Compilation errors (if any) with file locations
+    - Count of warnings (without full output)
+
+**Run gradle directly in main context only when:**
+
+- User explicitly requests to see full build output
+- Quick verification of available gradle tasks (`./gradlew tasks`)
+
+This aligns with the "Agent instructions" principle of maintaining focused contexts and optimizes token usage.
+
 ### Testing
 
 ```bash
