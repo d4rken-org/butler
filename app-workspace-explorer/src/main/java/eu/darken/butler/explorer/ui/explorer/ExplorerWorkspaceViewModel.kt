@@ -353,7 +353,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val normalizedPath = pathString.trim()
 
         when {
-            normalizedPath.isEmpty() -> {
+            normalizedPath.isNotBlank() -> {
                 getWorkspace().navigate(Home)
             }
             else -> {
@@ -531,7 +531,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         try {
             val editorArgsClass = Class.forName("eu.darken.butler.editor.core.EditorWorkspace\$Arguments")
             val constructor = editorArgsClass.getConstructor(
-                eu.darken.butler.common.files.APath::class.java,
+                APath::class.java,
                 Long::class.java,
                 Long::class.java,
                 Boolean::class.java,
