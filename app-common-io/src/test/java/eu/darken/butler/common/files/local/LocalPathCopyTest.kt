@@ -2177,31 +2177,4 @@ class LocalPathCopyTest : BaseTest() {
         result.copied shouldHaveSize 4 // linkToDir + level1 + level2 + deep.txt
     }
 
-    @Test
-    fun `tool can only be executed once`() = runTest {
-        // Given
-        val sourceFile = File(sourceFolder, "test.txt")
-        sourceFile.writeText("content")
-
-        val sourcePath = LocalPath.build(sourceFile)
-        val destPath = LocalPath.build(destFolder)
-
-        val tool = LocalPathCopy(
-            fileSystemOps = ops,
-            sources = setOf(sourcePath),
-            destination = destPath,
-            options = CopyAction.Options(),
-            onProgress = null,
-            onIssue = null
-        )
-
-        // When - first execution succeeds
-        tool.execute()
-
-        // Then - second execution should throw
-        val exception = shouldThrow<IllegalStateException> {
-            tool.execute()
-        }
-        exception.message shouldContain "can only be executed once"
-    }
 }

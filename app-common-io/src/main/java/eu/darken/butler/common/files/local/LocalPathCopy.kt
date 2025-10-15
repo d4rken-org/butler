@@ -1,129 +1,25 @@
 package eu.darken.butler.common.files.local
 
-import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.PathActionIssue
-import eu.darken.butler.common.files.local.operations.core.PathOperationErrorHandler
-import eu.darken.butler.common.files.local.operations.core.PathOperationExecutor
-import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
-import eu.darken.butler.common.files.local.operations.core.PathOperationProgressTracker
-import eu.darken.butler.common.files.local.operations.core.PathOperationUtils
-import eu.darken.butler.common.files.local.operations.scanning.SpaceValidator
-import eu.darken.butler.common.files.local.operations.strategies.LocalPathCopyStrategy
-import eu.darken.butler.common.files.local.operations.strategies.TransferStrategy
-import eu.darken.butler.common.io.R
 
-internal class LocalPathCopy(
-    private val fileSystemOps: LocalFileSystemOps,
-    private val sources: Collection<LocalPath>,
-    private val destination: LocalPath,
-    private val options: CopyAction.Options<LocalPath>,
-    private val onProgress: (suspend (CopyAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)?,
-    private val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
-) {
-    private val pathOperationUtils = PathOperationUtils(fileSystemOps)
-    private val progressTracker = PathOperationProgressTracker()
-    private var hasExecuted = false
-
-    suspend fun execute(): CopyAction.State.Result<LocalPath, LocalPathLookup> {
-        check(!hasExecuted) { "LocalPathCopy can only be executed once" }
-        hasExecuted = true
-
-        log(TAG, DEBUG) { "Starting copy operation: $sources -> $destination" }
-
-        // Ensure destination exists
-        pathOperationUtils.ensureDestinationExists(destination, sources, onIssue)
-
-        // Create components
-        val issueResolver = PathOperationIssueResolver(onIssue)
-        val errorHandler = PathOperationErrorHandler(
-            issueResolver = issueResolver,
-            onItemSkipped = { lookup ->
-                reportProgress(lookup.lookedUp as LocalPath, destination, lookup as LocalPathLookup)
-            }
-        )
-        val spaceValidator = SpaceValidator(fileSystemOps, issueResolver)
-        val strategy = LocalPathCopyStrategy(fileSystemOps)
-        val transferOptions = TransferStrategy.Options(
-            preserveAttributes = options.preserveAttributes,
-            followSymlinks = options.followSymlinks
-        )
-
-        // Create executor
-        val executor = PathOperationExecutor(
-            fileSystemOps = fileSystemOps,
-            strategy = strategy,
-            sources = sources,
-            destination = destination,
-            issueResolver = issueResolver,
-            errorHandler = errorHandler,
-            progressTracker = progressTracker,
-            spaceValidator = spaceValidator,
-            transferOptions = transferOptions,
-            followSymlinks = options.followSymlinks,
-            onProgress = { currentSource, currentDest, sourceLookup ->
-                reportProgress(currentSource, currentDest, sourceLookup)
-            }
-        )
-
-        // Execute operation
-        val result = executor.execute()
-
-        log(
-            TAG,
-            DEBUG
-        ) { "Copy operation completed: ${result.transferred.size} copied, ${result.skipped.size} skipped" }
-
-        return CopyAction.State.Result(
-            copied = result.transferred.toSet(),
-            skipped = result.skipped.toSet(),
-            copiedBytes = result.bytesTransferred
-        )
-    }
-
-    private suspend fun reportProgress(
-        currentSource: LocalPath,
-        currentDestination: LocalPath,
-        sourceLookup: LocalPathLookup
-    ) {
-        val snapshot = progressTracker.createSnapshot()
-
-        onProgress?.invoke(
-            CopyAction.State.Progress(
-                currentSource = currentSource,
-                currentDestination = currentDestination,
-                copiedBytes = snapshot.processedBytes,
-                totalBytes = snapshot.totalBytes,
-                currentFileSize = snapshot.currentFileSize,
-                currentFileBytes = snapshot.currentFileBytes,
-                currentFileStartTime = snapshot.currentFileStartTime,
-                primaryProgress = eu.darken.butler.common.progress.Progress.Data(
-                    primary = R.string.general_copy_progress_title.toCaString(),
-                    secondary = sourceLookup.userReadablePath,
-                    count = eu.darken.butler.common.progress.Progress.Count.Counter(
-                        current = snapshot.itemsProcessed,
-                        max = snapshot.totalItems
-                    )
-                ),
-                secondaryProgress = eu.darken.butler.common.progress.Progress.Data(
-                    primary = currentSource.name.toCaString(),
-                    count = eu.darken.butler.common.progress.Progress.Count.Size(
-                        current = snapshot.currentFileBytes,
-                        max = snapshot.currentFileSize
-                    )
-                )
-            )
-        )
-    }
-
-    companion object {
-        private val TAG = logTag("Gateway", "LocalPath", "Copy")
-    }
-}
+/**
+ * Copy extension functions for LocalPath.
+ *
+ * These are thin wrappers around the generic copy framework using LocalPathOperations.
+ * The actual implementation delegates to GenericPathCopy with LocalPathCopyStrategy.
+ *
+ * ## Migration Note
+ *
+ * This file was migrated from using PathOperationExecutor (old) to GenericPathCopy (new).
+ * The public API remains unchanged - only the internal implementation changed.
+ *
+ * @see copyGenericOp for the actual implementation
+ */
 
 suspend fun LocalPath.copy(
     fileSystemOps: LocalFileSystemOps,
@@ -141,17 +37,17 @@ suspend fun Collection<LocalPath>.copy(
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
 ): CopyAction.State.Result<LocalPath, LocalPathLookup> {
     log(TAG, DEBUG) {
-        "copy(): Copying $size targets to $destination (options=$options, onProgress=$onProgress, onIssue=$onIssue)"
+        "copy(): Copying $size targets to $destination (options=$options)"
     }
 
-    return LocalPathCopy(
-        fileSystemOps = fileSystemOps,
-        sources = this,
+    // Delegate to generic operation (new implementation)
+    return this.copyGenericOp(
         destination = destination,
+        fileSystemOps = fileSystemOps,
         options = options,
         onProgress = onProgress,
         onIssue = onIssue
-    ).execute()
+    )
 }
 
 private val TAG = logTag("Gateway", "LocalPath", "Copy")

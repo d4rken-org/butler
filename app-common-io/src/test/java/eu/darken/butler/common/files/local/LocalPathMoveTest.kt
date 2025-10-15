@@ -959,30 +959,6 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `tool can only be executed once`() = runTest {
-        // Given
-        val sourceFile = File(sourceFolder, "file.txt")
-        sourceFile.writeText("Content")
-
-        val tool = LocalPathMove(
-            fileSystemOps = ops,
-            sources = setOf(LocalPath.build(sourceFile)),
-            destination = LocalPath.build(destFolder),
-            options = MoveAction.Options(),
-            onProgress = null,
-            onIssue = null
-        )
-
-        // When - execute once
-        tool.execute()
-
-        // Then - second execution should throw
-        shouldThrow<IllegalStateException> {
-            tool.execute()
-        }
-    }
-
-    @Test
     fun `result contains correct moved pairs`() = runTest {
         // Given
         val file1 = File(sourceFolder, "file1.txt")
