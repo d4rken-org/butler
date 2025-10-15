@@ -57,10 +57,19 @@ This aligns with the "Agent instructions" principle of maintaining focused conte
 ### Testing
 
 ```bash
-# Run unit tests
-./gradlew test
+# Run all unit tests in the project
+./gradlew testDebugUnitTest
 
-# Run instrumented tests
+# Run unit tests for a specific module
+./gradlew :app-common-io:testDebugUnitTest
+
+# Run a specific test class
+./gradlew :app-common-io:testDebugUnitTest --tests "eu.darken.butler.common.files.operations.GenericPathCopyTest"
+
+# Run a specific test method
+./gradlew :app-common-io:testDebugUnitTest --tests "eu.darken.butler.common.files.operations.GenericPathCopyTest.testCopyFile"
+
+# Run instrumented tests (on connected device/emulator)
 ./gradlew connectedAndroidTest
 ```
 
