@@ -33,6 +33,9 @@
 
     <!-- Picker Mode -->
     <string name="explorer_picker_select_directory_title">Select Folder</string>
+    <string name="explorer_picker_select_directories_title">Select Folders</string>
+    <string name="explorer_picker_select_directories_count_title">Select Folders (%1$d)</string>
+    <string name="explorer_picker_select_file_title">Select File</string>
     <string name="explorer_picker_select_files_title">Select Files</string>
     <string name="explorer_picker_select_files_count_title">Select Files (%1$d)</string>
     <string name="explorer_picker_select_action">Select</string>

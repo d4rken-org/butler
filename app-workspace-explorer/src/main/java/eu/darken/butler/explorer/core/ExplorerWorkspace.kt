@@ -23,8 +23,8 @@ import eu.darken.butler.explorer.core.operations.CreateOperation
 import eu.darken.butler.explorer.core.operations.DeleteOperation
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.explorer.core.operations.MoveOperation
-import eu.darken.butler.explorer.ui.picker.ExplorerPickerArguments
-import eu.darken.butler.explorer.ui.picker.PickerConfig
+import eu.darken.butler.workspace.core.picker.ExplorerPickerArguments
+import eu.darken.butler.workspace.core.picker.PickerConfig
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
@@ -75,8 +75,7 @@ class ExplorerWorkspace @AssistedInject constructor(
         PickerConfig(
             callerWorkspaceId = it.callerWorkspaceId
                 ?: error("callerWorkspaceId required for picker mode"),
-            pickerMode = it.pickerMode,
-            allowMultiSelect = it.allowMultiSelect,
+            selection = it.selection,
         )
     }
 

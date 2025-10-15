@@ -257,7 +257,7 @@ fun ExplorerWorkspacePage(
                 if (pickerConfig != null) {
                     // Picker mode - use simplified picker top bar
                     eu.darken.butler.explorer.ui.picker.ExplorerPickerTopBar(
-                        pickerMode = pickerConfig.pickerMode,
+                        selection = pickerConfig.selection,
                         selectionCount = mainState.selectionState.selectedItems.size,
                         breadcrumbs = mainState.breadcrumbs,
                         onBreadcrumbClick = { navigation -> vm?.navigate(navigation) },

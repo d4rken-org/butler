@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.picker
+package eu.darken.butler.workspace.core.picker
 
 import android.os.Parcelable
 import eu.darken.butler.common.files.APath
@@ -17,14 +17,16 @@ data class ExplorerPickerArguments(
     val startPath: APath<*>? = null,
 
     /**
-     * What the user is selecting
+     * What the user can select and how they interact with items.
+     * Defines selection behavior, multi-select capability, and item filtering.
+     *
+     * Common modes:
+     * - [PickerConfig.Selection.DirectorySingle]: Choose one folder (default)
+     * - [PickerConfig.Selection.FileSingle]: Tap file to instantly select
+     * - [PickerConfig.Selection.FileMulti]: Select multiple files
+     * - [PickerConfig.Selection.DirectoryMulti]: Select multiple folders
      */
-    val pickerMode: PickerMode = PickerMode.DIRECTORY,
-
-    /**
-     * Allow selecting multiple items (only for FILE mode)
-     */
-    val allowMultiSelect: Boolean = false,
+    val selection: PickerConfig.Selection = PickerConfig.Selection.DirectorySingle,
 
     /**
      * Workspace ID that expects the result
@@ -34,18 +36,4 @@ data class ExplorerPickerArguments(
 ) : Workspace.ArgumentsForResult {
     @IgnoredOnParcel
     override val type: Workspace.Type = Workspace.Type.EXPLORER
-}
-
-enum class PickerMode {
-    /**
-     * User selects a folder (current directory)
-     * allowMultiSelect is ignored (always single)
-     */
-    DIRECTORY,
-
-    /**
-     * User selects file(s) from current directory
-     * Supports multi-select via allowMultiSelect
-     */
-    FILE,
 }

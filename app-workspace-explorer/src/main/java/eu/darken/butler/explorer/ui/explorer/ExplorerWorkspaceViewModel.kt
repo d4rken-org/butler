@@ -43,8 +43,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.locationId
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
-import eu.darken.butler.explorer.ui.picker.PickerConfig
-import eu.darken.butler.explorer.ui.picker.PickerMode
+import eu.darken.butler.workspace.core.picker.PickerConfig
 import eu.darken.butler.explorer.core.sorting.ExplorerItemSorter
 import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
@@ -1060,24 +1059,29 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
 
         val stateSnap = state.first()
-        val selectedPaths: List<APath<*>> = when (config.pickerMode) {
-            PickerMode.DIRECTORY -> {
-                // If items are selected via selection mode, return those
-                val selectedItems = stateSnap.selectionState.selectedItems
-                if (selectedItems.isNotEmpty()) {
-                    selectedItems
-                        .filterIsInstance<ExplorerItem.Lookup>()
-                        .map { it.lookup.lookedUp }
-                } else {
-                    // Otherwise select current directory
-                    val currentLocation = stateSnap.currentLocation as? ExplorerLocation.Directory
-                    if (currentLocation != null) listOf(currentLocation.path) else emptyList()
-                }
+        val selectedPaths: List<APath<*>> = when (config.selection) {
+            is PickerConfig.Selection.DirectorySingle -> {
+                // Single directory: return current directory
+                val currentLocation = stateSnap.currentLocation as? ExplorerLocation.Directory
+                if (currentLocation != null) listOf(currentLocation.path) else emptyList()
             }
-            PickerMode.FILE -> {
-                // Get selected files
+            is PickerConfig.Selection.DirectoryMulti -> {
+                // Multiple directories: return selected directories
                 stateSnap.selectionState.selectedItems
                     .filterIsInstance<ExplorerItem.Lookup>()
+                    .filter { it is ExplorerItem.Directory }
+                    .map { it.lookup.lookedUp }
+            }
+            is PickerConfig.Selection.FileSingle -> {
+                // Should not reach here - FileSingle uses instant selection
+                log(tag, WARN) { "confirmPickerSelection() called in FileSingle mode (should use instant selection)" }
+                emptyList()
+            }
+            is PickerConfig.Selection.FileMulti -> {
+                // Multiple files: return selected files
+                stateSnap.selectionState.selectedItems
+                    .filterIsInstance<ExplorerItem.Lookup>()
+                    .filter { it is ExplorerItem.File }
                     .map { it.lookup.lookedUp }
             }
         }

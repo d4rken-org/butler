@@ -40,6 +40,8 @@ import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.picker.ExplorerPickerArguments
+import eu.darken.butler.workspace.core.picker.PickerConfig
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.operations.Operation
@@ -783,36 +785,18 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     fun openPathPicker() = launch {
         log(tag, INFO) { "openPathPicker()" }
 
-        // Create picker arguments using reflection to avoid direct dependency
-        try {
-            val pickerArgsClass = Class.forName("eu.darken.butler.explorer.ui.picker.ExplorerPickerArguments")
-            val pickerModeClass = Class.forName("eu.darken.butler.explorer.ui.picker.PickerMode")
-            val directoryMode = pickerModeClass.enumConstants?.find { it.toString() == "DIRECTORY" }
+        val pickerArgs = ExplorerPickerArguments(
+            startPath = null, // Start at home
+            selection = PickerConfig.Selection.DirectorySingle,
+            callerWorkspaceId = id
+        )
 
-            val constructor = pickerArgsClass.getConstructor(
-                eu.darken.butler.common.files.APath::class.java,
-                pickerModeClass,
-                Boolean::class.java,
-                Workspace.Id::class.java
+        workspaceRemote.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.EXPLORER,
+                arguments = pickerArgs
             )
-
-            val pickerArgs = constructor.newInstance(
-                null, // startPath - start at home
-                directoryMode,
-                false, // allowMultiSelect
-                id // callerWorkspaceId
-            ) as Workspace.Arguments
-
-            workspaceRemote.execute(
-                WorkspaceAction.Create(
-                    type = Workspace.Type.EXPLORER,
-                    arguments = pickerArgs
-                )
-            )
-        } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to create picker workspace: ${e.asLog()}" }
-            errorEvents.tryEmit(e)
-        }
+        )
     }
 
     @AssistedFactory
