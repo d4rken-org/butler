@@ -12,7 +12,6 @@ import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.main.core.motd.MotdRepo
 import eu.darken.butler.main.core.motd.MotdState
 import eu.darken.butler.upgrade.UpgradeRepo
-import eu.darken.butler.workspace.core.PresentationMode
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
@@ -157,11 +156,11 @@ class WorkspacesViewModel @Inject constructor(
         val all: List<Workspace.Info>
             get() = state.infos
 
-        // Filter workspaces by presentation mode
+        // Filter workspaces by caller relationship
         val tabWorkspaces: List<Workspace.Info>
-            get() = state.infos.filter { it.presentationMode == PresentationMode.TAB }
+            get() = state.infos.filter { !it.isSubWorkspace }
 
         val modalWorkspace: Workspace.Info?
-            get() = state.infos.firstOrNull { it.presentationMode == PresentationMode.MODAL }
+            get() = state.infos.firstOrNull { it.isSubWorkspace }
     }
 }

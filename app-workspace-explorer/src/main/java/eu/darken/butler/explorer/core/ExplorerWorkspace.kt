@@ -25,7 +25,6 @@ import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.explorer.core.operations.MoveOperation
 import eu.darken.butler.explorer.ui.picker.ExplorerPickerArguments
 import eu.darken.butler.explorer.ui.picker.PickerConfig
-import eu.darken.butler.workspace.core.PresentationMode
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
@@ -131,7 +130,7 @@ class ExplorerWorkspace @AssistedInject constructor(
             previewData = ExplorerPreviewData(),
             operationCount = activeOperations,
             attentionCount = attentionCount,
-            presentationMode = if (pickerConfig != null) PresentationMode.MODAL else PresentationMode.TAB,
+            callerWorkspaceId = pickerConfig?.callerWorkspaceId,
         )
     }
 

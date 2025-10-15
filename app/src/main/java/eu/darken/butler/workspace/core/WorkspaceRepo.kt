@@ -9,7 +9,6 @@ import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.flow.setupCommonEventHandlers
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.explorer.core.ExplorerWorkspace
-import eu.darken.butler.explorer.ui.picker.ExplorerPickerArguments
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.templates.core.TemplatesWorkspace
 import eu.darken.butler.workspace.core.operations.OperationsManager
@@ -18,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -40,8 +40,6 @@ class WorkspaceRepo @Inject constructor(
     private val lock = Mutex()
     private val _workspaces = MutableStateFlow<List<Workspace>>(emptyList())
     private val _events = MutableSharedFlow<WorkspaceEvent>()
-    // Track parent-child relationships for picker workspaces (picker → caller)
-    private val pickerParents = mutableMapOf<Workspace.Id, Workspace.Id>()
     private val infos: Flow<List<Workspace.Info>> = _workspaces.flatMapLatest { workspaces ->
         if (workspaces.isEmpty()) {
             flowOf(emptyList())
@@ -106,12 +104,11 @@ class WorkspaceRepo @Inject constructor(
 
         _workspaces.value = wip
 
-        // Track parent-child relationship for picker workspaces
-        if (arguments is ExplorerPickerArguments) {
+        // Track parent-child relationship for sub-workspaces
+        if (arguments is Workspace.ArgumentsForResult) {
             val callerId = arguments.callerWorkspaceId
             if (callerId != null) {
-                pickerParents[newWorkspace.id] = callerId
-                log(TAG) { "Tracked picker relationship: ${newWorkspace.id} -> $callerId" }
+                log(TAG) { "Created sub-workspace: ${newWorkspace.id} -> caller: $callerId" }
             }
         }
 
@@ -145,19 +142,20 @@ class WorkspaceRepo @Inject constructor(
             is WorkspaceAction.Close -> {
                 log(TAG, INFO) { "Closing workspace with id ${action.id}" }
 
-                // Find and close all child pickers owned by this workspace
-                val childPickers = pickerParents.filterValues { it == action.id }.keys
-                if (childPickers.isNotEmpty()) {
-                    log(TAG) { "Auto-closing ${childPickers.size} child picker(s): $childPickers" }
-                    childPickers.forEach { childId ->
-                        _workspaces.value = _workspaces.value.filter { it.id != childId }
-                        pickerParents.remove(childId)
-                        _events.emit(WorkspaceEvent.Closed(workspaceId = childId))
+                // Find and close all child workspaces owned by this workspace
+                val childWorkspaces = _workspaces.value.filter { ws ->
+                    val info = ws.info.first()
+                    info.callerWorkspaceId == action.id
+                }
+                if (childWorkspaces.isNotEmpty()) {
+                    log(TAG) { "Auto-closing ${childWorkspaces.size} child workspace(s)" }
+                    childWorkspaces.forEach { childWs ->
+                        _workspaces.value = _workspaces.value.filter { it.id != childWs.id }
+                        _events.emit(WorkspaceEvent.Closed(workspaceId = childWs.id))
                     }
                 }
 
                 _workspaces.value = _workspaces.value.filter { it.id != action.id }
-                pickerParents.remove(action.id)  // Clean up if this was a picker
                 _events.emit(WorkspaceEvent.Closed(workspaceId = action.id))
                 WorkspaceAction.Close.Result
             }
@@ -187,7 +185,6 @@ class WorkspaceRepo @Inject constructor(
                     operationsManager.removeWorkspace(it.id)
                 }
                 _workspaces.value = emptyList()
-                pickerParents.clear()  // Clean up all picker relationships
                 _events.emit(WorkspaceEvent.AllClosed)
                 WorkspaceAction.CloseAll.Result
             }

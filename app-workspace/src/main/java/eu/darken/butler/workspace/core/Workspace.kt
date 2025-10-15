@@ -43,6 +43,14 @@ interface Workspace {
         val type: Type
     }
 
+    /**
+     * Arguments for workspaces that are created to produce a result for another workspace
+     * (e.g., picker workspaces, selection dialogs)
+     */
+    interface ArgumentsForResult : Arguments {
+        val callerWorkspaceId: Id?
+    }
+
     data class Info(
         val id: Id,
         val type: Type,
@@ -51,7 +59,13 @@ interface Workspace {
         val operationCount: Int = 0,
         val attentionCount: Int = 0,
         val previewData: PreviewData? = null,
-        val presentationMode: PresentationMode = PresentationMode.TAB,
-    )
+        val callerWorkspaceId: Id? = null,
+    ) {
+        /**
+         * True if this workspace is a sub-workspace created by another workspace
+         * (e.g., picker workspaces). Sub-workspaces are typically rendered as modals.
+         */
+        val isSubWorkspace: Boolean get() = callerWorkspaceId != null
+    }
 }
 

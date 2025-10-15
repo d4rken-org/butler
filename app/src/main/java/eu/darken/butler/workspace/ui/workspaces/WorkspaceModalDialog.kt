@@ -12,7 +12,6 @@ import androidx.compose.ui.window.DialogProperties
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.workspace.core.PresentationMode
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
@@ -85,13 +84,13 @@ fun WorkspaceModalContent(
 @Composable
 private fun WorkspaceModalContentPreview() {
     PreviewWrapper {
-        // Preview with a mock workspace
+        // Preview with a mock sub-workspace (picker)
         WorkspaceModalContent(
             workspace = Workspace.Info(
                 id = Workspace.Id(),
                 type = Workspace.Type.EXPLORER,
                 title = "Select Folder".toCaString(),
-                presentationMode = PresentationMode.MODAL,
+                callerWorkspaceId = Workspace.Id(), // Mock parent workspace
             ),
         )
     }

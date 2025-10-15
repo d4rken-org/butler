@@ -30,8 +30,8 @@ data class ExplorerPickerArguments(
      * Workspace ID that expects the result
      * Used for routing PickerResult events
      */
-    val callerWorkspaceId: Workspace.Id? = null,
-) : Workspace.Arguments {
+    override val callerWorkspaceId: Workspace.Id? = null,
+) : Workspace.ArgumentsForResult {
     @IgnoredOnParcel
     override val type: Workspace.Type = Workspace.Type.EXPLORER
 }
