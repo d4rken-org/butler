@@ -461,20 +461,28 @@ internal class GenericPathMove<
         if (destLookup.fileType == FileType.DIRECTORY) {
             if (issueResolver.mergeAllPathExists) {
                 log(TAG, INFO) { "Merging directory (apply-to-all): $adjustedDest" }
+                moved.add(item.sourceLookup.lookedUp to adjustedDest)
                 progressTracker.completeItem()
                 return
             }
 
+            if (issueResolver.overwriteAllPathExists) {
+                log(TAG, INFO) { "Overwriting directory (apply-to-all): $adjustedDest" }
+                destOps.delete(adjustedDest, recursive = true)
+                workQueue.addFirst(item)
+                return
+            }
+
+            // Auto-merge directories when no issue handler (backward compatibility)
             if (onIssue == null) {
                 log(TAG, VERBOSE) { "Directory exists, auto-merging: $adjustedDest" }
+                moved.add(item.sourceLookup.lookedUp to adjustedDest)
                 progressTracker.completeItem()
                 return
             }
-        }
-
-        if (issueResolver.overwriteAllPathExists) {
-            log(TAG, INFO) { "Overwriting (apply-to-all): $adjustedDest" }
-            destOps.delete(adjustedDest, recursive = true)
+        } else if (issueResolver.overwriteAllPathExists) {
+            log(TAG, INFO) { "Overwriting file with directory (apply-to-all): $adjustedDest" }
+            destOps.delete(adjustedDest, recursive = false)
             workQueue.addFirst(item)
             return
         }
@@ -511,6 +519,8 @@ internal class GenericPathMove<
                 workQueue.addFirst(item.originalItem)
             }
             is PathActionIssue.PathAlreadyExists.Resolution.Merge -> {
+                // Add the merged directory to moved set (directory exists, we're merging contents)
+                moved.add(item.sourceLookup.lookedUp to item.destination)
                 progressTracker.completeItem()
             }
             is PathActionIssue.PathAlreadyExists.Resolution.RenameSource -> {

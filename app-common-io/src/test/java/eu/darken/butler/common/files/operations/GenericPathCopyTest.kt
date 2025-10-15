@@ -7,6 +7,7 @@ import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.LocalPathLookupExtended
 import eu.darken.butler.common.files.metadata.FileType
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.collections.shouldContain
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -610,6 +611,119 @@ class GenericPathCopyTest : BaseTest() {
         mockOps.getFileContent("/dest/folder/new.txt") shouldBe "new".toByteArray()
 
         result.copied.size shouldBe 2 // folder + new.txt file
+    }
+
+    @Test
+    fun `copy directory over existing FILE with apply to all overwrite uses recursive false`() = runTest {
+        // Tests bug fix: overwrite should use recursive=false when destination is a file
+        // Given - directory at source, FILE at destination (not directory)
+        mockOps.addMockDir("/source/item")
+        mockOps.addMockFile("/source/item/content.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockFile("/dest/item", "file content".toByteArray())  // FILE, not directory
+
+        val sourcePath = LocalPath.build("/source/item")
+        val destPath = LocalPath.build("/dest")
+
+        // When - copy with Overwrite (apply to all)
+        val result = setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        PathActionIssue.PathAlreadyExists.Resolution.Overwrite(applyToAll = true)
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - file deleted and replaced with directory
+        mockOps.hasFile("/dest/item") shouldBe true
+        mockOps.getFileType("/dest/item") shouldBe FileType.DIRECTORY
+        mockOps.hasFile("/dest/item/content.txt") shouldBe true
+        mockOps.getFileContent("/dest/item/content.txt") shouldBe "content".toByteArray()
+
+        result.copied.size shouldBe 2 // directory + file
+    }
+
+    @Test
+    fun `copy directory to existing directory with no issue handler auto-merges`() = runTest {
+        // Tests bug fix: auto-merge should be last fallback, after overwrite checks
+        // Given - both source and dest have same directory with different files
+        mockOps.addMockDir("/source/folder")
+        mockOps.addMockFile("/source/folder/new.txt", "new".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockDir("/dest/folder")
+        mockOps.addMockFile("/dest/folder/old.txt", "old".toByteArray())
+
+        val sourcePath = LocalPath.build("/source/folder")
+        val destPath = LocalPath.build("/dest")
+
+        // When - copy with NO issue handler (backward compatibility)
+        val result = setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = null  // No handler - should auto-merge
+        )
+
+        // Then - directories merged (both files exist)
+        mockOps.hasFile("/dest/folder") shouldBe true
+        mockOps.hasFile("/dest/folder/old.txt") shouldBe true
+        mockOps.hasFile("/dest/folder/new.txt") shouldBe true
+        mockOps.getFileContent("/dest/folder/old.txt") shouldBe "old".toByteArray()
+        mockOps.getFileContent("/dest/folder/new.txt") shouldBe "new".toByteArray()
+
+        result.copied.size shouldBe 2 // folder + new.txt
+        // Bug fix verification: merged directory should be in result
+        result.copied shouldContain (LocalPath.build("/source/folder") to LocalPath.build("/dest/folder"))
+    }
+
+    @Test
+    fun `merge resolution adds directory to copied set`() = runTest {
+        // Tests bug fix: merged directories should appear in result set
+        // Given - source and destination directories with different files
+        mockOps.addMockDir("/source/project")
+        mockOps.addMockFile("/source/project/new.txt", "new".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockDir("/dest/project")
+        mockOps.addMockFile("/dest/project/old.txt", "old".toByteArray())
+
+        val sourcePath = LocalPath.build("/source/project")
+        val destPath = LocalPath.build("/dest")
+
+        // When - copy with Merge resolution
+        val result = setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        PathActionIssue.PathAlreadyExists.Resolution.Merge()
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        )
+
+        // Then - both files exist in merged directory
+        mockOps.hasFile("/dest/project") shouldBe true
+        mockOps.hasFile("/dest/project/old.txt") shouldBe true
+        mockOps.hasFile("/dest/project/new.txt") shouldBe true
+
+        result.copied.size shouldBe 2 // directory + new.txt
+        // Bug fix verification: merged directory explicitly in result
+        result.copied shouldContain (LocalPath.build("/source/project") to LocalPath.build("/dest/project"))
     }
 
     @Test

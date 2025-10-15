@@ -501,6 +501,7 @@ internal class GenericPathCopy<
         if (destLookup.fileType == FileType.DIRECTORY) {
             if (issueResolver.mergeAllPathExists) {
                 log(TAG, INFO) { "Merging directory (apply-to-all): $adjustedDest" }
+                copied.add(item.sourceLookup.lookedUp to adjustedDest)
                 progressTracker.completeItem()
                 return
             }
@@ -515,6 +516,7 @@ internal class GenericPathCopy<
             // Auto-merge directories when no issue handler (backward compatibility)
             if (onIssue == null) {
                 log(TAG, VERBOSE) { "Directory already exists, auto-merging: $adjustedDest" }
+                copied.add(item.sourceLookup.lookedUp to adjustedDest)
                 progressTracker.completeItem()
                 return
             }
