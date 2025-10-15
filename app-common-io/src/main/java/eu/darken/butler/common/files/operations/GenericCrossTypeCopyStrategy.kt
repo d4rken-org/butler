@@ -70,7 +70,7 @@ class GenericCrossTypeCopyStrategy<
     ): TransferStrategy.TransferResult<SP, DP> {
         log(TAG, DEBUG) { "Copying cross-type: ${sourceLookup.lookedUp} → $destination" }
 
-        // Create destination file (GenericPathCopy guarantees destination doesn't exist)
+        // Create destination file (parent exists from depth-first traversal)
         destOps.createFile(destination)
 
         var totalBytesTransferred = 0L
@@ -111,7 +111,7 @@ class GenericCrossTypeCopyStrategy<
     ): TransferStrategy.TransferResult<SP, DP> {
         log(TAG, DEBUG) { "Creating directory cross-type: $destination" }
 
-        // Create directory at destination
+        // Create directory at destination (parent exists from depth-first traversal)
         destOps.createDir(destination)
 
         // Copy attributes if requested

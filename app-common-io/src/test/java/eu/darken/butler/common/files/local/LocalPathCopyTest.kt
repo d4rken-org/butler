@@ -14,7 +14,6 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.string.shouldContain
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -900,9 +899,9 @@ class LocalPathCopyTest : BaseTest() {
         // Given
         val sourceFile = File(sourceFolder, "file.txt")
         sourceFile.writeText("content")
-        val nonExistentDest = File(testFolder, "new-dest")
+        val nonExistentDest = File(testFolder, "non-existent-parent/new-dest")
 
-        // When/Then - destination doesn't exist, should fail
+        // When/Then - parent directory doesn't exist, should fail
         shouldThrow<WriteException> {
             LocalPath.build(sourceFile).copy(ops, LocalPath.build(nonExistentDest))
         }
@@ -922,26 +921,6 @@ class LocalPathCopyTest : BaseTest() {
         // Then
         File(existingDest, "file.txt").exists() shouldBe true
         sourceFile.exists() shouldBe true // Source still exists after copy
-    }
-
-    @Test
-    fun `copy should fail when destination exists but is a file`() = runTest {
-        // Given
-        val sourceFile = File(sourceFolder, "source.txt")
-        sourceFile.writeText("content")
-
-        val destinationFile = File(testFolder, "dest-file.txt")
-        destinationFile.writeText("I'm a file, not a directory")
-
-        // When/Then
-        val exception = shouldThrow<WriteException> {
-            LocalPath.build(sourceFile).copy(ops, LocalPath.build(destinationFile))
-        }
-
-        // Verify the exception is about the destination path
-        exception.path shouldBe LocalPath.build(destinationFile)
-        // Verify the cause mentions it's not a directory
-        exception.cause?.message shouldContain "not a directory"
     }
 
     @Test
@@ -972,8 +951,9 @@ class LocalPathCopyTest : BaseTest() {
 
         // Then
         issueEncountered shouldBe true
-        destinationFile.isDirectory shouldBe true
-        File(destinationFile, "source.txt").exists() shouldBe true
+        // Unix semantics: single file → non-directory destination = rename (not copy INTO)
+        destinationFile.isFile shouldBe true
+        destinationFile.readText() shouldBe "content"
         result.copied shouldHaveSize 1
     }
 
@@ -1009,8 +989,9 @@ class LocalPathCopyTest : BaseTest() {
             isFile shouldBe true
             readText() shouldBe "I'm a file blocking directory creation"
         }
-        destinationFile.isDirectory shouldBe true
-        File(destinationFile, "source.txt").exists() shouldBe true
+        // Unix semantics: single file → non-directory destination = rename (not copy INTO)
+        destinationFile.isFile shouldBe true
+        destinationFile.readText() shouldBe "content"
         result.copied shouldHaveSize 1
     }
 

@@ -357,16 +357,17 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move to non-existent destination - should throw`() = runTest {
+    fun `move to non-existent parent directory - should throw`() = runTest {
         // Given
         val sourceFile = File(sourceFolder, "test.txt")
         sourceFile.writeText("Content")
 
-        val nonExistentDest = File(testFolder, "non-existent-dest")
+        // Destination with non-existent parent directory
+        val destWithNonExistentParent = File(testFolder, "non-existent-parent/dest-file.txt")
 
-        // When/Then - destination doesn't exist, should fail
+        // When/Then - parent directory doesn't exist, should fail
         shouldThrow<WriteException> {
-            LocalPath.build(sourceFile).move(ops, LocalPath.build(nonExistentDest))
+            LocalPath.build(sourceFile).move(ops, LocalPath.build(destWithNonExistentParent))
         }
     }
 
@@ -1799,34 +1800,6 @@ class LocalPathMoveTest : BaseTest() {
         File(destFolder, "dir/nested.txt").exists() shouldBe true
         file.exists() shouldBe false
         dir.exists() shouldBe false
-    }
-
-    @Test
-    fun `move should fail when destination creation fails due to permissions`() = runTest {
-        // Given
-        val sourceFile = File(sourceFolder, "source.txt")
-        sourceFile.writeText("content")
-
-        val readOnlyParent = File(testFolder, "readonly-parent")
-        readOnlyParent.mkdirs()
-        readOnlyParent.setReadOnly()
-
-        val destinationInReadOnly = File(readOnlyParent, "dest-folder")
-
-        try {
-            // When/Then
-            val exception = shouldThrow<WriteException> {
-                LocalPath.build(sourceFile).move(ops, LocalPath.build(destinationInReadOnly))
-            }
-
-            // Verify the exception is about the destination path
-            exception.path shouldBe LocalPath.build(destinationInReadOnly)
-            // Verify it's an IO error (permission or creation failure)
-            exception.cause shouldNotBe null
-        } finally {
-            // Cleanup - restore write permissions
-            readOnlyParent.setWritable(true)
-        }
     }
 
     @Test

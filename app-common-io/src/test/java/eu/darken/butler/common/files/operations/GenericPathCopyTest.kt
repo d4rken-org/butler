@@ -233,6 +233,7 @@ class GenericPathCopyTest : BaseTest() {
     fun `single source file to non-existent path uses destination as final path (rename)`() = runTest {
         // Given - single source file, non-existent destination
         mockOps.addMockFile("/source/original.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
 
         val sourcePath = LocalPath.build("/source/original.txt")
         val destPath = LocalPath.build("/dest/renamed.txt")  // Non-existent final path
@@ -296,6 +297,7 @@ class GenericPathCopyTest : BaseTest() {
         // Given - single source directory with content, non-existent destination
         mockOps.addMockDir("/source/origdir")
         mockOps.addMockFile("/source/origdir/file.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
 
         val sourcePath = LocalPath.build("/source/origdir")
         val destPath = LocalPath.build("/dest/renameddir")  // Non-existent final path

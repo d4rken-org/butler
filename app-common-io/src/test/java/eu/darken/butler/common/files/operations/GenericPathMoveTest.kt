@@ -62,6 +62,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // Given - single source file, destination doesn't exist
         mockOps.addMockFile("/source/original.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
 
         val sourcePath = LocalPath.build("/source/original.txt")
         val destPath = LocalPath.build("/dest/renamed.txt")
@@ -138,6 +139,7 @@ class GenericPathMoveTest : BaseTest() {
         // Given - single source directory with file inside, destination doesn't exist
         mockOps.addMockDir("/source/origdir")
         mockOps.addMockFile("/source/origdir/file.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
 
         val sourcePath = LocalPath.build("/source/origdir")
         val destPath = LocalPath.build("/dest/renameddir")

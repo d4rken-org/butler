@@ -82,6 +82,7 @@ class LocalPathMoveStrategy(
     ): eu.darken.butler.common.files.operations.TransferStrategy.TransferResult<LocalPath, LocalPath> {
         log(TAG, DEBUG) { "Creating directory: $destination" }
 
+        // Parent exists due to GenericPathMove's depth-first traversal
         destOps.createDir(destination)
 
         return eu.darken.butler.common.files.operations.TransferStrategy.TransferResult.Success(

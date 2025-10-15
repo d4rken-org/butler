@@ -86,15 +86,11 @@ class LocalPathCopyStrategy(
                 LocalPath.build(relativePath.toFile())
             }
 
-            // Delete existing destination if present (conflict resolution happens before this)
-            if (destOps.exists(destination)) {
-                destOps.delete(destination, recursive = false)
-            }
-
             // Create symlink at destination
             destOps.createSymlink(destination, newTarget)
         } else {
             // Create regular directory
+            // Parent exists due to GenericPathCopy's depth-first traversal
             destOps.createDir(destination)
         }
 
@@ -123,11 +119,6 @@ class LocalPathCopyStrategy(
             val destParent = destination.file.parentFile!!
             val relativePath = destParent.toPath().relativize(absoluteTarget.toPath())
             LocalPath.build(relativePath.toFile())
-        }
-
-        // Delete existing destination if present (conflict resolution happens before this)
-        if (destOps.exists(destination)) {
-            destOps.delete(destination, recursive = false)
         }
 
         // Create new symlink at destination
@@ -161,7 +152,7 @@ class LocalPathCopyStrategy(
             LocalPath.build(sourceParent.resolve(linkTarget.file.path).normalize())
         }
 
-        // Copy the resolved target using stream-based approach
+        // Target is a file - copy using stream-based approach
         sourceOps.openInputStream(resolvedPath).source().buffer().use { source ->
             destOps.openOutputStream(destination).sink().buffer().use { sink ->
                 source.readAll(sink)
