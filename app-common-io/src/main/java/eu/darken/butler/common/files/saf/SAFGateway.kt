@@ -15,6 +15,7 @@ import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
@@ -188,6 +189,7 @@ class SAFGateway @Inject constructor(
     override suspend fun copy(
         sources: Set<SAFPath>,
         destination: SAFPath,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
         options: CopyAction.Options<SAFPath>
     ): Flow<CopyAction.State<SAFPath, SAFPathLookup>> = flow {
         log(TAG, VERBOSE) { "copy(): ${sources.size} sources to $destination" }
@@ -195,8 +197,8 @@ class SAFGateway @Inject constructor(
         val result = sources.copy(
             destination = destination,
             fileSystemOps = fileSystemOps,
+            onIssue = onIssue,
             onProgress = { progress -> emit(progress) },
-            onIssue = options.onIssue
         )
 
         log(TAG, INFO) { "copy(): Finished, copied ${result.copied.size} items" }
@@ -206,6 +208,7 @@ class SAFGateway @Inject constructor(
     override suspend fun move(
         sources: Set<SAFPath>,
         destination: SAFPath,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
         options: MoveAction.Options<SAFPath>
     ): Flow<MoveAction.State<SAFPath, SAFPathLookup>> = flow {
         log(TAG, VERBOSE) { "move(): ${sources.size} sources to $destination" }
@@ -213,8 +216,8 @@ class SAFGateway @Inject constructor(
         val result = sources.move(
             destination = destination,
             fileSystemOps = fileSystemOps,
+            onIssue = onIssue,
             onProgress = { progress -> emit(progress) },
-            onIssue = options.onIssue
         )
 
         log(TAG, INFO) { "move(): Finished, moved ${result.movedFiles.size} items" }

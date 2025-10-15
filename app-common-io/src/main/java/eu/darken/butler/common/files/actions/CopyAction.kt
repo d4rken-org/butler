@@ -9,6 +9,7 @@ interface CopyAction<P : APath<P>, PL : APathLookup<P>> : GatewayAction<P> {
     suspend fun copy(
         sources: Set<P>,
         destination: P,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
         options: Options<P> = Options()
     ): Flow<State<P, PL>>
 
@@ -16,7 +17,6 @@ interface CopyAction<P : APath<P>, PL : APathLookup<P>> : GatewayAction<P> {
         val overwrite: Boolean = false,
         val preserveAttributes: Boolean = true,
         val followSymlinks: Boolean = false,
-        val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
     )
 
     sealed interface State<P : APath<P>, PL : APathLookup<P>> {

@@ -56,12 +56,19 @@ suspend fun Collection<LocalPath>.copyGenericOp(
 ): CopyAction.State.Result<LocalPath, LocalPathLookup> {
     val strategy = LocalPathCopyStrategy(fileSystemOps)
 
+    // Convert CopyAction.Options to TransferStrategy.Options
+    val transferOptions = eu.darken.butler.common.files.operations.TransferStrategy.Options(
+        preserveAttributes = options.preserveAttributes,
+        followSymlinks = options.followSymlinks
+    )
+
     // For same-type LocalPath operations, sourceOps and destOps are the same instance
     return this.copyGeneric(
         destination = destination,
         sourceOps = fileSystemOps,
         destOps = fileSystemOps,
         strategy = strategy,
+        options = transferOptions,
         onProgress = onProgress,
         onIssue = onIssue
     )
@@ -104,11 +111,18 @@ suspend fun Collection<LocalPath>.moveGenericOp(
 ): MoveAction.State.Result<LocalPath, LocalPathLookup> {
     val strategy = LocalPathMoveStrategy(fileSystemOps)
 
+    // Convert MoveAction.Options to TransferStrategy.Options
+    val transferOptions = eu.darken.butler.common.files.operations.TransferStrategy.Options(
+        preserveAttributes = options.preserveAttributes,
+        followSymlinks = false // MoveAction doesn't have followSymlinks option
+    )
+
     return this.moveGeneric(
         destination = destination,
         sourceOps = fileSystemOps,
         destOps = fileSystemOps,
         strategy = strategy,
+        options = transferOptions,
         onProgress = onProgress,
         onIssue = onIssue
     )

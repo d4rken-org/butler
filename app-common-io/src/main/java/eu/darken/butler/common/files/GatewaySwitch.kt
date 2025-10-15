@@ -9,6 +9,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.local.LocalGateway
 import eu.darken.butler.common.files.metadata.FileSystem
@@ -293,6 +294,7 @@ class GatewaySwitch @Inject constructor(
     override suspend fun copy(
         sources: Set<APath<*>>,
         destination: APath<*>,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
         options: CopyAction.Options<APath<*>>
     ): Flow<CopyAction.State<APath<*>, APathLookup<APath<*>>>> = flow {
         // Group sources by gateway type for optimal processing
@@ -308,7 +310,7 @@ class GatewaySwitch @Inject constructor(
                 // Same gateway type - use native batch implementation
                 sourceType == destinationType -> {
                     useGateway(sourcesGroup.first()) {
-                        copy(sourcesGroup.toSet(), destination, options)
+                        copy(sourcesGroup.toSet(), destination, onIssue, options)
                     }.collect { state ->
                         when (state) {
                             is CopyAction.State.Progress -> {
@@ -324,7 +326,7 @@ class GatewaySwitch @Inject constructor(
                 }
                 // Cross-gateway copy - use batch implementation
                 else -> {
-                    performCrossGatewayCopy(sourcesGroup, destination, options).collect { state ->
+                    performCrossGatewayCopy(sourcesGroup, destination, onIssue, options).collect { state ->
                         when (state) {
                             is CopyAction.State.Progress -> {
                                 emit(state.copy(copiedBytes = totalBytesProcessed + state.copiedBytes) as CopyAction.State.Progress<APath<*>, APathLookup<APath<*>>>)
@@ -352,6 +354,7 @@ class GatewaySwitch @Inject constructor(
     override suspend fun move(
         sources: Set<APath<*>>,
         destination: APath<*>,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
         options: MoveAction.Options<APath<*>>
     ): Flow<MoveAction.State<APath<*>, APathLookup<APath<*>>>> = flow {
         // Group sources by gateway type for optimal processing
@@ -367,7 +370,7 @@ class GatewaySwitch @Inject constructor(
                 // Same gateway type - use native batch implementation
                 sourceType == destinationType -> {
                     useGateway(sourcesGroup.first()) {
-                        move(sourcesGroup.toSet(), destination, options)
+                        move(sourcesGroup.toSet(), destination, onIssue, options)
                     }.collect { state ->
                         when (state) {
                             is MoveAction.State.Progress -> {
@@ -383,7 +386,7 @@ class GatewaySwitch @Inject constructor(
                 }
                 // Cross-gateway move - use batch implementation
                 else -> {
-                    performCrossGatewayMove(sourcesGroup, destination, options).collect { state ->
+                    performCrossGatewayMove(sourcesGroup, destination, onIssue, options).collect { state ->
                         when (state) {
                             is MoveAction.State.Progress -> {
                                 emit(state.copy(movedBytes = totalBytesMoved + state.movedBytes) as MoveAction.State.Progress<APath<*>, APathLookup<APath<*>>>)
@@ -411,11 +414,17 @@ class GatewaySwitch @Inject constructor(
     private suspend fun performCrossGatewayCopy(
         sources: Collection<APath<*>>,
         target: APath<*>,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
         options: CopyAction.Options<APath<*>>
     ): Flow<CopyAction.State<*, *>> = flow {
         log(TAG, DEBUG) { "performCrossGatewayCopy(): ${sources.size} sources -> $target" }
 
         val firstSource = sources.firstOrNull() ?: return@flow
+
+        val transferOptions = eu.darken.butler.common.files.operations.TransferStrategy.Options(
+            preserveAttributes = options.preserveAttributes,
+            followSymlinks = options.followSymlinks
+        )
 
         when {
             firstSource is SAFPath && target is LocalPath -> {
@@ -425,8 +434,9 @@ class GatewaySwitch @Inject constructor(
                     sourceOps = safGateway,
                     destOps = localGateway,
                     strategy = eu.darken.butler.common.files.operations.GenericCrossTypeCopyStrategy(),
+                    options = transferOptions,
+                    onIssue = onIssue,
                     onProgress = { progress -> emit(progress) },
-                    onIssue = options.onIssue
                 )
                 emit(result)
             }
@@ -437,8 +447,9 @@ class GatewaySwitch @Inject constructor(
                     sourceOps = localGateway,
                     destOps = safGateway,
                     strategy = eu.darken.butler.common.files.operations.GenericCrossTypeCopyStrategy(),
+                    options = transferOptions,
+                    onIssue = onIssue,
                     onProgress = { progress -> emit(progress) },
-                    onIssue = options.onIssue
                 )
                 emit(result)
             }
@@ -449,11 +460,17 @@ class GatewaySwitch @Inject constructor(
     private suspend fun performCrossGatewayMove(
         sources: Collection<APath<*>>,
         target: APath<*>,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
         options: MoveAction.Options<APath<*>>
     ): Flow<MoveAction.State<*, *>> = flow {
         log(TAG, DEBUG) { "performCrossGatewayMove(): ${sources.size} sources -> $target" }
 
         val firstSource = sources.firstOrNull() ?: return@flow
+
+        val transferOptions = eu.darken.butler.common.files.operations.TransferStrategy.Options(
+            preserveAttributes = options.preserveAttributes,
+            followSymlinks = false  // MoveAction doesn't have followSymlinks option
+        )
 
         when {
             firstSource is SAFPath && target is LocalPath -> {
@@ -463,8 +480,9 @@ class GatewaySwitch @Inject constructor(
                     sourceOps = safGateway,
                     destOps = localGateway,
                     strategy = eu.darken.butler.common.files.operations.GenericCrossTypeMoveStrategy(),
+                    options = transferOptions,
+                    onIssue = onIssue,
                     onProgress = { progress -> emit(progress) },
-                    onIssue = options.onIssue
                 )
                 emit(result)
             }
@@ -475,8 +493,9 @@ class GatewaySwitch @Inject constructor(
                     sourceOps = localGateway,
                     destOps = safGateway,
                     strategy = eu.darken.butler.common.files.operations.GenericCrossTypeMoveStrategy(),
+                    options = transferOptions,
+                    onIssue = onIssue,
                     onProgress = { progress -> emit(progress) },
-                    onIssue = options.onIssue
                 )
                 emit(result)
             }

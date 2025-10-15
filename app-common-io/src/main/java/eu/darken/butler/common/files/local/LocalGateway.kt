@@ -15,6 +15,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.io.callbacks
 import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
 import eu.darken.butler.common.files.local.ipc.FileOpsClient
@@ -677,16 +678,17 @@ class LocalGateway @Inject constructor(
         emit(result)
     }.flowOn(dispatcherProvider.IO)
 
-
     override suspend fun copy(
         sources: Set<LocalPath>,
         destination: LocalPath,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
         options: CopyAction.Options<LocalPath>
-    ): Flow<CopyAction.State<LocalPath, LocalPathLookup>> = copy(sources, destination, options, Mode.AUTO)
+    ): Flow<CopyAction.State<LocalPath, LocalPathLookup>> = copy(sources, destination, onIssue, options, Mode.AUTO)
 
     fun copy(
         sources: Set<LocalPath>,
         destination: LocalPath,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
         options: CopyAction.Options<LocalPath>,
         mode: Mode = Mode.AUTO
     ): Flow<CopyAction.State<LocalPath, LocalPathLookup>> = flow {
@@ -698,8 +700,9 @@ class LocalGateway @Inject constructor(
                 sources.copy(
                     fileSystemOps = fileSystemOps,
                     destination = destination,
-                    onIssue = options.onIssue,
-                    onProgress = { progress -> emit(progress) }
+                    options = options,
+                    onProgress = { progress -> emit(progress) },
+                    onIssue = onIssue,
                 )
             }
 
@@ -725,8 +728,9 @@ class LocalGateway @Inject constructor(
                         sources.copy(
                             fileSystemOps = fileSystemOps,
                             destination = destination,
-                            onIssue = options.onIssue,
-                            onProgress = { progress -> emit(progress) }
+                            options = options,
+                            onIssue = onIssue,
+                            onProgress = { progress -> emit(progress) },
                         )
                     }
                     hasRoot() -> {
@@ -749,12 +753,14 @@ class LocalGateway @Inject constructor(
     override suspend fun move(
         sources: Set<LocalPath>,
         destination: LocalPath,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
         options: MoveAction.Options<LocalPath>
-    ): Flow<MoveAction.State<LocalPath, LocalPathLookup>> = move(sources, destination, options, Mode.AUTO)
+    ): Flow<MoveAction.State<LocalPath, LocalPathLookup>> = move(sources, destination, onIssue, options, Mode.AUTO)
 
     fun move(
         sources: Set<LocalPath>,
         destination: LocalPath,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
         options: MoveAction.Options<LocalPath>,
         mode: Mode = Mode.AUTO,
     ): Flow<MoveAction.State<LocalPath, LocalPathLookup>> = flow {
@@ -766,8 +772,8 @@ class LocalGateway @Inject constructor(
                     fileSystemOps,
                     destination,
                     options,
+                    onIssue = onIssue,
                     onProgress = { progress -> emit(progress) },
-                    onIssue = options.onIssue,
                 )
             }
 
@@ -794,8 +800,8 @@ class LocalGateway @Inject constructor(
                             fileSystemOps,
                             destination,
                             options,
+                            onIssue = onIssue,
                             onProgress = { progress -> emit(progress) },
-                            onIssue = options.onIssue,
                         )
                     }
                     hasRoot() -> {

@@ -72,6 +72,7 @@ suspend fun Collection<SAFPath>.copy(
         sourceOps = fileSystemOps,
         destOps = fileSystemOps,
         strategy = strategy,
+        options = eu.darken.butler.common.files.operations.TransferStrategy.Options(),
         onProgress = onProgress,
         onIssue = onIssue
     )
@@ -115,6 +116,7 @@ suspend fun Collection<SAFPath>.move(
         sourceOps = fileSystemOps,
         destOps = fileSystemOps,
         strategy = strategy,
+        options = eu.darken.butler.common.files.operations.TransferStrategy.Options(),
         onProgress = onProgress,
         onIssue = onIssue
     )

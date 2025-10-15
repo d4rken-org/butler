@@ -75,6 +75,7 @@ internal class GenericPathCopy<
     private val sourceOps: FileSystemOps<SP, SPL, SPLE>,
     private val destOps: FileSystemOps<DP, DPL, DPLE>,
     private val strategy: TransferStrategy<SP, SPL, SPLE, DP, DPL, DPLE>,
+    private val options: TransferStrategy.Options,
     private val onProgress: (suspend (CopyAction.State.Progress<SP, SPL>) -> Unit)?,
     private val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
 ) {
@@ -86,6 +87,12 @@ internal class GenericPathCopy<
     // Shared components
     private val progressTracker = PathOperationProgressTracker()
     private val issueResolver = PathOperationIssueResolver(onIssue)
+
+    init {
+        log(TAG, INFO) {
+            "GenericPathCopy init: sources=${sources.size}, options=$options, onProgress=${onProgress != null}, onIssue=${onIssue != null}"
+        }
+    }
 
     // Track renamed directories for path adjustments
     private val skippedSourceDirs = mutableSetOf<SP>()
@@ -288,7 +295,7 @@ internal class GenericPathCopy<
                 destination = adjustedDest,
                 sourceOps = sourceOps,
                 destOps = destOps,
-                options = TransferStrategy.Options(preserveAttributes = true),
+                options = options,
                 onProgress = { bytes ->
                     progressTracker.updateFileProgress(bytes)
                     if (progressTracker.shouldReportProgress()) {
@@ -350,7 +357,7 @@ internal class GenericPathCopy<
                 destination = adjustedDest,
                 sourceOps = sourceOps,
                 destOps = destOps,
-                options = TransferStrategy.Options(preserveAttributes = true)
+                options = options
             )
 
             when (result) {
@@ -701,6 +708,7 @@ suspend fun <
     sourceOps: FileSystemOps<SP, SPL, SPLE>,
     destOps: FileSystemOps<DP, DPL, DPLE>,
     strategy: TransferStrategy<SP, SPL, SPLE, DP, DPL, DPLE>,
+    options: TransferStrategy.Options = TransferStrategy.Options(),
     onProgress: (suspend (CopyAction.State.Progress<SP, SPL>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
 ): CopyAction.State.Result<SP, SPL> = GenericPathCopy(
@@ -709,6 +717,7 @@ suspend fun <
     sourceOps = sourceOps,
     destOps = destOps,
     strategy = strategy,
+    options = options,
     onProgress = onProgress,
     onIssue = onIssue
 ).execute()
