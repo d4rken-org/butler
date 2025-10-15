@@ -1,10 +1,10 @@
 package eu.darken.butler.common.files.operations
 
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.LocalPathLookupExtended
+import eu.darken.butler.common.files.metadata.FileType
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
@@ -50,6 +50,166 @@ class GenericPathMoveTest : BaseTest() {
     @AfterEach
     fun cleanup() {
         mockOps.clear()
+    }
+
+    // ============ UNIX CP/MV SEMANTICS ============
+
+    @Test
+    fun `single source file to non-existent path uses destination as final path (rename)`() = runTest {
+        // Tests Unix mv semantics: mv source.txt dest/renamed.txt (dest doesn't exist)
+        // Expected: /dest/renamed.txt (as file)
+        // NOT: /dest/renamed.txt/source.txt
+
+        // Given - single source file, destination doesn't exist
+        mockOps.addMockFile("/source/original.txt", "content".toByteArray())
+
+        val sourcePath = LocalPath.build("/source/original.txt")
+        val destPath = LocalPath.build("/dest/renamed.txt")
+
+        // When
+        val result = setOf(sourcePath).moveGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = null
+        )
+
+        // Then - destination is used as final path (rename semantics)
+        mockOps.hasFile("/dest/renamed.txt") shouldBe true
+        mockOps.getFileType("/dest/renamed.txt") shouldBe FileType.FILE
+        mockOps.getFileContent("/dest/renamed.txt") shouldBe "content".toByteArray()
+
+        // Should NOT create /dest/renamed.txt/original.txt (bug we're preventing)
+        mockOps.hasFile("/dest/renamed.txt/original.txt") shouldBe false
+
+        // Source should be deleted
+        mockOps.hasFile("/source/original.txt") shouldBe false
+
+        result.movedFiles.size shouldBe 1
+        result.movedFiles.first() shouldBe (LocalPath.build("/source/original.txt") to LocalPath.build("/dest/renamed.txt"))
+    }
+
+    @Test
+    fun `single source file to existing directory moves INTO directory`() = runTest {
+        // Tests Unix mv semantics: mv source.txt dest/ (dest is existing directory)
+        // Expected: /dest/file.txt
+        // NOT: /dest as file
+
+        // Given - single source file, destination is existing directory
+        mockOps.addMockFile("/source/file.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
+
+        val sourcePath = LocalPath.build("/source/file.txt")
+        val destPath = LocalPath.build("/dest")
+
+        // When
+        val result = setOf(sourcePath).moveGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = null
+        )
+
+        // Then - moved INTO destination directory (appends source name)
+        mockOps.hasFile("/dest/file.txt") shouldBe true
+        mockOps.getFileType("/dest/file.txt") shouldBe FileType.FILE
+        mockOps.getFileContent("/dest/file.txt") shouldBe "content".toByteArray()
+
+        // Destination directory should still exist
+        mockOps.getFileType("/dest") shouldBe FileType.DIRECTORY
+
+        // Source should be deleted
+        mockOps.hasFile("/source/file.txt") shouldBe false
+
+        result.movedFiles.size shouldBe 1
+        result.movedFiles.first() shouldBe (LocalPath.build("/source/file.txt") to LocalPath.build("/dest/file.txt"))
+    }
+
+    @Test
+    fun `single source directory to non-existent path uses destination as final path (rename)`() = runTest {
+        // Tests Unix mv semantics: mv source/origdir dest/renameddir (dest doesn't exist)
+        // Expected: /dest/renameddir/ with contents
+        // NOT: /dest/renameddir/origdir/
+
+        // Given - single source directory with file inside, destination doesn't exist
+        mockOps.addMockDir("/source/origdir")
+        mockOps.addMockFile("/source/origdir/file.txt", "content".toByteArray())
+
+        val sourcePath = LocalPath.build("/source/origdir")
+        val destPath = LocalPath.build("/dest/renameddir")
+
+        // When
+        val result = setOf(sourcePath).moveGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = null
+        )
+
+        // Then - destination is used as final directory name (rename semantics)
+        mockOps.hasFile("/dest/renameddir") shouldBe true
+        mockOps.getFileType("/dest/renameddir") shouldBe FileType.DIRECTORY
+        mockOps.hasFile("/dest/renameddir/file.txt") shouldBe true
+        mockOps.getFileContent("/dest/renameddir/file.txt") shouldBe "content".toByteArray()
+
+        // Should NOT create /dest/renameddir/origdir/ (bug we're preventing)
+        mockOps.hasFile("/dest/renameddir/origdir") shouldBe false
+
+        // Source should be deleted
+        mockOps.hasFile("/source/origdir") shouldBe false
+
+        result.movedFiles.size shouldBe 2 // directory + file
+        result.movedFiles shouldContain (LocalPath.build("/source/origdir") to LocalPath.build("/dest/renameddir"))
+        result.movedFiles shouldContain (LocalPath.build("/source/origdir/file.txt") to LocalPath.build("/dest/renameddir/file.txt"))
+    }
+
+    @Test
+    fun `multiple sources to directory appends names to destination`() = runTest {
+        // Tests Unix mv semantics: mv file1.txt file2.txt dest/
+        // Expected: /dest/file1.txt and /dest/file2.txt
+        // NOT: treating dest as final path
+
+        // Given - multiple source files, destination is existing directory
+        mockOps.addMockFile("/source/file1.txt", "content1".toByteArray())
+        mockOps.addMockFile("/source/file2.txt", "content2".toByteArray())
+        mockOps.addMockDir("/dest")
+
+        val source1 = LocalPath.build("/source/file1.txt")
+        val source2 = LocalPath.build("/source/file2.txt")
+        val destPath = LocalPath.build("/dest")
+
+        // When
+        val result = setOf(source1, source2).moveGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = null
+        )
+
+        // Then - multiple sources always append names to destination
+        mockOps.hasFile("/dest/file1.txt") shouldBe true
+        mockOps.getFileContent("/dest/file1.txt") shouldBe "content1".toByteArray()
+        mockOps.hasFile("/dest/file2.txt") shouldBe true
+        mockOps.getFileContent("/dest/file2.txt") shouldBe "content2".toByteArray()
+
+        // Destination directory should still exist
+        mockOps.getFileType("/dest") shouldBe FileType.DIRECTORY
+
+        // Sources should be deleted
+        mockOps.hasFile("/source/file1.txt") shouldBe false
+        mockOps.hasFile("/source/file2.txt") shouldBe false
+
+        result.movedFiles.size shouldBe 2
+        result.movedFiles shouldContain (LocalPath.build("/source/file1.txt") to LocalPath.build("/dest/file1.txt"))
+        result.movedFiles shouldContain (LocalPath.build("/source/file2.txt") to LocalPath.build("/dest/file2.txt"))
     }
 
     // ============ PATH CALCULATION TESTS ============
@@ -537,7 +697,7 @@ class GenericPathMoveTest : BaseTest() {
         var issueCount = 0
 
         // When
-        val result = setOf(
+        setOf(
             LocalPath.build("/source/dir1"),
             LocalPath.build("/source/dir2")
         ).moveGeneric(
@@ -583,7 +743,7 @@ class GenericPathMoveTest : BaseTest() {
         var issueCount = 0
 
         // When
-        val result = setOf(
+        setOf(
             LocalPath.build("/source/dir1"),
             LocalPath.build("/source/dir2")
         ).moveGeneric(

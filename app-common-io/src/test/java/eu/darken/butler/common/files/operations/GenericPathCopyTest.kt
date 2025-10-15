@@ -227,6 +227,133 @@ class GenericPathCopyTest : BaseTest() {
         result.copied.size shouldBe 6 // 3 dirs + 3 files
     }
 
+    // ============ UNIX CP/MV SEMANTICS ============
+
+    @Test
+    fun `single source file to non-existent path uses destination as final path (rename)`() = runTest {
+        // Given - single source file, non-existent destination
+        mockOps.addMockFile("/source/original.txt", "content".toByteArray())
+
+        val sourcePath = LocalPath.build("/source/original.txt")
+        val destPath = LocalPath.build("/dest/renamed.txt")  // Non-existent final path
+
+        // When - copy single source to non-existent path
+        val result = setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = null
+        )
+
+        // Then - destination IS the final path (rename semantics)
+        mockOps.hasFile("/dest/renamed.txt") shouldBe true
+        mockOps.getFileType("/dest/renamed.txt") shouldBe FileType.FILE
+        mockOps.getFileContent("/dest/renamed.txt") shouldBe "content".toByteArray()
+
+        // Bug check: Should NOT create /dest/renamed.txt/original.txt
+        mockOps.hasFile("/dest/renamed.txt/original.txt") shouldBe false
+
+        result.copied.size shouldBe 1
+        result.copied.first() shouldBe (
+            LocalPath.build("/source/original.txt") to LocalPath.build("/dest/renamed.txt")
+            )
+    }
+
+    @Test
+    fun `single source file to existing directory copies INTO directory`() = runTest {
+        // Given - single source file, existing destination directory
+        mockOps.addMockFile("/source/file.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")  // Existing directory
+
+        val sourcePath = LocalPath.build("/source/file.txt")
+        val destPath = LocalPath.build("/dest")
+
+        // When - copy single source to existing directory
+        val result = setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = null
+        )
+
+        // Then - file copied INTO the directory (appends source name)
+        mockOps.hasFile("/dest/file.txt") shouldBe true
+        mockOps.getFileType("/dest/file.txt") shouldBe FileType.FILE
+        mockOps.getFileContent("/dest/file.txt") shouldBe "content".toByteArray()
+
+        result.copied.size shouldBe 1
+        result.copied.first() shouldBe (
+            LocalPath.build("/source/file.txt") to LocalPath.build("/dest/file.txt")
+            )
+    }
+
+    @Test
+    fun `single source directory to non-existent path uses destination as final path (rename)`() = runTest {
+        // Given - single source directory with content, non-existent destination
+        mockOps.addMockDir("/source/origdir")
+        mockOps.addMockFile("/source/origdir/file.txt", "content".toByteArray())
+
+        val sourcePath = LocalPath.build("/source/origdir")
+        val destPath = LocalPath.build("/dest/renameddir")  // Non-existent final path
+
+        // When - copy single source directory to non-existent path
+        val result = setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = null
+        )
+
+        // Then - destination IS the final path (directory rename)
+        mockOps.hasFile("/dest/renameddir") shouldBe true
+        mockOps.getFileType("/dest/renameddir") shouldBe FileType.DIRECTORY
+        mockOps.hasFile("/dest/renameddir/file.txt") shouldBe true
+        mockOps.getFileContent("/dest/renameddir/file.txt") shouldBe "content".toByteArray()
+
+        // Bug check: Should NOT create /dest/renameddir/origdir
+        mockOps.hasFile("/dest/renameddir/origdir") shouldBe false
+
+        result.copied.size shouldBe 2 // renameddir + file.txt
+    }
+
+    @Test
+    fun `multiple sources to directory appends names to destination`() = runTest {
+        // Given - multiple source files
+        mockOps.addMockFile("/source/file1.txt", "content1".toByteArray())
+        mockOps.addMockFile("/source/file2.txt", "content2".toByteArray())
+        mockOps.addMockDir("/dest")
+
+        val sources = setOf(
+            LocalPath.build("/source/file1.txt"),
+            LocalPath.build("/source/file2.txt")
+        )
+        val destPath = LocalPath.build("/dest")
+
+        // When - copy multiple sources
+        val result = sources.copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onProgress = null,
+            onIssue = null
+        )
+
+        // Then - both files copied INTO destination directory (names appended)
+        mockOps.hasFile("/dest/file1.txt") shouldBe true
+        mockOps.hasFile("/dest/file2.txt") shouldBe true
+        mockOps.getFileContent("/dest/file1.txt") shouldBe "content1".toByteArray()
+        mockOps.getFileContent("/dest/file2.txt") shouldBe "content2".toByteArray()
+
+        result.copied.size shouldBe 2
+    }
+
     // ============ PROGRESS REPORTING ============
 
     @Test
