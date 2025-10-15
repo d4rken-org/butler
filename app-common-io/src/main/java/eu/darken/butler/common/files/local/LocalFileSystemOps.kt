@@ -31,6 +31,7 @@ import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
+import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.BasicFileAttributes
 import javax.inject.Inject
@@ -250,10 +251,11 @@ class LocalFileSystemOps @Inject constructor(
             } else {
                 Files.newOutputStream(
                     path.toNioPath(),
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.TRUNCATE_EXISTING
+                    StandardOpenOption.CREATE_NEW
                 )
             }
+        } catch (e: FileAlreadyExistsException) {
+            throw PathAlreadyExistsException(path = path, cause = e)
         } catch (e: IOException) {
             throw WriteException(path = path, cause = e)
         }
@@ -292,6 +294,8 @@ class LocalFileSystemOps @Inject constructor(
 
             Files.createSymbolicLink(linkNioPath, targetNioPath)
             true
+        } catch (e: FileAlreadyExistsException) {
+            throw PathAlreadyExistsException(message = "Symlink already exists", path = linkPath, cause = e)
         } catch (e: IOException) {
             throw WriteException(path = linkPath, cause = e)
         }
