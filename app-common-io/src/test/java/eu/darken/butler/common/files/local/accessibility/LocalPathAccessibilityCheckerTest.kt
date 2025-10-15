@@ -438,4 +438,156 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
         checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
         checker.shouldTryNormalAccess(path, forWriting = true) shouldBe true
     }
+
+    // ========================================================================
+    // Root Directory Tests (matches(), not just isDescendantOf())
+    // Regression tests for bug where root directories themselves weren't recognized
+    // ========================================================================
+
+    @Test
+    fun `storage emulated 0 root itself should try normal access`() {
+        // This is the primary bug fix - /storage/emulated/0 ITSELF should be accessible
+        val path = LocalPath.build("/storage/emulated/0")
+
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe true
+    }
+
+    @Test
+    fun `sdcard root itself should try normal access`() {
+        val path = LocalPath.build("/sdcard")
+
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe true
+    }
+
+    @Test
+    fun `external SD card root itself should try normal access`() {
+        val path = LocalPath.build("/storage/ABCD-12324")
+
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe true
+    }
+
+    @Test
+    fun `system partition root itself should try normal access for read only`() {
+        val path = LocalPath.build("/system")
+
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
+    }
+
+    @Test
+    fun `proc root itself should try normal access for read only`() {
+        val path = LocalPath.build("/proc")
+
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
+    }
+
+    @Test
+    fun `vendor root itself should try normal access for read only`() {
+        val path = LocalPath.build("/vendor")
+
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
+    }
+
+    @Test
+    fun `product root itself should try normal access for read only`() {
+        val path = LocalPath.build("/product")
+
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
+    }
+
+    @Test
+    fun `system_ext root itself should try normal access for read only`() {
+        val path = LocalPath.build("/system_ext")
+
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
+    }
+
+    @Test
+    fun `apex root itself should try normal access for read only`() {
+        val path = LocalPath.build("/apex")
+
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
+    }
+
+    @Test
+    fun `storage root itself should not try normal access`() {
+        // /storage is a mount point container, not directly accessible
+        val path = LocalPath.build("/storage")
+
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe false
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
+    }
+
+    @Test
+    fun `data root itself should not try normal access`() {
+        val path = LocalPath.build("/data")
+
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe false
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
+    }
+
+    @Test
+    fun `dev root itself should not try normal access`() {
+        val path = LocalPath.build("/dev")
+
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe false
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
+    }
+
+    @Test
+    fun `sys root itself should not try normal access`() {
+        val path = LocalPath.build("/sys")
+
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe false
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
+    }
+
+    @Test
+    fun `cache root itself should not try normal access`() {
+        val path = LocalPath.build("/cache")
+
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe false
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
+    }
+
+    @Test
+    fun `app private data dir root itself should try normal access`() {
+        val path = LocalPath.build("/data/user/0/eu.darken.butler")
+
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe true
+    }
+
+    @Test
+    fun `app public data dir root itself should try normal access`() {
+        val path = LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler")
+
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe true
+    }
+
+    @Test
+    @Config(sdk = [30])
+    fun `Android data dir root itself should not try normal access on API 30+`() {
+        // Setup scoped storage restrictions
+        every { mockStorageEnvironment.publicDataDirs } returns listOf(
+            LocalPath.build("/storage/emulated/0/Android/data")
+        )
+
+        checker = LocalPathAccessChecker(mockStorageEnvironment)
+
+        val path = LocalPath.build("/storage/emulated/0/Android/data")
+
+        // The blocked directory itself should be blocked
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe false
+        checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
+    }
 }

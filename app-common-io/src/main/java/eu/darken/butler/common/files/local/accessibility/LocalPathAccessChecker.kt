@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.local.accessibility
 import android.annotation.SuppressLint
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.extensions.isDescendantOf
+import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.storage.StorageEnvironment
 import javax.inject.Inject
@@ -77,19 +78,19 @@ class LocalPathAccessChecker @Inject constructor(
             return !forWriting
         }
 
-        if (ourDirs.any { path.isDescendantOf(it) }) {
+        if (ourDirs.any { path.isDescendantOf(it) || path.matches(it) }) {
             return true
         }
 
-        if (publicAccessible.any { path.isDescendantOf(it) }) {
-            return !publicBlocked.any { path.isDescendantOf(it) }
+        if (publicAccessible.any { path.isDescendantOf(it) || path.matches(it) }) {
+            return !publicBlocked.any { path.isDescendantOf(it) || path.matches(it) }
         }
 
-        if (systemReadOnly.any { path.isDescendantOf(it) }) {
+        if (systemReadOnly.any { path.isDescendantOf(it) || path.matches(it) }) {
             return !forWriting
         }
 
-        if (systemBlocked.any { path.isDescendantOf(it) }) {
+        if (systemBlocked.any { path.isDescendantOf(it) || path.matches(it) }) {
             return false
         }
 
