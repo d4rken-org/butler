@@ -49,7 +49,7 @@ class DeviceLocationLoader @Inject constructor(
                 displayIcon = Icons.TwoTone.Code,
                 displayName = R.string.explorer_navigation_root.toCaString(),
                 target = ExplorerNavigation.Target.Directory(
-                    LocalPath.build(Environment.getRootDirectory())
+                    LocalPath.build("/")
                 ),
             ),
             ExplorerItem.Storage.Local(
