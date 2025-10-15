@@ -152,29 +152,33 @@ class LocalGateway @Inject constructor(
     }
 
 
-    override suspend fun createDir(path: LocalPath): Unit = createDir(path, Mode.AUTO)
+    override suspend fun createDir(path: LocalPath, createParents: Boolean): Unit =
+        createDir(path, createParents, Mode.AUTO)
 
-    suspend fun createDir(path: LocalPath, mode: Mode = Mode.AUTO): Unit = executeWithModeSelection(
+    suspend fun createDir(path: LocalPath, createParents: Boolean = false, mode: Mode = Mode.AUTO): Unit =
+        executeWithModeSelection(
         mode = mode,
         operation = "createDir",
         path = path,
         forWriting = true,
-        normalOp = { fileSystemOps.createDir(path) },
-        rootOp = { it.createDir(path) },
-        adbOp = { it.createDir(path) }
+            normalOp = { fileSystemOps.createDir(path, createParents) },
+            rootOp = { it.createDir(path, createParents) },
+            adbOp = { it.createDir(path, createParents) }
     )
 
 
-    override suspend fun createFile(path: LocalPath): Unit = createFile(path, Mode.AUTO)
+    override suspend fun createFile(path: LocalPath, createParents: Boolean): Unit =
+        createFile(path, createParents, Mode.AUTO)
 
-    suspend fun createFile(path: LocalPath, mode: Mode = Mode.AUTO): Unit = executeWithModeSelection(
+    suspend fun createFile(path: LocalPath, createParents: Boolean = false, mode: Mode = Mode.AUTO): Unit =
+        executeWithModeSelection(
         mode = mode,
         operation = "createFile",
         path = path,
         forWriting = true,
-        normalOp = { fileSystemOps.createFile(path) },
-        rootOp = { it.createFile(path) },
-        adbOp = { it.createFile(path) }
+            normalOp = { fileSystemOps.createFile(path, createParents) },
+            rootOp = { it.createFile(path, createParents) },
+            adbOp = { it.createFile(path, createParents) }
     )
 
     override suspend fun createSymlink(linkPath: LocalPath, targetPath: LocalPath): Boolean =

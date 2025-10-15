@@ -312,9 +312,9 @@ class SAFFileSystemOps @Inject constructor(
         return targetDocFile
     }
 
-    override suspend fun createDir(path: SAFPath) {
+    override suspend fun createDir(path: SAFPath, createParents: Boolean) {
         try {
-            log(TAG, VERBOSE) { "createDir(): $path" }
+            log(TAG, VERBOSE) { "createDir(createParents=$createParents): $path" }
             val docFile = path.resolveDocFile()
 
             if (docFile.exists) {
@@ -327,6 +327,10 @@ class SAFFileSystemOps @Inject constructor(
                     )
                 }
             } else {
+                // TODO: Implement createParents support for SAF if needed
+                if (createParents) {
+                    throw UnsupportedOperationException("createParents=true not yet implemented for SAF")
+                }
                 // Create directory (parent must already exist)
                 createDocumentFile(DocumentsContract.Document.MIME_TYPE_DIR, path)
             }
@@ -338,15 +342,19 @@ class SAFFileSystemOps @Inject constructor(
         }
     }
 
-    override suspend fun createFile(path: SAFPath) {
+    override suspend fun createFile(path: SAFPath, createParents: Boolean) {
         try {
-            log(TAG, VERBOSE) { "createFile(): $path" }
+            log(TAG, VERBOSE) { "createFile(createParents=$createParents): $path" }
             val docFile = path.resolveDocFile()
 
             if (docFile.exists) {
                 throw PathAlreadyExistsException(path = path)
             }
 
+            // TODO: Implement createParents support for SAF if needed
+            if (createParents) {
+                throw UnsupportedOperationException("createParents=true not yet implemented for SAF")
+            }
             // Create file with default MIME type
             createDocumentFile("application/octet-stream", path)
         } catch (e: PathAlreadyExistsException) {

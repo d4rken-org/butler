@@ -106,15 +106,15 @@ class FileOpsClient @AssistedInject constructor(
         throw e.refineException()
     }
 
-    override suspend fun createDir(path: LocalPath): Unit = try {
-        fileOpsConnection.createDir(path)
+    override suspend fun createDir(path: LocalPath, createParents: Boolean): Unit = try {
+        fileOpsConnection.createDir(path, createParents)
         Unit
     } catch (e: Exception) {
         throw e.refineException()
     }
 
-    override suspend fun createFile(path: LocalPath): Unit = try {
-        fileOpsConnection.createFile(path)
+    override suspend fun createFile(path: LocalPath, createParents: Boolean): Unit = try {
+        fileOpsConnection.createFile(path, createParents)
         Unit
     } catch (e: Exception) {
         throw e.refineException()

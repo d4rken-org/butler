@@ -74,12 +74,12 @@ class GatewaySwitch @Inject constructor(
 
     override val sharedResource = SharedResource.createKeepAlive(TAG, appScope + dispatcherProvider.IO)
 
-    override suspend fun createDir(path: APath<*>) {
-        return useGateway(path) { createDir(path) }
+    override suspend fun createDir(path: APath<*>, createParents: Boolean) {
+        return useGateway(path) { createDir(path, createParents) }
     }
 
-    override suspend fun createFile(path: APath<*>) {
-        return useGateway(path) { createFile(path) }
+    override suspend fun createFile(path: APath<*>, createParents: Boolean) {
+        return useGateway(path) { createFile(path, createParents) }
     }
 
     override suspend fun createSymlink(linkPath: APath<*>, targetPath: APath<*>): Boolean {

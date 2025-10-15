@@ -198,26 +198,39 @@ class LocalFileSystemOps @Inject constructor(
         throw WriteException(path = path, cause = e)
     }
 
-    override suspend fun createDir(path: LocalPath) {
+    override suspend fun createDir(path: LocalPath, createParents: Boolean) {
         try {
-            Files.createDirectories(path.toNioPath())
+            if (createParents) {
+                Files.createDirectories(path.toNioPath())
+            } else {
+                Files.createDirectory(path.toNioPath())
+            }
         } catch (e: FileAlreadyExistsException) {
-            throw PathAlreadyExistsException(
-                message = "Path exists but is not a directory",
-                path = path,
-                cause = e
-            )
+            // Check if it's a directory (idempotent) or a file (error)
+            if (path.file.isDirectory) {
+                // Directory already exists - this is OK, createDir is idempotent
+                return
+            } else {
+                // Path exists but is not a directory - this is an error
+                throw PathAlreadyExistsException(
+                    message = "Path exists but is not a directory",
+                    path = path,
+                    cause = e
+                )
+            }
         } catch (e: IOException) {
             throw WriteException(path = path, cause = e)
         }
     }
 
-    override suspend fun createFile(path: LocalPath) {
+    override suspend fun createFile(path: LocalPath, createParents: Boolean) {
         try {
-            // Ensure parent exists
-            path.file.parentFile?.let { parent ->
-                if (!parent.exists()) {
-                    parent.mkdirs()
+            if (createParents) {
+                // Ensure parent exists
+                path.file.parentFile?.let { parent ->
+                    if (!parent.exists()) {
+                        parent.mkdirs()
+                    }
                 }
             }
 
@@ -303,7 +316,16 @@ class LocalFileSystemOps @Inject constructor(
 
     override suspend fun readSymbolicLink(linkPath: LocalPath): LocalPath = try {
         val targetNioPath = Files.readSymbolicLink(linkPath.toNioPath())
-        LocalPath.build(targetNioPath.toFile())
+
+        // Resolve relative paths to absolute (relative to link's parent directory)
+        val absoluteTargetPath = if (targetNioPath.isAbsolute) {
+            targetNioPath
+        } else {
+            // Resolve relative to the symlink's parent directory
+            linkPath.toNioPath().parent.resolve(targetNioPath).normalize()
+        }
+
+        LocalPath.build(absoluteTargetPath.toFile())
     } catch (e: IOException) {
         throw ReadException(path = linkPath, cause = e)
     }

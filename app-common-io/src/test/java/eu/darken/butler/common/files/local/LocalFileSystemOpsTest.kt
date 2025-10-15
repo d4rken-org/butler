@@ -217,7 +217,7 @@ class LocalFileSystemOpsTest : BaseTest() {
     fun `createDir creates parent directories`(@TempDir tempDir: File) = runTest {
         val path = LocalPath.build(tempDir, "parent", "child", "dir")
 
-        fileSystemOps.createDir(path)
+        fileSystemOps.createDir(path, createParents = true)
 
         path.file.exists() shouldBe true
         path.file.isDirectory shouldBe true
@@ -493,5 +493,47 @@ class LocalFileSystemOpsTest : BaseTest() {
         lookup.lookedUp shouldBe path
         // Other fields should have valid data or sentinel values
         lookup.size shouldBeGreaterThan -1L
+    }
+
+    // ============ CREATEPARENTS FLAG TESTS ============
+
+    @Test
+    fun `createDir with createParents=false should fail when parent missing`(@TempDir tempDir: File) = runTest {
+        val path = LocalPath.build(tempDir, "non-existent-parent", "new-dir")
+
+        shouldThrow<WriteException> {
+            fileSystemOps.createDir(path, createParents = false)
+        }
+    }
+
+    @Test
+    fun `createDir with createParents=true should succeed when parent missing`(@TempDir tempDir: File) = runTest {
+        val path = LocalPath.build(tempDir, "non-existent-parent", "new-dir")
+
+        fileSystemOps.createDir(path, createParents = true)
+
+        path.file.exists() shouldBe true
+        path.file.isDirectory shouldBe true
+        path.file.parentFile?.exists() shouldBe true
+    }
+
+    @Test
+    fun `createFile with createParents=false should fail when parent missing`(@TempDir tempDir: File) = runTest {
+        val path = LocalPath.build(tempDir, "non-existent-parent", "new-file.txt")
+
+        shouldThrow<WriteException> {
+            fileSystemOps.createFile(path, createParents = false)
+        }
+    }
+
+    @Test
+    fun `createFile with createParents=true should succeed when parent missing`(@TempDir tempDir: File) = runTest {
+        val path = LocalPath.build(tempDir, "non-existent-parent", "new-file.txt")
+
+        fileSystemOps.createFile(path, createParents = true)
+
+        path.file.exists() shouldBe true
+        path.file.isFile shouldBe true
+        path.file.parentFile?.exists() shouldBe true
     }
 }

@@ -14,8 +14,8 @@ interface FileOpsConnection {
 
     RemoteFileHandle file(in LocalPath path, boolean readWrite);
 
-    boolean createDir(in LocalPath path);
-    boolean createFile(in LocalPath path);
+    boolean createDir(in LocalPath path, boolean createParents);
+    boolean createFile(in LocalPath path, boolean createParents);
 
     boolean canRead(in LocalPath path);
     boolean canWrite(in LocalPath path);

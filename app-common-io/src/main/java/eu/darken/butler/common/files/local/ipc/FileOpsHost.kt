@@ -120,21 +120,21 @@ class FileOpsHost @Inject constructor(
         throw e.wrapToPropagate()
     }
 
-    override fun createDir(path: LocalPath): Boolean = try {
-        if (Bugs.isTrace) log(TAG, VERBOSE) { "createDir($path)..." }
-        runBlocking { fileSystemOps.createDir(path) }
+    override fun createDir(path: LocalPath, createParents: Boolean): Boolean = try {
+        if (Bugs.isTrace) log(TAG, VERBOSE) { "createDir($path, createParents=$createParents)..." }
+        runBlocking { fileSystemOps.createDir(path, createParents) }
         true
     } catch (e: Exception) {
-        log(TAG, ERROR) { "createDir(path=$path) failed\n${e.asLog()}" }
+        log(TAG, ERROR) { "createDir(path=$path, createParents=$createParents) failed\n${e.asLog()}" }
         throw e.wrapToPropagate()
     }
 
-    override fun createFile(path: LocalPath): Boolean = try {
-        if (Bugs.isTrace) log(TAG, VERBOSE) { "createFile($path)..." }
-        runBlocking { fileSystemOps.createFile(path) }
+    override fun createFile(path: LocalPath, createParents: Boolean): Boolean = try {
+        if (Bugs.isTrace) log(TAG, VERBOSE) { "createFile($path, createParents=$createParents)..." }
+        runBlocking { fileSystemOps.createFile(path, createParents) }
         true
     } catch (e: Exception) {
-        log(TAG, ERROR) { "createFile(path=$path) failed\n${e.asLog()}" }
+        log(TAG, ERROR) { "createFile(path=$path, createParents=$createParents) failed\n${e.asLog()}" }
         throw e.wrapToPropagate()
     }
 

@@ -179,28 +179,30 @@ interface FileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExte
     suspend fun delete(path: P, recursive: Boolean = false): Boolean
 
     /**
-     * Create a directory, including parent directories if needed.
-     *
-     * Similar to `mkdir -p` - creates all missing parent directories.
-     * Does not fail if directory already exists (idempotent).
+     * Create a directory.
      *
      * @param path The directory path to create
+     * @param createParents If true, creates all missing parent directories (like `mkdir -p`).
+     *                      If false, fails if parent directory doesn't exist (like `mkdir`).
+     *                      Default: false (Unix semantics).
      * @throws eu.darken.butler.common.files.errors.PathAlreadyExistsException if path exists as a file
-     * @throws eu.darken.butler.common.files.errors.WriteException if creation fails for other reasons
+     * @throws eu.darken.butler.common.files.errors.WriteException if creation fails (e.g., parent doesn't exist when createParents=false)
      */
-    suspend fun createDir(path: P)
+    suspend fun createDir(path: P, createParents: Boolean = false)
 
     /**
      * Create an empty file.
      *
-     * Creates parent directories if needed.
      * Fails if file already exists (not idempotent like createDir).
      *
      * @param path The file path to create
+     * @param createParents If true, creates all missing parent directories.
+     *                      If false, fails if parent directory doesn't exist.
+     *                      Default: false (Unix semantics).
      * @throws eu.darken.butler.common.files.errors.PathAlreadyExistsException if file already exists
-     * @throws eu.darken.butler.common.files.errors.WriteException if creation fails for other reasons
+     * @throws eu.darken.butler.common.files.errors.WriteException if creation fails (e.g., parent doesn't exist when createParents=false)
      */
-    suspend fun createFile(path: P)
+    suspend fun createFile(path: P, createParents: Boolean = false)
 
     /**
      * Create a symbolic link.

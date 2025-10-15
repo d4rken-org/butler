@@ -220,7 +220,7 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
         return true
     }
 
-    override suspend fun createDir(path: P) {
+    override suspend fun createDir(path: P, createParents: Boolean) {
         createDirCalls.add(path.path)
 
         if (files.containsKey(path.path)) {
@@ -238,8 +238,12 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
         // Create parent directories if needed
         val parentPath = path.path.substringBeforeLast('/', "")
         if (parentPath.isNotEmpty() && !files.containsKey(parentPath)) {
-            @Suppress("UNCHECKED_CAST")
-            createDir(path.child("..") as P) // Simplified parent creation
+            if (createParents) {
+                @Suppress("UNCHECKED_CAST")
+                createDir(path.child("..") as P, createParents = true) // Simplified parent creation
+            } else {
+                throw NoSuchFileException("Parent directory does not exist: $parentPath")
+            }
         }
 
         // Add to parent's children list
@@ -259,7 +263,7 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
         )
     }
 
-    override suspend fun createFile(path: P) {
+    override suspend fun createFile(path: P, createParents: Boolean) {
         createFileCalls.add(path.path)
 
         if (files.containsKey(path.path)) {
@@ -270,7 +274,12 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
         val parentPath = path.path.substringBeforeLast('/', "")
         if (parentPath.isNotEmpty()) {
             if (!files.containsKey(parentPath)) {
-                throw NoSuchFileException("Parent directory does not exist: $parentPath")
+                if (createParents) {
+                    @Suppress("UNCHECKED_CAST")
+                    createDir(path.child("..") as P, createParents = true)
+                } else {
+                    throw NoSuchFileException("Parent directory does not exist: $parentPath")
+                }
             }
 
             // Add to parent's children list
