@@ -305,7 +305,12 @@ class LocalFileSystemOps @Inject constructor(
     }
 
     override suspend fun move(source: LocalPath, destination: LocalPath): Boolean = try {
-        Files.move(source.toNioPath(), destination.toNioPath(), LinkOption.NOFOLLOW_LINKS)
+        Files.move(
+            source.toNioPath(),
+            destination.toNioPath(),
+            StandardCopyOption.ATOMIC_MOVE,
+            LinkOption.NOFOLLOW_LINKS
+        )
         true
     } catch (e: IOException) {
         throw WriteException(path = source, cause = e)
