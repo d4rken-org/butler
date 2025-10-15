@@ -10,6 +10,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.LocalPathLookupExtended
 import eu.darken.butler.common.files.metadata.FileSystem
@@ -18,6 +19,7 @@ import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.ipc.IpcClientModule
 import eu.darken.butler.common.ipc.fileHandle
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import okio.FileHandle
 import okio.buffer
 import java.io.InputStream
@@ -26,7 +28,9 @@ import kotlin.time.Instant
 
 class FileOpsClient @AssistedInject constructor(
     @Assisted private val fileOpsConnection: FileOpsConnection
-) : IpcClientModule, FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended> {
+) : IpcClientModule,
+    FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>,
+    DeleteAction<LocalPath, LocalPathLookup> {
 
     /**
      * Doesn't run into IPC buffer overflows on large directories
@@ -158,6 +162,55 @@ class FileOpsClient @AssistedInject constructor(
 
     override suspend fun delete(path: LocalPath, recursive: Boolean): Boolean = try {
         fileOpsConnection.delete(path, recursive)
+    } catch (e: Exception) {
+        throw e.refineException()
+    }
+
+    /**
+     * Delete multiple files with progress streaming and interactive issue resolution.
+     *
+     * @param targets Set of files/directories to delete
+     * @param options Deletion options (recursive, ignoreMissing, issue handler)
+     * @return Flow of State updates (Progress and final Result)
+     */
+    override suspend fun delete(
+        targets: Set<LocalPath>,
+        options: DeleteAction.Options<LocalPath>,
+    ): Flow<DeleteAction.State<LocalPath, LocalPathLookup>> = try {
+        log(TAG, VERBOSE) { "delete(): ${targets.size} targets" }
+
+        // Create AIDL callback wrapper if onIssue is provided
+        val callback: FileOperationCallback? = options.onIssue?.let { issueHandler ->
+            object : FileOperationCallback.Stub() {
+                override fun onIssue(issue: FileOperationIssue): FileOperationIssueResolution {
+                    // Convert IPC issue to domain issue
+                    val domainIssue = issue.toPathActionIssue()
+
+                    // Call user's issue handler (blocking call)
+                    val resolution = kotlinx.coroutines.runBlocking {
+                        issueHandler(domainIssue)
+                    }
+
+                    // Convert domain resolution to IPC resolution
+                    return resolution.toFileOperationIssueResolution()
+                }
+            }
+        }
+
+        // Call host's deleteStream()
+        val remoteInputStream = fileOpsConnection.deleteStream(
+            targets.toList(),
+            options.recursive,
+            options.ignoreMissing,
+            callback
+        )
+
+        // Convert RemoteInputStream to Flow<DeleteOperationEvent>
+        remoteInputStream.toEventFlow(DeleteOperationEvent.CREATOR)
+            .map { event ->
+                // Convert each event to DeleteAction.State
+                event.toDeleteActionState()
+            }
     } catch (e: Exception) {
         throw e.refineException()
     }

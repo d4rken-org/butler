@@ -8,9 +8,11 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.LocalPathLookupExtended
+import eu.darken.butler.common.files.local.delete
 import eu.darken.butler.common.files.local.walkers.DirectLocalWalker
 import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.Ownership
@@ -20,6 +22,9 @@ import eu.darken.butler.common.ipc.RemoteFileHandle
 import eu.darken.butler.common.ipc.RemoteInputStream
 import eu.darken.butler.common.ipc.remoteFileHandle
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
@@ -223,6 +228,71 @@ class FileOpsHost @Inject constructor(
         runBlocking { fileSystemOps.getFileSystem(path) }
     } catch (e: Exception) {
         log(TAG, ERROR) { "getFileSystem(path=$path) failed\n${e.asLog()}" }
+        throw e.wrapToPropagate()
+    }
+
+    override fun deleteStream(
+        targets: List<LocalPath>,
+        recursive: Boolean,
+        ignoreMissing: Boolean,
+        callback: FileOperationCallback?
+    ): RemoteInputStream = try {
+        log(
+            TAG,
+            VERBOSE
+        ) { "deleteStream(): ${targets.size} targets (recursive=$recursive, ignoreMissing=$ignoreMissing)" }
+
+        // Create flow of DeleteOperationEvent by wrapping the delete operation
+        val eventFlow = flow<DeleteOperationEvent> {
+            // Convert callback to issue handler (explicit suspend function)
+            suspend fun handleIssue(issue: PathActionIssue): PathActionIssue.Resolution {
+                val ipcIssue = issue.toFileOperationIssue()
+                val ipcResolution = callback!!.onIssue(ipcIssue)
+                return ipcResolution.toPathActionIssueResolution(issue)
+            }
+
+            val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? =
+                if (callback != null) ::handleIssue else null
+
+            // Execute delete with progress callback
+            val result = targets.delete(
+                fileSystemOps = fileSystemOps,
+                recursive = recursive,
+                ignoreMissing = ignoreMissing,
+                onIssue = onIssue,
+                onProgress = { progress ->
+                    // Convert and emit progress event
+                    val event = progress.toDeleteOperationEvent()
+                    emit(event)
+                }
+            )
+
+            // Emit final result event
+            val resultEvent = result.toDeleteOperationEvent()
+            emit(resultEvent)
+        }
+            .catch { e ->
+                log(TAG, ERROR) { "deleteStream() operation failed: ${e.asLog()}" }
+                // Emit error event instead of throwing
+                emit(
+                    DeleteOperationEvent.Error(
+                        error = e.message ?: "Unknown error",
+                        cancelled = false
+                    )
+                )
+            }
+            .onCompletion { error ->
+                if (error != null) {
+                    log(TAG, ERROR) { "deleteStream() stream completion with error: ${error.asLog()}" }
+                } else {
+                    log(TAG, VERBOSE) { "deleteStream() completed successfully" }
+                }
+            }
+
+        // Convert flow to RemoteInputStream using generic streaming
+        eventFlow.toRemoteInputStream(appScope + dispatcherProvider.IO)
+    } catch (e: Exception) {
+        log(TAG, ERROR) { "deleteStream(targets=${targets.size}) setup failed\n${e.asLog()}" }
         throw e.wrapToPropagate()
     }
 

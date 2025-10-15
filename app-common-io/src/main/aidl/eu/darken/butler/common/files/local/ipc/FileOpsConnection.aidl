@@ -9,6 +9,7 @@ import eu.darken.butler.common.files.local.LocalPathLookupExtended;
 import eu.darken.butler.common.files.metadata.Ownership;
 import eu.darken.butler.common.files.metadata.Permissions;
 import eu.darken.butler.common.files.metadata.FileSystem;
+import eu.darken.butler.common.files.local.ipc.FileOperationCallback;
 
 interface FileOpsConnection {
 
@@ -50,4 +51,20 @@ interface FileOpsConnection {
     boolean setOwnership(in LocalPath path, in Ownership ownership);
 
     FileSystem getFileSystem(in LocalPath path);
+
+    /**
+     * Delete files with progress streaming and interactive issue resolution.
+     *
+     * @param targets Paths to delete
+     * @param recursive If true, recursively delete directories
+     * @param ignoreMissing If true, ignore missing files
+     * @param callback Callback for resolving issues (null = fail fast)
+     * @return RemoteInputStream streaming DeleteOperationEvent instances
+     */
+    RemoteInputStream deleteStream(
+        in List<LocalPath> targets,
+        boolean recursive,
+        boolean ignoreMissing,
+        in FileOperationCallback callback
+    );
 }
