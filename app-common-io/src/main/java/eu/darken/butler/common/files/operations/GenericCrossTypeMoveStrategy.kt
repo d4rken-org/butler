@@ -6,6 +6,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.APathLookupExtended
+import eu.darken.butler.common.files.FileSystemOps
 
 /**
  * Generic strategy for moving files across different path types.

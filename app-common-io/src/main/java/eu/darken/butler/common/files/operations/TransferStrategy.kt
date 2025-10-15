@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.operations
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.APathLookupExtended
+import eu.darken.butler.common.files.FileSystemOps
 
 /**
  * Generic strategy interface for transferring files (copy or move).

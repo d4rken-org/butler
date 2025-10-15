@@ -10,6 +10,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathGateway
+import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
@@ -18,7 +19,6 @@ import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
 import eu.darken.butler.common.files.metadata.FileSystem
-import eu.darken.butler.common.files.operations.FileSystemOps
 import eu.darken.butler.common.files.saf.SAFFileSystemOps.*
 import eu.darken.butler.common.sharedresource.SharedResource
 import kotlinx.coroutines.CoroutineScope

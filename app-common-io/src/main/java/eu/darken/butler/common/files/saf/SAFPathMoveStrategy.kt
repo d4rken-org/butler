@@ -3,9 +3,8 @@ package eu.darken.butler.common.files.saf
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.SAFPath
-import eu.darken.butler.common.files.operations.FileSystemOps
-import eu.darken.butler.common.files.saf.SAFPathLookupExtended
 import eu.darken.butler.common.files.operations.TransferStrategy
 
 /**
