@@ -243,7 +243,7 @@ fun BreadcrumbBar(
                             onDone = {
                                 keyboardController?.hide()
                                 val editedPath = editTextValue.text.trim()
-
+                                // FIXME do we need to handle this here or can we move it to the viewmodel?
                                 // Handle navigation based on path type
                                 when (val path = pathInfo.path) {
                                     is SAFPath -> {
