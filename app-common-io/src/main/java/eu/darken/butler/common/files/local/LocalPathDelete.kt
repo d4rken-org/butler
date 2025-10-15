@@ -17,8 +17,6 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import java.nio.file.AccessDeniedException
 import java.nio.file.DirectoryNotEmptyException
-import java.nio.file.Files
-import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
 
 internal class LocalPathDelete(
@@ -63,9 +61,11 @@ internal class LocalPathDelete(
         /**
          * Perform actual deletion of a path
          * @param path The path to delete
+         * @param cachedLookup The lookup from scan phase to avoid duplicate filesystem calls
          */
         data class DeletePath(
             val path: LocalPath,
+            val cachedLookup: LocalPathLookup,
         ) : WorkItem()
     }
 
@@ -123,7 +123,7 @@ internal class LocalPathDelete(
      * @param canRetry Whether retry is supported for this operation
      */
     private suspend fun handleError(
-        error: Exception,
+        error: Throwable,
         lookup: LocalPathLookup,
         operation: String,
         canRetry: Boolean = false
@@ -194,7 +194,7 @@ internal class LocalPathDelete(
         handleError(error, lookup, operation = "Delete", canRetry = false)
     }
 
-    private suspend fun handleScanError(error: Exception, lookup: LocalPathLookup, operation: String) {
+    private suspend fun handleScanError(error: Throwable, lookup: LocalPathLookup, operation: String) {
         handleError(error, lookup, operation = operation, canRetry = false)
     }
 
@@ -202,7 +202,7 @@ internal class LocalPathDelete(
         log(TAG, VERBOSE) { "Scanning path: ${item.path}" }
 
         // Check file existence first when ignoreMissing is enabled
-        if (ignoreMissing && !Files.exists(item.path.toNioPath(), LinkOption.NOFOLLOW_LINKS)) {
+        if (ignoreMissing && !fileSystemOps.exists(item.path)) {
             log(TAG, VERBOSE) { "Skipping missing file (ignoreMissing=true): ${item.path}" }
             return 0
         }
@@ -222,7 +222,7 @@ internal class LocalPathDelete(
                 // Files: defer deletion until scan completes (using addFirst for post-order)
                 progressTracker.totalItems++
                 progressTracker.totalBytes += lookup.size
-                deferredDeletions.addFirst(WorkItem.DeletePath(path = item.path))
+                deferredDeletions.addFirst(WorkItem.DeletePath(path = item.path, cachedLookup = lookup))
 
                 // Report scan progress with throttling
                 if (progressTracker.shouldReportProgress()) {
@@ -237,7 +237,7 @@ internal class LocalPathDelete(
                     // Non-recursive: defer directory deletion (will fail if not empty, using addFirst for post-order)
                     progressTracker.totalItems++
                     progressTracker.totalBytes += lookup.size
-                    deferredDeletions.addFirst(WorkItem.DeletePath(path = item.path))
+                    deferredDeletions.addFirst(WorkItem.DeletePath(path = item.path, cachedLookup = lookup))
 
                     // Report scan progress with throttling
                     if (progressTracker.shouldReportProgress()) {
@@ -251,41 +251,46 @@ internal class LocalPathDelete(
 
                     // List and queue children (they will be processed before parent)
                     try {
-                        Files.newDirectoryStream(item.path.toNioPath()).use { ds ->
-                            for (child in ds) {
-                                val childPath = LocalPath.build(child.toFile())
-                                // Add child scan to front (processed before parent's DELETE_SELF)
-                                workQueue.addFirst(WorkItem.ScanPath(path = childPath))
-                                childrenFound++
+                        val children = fileSystemOps.listFiles(item.path)
+                        for (childPath in children) {
+                            // Add child scan to front (processed before parent's DELETE_SELF)
+                            workQueue.addFirst(WorkItem.ScanPath(path = childPath))
+                        }
+                        childrenFound = children.size
+                    } catch (e: ReadException) {
+                        when (val cause = e.cause) {
+                            is NoSuchFileException -> {
+                                // Directory disappeared between lookup and listing
+                                log(TAG, WARN) { "Directory disappeared during scan: ${item.path}" }
+                            }
+                            is AccessDeniedException -> {
+                                // Add item before handling error so counts are correct
+                                progressTracker.totalItems++
+                                progressTracker.totalBytes += lookup.size
+                                handleScanError(cause, lookup, "List directory contents - Permission denied")
+                                return 0
+                            }
+                            is SecurityException -> {
+                                // Add item before handling error so counts are correct
+                                progressTracker.totalItems++
+                                progressTracker.totalBytes += lookup.size
+                                handleScanError(cause, lookup, "List directory contents - Permission denied")
+                                return 0
+                            }
+                            else -> {
+                                // Add item before handling error so counts are correct
+                                progressTracker.totalItems++
+                                progressTracker.totalBytes += lookup.size
+                                handleScanError(cause ?: e, lookup, "List directory contents")
+                                return 0
                             }
                         }
-                    } catch (_: NoSuchFileException) {
-                        // Directory disappeared between lookup and listing
-                        log(TAG, WARN) { "Directory disappeared during scan: ${item.path}" }
-                    } catch (e: AccessDeniedException) {
-                        // Add item before handling error so counts are correct
-                        progressTracker.totalItems++
-                        progressTracker.totalBytes += lookup.size
-                        handleScanError(e, lookup, "List directory contents - Permission denied")
-                        return 0
-                    } catch (e: SecurityException) {
-                        // Add item before handling error so counts are correct
-                        progressTracker.totalItems++
-                        progressTracker.totalBytes += lookup.size
-                        handleScanError(e, lookup, "List directory contents - Permission denied")
-                        return 0
-                    } catch (e: Exception) {
-                        // Add item before handling error so counts are correct
-                        progressTracker.totalItems++
-                        progressTracker.totalBytes += lookup.size
-                        handleScanError(e, lookup, "List directory contents")
-                        return 0
                     }
 
                     // After successfully scanning children, defer directory deletion (using addFirst for post-order)
                     progressTracker.totalItems++
                     progressTracker.totalBytes += lookup.size
-                    deferredDeletions.addFirst(WorkItem.DeletePath(path = item.path))
+                    deferredDeletions.addFirst(WorkItem.DeletePath(path = item.path, cachedLookup = lookup))
 
                     // Report scan progress with throttling
                     if (progressTracker.shouldReportProgress()) {
@@ -303,24 +308,7 @@ internal class LocalPathDelete(
     private suspend fun processDeletePath(item: WorkItem.DeletePath) {
         log(TAG, VERBOSE) { "Deleting path: ${item.path}" }
 
-        val lookup = try {
-            fileSystemOps.lookup(item.path)
-        } catch (e: NoSuchFileException) {
-            if (ignoreMissing) {
-                log(TAG, VERBOSE) { "File already deleted (ignoreMissing=true): ${item.path}" }
-                progressTracker.completeItem()
-                return
-            }
-            throw ReadException("File does not exist", item.path, e)
-        } catch (e: ReadException) {
-            if (ignoreMissing) {
-                log(TAG, VERBOSE) { "File already deleted (ignoreMissing=true): ${item.path}" }
-                progressTracker.completeItem()
-                return
-            }
-            throw e
-        }
-
+        val lookup = item.cachedLookup
         progressTracker.startFile(lookup.size)
 
         try {
@@ -329,24 +317,28 @@ internal class LocalPathDelete(
                 reportProgress(lookup)
             }
 
-            Files.delete(lookup.lookedUp.toNioPath())
+            fileSystemOps.delete(lookup.lookedUp, recursive = false)
             deleted += lookup
             progressTracker.completeItem(lookup.size)
-
-        } catch (e: SecurityException) {
-            handleDeleteError(e, lookup)
-
-        } catch (e: DirectoryNotEmptyException) {
-            // DirectoryNotEmptyException without issue handler should throw the original exception
-            if (onIssue == null) {
-                log(TAG, WARN) { "Directory not empty: ${lookup.lookedUp}" }
-                throw e
+        } catch (e: WriteException) {
+            when (e.cause) {
+                is NoSuchFileException -> {
+                    log(TAG, VERBOSE) { "File already deleted (ignoreMissing=true): ${item.path}" }
+                    if (!ignoreMissing) throw ReadException("File does not exist", item.path, e)
+                    progressTracker.completeItem()
+                }
+                is DirectoryNotEmptyException -> {
+                    // DirectoryNotEmptyException without issue handler should throw the original exception
+                    if (onIssue == null) {
+                        log(TAG, WARN) { "Directory not empty: ${lookup.lookedUp}" }
+                        throw e
+                    }
+                    handleDeleteError(e, lookup)
+                }
+                else -> {
+                    handleDeleteError(e, lookup)
+                }
             }
-            handleDeleteError(e, lookup)
-
-        } catch (e: Exception) {
-            handleDeleteError(e, lookup)
-
         } finally {
             // Force final progress report
             if (progressTracker.shouldReportProgress(force = true)) {

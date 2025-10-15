@@ -17,7 +17,6 @@ import eu.darken.butler.common.files.local.operations.strategies.LocalPathMoveSt
 import eu.darken.butler.common.files.local.operations.strategies.TransferStrategy
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.io.R
-import java.nio.file.Files
 
 internal class LocalPathMove(
     private val fileSystemOps: LocalFileSystemOps,
@@ -96,7 +95,7 @@ internal class LocalPathMove(
 
             // Check if source was a directory
             val sourceLookup = try {
-                if (Files.exists(source.toNioPath())) {
+                if (fileSystemOps.exists(source)) {
                     fileSystemOps.lookup(source)
                 } else {
                     // Source no longer exists - it was a file that was moved atomically

@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.local
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.ReadException
+import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.pkgs.pkgops.LibcoreTool
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -12,6 +13,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -150,9 +152,9 @@ class LocalPathDeleteTest : BaseTest() {
         childFile.writeText("content")
 
         // When & Then
-        shouldThrow<DirectoryNotEmptyException> {
+        shouldThrow<WriteException> {
             listOf(LocalPath.build(dirWithContent)).delete(ops, recursive = false)
-        }
+        }.cause.shouldBeInstanceOf<DirectoryNotEmptyException>()
         dirWithContent.exists() shouldBe true
         childFile.exists() shouldBe true
     }
@@ -535,9 +537,9 @@ class LocalPathDeleteTest : BaseTest() {
         childFile.writeText("content")
 
         // When & Then
-        shouldThrow<DirectoryNotEmptyException> {
+        shouldThrow<WriteException> {
             LocalPath.build(dirWithContent).delete(ops, recursive = false)
-        }
+        }.cause.shouldBeInstanceOf<DirectoryNotEmptyException>()
         dirWithContent.exists() shouldBe true
         childFile.exists() shouldBe true
     }
@@ -588,13 +590,13 @@ class LocalPathDeleteTest : BaseTest() {
         childFile.writeText("child content")
 
         // When - recursive false should fail for directory with content
-        shouldThrow<DirectoryNotEmptyException> {
+        shouldThrow<WriteException> {
             listOf(
                 LocalPath.build(file),
                 LocalPath.build(emptyDir),
                 LocalPath.build(dirWithContent)
             ).delete(ops, recursive = false)
-        }
+        }.cause.shouldBeInstanceOf<DirectoryNotEmptyException>()
 
         // Then - directory with content should still exist (couldn't be deleted due to recursive=false)
         // Note: Other files may have been deleted before the exception was thrown
@@ -619,9 +621,9 @@ class LocalPathDeleteTest : BaseTest() {
         val recursiveResult = LocalPath.build(dir1).delete(ops, recursive = true)
 
         // And - try to delete second with recursive=false (should fail)
-        shouldThrow<DirectoryNotEmptyException> {
+        shouldThrow<WriteException> {
             LocalPath.build(dir2).delete(ops, recursive = false)
-        }
+        }.cause.shouldBeInstanceOf<DirectoryNotEmptyException>()
 
         // Then
         dir1.exists() shouldBe false
@@ -785,14 +787,14 @@ class LocalPathDeleteTest : BaseTest() {
         childFile.writeText("child content")
 
         // When - should fail on directory with content but ignore missing files
-        shouldThrow<DirectoryNotEmptyException> {
+        shouldThrow<WriteException> {
             listOf(
                 LocalPath.build(nonExistentFile),
                 LocalPath.build(existingFile),
                 LocalPath.build(emptyDir),
                 LocalPath.build(dirWithContent)
             ).delete(ops, recursive = false, ignoreMissing = true)
-        }
+        }.cause.shouldBeInstanceOf<DirectoryNotEmptyException>()
 
         // Then - directory with content should still exist (couldn't be deleted due to recursive=false)
         // Note: Other files may have been deleted before the exception was thrown

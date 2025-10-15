@@ -27,6 +27,7 @@ import java.io.OutputStream
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
+import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
@@ -147,52 +148,48 @@ class LocalFileSystemOps @Inject constructor(
         throw ReadException(path = path, cause = e)
     }
 
-    override suspend fun listFiles(path: LocalPath): List<LocalPath> {
-        return try {
-            Files.newDirectoryStream(path.toNioPath()).use { ds ->
-                ds.map { LocalPath.build(it.toFile()) }.toList()
-            }
-        } catch (e: NoSuchFileException) {
-            throw ReadException("Directory does not exist", path, e)
-        } catch (e: IOException) {
-            throw ReadException(path = path, cause = e)
+    override suspend fun listFiles(path: LocalPath): List<LocalPath> = try {
+        Files.newDirectoryStream(path.toNioPath()).use { ds ->
+            ds.map { LocalPath.build(it.toFile()) }.toList()
         }
+    } catch (e: NoSuchFileException) {
+        throw ReadException("Directory does not exist", path, e)
+    } catch (e: IOException) {
+        throw ReadException(path = path, cause = e)
     }
 
-    override suspend fun exists(path: LocalPath): Boolean {
-        return Files.exists(path.toNioPath())
+    override suspend fun exists(path: LocalPath): Boolean = try {
+        Files.exists(path.toNioPath(), LinkOption.NOFOLLOW_LINKS)
+    } catch (e: Exception) {
+        throw ReadException(path = path, cause = e)
     }
 
-    override suspend fun delete(path: LocalPath, recursive: Boolean): Boolean {
-        return try {
-            val nioPath = path.toNioPath()
+    override suspend fun delete(path: LocalPath, recursive: Boolean): Boolean = try {
+        val nioPath = path.toNioPath()
 
-            if (recursive) {
-                // Use Files.walkFileTree with a visitor that deletes in post-order
-                Files.walkFileTree(nioPath, object : SimpleFileVisitor<Path>() {
-                    override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
-                        Files.delete(file)
-                        return FileVisitResult.CONTINUE
-                    }
+        if (recursive) {
+            // Use Files.walkFileTree with a visitor that deletes in post-order
+            Files.walkFileTree(nioPath, object : SimpleFileVisitor<Path>() {
+                override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
+                    Files.delete(file)
+                    return FileVisitResult.CONTINUE
+                }
 
-                    override fun postVisitDirectory(dir: Path, exc: IOException?): FileVisitResult {
-                        if (exc != null) {
-                            throw exc
-                        }
-                        Files.delete(dir)
-                        return FileVisitResult.CONTINUE
+                override fun postVisitDirectory(dir: Path, exc: IOException?): FileVisitResult {
+                    if (exc != null) {
+                        throw exc
                     }
-                })
-                true
-            } else {
-                Files.delete(nioPath)
-                true
-            }
-        } catch (e: NoSuchFileException) {
-            false // File doesn't exist - return false (not an error)
-        } catch (e: IOException) {
-            throw WriteException(path = path, cause = e)
+                    Files.delete(dir)
+                    return FileVisitResult.CONTINUE
+                }
+            })
+            true
+        } else {
+            Files.delete(nioPath)
+            true
         }
+    } catch (e: Exception) {
+        throw WriteException(path = path, cause = e)
     }
 
     override suspend fun createDir(path: LocalPath) {
