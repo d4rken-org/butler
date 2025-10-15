@@ -6,6 +6,7 @@ import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.pkgs.pkgops.LibcoreTool
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
@@ -27,6 +28,9 @@ class LocalPathCopyTest : BaseTest() {
     private val testFolder = File(IO_TEST_BASEDIR, "copy-test")
     private val sourceFolder = File(testFolder, "source")
     private val destFolder = File(testFolder, "dest")
+    private val ops = LocalFileSystemOps(
+        libcoreTool = LibcoreTool(),
+    )
 
     @BeforeEach
     fun setup() {
@@ -54,7 +58,7 @@ class LocalPathCopyTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.copy(destPath)
+        val result = sourcePath.copy(ops, destPath)
 
         // Then
         result.copied shouldContain (sourcePath to LocalPath.build(File(destFolder, "test.txt")))
@@ -73,7 +77,7 @@ class LocalPathCopyTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.copy(destPath)
+        val result = sourcePath.copy(ops, destPath)
 
         // Then
         result.copied shouldContain (sourcePath to LocalPath.build(File(destFolder, "empty")))
@@ -99,7 +103,7 @@ class LocalPathCopyTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.copy(destPath)
+        val result = sourcePath.copy(ops, destPath)
 
         // Then
         result.copiedBytes shouldBe expectedSize
@@ -131,7 +135,7 @@ class LocalPathCopyTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.copy(destPath)
+        val result = sourcePath.copy(ops, destPath)
 
         // Then
         // Should have 1 file + 10 directories = 11 items
@@ -160,7 +164,7 @@ class LocalPathCopyTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePaths.copy(destPath)
+        val result = sourcePaths.copy(ops, destPath)
 
         // Then
         result.copiedBytes shouldBe expectedSize
@@ -188,7 +192,7 @@ class LocalPathCopyTest : BaseTest() {
 
             if (Files.isSymbolicLink(symlink.toPath())) {
                 // When
-                val result = LocalPath.build(symlink).copy(LocalPath.build(destFolder))
+                val result = LocalPath.build(symlink).copy(ops, LocalPath.build(destFolder))
 
                 // Then
                 File(destFolder, "symlink").exists() shouldBe true
@@ -208,7 +212,7 @@ class LocalPathCopyTest : BaseTest() {
         file.writeText(content)
 
         // When
-        val result = LocalPath.build(file).copy(LocalPath.build(destFolder))
+        val result = LocalPath.build(file).copy(ops, LocalPath.build(destFolder))
 
         // Then
         result.copiedBytes shouldBe content.length.toLong()
@@ -233,7 +237,7 @@ class LocalPathCopyTest : BaseTest() {
         val expectedSize = files.sumOf { it.length() }
 
         // When
-        val result = LocalPath.build(File(sourceFolder, "deep")).copy(LocalPath.build(destFolder))
+        val result = LocalPath.build(File(sourceFolder, "deep")).copy(ops, LocalPath.build(destFolder))
 
         // Then
         result.copiedBytes shouldBe expectedSize
@@ -256,7 +260,7 @@ class LocalPathCopyTest : BaseTest() {
         val startTime = System.currentTimeMillis()
 
         // When
-        val result = LocalPath.build(sourceDir).copy(LocalPath.build(destFolder))
+        val result = LocalPath.build(sourceDir).copy(ops, LocalPath.build(destFolder))
         val endTime = System.currentTimeMillis()
 
         // Then
@@ -270,7 +274,7 @@ class LocalPathCopyTest : BaseTest() {
     @Test
     fun `empty collection should return empty result`() = runTest {
         // When
-        val result = emptyList<LocalPath>().copy(LocalPath.build(destFolder))
+        val result = emptyList<LocalPath>().copy(ops, LocalPath.build(destFolder))
 
         // Then
         result.copied.shouldBeEmpty()
@@ -287,6 +291,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When - second copy will encounter PathAlreadyExists
         val result = listOf(sourcePath, sourcePath).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 when (issue) {
@@ -316,7 +321,7 @@ class LocalPathCopyTest : BaseTest() {
         mainFile.writeText("fun main() {}")
 
         // When - copy directory to destination
-        LocalPath.build(projectDir).copy(LocalPath.build(destFolder))
+        LocalPath.build(projectDir).copy(ops, LocalPath.build(destFolder))
 
         // Then - verify structure is preserved with directory name
         File(destFolder, "project").exists() shouldBe true
@@ -338,7 +343,7 @@ class LocalPathCopyTest : BaseTest() {
         file.writeText("PDF content")
 
         // When
-        LocalPath.build(file).copy(LocalPath.build(destFolder))
+        LocalPath.build(file).copy(ops, LocalPath.build(destFolder))
 
         // Then
         File(destFolder, "report.pdf").exists() shouldBe true
@@ -354,7 +359,7 @@ class LocalPathCopyTest : BaseTest() {
         file.writeText("deep content")
 
         // When
-        LocalPath.build(File(sourceFolder, "a")).copy(LocalPath.build(destFolder))
+        LocalPath.build(File(sourceFolder, "a")).copy(ops, LocalPath.build(destFolder))
 
         // Then
         File(destFolder, "a/b/c/file.txt").exists() shouldBe true
@@ -375,7 +380,7 @@ class LocalPathCopyTest : BaseTest() {
         file2.writeText("project2 content")
 
         // When
-        listOf(LocalPath.build(dir1), LocalPath.build(dir2)).copy(LocalPath.build(destFolder))
+        listOf(LocalPath.build(dir1), LocalPath.build(dir2)).copy(ops, LocalPath.build(destFolder))
 
         // Then
         File(destFolder, "project1/file.txt").exists() shouldBe true
@@ -396,7 +401,7 @@ class LocalPathCopyTest : BaseTest() {
         dirFile.writeText("nested content")
 
         // When
-        listOf(LocalPath.build(file), LocalPath.build(dir)).copy(LocalPath.build(destFolder))
+        listOf(LocalPath.build(file), LocalPath.build(dir)).copy(ops, LocalPath.build(destFolder))
 
         // Then - both maintain their top-level name
         File(destFolder, "file.txt").exists() shouldBe true
@@ -417,6 +422,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         listOf(LocalPath.build(file1), LocalPath.build(file2)).copy(
+            ops,
             LocalPath.build(destFolder),
             onProgress = { progressCalls.add(it.currentSource) }
         )
@@ -440,6 +446,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         files.map { LocalPath.build(it) }.copy(
+            ops,
             LocalPath.build(destFolder),
             onProgress = { bytesSeen.add(it.copiedBytes) }
         )
@@ -464,6 +471,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         LocalPath.build(dir).copy(
+            ops,
             LocalPath.build(destFolder),
             onProgress = {
                 if (it.primaryProgress != null) primarySeen = true
@@ -487,6 +495,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         LocalPath.build(sourceFile).copy(
+            ops,
             LocalPath.build(destFolder),
             onProgress = {
                 progressTimestamps.add(System.currentTimeMillis() - startTime)
@@ -516,6 +525,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         LocalPath.build(sourceFile).copy(
+            ops,
             LocalPath.build(destFolder),
             onProgress = { progressCallbackCalled = true }
         )
@@ -534,6 +544,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         LocalPath.build(sourceFile).copy(
+            ops,
             LocalPath.build(destFolder),
             onProgress = {
                 progressUpdates.add(it.copiedBytes to it.totalBytes)
@@ -558,6 +569,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         val result = LocalPath.build(sourceFile).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 when (issue) {
@@ -582,6 +594,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         val result = LocalPath.build(sourceFile).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 when (issue) {
@@ -619,6 +632,7 @@ class LocalPathCopyTest : BaseTest() {
             LocalPath.build(file2),
             LocalPath.build(file3)
         ).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 issuesEncountered.add(issue)
@@ -653,6 +667,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         listOf(LocalPath.build(file1), LocalPath.build(file2)).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 issuesEncountered.add(issue)
@@ -686,6 +701,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         LocalPath.build(sourceDir).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 when (issue) {
@@ -712,7 +728,7 @@ class LocalPathCopyTest : BaseTest() {
             sourceFile.setReadOnly()
 
             // When - should succeed or handle gracefully
-            val result = LocalPath.build(sourceFile).copy(LocalPath.build(destFolder))
+            val result = LocalPath.build(sourceFile).copy(ops, LocalPath.build(destFolder))
 
             // Then - should complete without crashing
             result.copiedBytes should { it >= 0 }
@@ -732,6 +748,7 @@ class LocalPathCopyTest : BaseTest() {
             destFolder.setReadOnly()
 
             val result = LocalPath.build(sourceFile).copy(
+                ops,
                 LocalPath.build(destFolder),
                 onIssue = { issue ->
                     when (issue) {
@@ -765,6 +782,7 @@ class LocalPathCopyTest : BaseTest() {
             val issuesEncountered = mutableListOf<PathActionIssue>()
 
             listOf(LocalPath.build(file1), LocalPath.build(file2)).copy(
+                ops,
                 LocalPath.build(destFolder),
                 onIssue = { issue ->
                     issuesEncountered.add(issue)
@@ -796,6 +814,7 @@ class LocalPathCopyTest : BaseTest() {
         var attemptCount = 0
 
         val result = LocalPath.build(sourceFile).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 when (issue) {
@@ -822,6 +841,7 @@ class LocalPathCopyTest : BaseTest() {
         sourceFile.writeText("content")
 
         val result = LocalPath.build(sourceFile).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 when (issue) {
@@ -844,6 +864,7 @@ class LocalPathCopyTest : BaseTest() {
         var issueCount = 0
 
         listOf(LocalPath.build(file1), LocalPath.build(file2)).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 issueCount++
@@ -870,7 +891,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When & Then
         shouldThrow<ReadException> {
-            LocalPath.build(nonExistent).copy(LocalPath.build(destFolder))
+            LocalPath.build(nonExistent).copy(ops, LocalPath.build(destFolder))
         }
     }
 
@@ -883,7 +904,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When/Then - destination doesn't exist, should fail
         shouldThrow<WriteException> {
-            LocalPath.build(sourceFile).copy(LocalPath.build(nonExistentDest))
+            LocalPath.build(sourceFile).copy(ops, LocalPath.build(nonExistentDest))
         }
     }
 
@@ -896,7 +917,7 @@ class LocalPathCopyTest : BaseTest() {
         existingDest.mkdirs()
 
         // When
-        LocalPath.build(sourceFile).copy(LocalPath.build(existingDest))
+        LocalPath.build(sourceFile).copy(ops, LocalPath.build(existingDest))
 
         // Then
         File(existingDest, "file.txt").exists() shouldBe true
@@ -914,7 +935,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When/Then
         val exception = shouldThrow<WriteException> {
-            LocalPath.build(sourceFile).copy(LocalPath.build(destinationFile))
+            LocalPath.build(sourceFile).copy(ops, LocalPath.build(destinationFile))
         }
 
         // Verify the exception is about the destination path
@@ -935,6 +956,7 @@ class LocalPathCopyTest : BaseTest() {
         // When
         var issueEncountered = false
         val result = LocalPath.build(sourceFile).copy(
+            ops,
             LocalPath.build(destinationFile),
             onIssue = { issue ->
                 when (issue) {
@@ -967,6 +989,7 @@ class LocalPathCopyTest : BaseTest() {
         // When
         var issueEncountered = false
         val result = LocalPath.build(sourceFile).copy(
+            ops,
             LocalPath.build(destinationFile),
             onIssue = { issue ->
                 when (issue) {
@@ -1006,7 +1029,7 @@ class LocalPathCopyTest : BaseTest() {
         try {
             // When/Then
             val exception = shouldThrow<WriteException> {
-                LocalPath.build(sourceFile).copy(LocalPath.build(destinationInReadOnly))
+                LocalPath.build(sourceFile).copy(ops, LocalPath.build(destinationInReadOnly))
             }
 
             // Verify the exception is about the destination path
@@ -1026,11 +1049,12 @@ class LocalPathCopyTest : BaseTest() {
         sourceFile.writeText("content")
 
         // Copy once
-        LocalPath.build(sourceFile).copy(LocalPath.build(destFolder))
+        LocalPath.build(sourceFile).copy(ops, LocalPath.build(destFolder))
 
         // When - copy again, should trigger PathAlreadyExists
         var issueEncountered = false
         LocalPath.build(sourceFile).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 when (issue) {
@@ -1054,7 +1078,7 @@ class LocalPathCopyTest : BaseTest() {
         sourceFile.writeText("content")
 
         // When
-        val result = LocalPath.build(sourceFile).copy(LocalPath.build(destFolder), onProgress = null)
+        val result = LocalPath.build(sourceFile).copy(ops, LocalPath.build(destFolder), onProgress = null)
 
         // Then
         result.copiedBytes should { it > 0 }
@@ -1068,7 +1092,7 @@ class LocalPathCopyTest : BaseTest() {
         sourceFile.writeText("content")
 
         // When - no onIssue callback provided
-        val result = LocalPath.build(sourceFile).copy(LocalPath.build(destFolder), onIssue = null)
+        val result = LocalPath.build(sourceFile).copy(ops, LocalPath.build(destFolder), onIssue = null)
 
         // Then - should complete normally
         result.copiedBytes should { it > 0 }
@@ -1087,7 +1111,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         val result = listOf(LocalPath.build(file1), LocalPath.build(file2))
-            .copy(LocalPath.build(destFolder))
+            .copy(ops, LocalPath.build(destFolder))
 
         // Then
         result.copied shouldContain (LocalPath.build(file1) to LocalPath.build(File(destFolder, "file1.txt")))
@@ -1104,6 +1128,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         val result = LocalPath.build(sourceFile).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 when (issue) {
@@ -1128,7 +1153,7 @@ class LocalPathCopyTest : BaseTest() {
         val expectedSize = files.sumOf { it.length() }
 
         // When
-        val result = files.map { LocalPath.build(it) }.copy(LocalPath.build(destFolder))
+        val result = files.map { LocalPath.build(it) }.copy(ops, LocalPath.build(destFolder))
 
         // Then
         result.copiedBytes shouldBe expectedSize
@@ -1144,7 +1169,7 @@ class LocalPathCopyTest : BaseTest() {
         val sourceModified = sourceFile.lastModified()
 
         // When
-        LocalPath.build(sourceFile).copy(LocalPath.build(destFolder))
+        LocalPath.build(sourceFile).copy(ops, LocalPath.build(destFolder))
 
         // Then
         val destFile = File(destFolder, "file.txt")
@@ -1164,7 +1189,7 @@ class LocalPathCopyTest : BaseTest() {
         sourceFile.writeText("content")
 
         // When
-        LocalPath.build(sourceDir).copy(LocalPath.build(destFolder))
+        LocalPath.build(sourceDir).copy(ops, LocalPath.build(destFolder))
 
         // Then
         val destDir = File(destFolder, "dir")
@@ -1192,6 +1217,7 @@ class LocalPathCopyTest : BaseTest() {
         // When - try to copy with issue handler expecting PathAlreadyExists
         var issueReceived: PathActionIssue? = null
         LocalPath.build(sourceDir).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 issueReceived = issue
@@ -1232,6 +1258,7 @@ class LocalPathCopyTest : BaseTest() {
         // When - skip the conflict
         var issueReceived: PathActionIssue? = null
         val result = LocalPath.build(sourceDir).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 issueReceived = issue
@@ -1270,6 +1297,7 @@ class LocalPathCopyTest : BaseTest() {
         // When - try to copy file over directory
         var issueReceived: PathActionIssue? = null
         val result = LocalPath.build(sourceFile).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 issueReceived = issue
@@ -1307,6 +1335,7 @@ class LocalPathCopyTest : BaseTest() {
         // When - overwrite directory with file
         var issueReceived: PathActionIssue? = null
         LocalPath.build(sourceFile).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 issueReceived = issue
@@ -1345,6 +1374,7 @@ class LocalPathCopyTest : BaseTest() {
         // When - copy with merge resolution
         var issueReceived: PathActionIssue? = null
         LocalPath.build(sourceDir).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 issueReceived = issue
@@ -1390,6 +1420,7 @@ class LocalPathCopyTest : BaseTest() {
         // When - copy both with merge apply-to-all
         val issuesEncountered = mutableListOf<PathActionIssue>()
         listOf(LocalPath.build(source1), LocalPath.build(source2)).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 issuesEncountered.add(issue)
@@ -1435,6 +1466,7 @@ class LocalPathCopyTest : BaseTest() {
         // When - copy with skip apply-to-all
         val issuesEncountered = mutableListOf<PathActionIssue>()
         val result = listOf(LocalPath.build(source1), LocalPath.build(source2)).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 issuesEncountered.add(issue)
@@ -1477,6 +1509,7 @@ class LocalPathCopyTest : BaseTest() {
         // When - copy with overwrite
         var issueReceived: PathActionIssue? = null
         LocalPath.build(sourceDir).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 issueReceived = issue
@@ -1521,6 +1554,7 @@ class LocalPathCopyTest : BaseTest() {
         // When - copy with overwrite apply-to-all
         val issuesEncountered = mutableListOf<PathActionIssue>()
         listOf(LocalPath.build(source1), LocalPath.build(source2)).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 issuesEncountered.add(issue)
@@ -1556,6 +1590,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When - copy without issue handler (onIssue = null)
         LocalPath.build(sourceDir).copy(
+            ops,
             LocalPath.build(destFolder)
             // No onIssue parameter - uses default null
         )
@@ -1578,6 +1613,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When - rename destination
         val result = LocalPath.build(sourceFile).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 when (issue) {
@@ -1606,6 +1642,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When - rename source
         val result = LocalPath.build(sourceFile).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 when (issue) {
@@ -1636,6 +1673,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When - rename destination
         val result = LocalPath.build(sourceDir).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 when (issue) {
@@ -1668,6 +1706,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When - rename source
         val result = LocalPath.build(sourceDir).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 when (issue) {
@@ -1699,6 +1738,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When - rename destination
         val result = LocalPath.build(sourceDir).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 when (issue) {
@@ -1730,6 +1770,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When - rename source
         val result = LocalPath.build(sourceDir).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 when (issue) {
@@ -1761,6 +1802,7 @@ class LocalPathCopyTest : BaseTest() {
         // When - copy and capture issue
         var capturedIssue: PathActionIssue.PathAlreadyExists? = null
         LocalPath.build(sourceFile).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 when (issue) {
@@ -1800,6 +1842,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When - rename source to Parent-new
         val result = LocalPath.build(sourceDir).copy(
+            ops,
             LocalPath.build(destFolder),
             onIssue = { issue ->
                 when (issue) {
@@ -1857,7 +1900,7 @@ class LocalPathCopyTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When - copy with followSymlinks = false (default)
-        val result = sourcePath.copy(destPath)
+        val result = sourcePath.copy(ops, destPath)
 
         // Then - file should be copied
         val copiedLink = File(destFolder, "link.txt")
@@ -1890,6 +1933,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When - copy with followSymlinks = true
         val result = sourcePath.copy(
+            ops,
             destPath,
             options = CopyAction.Options(followSymlinks = true)
         )
@@ -1926,7 +1970,7 @@ class LocalPathCopyTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When - copy with followSymlinks = false (default)
-        val result = sourcePath.copy(destPath)
+        val result = sourcePath.copy(ops, destPath)
 
         // Then - directory should be copied
         val copiedLink = File(destFolder, "linkDir")
@@ -1961,6 +2005,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When - copy with followSymlinks = true
         val result = sourcePath.copy(
+            ops,
             destPath,
             options = CopyAction.Options(followSymlinks = true)
         )
@@ -1999,6 +2044,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When - copy with followSymlinks = false
         val result = sourcePath.copy(
+            ops,
             destPath,
             options = CopyAction.Options(followSymlinks = false)
         )
@@ -2032,6 +2078,7 @@ class LocalPathCopyTest : BaseTest() {
         // When - copy with followSymlinks = true should fail
         shouldThrow<Exception> {
             sourcePath.copy(
+                ops,
                 destPath,
                 options = CopyAction.Options(followSymlinks = true)
             )
@@ -2070,6 +2117,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When - copy with followSymlinks = true
         val result = sourcePath.copy(
+            ops,
             destPath,
             options = CopyAction.Options(followSymlinks = true)
         )
@@ -2116,6 +2164,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When - copy with followSymlinks = true
         val result = sourcePath.copy(
+            ops,
             destPath,
             options = CopyAction.Options(followSymlinks = true)
         )
@@ -2138,6 +2187,7 @@ class LocalPathCopyTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         val tool = LocalPathCopy(
+            fileSystemOps = ops,
             sources = setOf(sourcePath),
             destination = destPath,
             options = CopyAction.Options(),
