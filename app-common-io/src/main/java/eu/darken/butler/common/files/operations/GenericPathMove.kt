@@ -89,6 +89,9 @@ internal class GenericPathMove<
     // Scan tracking
     private var scanItemsRemaining = 0
 
+    // Destination state
+    private var destinationExistedAsDirectory = false
+
     // Work queue
     private var workQueue = ArrayDeque<WorkItem>()
 
@@ -123,9 +126,10 @@ internal class GenericPathMove<
             "execute(): Moving ${sources.size} sources to $destination"
         }
 
-        // Ensure destination directory exists
-        if (!destOps.exists(destination)) {
-            destOps.createDir(destination)
+        // Check if destination exists and is a directory (for path calculation logic)
+        if (destOps.exists(destination)) {
+            val destLookup = destOps.lookup(destination)
+            destinationExistedAsDirectory = destLookup.fileType == FileType.DIRECTORY
         }
 
         // Initialize work queue
@@ -435,6 +439,25 @@ internal class GenericPathMove<
             return
         }
 
+        if (issueResolver.renameSourceAllPathExists) {
+            val uniqueName = generateUniqueName(adjustedDest)
+            val parentPath = adjustedDest.parent!!
+            val renamedDest = parentPath.child(uniqueName)
+            log(TAG, INFO) { "Auto-renaming directory (apply-to-all): $adjustedDest -> $renamedDest" }
+
+            // Track renamed directory for child path adjustments
+            renamedSourceDirs[item.sourceLookup.lookedUp] = renamedDest
+
+            // Create new work item with renamed destination and requeue
+            val updatedItem = WorkItem.CreateDirectory(
+                sourceLookup = item.sourceLookup,
+                destination = renamedDest,
+                topLevelSource = item.topLevelSource
+            )
+            workQueue.addFirst(updatedItem)
+            return
+        }
+
         if (destLookup.fileType == FileType.DIRECTORY) {
             if (issueResolver.mergeAllPathExists) {
                 log(TAG, INFO) { "Merging directory (apply-to-all): $adjustedDest" }
@@ -531,9 +554,8 @@ internal class GenericPathMove<
 
                 log(TAG, INFO) { "Renaming existing destination: ${item.destination} -> $newDestPath" }
 
-                // Delete existing destination (simplified - proper impl needs FileSystemOps.rename())
-                val recursive = item.destLookup.fileType == FileType.DIRECTORY
-                destOps.delete(item.destination, recursive = recursive)
+                // Move the existing destination to the new name
+                destOps.move(item.destination, newDestPath)
 
                 // Re-queue original operation (destination path now clear)
                 workQueue.addFirst(item.originalItem)
@@ -545,14 +567,35 @@ internal class GenericPathMove<
     }
 
     private fun calculateDestinationPath(source: SP, topLevelSource: SP): DP {
-        // Calculate relative path INCLUDING the top-level source's name
+        // Unix cp/mv semantics:
+        // - Single source + destination is existing directory: move INTO it (append name)
+        // - Single source + destination doesn't exist: use as final path (rename)
+        // - Multiple sources: always move INTO destination directory
+
+        if (sources.size == 1 && source == topLevelSource && !destinationExistedAsDirectory) {
+            // Single source + destination didn't exist as directory: use as final path (rename)
+            return destination
+        }
+
+        // Multiple sources or processing children: append relative path to destination
         // Example: moving /source/topfolder to /dest should create /dest/topfolder/...
         val topLevelSegments = topLevelSource.segments
         val sourceSegments = source.segments
 
-        // Drop parent segments of top-level source, keep top-level name and below
-        // For /source/topfolder -> /dest, we want to drop [source] and keep [topfolder]
-        val segmentsToDrop = if (topLevelSegments.isEmpty()) 0 else topLevelSegments.size - 1
+        // Drop parent segments of top-level source
+        // - For rename semantics (single source, non-existent dest): drop ALL segments including name
+        //   Example: mv /source/origdir dest/renamed -> drop [source,origdir] -> child file.txt -> dest/renamed/file.txt
+        // - For move INTO semantics: drop parent segments, keep top-level name
+        //   Example: mv /source/topfolder dest/ -> drop [source] -> keep [topfolder] -> dest/topfolder/...
+        val segmentsToDrop = if (topLevelSegments.isEmpty()) {
+            0
+        } else if (sources.size == 1 && !destinationExistedAsDirectory) {
+            // Rename semantics: drop ALL top-level segments (including the name itself)
+            topLevelSegments.size
+        } else {
+            // Move INTO semantics: drop parent segments, keep top-level name
+            topLevelSegments.size - 1
+        }
         val relativeSegments = sourceSegments.drop(segmentsToDrop)
 
         // Build destination path with relative segments
@@ -602,8 +645,68 @@ internal class GenericPathMove<
 
     private suspend fun handleMoveError(error: Exception, source: SPL, dest: DP) {
         log(TAG, ERROR) { "Move error: ${source.lookedUp} -> $dest - $error" }
-        skipped.add(source.lookedUp)
-        progressTracker.completeItem()
+
+        // Categorize exception type
+        val isPermissionError = error is SecurityException ||
+                               error is java.nio.file.AccessDeniedException
+
+        // Check "apply to all" flags first (fast path)
+        if (isPermissionError && issueResolver.skipAllPermission) {
+            log(TAG, INFO) { "Skipping permission error (apply-to-all): $dest" }
+            skipped.add(source.lookedUp)
+            progressTracker.completeItem()
+            return
+        }
+
+        if (!isPermissionError && issueResolver.skipAllUnknown) {
+            log(TAG, INFO) { "Skipping unknown error (apply-to-all): $dest" }
+            skipped.add(source.lookedUp)
+            progressTracker.completeItem()
+            return
+        }
+
+        // No issue handler configured? Re-throw exception immediately
+        if (onIssue == null) {
+            throw error
+        }
+
+        // Convert exception to appropriate PathActionIssue type
+        val issue = if (isPermissionError) {
+            PathActionIssue.InsufficientPermission(
+                destination = source,
+                exception = error,
+                canSkip = true
+            )
+        } else {
+            PathActionIssue.UnknownError(
+                destination = source,
+                exception = error,
+                canRetry = false,  // Can't retry file operations easily
+                canSkip = true
+            )
+        }
+
+        // Resolve issue with user callback (may throw CancellationException)
+        val resolution = issueResolver.resolveIssue(issue)
+
+        // Handle resolution
+        when (resolution) {
+            is PathActionIssue.InsufficientPermission.Resolution.Skip,
+            is PathActionIssue.UnknownError.Resolution.Skip -> {
+                // User chose to skip this file
+                skipped.add(source.lookedUp)
+                progressTracker.completeItem()
+            }
+            is PathActionIssue.UnknownError.Resolution.Retry -> {
+                // Retry not implemented for now - just skip
+                log(TAG, WARN) { "Retry not implemented, skipping: $dest" }
+                skipped.add(source.lookedUp)
+                progressTracker.completeItem()
+            }
+            else -> {
+                // Cancel is handled by issueResolver.resolveIssue() throwing CancellationException
+            }
+        }
     }
 
     private suspend fun reportScanProgress(lookup: SPL) {

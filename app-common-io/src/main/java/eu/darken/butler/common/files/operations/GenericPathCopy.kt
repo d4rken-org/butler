@@ -101,6 +101,9 @@ internal class GenericPathCopy<
     // Scan tracking
     private var scanItemsRemaining = 0
 
+    // Destination state
+    private var destinationExistedAsDirectory = false
+
     // Work queue for processing operations
     private var workQueue = ArrayDeque<WorkItem>()
 
@@ -164,9 +167,10 @@ internal class GenericPathCopy<
     suspend fun execute(): CopyAction.State.Result<SP, SPL> {
         log(TAG, DEBUG) { "execute(): Copying ${sources.size} sources to $destination" }
 
-        // Ensure destination directory exists
-        if (!destOps.exists(destination)) {
-            destOps.createDir(destination)
+        // Check if destination exists and is a directory (for path calculation logic)
+        if (destOps.exists(destination)) {
+            val destLookup = destOps.lookup(destination)
+            destinationExistedAsDirectory = destLookup.fileType == FileType.DIRECTORY
         }
 
         // Initialize work queue with scan items for all sources
@@ -227,18 +231,26 @@ internal class GenericPathCopy<
             return 0
         }
 
+        // If followSymlinks is enabled and this is a symlink, resolve it to determine actual type
+        val effectiveLookup = if (options.followSymlinks && lookup.fileType == FileType.SYMBOLIC_LINK) {
+            resolveSymlinkForScanning(item.source, lookup)
+        } else {
+            lookup
+        }
+
         // Calculate destination path relative to top-level source
         val destPath = calculateDestinationPath(item.source, item.topLevelSource)
 
-        when (lookup.fileType) {
+        when (effectiveLookup.fileType) {
             FileType.FILE, FileType.SYMBOLIC_LINK -> {
+                // SYMBOLIC_LINK only when followSymlinks=false (otherwise resolved above)
                 progressTracker.totalItems++
-                progressTracker.totalBytes += lookup.size
-                workQueue.addLast(WorkItem.CopyFile(lookup, destPath, item.topLevelSource))
+                progressTracker.totalBytes += effectiveLookup.size
+                workQueue.addLast(WorkItem.CopyFile(effectiveLookup, destPath, item.topLevelSource))
 
                 // Report scan progress with throttling
                 if (progressTracker.shouldReportProgress()) {
-                    reportScanProgress(lookup)
+                    reportScanProgress(effectiveLookup)
                 }
 
                 return 0
@@ -246,30 +258,58 @@ internal class GenericPathCopy<
 
             FileType.DIRECTORY -> {
                 progressTracker.totalItems++
-                progressTracker.totalBytes += lookup.size
-                workQueue.addLast(WorkItem.CreateDirectory(lookup, destPath, item.topLevelSource))
+                progressTracker.totalBytes += effectiveLookup.size
+                workQueue.addLast(WorkItem.CreateDirectory(effectiveLookup, destPath, item.topLevelSource))
 
                 // Report scan progress with throttling
                 if (progressTracker.shouldReportProgress()) {
-                    reportScanProgress(lookup)
+                    reportScanProgress(effectiveLookup)
                 }
 
                 // List and queue children
                 var childrenFound = 0
                 try {
-                    val children = sourceOps.listFiles(item.source)
-                    children.forEach { child ->
-                        workQueue.addFirst(WorkItem.ScanSource(child, item.topLevelSource))
-                        childrenFound++
+                    if (options.followSymlinks && lookup.fileType == FileType.SYMBOLIC_LINK) {
+                        // This was a symlink-to-directory - list the target's children
+                        // but re-parent them under the symlink path
+                        val linkTarget = sourceOps.readSymbolicLink(item.source)
+                        @Suppress("UNCHECKED_CAST")
+                        val resolvedPath = if (linkTarget.path.startsWith("/")) {
+                            linkTarget
+                        } else {
+                            val parent = item.source.parent
+                                ?: throw IllegalStateException("Symlink has no parent: ${item.source}")
+                            parent.child(linkTarget.path) as SP
+                        }
+
+                        // List children of the resolved directory
+                        val targetChildren = sourceOps.listFiles(resolvedPath)
+
+                        // Re-parent children under the symlink path (not the target path)
+                        targetChildren.forEach { targetChild ->
+                            // Get just the child name and create a path under the symlink
+                            val childName = targetChild.name
+                            @Suppress("UNCHECKED_CAST")
+                            val symlinkChild = item.source.child(childName) as SP
+                            workQueue.addFirst(WorkItem.ScanSource(symlinkChild, item.topLevelSource))
+                            childrenFound++
+                        }
+                    } else {
+                        // Regular directory - list and queue children normally
+                        val children = sourceOps.listFiles(item.source)
+                        children.forEach { child ->
+                            workQueue.addFirst(WorkItem.ScanSource(child, item.topLevelSource))
+                            childrenFound++
+                        }
                     }
                 } catch (e: Exception) {
-                    handleScanError(e, lookup)
+                    handleScanError(e, effectiveLookup)
                 }
 
                 return childrenFound
             }
 
-            FileType.UNKNOWN -> throw IllegalStateException("Unknown file type: $lookup")
+            FileType.UNKNOWN -> throw IllegalStateException("Unknown file type: $effectiveLookup")
         }
     }
 
@@ -444,10 +484,17 @@ internal class GenericPathCopy<
             val parentPath = adjustedDest.parent!!
             val renamedDest = parentPath.child(uniqueName)
             log(TAG, INFO) { "Auto-renaming directory (apply-to-all): $adjustedDest -> $renamedDest" }
-            destOps.createDir(renamedDest)
-            copied.add(item.sourceLookup.lookedUp to renamedDest)
+
+            // Track renamed directory for child path adjustments
             renamedSourceDirs[item.sourceLookup.lookedUp] = renamedDest
-            progressTracker.completeItem()
+
+            // Create new work item with renamed destination and requeue
+            val updatedItem = WorkItem.CreateDirectory(
+                sourceLookup = item.sourceLookup,
+                destination = renamedDest,
+                topLevelSource = item.topLevelSource
+            )
+            workQueue.addFirst(updatedItem)
             return
         }
 
@@ -556,9 +603,8 @@ internal class GenericPathCopy<
 
                 log(TAG, INFO) { "Renaming existing destination: ${item.destination} -> $newDestPath" }
 
-                // Delete existing destination (simplified - proper impl needs FileSystemOps.rename())
-                val recursive = item.destLookup.fileType == FileType.DIRECTORY
-                destOps.delete(item.destination, recursive = recursive)
+                // Move the existing destination to the new name
+                destOps.move(item.destination, newDestPath)
 
                 // Re-queue original operation (destination path now clear)
                 workQueue.addFirst(item.originalItem)
@@ -570,14 +616,35 @@ internal class GenericPathCopy<
     }
 
     private fun calculateDestinationPath(source: SP, topLevelSource: SP): DP {
-        // Calculate relative path INCLUDING the top-level source's name
+        // Unix cp/mv semantics:
+        // - Single source + destination is existing directory: copy INTO it (append name)
+        // - Single source + destination doesn't exist: use as final path (rename)
+        // - Multiple sources: always copy INTO destination directory
+
+        if (sources.size == 1 && source == topLevelSource && !destinationExistedAsDirectory) {
+            // Single source + destination didn't exist as directory: use as final path (rename)
+            return destination
+        }
+
+        // Multiple sources or processing children: append relative path to destination
         // Example: copying /source/topfolder to /dest should create /dest/topfolder/...
         val topLevelSegments = topLevelSource.segments
         val sourceSegments = source.segments
 
-        // Drop parent segments of top-level source, keep top-level name and below
-        // For /source/topfolder -> /dest, we want to drop [source] and keep [topfolder]
-        val segmentsToDrop = if (topLevelSegments.isEmpty()) 0 else topLevelSegments.size - 1
+        // Drop parent segments of top-level source
+        // - For rename semantics (single source, non-existent dest): drop ALL segments including name
+        //   Example: cp /source/origdir dest/renamed -> drop [source,origdir] -> child file.txt -> dest/renamed/file.txt
+        // - For copy INTO semantics: drop parent segments, keep top-level name
+        //   Example: cp /source/topfolder dest/ -> drop [source] -> keep [topfolder] -> dest/topfolder/...
+        val segmentsToDrop = if (topLevelSegments.isEmpty()) {
+            0
+        } else if (sources.size == 1 && !destinationExistedAsDirectory) {
+            // Rename semantics: drop ALL top-level segments (including the name itself)
+            topLevelSegments.size
+        } else {
+            // Copy INTO semantics: drop parent segments, keep top-level name
+            topLevelSegments.size - 1
+        }
         val relativeSegments = sourceSegments.drop(segmentsToDrop)
 
         // Build destination path with relative segments
@@ -630,8 +697,68 @@ internal class GenericPathCopy<
 
     private suspend fun handleCopyError(error: Exception, source: SPL, dest: DP) {
         log(TAG, ERROR) { "Copy error: ${source.lookedUp} -> $dest - $error" }
-        skipped.add(source.lookedUp)
-        progressTracker.completeItem()
+
+        // Categorize exception type
+        val isPermissionError = error is SecurityException ||
+                               error is java.nio.file.AccessDeniedException
+
+        // Check "apply to all" flags first (fast path)
+        if (isPermissionError && issueResolver.skipAllPermission) {
+            log(TAG, INFO) { "Skipping permission error (apply-to-all): $dest" }
+            skipped.add(source.lookedUp)
+            progressTracker.completeItem()
+            return
+        }
+
+        if (!isPermissionError && issueResolver.skipAllUnknown) {
+            log(TAG, INFO) { "Skipping unknown error (apply-to-all): $dest" }
+            skipped.add(source.lookedUp)
+            progressTracker.completeItem()
+            return
+        }
+
+        // No issue handler configured? Re-throw exception immediately
+        if (onIssue == null) {
+            throw error
+        }
+
+        // Convert exception to appropriate PathActionIssue type
+        val issue = if (isPermissionError) {
+            PathActionIssue.InsufficientPermission(
+                destination = source,
+                exception = error,
+                canSkip = true
+            )
+        } else {
+            PathActionIssue.UnknownError(
+                destination = source,
+                exception = error,
+                canRetry = false,  // Can't retry file operations easily
+                canSkip = true
+            )
+        }
+
+        // Resolve issue with user callback (may throw CancellationException)
+        val resolution = issueResolver.resolveIssue(issue)
+
+        // Handle resolution
+        when (resolution) {
+            is PathActionIssue.InsufficientPermission.Resolution.Skip,
+            is PathActionIssue.UnknownError.Resolution.Skip -> {
+                // User chose to skip this file
+                skipped.add(source.lookedUp)
+                progressTracker.completeItem()
+            }
+            is PathActionIssue.UnknownError.Resolution.Retry -> {
+                // Retry not implemented for now - just skip
+                log(TAG, WARN) { "Retry not implemented, skipping: $dest" }
+                skipped.add(source.lookedUp)
+                progressTracker.completeItem()
+            }
+            else -> {
+                // Cancel is handled by issueResolver.resolveIssue() throwing CancellationException
+            }
+        }
     }
 
     private suspend fun reportScanProgress(lookup: SPL) {
@@ -686,6 +813,44 @@ internal class GenericPathCopy<
                 currentFileStartTime = snapshot.currentFileStartTime
             )
         )
+    }
+
+    /**
+     * Resolve a symlink to get the lookup of its target.
+     * Used during scanning to determine if we should treat a symlink as a file or directory.
+     *
+     * When `followSymlinks=true`, this method resolves the symlink and returns a lookup
+     * with the target's actual file type, allowing directories to be scanned recursively.
+     */
+    private suspend fun resolveSymlinkForScanning(symlinkPath: SP, symlinkLookup: SPL): SPL {
+        try {
+            val linkTarget = sourceOps.readSymbolicLink(symlinkPath)
+
+            // Resolve relative paths to absolute
+            @Suppress("UNCHECKED_CAST")
+            val resolvedPath = if (linkTarget.path.startsWith("/")) {
+                // Absolute path - use as-is
+                linkTarget
+            } else {
+                // Relative path - resolve relative to symlink's parent
+                val parent = symlinkPath.parent
+                    ?: throw IllegalStateException("Symlink has no parent: $symlinkPath")
+                parent.child(linkTarget.path) as SP
+            }
+
+            // Lookup the target to get its actual file type
+            val targetLookup = sourceOps.lookup(resolvedPath)
+
+            log(TAG, VERBOSE) {
+                "Resolved symlink for scanning: $symlinkPath -> $resolvedPath (${targetLookup.fileType})"
+            }
+
+            return targetLookup
+        } catch (e: Exception) {
+            log(TAG, WARN) { "Failed to resolve symlink $symlinkPath: $e - treating as file" }
+            // Fall back to treating it as a file (will be copied as symlink)
+            return symlinkLookup
+        }
     }
 
     companion object {
