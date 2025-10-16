@@ -1,7 +1,11 @@
 package eu.darken.butler.common.files.local
 
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
+import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
@@ -119,18 +123,16 @@ internal class LocalPathDelete(
      *
      * @param error The exception that occurred
      * @param lookup The path lookup that failed
-     * @param operation Description of the operation for logging
      * @param canRetry Whether retry is supported for this operation
      * @param originalItem The original work item (for retry support)
      */
     private suspend fun handleError(
         error: Throwable,
         lookup: LocalPathLookup,
-        operation: String,
         canRetry: Boolean = false,
         originalItem: WorkItem.DeletePath? = null
     ) {
-        log(TAG, ERROR) { "$operation failed: ${lookup.lookedUp} - $error" }
+        log(TAG, ERROR) { "handleError Operation failed: ${lookup.lookedUp} - $error" }
 
         // Resolve issue and apply resolution
         if (error is AccessDeniedException || error is SecurityException) {
@@ -155,6 +157,7 @@ internal class LocalPathDelete(
                     skipped.add(lookup)
                     progressTracker.completeItem()
                 }
+
                 is PathActionIssue.InsufficientPermission.Resolution.Cancel -> {
                     // Already thrown by resolveIssue
                 }
@@ -182,6 +185,7 @@ internal class LocalPathDelete(
                     skipped.add(lookup)
                     progressTracker.completeItem()
                 }
+
                 is PathActionIssue.UnknownError.Resolution.Retry -> {
                     if (originalItem != null) {
                         log(TAG, INFO) { "Retrying delete operation: ${lookup.lookedUp}" }
@@ -194,6 +198,7 @@ internal class LocalPathDelete(
                         progressTracker.completeItem()
                     }
                 }
+
                 is PathActionIssue.UnknownError.Resolution.Cancel -> {
                     // Already thrown by resolveIssue
                 }
@@ -202,11 +207,11 @@ internal class LocalPathDelete(
     }
 
     private suspend fun handleDeleteError(error: Exception, originalItem: WorkItem.DeletePath) {
-        handleError(error, originalItem.cachedLookup, operation = "Delete", canRetry = true, originalItem = originalItem)
+        handleError(error, originalItem.cachedLookup, canRetry = true, originalItem = originalItem)
     }
 
-    private suspend fun handleScanError(error: Throwable, lookup: LocalPathLookup, operation: String) {
-        handleError(error, lookup, operation = operation, canRetry = false)
+    private suspend fun handleScanError(error: Throwable, lookup: LocalPathLookup) {
+        handleError(error, lookup, canRetry = false)
     }
 
     private suspend fun processScan(item: WorkItem.ScanPath): Int {
@@ -274,25 +279,28 @@ internal class LocalPathDelete(
                                 // Directory disappeared between lookup and listing
                                 log(TAG, WARN) { "Directory disappeared during scan: ${item.path}" }
                             }
+
                             is AccessDeniedException -> {
                                 // Add item before handling error so counts are correct
                                 progressTracker.totalItems++
                                 progressTracker.totalBytes += lookup.size
-                                handleScanError(cause, lookup, "List directory contents - Permission denied")
+                                handleScanError(cause, lookup)
                                 return 0
                             }
+
                             is SecurityException -> {
                                 // Add item before handling error so counts are correct
                                 progressTracker.totalItems++
                                 progressTracker.totalBytes += lookup.size
-                                handleScanError(cause, lookup, "List directory contents - Permission denied")
+                                handleScanError(cause, lookup)
                                 return 0
                             }
+
                             else -> {
                                 // Add item before handling error so counts are correct
                                 progressTracker.totalItems++
                                 progressTracker.totalBytes += lookup.size
-                                handleScanError(cause ?: e, lookup, "List directory contents")
+                                handleScanError(cause ?: e, lookup)
                                 return 0
                             }
                         }
@@ -341,6 +349,7 @@ internal class LocalPathDelete(
                     if (!ignoreMissing) throw ReadException("File does not exist", item.path, e)
                     progressTracker.completeItem()
                 }
+
                 is DirectoryNotEmptyException -> {
                     // DirectoryNotEmptyException without issue handler should throw the original exception
                     if (onIssue == null) {
@@ -349,6 +358,7 @@ internal class LocalPathDelete(
                     }
                     handleDeleteError(e, item)
                 }
+
                 else -> {
                     handleDeleteError(e, item)
                 }

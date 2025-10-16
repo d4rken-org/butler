@@ -698,6 +698,7 @@ internal class GenericPathCopy<
     private suspend fun handleScanError(error: Exception, lookup: SPL) {
         log(TAG, ERROR) { "Scan error: ${lookup.lookedUp} - $error" }
         // Would handle errors similar to LocalPathDelete
+        // TODO handle scan errors
     }
 
     private suspend fun handleCopyError(error: Exception, originalItem: WorkItem.CopyFile<SP, SPL, DP>) {

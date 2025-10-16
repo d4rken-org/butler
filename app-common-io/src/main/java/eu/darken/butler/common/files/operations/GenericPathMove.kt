@@ -688,6 +688,7 @@ internal class GenericPathMove<
 
     private suspend fun handleScanError(error: Exception, lookup: SPL) {
         log(TAG, ERROR) { "Scan error: ${lookup.lookedUp} - $error" }
+        // TODO handle scan errors
     }
 
     private suspend fun handleMoveError(error: Exception, originalItem: WorkItem.MoveFile<SP, SPL, DP>) {
