@@ -1,6 +1,5 @@
 package eu.darken.butler.explorer.ui.picker
 
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -10,9 +9,11 @@ import androidx.compose.ui.res.stringResource
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
+import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.BreadcrumbBar
 import eu.darken.butler.workspace.core.picker.PickerConfig
 
@@ -22,6 +23,7 @@ fun ExplorerPickerTopBar(
     selection: PickerConfig.Selection,
     selectionCount: Int,
     breadcrumbs: List<ExplorerBreadcrumb>?,
+    currentLocation: ExplorerLocation?,
     onBreadcrumbClick: (ExplorerNavigation) -> Unit,
     onCancel: () -> Unit,
     onConfirm: () -> Unit,
@@ -45,6 +47,7 @@ fun ExplorerPickerTopBar(
                         } else {
                             stringResource(R.string.explorer_picker_select_directories_title)
                         }
+
                         is PickerConfig.Selection.FileSingle -> stringResource(R.string.explorer_picker_select_file_title)
                         is PickerConfig.Selection.FileMulti -> if (selectionCount > 0) {
                             stringResource(R.string.explorer_picker_select_files_count_title, selectionCount)
@@ -64,9 +67,14 @@ fun ExplorerPickerTopBar(
             TextButton(
                 onClick = onConfirm,
                 enabled = when (selection) {
-                    is PickerConfig.Selection.DirectorySingle -> true
+                    is PickerConfig.Selection.DirectorySingle -> {
+                        // Only enable for real directories, not virtual locations (Home, Device)
+                        currentLocation is ExplorerLocation.Directory
+                    }
+
                     is PickerConfig.Selection.DirectoryMulti,
                     is PickerConfig.Selection.FileMulti -> selectionCount > 0
+
                     is PickerConfig.Selection.FileSingle -> false // Instant selection, no confirm needed
                 }
             ) {
@@ -92,18 +100,21 @@ private fun ExplorerPickerTopBarDirectoryPreview() {
             selectionCount = 0,
             breadcrumbs = listOf(
                 eu.darken.butler.explorer.core.BreadcrumbGenerator.HOME,
-                eu.darken.butler.explorer.core.ExplorerBreadcrumb(
+                ExplorerBreadcrumb(
                     label = "sdcard".toCaString(),
-                    target = eu.darken.butler.explorer.core.ExplorerNavigation.Target.Directory(
-                        eu.darken.butler.common.files.LocalPath.build("/sdcard")
+                    target = ExplorerNavigation.Target.Directory(
+                        LocalPath.build("/sdcard")
                     )
                 ),
-                eu.darken.butler.explorer.core.ExplorerBreadcrumb(
+                ExplorerBreadcrumb(
                     label = "Download".toCaString(),
-                    target = eu.darken.butler.explorer.core.ExplorerNavigation.Target.Directory(
-                        eu.darken.butler.common.files.LocalPath.build("/sdcard/Download")
+                    target = ExplorerNavigation.Target.Directory(
+                        LocalPath.build("/sdcard/Download")
                     )
                 )
+            ),
+            currentLocation = ExplorerLocation.Directory(
+                path = LocalPath.build("/sdcard/Download")
             ),
             onBreadcrumbClick = {},
             onCancel = {},
@@ -121,18 +132,21 @@ private fun ExplorerPickerTopBarFileEmptyPreview() {
             selectionCount = 0,
             breadcrumbs = listOf(
                 eu.darken.butler.explorer.core.BreadcrumbGenerator.HOME,
-                eu.darken.butler.explorer.core.ExplorerBreadcrumb(
+                ExplorerBreadcrumb(
                     label = "sdcard".toCaString(),
-                    target = eu.darken.butler.explorer.core.ExplorerNavigation.Target.Directory(
-                        eu.darken.butler.common.files.LocalPath.build("/sdcard")
+                    target = ExplorerNavigation.Target.Directory(
+                        LocalPath.build("/sdcard")
                     )
                 ),
-                eu.darken.butler.explorer.core.ExplorerBreadcrumb(
+                ExplorerBreadcrumb(
                     label = "Pictures".toCaString(),
-                    target = eu.darken.butler.explorer.core.ExplorerNavigation.Target.Directory(
-                        eu.darken.butler.common.files.LocalPath.build("/sdcard/Pictures")
+                    target = ExplorerNavigation.Target.Directory(
+                        LocalPath.build("/sdcard/Pictures")
                     )
                 )
+            ),
+            currentLocation = ExplorerLocation.Directory(
+                path = LocalPath.build("/sdcard/Pictures")
             ),
             onBreadcrumbClick = {},
             onCancel = {},
@@ -150,24 +164,27 @@ private fun ExplorerPickerTopBarFileWithSelectionPreview() {
             selectionCount = 3,
             breadcrumbs = listOf(
                 eu.darken.butler.explorer.core.BreadcrumbGenerator.HOME,
-                eu.darken.butler.explorer.core.ExplorerBreadcrumb(
+                ExplorerBreadcrumb(
                     label = "sdcard".toCaString(),
-                    target = eu.darken.butler.explorer.core.ExplorerNavigation.Target.Directory(
-                        eu.darken.butler.common.files.LocalPath.build("/sdcard")
+                    target = ExplorerNavigation.Target.Directory(
+                        LocalPath.build("/sdcard")
                     )
                 ),
-                eu.darken.butler.explorer.core.ExplorerBreadcrumb(
+                ExplorerBreadcrumb(
                     label = "Documents".toCaString(),
-                    target = eu.darken.butler.explorer.core.ExplorerNavigation.Target.Directory(
-                        eu.darken.butler.common.files.LocalPath.build("/sdcard/Documents")
+                    target = ExplorerNavigation.Target.Directory(
+                        LocalPath.build("/sdcard/Documents")
                     )
                 ),
-                eu.darken.butler.explorer.core.ExplorerBreadcrumb(
+                ExplorerBreadcrumb(
                     label = "Work".toCaString(),
-                    target = eu.darken.butler.explorer.core.ExplorerNavigation.Target.Directory(
-                        eu.darken.butler.common.files.LocalPath.build("/sdcard/Documents/Work")
+                    target = ExplorerNavigation.Target.Directory(
+                        LocalPath.build("/sdcard/Documents/Work")
                     )
                 )
+            ),
+            currentLocation = ExplorerLocation.Directory(
+                path = LocalPath.build("/sdcard/Documents/Work")
             ),
             onBreadcrumbClick = {},
             onCancel = {},

@@ -19,15 +19,35 @@ sealed interface WorkspaceEvent {
     data object AllClosed : WorkspaceEvent
 
     /**
+     * Base interface for workspace result events.
+     * Used for workspaces that return results to caller workspaces (e.g., pickers, dialogs).
+     */
+    sealed interface ResultEvent : WorkspaceEvent {
+        val workspaceId: Workspace.Id
+        val callerWorkspaceId: Workspace.Id?
+    }
+
+    /**
      * Emitted when a picker workspace has selection confirmed
      *
-     * @param pickerWorkspaceId Workspace that generated the result (the picker)
+     * @param workspaceId Workspace that generated the result (the picker)
      * @param callerWorkspaceId Workspace that expects the result (null if not specified)
      * @param selectedPaths Selected file/folder paths
      */
     data class PickerResult(
-        val pickerWorkspaceId: Workspace.Id,
-        val callerWorkspaceId: Workspace.Id?,
+        override val workspaceId: Workspace.Id,
+        override val callerWorkspaceId: Workspace.Id?,
         val selectedPaths: List<APath<*>>,
-    ) : WorkspaceEvent
+    ) : ResultEvent
+
+    /**
+     * Emitted when a result-returning workspace is cancelled without providing a result
+     *
+     * @param workspaceId Workspace that was cancelled
+     * @param callerWorkspaceId Workspace that was expecting a result (null if not specified)
+     */
+    data class ResultCancelled(
+        override val workspaceId: Workspace.Id,
+        override val callerWorkspaceId: Workspace.Id?,
+    ) : ResultEvent
 }

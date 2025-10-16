@@ -63,6 +63,8 @@ import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.cancelResult
+import eu.darken.butler.workspace.core.returnResult
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.operations.Operation
@@ -189,6 +191,26 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     ) {
         val progress = currentLocation?.progress
         val info = currentLocation?.info
+
+        /**
+         * Determines if selection UI (checkboxes) should be shown for an item.
+         *
+         * Selection UI is shown when:
+         * 1. Item is selectable, AND
+         * 2. Either:
+         *    - In multi-select picker mode (FileMulti/DirectoryMulti), OR
+         *    - In selection mode (items are currently selected)
+         */
+        fun shouldShowSelection(item: ExplorerItem): Boolean {
+            // Must be selectable
+            if (item !in selectionState.selectableItems) return false
+
+            // Show in multi-select picker modes (even before any items selected)
+            if (pickerConfig?.selection?.isMultiSelect == true) return true
+
+            // Show when in selection mode (normal browsing)
+            return selectionState.selectedItems.isNotEmpty()
+        }
     }
 
     val state = combine(
@@ -348,7 +370,23 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     clearSelection()
                 }
                 is ExplorerItem.File -> {
-                    dialogStateFlow.value = FileOptions(item)
+                    val workspace = getWorkspace()
+                    val config = workspace.pickerConfig
+
+                    // FileSingle mode: instant selection on file tap
+                    if (config?.selection?.instantFileSelection == true) {
+                        log(tag, INFO) { "FileSingle instant selection: ${item.lookup.name}" }
+                        workspaceRemote.returnResult(
+                            WorkspaceEvent.PickerResult(
+                                workspaceId = id,
+                                callerWorkspaceId = config.callerWorkspaceId,
+                                selectedPaths = listOf(item.lookup.lookedUp),
+                            )
+                        )
+                    } else {
+                        // Normal mode or other picker modes: show file options dialog
+                        dialogStateFlow.value = FileOptions(item)
+                    }
                 }
                 is ExplorerItem.Peek -> {
                     // NOOP
@@ -397,6 +435,37 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             currentSelection - item
         } else {
             currentSelection + item
+        }
+    }
+
+    fun onItemClick(item: ExplorerItem) = launch {
+        log(tag) { "onItemClick($item)" }
+        val workspace = getWorkspace()
+        val pickerConfig = workspace.pickerConfig
+
+        when {
+            // FileMulti mode: tap file to toggle selection
+            pickerConfig?.selection is PickerConfig.Selection.FileMulti && item is ExplorerItem.File -> {
+                toggleItemSelection(item)
+            }
+            // Selection mode active: toggle selection
+            selectedItemsFlow.value.isNotEmpty() -> {
+                toggleItemSelection(item)
+            }
+            // Normal mode: navigate
+            else -> {
+                navigate(item)
+            }
+        }
+    }
+
+    fun onItemLongClick(item: ExplorerItem) {
+        log(tag) { "onItemLongClick($item)" }
+        val pickerConfig = runBlocking { workspaceSource.first()?.pickerConfig }
+
+        // Disable long-press in single-select picker modes
+        if (pickerConfig == null || pickerConfig.selection.isMultiSelect) {
+            toggleItemSelection(item)
         }
     }
 
@@ -1093,31 +1162,32 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
         log(tag, INFO) { "Picker selection confirmed: ${selectedPaths.size} path(s)" }
 
-        // Emit PickerResult event
-        workspaceRemote.emitEvent(
+        // Emit PickerResult event and close workspace
+        workspaceRemote.returnResult(
             WorkspaceEvent.PickerResult(
-                pickerWorkspaceId = id,
+                workspaceId = id,
                 callerWorkspaceId = config.callerWorkspaceId,
                 selectedPaths = selectedPaths,
             )
         )
-
-        // Close this picker workspace
-        workspaceRemote.execute(WorkspaceAction.Close(id))
     }
 
     fun cancelPicker() = launch {
         log(tag) { "cancelPicker()" }
         val workspace = getWorkspace()
-        if (workspace.pickerConfig == null) {
+        val config = workspace.pickerConfig
+        if (config == null) {
             log(tag, WARN) { "cancelPicker() called but not in picker mode" }
             return@launch
         }
 
         log(tag, INFO) { "Picker cancelled" }
 
-        // Simply close without emitting result
-        workspaceRemote.execute(WorkspaceAction.Close(id))
+        // Emit cancellation event and close workspace
+        workspaceRemote.cancelResult(
+            workspaceId = id,
+            callerWorkspaceId = config.callerWorkspaceId,
+        )
     }
 
     fun goBack() {

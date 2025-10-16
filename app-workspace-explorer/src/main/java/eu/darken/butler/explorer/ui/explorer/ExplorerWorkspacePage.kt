@@ -260,6 +260,7 @@ fun ExplorerWorkspacePage(
                         selection = pickerConfig.selection,
                         selectionCount = mainState.selectionState.selectedItems.size,
                         breadcrumbs = mainState.breadcrumbs,
+                        currentLocation = mainState.currentLocation,
                         onBreadcrumbClick = { navigation -> vm?.navigate(navigation) },
                         onCancel = { vm?.cancelPicker() },
                         onConfirm = { vm?.confirmPickerSelection() },
@@ -377,16 +378,9 @@ fun ExplorerWorkspacePage(
                                                         item = item,
                                                         isSelected = mainStateSnap.selectionState.selectedItems.contains(item),
                                                         onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                        onClick = {
-                                                            if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
-                                                                vm?.toggleItemSelection(item)
-                                                            } else {
-                                                                vm?.navigate(item)
-                                                            }
-                                                        },
-                                                        onLongClick = { vm?.toggleItemSelection(item) },
-                                                        showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
-                                                            item in mainStateSnap.selectionState.selectableItems
+                                                        onClick = { vm?.onItemClick(item) },
+                                                        onLongClick = { vm?.onItemLongClick(item) },
+                                                        showSelection = mainStateSnap.shouldShowSelection(item)
                                                     )
 
                                                     is ExplorerItem.Peek -> PeekRow(
@@ -452,16 +446,9 @@ fun ExplorerWorkspacePage(
                                                         item = item,
                                                         isSelected = mainStateSnap.selectionState.selectedItems.contains(item),
                                                         onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                        onClick = {
-                                                            if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
-                                                                vm?.toggleItemSelection(item)
-                                                            } else {
-                                                                vm?.navigate(item)
-                                                            }
-                                                        },
-                                                        onLongClick = { vm?.toggleItemSelection(item) },
-                                                        showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
-                                                            item in mainStateSnap.selectionState.selectableItems
+                                                        onClick = { vm?.onItemClick(item) },
+                                                        onLongClick = { vm?.onItemLongClick(item) },
+                                                        showSelection = mainStateSnap.shouldShowSelection(item)
                                                     )
                                                     is ExplorerItem.Shortcut -> ShortcutGrid(
                                                         item = item,

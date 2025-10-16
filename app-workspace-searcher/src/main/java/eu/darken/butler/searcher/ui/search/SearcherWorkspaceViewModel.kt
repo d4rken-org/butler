@@ -41,6 +41,7 @@ import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.picker.ExplorerPickerArguments
 import eu.darken.butler.workspace.core.picker.PickerConfig
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
@@ -121,15 +122,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
         // Listen for picker results
         workspaceRemote.events
-            .onEach { event ->
-                if (event is WorkspaceEvent.PickerResult && event.callerWorkspaceId == id) {
-                    log(tag, INFO) { "Received picker result: ${event.selectedPaths}" }
-                    val selectedPath = event.selectedPaths.firstOrNull()
-                    if (selectedPath != null) {
-                        // Update search path
-                        searchPath.value = selectedPath
-                        searcherSettings.defaultSearchPath.value(selectedPath)
-                    }
+            .handleResult<WorkspaceEvent.PickerResult>(callerWorkspaceId = id) { result ->
+                log(tag, INFO) { "Received picker result: ${result.selectedPaths}" }
+                val selectedPath = result.selectedPaths.firstOrNull()
+                if (selectedPath != null) {
+                    // Update search path
+                    searchPath.value = selectedPath
+                    searcherSettings.defaultSearchPath.value(selectedPath)
                 }
             }
             .launchIn(vmScope)

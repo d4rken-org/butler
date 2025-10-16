@@ -158,18 +158,29 @@ override val info: Flow<Workspace.Info> = combine(
 }
 ```
 
-**3. Return Results via WorkspaceEvent**
+**3. Return Results via Convenience Functions**
 
 ```kotlin
-// In your confirmation method:
-workspaceRemote.emitEvent(
+import eu.darken.butler.workspace.core.returnResult
+import eu.darken.butler.workspace.core.cancelResult
+
+// In your confirmation method - return result and close:
+workspaceRemote.returnResult(
     WorkspaceEvent.PickerResult(
-        pickerWorkspaceId = id,
+        workspaceId = id,
         callerWorkspaceId = config.callerWorkspaceId,
         selectedPaths = selectedPaths
     )
 )
+
+// In your cancellation method - emit cancellation and close:
+workspaceRemote.cancelResult(
+    workspaceId = id,
+    callerWorkspaceId = config.callerWorkspaceId,
+)
 ```
+
+**Note:** The `returnResult()` and `cancelResult()` convenience functions combine event emission with automatic workspace closure. For more complex flows requiring multiple events before closing, use `workspaceRemote.emitEvent()` and `workspaceRemote.execute(Close())` separately.
 
 #### Launching a Modal Workspace
 
@@ -188,17 +199,15 @@ val result = workspaceRemote.execute(
     )
 ) as WorkspaceAction.Create.Result
 
-// 2. Listen for results
-workspaceRemote.events
-    .filterIsInstance<WorkspaceEvent.PickerResult>()
-    .filter { it.callerWorkspaceId == id }
-    .onEach { event ->
-        // Handle result
-        val selectedPath = event.selectedPaths.firstOrNull()
-        updateSearchPath(selectedPath)
+// 2. Listen for results using convenience extension
+import eu.darken.butler.workspace.core.handleResult
 
-        // Close the picker workspace
-        workspaceRemote.execute(WorkspaceAction.Close(event.pickerWorkspaceId))
+workspaceRemote.events
+    .handleResult<WorkspaceEvent.PickerResult>(callerWorkspaceId = id) { result ->
+        // Handle result
+        val selectedPath = result.selectedPaths.firstOrNull()
+        updateSearchPath(selectedPath)
+        // Workspace closes automatically - no manual close needed
     }
     .launchInViewModel()
 ```
@@ -259,14 +268,24 @@ val childWorkspaces = _workspaces.value.filter { ws ->
 - Let UI layer derive presentation from domain data
 
 **Result Events:**
-- Use specific event types for different result payloads
-- Include both picker ID and caller ID for robust routing
-- Always close picker workspace after handling result
+- All result events implement `WorkspaceEvent.ResultEvent` interface
+- Use specific event types for different result payloads (e.g., `PickerResult`)
+- Include both `workspaceId` and `callerWorkspaceId` for robust routing
+- Use `returnResult()` convenience function for common "return-and-close" pattern
+- Use `cancelResult()` to emit cancellation event when dismissed without result
+- For complex flows (preview, validation), emit events separately and close manually
+
+**Handling Results:**
+- Use `handleResult<T>()` flow extension for automatic filtering and type-safe handling
+- No manual workspace close needed - `handleResult()` filters terminal events
+- For multiple result types, chain multiple `handleResult()` calls
+- Example: `.handleResult<PickerResult>(id) { /* handle */ }.launchIn(scope)`
 
 **Naming:**
 - Arguments: `[Type]PickerArguments` (e.g., `ExplorerPickerArguments`)
 - Config: `PickerConfig` (stored in workspace instance, not flowed)
 - Events: `[Type]Result` (e.g., `PickerResult`)
+- All implement `ResultEvent` for consistent handling
 
 ## Coding Standards
 

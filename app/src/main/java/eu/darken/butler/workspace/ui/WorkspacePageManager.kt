@@ -52,9 +52,8 @@ class WorkspacePageManager @Inject constructor(
                     is WorkspaceEvent.Closed -> {
                         handleWorkspaceClosed(event.workspaceId)
                     }
-                    is WorkspaceEvent.PickerResult -> {
+                    is WorkspaceEvent.ResultEvent -> {
                         // Handled by individual workspaces, UI manager ignores it
-                        log(TAG) { "Picker result event: ${event.selectedPaths.size} paths selected" }
                     }
                     is WorkspaceEvent.Reordered -> {
                         log(TAG) { "Workspaces reordered: ${event.workspaceIds}" }
