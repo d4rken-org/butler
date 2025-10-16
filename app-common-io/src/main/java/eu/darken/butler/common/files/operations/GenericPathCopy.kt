@@ -16,6 +16,8 @@ import eu.darken.butler.common.files.local.operations.core.PathOperationProgress
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.io.R
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
 
 /**
@@ -76,7 +78,6 @@ internal class GenericPathCopy<
     private val destOps: FileSystemOps<DP, DPL, DPLE>,
     private val strategy: TransferStrategy<SP, SPL, SPLE, DP, DPL, DPLE>,
     private val options: TransferStrategy.Options,
-    private val onProgress: (suspend (CopyAction.State.Progress<SP, SPL>) -> Unit)?,
     private val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
 ) {
 
@@ -90,7 +91,7 @@ internal class GenericPathCopy<
 
     init {
         log(TAG, INFO) {
-            "GenericPathCopy init: sources=${sources.size}, options=$options, onProgress=${onProgress != null}, onIssue=${onIssue != null}"
+            "GenericPathCopy init: sources=${sources.size}, options=$options, onIssue=${onIssue != null}"
         }
     }
 
@@ -164,7 +165,7 @@ internal class GenericPathCopy<
         ) : WorkItem()
     }
 
-    suspend fun execute(): CopyAction.State.Result<SP, SPL> {
+    fun execute(): Flow<CopyAction.State<SP, SPL>> = flow {
         log(TAG, DEBUG) { "execute(): Copying ${sources.size} sources to $destination" }
 
         // Check if destination exists and is a directory (for path calculation logic)
@@ -185,7 +186,7 @@ internal class GenericPathCopy<
                 is WorkItem.ScanSource<*> -> {
                     scanItemsRemaining--
                     @Suppress("UNCHECKED_CAST")
-                    val childrenAdded = processScan(item as WorkItem.ScanSource<SP>)
+                    val childrenAdded = processScan(item as WorkItem.ScanSource<SP>, ::emit)
                     scanItemsRemaining += childrenAdded
 
                     if (scanItemsRemaining == 0) {
@@ -195,7 +196,7 @@ internal class GenericPathCopy<
                 }
                 is WorkItem.CopyFile<*, *, *> -> {
                     @Suppress("UNCHECKED_CAST")
-                    processCopyFile(item as WorkItem.CopyFile<SP, SPL, DP>)
+                    processCopyFile(item as WorkItem.CopyFile<SP, SPL, DP>, ::emit)
                 }
                 is WorkItem.CreateDirectory<*, *, *> -> {
                     @Suppress("UNCHECKED_CAST")
@@ -211,14 +212,14 @@ internal class GenericPathCopy<
         // For same-type operations (SP=DP), copied is Set<Pair<SP, DP>> which equals Set<Pair<SP, SP>>
         // For cross-type, this won't compile - cross-type operations should use their own result type
         @Suppress("UNCHECKED_CAST")
-        return CopyAction.State.Result(
+        emit(CopyAction.State.Result(
             copied = copied as Set<Pair<SP, SP>>,
             skipped = skipped,
             copiedBytes = totalBytesTransferred
-        )
+        ))
     }
 
-    private suspend fun processScan(item: WorkItem.ScanSource<SP>): Int {
+    private suspend fun processScan(item: WorkItem.ScanSource<SP>, emit: suspend (CopyAction.State<SP, SPL>) -> Unit): Int {
         log(TAG, VERBOSE) { "Scanning source: ${item.source}" }
 
         val lookup = try {
@@ -250,7 +251,7 @@ internal class GenericPathCopy<
 
                 // Report scan progress with throttling
                 if (progressTracker.shouldReportProgress()) {
-                    reportScanProgress(effectiveLookup)
+                    reportScanProgress(effectiveLookup, emit)
                 }
 
                 return 0
@@ -263,7 +264,7 @@ internal class GenericPathCopy<
 
                 // Report scan progress with throttling
                 if (progressTracker.shouldReportProgress()) {
-                    reportScanProgress(effectiveLookup)
+                    reportScanProgress(effectiveLookup, emit)
                 }
 
                 // List and queue children
@@ -273,13 +274,13 @@ internal class GenericPathCopy<
                         // This was a symlink-to-directory - list the target's children
                         // but re-parent them under the symlink path
                         val linkTarget = sourceOps.readSymbolicLink(item.source)
-                        @Suppress("UNCHECKED_CAST")
+
                         val resolvedPath = if (linkTarget.path.startsWith("/")) {
                             linkTarget
                         } else {
                             val parent = item.source.parent
                                 ?: throw IllegalStateException("Symlink has no parent: ${item.source}")
-                            parent.child(linkTarget.path) as SP
+                            parent.child(linkTarget.path)
                         }
 
                         // List children of the resolved directory
@@ -289,8 +290,7 @@ internal class GenericPathCopy<
                         targetChildren.forEach { targetChild ->
                             // Get just the child name and create a path under the symlink
                             val childName = targetChild.name
-                            @Suppress("UNCHECKED_CAST")
-                            val symlinkChild = item.source.child(childName) as SP
+                            val symlinkChild = item.source.child(childName)
                             workQueue.addFirst(WorkItem.ScanSource(symlinkChild, item.topLevelSource))
                             childrenFound++
                         }
@@ -313,7 +313,7 @@ internal class GenericPathCopy<
         }
     }
 
-    private suspend fun processCopyFile(item: WorkItem.CopyFile<SP, SPL, DP>) {
+    private suspend fun processCopyFile(item: WorkItem.CopyFile<SP, SPL, DP>, emit: suspend (CopyAction.State<SP, SPL>) -> Unit) {
         // Skip if parent directory was skipped
         if (isDescendantOfSkippedDir(item.sourceLookup.lookedUp)) {
             log(TAG, VERBOSE) { "Skipping file - parent directory was skipped" }
@@ -342,7 +342,7 @@ internal class GenericPathCopy<
                 onProgress = { bytes ->
                     progressTracker.updateFileProgress(bytes)
                     if (progressTracker.shouldReportProgress()) {
-                        reportProgress(item.sourceLookup)
+                        reportProgress(item.sourceLookup, emit)
                     }
                 }
             )
@@ -361,9 +361,9 @@ internal class GenericPathCopy<
 
             // Force final progress report
             if (progressTracker.shouldReportProgress(force = true)) {
-                reportProgress(item.sourceLookup)
+                reportProgress(item.sourceLookup, emit)
             }
-        } catch (e: PathAlreadyExistsException) {
+        } catch (_: PathAlreadyExistsException) {
             log(TAG, VERBOSE) { "File collision detected: $adjustedDest" }
             val destLookup = destOps.lookup(adjustedDest)
             handleFileConflict(item, adjustedDest, destLookup)
@@ -840,12 +840,12 @@ internal class GenericPathCopy<
         }
     }
 
-    private suspend fun reportScanProgress(lookup: SPL) {
+    private suspend fun reportScanProgress(lookup: SPL, emit: suspend (CopyAction.State<SP, SPL>) -> Unit) {
         val snapshot = progressTracker.createSnapshot()
 
         // For same-type operations (SP=DP), destination can be safely cast to SP
         @Suppress("UNCHECKED_CAST")
-        onProgress?.invoke(
+        emit(
             CopyAction.State.Progress(
                 currentSource = lookup.lookedUp,
                 currentDestination = destination as SP,
@@ -861,12 +861,12 @@ internal class GenericPathCopy<
         )
     }
 
-    private suspend fun reportProgress(lookup: SPL) {
+    private suspend fun reportProgress(lookup: SPL, emit: suspend (CopyAction.State<SP, SPL>) -> Unit) {
         val snapshot = progressTracker.createSnapshot()
 
         // For same-type operations (SP=DP), destination can be safely cast to SP
         @Suppress("UNCHECKED_CAST")
-        onProgress?.invoke(
+        emit(
             CopyAction.State.Progress(
                 currentSource = lookup.lookedUp,
                 currentDestination = destination as SP,  // Safe when SP=DP for same-type operations
@@ -914,7 +914,7 @@ internal class GenericPathCopy<
                 // Relative path - resolve relative to symlink's parent
                 val parent = symlinkPath.parent
                     ?: throw IllegalStateException("Symlink has no parent: $symlinkPath")
-                parent.child(linkTarget.path) as SP
+                parent.child(linkTarget.path)
             }
 
             // Lookup the target to get its actual file type
@@ -944,7 +944,7 @@ internal class GenericPathCopy<
  * - **Same-type** (SP=DP): Pass same FileSystemOps instance for both parameters
  * - **Cross-type** (SP≠DP): Pass different FileSystemOps instances
  */
-suspend fun <
+fun <
     SP : APath<SP>, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
     DP : APath<DP>, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
     > Collection<SP>.copyGeneric(
@@ -953,15 +953,13 @@ suspend fun <
     destOps: FileSystemOps<DP, DPL, DPLE>,
     strategy: TransferStrategy<SP, SPL, SPLE, DP, DPL, DPLE>,
     options: TransferStrategy.Options = TransferStrategy.Options(),
-    onProgress: (suspend (CopyAction.State.Progress<SP, SPL>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): CopyAction.State.Result<SP, SPL> = GenericPathCopy(
+): Flow<CopyAction.State<SP, SPL>> = GenericPathCopy(
     sources = this,
     destination = destination,
     sourceOps = sourceOps,
     destOps = destOps,
     strategy = strategy,
     options = options,
-    onProgress = onProgress,
     onIssue = onIssue
 ).execute()

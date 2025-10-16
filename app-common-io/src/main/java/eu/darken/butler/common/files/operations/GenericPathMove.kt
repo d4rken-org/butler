@@ -15,6 +15,8 @@ import eu.darken.butler.common.files.local.operations.core.PathOperationProgress
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.io.R
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
 
 /**
@@ -63,7 +65,6 @@ internal class GenericPathMove<
     private val destOps: FileSystemOps<DP, DPL, DPLE>,
     private val strategy: TransferStrategy<SP, SPL, SPLE, DP, DPL, DPLE>,
     private val options: TransferStrategy.Options,
-    private val onProgress: (suspend (MoveAction.State.Progress<SP, SPL>) -> Unit)?,
     private val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
 ) {
 
@@ -77,7 +78,7 @@ internal class GenericPathMove<
 
     init {
         log(TAG, INFO) {
-            "GenericPathMove init: sources=${sources.size}, options=$options, onProgress=${onProgress != null}, onIssue=${onIssue != null}"
+            "GenericPathMove init: sources=${sources.size}, options=$options, onIssue=${onIssue != null}"
         }
     }
 
@@ -92,27 +93,58 @@ internal class GenericPathMove<
     // Destination state
     private var destinationExistedAsDirectory = false
 
-    // Work queue
+    // Work queue for processing operations
     private var workQueue = ArrayDeque<WorkItem>()
 
+    /**
+     * Sealed hierarchy of work items for the move queue.
+     */
     private sealed class WorkItem {
+        /**
+         * Scan a source path and queue children for moving.
+         *
+         * @param source The path to scan
+         * @param topLevelSource The top-level source (for path calculations)
+         */
         data class ScanSource<SP : APath<SP>>(
             val source: SP,
             val topLevelSource: SP,
         ) : WorkItem()
 
+        /**
+         * Move a file to destination.
+         *
+         * @param sourceLookup Source file metadata
+         * @param destination Destination path
+         * @param topLevelSource Top-level source (for error reporting)
+         */
         data class MoveFile<SP : APath<SP>, SPL : APathLookup<SP>, DP : APath<DP>>(
             val sourceLookup: SPL,
             val destination: DP,
             val topLevelSource: SP,
         ) : WorkItem()
 
+        /**
+         * Create a directory at destination.
+         *
+         * @param sourceLookup Source directory metadata
+         * @param destination Destination path
+         * @param topLevelSource Top-level source (for error reporting)
+         */
         data class CreateDirectory<SP : APath<SP>, SPL : APathLookup<SP>, DP : APath<DP>>(
             val sourceLookup: SPL,
             val destination: DP,
             val topLevelSource: SP,
         ) : WorkItem()
 
+        /**
+         * Resolve a path conflict (file/directory already exists at destination).
+         *
+         * @param sourceLookup Source metadata
+         * @param destination Destination path
+         * @param destLookup Destination metadata (existing file/dir)
+         * @param originalItem The original work item that triggered this conflict
+         */
         data class ResolveConflict<SP : APath<SP>, SPL : APathLookup<SP>, DP : APath<DP>, DPL : APathLookup<DP>>(
             val sourceLookup: SPL,
             val destination: DP,
@@ -121,10 +153,8 @@ internal class GenericPathMove<
         ) : WorkItem()
     }
 
-    suspend fun execute(): MoveAction.State.Result<SP, SPL> {
-        log(TAG, DEBUG) {
-            "execute(): Moving ${sources.size} sources to $destination"
-        }
+    fun execute(): Flow<MoveAction.State<SP, SPL>> = flow {
+        log(TAG, DEBUG) { "execute(): Moving ${sources.size} sources to $destination" }
 
         // Check if destination exists and is a directory (for path calculation logic)
         if (destOps.exists(destination)) {
@@ -132,7 +162,7 @@ internal class GenericPathMove<
             destinationExistedAsDirectory = destLookup.fileType == FileType.DIRECTORY
         }
 
-        // Initialize work queue
+        // Initialize work queue with scan items for all sources
         scanItemsRemaining = sources.size
         sources.forEach { source ->
             workQueue.addLast(WorkItem.ScanSource(source, source))
@@ -144,16 +174,17 @@ internal class GenericPathMove<
                 is WorkItem.ScanSource<*> -> {
                     scanItemsRemaining--
                     @Suppress("UNCHECKED_CAST")
-                    val childrenAdded = processScan(item as WorkItem.ScanSource<SP>)
+                    val childrenAdded = processScan(item as WorkItem.ScanSource<SP>, ::emit)
                     scanItemsRemaining += childrenAdded
 
                     if (scanItemsRemaining == 0) {
-                        log(TAG, DEBUG) { "Scan complete: ${progressTracker.totalItems} items to move" }
+                        val snapshot = progressTracker.createSnapshot()
+                        log(TAG, DEBUG) { "Scan complete: ${snapshot.totalItems} items to move" }
                     }
                 }
                 is WorkItem.MoveFile<*, *, *> -> {
                     @Suppress("UNCHECKED_CAST")
-                    processMoveFile(item as WorkItem.MoveFile<SP, SPL, DP>)
+                    processMoveFile(item as WorkItem.MoveFile<SP, SPL, DP>, ::emit)
                 }
                 is WorkItem.CreateDirectory<*, *, *> -> {
                     @Suppress("UNCHECKED_CAST")
@@ -171,26 +202,27 @@ internal class GenericPathMove<
 
         // For same-type operations (SP=DP), moved is Set<Pair<SP, DP>> which equals Set<Pair<SP, SP>>
         @Suppress("UNCHECKED_CAST")
-        return MoveAction.State.Result(
+        emit(MoveAction.State.Result(
             movedFiles = moved as Set<Pair<SP, SP>>,
             skippedFiles = skipped,
             bytesMoved = progressTracker.processedBytes
-        )
+        ))
     }
 
-    private suspend fun processScan(item: WorkItem.ScanSource<SP>): Int {
+    private suspend fun processScan(item: WorkItem.ScanSource<SP>, emit: suspend (MoveAction.State<SP, SPL>) -> Unit): Int {
         log(TAG, VERBOSE) { "Scanning source: ${item.source}" }
 
         val lookup = try {
             sourceOps.lookup(item.source)
         } catch (e: Exception) {
             if (item.source == item.topLevelSource) {
-                throw e
+                throw e // Top-level source must exist
             }
             log(TAG, WARN) { "Child source disappeared during scan: ${item.source}" }
             return 0
         }
 
+        // Calculate destination path relative to top-level source
         val destPath = calculateDestinationPath(item.source, item.topLevelSource)
 
         when (lookup.fileType) {
@@ -201,7 +233,7 @@ internal class GenericPathMove<
 
                 // Report scan progress with throttling
                 if (progressTracker.shouldReportProgress()) {
-                    reportScanProgress(lookup)
+                    reportScanProgress(lookup, emit)
                 }
 
                 return 0
@@ -218,7 +250,7 @@ internal class GenericPathMove<
 
                 // Report scan progress with throttling
                 if (progressTracker.shouldReportProgress()) {
-                    reportScanProgress(lookup)
+                    reportScanProgress(lookup, emit)
                 }
 
                 // List and queue children
@@ -240,7 +272,8 @@ internal class GenericPathMove<
         }
     }
 
-    private suspend fun processMoveFile(item: WorkItem.MoveFile<SP, SPL, DP>) {
+    private suspend fun processMoveFile(item: WorkItem.MoveFile<SP, SPL, DP>, emit: suspend (MoveAction.State<SP, SPL>) -> Unit) {
+        // Skip if parent directory was skipped
         if (isDescendantOfSkippedDir(item.sourceLookup.lookedUp)) {
             log(TAG, VERBOSE) { "Skipping file - parent directory was skipped" }
             skipped.add(item.sourceLookup.lookedUp)
@@ -275,7 +308,7 @@ internal class GenericPathMove<
                 onProgress = { bytes ->
                     progressTracker.updateFileProgress(bytes)
                     if (progressTracker.shouldReportProgress()) {
-                        reportProgress(item.sourceLookup)
+                        reportProgress(item.sourceLookup, emit)
                     }
                 }
             )
@@ -292,8 +325,9 @@ internal class GenericPathMove<
                 }
             }
 
+            // Force final progress report
             if (progressTracker.shouldReportProgress(force = true)) {
-                reportProgress(item.sourceLookup)
+                reportProgress(item.sourceLookup, emit)
             }
         } catch (e: Exception) {
             handleMoveError(e, item)
@@ -796,10 +830,12 @@ internal class GenericPathMove<
         }
     }
 
-    private suspend fun reportScanProgress(lookup: SPL) {
+    private suspend fun reportScanProgress(lookup: SPL, emit: suspend (MoveAction.State<SP, SPL>) -> Unit) {
         val snapshot = progressTracker.createSnapshot()
 
-        onProgress?.invoke(
+        // For same-type operations (SP=DP), destination can be safely cast to SP
+        @Suppress("UNCHECKED_CAST")
+        emit(
             MoveAction.State.Progress(
                 currentSource = lookup.lookedUp,
                 currentDestination = destination as SP,
@@ -815,13 +851,15 @@ internal class GenericPathMove<
         )
     }
 
-    private suspend fun reportProgress(lookup: SPL) {
+    private suspend fun reportProgress(lookup: SPL, emit: suspend (MoveAction.State<SP, SPL>) -> Unit) {
         val snapshot = progressTracker.createSnapshot()
 
-        onProgress?.invoke(
+        // For same-type operations (SP=DP), destination can be safely cast to SP
+        @Suppress("UNCHECKED_CAST")
+        emit(
             MoveAction.State.Progress(
                 currentSource = lookup.lookedUp,
-                currentDestination = destination as SP,
+                currentDestination = destination as SP,  // Safe when SP=DP for same-type operations
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(
                     primary = R.string.general_move_progress_title.toCaString(),
                     secondary = lookup.userReadablePath,
@@ -858,24 +896,22 @@ internal class GenericPathMove<
  * - **Same-type** (SP=DP): Pass same FileSystemOps instance for both parameters
  * - **Cross-type** (SP≠DP): Pass different FileSystemOps instances
  */
-suspend fun <
+fun <
     SP : APath<SP>, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
     DP : APath<DP>, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
-> Collection<SP>.moveGeneric(
+    > Collection<SP>.moveGeneric(
     destination: DP,
     sourceOps: FileSystemOps<SP, SPL, SPLE>,
     destOps: FileSystemOps<DP, DPL, DPLE>,
     strategy: TransferStrategy<SP, SPL, SPLE, DP, DPL, DPLE>,
     options: TransferStrategy.Options = TransferStrategy.Options(),
-    onProgress: (suspend (MoveAction.State.Progress<SP, SPL>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): MoveAction.State.Result<SP, SPL> = GenericPathMove(
+): Flow<MoveAction.State<SP, SPL>> = GenericPathMove(
     sources = this,
     destination = destination,
     sourceOps = sourceOps,
     destOps = destOps,
     strategy = strategy,
     options = options,
-    onProgress = onProgress,
     onIssue = onIssue
 ).execute()

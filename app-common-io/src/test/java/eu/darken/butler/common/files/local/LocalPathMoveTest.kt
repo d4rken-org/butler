@@ -13,6 +13,8 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -56,7 +58,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         result.movedFiles shouldContain (sourcePath to LocalPath.build(File(destFolder, "test.txt")))
@@ -75,7 +77,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         result.movedFiles shouldContain (sourcePath to LocalPath.build(File(destFolder, "empty")))
@@ -102,7 +104,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         result.bytesMoved shouldBe expectedSize
@@ -135,7 +137,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sources.move(ops, destPath)
+        val result = sources.move(ops, destPath).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         result.movedFiles shouldHaveSize 2
@@ -161,7 +163,7 @@ class LocalPathMoveTest : BaseTest() {
 
         // When/Then
         shouldThrow<WriteException> {
-            sourcePath.move(ops, destPath, onIssue = null)
+            sourcePath.move(ops, destPath, onIssue = null).last()
         }
     }
 
@@ -183,7 +185,7 @@ class LocalPathMoveTest : BaseTest() {
                 is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Skip()
                 else -> error("Unexpected issue: $issue")
             }
-        }
+        }.last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         result.skippedFiles shouldContain sourcePath
@@ -209,7 +211,7 @@ class LocalPathMoveTest : BaseTest() {
                 is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
                 else -> error("Unexpected issue: $issue")
             }
-        }
+        }.last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         result.movedFiles shouldContain (sourcePath to LocalPath.build(existingFile))
@@ -237,7 +239,7 @@ class LocalPathMoveTest : BaseTest() {
                 }
                 else -> error("Unexpected issue: $issue")
             }
-        }
+        }.last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         result.movedFiles shouldContain (sourcePath to LocalPath.build(File(destFolder, "test-renamed.txt")))
@@ -267,7 +269,7 @@ class LocalPathMoveTest : BaseTest() {
                 is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Merge()
                 else -> error("Unexpected issue: $issue")
             }
-        }
+        }.last()
 
         // Then
         File(destFolder, "docs/file1.txt").exists() shouldBe true
@@ -300,7 +302,7 @@ class LocalPathMoveTest : BaseTest() {
                 is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Skip(applyToAll = true)
                 else -> error("Unexpected issue: $issue")
             }
-        }
+        }.last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         issueCount shouldBe 1 // Only asked once due to apply-to-all
@@ -334,7 +336,7 @@ class LocalPathMoveTest : BaseTest() {
                 )
                 else -> error("Unexpected issue: $issue")
             }
-        }
+        }.last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         issueCount shouldBe 1 // Only asked once due to apply-to-all
@@ -352,7 +354,7 @@ class LocalPathMoveTest : BaseTest() {
         val nonExistentFile = File(sourceFolder, "does-not-exist.txt")
 
         shouldThrow<ReadException> {
-            LocalPath.build(nonExistentFile).move(ops, LocalPath.build(destFolder))
+            LocalPath.build(nonExistentFile).move(ops, LocalPath.build(destFolder)).last()
         }
     }
 
@@ -367,7 +369,7 @@ class LocalPathMoveTest : BaseTest() {
 
         // When/Then - parent directory doesn't exist, should fail
         shouldThrow<WriteException> {
-            LocalPath.build(sourceFile).move(ops, LocalPath.build(destWithNonExistentParent))
+            LocalPath.build(sourceFile).move(ops, LocalPath.build(destWithNonExistentParent)).last()
         }
     }
 
@@ -380,7 +382,7 @@ class LocalPathMoveTest : BaseTest() {
         existingDest.mkdirs()
 
         // When
-        LocalPath.build(sourceFile).move(ops, LocalPath.build(existingDest))
+        LocalPath.build(sourceFile).move(ops, LocalPath.build(existingDest)).last()
 
         // Then
         File(existingDest, "test.txt").exists() shouldBe true
@@ -402,7 +404,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         result.movedFiles shouldHaveSize 1
@@ -432,7 +434,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then - broken symlink should be moved as-is
         val movedLink = File(destFolder, "brokenLink")
@@ -466,7 +468,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then - symlink should be moved
         val movedLink = File(destFolder, "linkDir")
@@ -496,7 +498,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then - link2 should be moved and still point to link1
         val movedLink = File(destFolder, "link2.txt")
@@ -525,7 +527,7 @@ class LocalPathMoveTest : BaseTest() {
         }
 
         // When - move the entire directory
-        val result = LocalPath.build(sourceDir).move(ops, LocalPath.build(destFolder))
+        val result = LocalPath.build(sourceDir).move(ops, LocalPath.build(destFolder)).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then - directory and all contents moved, symlink preserved
         val movedDir = File(destFolder, "project")
@@ -575,7 +577,7 @@ class LocalPathMoveTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        )
+        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then - symlink should overwrite the regular file
         val movedItem = File(destFolder, "item.txt")
@@ -601,7 +603,7 @@ class LocalPathMoveTest : BaseTest() {
         }
 
         // When - move entire directory (symlink + target together)
-        val result = LocalPath.build(sourceDir).move(ops, LocalPath.build(destFolder))
+        val result = LocalPath.build(sourceDir).move(ops, LocalPath.build(destFolder)).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then - both moved, symlink still resolves to target
         val movedDir = File(destFolder, "bundle")
@@ -648,7 +650,7 @@ class LocalPathMoveTest : BaseTest() {
                 issueReceived = issue
                 PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
             }
-        )
+        ).last()
 
         // Then
         issueReceived shouldNotBe null
@@ -683,7 +685,7 @@ class LocalPathMoveTest : BaseTest() {
                 issueCount++
                 PathActionIssue.PathAlreadyExists.Resolution.Overwrite(applyToAll = true)
             }
-        )
+        ).last()
 
         // Then - only one issue for apply-to-all
         issueCount shouldBe 1
@@ -723,7 +725,7 @@ class LocalPathMoveTest : BaseTest() {
                 issueCount++
                 PathActionIssue.PathAlreadyExists.Resolution.Skip(applyToAll = true)
             }
-        )
+        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         issueCount shouldBe 1
@@ -756,7 +758,7 @@ class LocalPathMoveTest : BaseTest() {
                 issueReceived = issue
                 PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
             }
-        )
+        ).last()
 
         // Then
         issueReceived shouldNotBe null
@@ -785,7 +787,7 @@ class LocalPathMoveTest : BaseTest() {
                 issueReceived = issue
                 PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
             }
-        )
+        ).last()
 
         // Then
         issueReceived shouldNotBe null
@@ -817,7 +819,7 @@ class LocalPathMoveTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue")
                 }
             }
-        )
+        ).last()
 
         // Then
         File(destFolder, "file.txt").readText() shouldBe "Dest content" // Original unchanged
@@ -846,7 +848,7 @@ class LocalPathMoveTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue")
                 }
             }
-        )
+        ).last()
 
         // Then
         File(destFolder, "file.txt").readText() shouldBe "Source content" // New file
@@ -872,7 +874,7 @@ class LocalPathMoveTest : BaseTest() {
             onIssue = { issue ->
                 PathActionIssue.PathAlreadyExists.Resolution.RenameSource("dir-renamed")
             }
-        )
+        ).last()
 
         // Then
         File(destFolder, "dir/existing.txt").exists() shouldBe true // Original preserved
@@ -897,7 +899,7 @@ class LocalPathMoveTest : BaseTest() {
             ops,
             LocalPath.build(destFolder),
             options = MoveAction.Options(preserveAttributes = true)
-        )
+        ).last()
 
         // Then
         val movedFile = File(destFolder, "file.txt")
@@ -921,7 +923,7 @@ class LocalPathMoveTest : BaseTest() {
             ops,
             LocalPath.build(destFolder),
             options = MoveAction.Options(preserveAttributes = true)
-        )
+        ).last()
 
         // Then
         val movedDir = File(destFolder, "dir")
@@ -938,7 +940,7 @@ class LocalPathMoveTest : BaseTest() {
         sourceFile.writeText("Content")
 
         // When - no onProgress callback provided
-        val result = LocalPath.build(sourceFile).move(ops, LocalPath.build(destFolder))
+        val result = LocalPath.build(sourceFile).move(ops, LocalPath.build(destFolder)).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then - should still work
         File(destFolder, "file.txt").exists() shouldBe true
@@ -952,7 +954,7 @@ class LocalPathMoveTest : BaseTest() {
         sourceFile.writeText("Content")
 
         // When - no onIssue callback provided, no conflicts
-        val result = LocalPath.build(sourceFile).move(ops, LocalPath.build(destFolder))
+        val result = LocalPath.build(sourceFile).move(ops, LocalPath.build(destFolder)).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         File(destFolder, "file.txt").exists() shouldBe true
@@ -969,7 +971,7 @@ class LocalPathMoveTest : BaseTest() {
 
         // When
         val result = listOf(LocalPath.build(file1), LocalPath.build(file2))
-            .move(ops, LocalPath.build(destFolder))
+            .move(ops, LocalPath.build(destFolder)).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         result.movedFiles shouldHaveSize 2
@@ -997,7 +999,7 @@ class LocalPathMoveTest : BaseTest() {
             onIssue = { issue ->
                 PathActionIssue.PathAlreadyExists.Resolution.Skip(applyToAll = true)
             }
-        )
+        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         result.skippedFiles shouldHaveSize 2
@@ -1022,8 +1024,9 @@ class LocalPathMoveTest : BaseTest() {
         val result = sourcePath.move(
             ops,
             destination = destPath,
-            onProgress = { progress -> progressUpdates.add(progress) }
-        )
+        ).onEach { state ->
+            if (state is MoveAction.State.Progress) progressUpdates.add(state)
+        }.last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         result.movedFiles shouldHaveSize 1
@@ -1043,10 +1046,11 @@ class LocalPathMoveTest : BaseTest() {
         LocalPath.build(sourceFile).move(
             ops,
             destination = LocalPath.build(destFolder),
-            onProgress = {
+        ).onEach { state ->
+            if (state is MoveAction.State.Progress) {
                 progressTimestamps.add(System.currentTimeMillis() - startTime)
             }
-        )
+        }.last()
 
         // Then - should have significantly fewer callbacks than chunks (2MB / 64KB = ~32 chunks)
         // With 250ms throttling, expect ~4-20 callbacks depending on speed
@@ -1073,8 +1077,9 @@ class LocalPathMoveTest : BaseTest() {
         LocalPath.build(sourceFile).move(
             ops,
             destination = LocalPath.build(destFolder),
-            onProgress = { progressCallbackCalled = true }
-        )
+        ).onEach { state ->
+            if (state is MoveAction.State.Progress) progressCallbackCalled = true
+        }.last()
 
         // Then - should still get at least one callback
         progressCallbackCalled shouldBe true
@@ -1092,10 +1097,11 @@ class LocalPathMoveTest : BaseTest() {
         LocalPath.build(sourceFile).move(
             ops,
             destination = LocalPath.build(destFolder),
-            onProgress = {
-                progressUpdates.add(it.movedBytes to it.totalBytes)
+        ).onEach { state ->
+            if (state is MoveAction.State.Progress) {
+                progressUpdates.add(state.movedBytes to state.totalBytes)
             }
-        )
+        }.last()
 
         // Then - last callback should show 100% completion
         progressUpdates shouldNotBe emptyList<Pair<Long, Long>>()
@@ -1112,7 +1118,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = emptySources.move(ops, destPath)
+        val result = emptySources.move(ops, destPath).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         result.movedFiles.shouldBeEmpty()
@@ -1135,7 +1141,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         // Should have 1 file + 10 directories = 11 items
@@ -1159,7 +1165,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         result.movedFiles shouldHaveSize 1
@@ -1194,7 +1200,7 @@ class LocalPathMoveTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        )
+        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then - old directory renamed, new directory created with original name
         File(destFolder, "Dir/new.txt").exists() shouldBe true
@@ -1235,7 +1241,7 @@ class LocalPathMoveTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        )
+        ).last()
 
         // Then - all paths updated to use Parent-new
         File(destFolder, "Parent-new").exists() shouldBe true
@@ -1255,7 +1261,7 @@ class LocalPathMoveTest : BaseTest() {
         sourceFile.writeText("readonly content")
 
         // When
-        val result = LocalPath.build(sourceFile).move(ops, LocalPath.build(destFolder))
+        val result = LocalPath.build(sourceFile).move(ops, LocalPath.build(destFolder)).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then - should succeed even if file was read-only
         File(destFolder, "readonly.txt").exists() shouldBe true
@@ -1280,7 +1286,7 @@ class LocalPathMoveTest : BaseTest() {
                         else -> throw AssertionError("Unexpected issue: $issue")
                     }
                 }
-            )
+            ).last()
         } catch (_: Exception) {
             // Expected on systems where read-only doesn't prevent writes
             // or where permission errors manifest differently
@@ -1307,7 +1313,7 @@ class LocalPathMoveTest : BaseTest() {
                         else -> throw AssertionError("Unexpected issue: $issue")
                     }
                 }
-            )
+            ).last()
         } catch (_: Exception) {
             // Expected on some systems where read-only doesn't prevent moving
         }
@@ -1332,7 +1338,7 @@ class LocalPathMoveTest : BaseTest() {
                         PathActionIssue.UnknownError.Resolution.Skip()
                     }
                 }
-            )
+            ).last()
         } catch (_: Exception) {
             // Expected - this test just verifies retry mechanism doesn't crash
         }
@@ -1358,7 +1364,7 @@ class LocalPathMoveTest : BaseTest() {
                         else -> throw AssertionError("Unexpected issue: $issue")
                     }
                 }
-            )
+            ).last()
         } catch (_: Exception) {
             // Expected - cancel may throw
         }
@@ -1379,7 +1385,7 @@ class LocalPathMoveTest : BaseTest() {
         file.writeText(content)
 
         // When
-        val result = LocalPath.build(file).move(ops, LocalPath.build(destFolder))
+        val result = LocalPath.build(file).move(ops, LocalPath.build(destFolder)).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         result.bytesMoved shouldBe content.length.toLong()
@@ -1397,7 +1403,7 @@ class LocalPathMoveTest : BaseTest() {
         mainFile.writeText("fun main() {}")
 
         // When - move directory to destination
-        LocalPath.build(projectDir).move(ops, LocalPath.build(destFolder))
+        LocalPath.build(projectDir).move(ops, LocalPath.build(destFolder)).last()
 
         // Then - verify structure is preserved with directory name
         File(destFolder, "project").exists() shouldBe true
@@ -1418,7 +1424,7 @@ class LocalPathMoveTest : BaseTest() {
         file.writeText("deep content")
 
         // When
-        LocalPath.build(File(sourceFolder, "a")).move(ops, LocalPath.build(destFolder))
+        LocalPath.build(File(sourceFolder, "a")).move(ops, LocalPath.build(destFolder)).last()
 
         // Then
         File(destFolder, "a/b/c/file.txt").exists() shouldBe true
@@ -1440,7 +1446,7 @@ class LocalPathMoveTest : BaseTest() {
         file2.writeText("project2 content")
 
         // When
-        listOf(LocalPath.build(dir1), LocalPath.build(dir2)).move(ops, LocalPath.build(destFolder))
+        listOf(LocalPath.build(dir1), LocalPath.build(dir2)).move(ops, LocalPath.build(destFolder)).last()
 
         // Then
         File(destFolder, "project1/file.txt").exists() shouldBe true
@@ -1466,11 +1472,12 @@ class LocalPathMoveTest : BaseTest() {
         LocalPath.build(dir).move(
             ops,
             LocalPath.build(destFolder),
-            onProgress = {
-                sourcesSeen.add(it.currentSource.path)
-                destinationsSeen.add(it.currentDestination.path)
+        ).onEach { state ->
+            if (state is MoveAction.State.Progress) {
+                sourcesSeen.add(state.currentSource.path)
+                destinationsSeen.add(state.currentDestination.path)
             }
-        )
+        }.last()
 
         // Then
         sourcesSeen.size should { it > 0 }
@@ -1492,8 +1499,9 @@ class LocalPathMoveTest : BaseTest() {
         files.map { LocalPath.build(it) }.move(
             ops,
             LocalPath.build(destFolder),
-            onProgress = { bytesSeen.add(it.movedBytes) }
-        )
+        ).onEach { state ->
+            if (state is MoveAction.State.Progress) bytesSeen.add(state.movedBytes)
+        }.last()
 
         // Then - bytes should increase over time
         bytesSeen.size should { it > 0 }
@@ -1527,7 +1535,7 @@ class LocalPathMoveTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        )
+        ).last()
 
         // Then - issue contains suggested name
         capturedIssue shouldNotBe null
@@ -1546,7 +1554,7 @@ class LocalPathMoveTest : BaseTest() {
         }
 
         // When
-        val result = files.map { LocalPath.build(it) }.move(ops, LocalPath.build(destFolder))
+        val result = files.map { LocalPath.build(it) }.move(ops, LocalPath.build(destFolder)).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         result.movedFiles shouldHaveSize 50
@@ -1575,7 +1583,7 @@ class LocalPathMoveTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        )
+        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then - should move file once, skip duplicates
         result.movedFiles.size + result.skippedFiles.size should { it >= 1 }
@@ -1614,7 +1622,7 @@ class LocalPathMoveTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        )
+        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then - should complete successfully (skip any issues)
         result.movedFiles.size + result.skippedFiles.size shouldBe 3
@@ -1626,7 +1634,7 @@ class LocalPathMoveTest : BaseTest() {
         val emptyList = emptyList<LocalPath>()
 
         // When
-        val result = emptyList.move(ops, LocalPath.build(destFolder))
+        val result = emptyList.move(ops, LocalPath.build(destFolder)).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then - all result fields should be empty/zero
         result.movedFiles.shouldBeEmpty()
@@ -1649,7 +1657,7 @@ class LocalPathMoveTest : BaseTest() {
 
         // When/Then - should throw on first missing file (strict by default)
         shouldThrow<Exception> {
-            paths.move(ops, LocalPath.build(destFolder))
+            paths.move(ops, LocalPath.build(destFolder)).last()
         }
 
         // First file might have been moved before error
@@ -1669,11 +1677,12 @@ class LocalPathMoveTest : BaseTest() {
         LocalPath.build(file).move(
             ops,
             LocalPath.build(destFolder),
-            onProgress = { progress ->
+        ).onEach { state ->
+            if (state is MoveAction.State.Progress) {
                 progressCalled = true
-                lastProgress = progress
+                lastProgress = state
             }
-        )
+        }.last()
 
         // Then - progress should have been called
         progressCalled shouldBe true
@@ -1703,7 +1712,7 @@ class LocalPathMoveTest : BaseTest() {
         val result = listOf(
             LocalPath.build(file1),
             LocalPath.build(file2)
-        ).move(ops, LocalPath.build(destFolder))
+        ).move(ops, LocalPath.build(destFolder)).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         result.bytesMoved shouldBe expectedBytes
@@ -1722,7 +1731,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(sourceFolder.absoluteFile).child("renamed.txt")
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         val renamedFile = File(sourceFolder, "renamed.txt")
@@ -1745,7 +1754,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(sourceFolder.absoluteFile).child("document.md")
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         val destFile = File(sourceFolder, "document.md")
@@ -1768,7 +1777,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(sourceFolder.absoluteFile).child("NewName")
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         val destDir = File(sourceFolder, "NewName")
@@ -1793,7 +1802,7 @@ class LocalPathMoveTest : BaseTest() {
         dirFile.writeText("nested content")
 
         // When
-        listOf(LocalPath.build(file), LocalPath.build(dir)).move(ops, LocalPath.build(destFolder))
+        listOf(LocalPath.build(file), LocalPath.build(dir)).move(ops, LocalPath.build(destFolder)).last()
 
         // Then - both maintain their top-level name
         File(destFolder, "file.txt").exists() shouldBe true
@@ -1818,7 +1827,7 @@ class LocalPathMoveTest : BaseTest() {
             ops,
             LocalPath.build(destFolder)
             // No onIssue parameter - uses default null
-        )
+        ).last()
 
         // Then - should auto-merge without prompting
         File(destFolder, "Folder/new.txt").exists() shouldBe true
@@ -1847,7 +1856,7 @@ class LocalPathMoveTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        )
+        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then - old file renamed, new file moved to original name
         File(destFolder, "file.txt").readText() shouldBe "new content"
@@ -1878,7 +1887,7 @@ class LocalPathMoveTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        )
+        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then - file renamed, directory created with original name
         File(destFolder, "Item").isDirectory shouldBe true
@@ -1911,7 +1920,7 @@ class LocalPathMoveTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        )
+        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then - file unchanged, directory created with new name
         File(destFolder, "Item").isFile shouldBe true
@@ -1956,7 +1965,7 @@ class LocalPathMoveTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        )
+        ).last()
 
         // Then - only asked once due to "apply to all"
         issuesEncountered shouldHaveSize 1
@@ -1990,7 +1999,7 @@ class LocalPathMoveTest : BaseTest() {
         val sourcePath = File(sourceFolder, "deep")
 
         // When
-        val result = LocalPath.build(sourcePath).move(ops, LocalPath.build(destFolder))
+        val result = LocalPath.build(sourcePath).move(ops, LocalPath.build(destFolder)).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
 
         // Then
         result.bytesMoved shouldBe expectedSize

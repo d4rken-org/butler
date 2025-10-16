@@ -698,16 +698,20 @@ class LocalGateway @Inject constructor(
     ): Flow<CopyAction.State<LocalPath, LocalPathLookup>> = flow {
         log(TAG, VERBOSE) { "copy(): ${sources.size} sources to $destination" }
 
-        val result = when (mode) {
+        when (mode) {
             Mode.NORMAL -> {
                 log(TAG, VERBOSE) { "copy(NORMAL): To $destination" }
                 sources.copy(
                     fileSystemOps = fileSystemOps,
                     destination = destination,
                     options = options,
-                    onProgress = { progress -> emit(progress) },
                     onIssue = onIssue,
-                )
+                ).collect { state ->
+                    emit(state)
+                    if (state is CopyAction.State.Result) {
+                        log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
+                    }
+                }
             }
 
             Mode.ROOT -> {
@@ -734,8 +738,12 @@ class LocalGateway @Inject constructor(
                             destination = destination,
                             options = options,
                             onIssue = onIssue,
-                            onProgress = { progress -> emit(progress) },
-                        )
+                        ).collect { state ->
+                            emit(state)
+                            if (state is CopyAction.State.Result) {
+                                log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
+                            }
+                        }
                     }
                     hasRoot() -> {
                         log(TAG, VERBOSE) { "copy(AUTO->ROOT): To $destination" }
@@ -749,9 +757,6 @@ class LocalGateway @Inject constructor(
                 }
             }
         }
-
-        log(TAG, INFO) { "copy(): Finished, copied ${result.copied} items" }
-        emit(result)
     }.flowOn(dispatcherProvider.IO)
 
     override suspend fun move(
@@ -769,7 +774,7 @@ class LocalGateway @Inject constructor(
         mode: Mode = Mode.AUTO,
     ): Flow<MoveAction.State<LocalPath, LocalPathLookup>> = flow {
         log(TAG, VERBOSE) { "move(): ${sources.size} sources to $destination" }
-        val result = when (mode) {
+        when (mode) {
             Mode.NORMAL -> {
                 log(TAG, VERBOSE) { "move(NORMAL): To $destination" }
                 sources.move(
@@ -777,8 +782,12 @@ class LocalGateway @Inject constructor(
                     destination,
                     options,
                     onIssue = onIssue,
-                    onProgress = { progress -> emit(progress) },
-                )
+                ).collect { state ->
+                    emit(state)
+                    if (state is MoveAction.State.Result) {
+                        log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
+                    }
+                }
             }
 
             Mode.ROOT -> {
@@ -805,8 +814,12 @@ class LocalGateway @Inject constructor(
                             destination,
                             options,
                             onIssue = onIssue,
-                            onProgress = { progress -> emit(progress) },
-                        )
+                        ).collect { state ->
+                            emit(state)
+                            if (state is MoveAction.State.Result) {
+                                log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
+                            }
+                        }
                     }
                     hasRoot() -> {
                         log(TAG, VERBOSE) { "move(AUTO->ROOT): To $destination" }
@@ -820,9 +833,6 @@ class LocalGateway @Inject constructor(
                 }
             }
         }
-
-        log(TAG, INFO) { "move(): Finished, moved ${result.movedFiles} items" }
-        emit(result)
     }.flowOn(dispatcherProvider.IO)
 
     enum class Mode {

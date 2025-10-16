@@ -194,15 +194,16 @@ class SAFGateway @Inject constructor(
     ): Flow<CopyAction.State<SAFPath, SAFPathLookup>> = flow {
         log(TAG, VERBOSE) { "copy(): ${sources.size} sources to $destination" }
 
-        val result = sources.copy(
+        sources.copy(
             destination = destination,
             fileSystemOps = fileSystemOps,
             onIssue = onIssue,
-            onProgress = { progress -> emit(progress) },
-        )
-
-        log(TAG, INFO) { "copy(): Finished, copied ${result.copied.size} items" }
-        emit(result)
+        ).collect { state ->
+            emit(state)
+            if (state is CopyAction.State.Result) {
+                log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
+            }
+        }
     }.flowOn(dispatcherProvider.IO)
 
     override suspend fun move(
@@ -213,15 +214,16 @@ class SAFGateway @Inject constructor(
     ): Flow<MoveAction.State<SAFPath, SAFPathLookup>> = flow {
         log(TAG, VERBOSE) { "move(): ${sources.size} sources to $destination" }
 
-        val result = sources.move(
+        sources.move(
             destination = destination,
             fileSystemOps = fileSystemOps,
             onIssue = onIssue,
-            onProgress = { progress -> emit(progress) },
-        )
-
-        log(TAG, INFO) { "move(): Finished, moved ${result.movedFiles.size} items" }
-        emit(result)
+        ).collect { state ->
+            emit(state)
+            if (state is MoveAction.State.Result) {
+                log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
+            }
+        }
     }.flowOn(dispatcherProvider.IO)
 
     companion object {

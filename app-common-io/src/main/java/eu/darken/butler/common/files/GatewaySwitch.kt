@@ -15,6 +15,7 @@ import eu.darken.butler.common.files.local.LocalGateway
 import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
+import eu.darken.butler.common.files.operations.GenericCrossTypeCopyStrategy
 import eu.darken.butler.common.files.operations.copyGeneric
 import eu.darken.butler.common.files.operations.moveGeneric
 import eu.darken.butler.common.files.saf.SAFGateway
@@ -329,6 +330,7 @@ class GatewaySwitch @Inject constructor(
                     performCrossGatewayCopy(sourcesGroup, destination, onIssue, options).collect { state ->
                         when (state) {
                             is CopyAction.State.Progress -> {
+                                @Suppress("UNCHECKED_CAST")
                                 emit(state.copy(copiedBytes = totalBytesProcessed + state.copiedBytes) as CopyAction.State.Progress<APath<*>, APathLookup<APath<*>>>)
                             }
                             is CopyAction.State.Result -> {
@@ -389,6 +391,7 @@ class GatewaySwitch @Inject constructor(
                     performCrossGatewayMove(sourcesGroup, destination, onIssue, options).collect { state ->
                         when (state) {
                             is MoveAction.State.Progress -> {
+                                @Suppress("UNCHECKED_CAST")
                                 emit(state.copy(movedBytes = totalBytesMoved + state.movedBytes) as MoveAction.State.Progress<APath<*>, APathLookup<APath<*>>>)
                             }
                             is MoveAction.State.Result -> {
@@ -429,29 +432,25 @@ class GatewaySwitch @Inject constructor(
         when {
             firstSource is SAFPath && target is LocalPath -> {
                 @Suppress("UNCHECKED_CAST")
-                val result = (sources as Collection<SAFPath>).copyGeneric(
+                (sources as Collection<SAFPath>).copyGeneric(
                     destination = target,
                     sourceOps = safGateway,
                     destOps = localGateway,
-                    strategy = eu.darken.butler.common.files.operations.GenericCrossTypeCopyStrategy(),
+                    strategy = GenericCrossTypeCopyStrategy(),
                     options = transferOptions,
                     onIssue = onIssue,
-                    onProgress = { progress -> emit(progress) },
-                )
-                emit(result)
+                ).collect { state -> emit(state) }
             }
             firstSource is LocalPath && target is SAFPath -> {
                 @Suppress("UNCHECKED_CAST")
-                val result = (sources as Collection<LocalPath>).copyGeneric(
+                (sources as Collection<LocalPath>).copyGeneric(
                     destination = target,
                     sourceOps = localGateway,
                     destOps = safGateway,
-                    strategy = eu.darken.butler.common.files.operations.GenericCrossTypeCopyStrategy(),
+                    strategy = GenericCrossTypeCopyStrategy(),
                     options = transferOptions,
                     onIssue = onIssue,
-                    onProgress = { progress -> emit(progress) },
-                )
-                emit(result)
+                ).collect { state -> emit(state) }
             }
             else -> throw IllegalArgumentException("Unsupported cross-type copy: ${firstSource::class.simpleName} -> ${target::class.simpleName}")
         }
@@ -475,29 +474,25 @@ class GatewaySwitch @Inject constructor(
         when {
             firstSource is SAFPath && target is LocalPath -> {
                 @Suppress("UNCHECKED_CAST")
-                val result = (sources as Collection<SAFPath>).moveGeneric(
+                (sources as Collection<SAFPath>).moveGeneric(
                     destination = target,
                     sourceOps = safGateway,
                     destOps = localGateway,
                     strategy = eu.darken.butler.common.files.operations.GenericCrossTypeMoveStrategy(),
                     options = transferOptions,
                     onIssue = onIssue,
-                    onProgress = { progress -> emit(progress) },
-                )
-                emit(result)
+                ).collect { state -> emit(state) }
             }
             firstSource is LocalPath && target is SAFPath -> {
                 @Suppress("UNCHECKED_CAST")
-                val result = (sources as Collection<LocalPath>).moveGeneric(
+                (sources as Collection<LocalPath>).moveGeneric(
                     destination = target,
                     sourceOps = localGateway,
                     destOps = safGateway,
                     strategy = eu.darken.butler.common.files.operations.GenericCrossTypeMoveStrategy(),
                     options = transferOptions,
                     onIssue = onIssue,
-                    onProgress = { progress -> emit(progress) },
-                )
-                emit(result)
+                ).collect { state -> emit(state) }
             }
             else -> throw IllegalArgumentException("Unsupported cross-type move: ${firstSource::class.simpleName} -> ${target::class.simpleName}")
         }

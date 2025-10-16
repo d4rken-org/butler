@@ -6,6 +6,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.PathActionIssue
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Copy extension functions for LocalPath.
@@ -16,26 +17,24 @@ import eu.darken.butler.common.files.actions.PathActionIssue
  * ## Migration Note
  *
  * This file was migrated from using PathOperationExecutor (old) to GenericPathCopy (new).
- * The public API remains unchanged - only the internal implementation changed.
+ * The public API now returns Flow<CopyAction.State> instead of using callback-based progress.
  *
  * @see copyGenericOp for the actual implementation
  */
 
-suspend fun LocalPath.copy(
+fun LocalPath.copy(
     fileSystemOps: LocalFileSystemOps,
     destination: LocalPath,
     options: CopyAction.Options<LocalPath> = CopyAction.Options(),
-    onProgress: (suspend (CopyAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
-) = setOf(this).copy(fileSystemOps, destination, options, onProgress, onIssue)
+) = setOf(this).copy(fileSystemOps, destination, options, onIssue)
 
-suspend fun Collection<LocalPath>.copy(
+fun Collection<LocalPath>.copy(
     fileSystemOps: LocalFileSystemOps,
     destination: LocalPath,
     options: CopyAction.Options<LocalPath> = CopyAction.Options(),
-    onProgress: (suspend (CopyAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
-): CopyAction.State.Result<LocalPath, LocalPathLookup> {
+): Flow<CopyAction.State<LocalPath, LocalPathLookup>> {
     log(TAG, DEBUG) {
         "copy(): Copying $size targets to $destination (options=$options)"
     }
@@ -45,7 +44,6 @@ suspend fun Collection<LocalPath>.copy(
         destination = destination,
         fileSystemOps = fileSystemOps,
         options = options,
-        onProgress = onProgress,
         onIssue = onIssue
     )
 }

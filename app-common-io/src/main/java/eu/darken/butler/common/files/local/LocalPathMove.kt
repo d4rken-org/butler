@@ -6,6 +6,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Move extension functions for LocalPath.
@@ -16,27 +17,25 @@ import eu.darken.butler.common.files.actions.PathActionIssue
  * ## Migration Note
  *
  * This file was migrated from using PathOperationExecutor (old) to GenericPathMove (new).
- * The public API remains unchanged - only the internal implementation changed.
+ * The public API now returns Flow<MoveAction.State> instead of using callback-based progress.
  * Source directory cleanup is now handled by GenericPathMove automatically.
  *
  * @see moveGenericOp for the actual implementation
  */
 
-suspend fun LocalPath.move(
+fun LocalPath.move(
     fileSystemOps: LocalFileSystemOps,
     destination: LocalPath,
     options: MoveAction.Options<LocalPath> = MoveAction.Options(),
-    onProgress: (suspend (MoveAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
-) = setOf(this).move(fileSystemOps, destination, options, onProgress, onIssue)
+) = setOf(this).move(fileSystemOps, destination, options, onIssue)
 
-suspend fun Collection<LocalPath>.move(
+fun Collection<LocalPath>.move(
     fileSystemOps: LocalFileSystemOps,
     destination: LocalPath,
     options: MoveAction.Options<LocalPath> = MoveAction.Options(),
-    onProgress: (suspend (MoveAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
-): MoveAction.State.Result<LocalPath, LocalPathLookup> {
+): Flow<MoveAction.State<LocalPath, LocalPathLookup>> {
     log(TAG, DEBUG) {
         "move(): Moving $size targets to $destination (options=$options)"
     }
@@ -46,7 +45,6 @@ suspend fun Collection<LocalPath>.move(
         destination = destination,
         fileSystemOps = fileSystemOps,
         options = options,
-        onProgress = onProgress,
         onIssue = onIssue
     )
 }

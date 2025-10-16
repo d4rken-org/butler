@@ -8,6 +8,7 @@ import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.operations.copyGeneric
 import eu.darken.butler.common.files.operations.deleteGeneric
 import eu.darken.butler.common.files.operations.moveGeneric
+import kotlinx.coroutines.flow.Flow
 
 /**
  * SAFPath copy operation using the generic framework.
@@ -20,12 +21,17 @@ import eu.darken.butler.common.files.operations.moveGeneric
  * ## Usage
  *
  * ```kotlin
- * val result = setOf(source1, source2).copy(
+ * val stateFlow = setOf(source1, source2).copy(
  *     destination = destDir,
  *     fileSystemOps = safFileSystemOps,
- *     onProgress = { progress -> /* update UI */ },
  *     onIssue = { issue -> /* handle conflicts */ }
  * )
+ * stateFlow.collect { state ->
+ *     when (state) {
+ *         is CopyAction.State.Progress -> /* update UI */
+ *         is CopyAction.State.Result -> /* operation complete */
+ *     }
+ * }
  * ```
  *
  * ## Testability
@@ -38,32 +44,29 @@ import eu.darken.butler.common.files.operations.moveGeneric
  *     val mockOps = MockSAFFileSystemOps()
  *     // Setup mocks...
  *
- *     val result = sources.copy(
+ *     val states = sources.copy(
  *         destination = dest,
  *         fileSystemOps = mockOps,
- *         onProgress = null,
  *         onIssue = null
- *     )
+ *     ).toList()
  *
  *     // Verify without Android framework!
  * }
  * ```
  */
-suspend fun SAFPath.copy(
+fun SAFPath.copy(
     destination: SAFPath,
     fileSystemOps: SAFFileSystemOps,
-    onProgress: (suspend (CopyAction.State.Progress<SAFPath, SAFPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): CopyAction.State.Result<SAFPath, SAFPathLookup> = setOf(this).copy(
-    destination, fileSystemOps, onProgress, onIssue
+): Flow<CopyAction.State<SAFPath, SAFPathLookup>> = setOf(this).copy(
+    destination, fileSystemOps, onIssue
 )
 
-suspend fun Collection<SAFPath>.copy(
+fun Collection<SAFPath>.copy(
     destination: SAFPath,
     fileSystemOps: SAFFileSystemOps,
-    onProgress: (suspend (CopyAction.State.Progress<SAFPath, SAFPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): CopyAction.State.Result<SAFPath, SAFPathLookup> {
+): Flow<CopyAction.State<SAFPath, SAFPathLookup>> {
     val strategy = SAFPathCopyStrategy()
 
     // For same-type SAF operations, sourceOps and destOps are the same instance
@@ -73,7 +76,6 @@ suspend fun Collection<SAFPath>.copy(
         destOps = fileSystemOps,
         strategy = strategy,
         options = eu.darken.butler.common.files.operations.TransferStrategy.Options(),
-        onProgress = onProgress,
         onIssue = onIssue
     )
 }
@@ -86,29 +88,32 @@ suspend fun Collection<SAFPath>.copy(
  * ## Usage
  *
  * ```kotlin
- * val result = setOf(source1, source2).move(
+ * val stateFlow = setOf(source1, source2).move(
  *     destination = destDir,
  *     fileSystemOps = safFileSystemOps,
- *     onProgress = { progress -> /* update UI */ },
  *     onIssue = { issue -> /* handle conflicts */ }
  * )
+ * stateFlow.collect { state ->
+ *     when (state) {
+ *         is MoveAction.State.Progress -> /* update UI */
+ *         is MoveAction.State.Result -> /* operation complete */
+ *     }
+ * }
  * ```
  */
-suspend fun SAFPath.move(
+fun SAFPath.move(
     destination: SAFPath,
     fileSystemOps: SAFFileSystemOps,
-    onProgress: (suspend (MoveAction.State.Progress<SAFPath, SAFPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): MoveAction.State.Result<SAFPath, SAFPathLookup> = setOf(this).move(
-    destination, fileSystemOps, onProgress, onIssue
+): Flow<MoveAction.State<SAFPath, SAFPathLookup>> = setOf(this).move(
+    destination, fileSystemOps, onIssue
 )
 
-suspend fun Collection<SAFPath>.move(
+fun Collection<SAFPath>.move(
     destination: SAFPath,
     fileSystemOps: SAFFileSystemOps,
-    onProgress: (suspend (MoveAction.State.Progress<SAFPath, SAFPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): MoveAction.State.Result<SAFPath, SAFPathLookup> {
+): Flow<MoveAction.State<SAFPath, SAFPathLookup>> {
     val strategy = SAFPathMoveStrategy()
 
     return this.moveGeneric(
@@ -117,7 +122,6 @@ suspend fun Collection<SAFPath>.move(
         destOps = fileSystemOps,
         strategy = strategy,
         options = eu.darken.butler.common.files.operations.TransferStrategy.Options(),
-        onProgress = onProgress,
         onIssue = onIssue
     )
 }

@@ -8,6 +8,7 @@ import eu.darken.butler.common.files.local.operations.strategies.LocalPathCopySt
 import eu.darken.butler.common.files.local.operations.strategies.LocalPathMoveStrategy
 import eu.darken.butler.common.files.operations.copyGeneric
 import eu.darken.butler.common.files.operations.moveGeneric
+import kotlinx.coroutines.flow.Flow
 
 /**
  * LocalPath copy operation using the generic framework.
@@ -19,13 +20,18 @@ import eu.darken.butler.common.files.operations.moveGeneric
  * ## Usage
  *
  * ```kotlin
- * val result = setOf(source1, source2).copyGenericOp(
+ * val stateFlow = setOf(source1, source2).copyGenericOp(
  *     destination = destDir,
  *     fileSystemOps = localFileSystemOps,
  *     options = CopyAction.Options(),
- *     onProgress = { progress -> /* update UI */ },
  *     onIssue = { issue -> /* handle conflicts */ }
  * )
+ * stateFlow.collect { state ->
+ *     when (state) {
+ *         is CopyAction.State.Progress -> /* update UI */
+ *         is CopyAction.State.Result -> /* operation complete */
+ *     }
+ * }
  * ```
  *
  * ## Comparison with Old Implementation
@@ -37,23 +43,21 @@ import eu.darken.butler.common.files.operations.moveGeneric
  * | Testing | LocalPath tests only | Generic tests + strategy tests |
  * | Maintainability | 3 classes, 800+ lines | 1 strategy, ~200 lines |
  */
-suspend fun LocalPath.copyGenericOp(
+fun LocalPath.copyGenericOp(
     destination: LocalPath,
     fileSystemOps: LocalFileSystemOps,
     options: CopyAction.Options<LocalPath> = CopyAction.Options(),
-    onProgress: (suspend (CopyAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): CopyAction.State.Result<LocalPath, LocalPathLookup> = setOf(this).copyGenericOp(
-    destination, fileSystemOps, options, onProgress, onIssue
+): Flow<CopyAction.State<LocalPath, LocalPathLookup>> = setOf(this).copyGenericOp(
+    destination, fileSystemOps, options, onIssue
 )
 
-suspend fun Collection<LocalPath>.copyGenericOp(
+fun Collection<LocalPath>.copyGenericOp(
     destination: LocalPath,
     fileSystemOps: LocalFileSystemOps,
     options: CopyAction.Options<LocalPath> = CopyAction.Options(),
-    onProgress: (suspend (CopyAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): CopyAction.State.Result<LocalPath, LocalPathLookup> {
+): Flow<CopyAction.State<LocalPath, LocalPathLookup>> {
     val strategy = LocalPathCopyStrategy(fileSystemOps)
 
     // Convert CopyAction.Options to TransferStrategy.Options
@@ -69,7 +73,6 @@ suspend fun Collection<LocalPath>.copyGenericOp(
         destOps = fileSystemOps,
         strategy = strategy,
         options = transferOptions,
-        onProgress = onProgress,
         onIssue = onIssue
     )
 }
@@ -83,32 +86,35 @@ suspend fun Collection<LocalPath>.copyGenericOp(
  * ## Usage
  *
  * ```kotlin
- * val result = setOf(source1, source2).moveGenericOp(
+ * val stateFlow = setOf(source1, source2).moveGenericOp(
  *     destination = destDir,
  *     fileSystemOps = localFileSystemOps,
  *     options = MoveAction.Options(),
- *     onProgress = { progress -> /* update UI */ },
  *     onIssue = { issue -> /* handle conflicts */ }
  * )
+ * stateFlow.collect { state ->
+ *     when (state) {
+ *         is MoveAction.State.Progress -> /* update UI */
+ *         is MoveAction.State.Result -> /* operation complete */
+ *     }
+ * }
  * ```
  */
-suspend fun LocalPath.moveGenericOp(
+fun LocalPath.moveGenericOp(
     destination: LocalPath,
     fileSystemOps: LocalFileSystemOps,
     options: MoveAction.Options<LocalPath> = MoveAction.Options(),
-    onProgress: (suspend (MoveAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): MoveAction.State.Result<LocalPath, LocalPathLookup> = setOf(this).moveGenericOp(
-    destination, fileSystemOps, options, onProgress, onIssue
+): Flow<MoveAction.State<LocalPath, LocalPathLookup>> = setOf(this).moveGenericOp(
+    destination, fileSystemOps, options, onIssue
 )
 
-suspend fun Collection<LocalPath>.moveGenericOp(
+fun Collection<LocalPath>.moveGenericOp(
     destination: LocalPath,
     fileSystemOps: LocalFileSystemOps,
     options: MoveAction.Options<LocalPath> = MoveAction.Options(),
-    onProgress: (suspend (MoveAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): MoveAction.State.Result<LocalPath, LocalPathLookup> {
+): Flow<MoveAction.State<LocalPath, LocalPathLookup>> {
     val strategy = LocalPathMoveStrategy(fileSystemOps)
 
     // Convert MoveAction.Options to TransferStrategy.Options
@@ -123,7 +129,6 @@ suspend fun Collection<LocalPath>.moveGenericOp(
         destOps = fileSystemOps,
         strategy = strategy,
         options = transferOptions,
-        onProgress = onProgress,
         onIssue = onIssue
     )
 }
