@@ -21,6 +21,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.flow.SingleEventFlow
+import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.destSetup
@@ -49,13 +50,11 @@ import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
 import eu.darken.butler.workspace.core.permissions.PathPermissionCheck
 import eu.darken.butler.workspace.core.permissions.PermissionState
-import eu.darken.butler.workspace.core.permissions.check
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -195,19 +194,11 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         searcherSettings.maxHistoryItems.flow.flatMapLatest { searchHistory.getSearches(it) },
         currentFilter,
         searchPath,
+        searchPath.flatMapLatest { pathPermissionCheck.monitor(it) },
         selectionState,
         quickActionsResult,
         dialogStateFlow,
-    ) { values ->
-        val query = values[0] as TextFieldValue
-        val searchState = values[1] as SearchState
-        val history = values[2] as List<SearchHistory.SearchHistoryItem>
-        val filter = values[3] as SearchQuery.Filter
-        val path = values[4] as APath<*>
-        val selection = values[5] as SearcherSelectionState
-        val quickActions = values[6] as SearchResult?
-        val dialogState = values[7] as SearcherDialogState
-
+    ) { query, searchState, history, filter, path, permissionState, selection, quickActions, dialogState ->
         State(
             id = id,
             searchQuery = query,
@@ -218,7 +209,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             caseSensitive = filter.caseSensitive,
             wholeWord = filter.wholeWord,
             useRegex = filter.useRegex,
-            permissionState = pathPermissionCheck.check(path),
+            permissionState = permissionState,
             selectionState = selection.copy(selectableResults = searchState.results),
             quickActionsResult = quickActions,
             dialogState = dialogState,
