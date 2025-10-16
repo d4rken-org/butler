@@ -225,8 +225,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         pickerConfigFlow,
     ) { wsState, selectedItems, viewMode, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, pickerConfig ->
         val items = wsState.currentLocation?.items
+            ?.let { items -> applyPickerFilter(items, pickerConfig) }
+            ?.let { items -> applyFilters(items, filterState, useRegexPatterns) }
             ?.let { itemSorter.sortItems(it, sortSetting) }
-            ?.let { sortedItems -> applyFilters(sortedItems, filterState, useRegexPatterns) }
 
         val selectionState = ExplorerSelectionState(
             selectedItems = selectedItems,
@@ -322,6 +323,35 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
 
             true
+        }
+    }
+
+    /**
+     * Filters items based on picker selection mode.
+     *
+     * - Directory picker modes (DirectorySingle/DirectoryMulti): Hide files, show only directories
+     * - File picker modes (FileSingle/FileMulti): Show everything (need directories for navigation)
+     * - Normal browsing: Show everything
+     */
+    private fun applyPickerFilter(
+        items: List<ExplorerItem>,
+        pickerConfig: PickerConfig?
+    ): List<ExplorerItem> {
+        // No picker mode: show everything
+        if (pickerConfig == null) return items
+
+        return items.filter { item ->
+            when {
+                // Directory picker modes: hide files, show only directories
+                pickerConfig.selection.selectsDirectories -> {
+                    item !is ExplorerItem.File
+                }
+                // File picker modes: show everything (need dirs for navigation)
+                pickerConfig.selection.selectsFiles -> {
+                    true
+                }
+                else -> true
+            }
         }
     }
 

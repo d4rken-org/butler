@@ -777,7 +777,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
         val pickerArgs = ExplorerPickerArguments(
             startPath = null, // Start at home
-            selection = PickerConfig.Selection.DirectorySingle,
+            selection = PickerConfig.Selection.DirectoryMulti,
             callerWorkspaceId = id
         )
 
