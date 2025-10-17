@@ -10,7 +10,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import eu.darken.butler.common.coroutine.AppScope
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag

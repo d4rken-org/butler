@@ -7,7 +7,7 @@ import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.datastore.value
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.replayingShare

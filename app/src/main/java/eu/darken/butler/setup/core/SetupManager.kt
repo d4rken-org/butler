@@ -2,10 +2,9 @@ package eu.darken.butler.setup.core
 
 import android.content.Intent
 import eu.darken.butler.common.coroutine.AppScope
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.setup.core.inventory.InventorySetupModule
 import eu.darken.butler.setup.core.notification.NotificationSetupModule
 import eu.darken.butler.setup.core.root.RootSetupModule
@@ -15,9 +14,11 @@ import eu.darken.butler.setup.core.storage.StorageSetupModule
 import eu.darken.butler.setup.core.usagestats.UsageStatsSetupModule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -38,7 +39,11 @@ class SetupManager @Inject constructor(
         .onEach { states ->
             log(TAG) { "Setup states updated: ${states.mapValues { "${it.key}=${it.value}" }}" }
         }
-        .replayingShare(appScope)
+        .shareIn(
+            scope = appScope,
+            replay = 1,
+            started = SharingStarted.Eagerly
+        )
 
     suspend fun refresh() {
         log(TAG) { "refresh() - refreshing ${setupModules.size} modules" }
