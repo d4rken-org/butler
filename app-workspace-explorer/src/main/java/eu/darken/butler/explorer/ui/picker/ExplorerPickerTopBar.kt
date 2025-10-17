@@ -54,6 +54,12 @@ fun ExplorerPickerTopBar(
                         } else {
                             stringResource(R.string.explorer_picker_select_files_title)
                         }
+
+                        is PickerConfig.Selection.MixedMulti -> if (selectionCount > 0) {
+                            stringResource(R.string.explorer_picker_select_items_count_title, selectionCount)
+                        } else {
+                            stringResource(R.string.explorer_picker_select_items_title)
+                        }
                     }
                 )
             }
@@ -73,7 +79,8 @@ fun ExplorerPickerTopBar(
                     }
 
                     is PickerConfig.Selection.DirectoryMulti,
-                    is PickerConfig.Selection.FileMulti -> selectionCount > 0
+                    is PickerConfig.Selection.FileMulti,
+                    is PickerConfig.Selection.MixedMulti -> selectionCount > 0
 
                     is PickerConfig.Selection.FileSingle -> false // Instant selection, no confirm needed
                 }
@@ -83,7 +90,8 @@ fun ExplorerPickerTopBar(
                         is PickerConfig.Selection.DirectorySingle -> stringResource(R.string.explorer_picker_select_action)
                         is PickerConfig.Selection.DirectoryMulti,
                         is PickerConfig.Selection.FileSingle,
-                        is PickerConfig.Selection.FileMulti -> stringResource(eu.darken.butler.common.R.string.general_done_action)
+                        is PickerConfig.Selection.FileMulti,
+                        is PickerConfig.Selection.MixedMulti -> stringResource(eu.darken.butler.common.R.string.general_done_action)
                     }
                 )
             }

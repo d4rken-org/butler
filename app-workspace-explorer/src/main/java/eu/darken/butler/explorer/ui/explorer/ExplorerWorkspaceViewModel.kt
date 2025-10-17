@@ -232,7 +232,30 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val selectionState = ExplorerSelectionState(
             selectedItems = selectedItems,
             selectableItems = items
-                ?.filter { it is ExplorerItem.Path || it is ExplorerItem.Storage.SAF }
+                ?.filter { item ->
+                    // Base filter: must be a Path or SAF storage
+                    val isBaseSelectable = item is ExplorerItem.Path || item is ExplorerItem.Storage.SAF
+                    if (!isBaseSelectable) return@filter false
+
+                    // In picker mode, filter by what can actually be selected
+                    when (pickerConfig?.selection) {
+                        is PickerConfig.Selection.DirectorySingle,
+                        is PickerConfig.Selection.DirectoryMulti -> {
+                            // Only directories are selectable
+                            item is ExplorerItem.Directory
+                        }
+                        is PickerConfig.Selection.FileSingle,
+                        is PickerConfig.Selection.FileMulti -> {
+                            // Only files are selectable (dirs visible for navigation but not selectable)
+                            item is ExplorerItem.File
+                        }
+                        is PickerConfig.Selection.MixedMulti -> {
+                            // Both files and directories are selectable
+                            true
+                        }
+                        null -> true // Normal mode: everything selectable
+                    }
+                }
                 ?.toSet()
                 ?: emptySet(),
         )
@@ -331,6 +354,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
      *
      * - Directory picker modes (DirectorySingle/DirectoryMulti): Hide files, show only directories
      * - File picker modes (FileSingle/FileMulti): Show everything (need directories for navigation)
+     * - Mixed picker mode (MixedMulti): Show everything (both files and dirs selectable)
      * - Normal browsing: Show everything
      */
     private fun applyPickerFilter(
@@ -341,16 +365,19 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         if (pickerConfig == null) return items
 
         return items.filter { item ->
-            when {
-                // Directory picker modes: hide files, show only directories
-                pickerConfig.selection.selectsDirectories -> {
+            when (pickerConfig.selection) {
+                is PickerConfig.Selection.DirectorySingle,
+                is PickerConfig.Selection.DirectoryMulti -> {
+                    // Directory picker modes: hide files, show only directories
                     item !is ExplorerItem.File
                 }
-                // File picker modes: show everything (need dirs for navigation)
-                pickerConfig.selection.selectsFiles -> {
+                is PickerConfig.Selection.FileSingle,
+                is PickerConfig.Selection.FileMulti,
+                is PickerConfig.Selection.MixedMulti -> {
+                    // File and mixed picker modes: show everything
+                    // (FileSingle/FileMulti need dirs for navigation, MixedMulti selects both)
                     true
                 }
-                else -> true
             }
         }
     }
@@ -476,6 +503,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         when {
             // FileMulti mode: tap file to toggle selection
             pickerConfig?.selection is PickerConfig.Selection.FileMulti && item is ExplorerItem.File -> {
+                toggleItemSelection(item)
+            }
+            // MixedMulti mode: tap file to toggle selection, tap folder to navigate
+            pickerConfig?.selection is PickerConfig.Selection.MixedMulti && item is ExplorerItem.File -> {
                 toggleItemSelection(item)
             }
             // Selection mode active: toggle selection
@@ -1181,6 +1212,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 stateSnap.selectionState.selectedItems
                     .filterIsInstance<ExplorerItem.Lookup>()
                     .filter { it is ExplorerItem.File }
+                    .map { it.lookup.lookedUp }
+            }
+            is PickerConfig.Selection.MixedMulti -> {
+                // Mixed selection: return both files and directories
+                stateSnap.selectionState.selectedItems
+                    .filterIsInstance<ExplorerItem.Lookup>()
                     .map { it.lookup.lookedUp }
             }
         }

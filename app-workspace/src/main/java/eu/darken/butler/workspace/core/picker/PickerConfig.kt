@@ -103,8 +103,31 @@ data class PickerConfig(
         @Parcelize
         data object FileMulti : Selection()
 
-        // Future: MixedMulti for selecting both files and folders
-        // Deferred due to complex UX (tap file = select, tap folder = navigate OR select?)
+        /**
+         * Select multiple files AND directories via mixed interaction patterns.
+         *
+         * Interaction:
+         * - Tap file → Toggle selection (checkbox appears)
+         * - Tap folder → Navigate into it (normal navigation)
+         * - Long-press file → Toggle selection (alternate way)
+         * - Long-press folder → Toggle selection (only way to select folders)
+         * - Select button → Confirms selected files and folders
+         *
+         * Selectability:
+         * - Both files and directories
+         * - Checkboxes visible on both types
+         * - Select button enabled when at least one item selected
+         * - Shows selection count: "Done (5 items)"
+         *
+         * UX Pattern:
+         * - Files use tap-to-select (like FileMulti)
+         * - Folders use long-press-to-select (like DirectoryMulti) + tap-to-navigate
+         * - This combines existing patterns without ambiguity
+         *
+         * Use case: Select mixed content for operations, backups, sharing, etc.
+         */
+        @Parcelize
+        data object MixedMulti : Selection()
 
         /**
          * Returns true if this mode allows selecting multiple items.
@@ -112,7 +135,7 @@ data class PickerConfig(
         val isMultiSelect: Boolean
             get() = when (this) {
                 is DirectorySingle, is FileSingle -> false
-                is DirectoryMulti, is FileMulti -> true
+                is DirectoryMulti, is FileMulti, is MixedMulti -> true
             }
 
         /**
@@ -120,7 +143,7 @@ data class PickerConfig(
          */
         val selectsDirectories: Boolean
             get() = when (this) {
-                is DirectorySingle, is DirectoryMulti -> true
+                is DirectorySingle, is DirectoryMulti, is MixedMulti -> true
                 is FileSingle, is FileMulti -> false
             }
 
@@ -130,7 +153,7 @@ data class PickerConfig(
         val selectsFiles: Boolean
             get() = when (this) {
                 is DirectorySingle, is DirectoryMulti -> false
-                is FileSingle, is FileMulti -> true
+                is FileSingle, is FileMulti, is MixedMulti -> true
             }
 
         /**
