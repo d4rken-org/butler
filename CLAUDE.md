@@ -73,6 +73,25 @@ This aligns with the "Agent instructions" principle of maintaining focused conte
 ./gradlew connectedAndroidTest
 ```
 
+#### Test Context Management
+
+When running gradle test commands, use the Task tool with a sub-agent to keep verbose test output isolated from the main context:
+
+**Default approach (preferred):**
+
+- Use Task tool → general-purpose agent → run gradle test command
+- Sub-agent should report back only:
+    - Success/failure status
+    - Test failures (if any) with file locations and error messages
+    - Count of passed/skipped tests (without full output)
+
+**Run gradle directly in main context only when:**
+
+- User explicitly requests to see full test output
+- Quick verification of test availability
+
+This aligns with the "Agent instructions" principle of maintaining focused contexts and optimizes token usage.
+
 ### Debugging
 
 #### Taking Screenshots via ADB
