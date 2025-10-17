@@ -7,6 +7,7 @@ import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,14 +21,17 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.Clear
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -55,6 +59,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.searcher.R
+import eu.darken.butler.searcher.core.SearchTarget
 
 @Composable
 fun SearchInputCard(
@@ -389,6 +394,86 @@ fun PathPickerDialog(
     )
 }
 
+@Composable
+fun MultiPathChipBar(
+    paths: List<SearchTarget>,
+    onPathRemove: (SearchTarget) -> Unit,
+    onPathToggle: (SearchTarget) -> Unit,
+    onAddPathClick: () -> Unit,
+    isSearching: Boolean = false,
+    modifier: Modifier = Modifier
+) {
+    FlowRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy((-8).dp),
+    ) {
+        if (paths.isEmpty()) {
+            Text(
+                text = stringResource(R.string.searcher_no_paths_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .padding(end = 8.dp)
+            )
+        }
+
+        paths.forEach { target ->
+            when (target) {
+                is SearchTarget.Path -> {
+                    FilterChip(
+                        selected = target.enabled,
+                        onClick = { if (!isSearching) onPathToggle(target) },
+                        label = {
+                            Text(
+                                text = target.displayText(),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (target.enabled) {
+                                    MaterialTheme.colorScheme.onSecondaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                }
+                            )
+                        },
+                        trailingIcon = {
+                            Icon(
+                                imageVector = Icons.TwoTone.Close,
+                                contentDescription = "Remove path",
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .clickable(enabled = !isSearching) {
+                                        onPathRemove(target)
+                                    }
+                            )
+                        },
+                        enabled = !isSearching
+                    )
+                }
+            }
+        }
+
+        // Add button
+        AssistChip(
+            onClick = onAddPathClick,
+            label = {
+                Text(
+                    text = stringResource(R.string.searcher_add_path_action),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.TwoTone.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+            },
+            enabled = !isSearching
+        )
+    }
+}
+
 @Preview2
 @Composable
 private fun SearchInputCardPreview() {
@@ -402,5 +487,44 @@ private fun SearchInputCardPreview() {
             isSearching = false,
             modifier = Modifier.padding(16.dp)
         )
+    }
+}
+
+@Preview2
+@Composable
+private fun MultiPathChipBarPreview() {
+    PreviewWrapper {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            // With multiple paths
+            MultiPathChipBar(
+                paths = listOf(
+                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
+                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/DCIM")),
+                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Music"))
+                ),
+                onPathRemove = {},
+                onPathToggle = {},
+                onAddPathClick = {},
+                modifier = Modifier.padding(16.dp)
+            )
+
+            // Empty state
+            MultiPathChipBar(
+                paths = emptyList(),
+                onPathRemove = {},
+                onPathToggle = {},
+                onAddPathClick = {},
+                modifier = Modifier.padding(16.dp)
+            )
+
+            // Single path
+            MultiPathChipBar(
+                paths = listOf(SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))),
+                onPathRemove = {},
+                onPathToggle = {},
+                onAddPathClick = {},
+                modifier = Modifier.padding(16.dp)
+            )
+        }
     }
 }

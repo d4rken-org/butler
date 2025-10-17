@@ -31,6 +31,8 @@
     <string name="searcher_no_results">No results found</string>
     <string name="searcher_placeholder_path">Search path (e.g., /sdcard)</string>
     <string name="searcher_select_path_title">Select Search Path</string>
+    <string name="searcher_no_paths_hint">Tap + to add search paths</string>
+    <string name="searcher_add_path_action">Add path</string>
     <string name="general_cancel_action">Cancel</string>
 
     <!-- Search Options -->

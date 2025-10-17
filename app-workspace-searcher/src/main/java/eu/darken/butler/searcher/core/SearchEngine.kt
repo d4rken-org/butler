@@ -39,61 +39,84 @@ class SearchEngine @Inject constructor(
         searchQuery: SearchQuery,
         onProgress: ((SearchProgress) -> Unit)? = null
     ): Flow<SearchResult> = flow {
-        log(TAG) { "Starting search with query: $searchQuery" }
-        
+        // Filter to only enabled path targets
+        val enabledTargets = searchQuery.targets.filterIsInstance<SearchTarget.Path>().filter { it.enabled }
+        log(TAG) { "Starting search with query: ${searchQuery.query} across ${enabledTargets.size} enabled path target(s) (${searchQuery.targets.size} total)" }
+
         var itemsScanned = 0
         var resultsFound = 0
-        
-        when (val gateway = gatewaySwitch.getGateway(searchQuery.path)) {
-            is APathGateway<*, *, *> -> {
-                @Suppress("UNCHECKED_CAST")
-                val typedGateway = gateway as APathGateway<APath<*>, APathLookup<APath<*>>, *>
 
-                val walkOptions = APathGateway.WalkOptions<APath<*>, APathLookup<APath<*>>>(
-                    onFilter = { lookup ->
-                        if (!currentCoroutineContext().isActive) throw CancellationException()
-                        
-                        itemsScanned++
-                        
-                        if (itemsScanned % 100 == 0) {
-                            onProgress?.invoke(
-                                SearchProgress(
-                                    currentPath = lookup.lookedUp,
-                                    itemsScanned = itemsScanned,
-                                    resultsFound = resultsFound
-                                )
-                            )
-                        }
-                        
-                        filterLookup(lookup, searchQuery.filter)
-                    },
-                    onError = { lookup, error ->
-                        log(TAG, VERBOSE) { "Error accessing ${lookup.lookedUp}: $error" }
-                        true // Continue walking
+        // Search each enabled path target sequentially
+        for (pathTarget in enabledTargets) {
+            val searchPath = pathTarget.path
+            if (!currentCoroutineContext().isActive) {
+                log(TAG) { "Search cancelled" }
+                throw CancellationException("Search cancelled")
+            }
+
+            log(TAG, INFO) { "Searching path: $searchPath" }
+
+            try {
+                when (val gateway = gatewaySwitch.getGateway(searchPath)) {
+                    is APathGateway<*, *, *> -> {
+                        @Suppress("UNCHECKED_CAST")
+                        val typedGateway = gateway as APathGateway<APath<*>, APathLookup<APath<*>>, *>
+
+                        val walkOptions = APathGateway.WalkOptions<APath<*>, APathLookup<APath<*>>>(
+                            onFilter = { lookup ->
+                                if (!currentCoroutineContext().isActive) throw CancellationException()
+
+                                itemsScanned++
+
+                                if (itemsScanned % 100 == 0) {
+                                    onProgress?.invoke(
+                                        SearchProgress(
+                                            currentPath = searchPath,
+                                            itemsScanned = itemsScanned,
+                                            resultsFound = resultsFound
+                                        )
+                                    )
+                                }
+
+                                filterLookup(lookup, searchQuery.filter)
+                            },
+                            onError = { lookup, error ->
+                                log(TAG, VERBOSE) { "Error accessing ${lookup.lookedUp}: $error" }
+                                true // Continue walking
+                            }
+                        )
+
+                        delay(3000)
+                        typedGateway.walk(searchPath, walkOptions)
+                            .cancellable()
+                            .mapNotNull { lookup ->
+                                if (matchesSearch(lookup, searchQuery)) {
+                                    resultsFound++
+                                    SearchResult.fromLookup(lookup, searchQuery.query)
+                                } else {
+                                    null
+                                }
+                            }
+                            .onEach { result ->
+                                if (searchQuery.options.maxResults != null && resultsFound >= searchQuery.options.maxResults) {
+                                    log(TAG, INFO) { "Max results reached ($resultsFound)" }
+                                    throw CancellationException("Max results reached")
+                                }
+                            }
+                            .collect { emit(it) }
                     }
-                )
-
-                delay(3000)
-                typedGateway.walk(searchQuery.path, walkOptions)
-            .cancellable()
-            .mapNotNull { lookup ->
-                if (matchesSearch(lookup, searchQuery)) {
-                    resultsFound++
-                    SearchResult.fromLookup(lookup, searchQuery.query)
-                } else {
-                    null
                 }
-            }
-            .onEach { result ->
-                if (searchQuery.options.maxResults != null && resultsFound >= searchQuery.options.maxResults) {
-                    throw CancellationException("Max results reached")
-                }
-            }
-            .collect { emit(it) }
+                log(TAG, INFO) { "Completed search for path: $searchPath" }
+            } catch (e: CancellationException) {
+                // Re-throw cancellation to stop entire search
+                throw e
+            } catch (e: Exception) {
+                // Log error but continue with next path
+                log(TAG, WARN) { "Failed to search path $searchPath: ${e.message}" }
             }
         }
-            
-        log(TAG) { "Search completed. Scanned: $itemsScanned, Found: $resultsFound" }
+
+        log(TAG, INFO) { "Search completed. Scanned: $itemsScanned, Found: $resultsFound" }
     }.flowOn(dispatcherProvider.IO)
     
     private fun filterLookup(lookup: APathLookup<*>, filter: SearchQuery.Filter): Boolean {

@@ -22,12 +22,14 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine
+import kotlinx.coroutines.flow.combine as kotlinxCombine
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.searcher.core.SearchEngine
 import eu.darken.butler.searcher.core.SearchHistory
+import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchResult
 import eu.darken.butler.searcher.core.SearcherSettings
@@ -59,6 +61,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -90,7 +93,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     private val searchQuery = MutableStateFlow(TextFieldValue(""))
     private val currentFilter = MutableStateFlow(SearchQuery.Filter())
-    private val searchPath = MutableStateFlow<APath<*>>(LocalPath.build(Environment.getExternalStorageDirectory()))
+    private val searchTargets = MutableStateFlow<List<SearchTarget>>(emptyList())
     private val selectionState = MutableStateFlow(SearcherSelectionState())
     private val quickActionsResult = MutableStateFlow<SearchResult?>(null)
     private val dialogStateFlow = MutableStateFlow<SearcherDialogState>(SearcherDialogState.None)
@@ -111,8 +114,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }.launchIn(vmScope)
 
         vmScope.launch {
-            val defaultPath = searcherSettings.defaultSearchPath.value()
-            searchPath.value = defaultPath ?: LocalPath.build(Environment.getExternalStorageDirectory())
+            val defaultTargets = searcherSettings.defaultSearchTargets.value()
+            searchTargets.value = defaultTargets.ifEmpty {
+                listOf(SearchTarget.Path.from(LocalPath.build(Environment.getExternalStorageDirectory())))
+            }
         }
 
         // Handle dialog events
@@ -124,11 +129,14 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         workspaceRemote.events
             .handleResult<WorkspaceEvent.PickerResult>(callerWorkspaceId = id) { result ->
                 log(tag, INFO) { "Received picker result: ${result.selectedPaths}" }
-                val selectedPath = result.selectedPaths.firstOrNull()
-                if (selectedPath != null) {
-                    // Update search path
-                    searchPath.value = selectedPath
-                    searcherSettings.defaultSearchPath.value(selectedPath)
+                if (result.selectedPaths.isNotEmpty()) {
+                    // Append new paths to existing targets, removing duplicates by path
+                    val newTargets = result.selectedPaths.map { SearchTarget.Path.from(it) }
+                    val existingPaths = searchTargets.value.filterIsInstance<SearchTarget.Path>().map { it.path }.toSet()
+                    val uniqueNewTargets = newTargets.filter { it.path !in existingPaths }
+                    val updatedTargets = searchTargets.value + uniqueNewTargets
+                    searchTargets.value = updatedTargets
+                    searcherSettings.defaultSearchTargets.value(updatedTargets)
                 }
             }
             .launchIn(vmScope)
@@ -192,19 +200,33 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         searchState,
         searcherSettings.maxHistoryItems.flow.flatMapLatest { searchHistory.getSearches(it) },
         currentFilter,
-        searchPath,
-        searchPath.flatMapLatest { pathPermissionCheck.monitor(it) },
+        searchTargets,
+        searchTargets.flatMapLatest { targets ->
+            val enabledPaths = targets.filterIsInstance<SearchTarget.Path>().filter { it.enabled }.map { it.path }
+            if (enabledPaths.isEmpty()) {
+                flowOf(PermissionState())
+            } else {
+                kotlinxCombine(enabledPaths.map { pathPermissionCheck.monitor(it) }) { states ->
+                    // Combine all permission states - if any path needs permissions, show the card
+                    PermissionState(
+                        requirements = states.flatMap { it.requirements }.distinct(),
+                        hasSufficientPermissions = states.all { it.hasSufficientPermissions },
+                        missingCritical = states.flatMap { it.missingCritical }.distinct(),
+                    )
+                }
+            }
+        },
         selectionState,
         quickActionsResult,
         dialogStateFlow,
-    ) { query, searchState, history, filter, path, permissionState, selection, quickActions, dialogState ->
+    ) { query, searchState, history, filter, targets, permissionState, selection, quickActions, dialogState ->
         State(
             id = id,
             searchQuery = query,
             searchState = searchState,
             searchHistory = history,
             currentFilter = filter,
-            searchPath = path,
+            searchTargets = targets,
             caseSensitive = filter.caseSensitive,
             wholeWord = filter.wholeWord,
             useRegex = filter.useRegex,
@@ -240,9 +262,16 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
         // Start the search
         activeSearchJob = vmScope.launch {
+            val targets = searchTargets.value
+            if (targets.isEmpty()) {
+                log(TAG, WARN) { "Cannot perform search: no search targets configured" }
+                searchState.update { it.copy(status = SearchState.Status.ERROR, error = Exception("No search targets configured")) }
+                return@launch
+            }
+
             val searchRequest = SearchQuery(
                 query = query,
-                path = searchPath.value,
+                targets = targets,
                 options = SearchQuery.Options(
                     maxResults = searcherSettings.maxSearchResults.value()
                 ),
@@ -341,9 +370,55 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun updateSearchPath(path: APath<*>) {
-        log(TAG) { "Updating search path: $path" }
-        searchPath.value = path
+    fun updateSearchTargets(targets: List<SearchTarget>) {
+        log(TAG) { "Updating search targets: $targets" }
+        searchTargets.value = targets
+        vmScope.launch {
+            searcherSettings.defaultSearchTargets.value(targets)
+        }
+    }
+
+    fun addSearchTarget(path: APath<*>) {
+        log(TAG) { "Adding search target: $path" }
+        val target = SearchTarget.Path.from(path)
+        val newTargets = (searchTargets.value + target).distinctBy { (it as? SearchTarget.Path)?.path }
+        updateSearchTargets(newTargets)
+    }
+
+    fun removeSearchTarget(target: SearchTarget) {
+        log(TAG) { "Removing search target: ${(target as? SearchTarget.Path)?.path}" }
+        val newTargets = searchTargets.value.filter {
+            (it as? SearchTarget.Path)?.path != (target as? SearchTarget.Path)?.path
+        }
+        updateSearchTargets(newTargets)
+    }
+
+    fun toggleTargetEnabled(target: SearchTarget) {
+        log(TAG) { "Toggling enabled state for target: ${(target as? SearchTarget.Path)?.path}" }
+        val newTargets = searchTargets.value.map {
+            if ((it as? SearchTarget.Path)?.path == (target as? SearchTarget.Path)?.path) {
+                when (it) {
+                    is SearchTarget.Path -> it.copy(enabled = !it.enabled)
+                }
+            } else {
+                it
+            }
+        }
+        updateSearchTargets(newTargets)
+    }
+
+    fun updateTargetLabel(target: SearchTarget, label: String?) {
+        log(TAG) { "Updating label for target: ${(target as? SearchTarget.Path)?.path} to: $label" }
+        val newTargets = searchTargets.value.map {
+            if ((it as? SearchTarget.Path)?.path == (target as? SearchTarget.Path)?.path) {
+                when (it) {
+                    is SearchTarget.Path -> it.copy(label = label)
+                }
+            } else {
+                it
+            }
+        }
+        updateSearchTargets(newTargets)
     }
 
     fun clearSearchHistory() {
@@ -364,10 +439,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         // Save current search to history since user found it useful
         vmScope.launch {
             val currentQuery = searchQuery.value.text
-            if (currentQuery.isNotBlank()) {
+            if (currentQuery.isNotBlank() && searchTargets.value.isNotEmpty()) {
                 val searchRequest = SearchQuery(
                     query = currentQuery,
-                    path = searchPath.value,
+                    targets = searchTargets.value,
                     options = SearchQuery.Options(
                         maxResults = searcherSettings.maxSearchResults.value()
                     ),
@@ -627,7 +702,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val searchState: SearchState = SearchState(),
         val searchHistory: List<SearchHistory.SearchHistoryItem> = emptyList(),
         val currentFilter: SearchQuery.Filter = SearchQuery.Filter(),
-        val searchPath: APath<*>,
+        val searchTargets: List<SearchTarget>,
         val caseSensitive: Boolean = false,
         val wholeWord: Boolean = false,
         val useRegex: Boolean = false,

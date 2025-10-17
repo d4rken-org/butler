@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.R
 import eu.darken.butler.workspace.core.Workspace
 
@@ -171,7 +172,7 @@ private fun SearchStatusCardPreview() {
         SearchStatusCard(
             state = SearcherWorkspaceViewModel.State(
                 id = Workspace.Id(),
-                searchPath = LocalPath.build("/storage/emulated/0/Documents"),
+                searchTargets = listOf(SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents"))),
                 searchState = SearcherWorkspaceViewModel.SearchState(
                     status = SearcherWorkspaceViewModel.SearchState.Status.COMPLETED,
                     results = listOf(), // Empty for "no results" state

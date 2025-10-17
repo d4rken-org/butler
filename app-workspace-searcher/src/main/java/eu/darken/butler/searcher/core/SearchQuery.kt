@@ -12,10 +12,14 @@ import kotlin.time.Instant
 @Parcelize
 data class SearchQuery(
     val query: String,
-    val path: APath<*>,
+    val targets: List<SearchTarget>,
     val options: Options = Options(),
     val filter: Filter = Filter()
 ) : Parcelable {
+
+    init {
+        require(targets.isNotEmpty()) { "Search targets list must not be empty" }
+    }
 
     @Serializable
     @Parcelize
@@ -51,7 +55,7 @@ data class SearchQuery(
     companion object {
         fun create(
             query: String,
-            path: APath<*>,
+            paths: List<APath<*>>,
             searchContent: Boolean = false,
             caseSensitive: Boolean = false,
             useRegex: Boolean = false,
@@ -59,7 +63,7 @@ data class SearchQuery(
             maxResults: Int? = null
         ) = SearchQuery(
             query = query,
-            path = path,
+            targets = paths.map { SearchTarget.Path.from(it) },
             options = Options(
                 searchContent = searchContent,
                 maxResults = maxResults
