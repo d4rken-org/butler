@@ -79,8 +79,12 @@ fun ExplorerPickerTopBar(
                     }
 
                     is PickerConfig.Selection.DirectoryMulti,
-                    is PickerConfig.Selection.FileMulti,
-                    is PickerConfig.Selection.MixedMulti -> selectionCount > 0
+                    is PickerConfig.Selection.MixedMulti -> {
+                        // Enable if items selected OR viewing a real directory (for "Select Current" fallback)
+                        selectionCount > 0 || currentLocation is ExplorerLocation.Directory
+                    }
+
+                    is PickerConfig.Selection.FileMulti -> selectionCount > 0
 
                     is PickerConfig.Selection.FileSingle -> false // Instant selection, no confirm needed
                 }
@@ -89,9 +93,15 @@ fun ExplorerPickerTopBar(
                     text = when (selection) {
                         is PickerConfig.Selection.DirectorySingle -> stringResource(R.string.explorer_picker_select_action)
                         is PickerConfig.Selection.DirectoryMulti,
+                        is PickerConfig.Selection.MixedMulti -> {
+                            if (selectionCount > 0) {
+                                stringResource(eu.darken.butler.common.R.string.general_done_action)
+                            } else {
+                                stringResource(R.string.explorer_picker_select_current_action)
+                            }
+                        }
                         is PickerConfig.Selection.FileSingle,
-                        is PickerConfig.Selection.FileMulti,
-                        is PickerConfig.Selection.MixedMulti -> stringResource(eu.darken.butler.common.R.string.general_done_action)
+                        is PickerConfig.Selection.FileMulti -> stringResource(eu.darken.butler.common.R.string.general_done_action)
                     }
                 )
             }

@@ -41,6 +41,7 @@
     <string name="explorer_picker_select_items_title">Select Files &amp; Folders</string>
     <string name="explorer_picker_select_items_count_title">Selected: %1$d</string>
     <string name="explorer_picker_select_action">Select</string>
+    <string name="explorer_picker_select_current_action">Select Current</string>
 
     <!-- Explorer Actions -->
     <string name="explorer_action_refresh">Refresh</string>

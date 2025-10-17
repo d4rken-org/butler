@@ -1196,11 +1196,18 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 if (currentLocation != null) listOf(currentLocation.path) else emptyList()
             }
             is PickerConfig.Selection.DirectoryMulti -> {
-                // Multiple directories: return selected directories
-                stateSnap.selectionState.selectedItems
-                    .filterIsInstance<ExplorerItem.Lookup>()
-                    .filter { it is ExplorerItem.Directory }
-                    .map { it.lookup.lookedUp }
+                // Multiple directories: return selected directories, or current directory if none selected
+                if (stateSnap.selectionState.selectedItems.isEmpty()) {
+                    // No items selected → return current directory
+                    val currentLocation = stateSnap.currentLocation as? ExplorerLocation.Directory
+                    if (currentLocation != null) listOf(currentLocation.path) else emptyList()
+                } else {
+                    // Items selected → return selected directories
+                    stateSnap.selectionState.selectedItems
+                        .filterIsInstance<ExplorerItem.Lookup>()
+                        .filter { it is ExplorerItem.Directory }
+                        .map { it.lookup.lookedUp }
+                }
             }
             is PickerConfig.Selection.FileSingle -> {
                 // Should not reach here - FileSingle uses instant selection
@@ -1215,10 +1222,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     .map { it.lookup.lookedUp }
             }
             is PickerConfig.Selection.MixedMulti -> {
-                // Mixed selection: return both files and directories
-                stateSnap.selectionState.selectedItems
-                    .filterIsInstance<ExplorerItem.Lookup>()
-                    .map { it.lookup.lookedUp }
+                // Mixed selection: return both files and directories, or current directory if none selected
+                if (stateSnap.selectionState.selectedItems.isEmpty()) {
+                    // No items selected → return current directory
+                    val currentLocation = stateSnap.currentLocation as? ExplorerLocation.Directory
+                    if (currentLocation != null) listOf(currentLocation.path) else emptyList()
+                } else {
+                    // Items selected → return selected items (both files and directories)
+                    stateSnap.selectionState.selectedItems
+                        .filterIsInstance<ExplorerItem.Lookup>()
+                        .map { it.lookup.lookedUp }
+                }
             }
         }
 
