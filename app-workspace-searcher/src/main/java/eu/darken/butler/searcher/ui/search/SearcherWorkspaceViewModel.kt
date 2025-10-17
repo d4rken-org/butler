@@ -42,7 +42,7 @@ import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.handleResult
-import eu.darken.butler.workspace.core.picker.ExplorerPickerArguments
+import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.core.picker.PickerConfig
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
@@ -773,20 +773,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun openPathPicker() = launch {
-        log(tag, INFO) { "openPathPicker()" }
-
-        val pickerArgs = ExplorerPickerArguments(
-            startPath = null, // Start at home
-            selection = PickerConfig.Selection.DirectoryMulti,
-            callerWorkspaceId = id
-        )
-
-        workspaceRemote.execute(
-            WorkspaceAction.Create(
-                type = Workspace.Type.EXPLORER,
-                arguments = pickerArgs
-            )
-        )
+        workspaceRemote.launchPicker(id, startPath = null, PickerConfig.Selection.DirectoryMulti)
     }
 
     @AssistedFactory

@@ -1,5 +1,8 @@
 package eu.darken.butler.workspace.core
 
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.workspace.core.picker.ExplorerPickerArguments
+import eu.darken.butler.workspace.core.picker.PickerConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
@@ -51,3 +54,30 @@ inline fun <reified T : WorkspaceEvent.ResultEvent> Flow<WorkspaceEvent>.handleR
     }
     .filter { false } // Terminal operator - no downstream emissions
     .map { it } // Ensures correct type
+
+/**
+ * Launches a picker workspace for file/folder selection.
+ * Convenience function for the common pattern of creating a sub-workspace for path selection.
+ *
+ * @param callerWorkspaceId The workspace ID requesting the picker
+ * @param startPath Optional starting path for the picker (null = home)
+ * @param selection The picker mode (FileSingle, FileMulti, DirectorySingle, DirectoryMulti, MixedMulti)
+ * @return The Create action result with the new workspace ID
+ */
+suspend fun WorkspaceRemote.launchPicker(
+    callerWorkspaceId: Workspace.Id,
+    startPath: APath<*>? = null,
+    selection: PickerConfig.Selection,
+): WorkspaceAction.Create.Result {
+    // Implementation detail: Uses Explorer workspace for picker functionality
+    return execute(
+        WorkspaceAction.Create(
+            type = Workspace.Type.EXPLORER,
+            arguments = ExplorerPickerArguments(
+                startPath = startPath,
+                selection = selection,
+                callerWorkspaceId = callerWorkspaceId
+            )
+        )
+    ) as WorkspaceAction.Create.Result
+}
