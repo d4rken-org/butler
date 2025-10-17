@@ -15,8 +15,7 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.workspace.core.permissions.PermissionState
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,64 +36,62 @@ class DeviceLocationLoader @Inject constructor(
         )
     }
 
-    fun loadDevice(): Flow<ExplorerLocation> = combine(
-        flow { emit(Unit) },
-        safLocationManager.locations,
-    ) { _, safLocations ->
-        log(tag) { "loadDevice(): Loading device location with ${safLocations.size} SAF locations" }
+    fun loadDevice(): Flow<ExplorerLocation> = safLocationManager.locations
+        .map { safLocations ->
+            log(tag) { "loadDevice(): Loading device location with ${safLocations.size} SAF locations" }
 
-        val staticLocations = listOf(
-            ExplorerItem.Storage.Local(
-                localId = "root",
-                displayIcon = Icons.TwoTone.Code,
-                displayName = R.string.explorer_navigation_root.toCaString(),
-                target = ExplorerNavigation.Target.Directory(
-                    LocalPath.build("/")
+            val staticLocations = listOf(
+                ExplorerItem.Storage.Local(
+                    localId = "root",
+                    displayIcon = Icons.TwoTone.Code,
+                    displayName = R.string.explorer_navigation_root.toCaString(),
+                    target = ExplorerNavigation.Target.Directory(
+                        LocalPath.build("/")
+                    ),
                 ),
-            ),
-            ExplorerItem.Storage.Local(
-                localId = "internal-public",
-                displayIcon = Icons.TwoTone.Storage,
-                displayName = R.string.explorer_navigation_internal_storage.toCaString(),
-                target = ExplorerNavigation.Target.Directory(
-                    LocalPath.build(Environment.getExternalStorageDirectory())
+                ExplorerItem.Storage.Local(
+                    localId = "internal-public",
+                    displayIcon = Icons.TwoTone.Storage,
+                    displayName = R.string.explorer_navigation_internal_storage.toCaString(),
+                    target = ExplorerNavigation.Target.Directory(
+                        LocalPath.build(Environment.getExternalStorageDirectory())
+                    ),
                 ),
-            ),
-        )
+            )
 
-        // Convert SAF locations to storage items
-        val safStorage = safLocations.map { location ->
-            ExplorerItem.Storage.SAF(
-                location = location,
-                displayIcon = Icons.TwoTone.FolderShared,
-                displayName = location.displayName,
-                target = ExplorerNavigation.Target.Directory(location.path),
+            // Convert SAF locations to storage items
+            val safStorage = safLocations.map { location ->
+                ExplorerItem.Storage.SAF(
+                    location = location,
+                    displayIcon = Icons.TwoTone.FolderShared,
+                    displayName = location.displayName,
+                    target = ExplorerNavigation.Target.Directory(location.path),
+                )
+            }
+
+            val allLocations = staticLocations + safStorage
+
+            // Calculate combined storage info
+            val stat = try {
+                StatFs(Environment.getDataDirectory().path)
+            } catch (e: Exception) {
+                log(tag) { "loadDevice(): Failed to get storage info: ${e.message}" }
+                null
+            }
+
+            val info = ExplorerLocation.Device.Info(
+                locationCount = allLocations.size,
+                totalCapacity = stat?.totalBytes,
+                usedSpace = stat?.let { it.totalBytes - it.availableBytes },
+            )
+
+            log(tag) { "loadDevice(): Created device with ${allLocations.size} storage locations" }
+
+            ExplorerLocation.Device(
+                items = allLocations,
+                info = info,
+                permissionState = checkLocationPermissions(),
+                progress = null,
             )
         }
-
-        val allLocations = staticLocations + safStorage
-
-        // Calculate combined storage info
-        val stat = try {
-            StatFs(Environment.getDataDirectory().path)
-        } catch (e: Exception) {
-            log(tag) { "loadDevice(): Failed to get storage info: ${e.message}" }
-            null
-        }
-
-        val info = ExplorerLocation.Device.Info(
-            locationCount = allLocations.size,
-            totalCapacity = stat?.totalBytes,
-            usedSpace = stat?.let { it.totalBytes - it.availableBytes },
-        )
-
-        log(tag) { "loadDevice(): Created device with ${allLocations.size} storage locations" }
-
-        ExplorerLocation.Device(
-            items = allLocations,
-            info = info,
-            permissionState = checkLocationPermissions(),
-            progress = null,
-        )
-    }
 }

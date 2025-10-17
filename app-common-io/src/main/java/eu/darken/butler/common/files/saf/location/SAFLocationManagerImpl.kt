@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
@@ -95,6 +96,7 @@ class SAFLocationManagerImpl @Inject constructor(
             log(TAG) { "Found ${locations.size} granted locations (${allLocations.size} total, ${allLocations.size - locations.size} hidden)" }
             locations
         }
+        .distinctUntilChanged()
 
     override fun findPermissionFor(path: SAFPath): SAFLocationMatch? {
         // Convert locations to permission-like structure for matching
