@@ -424,37 +424,25 @@ class GatewaySwitch @Inject constructor(
     ): Flow<CopyAction.State<*, *>> = flow {
         log(TAG, DEBUG) { "performCrossGatewayCopy(): ${sources.size} sources -> $target" }
 
-        val firstSource = sources.firstOrNull() ?: return@flow
-
         val transferOptions = TransferStrategy.Options(
             preserveAttributes = options.preserveAttributes,
             followSymlinks = options.followSymlinks
         )
 
-        when {
-            firstSource is SAFPath && target is LocalPath -> {
+        // Exhaustive when - compiler enforces all sealed subtypes are handled!
+        when (val firstSource = sources.firstOrNull()) {
+            null -> return@flow
+            is LocalPath -> {
                 @Suppress("UNCHECKED_CAST")
-                (sources as Collection<SAFPath>).copyGeneric(
-                    destination = target,
-                    sourceOps = safGateway,
-                    destOps = localGateway,
-                    strategy = GenericCrossTypeCopyStrategy(),
-                    options = transferOptions,
-                    onIssue = onIssue,
-                ).collect { state -> emit(state) }
+                (sources as Collection<LocalPath>).copyCrossType(target, transferOptions, onIssue)
+                    .collect { state -> emit(state) }
             }
-            firstSource is LocalPath && target is SAFPath -> {
+            is SAFPath -> {
                 @Suppress("UNCHECKED_CAST")
-                (sources as Collection<LocalPath>).copyGeneric(
-                    destination = target,
-                    sourceOps = localGateway,
-                    destOps = safGateway,
-                    strategy = GenericCrossTypeCopyStrategy(),
-                    options = transferOptions,
-                    onIssue = onIssue,
-                ).collect { state -> emit(state) }
+                (sources as Collection<SAFPath>).copyCrossType(target, transferOptions, onIssue)
+                    .collect { state -> emit(state) }
             }
-            else -> throw IllegalArgumentException("Unsupported cross-type copy: ${firstSource::class.simpleName} -> ${target::class.simpleName}")
+            is RawPath -> throw IllegalArgumentException("RawPath does not support cross-type copy operations")
         }
     }
 
@@ -466,38 +454,106 @@ class GatewaySwitch @Inject constructor(
     ): Flow<MoveAction.State<*, *>> = flow {
         log(TAG, DEBUG) { "performCrossGatewayMove(): ${sources.size} sources -> $target" }
 
-        val firstSource = sources.firstOrNull() ?: return@flow
-
         val transferOptions = TransferStrategy.Options(
             preserveAttributes = options.preserveAttributes,
             followSymlinks = false  // MoveAction doesn't have followSymlinks option
         )
 
-        when {
-            firstSource is SAFPath && target is LocalPath -> {
+        // Exhaustive when - compiler enforces all sealed subtypes are handled!
+        when (val firstSource = sources.firstOrNull()) {
+            null -> return@flow
+            is LocalPath -> {
                 @Suppress("UNCHECKED_CAST")
-                (sources as Collection<SAFPath>).moveGeneric(
-                    destination = target,
-                    sourceOps = safGateway,
-                    destOps = localGateway,
-                    strategy = GenericCrossTypeMoveStrategy(),
-                    options = transferOptions,
-                    onIssue = onIssue,
-                ).collect { state -> emit(state) }
+                (sources as Collection<LocalPath>).moveCrossType(target, transferOptions, onIssue)
+                    .collect { state -> emit(state) }
             }
-            firstSource is LocalPath && target is SAFPath -> {
+            is SAFPath -> {
                 @Suppress("UNCHECKED_CAST")
-                (sources as Collection<LocalPath>).moveGeneric(
-                    destination = target,
-                    sourceOps = localGateway,
-                    destOps = safGateway,
-                    strategy = GenericCrossTypeMoveStrategy(),
-                    options = transferOptions,
-                    onIssue = onIssue,
-                ).collect { state -> emit(state) }
+                (sources as Collection<SAFPath>).moveCrossType(target, transferOptions, onIssue)
+                    .collect { state -> emit(state) }
             }
-            else -> throw IllegalArgumentException("Unsupported cross-type move: ${firstSource::class.simpleName} -> ${target::class.simpleName}")
+            is RawPath -> throw IllegalArgumentException("RawPath does not support cross-type move operations")
         }
+    }
+
+    // ========================================================================
+    // Cross-Type Copy Extensions (Receiver-based dispatch with exhaustiveness)
+    // ========================================================================
+
+    @JvmName("localPathCopyCrossType")
+    private suspend fun Collection<LocalPath>.copyCrossType(
+        destination: APath<*>,
+        options: TransferStrategy.Options,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
+    ): Flow<CopyAction.State<*, *>> = when (destination) {
+        is LocalPath -> error("Same-type operations should be handled by native implementation")
+        is SAFPath -> copyGeneric(
+            destination = destination,
+            sourceOps = localGateway,
+            destOps = safGateway,
+            strategy = GenericCrossTypeCopyStrategy(),
+            options = options,
+            onIssue = onIssue,
+        )
+        is RawPath -> error("RawPath does not support cross-type copy operations")
+    }
+
+    @JvmName("safPathCopyCrossType")
+    private suspend fun Collection<SAFPath>.copyCrossType(
+        destination: APath<*>,
+        options: TransferStrategy.Options,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
+    ): Flow<CopyAction.State<*, *>> = when (destination) {
+        is LocalPath -> copyGeneric(
+            destination = destination,
+            sourceOps = safGateway,
+            destOps = localGateway,
+            strategy = GenericCrossTypeCopyStrategy(),
+            options = options,
+            onIssue = onIssue,
+        )
+        is SAFPath -> error("Same-type operations should be handled by native implementation")
+        is RawPath -> error("RawPath does not support cross-type copy operations")
+    }
+
+    // ========================================================================
+    // Cross-Type Move Extensions (Receiver-based dispatch with exhaustiveness)
+    // ========================================================================
+
+    @JvmName("localPathMoveCrossType")
+    private suspend fun Collection<LocalPath>.moveCrossType(
+        destination: APath<*>,
+        options: TransferStrategy.Options,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
+    ): Flow<MoveAction.State<*, *>> = when (destination) {
+        is LocalPath -> error("Same-type operations should be handled by native implementation")
+        is SAFPath -> moveGeneric(
+            destination = destination,
+            sourceOps = localGateway,
+            destOps = safGateway,
+            strategy = GenericCrossTypeMoveStrategy(),
+            options = options,
+            onIssue = onIssue,
+        )
+        is RawPath -> error("RawPath does not support cross-type move operations")
+    }
+
+    @JvmName("safPathMoveCrossType")
+    private suspend fun Collection<SAFPath>.moveCrossType(
+        destination: APath<*>,
+        options: TransferStrategy.Options,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
+    ): Flow<MoveAction.State<*, *>> = when (destination) {
+        is LocalPath -> moveGeneric(
+            destination = destination,
+            sourceOps = safGateway,
+            destOps = localGateway,
+            strategy = GenericCrossTypeMoveStrategy(),
+            options = options,
+            onIssue = onIssue,
+        )
+        is SAFPath -> error("Same-type operations should be handled by native implementation")
+        is RawPath -> error("RawPath does not support cross-type move operations")
     }
 
     enum class Type {
