@@ -131,6 +131,8 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
     private var failDeleteException: (() -> Exception)? = null
     private var failCreateDirCount = 0
     private var failCreateDirException: (() -> Exception)? = null
+    private var failListFilesCount = 0
+    private var failListFilesException: (() -> Exception)? = null
 
     /**
      * Wrapper class that implements APathLookupExtended for mock testing.
@@ -173,6 +175,12 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
 
     override suspend fun listFiles(path: P): List<P> {
         listFilesCalls.add(path.path)
+
+        // Check for injected failure
+        if (failListFilesCount > 0) {
+            failListFilesCount--
+            throw failListFilesException?.invoke() ?: SecurityException("Injected failure")
+        }
 
         val mockFile = files[path.path]
             ?: throw NoSuchFileException(path.path)
@@ -629,6 +637,14 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
     }
 
     /**
+     * Configure listFiles to fail the next N times with specified exception.
+     */
+    fun setFailListFiles(count: Int, exceptionFactory: () -> Exception = { SecurityException("Permission denied") }) {
+        failListFilesCount = count
+        failListFilesException = exceptionFactory
+    }
+
+    /**
      * Clear all failure injection settings.
      */
     fun clearFailureInjection() {
@@ -640,6 +656,8 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
         failDeleteException = null
         failCreateDirCount = 0
         failCreateDirException = null
+        failListFilesCount = 0
+        failListFilesException = null
     }
 
     /**

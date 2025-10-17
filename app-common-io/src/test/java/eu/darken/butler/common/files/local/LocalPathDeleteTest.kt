@@ -1025,6 +1025,130 @@ class LocalPathDeleteTest : BaseTest() {
         }
     }
 
+    @Test
+    fun `directory scan error with retry should succeed on second attempt`() = runTest {
+        // Given - Create directory structure
+        val parentDir = File(testFolder, "parent")
+        val childFile = File(parentDir, "child.txt")
+
+        parentDir.mkdir()
+        childFile.writeText("content")
+
+        // Make directory unreadable to trigger permission error during scan
+        parentDir.setReadable(false)
+
+        var retryInvoked = false
+
+        try {
+            // When
+            val result = LocalPath.build(parentDir).delete(
+                ops,
+                onIssue = { issue ->
+                    when (issue) {
+                        is PathActionIssue.UnknownError -> {
+                            if (!retryInvoked) {
+                                retryInvoked = true
+                                // Restore permissions before retry
+                                parentDir.setReadable(true)
+                                parentDir.setWritable(true)
+                                PathActionIssue.UnknownError.Resolution.Retry
+                            } else {
+                                PathActionIssue.UnknownError.Resolution.Skip()
+                            }
+                        }
+                        is PathActionIssue.InsufficientPermission -> {
+                            if (!retryInvoked) {
+                                retryInvoked = true
+                                // Restore permissions
+                                parentDir.setReadable(true)
+                                parentDir.setWritable(true)
+                            }
+                            PathActionIssue.InsufficientPermission.Resolution.Skip()
+                        }
+                        else -> TODO("Unexpected issue type: $issue")
+                    }
+                }
+            )
+
+            // Then - Directory and child successfully deleted after retry
+            retryInvoked shouldBe true
+            parentDir.exists() shouldBe false
+            childFile.exists() shouldBe false
+            result.deleted.map { it.lookedUp } shouldContain LocalPath.build(parentDir)
+            result.deleted.map { it.lookedUp } shouldContain LocalPath.build(childFile)
+        } finally {
+            // Restore permissions for cleanup
+            if (parentDir.exists()) {
+                parentDir.setReadable(true)
+            }
+        }
+    }
+
+    @Test
+    fun `multiple directories with scan errors and skip all should batch skip`() = runTest {
+        // Given - Create 3 directories with children
+        val dir1 = File(testFolder, "dir1")
+        val dir2 = File(testFolder, "dir2")
+        val dir3 = File(testFolder, "dir3")
+
+        dir1.mkdir()
+        dir2.mkdir()
+        dir3.mkdir()
+
+        File(dir1, "child1.txt").writeText("content1")
+        File(dir2, "child2.txt").writeText("content2")
+        File(dir3, "child3.txt").writeText("content3")
+
+        // Make all directories unreadable
+        dir1.setReadable(false)
+        dir2.setReadable(false)
+        dir3.setReadable(false)
+
+        var issueCount = 0
+
+        try {
+            // When
+            val result = listOf(
+                LocalPath.build(dir1),
+                LocalPath.build(dir2),
+                LocalPath.build(dir3)
+            ).delete(
+                ops,
+                onIssue = { issue ->
+                    issueCount++
+                    when (issue) {
+                        is PathActionIssue.InsufficientPermission -> {
+                            PathActionIssue.InsufficientPermission.Resolution.Skip(applyToAll = true)
+                        }
+                        is PathActionIssue.UnknownError -> {
+                            PathActionIssue.UnknownError.Resolution.Skip(applyToAll = true)
+                        }
+                        else -> TODO("Unexpected issue type: $issue")
+                    }
+                }
+            )
+
+            // Then - Only 1 issue callback (not 3) due to applyToAll
+            issueCount shouldBe 1
+
+            // All 3 directories in skipped
+            result.skipped.size shouldBe 3
+            result.skipped.map { it.lookedUp } shouldContain LocalPath.build(dir1)
+            result.skipped.map { it.lookedUp } shouldContain LocalPath.build(dir2)
+            result.skipped.map { it.lookedUp } shouldContain LocalPath.build(dir3)
+
+            // All directories still exist
+            dir1.exists() shouldBe true
+            dir2.exists() shouldBe true
+            dir3.exists() shouldBe true
+        } finally {
+            // Restore permissions for cleanup
+            dir1.setReadable(true)
+            dir2.setReadable(true)
+            dir3.setReadable(true)
+        }
+    }
+
     // ============ PROGRESS THROTTLING TESTS ============
 
     @Test

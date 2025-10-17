@@ -2166,4 +2166,48 @@ class LocalPathCopyTest : BaseTest() {
         result.copied shouldHaveSize 4 // linkToDir + level1 + level2 + deep.txt
     }
 
+    // ============ SCAN ERROR HANDLING ============
+
+    @Test
+    fun `directory scan error then skip should not appear in copied`() = runTest {
+        // Given - Create directory structure
+        val parentDir = File(sourceFolder, "parent")
+        val childFile = File(parentDir, "child.txt")
+
+        parentDir.mkdir()
+        childFile.writeText("content")
+
+        // Make directory unreadable to trigger permission error during scan
+        parentDir.setReadable(false)
+
+        try {
+            // When
+            val result = LocalPath.build(parentDir).copy(
+                ops,
+                LocalPath.build(destFolder),
+                onIssue = { issue ->
+                    when (issue) {
+                        is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                        is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                        else -> TODO("Unexpected issue type: $issue")
+                    }
+                }
+            )
+
+            // Then - Directory should be ONLY in skipped, NOT in copied
+            val finalResult = result.last() as CopyAction.State.Result<LocalPath, LocalPathLookup>
+            finalResult.copied.map { it.first } shouldNotBe setOf(LocalPath.build(parentDir))
+            finalResult.skipped shouldContain LocalPath.build(parentDir)
+
+            // Destination should not have the directory or child
+            File(destFolder, "parent").exists() shouldBe false
+            File(destFolder, "parent/child.txt").exists() shouldBe false
+        } finally {
+            // Restore permissions for cleanup
+            if (parentDir.exists()) {
+                parentDir.setReadable(true)
+            }
+        }
+    }
+
 }

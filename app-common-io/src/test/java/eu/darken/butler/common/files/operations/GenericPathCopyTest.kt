@@ -7,6 +7,7 @@ import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.LocalPathLookupExtended
 import eu.darken.butler.common.files.metadata.FileType
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.collections.shouldContain
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
@@ -925,5 +926,94 @@ class GenericPathCopyTest : BaseTest() {
         mockOps.hasFile("/dest/folder") shouldBe true
         mockOps.hasFile("/dest/folder/file.txt") shouldBe true
         result.copied.size shouldBe 2 // folder + file
+    }
+
+    // ============ SCAN ERROR HANDLING ============
+
+    @Test
+    fun `directory scan error during copy then skip should appear only in skipped`() = runTest {
+        // Given - directory with children that will fail during listFiles
+        mockOps.addMockDir("/source/parent")
+        mockOps.addMockFile("/source/parent/child.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
+
+        // Inject listFiles failure (simulates permission denied during scan)
+        mockOps.setFailListFiles(1, { SecurityException("Permission denied") })
+
+        val sourcePath = LocalPath.build("/source/parent")
+        val destPath = LocalPath.build("/dest")
+
+        var issueReceived = false
+
+        // When
+        val result = setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onIssue = { issue ->
+                issueReceived = true
+                when (issue) {
+                    is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    else -> TODO("Unexpected issue type: $issue")
+                }
+            }
+        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup>
+
+        // Then - directory should be ONLY in skipped, NOT in copied
+        result.copied.map { it.first } shouldNotBe setOf(LocalPath.build("/source/parent"))
+        result.skipped shouldBe setOf(LocalPath.build("/source/parent"))
+        issueReceived shouldBe true
+
+        // Destination should not have the directory or its children
+        mockOps.hasFile("/dest/parent") shouldBe false
+        mockOps.hasFile("/dest/parent/child.txt") shouldBe false
+    }
+
+    @Test
+    fun `directory scan error during copy with retry should succeed on second attempt`() = runTest {
+        // Given - directory with children
+        mockOps.addMockDir("/source/parent")
+        mockOps.addMockFile("/source/parent/child.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
+
+        // Inject listFiles failure for first attempt only
+        mockOps.setFailListFiles(1, { SecurityException("Permission denied") })
+
+        val sourcePath = LocalPath.build("/source/parent")
+        val destPath = LocalPath.build("/dest")
+
+        var retryInvoked = false
+
+        // When
+        val result = setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.UnknownError -> {
+                        if (!retryInvoked) {
+                            retryInvoked = true
+                            PathActionIssue.UnknownError.Resolution.Retry
+                        } else {
+                            PathActionIssue.UnknownError.Resolution.Skip()
+                        }
+                    }
+                    is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                    else -> TODO("Unexpected issue type: $issue")
+                }
+            }
+        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup>
+
+        // Then - directory and children successfully copied after retry
+        retryInvoked shouldBe true
+        mockOps.hasFile("/dest/parent") shouldBe true
+        mockOps.hasFile("/dest/parent/child.txt") shouldBe true
+        mockOps.getFileContent("/dest/parent/child.txt") shouldBe "content".toByteArray()
+        result.copied.size shouldBe 2 // parent + child.txt
+        result.skipped.size shouldBe 0
     }
 }

@@ -2007,4 +2007,52 @@ class LocalPathMoveTest : BaseTest() {
             .exists() shouldBe true
         sourcePath.exists() shouldBe false
     }
+
+    // ============ SCAN ERROR HANDLING ============
+
+    @Test
+    fun `directory scan error then skip should not appear in moved`() = runTest {
+        // Given - Create directory structure
+        val parentDir = File(sourceFolder, "parent")
+        val childFile = File(parentDir, "child.txt")
+
+        parentDir.mkdir()
+        childFile.writeText("content")
+
+        // Make directory unreadable to trigger permission error during scan
+        parentDir.setReadable(false)
+
+        try {
+            // When
+            val result = LocalPath.build(parentDir).move(
+                ops,
+                LocalPath.build(destFolder),
+                onIssue = { issue ->
+                    when (issue) {
+                        is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                        is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                        else -> TODO("Unexpected issue type: $issue")
+                    }
+                }
+            )
+
+            // Then - Directory should be ONLY in skipped, NOT in moved
+            val finalResult = result.last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
+            finalResult.movedFiles.map { it.first } shouldNotBe setOf(LocalPath.build(parentDir))
+            finalResult.skippedFiles shouldContain LocalPath.build(parentDir)
+
+            // Source should still exist (move was skipped)
+            parentDir.exists() shouldBe true
+            childFile.exists() shouldBe true
+
+            // Destination should not have the directory or child
+            File(destFolder, "parent").exists() shouldBe false
+            File(destFolder, "parent/child.txt").exists() shouldBe false
+        } finally {
+            // Restore permissions for cleanup
+            if (parentDir.exists()) {
+                parentDir.setReadable(true)
+            }
+        }
+    }
 }

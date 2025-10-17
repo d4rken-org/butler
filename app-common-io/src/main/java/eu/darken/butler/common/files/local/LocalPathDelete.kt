@@ -210,8 +210,51 @@ internal class LocalPathDelete(
         handleError(error, originalItem.cachedLookup, canRetry = true, originalItem = originalItem)
     }
 
-    private suspend fun handleScanError(error: Throwable, lookup: LocalPathLookup) {
-        handleError(error, lookup, canRetry = false)
+    private suspend fun handleScanError(error: Throwable, lookup: LocalPathLookup, originalItem: WorkItem.ScanPath) {
+        handleScanError_internal(error, lookup, originalItem)
+    }
+
+    private suspend fun handleScanError_internal(error: Throwable, lookup: LocalPathLookup, originalItem: WorkItem.ScanPath) {
+        log(TAG, ERROR) { "Scan error: ${lookup.lookedUp} - $error" }
+
+        // Check "apply to all" fast path
+        // We always use UnknownError for scan errors (even for permission errors) to support retry,
+        // so we only need to check shouldSkipUnknown()
+        if (issueResolver.shouldSkipUnknown()) {
+            log(TAG, INFO) { "Skipping scan error (apply-to-all): ${lookup.lookedUp}" }
+            skipped.add(lookup)
+            return
+        }
+
+        // No issue handler configured? Re-throw exception immediately
+        if (onIssue == null) {
+            throw WriteException(path = lookup.lookedUp, cause = error)
+        }
+
+        // For scan errors, always use UnknownError to support retry
+        // (InsufficientPermission doesn't have Retry resolution)
+        val issue = PathActionIssue.UnknownError(
+            destination = lookup,
+            exception = WriteException(path = lookup.lookedUp, cause = error),
+            canRetry = true,
+            canSkip = true
+        )
+
+        val resolution = issueResolver.resolveIssue(issue)
+
+        when (resolution) {
+            is PathActionIssue.UnknownError.Resolution.Skip -> {
+                skipped.add(lookup)
+            }
+            is PathActionIssue.UnknownError.Resolution.Retry -> {
+                log(TAG, INFO) { "Retrying scan operation: ${lookup.lookedUp}" }
+                // Re-queue the scan work item to try again
+                workQueue.addFirst(originalItem)
+            }
+            is PathActionIssue.UnknownError.Resolution.Cancel -> {
+                // Already thrown by resolveIssue
+            }
+        }
     }
 
     private suspend fun processScan(item: WorkItem.ScanPath): Int {
@@ -284,7 +327,7 @@ internal class LocalPathDelete(
                                 // Add item before handling error so counts are correct
                                 progressTracker.totalItems++
                                 progressTracker.totalBytes += lookup.size
-                                handleScanError(cause, lookup)
+                                handleScanError(cause, lookup, item)
                                 return 0
                             }
 
@@ -292,7 +335,7 @@ internal class LocalPathDelete(
                                 // Add item before handling error so counts are correct
                                 progressTracker.totalItems++
                                 progressTracker.totalBytes += lookup.size
-                                handleScanError(cause, lookup)
+                                handleScanError(cause, lookup, item)
                                 return 0
                             }
 
@@ -300,7 +343,7 @@ internal class LocalPathDelete(
                                 // Add item before handling error so counts are correct
                                 progressTracker.totalItems++
                                 progressTracker.totalBytes += lookup.size
-                                handleScanError(cause ?: e, lookup)
+                                handleScanError(cause ?: e, lookup, item)
                                 return 0
                             }
                         }

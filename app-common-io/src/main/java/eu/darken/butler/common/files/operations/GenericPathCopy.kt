@@ -1,7 +1,11 @@
 package eu.darken.butler.common.files.operations
 
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
+import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
@@ -69,9 +73,9 @@ import kotlinx.coroutines.isActive
  * @param DPLE The destination path lookup extended type (LocalPathLookupExtended, SAFPathLookupExtended, etc.)
  */
 internal class GenericPathCopy<
-    SP : APath<SP>, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
-    DP : APath<DP>, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
-    >(
+        SP : APath<SP>, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
+        DP : APath<DP>, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
+        >(
     private val sources: Collection<SP>,
     private val destination: DP,
     private val sourceOps: FileSystemOps<SP, SPL, SPLE>,
@@ -194,14 +198,17 @@ internal class GenericPathCopy<
                         log(TAG, DEBUG) { "Scan complete: ${snapshot.totalItems} items to copy" }
                     }
                 }
+
                 is WorkItem.CopyFile<*, *, *> -> {
                     @Suppress("UNCHECKED_CAST")
                     processCopyFile(item as WorkItem.CopyFile<SP, SPL, DP>, ::emit)
                 }
+
                 is WorkItem.CreateDirectory<*, *, *> -> {
                     @Suppress("UNCHECKED_CAST")
                     processCreateDirectory(item as WorkItem.CreateDirectory<SP, SPL, DP>)
                 }
+
                 is WorkItem.ResolveConflict<*, *, *, *> -> {
                     @Suppress("UNCHECKED_CAST")
                     processResolveConflict(item as WorkItem.ResolveConflict<SP, SPL, DP, DPL>)
@@ -212,14 +219,19 @@ internal class GenericPathCopy<
         // For same-type operations (SP=DP), copied is Set<Pair<SP, DP>> which equals Set<Pair<SP, SP>>
         // For cross-type, this won't compile - cross-type operations should use their own result type
         @Suppress("UNCHECKED_CAST")
-        emit(CopyAction.State.Result(
-            copied = copied as Set<Pair<SP, SP>>,
-            skipped = skipped,
-            copiedBytes = totalBytesTransferred
-        ))
+        emit(
+            CopyAction.State.Result(
+                copied = copied as Set<Pair<SP, SP>>,
+                skipped = skipped,
+                copiedBytes = totalBytesTransferred
+            )
+        )
     }
 
-    private suspend fun processScan(item: WorkItem.ScanSource<SP>, emit: suspend (CopyAction.State<SP, SPL>) -> Unit): Int {
+    private suspend fun processScan(
+        item: WorkItem.ScanSource<SP>,
+        emit: suspend (CopyAction.State<SP, SPL>) -> Unit
+    ): Int {
         log(TAG, VERBOSE) { "Scanning source: ${item.source}" }
 
         val lookup = try {
@@ -260,7 +272,6 @@ internal class GenericPathCopy<
             FileType.DIRECTORY -> {
                 progressTracker.totalItems++
                 progressTracker.totalBytes += effectiveLookup.size
-                workQueue.addLast(WorkItem.CreateDirectory(effectiveLookup, destPath, item.topLevelSource))
 
                 // Report scan progress with throttling
                 if (progressTracker.shouldReportProgress()) {
@@ -303,8 +314,13 @@ internal class GenericPathCopy<
                         }
                     }
                 } catch (e: Exception) {
-                    handleScanError(e, effectiveLookup)
+                    handleScanError(e, effectiveLookup, item)
+                    return 0
                 }
+
+                // Only queue CreateDirectory AFTER successfully scanning children
+                // This prevents duplicate directory creation when scan errors are retried
+                workQueue.addLast(WorkItem.CreateDirectory(effectiveLookup, destPath, item.topLevelSource))
 
                 return childrenFound
             }
@@ -313,7 +329,10 @@ internal class GenericPathCopy<
         }
     }
 
-    private suspend fun processCopyFile(item: WorkItem.CopyFile<SP, SPL, DP>, emit: suspend (CopyAction.State<SP, SPL>) -> Unit) {
+    private suspend fun processCopyFile(
+        item: WorkItem.CopyFile<SP, SPL, DP>,
+        emit: suspend (CopyAction.State<SP, SPL>) -> Unit
+    ) {
         // Skip if parent directory was skipped
         if (isDescendantOfSkippedDir(item.sourceLookup.lookedUp)) {
             log(TAG, VERBOSE) { "Skipping file - parent directory was skipped" }
@@ -353,6 +372,7 @@ internal class GenericPathCopy<
                     totalBytesTransferred += result.bytesTransferred
                     progressTracker.completeItem()
                 }
+
                 is TransferStrategy.TransferResult.Skipped -> {
                     skipped.add(item.sourceLookup.lookedUp)
                     progressTracker.completeItem()
@@ -409,6 +429,7 @@ internal class GenericPathCopy<
                     totalBytesTransferred += result.bytesTransferred
                     progressTracker.completeItem()
                 }
+
                 is TransferStrategy.TransferResult.Skipped -> {
                     skipped.add(item.sourceLookup.lookedUp)
                     progressTracker.completeItem()
@@ -536,7 +557,7 @@ internal class GenericPathCopy<
 
     private suspend fun processResolveConflict(item: WorkItem.ResolveConflict<SP, SPL, DP, DPL>) {
         val canMerge = item.originalItem is WorkItem.CreateDirectory<*, *, *> &&
-            item.destLookup.fileType == FileType.DIRECTORY
+                item.destLookup.fileType == FileType.DIRECTORY
 
         val issue = PathActionIssue.PathAlreadyExists(
             source = item.sourceLookup,
@@ -557,16 +578,19 @@ internal class GenericPathCopy<
                 }
                 progressTracker.completeItem()
             }
+
             is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
                 val recursive = item.destLookup.fileType == FileType.DIRECTORY
                 destOps.delete(item.destination, recursive = recursive)
                 workQueue.addFirst(item.originalItem)
             }
+
             is PathActionIssue.PathAlreadyExists.Resolution.Merge -> {
                 // Add the merged directory to copied set (directory exists, we're merging contents)
                 copied.add(item.sourceLookup.lookedUp to item.destination)
                 progressTracker.completeItem()
             }
+
             is PathActionIssue.PathAlreadyExists.Resolution.RenameSource -> {
                 val parentPath = item.destination.parent!!
                 val renamedDest = parentPath.child(resolution.newName)
@@ -585,6 +609,7 @@ internal class GenericPathCopy<
                         )
                         workQueue.addFirst(updatedItem)
                     }
+
                     is WorkItem.CreateDirectory<*, *, *> -> {
                         @Suppress("UNCHECKED_CAST")
                         val dirItem = originalItem as WorkItem.CreateDirectory<SP, SPL, DP>
@@ -597,11 +622,13 @@ internal class GenericPathCopy<
                         renamedSourceDirs[dirItem.sourceLookup.lookedUp] = renamedDest
                         workQueue.addFirst(updatedItem)
                     }
+
                     else -> {
                         log(TAG, ERROR) { "Unexpected original item type: $originalItem" }
                     }
                 }
             }
+
             is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
                 val parentPath = item.destination.parent!!
                 val newDestPath = parentPath.child(resolution.newName)
@@ -614,6 +641,7 @@ internal class GenericPathCopy<
                 // Re-queue original operation (destination path now clear)
                 workQueue.addFirst(item.originalItem)
             }
+
             is PathActionIssue.PathAlreadyExists.Resolution.Cancel -> {
                 throw kotlin.coroutines.cancellation.CancellationException("User cancelled")
             }
@@ -695,10 +723,64 @@ internal class GenericPathCopy<
         )
     }
 
-    private suspend fun handleScanError(error: Exception, lookup: SPL) {
+    private suspend fun handleScanError(error: Exception, lookup: SPL, originalItem: WorkItem.ScanSource<SP>) {
         log(TAG, ERROR) { "Scan error: ${lookup.lookedUp} - $error" }
-        // Would handle errors similar to LocalPathDelete
-        // TODO handle scan errors
+
+        // Categorize exception type
+        val isPermissionError = error is SecurityException || error is java.nio.file.AccessDeniedException
+
+        // Check "apply to all" flags first (fast path)
+        if (isPermissionError && issueResolver.skipAllPermission) {
+            log(TAG, INFO) { "Skipping scan error (apply-to-all permission): ${lookup.lookedUp}" }
+            skipped.add(lookup.lookedUp)
+            skippedSourceDirs.add(lookup.lookedUp)
+            return
+        }
+
+        if (!isPermissionError && issueResolver.skipAllUnknown) {
+            log(TAG, INFO) { "Skipping scan error (apply-to-all unknown): ${lookup.lookedUp}" }
+            skipped.add(lookup.lookedUp)
+            skippedSourceDirs.add(lookup.lookedUp)
+            return
+        }
+
+        // No issue handler configured? Re-throw exception immediately
+        if (onIssue == null) throw error
+
+        // Convert exception to appropriate PathActionIssue type
+        // For scan errors, always use UnknownError (even for permission errors) because:
+        // 1. InsufficientPermission doesn't support Retry resolution
+        // 2. Scan errors can potentially be retried if permissions are fixed externally
+        val issue = PathActionIssue.UnknownError(
+            destination = lookup,
+            exception = error,
+            canRetry = true, // Scan errors can be retried by re-queuing the scan item
+            canSkip = true
+        )
+
+        // Resolve issue with user callback (may throw CancellationException)
+        val resolution = issueResolver.resolveIssue(issue)
+
+        // Handle resolution (only UnknownError for scan errors)
+        when (resolution) {
+            is PathActionIssue.UnknownError.Resolution.Skip -> {
+                // User chose to skip this directory
+                skipped.add(lookup.lookedUp)
+                skippedSourceDirs.add(lookup.lookedUp)
+                // Note: Don't call progressTracker.completeItem() for scan errors
+                // The item was already counted in totalItems but never started processing
+            }
+
+            is PathActionIssue.UnknownError.Resolution.Retry -> {
+                log(TAG, INFO) { "Retrying scan operation: ${lookup.lookedUp}" }
+                // Re-queue the scan work item to try again
+                workQueue.addFirst(originalItem)
+            }
+
+            is PathActionIssue.UnknownError.Resolution.Cancel -> {
+                // Already thrown by resolveIssue
+            }
+        }
     }
 
     private suspend fun handleCopyError(error: Exception, originalItem: WorkItem.CopyFile<SP, SPL, DP>) {
@@ -708,8 +790,7 @@ internal class GenericPathCopy<
         log(TAG, ERROR) { "Copy error: ${source.lookedUp} -> $dest - $error" }
 
         // Categorize exception type
-        val isPermissionError = error is SecurityException ||
-                               error is java.nio.file.AccessDeniedException
+        val isPermissionError = error is SecurityException || error is java.nio.file.AccessDeniedException
 
         // Check "apply to all" flags first (fast path)
         if (isPermissionError && issueResolver.skipAllPermission) {
@@ -727,9 +808,7 @@ internal class GenericPathCopy<
         }
 
         // No issue handler configured? Re-throw exception immediately
-        if (onIssue == null) {
-            throw error
-        }
+        if (onIssue == null) throw error
 
         // Convert exception to appropriate PathActionIssue type
         val issue = if (isPermissionError) {
@@ -758,12 +837,14 @@ internal class GenericPathCopy<
                 skipped.add(source.lookedUp)
                 progressTracker.completeItem()
             }
+
             is PathActionIssue.UnknownError.Resolution.Retry -> {
                 log(TAG, INFO) { "Retrying copy operation: ${source.lookedUp} -> $dest" }
                 // Re-queue the original work item to try again
                 // Progress stays in-flight, will be completed on success or skip
                 workQueue.addFirst(originalItem)
             }
+
             else -> {
                 // Cancel is handled by issueResolver.resolveIssue() throwing CancellationException
             }
@@ -778,7 +859,7 @@ internal class GenericPathCopy<
 
         // Categorize exception type
         val isPermissionError = error is SecurityException ||
-                               error is java.nio.file.AccessDeniedException
+                error is java.nio.file.AccessDeniedException
 
         // Check "apply to all" flags first (fast path)
         if (isPermissionError && issueResolver.skipAllPermission) {
@@ -798,9 +879,7 @@ internal class GenericPathCopy<
         }
 
         // No issue handler configured? Re-throw exception immediately
-        if (onIssue == null) {
-            throw error
-        }
+        if (onIssue == null) throw error
 
         // Convert exception to appropriate PathActionIssue type
         val issue = if (isPermissionError) {
@@ -830,11 +909,13 @@ internal class GenericPathCopy<
                 skippedSourceDirs.add(source.lookedUp)
                 progressTracker.completeItem()
             }
+
             is PathActionIssue.UnknownError.Resolution.Retry -> {
                 log(TAG, INFO) { "Retrying directory creation: ${source.lookedUp} -> $dest" }
                 // Re-queue the original work item to try again
                 workQueue.addFirst(originalItem)
             }
+
             else -> {
                 // Cancel is handled by issueResolver.resolveIssue() throwing CancellationException
             }
@@ -913,8 +994,7 @@ internal class GenericPathCopy<
                 linkTarget
             } else {
                 // Relative path - resolve relative to symlink's parent
-                val parent = symlinkPath.parent
-                    ?: throw IllegalStateException("Symlink has no parent: $symlinkPath")
+                val parent = symlinkPath.parent ?: throw IllegalStateException("Symlink has no parent: $symlinkPath")
                 parent.child(linkTarget.path)
             }
 
@@ -946,9 +1026,9 @@ internal class GenericPathCopy<
  * - **Cross-type** (SP≠DP): Pass different FileSystemOps instances
  */
 fun <
-    SP : APath<SP>, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
-    DP : APath<DP>, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
-    > Collection<SP>.copyGeneric(
+        SP : APath<SP>, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
+        DP : APath<DP>, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
+        > Collection<SP>.copyGeneric(
     destination: DP,
     sourceOps: FileSystemOps<SP, SPL, SPLE>,
     destOps: FileSystemOps<DP, DPL, DPLE>,

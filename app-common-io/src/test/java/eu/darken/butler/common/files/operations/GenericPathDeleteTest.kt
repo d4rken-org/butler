@@ -7,6 +7,7 @@ import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.LocalPathLookupExtended
 import eu.darken.butler.common.files.metadata.FileType
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import kotlinx.coroutines.test.runTest
@@ -1176,5 +1177,45 @@ class GenericPathDeleteTest : BaseTest() {
         // Then - all deleted
         mockOps.hasFile("/root") shouldBe false
         result.deleted.size shouldBe 1001 // directory + 1000 files
+    }
+
+    // ============ SCAN ERROR HANDLING ============
+
+    @Test
+    fun `directory scan error during delete then skip should appear only in skipped`() = runTest {
+        // Given - directory with children that will fail during listFiles
+        mockOps.addMockDir("/parent")
+        mockOps.addMockFile("/parent/child.txt", "content".toByteArray())
+
+        // Inject listFiles failure (simulates permission denied during scan)
+        mockOps.setFailListFiles(1, { SecurityException("Permission denied") })
+
+        val sourcePath = LocalPath.build("/parent")
+
+        var issueReceived = false
+
+        // When
+        val result = sourcePath.deleteGeneric(
+            fileSystemOps = mockOps,
+            recursive = true,
+            ignoreMissing = false,
+            onIssue = { issue ->
+                issueReceived = true
+                when (issue) {
+                    is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    else -> TODO("Unexpected issue type: $issue")
+                }
+            }
+        )
+
+        // Then - directory should be ONLY in skipped, NOT in deleted
+        result.deleted.map { it.lookedUp } shouldNotBe setOf(LocalPath.build("/parent"))
+        result.skipped.map { it.lookedUp } shouldContain LocalPath.build("/parent")
+        issueReceived shouldBe true
+
+        // Directory and child should still exist (delete was skipped)
+        mockOps.hasFile("/parent") shouldBe true
+        mockOps.hasFile("/parent/child.txt") shouldBe true
     }
 }
