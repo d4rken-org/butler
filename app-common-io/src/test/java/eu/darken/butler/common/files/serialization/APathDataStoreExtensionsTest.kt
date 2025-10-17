@@ -6,7 +6,6 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.serialization.SerializationCommonModule
 import eu.darken.butler.common.serialization.SerializationIOModule
@@ -73,23 +72,6 @@ class APathDataStoreExtensionsTest : BaseTest() {
     }
 
     @Test
-    fun `read and write RawPath`() = runTest {
-        val testStore = createDataStore(this)
-
-        val testPath = RawPath("/data/data/com.example.app")
-
-        testStore.createAPathValue("test.path", null, json).apply {
-            flow.first() shouldBe null
-
-            update { testPath }
-
-            val stored = flow.first()
-            stored shouldBe testPath
-            (stored as? RawPath)?.path shouldBe "/data/data/com.example.app"
-        }
-    }
-
-    @Test
     fun `read and write SAFPath`() = runTest {
         val testStore = createDataStore(this)
 
@@ -139,7 +121,6 @@ class APathDataStoreExtensionsTest : BaseTest() {
 
         val paths = listOf<APath<*>>(
             LocalPath.build("/storage/emulated/0"),
-            RawPath("/data/local/tmp"),
             SAFPath(
                 treeRoot = "content://com.android.externalstorage.documents/tree/primary%3A",
                 segments = listOf("test")
@@ -158,7 +139,6 @@ class APathDataStoreExtensionsTest : BaseTest() {
                 // Verify specific properties based on type
                 when (originalPath) {
                     is LocalPath -> (restored as LocalPath).file.path shouldBe originalPath.file.path
-                    is RawPath -> (restored as RawPath).path shouldBe originalPath.path
                     is SAFPath -> {
                         (restored as SAFPath).treeRoot shouldBe originalPath.treeRoot
                         restored.segments shouldBe originalPath.segments

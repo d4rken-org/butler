@@ -13,7 +13,6 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel3
@@ -150,16 +149,6 @@ class FilePickerViewModel @AssistedInject constructor(
                     null
                 }
             }
-            is RawPath -> {
-                // RawPath doesn't have a direct parent method, use path string
-                val pathStr = currentPath.path
-                val parentStr = pathStr.substringBeforeLast('/', "")
-                if (parentStr.isNotEmpty()) {
-                    RawPath(parentStr)
-                } else {
-                    null
-                }
-            }
             else -> null
         }
         
@@ -253,7 +242,6 @@ class FilePickerViewModel @AssistedInject constructor(
         try {
             val newPath = when (currentPath) {
                 is LocalPath -> LocalPath.build(currentPath.path, name)
-                is RawPath -> RawPath(currentPath.path + "/" + name)
                 else -> {
                     log(tag, WARN) { "Cannot create folder for path type: ${currentPath::class}" }
                     return@launch

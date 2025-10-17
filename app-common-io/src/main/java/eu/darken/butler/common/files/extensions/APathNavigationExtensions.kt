@@ -2,7 +2,6 @@ package eu.darken.butler.common.files.extensions
 
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.local.isAncestorOf
 import eu.darken.butler.common.files.local.isParentOf
@@ -19,7 +18,6 @@ fun APath<*>.isAncestorOf(descendant: APath<*>): Boolean {
     return when (this) {
         is LocalPath -> (this as LocalPath).isAncestorOf(descendant as LocalPath)
         is SAFPath -> (this as SAFPath).isAncestorOf(descendant as SAFPath)
-        is RawPath -> descendant.path.startsWith(this.path + "/")
     }
 }
 
@@ -45,7 +43,6 @@ fun APath<*>.isParentOf(child: APath<*>): Boolean {
     return when (this) {
         is LocalPath -> this.isParentOf(child as LocalPath)
         is SAFPath -> this.isParentOf(child as SAFPath)
-        is RawPath -> this.child(child.name) == child
     }
 }
 
@@ -59,7 +56,6 @@ fun APath<*>.matches(other: APath<*>): Boolean {
     return when (this) {
         is LocalPath -> this.path == (other as LocalPath).path
         is SAFPath -> this.path == (other as SAFPath).path
-        is RawPath -> other.path == this.path
     }
 }
 
@@ -72,7 +68,6 @@ fun APath<*>.startsWith(prefix: APath<*>): Boolean {
     return when (this) {
         is LocalPath -> this.startsWith(prefix as LocalPath)
         is SAFPath -> this.startsWith(prefix as SAFPath)
-        is RawPath -> this.path.startsWith(prefix.path)
     }
 }
 
@@ -83,7 +78,6 @@ fun APath<*>.removePrefix(prefix: APath<*>, overlap: Int = 0): Segments {
     return when (this) {
         is LocalPath -> this.removePrefix(prefix as LocalPath, overlap)
         is SAFPath -> this.removePrefix(prefix as SAFPath, overlap)
-        is RawPath -> this.segments.drop(prefix.segments.size - overlap)
     }
 }
 

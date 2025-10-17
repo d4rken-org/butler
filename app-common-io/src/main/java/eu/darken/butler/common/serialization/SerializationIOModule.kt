@@ -6,7 +6,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.files.SAFPath
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
@@ -30,7 +29,6 @@ class SerializationIOModule {
             polymorphic(APath::class) {
                 subclass(LocalPath::class)
                 subclass(SAFPath::class)
-                subclass(RawPath::class)
             }
         }
     }

@@ -87,10 +87,10 @@ class SAFPathTest : BaseTest() {
 
     @Test
     fun `force typing`() {
-        val original = RawPath.build("test", "file")
+        val original = LocalPath.build("test", "file")
 
         shouldThrow<SerializationException> {
-            val jsonString = json.encodeToString(RawPath.serializer(), original)
+            val jsonString = json.encodeToString(LocalPath.serializer(), original)
             json.decodeFromString(SAFPath.serializer(), jsonString)
         }
     }

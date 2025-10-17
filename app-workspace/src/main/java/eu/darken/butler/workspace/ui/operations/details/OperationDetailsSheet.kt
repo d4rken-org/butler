@@ -52,7 +52,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
-import eu.darken.butler.common.files.RawPath
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.formatDuration
 import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.common.progress.Progress
@@ -857,31 +857,31 @@ private fun OperationDetailsSheetCompletedWithFilesPreview() {
                     report = createMockReport(
                         affectedPaths = listOf(
                             Operation.Report.PathChange(
-                                path = RawPath.build("/home", "user", "documents", "file1.txt"),
+                                path = LocalPath.build("/home", "user", "documents", "file1.txt"),
                                 change = Operation.Report.PathChange.Change.REMOVED
                             ),
                             Operation.Report.PathChange(
-                                path = RawPath.build("/home", "user", "documents", "file2.pdf"),
+                                path = LocalPath.build("/home", "user", "documents", "file2.pdf"),
                                 change = Operation.Report.PathChange.Change.REMOVED
                             ),
                             Operation.Report.PathChange(
-                                path = RawPath.build("/home", "user", "downloads", "temp"),
+                                path = LocalPath.build("/home", "user", "downloads", "temp"),
                                 change = Operation.Report.PathChange.Change.REMOVED
                             ),
                             Operation.Report.PathChange(
-                                path = RawPath.build("/home", "user", "backup", "copy1.txt"),
+                                path = LocalPath.build("/home", "user", "backup", "copy1.txt"),
                                 change = Operation.Report.PathChange.Change.ADDED
                             ),
                             Operation.Report.PathChange(
-                                path = RawPath.build("/home", "user", "config.xml"),
+                                path = LocalPath.build("/home", "user", "config.xml"),
                                 change = Operation.Report.PathChange.Change.MODIFIED
                             ),
                             Operation.Report.PathChange(
-                                path = RawPath.build("/home", "user", "old", "archive.zip"),
+                                path = LocalPath.build("/home", "user", "old", "archive.zip"),
                                 change = Operation.Report.PathChange.Change.REMOVED
                             ),
                             Operation.Report.PathChange(
-                                path = RawPath.build(
+                                path = LocalPath.build(
                                     "/storage",
                                     "emulated",
                                     "0",
@@ -894,7 +894,7 @@ private fun OperationDetailsSheetCompletedWithFilesPreview() {
                                 change = Operation.Report.PathChange.Change.REMOVED
                             ),
                             Operation.Report.PathChange(
-                                path = RawPath.build("/sdcard", "Pictures", "Screenshots", "screenshot_1.png"),
+                                path = LocalPath.build("/sdcard", "Pictures", "Screenshots", "screenshot_1.png"),
                                 change = Operation.Report.PathChange.Change.REMOVED
                             ),
                         )

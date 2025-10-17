@@ -9,8 +9,8 @@ class SimplePathExtensionsTest : BaseTest() {
 
     @Test
     fun `test chunking`() {
-        val parent = RawPath.build("/the/parent/")
-        val child = RawPath.build("/the/parent/has/a/child/")
+        val parent = LocalPath.build("/the/parent/")
+        val child = LocalPath.build("/the/parent/has/a/child/")
 
         val crumbs = parent.crumbsTo(child)
 

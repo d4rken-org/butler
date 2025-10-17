@@ -13,7 +13,6 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
-import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
@@ -46,15 +45,15 @@ object MockDataProvider {
         fileType: FileType = FileType.FILE,
         createdAt: Instant = Instant.parse("2023-10-10T10:30:00Z"),
         modifiedAt: Instant = Instant.parse("2023-10-15T10:30:00Z"),
-        target: RawPath? = null
+        target: LocalPath? = null
     ): APathLookup<*> {
         // Create a mock implementation for previews
-        return object : APathLookup<RawPath> {
-            override val lookedUp: RawPath = RawPath.build(path)
+        return object : APathLookup<LocalPath> {
+            override val lookedUp: LocalPath = LocalPath.build(path)
             override val size: Long = size
             override val fileType: FileType = fileType
             override val modifiedAt: Instant = modifiedAt
-            override val target: RawPath? = target
+            override val target: LocalPath? = target
         }
     }
 
@@ -70,7 +69,7 @@ object MockDataProvider {
         targetPath: String? = "/home/user/target/file.txt",
         isBroken: Boolean = false
     ): ExplorerItem.SymbolicLink {
-        val target = targetPath?.let { RawPath.build(it) }
+        val target = targetPath?.let { LocalPath.build(it) }
         return ExplorerItem.SymbolicLink(
             lookup = createMockLookup(name, "/home/user/$name", 0L, FileType.SYMBOLIC_LINK, target = target),
             mimeType = MimeInfo("inode/symlink"),
@@ -97,7 +96,7 @@ object MockDataProvider {
 
     fun createMockPeek(name: String = "loading.txt"): ExplorerItem.Peek {
         return ExplorerItem.Peek(
-            path = RawPath.build("/home/user/$name")
+            path = LocalPath.build("/home/user/$name")
         )
     }
 

@@ -287,7 +287,6 @@ class GatewaySwitch @Inject constructor(
     private suspend fun APath<*>.toAlternative(): APath<*> = when (this) {
         is LocalPath -> mapper.toSAFPath(this) ?: throw ReadException("Can't map to SAF", this)
         is SAFPath -> mapper.toLocalPath(this) ?: throw ReadException("Can't map to LOCAL", this)
-        is RawPath -> throw UnsupportedOperationException("Alternative mapping for RAW not available")
     }
 
     override suspend fun getFileSystem(path: APath<*>): FileSystem {
@@ -442,7 +441,6 @@ class GatewaySwitch @Inject constructor(
                 (sources as Collection<SAFPath>).copyCrossType(target, transferOptions, onIssue)
                     .collect { state -> emit(state) }
             }
-            is RawPath -> throw IllegalArgumentException("RawPath does not support cross-type copy operations")
         }
     }
 
@@ -472,7 +470,6 @@ class GatewaySwitch @Inject constructor(
                 (sources as Collection<SAFPath>).moveCrossType(target, transferOptions, onIssue)
                     .collect { state -> emit(state) }
             }
-            is RawPath -> throw IllegalArgumentException("RawPath does not support cross-type move operations")
         }
     }
 
@@ -495,7 +492,6 @@ class GatewaySwitch @Inject constructor(
             options = options,
             onIssue = onIssue,
         )
-        is RawPath -> error("RawPath does not support cross-type copy operations")
     }
 
     @JvmName("safPathCopyCrossType")
@@ -513,7 +509,6 @@ class GatewaySwitch @Inject constructor(
             onIssue = onIssue,
         )
         is SAFPath -> error("Same-type operations should be handled by native implementation")
-        is RawPath -> error("RawPath does not support cross-type copy operations")
     }
 
     // ========================================================================
@@ -535,7 +530,6 @@ class GatewaySwitch @Inject constructor(
             options = options,
             onIssue = onIssue,
         )
-        is RawPath -> error("RawPath does not support cross-type move operations")
     }
 
     @JvmName("safPathMoveCrossType")
@@ -553,7 +547,6 @@ class GatewaySwitch @Inject constructor(
             onIssue = onIssue,
         )
         is SAFPath -> error("Same-type operations should be handled by native implementation")
-        is RawPath -> error("RawPath does not support cross-type move operations")
     }
 
     enum class Type {

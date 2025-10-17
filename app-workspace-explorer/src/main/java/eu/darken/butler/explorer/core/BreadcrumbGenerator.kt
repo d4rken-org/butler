@@ -7,7 +7,6 @@ import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material.icons.twotone.PhoneAndroid
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.RawPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.explorer.R
@@ -101,7 +100,6 @@ class BreadcrumbGenerator @Inject constructor(
                         )
                     }
                 }
-                is RawPath -> throw UnsupportedOperationException("RawPath not supported")
             }
         }
     }

@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.RawPath
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.permissions.Permission
 import eu.darken.butler.workspace.core.permissions.PermissionState
 import eu.darken.butler.workspace.core.permissions.SetupRequirement
@@ -138,7 +138,7 @@ fun PermissionSetupCard(
 private fun PermissionSetupCardPreview() {
     PreviewWrapper {
         PermissionSetupCard(
-            searchPath = RawPath.build("/storage/emulated/0/Documents"),
+            searchPath = LocalPath.build("/storage/emulated/0/Documents"),
             permissionState = PermissionState(
                 requirements = listOf(
                     SetupRequirement(

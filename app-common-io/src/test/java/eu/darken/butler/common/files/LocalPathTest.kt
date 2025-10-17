@@ -108,10 +108,10 @@ class LocalPathTest : BaseTest() {
 
     @Test
     fun `force typing`() {
-        val original = RawPath.build("test", "file")
+        val original = SAFPath.build("content://com.android.externalstorage.documents/tree/primary", "test", "file")
 
         shouldThrow<SerializationException> {
-            val jsonString = json.encodeToString(RawPath.serializer(), original)
+            val jsonString = json.encodeToString(SAFPath.serializer(), original)
             json.decodeFromString(LocalPath.serializer(), jsonString)
         }
     }

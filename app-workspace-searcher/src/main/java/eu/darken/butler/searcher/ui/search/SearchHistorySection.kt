@@ -31,7 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.files.RawPath
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.common.ui.SwipeToDismissItem
 import eu.darken.butler.searcher.R
@@ -212,7 +212,7 @@ private fun SearchHistoryItemPreview() {
                 baseQuery = "gradle build",
                 searchQuery = SearchQuery.create(
                     query = "gradle build",
-                    path = RawPath.build("/home/user/projects"),
+                    path = LocalPath.build("/home/user/projects"),
                     caseSensitive = false,
                     wholeWord = false,
                     useRegex = false
@@ -236,7 +236,7 @@ private fun SearchHistoryItemNoResultsPreview() {
                 baseQuery = "nonexistent",
                 searchQuery = SearchQuery.create(
                     query = "nonexistent",
-                    path = RawPath.build("/storage/emulated/0"),
+                    path = LocalPath.build("/storage/emulated/0"),
                     caseSensitive = true,
                     wholeWord = true,
                     useRegex = false

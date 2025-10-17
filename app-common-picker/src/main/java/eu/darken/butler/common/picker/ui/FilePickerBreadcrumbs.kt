@@ -19,7 +19,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.RawPath
 
 @Composable
 fun FilePickerBreadcrumbs(
@@ -59,7 +58,6 @@ fun FilePickerBreadcrumbs(
         // Path segments - simplified
         val pathStr = when (currentPath) {
             is LocalPath -> currentPath.path
-            is RawPath -> currentPath.path
             else -> currentPath.toString()
         }
         
