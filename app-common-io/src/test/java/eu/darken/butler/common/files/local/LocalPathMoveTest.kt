@@ -624,6 +624,156 @@ class LocalPathMoveTest : BaseTest() {
         sourceDir.exists() shouldBe false
     }
 
+    @Test
+    fun `move symlink to file - target file remains at original location (Unix mv behavior)`() = runTest {
+        // Given - symlink in one location, target in another
+        val targetFile = File(sourceFolder, "original/target.txt")
+        targetFile.parentFile.mkdirs()
+        targetFile.writeText("target content")
+
+        val symlinkFile = File(sourceFolder, "links/link.txt")
+        symlinkFile.parentFile.mkdirs()
+        Files.createSymbolicLink(
+            symlinkFile.toPath(),
+            java.nio.file.Paths.get("../original/target.txt")
+        )
+
+        if (!Files.isSymbolicLink(symlinkFile.toPath())) {
+            return@runTest
+        }
+
+        val sourcePath = LocalPath.build(symlinkFile)
+        val destPath = LocalPath.build(destFolder)
+
+        // When - move ONLY the symlink (Unix mv behavior: only moves the link itself)
+        val result = sourcePath.move(ops, destPath).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
+
+        // Then - symlink moved, target file remains at original location
+        val movedLink = File(destFolder, "link.txt")
+        Files.isSymbolicLink(movedLink.toPath()) shouldBe true
+        symlinkFile.exists() shouldBe false // Source symlink deleted
+
+        // CRITICAL: Target file must remain at original location (Unix mv behavior)
+        targetFile.exists() shouldBe true
+        targetFile.readText() shouldBe "target content"
+
+        result.movedFiles shouldHaveSize 1 // Only the symlink
+    }
+
+    @Test
+    fun `move symlink to directory - directory contents remain at original location (Unix mv behavior)`() = runTest {
+        // Given - symlink pointing to a directory with contents
+        val targetDir = File(sourceFolder, "original/data")
+        targetDir.mkdirs()
+        val contentFile = File(targetDir, "important.txt")
+        contentFile.writeText("important data")
+
+        val symlinkDir = File(sourceFolder, "links/shortcut")
+        symlinkDir.parentFile.mkdirs()
+        Files.createSymbolicLink(
+            symlinkDir.toPath(),
+            java.nio.file.Paths.get("../original/data")
+        )
+
+        if (!Files.isSymbolicLink(symlinkDir.toPath())) {
+            return@runTest
+        }
+
+        val sourcePath = LocalPath.build(symlinkDir)
+        val destPath = LocalPath.build(destFolder)
+
+        // When - move ONLY the symlink (Unix mv behavior)
+        val result = sourcePath.move(ops, destPath).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
+
+        // Then - symlink moved, original directory and contents remain
+        val movedLink = File(destFolder, "shortcut")
+        Files.isSymbolicLink(movedLink.toPath()) shouldBe true
+        symlinkDir.exists() shouldBe false // Source symlink deleted
+
+        // CRITICAL: Original directory and its contents must remain (Unix mv behavior)
+        targetDir.exists() shouldBe true
+        targetDir.isDirectory shouldBe true
+        contentFile.exists() shouldBe true
+        contentFile.readText() shouldBe "important data"
+
+        result.movedFiles shouldHaveSize 1 // Only the symlink, NOT directory contents
+    }
+
+    @Test
+    fun `move symlink with relative path - link moves but target remains (Unix mv behavior)`() = runTest {
+        // Given - symlink with relative path pointing to target in same directory
+        val targetFile = File(sourceFolder, "target.txt")
+        targetFile.writeText("target")
+
+        val symlinkFile = File(sourceFolder, "link.txt")
+        Files.createSymbolicLink(
+            symlinkFile.toPath(),
+            java.nio.file.Paths.get("target.txt") // Relative path
+        )
+
+        if (!Files.isSymbolicLink(symlinkFile.toPath())) {
+            return@runTest
+        }
+
+        val sourcePath = LocalPath.build(symlinkFile)
+        val destPath = LocalPath.build(destFolder)
+
+        // When - move the symlink
+        val result = sourcePath.move(ops, destPath).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
+
+        // Then - symlink moved, remains a symlink
+        val movedLink = File(destFolder, "link.txt")
+        Files.isSymbolicLink(movedLink.toPath()) shouldBe true
+        symlinkFile.exists() shouldBe false
+
+        // CRITICAL: Target file must remain at original location (Unix mv behavior)
+        targetFile.exists() shouldBe true
+        targetFile.readText() shouldBe "target"
+
+        // Verify symlink still has a target path
+        // (path format may be relative or absolute depending on implementation)
+        val linkTarget = Files.readSymbolicLink(movedLink.toPath())
+        linkTarget shouldNotBe null
+
+        result.movedFiles shouldHaveSize 1
+    }
+
+    @Test
+    fun `move symlink with absolute path preserves absolute path (Unix mv behavior)`() = runTest {
+        // Given - symlink with absolute path
+        val targetFile = File(sourceFolder, "target.txt")
+        targetFile.writeText("target")
+
+        val symlinkFile = File(sourceFolder, "link.txt")
+        Files.createSymbolicLink(
+            symlinkFile.toPath(),
+            targetFile.toPath().toAbsolutePath() // Absolute path
+        )
+
+        if (!Files.isSymbolicLink(symlinkFile.toPath())) {
+            return@runTest
+        }
+
+        val originalTargetPath = Files.readSymbolicLink(symlinkFile.toPath())
+        val sourcePath = LocalPath.build(symlinkFile)
+        val destPath = LocalPath.build(destFolder)
+
+        // When - move the symlink
+        val result = sourcePath.move(ops, destPath).last() as MoveAction.State.Result<LocalPath, LocalPathLookup>
+
+        // Then - symlink moved and preserves absolute path
+        val movedLink = File(destFolder, "link.txt")
+        Files.isSymbolicLink(movedLink.toPath()) shouldBe true
+
+        val movedLinkTarget = Files.readSymbolicLink(movedLink.toPath())
+        movedLinkTarget.toString() shouldBe originalTargetPath.toString() // Path preserved
+
+        // Target file still exists and accessible via moved symlink
+        movedLink.toPath().toRealPath().toFile().readText() shouldBe "target"
+
+        result.movedFiles shouldHaveSize 1
+    }
+
     // ============ DIRECTORY CONFLICTS ============
 
     @Test

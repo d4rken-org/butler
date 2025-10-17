@@ -250,6 +250,7 @@ internal class LocalPathDelete(
                 log(TAG, INFO) { "Retrying scan operation: ${lookup.lookedUp}" }
                 // Re-queue the scan work item to try again
                 workQueue.addFirst(originalItem)
+                scanItemsRemaining++  // Increment to re-enter scan phase
             }
             is PathActionIssue.UnknownError.Resolution.Cancel -> {
                 // Already thrown by resolveIssue
