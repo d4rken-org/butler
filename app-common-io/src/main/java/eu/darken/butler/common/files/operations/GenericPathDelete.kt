@@ -60,6 +60,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
     // Shared components
     private val progressTracker = PathOperationProgressTracker()
     private val issueResolver = PathOperationIssueResolver(onIssue)
+    private val errorHandler = TransferErrorHandler()
 
     // Scan tracking
     private var scanItemsRemaining = 0
@@ -184,10 +185,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
                             childrenFound++
                         }
                     } catch (e: Exception) {
-                        // Add item before handling error so counts are correct
-                        progressTracker.totalItems++
-                        progressTracker.totalBytes += lookup.size
-                        handleScanError(e, lookup, "List directory contents")
+                        handleScanError(e, lookup, item.path)
                         return 0
                     }
 
@@ -254,112 +252,40 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
         }
     }
 
-    /**
-     * Shared error handling for both scan and delete operations.
-     */
-    private suspend fun handleError(
-        error: Exception,
-        lookup: PL,
-        operation: String, // TODO why do we need to pass operation here?
-        canRetry: Boolean = false,
-        originalItem: WorkItem.DeletePath<P, PL>? = null
-    ) {
-        log(TAG, ERROR) { "$operation failed: ${lookup.lookedUp} - $error" }
-
-        // Check if we should skip based on error type
-        val isPermissionError = error is java.nio.file.AccessDeniedException ||
-            error is SecurityException
-
-        if (isPermissionError) {
-            if (issueResolver.shouldSkipPermission()) {
-                log(TAG, INFO) { "Skipping permission issue (apply-to-all): ${lookup.lookedUp}" }
-                skipped.add(lookup)
-                progressTracker.completeItem()
-                return
-            }
-
-            if (onIssue == null) {
-                throw eu.darken.butler.common.files.errors.WriteException(
-                    path = lookup.lookedUp,
-                    cause = error
-                )
-            }
-
-            val issue = PathActionIssue.InsufficientPermission(
-                destination = lookup,
-                exception = eu.darken.butler.common.files.errors.WriteException(
-                    path = lookup.lookedUp,
-                    cause = error
-                ),
-                canSkip = true
-            )
-            val resolution = issueResolver.resolveIssue(issue)
-
-            when (resolution) {
-                is PathActionIssue.InsufficientPermission.Resolution.Skip -> {
-                    skipped.add(lookup)
-                    progressTracker.completeItem()
-                }
-                is PathActionIssue.InsufficientPermission.Resolution.Cancel -> {
-                    // Already thrown by resolveIssue
-                }
-            }
-        } else {
-            if (issueResolver.shouldSkipUnknown()) {
-                log(TAG, INFO) { "Skipping unknown issue (apply-to-all): ${lookup.lookedUp}" }
-                skipped.add(lookup)
-                progressTracker.completeItem()
-                return
-            }
-
-            if (onIssue == null) {
-                throw eu.darken.butler.common.files.errors.WriteException(
-                    path = lookup.lookedUp,
-                    cause = error
-                )
-            }
-
-            val issue = PathActionIssue.UnknownError(
-                destination = lookup,
-                exception = eu.darken.butler.common.files.errors.WriteException(
-                    path = lookup.lookedUp,
-                    cause = error
-                ),
-                canRetry = canRetry,
-                canSkip = true
-            )
-            val resolution = issueResolver.resolveIssue(issue)
-
-            when (resolution) {
-                is PathActionIssue.UnknownError.Resolution.Skip -> {
-                    skipped.add(lookup)
-                    progressTracker.completeItem()
-                }
-                is PathActionIssue.UnknownError.Resolution.Retry -> {
-                    if (originalItem != null) {
-                        log(TAG, INFO) { "Retrying delete operation: ${lookup.lookedUp}" }
-                        // Re-queue the original work item to try again
-                        // Progress stays in-flight, will be completed on success or skip
-                        workQueue.addFirst(originalItem)
-                    } else {
-                        log(TAG, WARN) { "Retry requested but no work item available, skipping: ${lookup.lookedUp}" }
-                        skipped.add(lookup)
-                        progressTracker.completeItem()
-                    }
-                }
-                is PathActionIssue.UnknownError.Resolution.Cancel -> {
-                    // Already thrown by resolveIssue
-                }
-            }
-        }
-    }
-
     private suspend fun handleDeleteError(error: Exception, originalItem: WorkItem.DeletePath<P, PL>) {
-        handleError(error, originalItem.lookup, operation = "Delete", canRetry = true, originalItem = originalItem)
+        errorHandler.handleError(
+            error = error,
+            lookup = originalItem.lookup,
+            issueResolver = issueResolver,
+            progressTracker = progressTracker,
+            onSkip = { skipped.add(it) },
+            onRetry = { workQueue.addFirst(originalItem) },
+            canRetry = true,
+            onIssue = onIssue,
+            tag = TAG
+        )
     }
 
-    private suspend fun handleScanError(error: Exception, lookup: PL, operation: String) {
-        handleError(error, lookup, operation = operation, canRetry = false)
+    private suspend fun handleScanError(error: Exception, lookup: PL, originalPath: P) {
+        errorHandler.handleScanError(
+            error = error,
+            lookup = lookup,
+            issueResolver = issueResolver,
+            onSkip = {
+                // When skipped, add to progress tracking and skipped set
+                progressTracker.totalItems++
+                progressTracker.totalBytes += lookup.size
+                skipped.add(it)
+            },
+            onRetry = {
+                // Re-queue the scan operation for retry
+                // Don't increment progress counters - they'll be incremented when retry succeeds
+                workQueue.addFirst(WorkItem.ScanPath(originalPath))
+                scanItemsRemaining++
+            },
+            onIssue = onIssue,
+            tag = TAG
+        )
     }
 
     private suspend fun reportScanProgress(lookup: PL) {

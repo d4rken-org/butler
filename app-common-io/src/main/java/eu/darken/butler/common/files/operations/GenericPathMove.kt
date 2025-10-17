@@ -79,6 +79,14 @@ internal class GenericPathMove<
     // Shared components
     private val progressTracker = PathOperationProgressTracker()
     private val issueResolver = PathOperationIssueResolver(onIssue)
+    private val errorHandler = TransferErrorHandler()
+    private val pathCalculator = TransferPathCalculator()
+    private val conflictResolver = TransferConflictResolver<SP, SPL, DP, DPL, DPLE>(
+        destOps = destOps,
+        issueResolver = issueResolver,
+        progressTracker = progressTracker,
+        tag = TAG
+    )
 
     init {
         log(TAG, INFO) {
@@ -442,45 +450,23 @@ internal class GenericPathMove<
         adjustedDest: DP,
         destLookup: DPL
     ) {
-        // Similar to GenericPathCopy but for move
-        if (issueResolver.skipAllPathExists) {
-            log(TAG, INFO) { "Skipping (apply-to-all): $adjustedDest" }
-            skipped.add(item.sourceLookup.lookedUp)
-            progressTracker.completeItem()
-            return
-        }
-
-        if (issueResolver.renameSourceAllPathExists) {
-            val uniqueName = generateUniqueName(adjustedDest)
-            val parentPath = adjustedDest.parent!!
-            val renamedDest = parentPath.child(uniqueName)
-            log(TAG, INFO) { "Auto-renaming (apply-to-all): $adjustedDest -> $renamedDest" }
-
-            // Create new work item with renamed destination and requeue
-            val renamedItem = WorkItem.MoveFile(
-                sourceLookup = item.sourceLookup,
-                destination = renamedDest,
-                topLevelSource = item.topLevelSource
-            )
-            workQueue.addFirst(renamedItem)
-            return
-        }
-
-        if (issueResolver.overwriteAllPathExists) {
-            log(TAG, INFO) { "Overwriting (apply-to-all): $adjustedDest" }
-            destOps.delete(adjustedDest)
-            workQueue.addFirst(item)
-            return
-        }
-
-        if (onIssue == null) {
-            throw eu.darken.butler.common.files.errors.WriteException(
-                path = adjustedDest,
-                message = "File already exists: $adjustedDest"
-            )
-        }
-
-        workQueue.addFirst(WorkItem.ResolveConflict(item.sourceLookup, adjustedDest, destLookup, item))
+        conflictResolver.handleFileConflict(
+            sourceLookup = item.sourceLookup,
+            destination = adjustedDest,
+            destLookup = destLookup,
+            onSkip = { skipped.add(it) },
+            onRename = { renamedDest ->
+                val renamedItem = WorkItem.MoveFile(
+                    sourceLookup = item.sourceLookup,
+                    destination = renamedDest,
+                    topLevelSource = item.topLevelSource
+                )
+                workQueue.addFirst(renamedItem)
+            },
+            onOverwrite = { workQueue.addFirst(item) },
+            onResolveConflict = { workQueue.addFirst(WorkItem.ResolveConflict(item.sourceLookup, adjustedDest, destLookup, item)) },
+            onIssue = onIssue
+        )
     }
 
     private suspend fun handleDirectoryConflict(
@@ -488,108 +474,46 @@ internal class GenericPathMove<
         adjustedDest: DP,
         destLookup: DPL
     ) {
-        if (issueResolver.skipAllPathExists) {
-            log(TAG, INFO) { "Skipping directory (apply-to-all): $adjustedDest" }
-            skipped.add(item.sourceLookup.lookedUp)
-            skippedSourceDirs.add(item.sourceLookup.lookedUp)
-            progressTracker.completeItem()
-            return
-        }
-
-        if (issueResolver.renameSourceAllPathExists) {
-            val uniqueName = generateUniqueName(adjustedDest)
-            val parentPath = adjustedDest.parent!!
-            val renamedDest = parentPath.child(uniqueName)
-            log(TAG, INFO) { "Auto-renaming directory (apply-to-all): $adjustedDest -> $renamedDest" }
-
-            // Track renamed directory for child path adjustments
-            renamedSourceDirs[item.sourceLookup.lookedUp] = renamedDest
-
-            // Create new work item with renamed destination and requeue
-            val updatedItem = WorkItem.CreateDirectory(
-                sourceLookup = item.sourceLookup,
-                destination = renamedDest,
-                topLevelSource = item.topLevelSource
-            )
-            workQueue.addFirst(updatedItem)
-            return
-        }
-
-        if (destLookup.fileType == FileType.DIRECTORY) {
-            if (issueResolver.mergeAllPathExists) {
-                log(TAG, INFO) { "Merging directory (apply-to-all): $adjustedDest" }
-                moved.add(item.sourceLookup.lookedUp to adjustedDest)
-                progressTracker.completeItem()
-                return
-            }
-
-            if (issueResolver.overwriteAllPathExists) {
-                log(TAG, INFO) { "Overwriting directory (apply-to-all): $adjustedDest" }
-                destOps.delete(adjustedDest, recursive = true)
-                workQueue.addFirst(item)
-                return
-            }
-
-            // Auto-merge directories when no issue handler (backward compatibility)
-            if (onIssue == null) {
-                log(TAG, VERBOSE) { "Directory exists, auto-merging: $adjustedDest" }
-                moved.add(item.sourceLookup.lookedUp to adjustedDest)
-                progressTracker.completeItem()
-                return
-            }
-        } else if (issueResolver.overwriteAllPathExists) {
-            log(TAG, INFO) { "Overwriting file with directory (apply-to-all): $adjustedDest" }
-            destOps.delete(adjustedDest, recursive = false)
-            workQueue.addFirst(item)
-            return
-        }
-
-        workQueue.addFirst(WorkItem.ResolveConflict(item.sourceLookup, adjustedDest, destLookup, item))
+        conflictResolver.handleDirectoryConflict(
+            sourceLookup = item.sourceLookup,
+            destination = adjustedDest,
+            destLookup = destLookup,
+            onSkip = { sourcePath, markAsSkippedDir ->
+                skipped.add(sourcePath)
+                if (markAsSkippedDir) skippedSourceDirs.add(sourcePath)
+            },
+            onRename = { renamedDest ->
+                renamedSourceDirs[item.sourceLookup.lookedUp] = renamedDest
+                val updatedItem = WorkItem.CreateDirectory(
+                    sourceLookup = item.sourceLookup,
+                    destination = renamedDest,
+                    topLevelSource = item.topLevelSource
+                )
+                workQueue.addFirst(updatedItem)
+            },
+            onMerge = { moved.add(item.sourceLookup.lookedUp to adjustedDest) },
+            onOverwrite = { recursive -> workQueue.addFirst(item) },
+            onResolveConflict = { workQueue.addFirst(WorkItem.ResolveConflict(item.sourceLookup, adjustedDest, destLookup, item)) },
+            onIssue = onIssue
+        )
     }
 
     private suspend fun processResolveConflict(item: WorkItem.ResolveConflict<SP, SPL, DP, DPL>) {
         val canMerge = item.originalItem is WorkItem.CreateDirectory<*, *, *> &&
                 item.destLookup.fileType == FileType.DIRECTORY
 
-        val issue = PathActionIssue.PathAlreadyExists(
-            source = item.sourceLookup,
-            destination = item.destLookup,
-            canSkip = true,
-            canOverwrite = true,
+        conflictResolver.processResolveConflict(
+            sourceLookup = item.sourceLookup,
+            destination = item.destination,
+            destLookup = item.destLookup,
             canMerge = canMerge,
-            canRenameSource = true,
-            canRenameDestination = true,
-            suggestedName = generateUniqueName(item.destination),
-        )
-
-        when (val resolution = issueResolver.resolveIssue(issue) as PathActionIssue.PathAlreadyExists.Resolution) {
-            is PathActionIssue.PathAlreadyExists.Resolution.Skip -> {
-                skipped.add(item.sourceLookup.lookedUp)
-                if (item.originalItem is WorkItem.CreateDirectory<*, *, *>) {
-                    skippedSourceDirs.add(item.sourceLookup.lookedUp)
-                }
-                progressTracker.completeItem()
-            }
-
-            is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
-                val recursive = item.destLookup.fileType == FileType.DIRECTORY
-                destOps.delete(item.destination, recursive = recursive)
-                workQueue.addFirst(item.originalItem)
-            }
-
-            is PathActionIssue.PathAlreadyExists.Resolution.Merge -> {
-                // Add the merged directory to moved set (directory exists, we're merging contents)
-                moved.add(item.sourceLookup.lookedUp to item.destination)
-                progressTracker.completeItem()
-            }
-
-            is PathActionIssue.PathAlreadyExists.Resolution.RenameSource -> {
-                val parentPath = item.destination.parent!!
-                val renamedDest = parentPath.child(resolution.newName)
-
-                log(TAG, INFO) { "Renaming destination: ${item.destination} -> $renamedDest" }
-
-                // Create new work item with renamed destination and re-queue
+            onSkip = { sourcePath, markAsSkippedDir ->
+                skipped.add(sourcePath)
+                if (markAsSkippedDir) skippedSourceDirs.add(sourcePath)
+            },
+            onOverwrite = { recursive -> workQueue.addFirst(item.originalItem) },
+            onMerge = { moved.add(item.sourceLookup.lookedUp to item.destination) },
+            onRenameSource = { renamedDest ->
                 when (val originalItem = item.originalItem) {
                     is WorkItem.MoveFile<*, *, *> -> {
                         @Suppress("UNCHECKED_CAST")
@@ -610,7 +534,6 @@ internal class GenericPathMove<
                             destination = renamedDest,
                             topLevelSource = dirItem.topLevelSource
                         )
-                        // Track renamed directory for child path adjustments
                         renamedSourceDirs[dirItem.sourceLookup.lookedUp] = renamedDest
                         workQueue.addFirst(updatedItem)
                     }
@@ -619,299 +542,80 @@ internal class GenericPathMove<
                         log(TAG, ERROR) { "Unexpected original item type: $originalItem" }
                     }
                 }
-            }
-
-            is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
-                val parentPath = item.destination.parent!!
-                val newDestPath = parentPath.child(resolution.newName)
-
-                log(TAG, INFO) { "Renaming existing destination: ${item.destination} -> $newDestPath" }
-
-                // Move the existing destination to the new name
-                destOps.move(item.destination, newDestPath)
-
-                // Re-queue original operation (destination path now clear)
-                workQueue.addFirst(item.originalItem)
-            }
-
-            is PathActionIssue.PathAlreadyExists.Resolution.Cancel -> {
-                throw kotlin.coroutines.cancellation.CancellationException("User cancelled")
-            }
-        }
+            },
+            onRenameDestination = { workQueue.addFirst(item.originalItem) }
+        )
     }
 
     private fun calculateDestinationPath(source: SP, topLevelSource: SP): DP {
-        // Unix cp/mv semantics:
-        // - Single source + destination is existing directory: move INTO it (append name)
-        // - Single source + destination doesn't exist: use as final path (rename)
-        // - Multiple sources: always move INTO destination directory
-
-        if (sources.size == 1 && source == topLevelSource && !destinationExistedAsDirectory) {
-            // Single source + destination didn't exist as directory: use as final path (rename)
-            return destination
-        }
-
-        // Multiple sources or processing children: append relative path to destination
-        // Example: moving /source/topfolder to /dest should create /dest/topfolder/...
-        val topLevelSegments = topLevelSource.segments
-        val sourceSegments = source.segments
-
-        // Drop parent segments of top-level source
-        // - For rename semantics (single source, non-existent dest): drop ALL segments including name
-        //   Example: mv /source/origdir dest/renamed -> drop [source,origdir] -> child file.txt -> dest/renamed/file.txt
-        // - For move INTO semantics: drop parent segments, keep top-level name
-        //   Example: mv /source/topfolder dest/ -> drop [source] -> keep [topfolder] -> dest/topfolder/...
-        val segmentsToDrop = if (topLevelSegments.isEmpty()) {
-            0
-        } else if (sources.size == 1 && !destinationExistedAsDirectory) {
-            // Rename semantics: drop ALL top-level segments (including the name itself)
-            topLevelSegments.size
-        } else {
-            // Move INTO semantics: drop parent segments, keep top-level name
-            topLevelSegments.size - 1
-        }
-        val relativeSegments = sourceSegments.drop(segmentsToDrop)
-
-        // Build destination path with relative segments
-        return destination.child(*relativeSegments.toTypedArray())
+        return pathCalculator.calculateDestinationPath(
+            source = source,
+            topLevelSource = topLevelSource,
+            destination = destination,
+            sources = sources,
+            destinationExistedAsDirectory = destinationExistedAsDirectory
+        )
     }
 
     private fun adjustDestinationForRenames(dest: DP, source: SP): DP {
-        // Check if any ancestor was renamed and adjust the destination path
-        for ((renamedSource, renamedDest) in renamedSourceDirs) {
-            // Check if source is a descendant of a renamed directory
-            if (source.path.startsWith(renamedSource.path + "/") || source.path == renamedSource.path) {
-                // Calculate the relative path from the renamed source
-                val relativePath = source.path.removePrefix(renamedSource.path).removePrefix("/")
-
-                if (relativePath.isEmpty()) {
-                    // Source is the renamed directory itself
-                    return renamedDest
-                } else {
-                    // Source is a child - append relative path to renamed dest
-                    val segments = relativePath.split("/").filter { it.isNotEmpty() }
-                    return renamedDest.child(*segments.toTypedArray())
-                }
-            }
-        }
-        return dest
+        return pathCalculator.adjustDestinationForRenames(
+            dest = dest,
+            source = source,
+            renamedSourceDirs = renamedSourceDirs
+        )
     }
 
     private fun isDescendantOfSkippedDir(path: SP): Boolean {
-        return skippedSourceDirs.any { path.path.startsWith(it.path) }
-    }
-
-    private suspend fun generateUniqueName(path: DP): String {
-        // Generate unique name using smart increment logic
-        // If parent path is null, fall back to simple "(1)" appending
-        val parentPath = path.parent ?: return "${path.name} (1)"
-
-        return GenericPathNamingUtils.generateUniqueName(
-            parentPath = parentPath,
-            originalName = path.name,
-            ops = destOps
+        return pathCalculator.isDescendantOfSkippedDir(
+            path = path,
+            skippedSourceDirs = skippedSourceDirs
         )
     }
 
     private suspend fun handleScanError(error: Exception, lookup: SPL, originalItem: WorkItem.ScanSource<SP>) {
-        log(TAG, ERROR) { "Scan error: ${lookup.lookedUp} - $error" }
-
-        // Categorize exception type
-        val isPermissionError = error is SecurityException ||
-                error is java.nio.file.AccessDeniedException
-
-        // Check "apply to all" flags first (fast path)
-        if (isPermissionError && issueResolver.skipAllPermission) {
-            log(TAG, INFO) { "Skipping scan error (apply-to-all permission): ${lookup.lookedUp}" }
-            skipped.add(lookup.lookedUp)
-            skippedSourceDirs.add(lookup.lookedUp)
-            return
-        }
-
-        if (!isPermissionError && issueResolver.skipAllUnknown) {
-            log(TAG, INFO) { "Skipping scan error (apply-to-all unknown): ${lookup.lookedUp}" }
-            skipped.add(lookup.lookedUp)
-            skippedSourceDirs.add(lookup.lookedUp)
-            return
-        }
-
-        // No issue handler configured? Re-throw exception immediately
-        if (onIssue == null) throw error
-
-        // Convert exception to appropriate PathActionIssue type
-        // For scan errors, always use UnknownError (even for permission errors) because:
-        // 1. InsufficientPermission doesn't support Retry resolution
-        // 2. Scan errors can potentially be retried if permissions are fixed externally
-        val issue = PathActionIssue.UnknownError(
-            destination = lookup,
-            exception = error,
-            canRetry = true, // Scan errors can be retried by re-queuing the scan item
-            canSkip = true
+        errorHandler.handleScanError(
+            error = error,
+            lookup = lookup,
+            issueResolver = issueResolver,
+            onSkip = {
+                skipped.add(it.lookedUp)
+                skippedSourceDirs.add(it.lookedUp)
+            },
+            onRetry = { workQueue.addFirst(originalItem) },
+            onIssue = onIssue,
+            tag = TAG
         )
-
-        // Resolve issue with user callback (may throw CancellationException)
-        val resolution = issueResolver.resolveIssue(issue)
-
-        // Handle resolution (only UnknownError for scan errors)
-        when (resolution) {
-            is PathActionIssue.UnknownError.Resolution.Skip -> {
-                // User chose to skip this directory
-                skipped.add(lookup.lookedUp)
-                skippedSourceDirs.add(lookup.lookedUp)
-                // Note: Don't call progressTracker.completeItem() for scan errors
-                // The item was already counted in totalItems but never started processing
-            }
-
-            is PathActionIssue.UnknownError.Resolution.Retry -> {
-                log(TAG, INFO) { "Retrying scan operation: ${lookup.lookedUp}" }
-                // Re-queue the scan work item to try again
-                workQueue.addFirst(originalItem)
-            }
-
-            is PathActionIssue.UnknownError.Resolution.Cancel -> {
-                // Already thrown by resolveIssue
-            }
-        }
     }
 
     private suspend fun handleMoveError(error: Exception, originalItem: WorkItem.MoveFile<SP, SPL, DP>) {
-        val source = originalItem.sourceLookup
-        val dest = originalItem.destination
-
-        log(TAG, ERROR) { "Move error: ${source.lookedUp} -> $dest - $error" }
-
-        // Categorize exception type
-        val isPermissionError = error is SecurityException ||
-                error is java.nio.file.AccessDeniedException
-
-        // Check "apply to all" flags first (fast path)
-        if (isPermissionError && issueResolver.skipAllPermission) {
-            log(TAG, INFO) { "Skipping permission error (apply-to-all): $dest" }
-            skipped.add(source.lookedUp)
-            progressTracker.completeItem()
-            return
-        }
-
-        if (!isPermissionError && issueResolver.skipAllUnknown) {
-            log(TAG, INFO) { "Skipping unknown error (apply-to-all): $dest" }
-            skipped.add(source.lookedUp)
-            progressTracker.completeItem()
-            return
-        }
-
-        // No issue handler configured? Re-throw exception immediately
-        if (onIssue == null) throw error
-
-        // Convert exception to appropriate PathActionIssue type
-        val issue = if (isPermissionError) {
-            PathActionIssue.InsufficientPermission(
-                destination = source,
-                exception = error,
-                canSkip = true
-            )
-        } else {
-            PathActionIssue.UnknownError(
-                destination = source,
-                exception = error,
-                canRetry = true,
-                canSkip = true
-            )
-        }
-
-        // Resolve issue with user callback (may throw CancellationException)
-        val resolution = issueResolver.resolveIssue(issue)
-
-        // Handle resolution
-        when (resolution) {
-            is PathActionIssue.InsufficientPermission.Resolution.Skip,
-            is PathActionIssue.UnknownError.Resolution.Skip -> {
-                // User chose to skip this file
-                skipped.add(source.lookedUp)
-                progressTracker.completeItem()
-            }
-
-            is PathActionIssue.UnknownError.Resolution.Retry -> {
-                log(TAG, INFO) { "Retrying move operation: ${source.lookedUp} -> $dest" }
-                // Re-queue the original work item to try again
-                // Progress stays in-flight, will be completed on success or skip
-                workQueue.addFirst(originalItem)
-            }
-
-            else -> {
-                // Cancel is handled by issueResolver.resolveIssue() throwing CancellationException
-            }
-        }
+        errorHandler.handleError(
+            error = error,
+            lookup = originalItem.sourceLookup,
+            issueResolver = issueResolver,
+            progressTracker = progressTracker,
+            onSkip = { skipped.add(it.lookedUp) },
+            onRetry = { workQueue.addFirst(originalItem) },
+            canRetry = true,
+            onIssue = onIssue,
+            tag = TAG
+        )
     }
 
     private suspend fun handleDirectoryError(error: Exception, originalItem: WorkItem.CreateDirectory<SP, SPL, DP>) {
-        val source = originalItem.sourceLookup
-        val dest = originalItem.destination
-
-        log(TAG, ERROR) { "Directory creation error: ${source.lookedUp} -> $dest - $error" }
-
-        // Categorize exception type
-        val isPermissionError = error is SecurityException ||
-                error is java.nio.file.AccessDeniedException
-
-        // Check "apply to all" flags first (fast path)
-        if (isPermissionError && issueResolver.skipAllPermission) {
-            log(TAG, INFO) { "Skipping permission error (apply-to-all): $dest" }
-            skipped.add(source.lookedUp)
-            skippedSourceDirs.add(source.lookedUp)
-            progressTracker.completeItem()
-            return
-        }
-
-        if (!isPermissionError && issueResolver.skipAllUnknown) {
-            log(TAG, INFO) { "Skipping unknown error (apply-to-all): $dest" }
-            skipped.add(source.lookedUp)
-            skippedSourceDirs.add(source.lookedUp)
-            progressTracker.completeItem()
-            return
-        }
-
-        // No issue handler configured? Re-throw exception immediately
-        if (onIssue == null) throw error
-
-        // Convert exception to appropriate PathActionIssue type
-        val issue = if (isPermissionError) {
-            PathActionIssue.InsufficientPermission(
-                destination = source,
-                exception = error,
-                canSkip = true
-            )
-        } else {
-            PathActionIssue.UnknownError(
-                destination = source,
-                exception = error,
-                canRetry = true,
-                canSkip = true
-            )
-        }
-
-        // Resolve issue with user callback (may throw CancellationException)
-        val resolution = issueResolver.resolveIssue(issue)
-
-        // Handle resolution
-        when (resolution) {
-            is PathActionIssue.InsufficientPermission.Resolution.Skip,
-            is PathActionIssue.UnknownError.Resolution.Skip -> {
-                // User chose to skip this directory
-                skipped.add(source.lookedUp)
-                skippedSourceDirs.add(source.lookedUp)
-                progressTracker.completeItem()
-            }
-
-            is PathActionIssue.UnknownError.Resolution.Retry -> {
-                log(TAG, INFO) { "Retrying directory creation: ${source.lookedUp} -> $dest" }
-                // Re-queue the original work item to try again
-                workQueue.addFirst(originalItem)
-            }
-
-            else -> {
-                // Cancel is handled by issueResolver.resolveIssue() throwing CancellationException
-            }
-        }
+        errorHandler.handleError(
+            error = error,
+            lookup = originalItem.sourceLookup,
+            issueResolver = issueResolver,
+            progressTracker = progressTracker,
+            onSkip = {
+                skipped.add(it.lookedUp)
+                skippedSourceDirs.add(it.lookedUp)
+            },
+            onRetry = { workQueue.addFirst(originalItem) },
+            canRetry = true,
+            onIssue = onIssue,
+            tag = TAG
+        )
     }
 
     private suspend fun reportScanProgress(lookup: SPL, emit: suspend (MoveAction.State<SP, SPL>) -> Unit) {

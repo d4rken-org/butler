@@ -21,6 +21,7 @@ import testhelpers.BaseTest
 class GenericPathNamingUtilsTest : BaseTest() {
 
     private lateinit var mockOps: MockFileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>
+    private lateinit var namingUtils: GenericPathNamingUtils<LocalPath>
 
     @BeforeEach
     fun setup() {
@@ -33,6 +34,7 @@ class GenericPathNamingUtilsTest : BaseTest() {
                 target = null
             )
         }
+        namingUtils = GenericPathNamingUtils(ops = mockOps)
     }
 
     @AfterEach
@@ -50,10 +52,9 @@ class GenericPathNamingUtilsTest : BaseTest() {
         val parentPath = LocalPath.build("/parent")
 
         // When
-        val result = GenericPathNamingUtils.generateUniqueName(
+        val result = namingUtils.generateUniqueName(
             parentPath = parentPath,
-            originalName = "file.txt",
-            ops = mockOps
+            originalName = "file.txt"
         )
 
         // Then - returns original name unchanged
@@ -69,10 +70,9 @@ class GenericPathNamingUtilsTest : BaseTest() {
         val parentPath = LocalPath.build("/parent")
 
         // When
-        val result = GenericPathNamingUtils.generateUniqueName(
+        val result = namingUtils.generateUniqueName(
             parentPath = parentPath,
-            originalName = "file.txt",
-            ops = mockOps
+            originalName = "file.txt"
         )
 
         // Then - appends (1) before extension
@@ -90,10 +90,9 @@ class GenericPathNamingUtilsTest : BaseTest() {
         val parentPath = LocalPath.build("/parent")
 
         // When
-        val result = GenericPathNamingUtils.generateUniqueName(
+        val result = namingUtils.generateUniqueName(
             parentPath = parentPath,
-            originalName = "file (1).txt",
-            ops = mockOps
+            originalName = "file (1).txt"
         )
 
         // Then - increments to (2), NOT "file (1) (1).txt"
@@ -109,10 +108,9 @@ class GenericPathNamingUtilsTest : BaseTest() {
         val parentPath = LocalPath.build("/parent")
 
         // When
-        val result = GenericPathNamingUtils.generateUniqueName(
+        val result = namingUtils.generateUniqueName(
             parentPath = parentPath,
-            originalName = "file (42).txt",
-            ops = mockOps
+            originalName = "file (42).txt"
         )
 
         // Then
@@ -132,10 +130,9 @@ class GenericPathNamingUtilsTest : BaseTest() {
         val parentPath = LocalPath.build("/parent")
 
         // When - generating unique name for "file (3).txt"
-        val result = GenericPathNamingUtils.generateUniqueName(
+        val result = namingUtils.generateUniqueName(
             parentPath = parentPath,
-            originalName = "file (3).txt",
-            ops = mockOps
+            originalName = "file (3).txt"
         )
 
         // Then - should skip to (4)
@@ -154,10 +151,9 @@ class GenericPathNamingUtilsTest : BaseTest() {
         val parentPath = LocalPath.build("/parent")
 
         // When - asking for unique name for "file (2).txt"
-        val result = GenericPathNamingUtils.generateUniqueName(
+        val result = namingUtils.generateUniqueName(
             parentPath = parentPath,
-            originalName = "file (2).txt",
-            ops = mockOps
+            originalName = "file (2).txt"
         )
 
         // Then - finds (3) is available
@@ -175,10 +171,9 @@ class GenericPathNamingUtilsTest : BaseTest() {
         val parentPath = LocalPath.build("/parent")
 
         // When
-        val result = GenericPathNamingUtils.generateUniqueName(
+        val result = namingUtils.generateUniqueName(
             parentPath = parentPath,
-            originalName = "folder",
-            ops = mockOps
+            originalName = "folder"
         )
 
         // Then - appends (1) without extension
@@ -194,10 +189,9 @@ class GenericPathNamingUtilsTest : BaseTest() {
         val parentPath = LocalPath.build("/parent")
 
         // When
-        val result = GenericPathNamingUtils.generateUniqueName(
+        val result = namingUtils.generateUniqueName(
             parentPath = parentPath,
-            originalName = "folder (3)",
-            ops = mockOps
+            originalName = "folder (3)"
         )
 
         // Then
@@ -215,10 +209,9 @@ class GenericPathNamingUtilsTest : BaseTest() {
         val parentPath = LocalPath.build("/parent")
 
         // When
-        val result = GenericPathNamingUtils.generateUniqueName(
+        val result = namingUtils.generateUniqueName(
             parentPath = parentPath,
-            originalName = ".hiddenfile",
-            ops = mockOps
+            originalName = ".hiddenfile"
         )
 
         // Then - treats entire name as base (no extension)
@@ -234,10 +227,9 @@ class GenericPathNamingUtilsTest : BaseTest() {
         val parentPath = LocalPath.build("/parent")
 
         // When
-        val result = GenericPathNamingUtils.generateUniqueName(
+        val result = namingUtils.generateUniqueName(
             parentPath = parentPath,
-            originalName = "archive.tar.gz",
-            ops = mockOps
+            originalName = "archive.tar.gz"
         )
 
         // Then - splits on LAST dot: "archive.tar" + ".gz"
@@ -253,10 +245,9 @@ class GenericPathNamingUtilsTest : BaseTest() {
         val parentPath = LocalPath.build("/parent")
 
         // When
-        val result = GenericPathNamingUtils.generateUniqueName(
+        val result = namingUtils.generateUniqueName(
             parentPath = parentPath,
-            originalName = "filename.",
-            ops = mockOps
+            originalName = "filename."
         )
 
         // Then - treats as no extension
@@ -272,10 +263,9 @@ class GenericPathNamingUtilsTest : BaseTest() {
         val parentPath = LocalPath.build("/parent")
 
         // When
-        val result = GenericPathNamingUtils.generateUniqueName(
+        val result = namingUtils.generateUniqueName(
             parentPath = parentPath,
-            originalName = "backup.2024.tar (5).gz",
-            ops = mockOps
+            originalName = "backup.2024.tar (5).gz"
         )
 
         // Then - correctly parses: base="backup.2024.tar", num=5, ext=".gz"
@@ -293,10 +283,9 @@ class GenericPathNamingUtilsTest : BaseTest() {
         val parentPath = LocalPath.build("/parent")
 
         // When
-        val result = GenericPathNamingUtils.generateUniqueName(
+        val result = namingUtils.generateUniqueName(
             parentPath = parentPath,
-            originalName = "file (abc).txt",
-            ops = mockOps
+            originalName = "file (abc).txt"
         )
 
         // Then - doesn't recognize as numbered pattern, treats whole as base
@@ -312,10 +301,9 @@ class GenericPathNamingUtilsTest : BaseTest() {
         val parentPath = LocalPath.build("/parent")
 
         // When
-        val result = GenericPathNamingUtils.generateUniqueName(
+        val result = namingUtils.generateUniqueName(
             parentPath = parentPath,
-            originalName = "file (5) backup.txt",
-            ops = mockOps
+            originalName = "file (5) backup.txt"
         )
 
         // Then - pattern must be at END of base name, so this doesn't match
@@ -333,10 +321,9 @@ class GenericPathNamingUtilsTest : BaseTest() {
         val parentPath = LocalPath.build("/parent")
 
         // When - starting from file (10).txt
-        val result = GenericPathNamingUtils.generateUniqueName(
+        val result = namingUtils.generateUniqueName(
             parentPath = parentPath,
-            originalName = "file (10).txt",
-            ops = mockOps
+            originalName = "file (10).txt"
         )
 
         // Then - finds next available (11)
@@ -354,10 +341,9 @@ class GenericPathNamingUtilsTest : BaseTest() {
         val initialFileCount = mockOps.files.size
 
         // When
-        GenericPathNamingUtils.generateUniqueName(
-            parentPath = LocalPath.build("/parent"),
-            originalName = "file.txt",
-            ops = mockOps
+        namingUtils.generateUniqueName(
+            parentPath =LocalPath.build("/parent"),
+            originalName = "file.txt"
         )
 
         // Then - no new files created
@@ -374,10 +360,9 @@ class GenericPathNamingUtilsTest : BaseTest() {
         mockOps.existsCalls.clear() // Reset call tracking
 
         // When
-        GenericPathNamingUtils.generateUniqueName(
-            parentPath = LocalPath.build("/parent"),
-            originalName = "file.txt",
-            ops = mockOps
+        namingUtils.generateUniqueName(
+            parentPath =LocalPath.build("/parent"),
+            originalName = "file.txt"
         )
 
         // Then - should have called exists() to check original and suggested names

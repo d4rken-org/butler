@@ -8,8 +8,13 @@ import eu.darken.butler.common.files.FileSystemOps
  *
  * Provides intelligent name conflict resolution that works with any APath type
  * (LocalPath, SAFPath, RootPath, etc.) using the FileSystemOps abstraction.
+ *
+ * @param P Path type (LocalPath, SAFPath, etc.)
+ * @param ops FileSystemOps instance to check for existing paths
  */
-object GenericPathNamingUtils {
+class GenericPathNamingUtils<P : APath<P>>(
+    private val ops: FileSystemOps<P, *, *>
+) {
 
     /**
      * Generates a unique filename by appending (1), (2), etc. until no conflict exists.
@@ -45,13 +50,11 @@ object GenericPathNamingUtils {
      *
      * @param parentPath The parent directory where the file will be created
      * @param originalName The original filename to make unique
-     * @param ops FileSystemOps instance to check for existing paths
      * @return A unique filename that doesn't conflict with existing files
      */
-    suspend fun <P : APath<P>> generateUniqueName(
+    suspend fun generateUniqueName(
         parentPath: P,
-        originalName: String,
-        ops: FileSystemOps<P, *, *>
+        originalName: String
     ): String {
         // Check if original name is already unique
         val testPath = parentPath.child(originalName)
