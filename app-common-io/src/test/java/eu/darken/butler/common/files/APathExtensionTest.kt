@@ -3,8 +3,10 @@ package eu.darken.butler.common.files
 import eu.darken.butler.common.files.extensions.extension
 import eu.darken.butler.common.files.extensions.filterDistinctRoots
 import eu.darken.butler.common.files.extensions.isAncestorOf
+import eu.darken.butler.common.files.extensions.isAncestorOfOrSelf
 import eu.darken.butler.common.files.extensions.isChildOf
 import eu.darken.butler.common.files.extensions.isDescendantOf
+import eu.darken.butler.common.files.extensions.isDescendantOfOrSelf
 import eu.darken.butler.common.files.extensions.isParentOf
 import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.common.files.extensions.removePrefix
@@ -314,6 +316,212 @@ class APathExtensionTest : BaseTest() {
         lookup1.matches(lookup2) shouldBe false
 
         lookup2.matches(lookup1) shouldBe false
+    }
+
+    @Test fun `isDescendantOfOrSelf operator - LocalPath`() {
+        val file1: APath<*> =LocalPath.build("parent")
+        val file2: APath<*> =LocalPath.build("parent", "child", "niece")
+
+        val lookup1: APathLookup<*> = LocalPathLookup(
+            lookedUp = LocalPath.build("parent"),
+            fileType = FileType.FILE,
+            size = 16,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
+            target = null,
+        )
+        val lookup2: APathLookup<*> = LocalPathLookup(
+            lookedUp = LocalPath.build("parent", "child", "niece"),
+            fileType = FileType.FILE,
+            size = 16,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
+            target = null,
+        )
+
+        file1.isDescendantOfOrSelf(file1) shouldBe true
+        file1.isDescendantOfOrSelf(file2) shouldBe false
+        file1.isDescendantOfOrSelf(lookup1) shouldBe true
+        file1.isDescendantOfOrSelf(lookup2) shouldBe false
+
+        file2.isDescendantOfOrSelf(file1) shouldBe true
+        file2.isDescendantOfOrSelf(file2) shouldBe true
+        file2.isDescendantOfOrSelf(lookup1) shouldBe true
+        file2.isDescendantOfOrSelf(lookup2) shouldBe true
+
+        lookup1.isDescendantOfOrSelf(file1) shouldBe true
+        lookup1.isDescendantOfOrSelf(file2) shouldBe false
+        lookup1.isDescendantOfOrSelf(lookup1) shouldBe true
+        lookup1.isDescendantOfOrSelf(lookup2) shouldBe false
+
+        lookup2.isDescendantOfOrSelf(file1) shouldBe true
+        lookup2.isDescendantOfOrSelf(file2) shouldBe true
+        lookup2.isDescendantOfOrSelf(lookup1) shouldBe true
+        lookup2.isDescendantOfOrSelf(lookup2) shouldBe true
+    }
+
+    @Test fun `isDescendantOfOrSelf operator - SAFPath`() {
+        val file1: APath<*> =SAFPath.build(treeUri, "parent")
+        val file2: APath<*> =SAFPath.build(treeUri, "parent", "child", "niece")
+
+        val lookup1: APathLookup<*> = SAFPathLookup(
+            lookedUp = SAFPath.build(treeUri, "parent"),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
+        )
+        val lookup2: APathLookup<*> = SAFPathLookup(
+            lookedUp = SAFPath.build(treeUri, "parent", "child", "niece"),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
+        )
+
+        file1.isDescendantOfOrSelf(file1) shouldBe true
+        file1.isDescendantOfOrSelf(file2) shouldBe false
+        file1.isDescendantOfOrSelf(lookup1) shouldBe true
+        file1.isDescendantOfOrSelf(lookup2) shouldBe false
+
+        file2.isDescendantOfOrSelf(file1) shouldBe true
+        file2.isDescendantOfOrSelf(file2) shouldBe true
+        file2.isDescendantOfOrSelf(lookup1) shouldBe true
+        file2.isDescendantOfOrSelf(lookup2) shouldBe true
+
+        lookup1.isDescendantOfOrSelf(file1) shouldBe true
+        lookup1.isDescendantOfOrSelf(file2) shouldBe false
+        lookup1.isDescendantOfOrSelf(lookup1) shouldBe true
+        lookup1.isDescendantOfOrSelf(lookup2) shouldBe false
+
+        lookup2.isDescendantOfOrSelf(file1) shouldBe true
+        lookup2.isDescendantOfOrSelf(file2) shouldBe true
+        lookup2.isDescendantOfOrSelf(lookup1) shouldBe true
+        lookup2.isDescendantOfOrSelf(lookup2) shouldBe true
+    }
+
+    @Test fun `isDescendantOfOrSelf operator - mixed types`() {
+        val file1: APath<*> =LocalPath.build("parent")
+        val file2: APath<*> =SAFPath.build(treeUri, "parent", "child", "niece")
+
+        val lookup1: APathLookup<*> = LocalPathLookup(
+            lookedUp = LocalPath.build("parent"),
+            fileType = FileType.FILE,
+            size = 16,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
+            target = null,
+        )
+        val lookup2: APathLookup<*> = SAFPathLookup(
+            lookedUp = SAFPath.build(treeUri, "parent", "child", "niece"),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
+        )
+
+        file1.isDescendantOfOrSelf(file2) shouldBe false
+        file2.isDescendantOfOrSelf(file1) shouldBe false
+
+        lookup1.isDescendantOfOrSelf(lookup2) shouldBe false
+        lookup2.isDescendantOfOrSelf(lookup1) shouldBe false
+    }
+
+    @Test fun `isAncestorOfOrSelf operator - LocalPath`() {
+        val file1: APath<*> =LocalPath.build("parent")
+        val file2: APath<*> =LocalPath.build("parent", "child", "niece")
+
+        val lookup1: APathLookup<*> = LocalPathLookup(
+            lookedUp = LocalPath.build("parent"),
+            fileType = FileType.FILE,
+            size = 16,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
+            target = null,
+        )
+        val lookup2: APathLookup<*> = LocalPathLookup(
+            lookedUp = LocalPath.build("parent", "child", "niece"),
+            fileType = FileType.FILE,
+            size = 16,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
+            target = null,
+        )
+
+        file1.isAncestorOfOrSelf(file1) shouldBe true
+        file1.isAncestorOfOrSelf(file2) shouldBe true
+        file1.isAncestorOfOrSelf(lookup1) shouldBe true
+        file1.isAncestorOfOrSelf(lookup2) shouldBe true
+
+        file2.isAncestorOfOrSelf(file1) shouldBe false
+        file2.isAncestorOfOrSelf(file2) shouldBe true
+        file2.isAncestorOfOrSelf(lookup1) shouldBe false
+        file2.isAncestorOfOrSelf(lookup2) shouldBe true
+
+        lookup1.isAncestorOfOrSelf(file1) shouldBe true
+        lookup1.isAncestorOfOrSelf(file2) shouldBe true
+        lookup1.isAncestorOfOrSelf(lookup1) shouldBe true
+        lookup1.isAncestorOfOrSelf(lookup2) shouldBe true
+
+        lookup2.isAncestorOfOrSelf(file1) shouldBe false
+        lookup2.isAncestorOfOrSelf(file2) shouldBe true
+        lookup2.isAncestorOfOrSelf(lookup1) shouldBe false
+        lookup2.isAncestorOfOrSelf(lookup2) shouldBe true
+    }
+
+    @Test fun `isAncestorOfOrSelf operator - SAFPath`() {
+        val file1: APath<*> =SAFPath.build(treeUri, "parent")
+        val file2: APath<*> =SAFPath.build(treeUri, "parent", "child", "niece")
+
+        val lookup1: APathLookup<*> = SAFPathLookup(
+            lookedUp = SAFPath.build(treeUri, "parent"),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
+        )
+        val lookup2: APathLookup<*> = SAFPathLookup(
+            lookedUp = SAFPath.build(treeUri, "parent", "child", "niece"),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
+        )
+
+        file1.isAncestorOfOrSelf(file1) shouldBe true
+        file1.isAncestorOfOrSelf(file2) shouldBe true
+        file1.isAncestorOfOrSelf(lookup1) shouldBe true
+        file1.isAncestorOfOrSelf(lookup2) shouldBe true
+
+        file2.isAncestorOfOrSelf(file1) shouldBe false
+        file2.isAncestorOfOrSelf(file2) shouldBe true
+        file2.isAncestorOfOrSelf(lookup1) shouldBe false
+        file2.isAncestorOfOrSelf(lookup2) shouldBe true
+
+        lookup1.isAncestorOfOrSelf(file1) shouldBe true
+        lookup1.isAncestorOfOrSelf(file2) shouldBe true
+        lookup1.isAncestorOfOrSelf(lookup1) shouldBe true
+        lookup1.isAncestorOfOrSelf(lookup2) shouldBe true
+
+        lookup2.isAncestorOfOrSelf(file1) shouldBe false
+        lookup2.isAncestorOfOrSelf(file2) shouldBe true
+        lookup2.isAncestorOfOrSelf(lookup1) shouldBe false
+        lookup2.isAncestorOfOrSelf(lookup2) shouldBe true
+    }
+
+    @Test fun `isAncestorOfOrSelf operator - mixed types`() {
+        val file1: APath<*> =LocalPath.build("parent")
+        val file2: APath<*> =SAFPath.build(treeUri, "parent", "child", "niece")
+
+        val lookup1: APathLookup<*> = LocalPathLookup(
+            lookedUp = LocalPath.build("parent"),
+            fileType = FileType.FILE,
+            size = 16,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
+            target = null,
+        )
+        val lookup2: APathLookup<*> = SAFPathLookup(
+            lookedUp = SAFPath.build(treeUri, "parent", "child", "niece"),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
+        )
+
+        file1.isAncestorOfOrSelf(file2) shouldBe false
+        file2.isAncestorOfOrSelf(file1) shouldBe false
+
+        lookup1.isAncestorOfOrSelf(lookup2) shouldBe false
+        lookup2.isAncestorOfOrSelf(lookup1) shouldBe false
     }
 
     @Test fun `isParentOf operator - LocalPath`() {

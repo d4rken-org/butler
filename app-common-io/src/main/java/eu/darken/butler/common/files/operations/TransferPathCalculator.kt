@@ -1,6 +1,7 @@
 package eu.darken.butler.common.files.operations
 
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.extensions.isDescendantOfOrSelf
 
 /**
  * Shared path calculation utilities for copy and move operations.
@@ -155,7 +156,7 @@ class TransferPathCalculator {
         // Find the most specific (longest path) renamed ancestor using maxByOrNull
         val bestMatch = renamedSourceDirs
             .filter { (renamedSource, _) ->
-                source.path == renamedSource.path || source.path.startsWith(renamedSource.path + "/")
+                source.isDescendantOfOrSelf(renamedSource)
             }
             .maxByOrNull { (renamedSource, _) -> renamedSource.path.length }
 
@@ -201,7 +202,7 @@ class TransferPathCalculator {
         path: P,
         skippedSourceDirs: Set<P>
     ): Boolean = skippedSourceDirs.any { skippedDir ->
-        // Exact match or descendant (requires path separator after skipped dir)
-        path.path == skippedDir.path || path.path.startsWith("${skippedDir.path}/")
+        // Exact match or descendant
+        path.isDescendantOfOrSelf(skippedDir)
     }
 }

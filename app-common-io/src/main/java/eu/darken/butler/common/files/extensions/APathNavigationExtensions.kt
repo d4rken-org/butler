@@ -28,6 +28,14 @@ fun APath<*>.isDescendantOf(ancestor: APath<*>): Boolean {
     return ancestor.isAncestorOf(this)
 }
 
+fun APath<*>.isDescendantOfOrSelf(ancestor: APath<*>): Boolean {
+    return this.matches(ancestor) || this.isDescendantOf(ancestor)
+}
+
+fun APath<*>.isAncestorOfOrSelf(descendant: APath<*>): Boolean {
+    return this.matches(descendant) || this.isAncestorOf(descendant)
+}
+
 /**
  * A parent is a DIRECT ancestor
  * See [isAncestorOf]

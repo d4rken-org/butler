@@ -88,6 +88,14 @@ fun APathLookup<*>.isDescendantOf(ancestor: APath<*>): Boolean = lookedUp.isDesc
 fun APath<*>.isDescendantOf(ancestor: APathLookup<*>) = isDescendantOf(ancestor.lookedUp)
 fun APathLookup<*>.isDescendantOf(ancestor: APathLookup<*>): Boolean = lookedUp.isDescendantOf(ancestor.lookedUp)
 
+fun APathLookup<*>.isDescendantOfOrSelf(ancestor: APath<*>): Boolean = lookedUp.isDescendantOfOrSelf(ancestor)
+fun APath<*>.isDescendantOfOrSelf(ancestor: APathLookup<*>): Boolean = isDescendantOfOrSelf(ancestor.lookedUp)
+fun APathLookup<*>.isDescendantOfOrSelf(ancestor: APathLookup<*>): Boolean = lookedUp.isDescendantOfOrSelf(ancestor.lookedUp)
+
+fun APathLookup<*>.isAncestorOfOrSelf(descendant: APath<*>): Boolean = lookedUp.isAncestorOfOrSelf(descendant)
+fun APath<*>.isAncestorOfOrSelf(descendant: APathLookup<*>): Boolean = isAncestorOfOrSelf(descendant.lookedUp)
+fun APathLookup<*>.isAncestorOfOrSelf(descendant: APathLookup<*>): Boolean = lookedUp.isAncestorOfOrSelf(descendant.lookedUp)
+
 fun APathLookup<*>.isParentOf(child: APath<*>): Boolean = lookedUp.isParentOf(child)
 fun APath<*>.isParentOf(child: APathLookup<*>): Boolean = isParentOf(child.lookedUp)
 fun APathLookup<*>.isParentOf(child: APathLookup<*>): Boolean = lookedUp.isParentOf(child.lookedUp)
