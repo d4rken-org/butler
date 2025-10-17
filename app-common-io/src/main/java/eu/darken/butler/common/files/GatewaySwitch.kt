@@ -16,6 +16,8 @@ import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.operations.GenericCrossTypeCopyStrategy
+import eu.darken.butler.common.files.operations.GenericCrossTypeMoveStrategy
+import eu.darken.butler.common.files.operations.TransferStrategy
 import eu.darken.butler.common.files.operations.copyGeneric
 import eu.darken.butler.common.files.operations.moveGeneric
 import eu.darken.butler.common.files.saf.SAFGateway
@@ -424,7 +426,7 @@ class GatewaySwitch @Inject constructor(
 
         val firstSource = sources.firstOrNull() ?: return@flow
 
-        val transferOptions = eu.darken.butler.common.files.operations.TransferStrategy.Options(
+        val transferOptions = TransferStrategy.Options(
             preserveAttributes = options.preserveAttributes,
             followSymlinks = options.followSymlinks
         )
@@ -466,7 +468,7 @@ class GatewaySwitch @Inject constructor(
 
         val firstSource = sources.firstOrNull() ?: return@flow
 
-        val transferOptions = eu.darken.butler.common.files.operations.TransferStrategy.Options(
+        val transferOptions = TransferStrategy.Options(
             preserveAttributes = options.preserveAttributes,
             followSymlinks = false  // MoveAction doesn't have followSymlinks option
         )
@@ -478,7 +480,7 @@ class GatewaySwitch @Inject constructor(
                     destination = target,
                     sourceOps = safGateway,
                     destOps = localGateway,
-                    strategy = eu.darken.butler.common.files.operations.GenericCrossTypeMoveStrategy(),
+                    strategy = GenericCrossTypeMoveStrategy(),
                     options = transferOptions,
                     onIssue = onIssue,
                 ).collect { state -> emit(state) }
@@ -489,7 +491,7 @@ class GatewaySwitch @Inject constructor(
                     destination = target,
                     sourceOps = localGateway,
                     destOps = safGateway,
-                    strategy = eu.darken.butler.common.files.operations.GenericCrossTypeMoveStrategy(),
+                    strategy = GenericCrossTypeMoveStrategy(),
                     options = transferOptions,
                     onIssue = onIssue,
                 ).collect { state -> emit(state) }
