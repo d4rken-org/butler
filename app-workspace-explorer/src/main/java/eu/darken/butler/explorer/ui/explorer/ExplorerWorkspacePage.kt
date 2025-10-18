@@ -286,13 +286,17 @@ fun ExplorerWorkspacePage(
                     .fillMaxSize()
                     .padding(top = paddingValues.calculateTopPadding())
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize()
+                PullToRefreshBox(
+                    isRefreshing = mainState.progress != null,
+                    onRefresh = { vm?.retryNavigation() }
                 ) {
-                    ExplorerInfoBar(
-                        info = mainState.info,
-                        selectedCount = mainState.selectionState.selectedItems.size,
-                    )
+                    Column(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        ExplorerInfoBar(
+                            info = mainState.info,
+                            selectedCount = mainState.selectionState.selectedItems.size,
+                        )
 
                     mainState.error?.let { error ->
                         NavigationErrorCard(
@@ -323,22 +327,17 @@ fun ExplorerWorkspacePage(
                             )
                         }
                         mainStateSnap.items.isEmpty() -> {
-                            PullToRefreshBox(
-                                isRefreshing = mainStateSnap.progress != null,
-                                onRefresh = { vm?.retryNavigation() }
+                            BoxWithConstraints(
+                                modifier = Modifier.fillMaxSize()
                             ) {
-                                BoxWithConstraints(
-                                    modifier = Modifier.fillMaxSize()
+                                Box(
+                                    modifier = Modifier
+                                        .heightIn(min = maxHeight)
+                                        .fillMaxWidth()
+                                        .verticalScroll(rememberScrollState()),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .heightIn(min = maxHeight)
-                                            .fillMaxWidth()
-                                            .verticalScroll(rememberScrollState()),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        EmptyDirectoryState()
-                                    }
+                                    EmptyDirectoryState()
                                 }
                             }
                         }
@@ -347,11 +346,7 @@ fun ExplorerWorkspacePage(
                                 modifier = Modifier.fillMaxSize()
                             ) {
                                 if (mainStateSnap.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
-                                    PullToRefreshBox(
-                                        isRefreshing = mainStateSnap.progress != null,
-                                        onRefresh = { vm?.retryNavigation() }
-                                    ) {
-                                        LazyColumn(
+                                    LazyColumn(
                                             state = listState,
                                             modifier = Modifier
                                                 .fillMaxSize()
@@ -411,13 +406,8 @@ fun ExplorerWorkspacePage(
                                                 }
                                             }
                                         }
-                                    }
                                 } else {
-                                    PullToRefreshBox(
-                                        isRefreshing = mainStateSnap.progress != null,
-                                        onRefresh = { vm?.retryNavigation() }
-                                    ) {
-                                        LazyVerticalGrid(
+                                    LazyVerticalGrid(
                                             state = gridState,
                                             columns = GridCells.Adaptive(minSize = 120.dp),
                                             modifier = Modifier
@@ -478,11 +468,11 @@ fun ExplorerWorkspacePage(
                                                 }
                                             }
                                         }
-                                    }
                                 }
                             }
                         }
                     }
+                }
                 }
 
                 mainState.progress?.let {
