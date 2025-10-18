@@ -1194,4 +1194,79 @@ class GenericPathMoveTest : BaseTest() {
         result.movedFiles.size shouldBe 2 // parent + child.txt
         result.skippedFiles.size shouldBe 0
     }
+
+    // ============ PER-FILE PROGRESS TRACKING ============
+
+    @Test
+    fun `move multiple files reports correct per-file progress without accumulation`() = runTest {
+        // Given - multiple files with different sizes (1MB, 5MB, 2MB)
+        mockOps.addMockDir("/source")
+        mockOps.addMockFile("/source/file1.bin", ByteArray(1_000_000))  // 1 MB
+        mockOps.addMockFile("/source/file2.bin", ByteArray(5_000_000))  // 5 MB
+        mockOps.addMockFile("/source/file3.bin", ByteArray(2_000_000))  // 2 MB
+        mockOps.addMockDir("/dest")
+
+        val sourcePath = LocalPath.build("/source")
+        val destPath = LocalPath.build("/dest")
+
+        val progressUpdates = mutableListOf<MoveAction.State.Progress<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
+
+        // When - move files and collect progress updates
+        val result = setOf(sourcePath).moveGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onIssue = null
+        ).onEach { state ->
+            if (state is MoveAction.State.Progress) {
+                progressUpdates.add(state)
+            }
+        }.last() as MoveAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Then - operation succeeded
+        result.movedFiles.size shouldBe 4  // source dir + 3 files
+
+        // Filter progress updates that have secondary progress (file-level tracking)
+        val fileProgressUpdates = progressUpdates.filter { it.secondaryProgress != null }
+
+        fileProgressUpdates.size shouldNotBe 0 // Should have file progress updates
+
+        // Critical assertion: currentFileBytes should NEVER exceed currentFileSize
+        fileProgressUpdates.forEach { progress ->
+            val currentBytes = progress.currentFileBytes
+            val fileSize = progress.currentFileSize
+
+            // This will fail with the bug: shows accumulated bytes like 6MB/5MB or 8MB/2MB
+            if (currentBytes > fileSize) {
+                throw AssertionError(
+                    "Bug detected: currentFileBytes ($currentBytes) > currentFileSize ($fileSize) " +
+                    "for file ${progress.currentSource.lookedUp.name}"
+                )
+            }
+        }
+
+        // Each file should start with currentFileBytes = 0 (or at least reset between files)
+        // Group by file being moved
+        val progressByFile = fileProgressUpdates.groupBy { it.currentSource.lookedUp.path }
+
+        progressByFile.values.forEach { progressList ->
+            if (progressList.isNotEmpty()) {
+                val firstUpdate = progressList.first()
+                // First progress for each file should have currentFileBytes near 0
+                // (allowing small initial value due to chunked reads)
+                val firstBytes = firstUpdate.currentFileBytes
+                val fileSize = firstUpdate.currentFileSize
+
+                // Should be starting fresh, not continuing from previous file
+                if (firstBytes > fileSize * 0.5) {
+                    throw AssertionError(
+                        "Bug detected: First progress update for file ${firstUpdate.currentSource.lookedUp.name} " +
+                        "shows currentFileBytes=$firstBytes which is > 50% of fileSize=$fileSize. " +
+                        "This suggests bytes are accumulating from previous file."
+                    )
+                }
+            }
+        }
+    }
 }

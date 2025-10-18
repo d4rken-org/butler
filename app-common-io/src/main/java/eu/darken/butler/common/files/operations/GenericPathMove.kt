@@ -343,7 +343,7 @@ internal class GenericPathMove<
                     val destLookup = destOps.lookup(result.destination)
                     moved.add(item.sourceLookup to destLookup)
                     totalBytesTransferred += result.bytesTransferred
-                    progressTracker.completeItem()
+                    progressTracker.completeFile()
                 }
 
                 is TransferStrategy.TransferResult.Skipped -> {
