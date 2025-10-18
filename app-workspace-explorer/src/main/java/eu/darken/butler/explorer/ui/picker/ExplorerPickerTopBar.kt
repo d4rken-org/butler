@@ -5,6 +5,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
@@ -42,24 +43,24 @@ fun ExplorerPickerTopBar(
                 Text(
                     text = when (selection) {
                         is PickerConfig.Selection.DirectorySingle -> stringResource(R.string.explorer_picker_select_directory_title)
-                        is PickerConfig.Selection.DirectoryMulti -> if (selectionCount > 0) {
-                            stringResource(R.string.explorer_picker_select_directories_count_title, selectionCount)
-                        } else {
-                            stringResource(R.string.explorer_picker_select_directories_title)
-                        }
+                        is PickerConfig.Selection.DirectoryMulti -> pluralStringResource(
+                            R.plurals.explorer_picker_select_directories,
+                            selectionCount,
+                            selectionCount,
+                        )
 
                         is PickerConfig.Selection.FileSingle -> stringResource(R.string.explorer_picker_select_file_title)
-                        is PickerConfig.Selection.FileMulti -> if (selectionCount > 0) {
-                            stringResource(R.string.explorer_picker_select_files_count_title, selectionCount)
-                        } else {
-                            stringResource(R.string.explorer_picker_select_files_title)
-                        }
+                        is PickerConfig.Selection.FileMulti -> pluralStringResource(
+                            R.plurals.explorer_picker_select_files,
+                            selectionCount,
+                            selectionCount,
+                        )
 
-                        is PickerConfig.Selection.MixedMulti -> if (selectionCount > 0) {
-                            stringResource(R.string.explorer_picker_select_items_count_title, selectionCount)
-                        } else {
-                            stringResource(R.string.explorer_picker_select_items_title)
-                        }
+                        is PickerConfig.Selection.MixedMulti -> pluralStringResource(
+                            R.plurals.explorer_picker_select_items,
+                            selectionCount,
+                            selectionCount,
+                        )
                     }
                 )
             }
@@ -91,17 +92,21 @@ fun ExplorerPickerTopBar(
             ) {
                 Text(
                     text = when (selection) {
-                        is PickerConfig.Selection.DirectorySingle -> stringResource(R.string.explorer_picker_select_action)
+                        is PickerConfig.Selection.DirectorySingle -> stringResource(R.string.explorer_picker_select_this_folder_action)
                         is PickerConfig.Selection.DirectoryMulti,
                         is PickerConfig.Selection.MixedMulti -> {
                             if (selectionCount > 0) {
-                                stringResource(eu.darken.butler.common.R.string.general_done_action)
+                                pluralStringResource(R.plurals.explorer_picker_select_count_action, selectionCount, selectionCount)
                             } else {
-                                stringResource(R.string.explorer_picker_select_current_action)
+                                stringResource(R.string.explorer_picker_select_this_folder_action)
                             }
                         }
-                        is PickerConfig.Selection.FileSingle,
-                        is PickerConfig.Selection.FileMulti -> stringResource(eu.darken.butler.common.R.string.general_done_action)
+                        is PickerConfig.Selection.FileSingle -> stringResource(eu.darken.butler.common.R.string.general_done_action)
+                        is PickerConfig.Selection.FileMulti -> pluralStringResource(
+                            R.plurals.explorer_picker_select_count_action,
+                            selectionCount,
+                            selectionCount,
+                        )
                     }
                 )
             }
