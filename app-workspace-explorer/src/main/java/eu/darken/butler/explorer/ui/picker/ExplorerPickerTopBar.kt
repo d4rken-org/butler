@@ -1,12 +1,22 @@
 package eu.darken.butler.explorer.ui.picker
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -29,18 +39,87 @@ fun ExplorerPickerTopBar(
     onCancel: () -> Unit,
     onConfirm: () -> Unit,
 ) {
-    TopAppBar(
-        modifier = modifier,
-        title = {
-            if (breadcrumbs != null) {
-                BreadcrumbBar(
-                    breadcrumbs = breadcrumbs,
-                    onBreadcrumbClick = onBreadcrumbClick
-                )
-            } else {
-                // TODO improve title texts
-                // Fallback to static title if breadcrumbs not available
+    Column(modifier = modifier) {
+        // Row 1: Action bar with Cancel and Select buttons
+        Surface(
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 3.dp,
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // Cancel button (left) - subtle secondary action
+                TextButton(onClick = onCancel) {
+                    Text(text = stringResource(eu.darken.butler.common.R.string.general_cancel_action))
+                }
+
+                // Select button (right) - prominent primary action
+                FilledTonalButton(
+                    onClick = onConfirm,
+                    enabled = when (selection) {
+                        is PickerConfig.Selection.DirectorySingle -> {
+                            // Only enable for real directories, not virtual locations (Home, Device)
+                            currentLocation is ExplorerLocation.Directory
+                        }
+
+                        is PickerConfig.Selection.DirectoryMulti,
+                        is PickerConfig.Selection.MixedMulti -> {
+                            // Enable if items selected OR viewing a real directory (for "Select Current" fallback)
+                            selectionCount > 0 || currentLocation is ExplorerLocation.Directory
+                        }
+
+                        is PickerConfig.Selection.FileMulti -> selectionCount > 0
+
+                        is PickerConfig.Selection.FileSingle -> false // Instant selection, no confirm needed
+                    }
+                ) {
+                    Text(
+                        text = when (selection) {
+                            is PickerConfig.Selection.DirectorySingle -> stringResource(R.string.explorer_picker_select_this_folder_action)
+                            is PickerConfig.Selection.DirectoryMulti,
+                            is PickerConfig.Selection.MixedMulti -> {
+                                if (selectionCount > 0) {
+                                    pluralStringResource(R.plurals.explorer_picker_select_count_action, selectionCount, selectionCount)
+                                } else {
+                                    stringResource(R.string.explorer_picker_select_this_folder_action)
+                                }
+                            }
+
+                            is PickerConfig.Selection.FileSingle -> stringResource(eu.darken.butler.common.R.string.general_done_action)
+                            is PickerConfig.Selection.FileMulti -> pluralStringResource(
+                                R.plurals.explorer_picker_select_count_action,
+                                selectionCount,
+                                selectionCount,
+                            )
+                        }
+                    )
+                }
+            }
+        }
+
+        // Divider for visual separation
+        HorizontalDivider()
+
+        // Row 2: Breadcrumbs or fallback title
+        if (breadcrumbs != null) {
+            BreadcrumbBar(
+                breadcrumbs = breadcrumbs,
+                onBreadcrumbClick = onBreadcrumbClick
+            )
+        } else {
+            // Fallback to static title if breadcrumbs not available
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                tonalElevation = 2.dp,
+            ) {
                 Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
                     text = when (selection) {
                         is PickerConfig.Selection.DirectorySingle -> stringResource(R.string.explorer_picker_select_directory_title)
                         is PickerConfig.Selection.DirectoryMulti -> pluralStringResource(
@@ -61,57 +140,12 @@ fun ExplorerPickerTopBar(
                             selectionCount,
                             selectionCount,
                         )
-                    }
-                )
-            }
-        },
-        navigationIcon = {
-            TextButton(onClick = onCancel) {
-                Text(text = stringResource(eu.darken.butler.common.R.string.general_cancel_action))
-            }
-        },
-        actions = {
-            TextButton(
-                onClick = onConfirm,
-                enabled = when (selection) {
-                    is PickerConfig.Selection.DirectorySingle -> {
-                        // Only enable for real directories, not virtual locations (Home, Device)
-                        currentLocation is ExplorerLocation.Directory
-                    }
-
-                    is PickerConfig.Selection.DirectoryMulti,
-                    is PickerConfig.Selection.MixedMulti -> {
-                        // Enable if items selected OR viewing a real directory (for "Select Current" fallback)
-                        selectionCount > 0 || currentLocation is ExplorerLocation.Directory
-                    }
-
-                    is PickerConfig.Selection.FileMulti -> selectionCount > 0
-
-                    is PickerConfig.Selection.FileSingle -> false // Instant selection, no confirm needed
-                }
-            ) {
-                Text(
-                    text = when (selection) {
-                        is PickerConfig.Selection.DirectorySingle -> stringResource(R.string.explorer_picker_select_this_folder_action)
-                        is PickerConfig.Selection.DirectoryMulti,
-                        is PickerConfig.Selection.MixedMulti -> {
-                            if (selectionCount > 0) {
-                                pluralStringResource(R.plurals.explorer_picker_select_count_action, selectionCount, selectionCount)
-                            } else {
-                                stringResource(R.string.explorer_picker_select_this_folder_action)
-                            }
-                        }
-                        is PickerConfig.Selection.FileSingle -> stringResource(eu.darken.butler.common.R.string.general_done_action)
-                        is PickerConfig.Selection.FileMulti -> pluralStringResource(
-                            R.plurals.explorer_picker_select_count_action,
-                            selectionCount,
-                            selectionCount,
-                        )
-                    }
+                    },
+                    style = MaterialTheme.typography.titleMedium,
                 )
             }
         }
-    )
+    }
 }
 
 @Preview2
