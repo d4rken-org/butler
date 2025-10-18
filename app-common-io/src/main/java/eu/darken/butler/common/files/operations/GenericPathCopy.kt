@@ -85,8 +85,8 @@ internal class GenericPathCopy<
     private val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
 ) {
 
-    private val copied = linkedSetOf<Pair<SP, DP>>()
-    private val skipped = linkedSetOf<SP>()
+    private val copied = linkedSetOf<Pair<SPL, DPL>>()
+    private val skipped = linkedSetOf<SPL>()
     private var totalBytesTransferred = 0L
 
     // Shared components
@@ -177,7 +177,7 @@ internal class GenericPathCopy<
         ) : WorkItem()
     }
 
-    fun execute(): Flow<CopyAction.State<SP, SPL>> = flow {
+    fun execute(): Flow<CopyAction.State<SP, SPL, DP, DPL>> = flow {
         log(TAG, DEBUG) { "execute(): Copying ${sources.size} sources to $destination" }
 
         // Check if destination exists and is a directory (for path calculation logic)
@@ -229,7 +229,7 @@ internal class GenericPathCopy<
         @Suppress("UNCHECKED_CAST")
         emit(
             CopyAction.State.Result(
-                copied = copied as Set<Pair<SP, SP>>,
+                copied = copied,
                 skipped = skipped,
                 copiedBytes = totalBytesTransferred
             )
@@ -238,7 +238,7 @@ internal class GenericPathCopy<
 
     private suspend fun processScan(
         item: WorkItem.ScanSource<SP>,
-        emit: suspend (CopyAction.State<SP, SPL>) -> Unit
+        emit: suspend (CopyAction.State<SP, SPL, DP, DPL>) -> Unit
     ): Int {
         log(TAG, VERBOSE) { "Scanning source: ${item.source}" }
 
@@ -339,12 +339,12 @@ internal class GenericPathCopy<
 
     private suspend fun processCopyFile(
         item: WorkItem.CopyFile<SP, SPL, DP>,
-        emit: suspend (CopyAction.State<SP, SPL>) -> Unit
+        emit: suspend (CopyAction.State<SP, SPL, DP, DPL>) -> Unit
     ) {
         // Skip if parent directory was skipped
         if (isDescendantOfSkippedDir(item.sourceLookup.lookedUp)) {
             log(TAG, VERBOSE) { "Skipping file - parent directory was skipped" }
-            skipped.add(item.sourceLookup.lookedUp)
+            skipped.add(item.sourceLookup)
             progressTracker.completeItem()
             return
         }
@@ -369,27 +369,28 @@ internal class GenericPathCopy<
                 onProgress = { bytes ->
                     progressTracker.updateFileProgress(bytes)
                     if (progressTracker.shouldReportProgress()) {
-                        reportProgress(item.sourceLookup, emit)
+                        reportProgress(item.sourceLookup, adjustedDest, emit)
                     }
                 }
             )
 
             when (result) {
                 is TransferStrategy.TransferResult.Success -> {
-                    copied.add(item.sourceLookup.lookedUp to result.destination)
+                    val destLookup = destOps.lookup(result.destination)
+                    copied.add(item.sourceLookup to destLookup)
                     totalBytesTransferred += result.bytesTransferred
                     progressTracker.completeItem()
                 }
 
                 is TransferStrategy.TransferResult.Skipped -> {
-                    skipped.add(item.sourceLookup.lookedUp)
+                    skipped.add(item.sourceLookup)
                     progressTracker.completeItem()
                 }
             }
 
             // Force final progress report
             if (progressTracker.shouldReportProgress(force = true)) {
-                reportProgress(item.sourceLookup, emit)
+                reportProgress(item.sourceLookup, adjustedDest, emit)
             }
         } catch (_: PathAlreadyExistsException) {
             log(TAG, VERBOSE) { "File collision detected: $adjustedDest" }
@@ -404,7 +405,7 @@ internal class GenericPathCopy<
         // Skip if parent directory was skipped
         if (isDescendantOfSkippedDir(item.sourceLookup.lookedUp)) {
             log(TAG, VERBOSE) { "Skipping directory - parent directory was skipped" }
-            skipped.add(item.sourceLookup.lookedUp)
+            skipped.add(item.sourceLookup)
             progressTracker.completeItem()
             return
         }
@@ -433,13 +434,14 @@ internal class GenericPathCopy<
 
             when (result) {
                 is TransferStrategy.TransferResult.Success -> {
-                    copied.add(item.sourceLookup.lookedUp to result.destination)
+                    val destLookup = destOps.lookup(result.destination)
+                    copied.add(item.sourceLookup to destLookup)
                     totalBytesTransferred += result.bytesTransferred
                     progressTracker.completeItem()
                 }
 
                 is TransferStrategy.TransferResult.Skipped -> {
-                    skipped.add(item.sourceLookup.lookedUp)
+                    skipped.add(item.sourceLookup)
                     progressTracker.completeItem()
                 }
             }
@@ -467,7 +469,16 @@ internal class GenericPathCopy<
                 workQueue.addFirst(renamedItem)
             },
             onOverwrite = { workQueue.addFirst(item) },
-            onResolveConflict = { workQueue.addFirst(WorkItem.ResolveConflict(item.sourceLookup, adjustedDest, destLookup, item)) },
+            onResolveConflict = {
+                workQueue.addFirst(
+                    WorkItem.ResolveConflict(
+                        item.sourceLookup,
+                        adjustedDest,
+                        destLookup,
+                        item
+                    )
+                )
+            },
             onIssue = onIssue
         )
     }
@@ -481,9 +492,9 @@ internal class GenericPathCopy<
             sourceLookup = item.sourceLookup,
             destination = adjustedDest,
             destLookup = destLookup,
-            onSkip = { sourcePath, markAsSkippedDir ->
-                skipped.add(sourcePath)
-                if (markAsSkippedDir) skippedSourceDirs.add(sourcePath)
+            onSkip = { sourceLookup, markAsSkippedDir ->
+                skipped.add(sourceLookup)
+                if (markAsSkippedDir) skippedSourceDirs.add(sourceLookup.lookedUp)
             },
             onRename = { renamedDest ->
                 // Track renamed directory for child path adjustments
@@ -496,11 +507,22 @@ internal class GenericPathCopy<
                 )
                 workQueue.addFirst(updatedItem)
             },
-            onMerge = { copied.add(item.sourceLookup.lookedUp to adjustedDest) },
+            onMerge = {
+                copied.add(item.sourceLookup to destLookup)
+            },
             onOverwrite = { recursive ->
                 workQueue.addFirst(item)
             },
-            onResolveConflict = { workQueue.addFirst(WorkItem.ResolveConflict(item.sourceLookup, adjustedDest, destLookup, item)) },
+            onResolveConflict = {
+                workQueue.addFirst(
+                    WorkItem.ResolveConflict(
+                        item.sourceLookup,
+                        adjustedDest,
+                        destLookup,
+                        item
+                    )
+                )
+            },
             onIssue = onIssue
         )
     }
@@ -514,14 +536,16 @@ internal class GenericPathCopy<
             destination = item.destination,
             destLookup = item.destLookup,
             canMerge = canMerge,
-            onSkip = { sourcePath, markAsSkippedDir ->
-                skipped.add(sourcePath)
-                if (markAsSkippedDir) skippedSourceDirs.add(sourcePath)
+            onSkip = { sourceLookup, markAsSkippedDir ->
+                skipped.add(sourceLookup)
+                if (markAsSkippedDir) skippedSourceDirs.add(sourceLookup.lookedUp)
             },
             onOverwrite = { recursive ->
                 workQueue.addFirst(item.originalItem)
             },
-            onMerge = { copied.add(item.sourceLookup.lookedUp to item.destination) },
+            onMerge = {
+                copied.add(item.sourceLookup to item.destLookup)
+            },
             onRenameSource = { renamedDest ->
                 // Create new work item with renamed destination and re-queue
                 when (val originalItem = item.originalItem) {
@@ -589,7 +613,7 @@ internal class GenericPathCopy<
             lookup = lookup,
             issueResolver = issueResolver,
             onSkip = {
-                skipped.add(it.lookedUp)
+                skipped.add(it)
                 skippedSourceDirs.add(it.lookedUp)
             },
             onRetry = { workQueue.addFirst(originalItem) },
@@ -604,7 +628,7 @@ internal class GenericPathCopy<
             lookup = originalItem.sourceLookup,
             issueResolver = issueResolver,
             progressTracker = progressTracker,
-            onSkip = { skipped.add(it.lookedUp) },
+            onSkip = { skipped.add(it) },
             onRetry = { workQueue.addFirst(originalItem) },
             canRetry = true,
             onIssue = onIssue,
@@ -619,7 +643,7 @@ internal class GenericPathCopy<
             issueResolver = issueResolver,
             progressTracker = progressTracker,
             onSkip = {
-                skipped.add(it.lookedUp)
+                skipped.add(it)
                 skippedSourceDirs.add(it.lookedUp)
             },
             onRetry = { workQueue.addFirst(originalItem) },
@@ -629,15 +653,13 @@ internal class GenericPathCopy<
         )
     }
 
-    private suspend fun reportScanProgress(lookup: SPL, emit: suspend (CopyAction.State<SP, SPL>) -> Unit) {
+    private suspend fun reportScanProgress(lookup: SPL, emit: suspend (CopyAction.State<SP, SPL, DP, DPL>) -> Unit) {
         val snapshot = progressTracker.createSnapshot()
 
-        // For same-type operations (SP=DP), destination can be safely cast to SP
-        @Suppress("UNCHECKED_CAST")
         emit(
             CopyAction.State.Progress(
-                currentSource = lookup.lookedUp,
-                currentDestination = destination as SP,
+                currentSource = lookup,
+                currentDestination = null,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(
                     primary = R.string.general_scan_progress_title.toCaString(),
                     secondary = lookup.userReadablePath,
@@ -650,15 +672,18 @@ internal class GenericPathCopy<
         )
     }
 
-    private suspend fun reportProgress(lookup: SPL, emit: suspend (CopyAction.State<SP, SPL>) -> Unit) {
+    private suspend fun reportProgress(
+        lookup: SPL,
+        destLookup: DP,
+        emit: suspend (CopyAction.State<SP, SPL, DP, DPL>) -> Unit
+    ) {
         val snapshot = progressTracker.createSnapshot()
 
-        // For same-type operations (SP=DP), destination can be safely cast to SP
         @Suppress("UNCHECKED_CAST")
         emit(
             CopyAction.State.Progress(
-                currentSource = lookup.lookedUp,
-                currentDestination = destination as SP,  // Safe when SP=DP for same-type operations
+                currentSource = lookup,
+                currentDestination = destLookup,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(
                     primary = R.string.general_copy_progress_title.toCaString(),
                     secondary = lookup.userReadablePath,
@@ -742,7 +767,7 @@ fun <
     strategy: TransferStrategy<SP, SPL, SPLE, DP, DPL, DPLE>,
     options: TransferStrategy.Options = TransferStrategy.Options(),
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): Flow<CopyAction.State<SP, SPL>> = GenericPathCopy(
+): Flow<CopyAction.State<SP, SPL, DP, DPL>> = GenericPathCopy(
     sources = this,
     destination = destination,
     sourceOps = sourceOps,

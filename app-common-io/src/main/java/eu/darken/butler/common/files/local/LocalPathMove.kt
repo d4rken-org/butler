@@ -26,16 +26,16 @@ import kotlinx.coroutines.flow.Flow
 fun LocalPath.move(
     fileSystemOps: LocalFileSystemOps,
     destination: LocalPath,
-    options: MoveAction.Options<LocalPath> = MoveAction.Options(),
+    options: MoveAction.Options = MoveAction.Options(),
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
 ) = setOf(this).move(fileSystemOps, destination, options, onIssue)
 
 fun Collection<LocalPath>.move(
     fileSystemOps: LocalFileSystemOps,
     destination: LocalPath,
-    options: MoveAction.Options<LocalPath> = MoveAction.Options(),
+    options: MoveAction.Options = MoveAction.Options(),
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
-): Flow<MoveAction.State<LocalPath, LocalPathLookup>> {
+): Flow<MoveAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>> {
     log(TAG, DEBUG) {
         "move(): Moving $size targets to $destination (options=$options)"
     }

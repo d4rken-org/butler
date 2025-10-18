@@ -10,6 +10,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.LocalPathLookupExtended
@@ -30,6 +31,7 @@ class FileOpsClient @AssistedInject constructor(
     @Assisted private val fileOpsConnection: FileOpsConnection
 ) : IpcClientModule,
     FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>,
+    CopyAction<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>,
     DeleteAction<LocalPath, LocalPathLookup> {
 
     /**
@@ -210,6 +212,61 @@ class FileOpsClient @AssistedInject constructor(
             .map { event ->
                 // Convert each event to DeleteAction.State
                 event.toDeleteActionState()
+            }
+    } catch (e: Exception) {
+        throw e.refineException()
+    }
+
+    /**
+     * Copy files with progress streaming and interactive issue resolution.
+     *
+     * @param sources Set of files/directories to copy
+     * @param destination Target directory or file path
+     * @param onIssue Issue handler for conflict resolution (optional)
+     * @param options Copy options (overwrite, preserve attributes, follow symlinks)
+     * @return Flow of State updates (scan progress, copy progress, and final result)
+     */
+    override suspend fun copy(
+        sources: Set<LocalPath>,
+        destination: LocalPath,
+        onIssue: (suspend (eu.darken.butler.common.files.actions.PathActionIssue) -> eu.darken.butler.common.files.actions.PathActionIssue.Resolution)?,
+        options: CopyAction.Options,
+    ): Flow<CopyAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>> = try {
+        log(TAG, VERBOSE) { "copy(): ${sources.size} sources → $destination" }
+
+        // Create AIDL callback wrapper if onIssue is provided
+        val callback: FileOperationCallback? = onIssue?.let { issueHandler ->
+            object : FileOperationCallback.Stub() {
+                override fun onIssue(issue: FileOperationIssue): FileOperationIssueResolution {
+                    // Convert IPC issue to domain issue
+                    val domainIssue = issue.toPathActionIssue()
+
+                    // Call user's issue handler (blocking call)
+                    val resolution = kotlinx.coroutines.runBlocking {
+                        issueHandler(domainIssue)
+                    }
+
+                    // Convert domain resolution to IPC resolution
+                    return resolution.toFileOperationIssueResolution()
+                }
+            }
+        }
+
+        // Call host's copyStream()
+        val remoteInputStream = fileOpsConnection.copyStream(
+            sources.toList(),
+            destination,
+            options.overwrite,
+            options.preserveAttributes,
+            options.followSymlinks,
+            callback
+        )
+
+        // Convert RemoteInputStream to Flow<CopyOperationEvent>
+        remoteInputStream.toEventFlow(CopyOperationEvent.CREATOR)
+            .map { event ->
+                // Convert each event to CopyAction.State
+                event.toCopyActionState()
             }
     } catch (e: Exception) {
         throw e.refineException()

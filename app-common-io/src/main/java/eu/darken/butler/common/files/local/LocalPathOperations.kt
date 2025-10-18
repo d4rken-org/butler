@@ -48,18 +48,18 @@ import kotlinx.coroutines.flow.Flow
 fun LocalPath.copyGenericOp(
     destination: LocalPath,
     fileSystemOps: LocalFileSystemOps,
-    options: CopyAction.Options<LocalPath> = CopyAction.Options(),
+    options: CopyAction.Options = CopyAction.Options(),
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): Flow<CopyAction.State<LocalPath, LocalPathLookup>> = setOf(this).copyGenericOp(
+): Flow<CopyAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>> = setOf(this).copyGenericOp(
     destination, fileSystemOps, options, onIssue
 )
 
 fun Collection<LocalPath>.copyGenericOp(
     destination: LocalPath,
     fileSystemOps: LocalFileSystemOps,
-    options: CopyAction.Options<LocalPath> = CopyAction.Options(),
+    options: CopyAction.Options = CopyAction.Options(),
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): Flow<CopyAction.State<LocalPath, LocalPathLookup>> {
+): Flow<CopyAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>> {
     val strategy = LocalPathCopyStrategy(fileSystemOps)
 
     // Convert CopyAction.Options to TransferStrategy.Options
@@ -105,18 +105,18 @@ fun Collection<LocalPath>.copyGenericOp(
 fun LocalPath.moveGenericOp(
     destination: LocalPath,
     fileSystemOps: LocalFileSystemOps,
-    options: MoveAction.Options<LocalPath> = MoveAction.Options(),
+    options: MoveAction.Options = MoveAction.Options(),
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): Flow<MoveAction.State<LocalPath, LocalPathLookup>> = setOf(this).moveGenericOp(
+): Flow<MoveAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>> = setOf(this).moveGenericOp(
     destination, fileSystemOps, options, onIssue
 )
 
 fun Collection<LocalPath>.moveGenericOp(
     destination: LocalPath,
     fileSystemOps: LocalFileSystemOps,
-    options: MoveAction.Options<LocalPath> = MoveAction.Options(),
+    options: MoveAction.Options = MoveAction.Options(),
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): Flow<MoveAction.State<LocalPath, LocalPathLookup>> {
+): Flow<MoveAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>> {
     val strategy = LocalPathMoveStrategy(fileSystemOps)
 
     // Convert MoveAction.Options to TransferStrategy.Options

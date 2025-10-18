@@ -39,6 +39,7 @@ android {
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:${Versions.Desugar.core}")
     implementation(project(":app-common"))
+    implementation(project(":app-common-io"))
 
     addAndroidCore()
     addIO()

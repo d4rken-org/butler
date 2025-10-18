@@ -5,23 +5,32 @@ import eu.darken.butler.common.files.APathLookup
 import kotlinx.coroutines.flow.Flow
 import kotlin.time.Instant
 
-interface MoveAction<P : APath<P>, out PL : APathLookup<P>> : GatewayAction<P> {
+interface MoveAction<
+        SP : APath<SP>, SPL : APathLookup<SP>, // Source types
+        DP : APath<DP>, DPL : APathLookup<DP>, // Destination types
+        > {
     suspend fun move(
-        sources: Set<P>,
-        destination: P,
+        sources: Set<SP>,
+        destination: DP,
         onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
-        options: Options<P> = Options()
-    ): Flow<State<P, PL>>
+        options: Options = Options()
+    ): Flow<State<SP, SPL, DP, DPL>>
 
-    data class Options<out P : APath<P>>(
+    data class Options(
         val preserveAttributes: Boolean = true,
         val overwrite: Boolean = false,
     )
 
-    sealed interface State<P : APath<P>, out PL : APathLookup<P>> {
-        data class Progress<P : APath<P>, out PL : APathLookup<P>>(
-            val currentSource: P,
-            val currentDestination: P,
+    sealed interface State<
+            SP : APath<SP>, SPL : APathLookup<SP>, // Source types
+            DP : APath<DP>, DPL : APathLookup<DP>, // Destination types
+            > {
+        data class Progress<
+                SP : APath<SP>, SPL : APathLookup<SP>, // Source types
+                DP : APath<DP>, DPL : APathLookup<DP>, // Destination types
+                >(
+            val currentSource: SPL,
+            val currentDestination: DP?,
             val primaryProgress: eu.darken.butler.common.progress.Progress.Data,
             val secondaryProgress: eu.darken.butler.common.progress.Progress.Data? = null,
             val movedBytes: Long = 0L,
@@ -29,13 +38,16 @@ interface MoveAction<P : APath<P>, out PL : APathLookup<P>> : GatewayAction<P> {
             val currentFileSize: Long = 0L,
             val currentFileBytes: Long = 0L,
             val currentFileStartTime: Instant? = null,
-        ) : State<P, PL>
+        ) : State<SP, SPL, DP, DPL>
 
-        data class Result<P : APath<P>, out PL : APathLookup<P>>(
-            val movedFiles: Set<Pair<P, P>>,
-            val skippedFiles: Set<P> = emptySet(),
+        data class Result<
+                SP : APath<SP>, SPL : APathLookup<SP>, // Source types
+                DP : APath<DP>, DPL : APathLookup<DP>, // Destination types
+                >(
+            val movedFiles: Set<Pair<SPL, DPL>>,
+            val skippedFiles: Set<SPL> = emptySet(),
             val bytesMoved: Long,
-        ) : State<P, PL>
+        ) : State<SP, SPL, DP, DPL>
     }
 
 }

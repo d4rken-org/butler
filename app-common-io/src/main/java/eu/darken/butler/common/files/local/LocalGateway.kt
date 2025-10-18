@@ -691,16 +691,16 @@ class LocalGateway @Inject constructor(
         sources: Set<LocalPath>,
         destination: LocalPath,
         onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
-        options: CopyAction.Options<LocalPath>
-    ): Flow<CopyAction.State<LocalPath, LocalPathLookup>> = copy(sources, destination, onIssue, options, Mode.AUTO)
+        options: CopyAction.Options
+    ): Flow<CopyAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>> = copy(sources, destination, onIssue, options, Mode.AUTO)
 
     fun copy(
         sources: Set<LocalPath>,
         destination: LocalPath,
         onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
-        options: CopyAction.Options<LocalPath>,
+        options: CopyAction.Options,
         mode: Mode = Mode.AUTO
-    ): Flow<CopyAction.State<LocalPath, LocalPathLookup>> = flow {
+    ): Flow<CopyAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>> = flow {
         log(TAG, VERBOSE) { "copy(): ${sources.size} sources to $destination" }
 
         when (mode) {
@@ -713,7 +713,7 @@ class LocalGateway @Inject constructor(
                     onIssue = onIssue,
                 ).collect { state ->
                     emit(state)
-                    if (state is CopyAction.State.Result) {
+                    if (state is CopyAction.State.Result<*, *, *, *>) {
                         log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
                     }
                 }
@@ -768,16 +768,16 @@ class LocalGateway @Inject constructor(
         sources: Set<LocalPath>,
         destination: LocalPath,
         onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
-        options: MoveAction.Options<LocalPath>
-    ): Flow<MoveAction.State<LocalPath, LocalPathLookup>> = move(sources, destination, onIssue, options, Mode.AUTO)
+        options: MoveAction.Options
+    ): Flow<MoveAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>> = move(sources, destination, onIssue, options, Mode.AUTO)
 
     fun move(
         sources: Set<LocalPath>,
         destination: LocalPath,
         onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
-        options: MoveAction.Options<LocalPath>,
+        options: MoveAction.Options,
         mode: Mode = Mode.AUTO,
-    ): Flow<MoveAction.State<LocalPath, LocalPathLookup>> = flow {
+    ): Flow<MoveAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>> = flow {
         log(TAG, VERBOSE) { "move(): ${sources.size} sources to $destination" }
         when (mode) {
             Mode.NORMAL -> {
@@ -789,7 +789,7 @@ class LocalGateway @Inject constructor(
                     onIssue = onIssue,
                 ).collect { state ->
                     emit(state)
-                    if (state is MoveAction.State.Result) {
+                    if (state is MoveAction.State.Result<*, *, *, *>) {
                         log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
                     }
                 }
@@ -821,7 +821,7 @@ class LocalGateway @Inject constructor(
                             onIssue = onIssue,
                         ).collect { state ->
                             emit(state)
-                            if (state is MoveAction.State.Result) {
+                            if (state is MoveAction.State.Result<*, *, *, *>) {
                                 log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
                             }
                         }

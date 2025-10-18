@@ -5,7 +5,7 @@ import eu.darken.butler.common.files.APathLookup
 import kotlinx.coroutines.flow.Flow
 
 
-interface DeleteAction<P : APath<P>, PL : APathLookup<P>> : GatewayAction<P> {
+interface DeleteAction<P : APath<P>, PL : APathLookup<P>> {
     suspend fun delete(
         targets: Set<P>,
         options: Options<P> = Options()

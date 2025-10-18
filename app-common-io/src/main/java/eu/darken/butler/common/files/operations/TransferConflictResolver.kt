@@ -94,7 +94,7 @@ class TransferConflictResolver<
         sourceLookup: SPL,
         destination: DP,
         destLookup: DPL,
-        onSkip: (SP) -> Unit,
+        onSkip: (SPL) -> Unit,
         onRename: (DP) -> Unit,
         onMerge: (() -> Unit)? = null,
         onOverwrite: (recursive: Boolean) -> Unit
@@ -102,7 +102,7 @@ class TransferConflictResolver<
         // Skip all
         if (issueResolver.skipAllPathExists) {
             log(tag, INFO) { "Skipping (apply-to-all): $destination" }
-            onSkip(sourceLookup.lookedUp)
+            onSkip(sourceLookup)
             progressTracker.completeItem()
             return ApplyToAllResult.Resolved
         }
@@ -154,7 +154,7 @@ class TransferConflictResolver<
         sourceLookup: SPL,
         destination: DP,
         destLookup: DPL,
-        onSkip: (SP) -> Unit,
+        onSkip: (SPL) -> Unit,
         onRename: (DP) -> Unit,
         onOverwrite: () -> Unit,
         onResolveConflict: () -> Unit,
@@ -205,7 +205,7 @@ class TransferConflictResolver<
         sourceLookup: SPL,
         destination: DP,
         destLookup: DPL,
-        onSkip: (SP, markAsSkippedDir: Boolean) -> Unit,
+        onSkip: (SPL, markAsSkippedDir: Boolean) -> Unit,
         onRename: (DP) -> Unit,
         onMerge: () -> Unit,
         onOverwrite: (recursive: Boolean) -> Unit,
@@ -217,7 +217,7 @@ class TransferConflictResolver<
             sourceLookup = sourceLookup,
             destination = destination,
             destLookup = destLookup,
-            onSkip = { path -> onSkip(path, true) }, // Mark as skipped directory
+            onSkip = { lookup -> onSkip(lookup, true) }, // Mark as skipped directory
             onRename = onRename,
             onMerge = if (destLookup.fileType == FileType.DIRECTORY) onMerge else null,
             onOverwrite = onOverwrite
@@ -257,7 +257,7 @@ class TransferConflictResolver<
         destination: DP,
         destLookup: DPL,
         canMerge: Boolean,
-        onSkip: (SP, markAsSkippedDir: Boolean) -> Unit,
+        onSkip: (SPL, markAsSkippedDir: Boolean) -> Unit,
         onOverwrite: (recursive: Boolean) -> Unit,
         onMerge: () -> Unit,
         onRenameSource: (DP) -> Unit,
@@ -279,7 +279,7 @@ class TransferConflictResolver<
         when (val resolution = issueResolver.resolveIssue(issue) as PathActionIssue.PathAlreadyExists.Resolution) {
             is PathActionIssue.PathAlreadyExists.Resolution.Skip -> {
                 val isDirectory = canMerge // canMerge is true only for directory conflicts
-                onSkip(sourceLookup.lookedUp, isDirectory)
+                onSkip(sourceLookup, isDirectory)
                 progressTracker.completeItem()
             }
 

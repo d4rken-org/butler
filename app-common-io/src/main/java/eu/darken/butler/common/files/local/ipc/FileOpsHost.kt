@@ -8,10 +8,12 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.LocalPathLookupExtended
+import eu.darken.butler.common.files.local.copy
 import eu.darken.butler.common.files.local.delete
 import eu.darken.butler.common.files.local.walkers.DirectLocalWalker
 import eu.darken.butler.common.files.metadata.FileSystem
@@ -247,8 +249,16 @@ class FileOpsHost @Inject constructor(
             // Convert callback to issue handler (explicit suspend function)
             suspend fun handleIssue(issue: PathActionIssue): PathActionIssue.Resolution {
                 val ipcIssue = issue.toFileOperationIssue()
-                val ipcResolution = callback!!.onIssue(ipcIssue)
-                return ipcResolution.toPathActionIssueResolution(issue)
+                try {
+                    val ipcResolution = callback!!.onIssue(ipcIssue)
+                    return ipcResolution.toPathActionIssueResolution(issue)
+                } catch (e: android.os.DeadObjectException) {
+                    log(TAG, ERROR) { "Client process died during issue resolution" }
+                    throw java.io.IOException("Client process died", e)
+                } catch (e: android.os.RemoteException) {
+                    log(TAG, ERROR) { "IPC error during issue resolution: ${e.asLog()}" }
+                    throw java.io.IOException("IPC communication failed", e)
+                }
             }
 
             val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? =
@@ -288,6 +298,77 @@ class FileOpsHost @Inject constructor(
         eventFlow.toRemoteInputStream(appScope + dispatcherProvider.IO)
     } catch (e: Exception) {
         log(TAG, ERROR) { "deleteStream(targets=${targets.size}) setup failed\n${e.asLog()}" }
+        throw e.wrapToPropagate()
+    }
+
+    override fun copyStream(
+        sources: List<LocalPath>,
+        destination: LocalPath,
+        overwrite: Boolean,
+        preserveAttributes: Boolean,
+        followSymlinks: Boolean,
+        callback: FileOperationCallback?
+    ): RemoteInputStream = try {
+        log(TAG, VERBOSE) { "copyStream(): ${sources.size} sources → $destination" }
+
+        // Create flow of CopyOperationEvent by wrapping the copy operation
+        val eventFlow = flow<CopyOperationEvent> {
+            // Convert callback to issue handler (explicit suspend function)
+            suspend fun handleIssue(issue: PathActionIssue): PathActionIssue.Resolution {
+                val ipcIssue = issue.toFileOperationIssue()
+                try {
+                    val ipcResolution = callback!!.onIssue(ipcIssue)
+                    return ipcResolution.toPathActionIssueResolution(issue)
+                } catch (e: android.os.DeadObjectException) {
+                    log(TAG, ERROR) { "Client process died during issue resolution" }
+                    throw java.io.IOException("Client process died", e)
+                } catch (e: android.os.RemoteException) {
+                    log(TAG, ERROR) { "IPC error during issue resolution: ${e.asLog()}" }
+                    throw java.io.IOException("IPC communication failed", e)
+                }
+            }
+
+            val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? =
+                if (callback != null) ::handleIssue else null
+
+            // Execute copy and collect flow
+            sources.toSet().copy(
+                fileSystemOps = fileSystemOps,
+                destination = destination,
+                options = CopyAction.Options(
+                    overwrite = overwrite,
+                    preserveAttributes = preserveAttributes,
+                    followSymlinks = followSymlinks
+                ),
+                onIssue = onIssue
+            ).collect { state ->
+                // Convert and emit each state as event
+                val event = state.toCopyOperationEvent()
+                emit(event)
+            }
+        }
+            .catch { e ->
+                log(TAG, ERROR) { "copyStream() operation failed: ${e.asLog()}" }
+                // Emit error event instead of throwing
+                emit(
+                    CopyOperationEvent.Error(
+                        error = e.message ?: "Unknown error",
+                        cancelled = false
+                    )
+                )
+            }
+            .onCompletion { error ->
+                if (error != null) {
+                    log(TAG, ERROR) { "copyStream() stream completion with error: ${error.asLog()}" }
+                } else {
+                    log(TAG, VERBOSE) { "copyStream() completed successfully" }
+                }
+            }
+
+        // Convert flow to RemoteInputStream using generic streaming
+        eventFlow.toRemoteInputStream(appScope + dispatcherProvider.IO)
+    } catch (e: Exception) {
+        log(TAG, ERROR) { "copyStream(sources=${sources.size}) setup failed\n${e.asLog()}" }
         throw e.wrapToPropagate()
     }
 

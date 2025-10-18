@@ -177,9 +177,9 @@ suspend fun <T : APath<T>> T.getFileSystemInfo(gateway: APathGateway<T, out APat
 suspend fun <P : APath<P>, PL : APathLookup<P>> P.copy(
     gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
     destination: P,
-    options: CopyAction.Options<P> = CopyAction.Options(),
+    options: CopyAction.Options = CopyAction.Options(),
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
-): Flow<CopyAction.State<P, PL>> {
+): Flow<CopyAction.State<P, PL, P, PL>> {
     return gateway.copy(sources = setOf(this), destination = destination, options = options, onIssue = onIssue)
         .onCompletion {
             log(VERBOSE) { "P.copy(destination=$destination, options=$options, onIssue=$onIssue): Copied $this" }
@@ -189,9 +189,9 @@ suspend fun <P : APath<P>, PL : APathLookup<P>> P.copy(
 suspend fun <P : APath<P>, PL : APathLookup<P>> Set<P>.copy(
     gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
     destination: P,
-    options: CopyAction.Options<P> = CopyAction.Options(),
+    options: CopyAction.Options = CopyAction.Options(),
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
-): Flow<CopyAction.State<P, PL>> {
+): Flow<CopyAction.State<P, PL, P, PL>> {
     return gateway.copy(sources = this, destination = destination, options = options, onIssue = onIssue)
         .onCompletion {
             log(VERBOSE) { "Set<P>.copy(destination=$destination, options=$options, onIssue=onIssue): Copied $this" }
@@ -201,9 +201,9 @@ suspend fun <P : APath<P>, PL : APathLookup<P>> Set<P>.copy(
 suspend fun <P : APath<P>, PL : APathLookup<P>> P.move(
     gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
     destination: P,
-    options: MoveAction.Options<P> = MoveAction.Options(),
+    options: MoveAction.Options = MoveAction.Options(),
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
-): Flow<MoveAction.State<P, PL>> {
+): Flow<MoveAction.State<P, PL, P, PL>> {
     return gateway.move(sources = setOf(this), destination = destination, options = options, onIssue = onIssue)
         .onCompletion {
             log(VERBOSE) { "T.move(destination=$destination, options=$options, onIssue=$onIssue): Moved $this" }
@@ -213,9 +213,9 @@ suspend fun <P : APath<P>, PL : APathLookup<P>> P.move(
 suspend fun <P : APath<P>, PL : APathLookup<P>> Set<P>.move(
     gateway: APathGateway<P, PL, out APathLookupExtended<P>>,
     destination: P,
-    options: MoveAction.Options<P> = MoveAction.Options(),
+    options: MoveAction.Options = MoveAction.Options(),
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
-): Flow<MoveAction.State<P, PL>> {
+): Flow<MoveAction.State<P, PL, P, PL>> {
     return gateway.move(sources = this, destination = destination, options = options, onIssue = onIssue)
         .onCompletion {
             log(VERBOSE) { "Set<T>.move(destination=$destination, options=$options, onIssue=$onIssue): Moved $this" }

@@ -2,7 +2,8 @@ package eu.darken.butler.common.files
 
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -297,15 +298,15 @@ class GatewaySwitch @Inject constructor(
         sources: Set<APath<*>>,
         destination: APath<*>,
         onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
-        options: CopyAction.Options<APath<*>>
-    ): Flow<CopyAction.State<APath<*>, APathLookup<APath<*>>>> = flow {
+        options: CopyAction.Options
+    ): Flow<CopyAction.State<APath<*>, APathLookup<APath<*>>, APath<*>, APathLookup<APath<*>>>> = flow {
         // Group sources by gateway type for optimal processing
         val sourcesByType = sources.groupBy { it::class }
         val destinationType = destination::class
 
         var totalBytesProcessed = 0L
-        val allCopiedFiles = mutableSetOf<Pair<APath<*>, APath<*>>>()
-        val allSkippedFiles = mutableSetOf<APath<*>>()
+        val allCopiedFiles = mutableSetOf<Pair<APathLookup<APath<*>>, APathLookup<APath<*>>>>()
+        val allSkippedFiles = mutableSetOf<APathLookup<APath<*>>>()
 
         for ((sourceType, sourcesGroup) in sourcesByType) {
             when {
@@ -318,6 +319,7 @@ class GatewaySwitch @Inject constructor(
                             is CopyAction.State.Progress -> {
                                 emit(state.copy(copiedBytes = totalBytesProcessed + state.copiedBytes))
                             }
+
                             is CopyAction.State.Result -> {
                                 totalBytesProcessed += state.copiedBytes
                                 allCopiedFiles.addAll(state.copied)
@@ -332,12 +334,15 @@ class GatewaySwitch @Inject constructor(
                         when (state) {
                             is CopyAction.State.Progress -> {
                                 @Suppress("UNCHECKED_CAST")
-                                emit(state.copy(copiedBytes = totalBytesProcessed + state.copiedBytes) as CopyAction.State.Progress<APath<*>, APathLookup<APath<*>>>)
+                                emit(state.copy(copiedBytes = totalBytesProcessed + state.copiedBytes) as CopyAction.State.Progress<APath<*>, APathLookup<APath<*>>, APath<*>, APathLookup<APath<*>>>)
                             }
+
                             is CopyAction.State.Result -> {
                                 totalBytesProcessed += state.copiedBytes
-                                allCopiedFiles.addAll(state.copied)
-                                allSkippedFiles.addAll(state.skipped)
+                                @Suppress("UNCHECKED_CAST")
+                                allCopiedFiles.addAll(state.copied as Collection<Pair<APathLookup<APath<*>>, APathLookup<APath<*>>>>)
+                                @Suppress("UNCHECKED_CAST")
+                                allSkippedFiles.addAll(state.skipped as Collection<APathLookup<APath<*>>>)
                             }
                         }
                     }
@@ -358,15 +363,15 @@ class GatewaySwitch @Inject constructor(
         sources: Set<APath<*>>,
         destination: APath<*>,
         onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
-        options: MoveAction.Options<APath<*>>
-    ): Flow<MoveAction.State<APath<*>, APathLookup<APath<*>>>> = flow {
+        options: MoveAction.Options
+    ): Flow<MoveAction.State<APath<*>, APathLookup<APath<*>>, APath<*>, APathLookup<APath<*>>>> = flow {
         // Group sources by gateway type for optimal processing
         val sourcesByType = sources.groupBy { it::class }
         val destinationType = destination::class
 
         var totalBytesMoved = 0L
-        val allMovedFiles = mutableSetOf<Pair<APath<*>, APath<*>>>()
-        val allSkippedFiles = mutableSetOf<APath<*>>()
+        val allMovedFiles = mutableSetOf<Pair<APathLookup<APath<*>>, APathLookup<APath<*>>>>()
+        val allSkippedFiles = mutableSetOf<APathLookup<APath<*>>>()
 
         for ((sourceType, sourcesGroup) in sourcesByType) {
             when {
@@ -376,9 +381,11 @@ class GatewaySwitch @Inject constructor(
                         move(sourcesGroup.toSet(), destination, onIssue, options)
                     }.collect { state ->
                         when (state) {
-                            is MoveAction.State.Progress -> {
-                                emit(state.copy(movedBytes = totalBytesMoved + state.movedBytes))
+                            is MoveAction.State.Progress<*, *, *, *> -> {
+                                @Suppress("UNCHECKED_CAST")
+                                emit(state.copy(movedBytes = totalBytesMoved + state.movedBytes) as MoveAction.State.Progress<APath<*>, APathLookup<APath<*>>, APath<*>, APathLookup<APath<*>>>)
                             }
+
                             is MoveAction.State.Result -> {
                                 totalBytesMoved += state.bytesMoved
                                 allMovedFiles.addAll(state.movedFiles)
@@ -391,14 +398,17 @@ class GatewaySwitch @Inject constructor(
                 else -> {
                     performCrossGatewayMove(sourcesGroup, destination, onIssue, options).collect { state ->
                         when (state) {
-                            is MoveAction.State.Progress -> {
+                            is MoveAction.State.Progress<*, *, *, *> -> {
                                 @Suppress("UNCHECKED_CAST")
-                                emit(state.copy(movedBytes = totalBytesMoved + state.movedBytes) as MoveAction.State.Progress<APath<*>, APathLookup<APath<*>>>)
+                                emit(state.copy(movedBytes = totalBytesMoved + state.movedBytes) as MoveAction.State.Progress<APath<*>, APathLookup<APath<*>>, APath<*>, APathLookup<APath<*>>>)
                             }
+
                             is MoveAction.State.Result -> {
                                 totalBytesMoved += state.bytesMoved
-                                allMovedFiles.addAll(state.movedFiles)
-                                allSkippedFiles.addAll(state.skippedFiles)
+                                @Suppress("UNCHECKED_CAST")
+                                allMovedFiles.addAll(state.movedFiles as Collection<Pair<APathLookup<APath<*>>, APathLookup<APath<*>>>>)
+                                @Suppress("UNCHECKED_CAST")
+                                allSkippedFiles.addAll(state.skippedFiles as Collection<APathLookup<APath<*>>>)
                             }
                         }
                     }
@@ -419,8 +429,8 @@ class GatewaySwitch @Inject constructor(
         sources: Collection<APath<*>>,
         target: APath<*>,
         onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
-        options: CopyAction.Options<APath<*>>
-    ): Flow<CopyAction.State<*, *>> = flow {
+        options: CopyAction.Options
+    ): Flow<CopyAction.State<*, *, *, *>> = flow {
         log(TAG, DEBUG) { "performCrossGatewayCopy(): ${sources.size} sources -> $target" }
 
         val transferOptions = TransferStrategy.Options(
@@ -428,14 +438,13 @@ class GatewaySwitch @Inject constructor(
             followSymlinks = options.followSymlinks
         )
 
-        // Exhaustive when - compiler enforces all sealed subtypes are handled!
-        when (val firstSource = sources.firstOrNull()) {
-            null -> return@flow
+        when (sources.first()) {
             is LocalPath -> {
                 @Suppress("UNCHECKED_CAST")
                 (sources as Collection<LocalPath>).copyCrossType(target, transferOptions, onIssue)
                     .collect { state -> emit(state) }
             }
+
             is SAFPath -> {
                 @Suppress("UNCHECKED_CAST")
                 (sources as Collection<SAFPath>).copyCrossType(target, transferOptions, onIssue)
@@ -448,8 +457,8 @@ class GatewaySwitch @Inject constructor(
         sources: Collection<APath<*>>,
         target: APath<*>,
         onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
-        options: MoveAction.Options<APath<*>>
-    ): Flow<MoveAction.State<*, *>> = flow {
+        options: MoveAction.Options
+    ): Flow<MoveAction.State<*, *, *, *>> = flow {
         log(TAG, DEBUG) { "performCrossGatewayMove(): ${sources.size} sources -> $target" }
 
         val transferOptions = TransferStrategy.Options(
@@ -457,14 +466,13 @@ class GatewaySwitch @Inject constructor(
             followSymlinks = false  // MoveAction doesn't have followSymlinks option
         )
 
-        // Exhaustive when - compiler enforces all sealed subtypes are handled!
-        when (val firstSource = sources.firstOrNull()) {
-            null -> return@flow
+        when (sources.first()) {
             is LocalPath -> {
                 @Suppress("UNCHECKED_CAST")
                 (sources as Collection<LocalPath>).moveCrossType(target, transferOptions, onIssue)
                     .collect { state -> emit(state) }
             }
+
             is SAFPath -> {
                 @Suppress("UNCHECKED_CAST")
                 (sources as Collection<SAFPath>).moveCrossType(target, transferOptions, onIssue)
@@ -482,7 +490,7 @@ class GatewaySwitch @Inject constructor(
         destination: APath<*>,
         options: TransferStrategy.Options,
         onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
-    ): Flow<CopyAction.State<*, *>> = when (destination) {
+    ): Flow<CopyAction.State<*, *, *, *>> = when (destination) {
         is LocalPath -> error("Same-type operations should be handled by native implementation")
         is SAFPath -> copyGeneric(
             destination = destination,
@@ -499,7 +507,7 @@ class GatewaySwitch @Inject constructor(
         destination: APath<*>,
         options: TransferStrategy.Options,
         onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
-    ): Flow<CopyAction.State<*, *>> = when (destination) {
+    ): Flow<CopyAction.State<*, *, *, *>> = when (destination) {
         is LocalPath -> copyGeneric(
             destination = destination,
             sourceOps = safGateway,
@@ -508,6 +516,7 @@ class GatewaySwitch @Inject constructor(
             options = options,
             onIssue = onIssue,
         )
+
         is SAFPath -> error("Same-type operations should be handled by native implementation")
     }
 
@@ -520,7 +529,7 @@ class GatewaySwitch @Inject constructor(
         destination: APath<*>,
         options: TransferStrategy.Options,
         onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
-    ): Flow<MoveAction.State<*, *>> = when (destination) {
+    ): Flow<MoveAction.State<*, *, *, *>> = when (destination) {
         is LocalPath -> error("Same-type operations should be handled by native implementation")
         is SAFPath -> moveGeneric(
             destination = destination,
@@ -537,7 +546,7 @@ class GatewaySwitch @Inject constructor(
         destination: APath<*>,
         options: TransferStrategy.Options,
         onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
-    ): Flow<MoveAction.State<*, *>> = when (destination) {
+    ): Flow<MoveAction.State<*, *, *, *>> = when (destination) {
         is LocalPath -> moveGeneric(
             destination = destination,
             sourceOps = safGateway,
@@ -546,6 +555,7 @@ class GatewaySwitch @Inject constructor(
             options = options,
             onIssue = onIssue,
         )
+
         is SAFPath -> error("Same-type operations should be handled by native implementation")
     }
 

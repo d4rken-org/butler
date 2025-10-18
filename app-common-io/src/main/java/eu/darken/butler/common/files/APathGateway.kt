@@ -8,13 +8,13 @@ import eu.darken.butler.common.sharedresource.HasSharedResource
 import kotlinx.coroutines.flow.Flow
 
 interface APathGateway<
-    P : APath<P>,
-    PL : APathLookup<P>,
-    PLE : APathLookupExtended<P>,
-    > : HasSharedResource<Any>,
+        P : APath<P>,
+        PL : APathLookup<P>,
+        PLE : APathLookupExtended<P>,
+        > : HasSharedResource<Any>,
     FileSystemOps<P, PL, PLE>,
-    CopyAction<P, PL>,
-    MoveAction<P, PL>,
+    CopyAction<P, PL, P, PL>,
+    MoveAction<P, PL, P, PL>,
     DeleteAction<P, PL>,
     FileSystemAction<P> {
 

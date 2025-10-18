@@ -58,7 +58,7 @@ fun SAFPath.copy(
     destination: SAFPath,
     fileSystemOps: SAFFileSystemOps,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): Flow<CopyAction.State<SAFPath, SAFPathLookup>> = setOf(this).copy(
+): Flow<CopyAction.State<SAFPath, SAFPathLookup, SAFPath, SAFPathLookup>> = setOf(this).copy(
     destination, fileSystemOps, onIssue
 )
 
@@ -66,7 +66,7 @@ fun Collection<SAFPath>.copy(
     destination: SAFPath,
     fileSystemOps: SAFFileSystemOps,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): Flow<CopyAction.State<SAFPath, SAFPathLookup>> {
+): Flow<CopyAction.State<SAFPath, SAFPathLookup, SAFPath, SAFPathLookup>> {
     val strategy = SAFPathCopyStrategy()
 
     // For same-type SAF operations, sourceOps and destOps are the same instance
@@ -105,7 +105,7 @@ fun SAFPath.move(
     destination: SAFPath,
     fileSystemOps: SAFFileSystemOps,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): Flow<MoveAction.State<SAFPath, SAFPathLookup>> = setOf(this).move(
+): Flow<MoveAction.State<SAFPath, SAFPathLookup, SAFPath, SAFPathLookup>> = setOf(this).move(
     destination, fileSystemOps, onIssue
 )
 
@@ -113,7 +113,7 @@ fun Collection<SAFPath>.move(
     destination: SAFPath,
     fileSystemOps: SAFFileSystemOps,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): Flow<MoveAction.State<SAFPath, SAFPathLookup>> {
+): Flow<MoveAction.State<SAFPath, SAFPathLookup, SAFPath, SAFPathLookup>> {
     val strategy = SAFPathMoveStrategy()
 
     return this.moveGeneric(

@@ -110,7 +110,7 @@ class MoveOperation @AssistedInject constructor(
                 },
             )
             .onEach { moveState ->
-                if (moveState !is MoveAction.State.Progress<*, *>) return@onEach
+                if (moveState !is MoveAction.State.Progress<*, *, *, *>) return@onEach
 
                 val now = Clock.System.now()
                 val elapsed = lastSpeedUpdate.elapsedNow().inWholeMilliseconds / 1000.0
@@ -237,32 +237,19 @@ class MoveOperation @AssistedInject constructor(
             }
             .last()
 
-        result as MoveAction.State.Result<*, *>
+        result as MoveAction.State.Result<*, *, *, *>
 
         // Track filesystem changes - sources were removed
         // TODO don't we have the lookup from earlier?
         val movedSources = result.movedFiles.map { it.first }.toSet()
-        val sourceLookupsForHinter = movedSources.map { path ->
-            // Create a minimal lookup for removed paths (may no longer exist)
-            object : APathLookup<APath<*>> {
-                override val lookedUp: APath<*> = path
-                override val fileType = eu.darken.butler.common.files.metadata.FileType.UNKNOWN
-                override val size = 0L
-                override val modifiedAt = Instant.DISTANT_PAST
-                override val target: APath<*>? = null
-            }
-        }
-        fileSystemHinter.trackPathsRemoved(operationContext.id, sourceLookupsForHinter.toSet())
+
+        fileSystemHinter.trackPathsRemoved(operationContext.id, movedSources.toSet())
 
         val movedDestinations = result.movedFiles.map { it.second }.toSet()
-        val movedLookups = movedDestinations.map { gatewaySwitch.lookup(it) }
-        fileSystemHinter.trackPathsAdded(operationContext.id, movedLookups.toSet())
+        fileSystemHinter.trackPathsAdded(operationContext.id, movedDestinations.toSet())
 
         // Build report
-        val sourceAndDestLookup = result.movedFiles.map { (source, dest) ->
-            source to gatewaySwitch.lookup(dest)
-        }
-        reportBuilder.addMovedItems(sourceAndDestLookup)
+        reportBuilder.addMovedItems( result.movedFiles)
         reportBuilder.setSkipped(result.skippedFiles)
         reportBuilder.setBytesMoved(result.bytesMoved)
 

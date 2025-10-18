@@ -25,16 +25,16 @@ import kotlinx.coroutines.flow.Flow
 fun LocalPath.copy(
     fileSystemOps: LocalFileSystemOps,
     destination: LocalPath,
-    options: CopyAction.Options<LocalPath> = CopyAction.Options(),
+    options: CopyAction.Options = CopyAction.Options(),
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
 ) = setOf(this).copy(fileSystemOps, destination, options, onIssue)
 
 fun Collection<LocalPath>.copy(
     fileSystemOps: LocalFileSystemOps,
     destination: LocalPath,
-    options: CopyAction.Options<LocalPath> = CopyAction.Options(),
+    options: CopyAction.Options = CopyAction.Options(),
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
-): Flow<CopyAction.State<LocalPath, LocalPathLookup>> {
+): Flow<CopyAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>> {
     log(TAG, DEBUG) {
         "copy(): Copying $size targets to $destination (options=$options)"
     }

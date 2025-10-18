@@ -191,8 +191,8 @@ class SAFGateway @Inject constructor(
         sources: Set<SAFPath>,
         destination: SAFPath,
         onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
-        options: CopyAction.Options<SAFPath>
-    ): Flow<CopyAction.State<SAFPath, SAFPathLookup>> = flow {
+        options: CopyAction.Options
+    ): Flow<CopyAction.State<SAFPath, SAFPathLookup, SAFPath, SAFPathLookup>> = flow {
         log(TAG, VERBOSE) { "copy(): ${sources.size} sources to $destination" }
 
         sources.copy(
@@ -211,8 +211,8 @@ class SAFGateway @Inject constructor(
         sources: Set<SAFPath>,
         destination: SAFPath,
         onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
-        options: MoveAction.Options<SAFPath>
-    ): Flow<MoveAction.State<SAFPath, SAFPathLookup>> = flow {
+        options: MoveAction.Options
+    ): Flow<MoveAction.State<SAFPath, SAFPathLookup, SAFPath, SAFPathLookup>> = flow {
         log(TAG, VERBOSE) { "move(): ${sources.size} sources to $destination" }
 
         sources.move(
