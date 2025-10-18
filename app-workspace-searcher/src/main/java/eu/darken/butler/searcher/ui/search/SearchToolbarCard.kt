@@ -56,7 +56,7 @@ fun SearchToolbarCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -82,14 +82,6 @@ fun SearchToolbarCard(
                 }
             }
 
-            MultiPathChipBar(
-                paths = state.searchTargets,
-                onPathRemove = onRemoveSearchPath,
-                onPathToggle = onTogglePathEnabled,
-                onAddPathClick = { onOpenPathPicker?.invoke() },
-                isSearching = state.isSearching,
-            )
-
             SearchOptionsRow(
                 caseSensitive = state.caseSensitive,
                 wholeWord = state.wholeWord,
@@ -98,6 +90,14 @@ fun SearchToolbarCard(
                 onToggleWholeWord = onToggleWholeWord,
                 onToggleRegex = onToggleRegex,
                 modifier = Modifier.fillMaxWidth()
+            )
+
+            MultiPathChipBar(
+                paths = state.searchTargets,
+                onPathRemove = onRemoveSearchPath,
+                onPathToggle = onTogglePathEnabled,
+                onAddPathClick = { onOpenPathPicker?.invoke() },
+                isSearching = state.isSearching,
             )
         }
     }
