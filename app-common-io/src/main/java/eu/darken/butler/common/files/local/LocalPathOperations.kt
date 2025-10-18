@@ -2,11 +2,13 @@ package eu.darken.butler.common.files.local
 
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.CopyAction
+import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.operations.strategies.LocalPathCopyStrategy
 import eu.darken.butler.common.files.local.operations.strategies.LocalPathMoveStrategy
 import eu.darken.butler.common.files.operations.copyGeneric
+import eu.darken.butler.common.files.operations.deleteGeneric
 import eu.darken.butler.common.files.operations.moveGeneric
 import kotlinx.coroutines.flow.Flow
 
@@ -129,6 +131,51 @@ fun Collection<LocalPath>.moveGenericOp(
         destOps = fileSystemOps,
         strategy = strategy,
         options = transferOptions,
+        onIssue = onIssue
+    )
+}
+
+/**
+ * LocalPath delete operation using the generic framework.
+ *
+ * This is a thin wrapper that delegates to GenericPathDelete.
+ *
+ * ## Usage
+ *
+ * ```kotlin
+ * val stateFlow = setOf(path1, path2).deleteGenericOp(
+ *     fileSystemOps = localFileSystemOps,
+ *     recursive = true,
+ *     ignoreMissing = true,
+ *     onIssue = { issue -> /* handle issues */ }
+ * )
+ * stateFlow.collect { state ->
+ *     when (state) {
+ *         is DeleteAction.State.Progress -> /* update UI */
+ *         is DeleteAction.State.Result -> /* operation complete */
+ *     }
+ * }
+ * ```
+ */
+fun LocalPath.deleteGenericOp(
+    fileSystemOps: LocalFileSystemOps,
+    recursive: Boolean = true,
+    ignoreMissing: Boolean = true,
+    onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
+): Flow<DeleteAction.State<LocalPath, LocalPathLookup>> = setOf(this).deleteGenericOp(
+    fileSystemOps, recursive, ignoreMissing, onIssue
+)
+
+fun Collection<LocalPath>.deleteGenericOp(
+    fileSystemOps: LocalFileSystemOps,
+    recursive: Boolean = true,
+    ignoreMissing: Boolean = true,
+    onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
+): Flow<DeleteAction.State<LocalPath, LocalPathLookup>> {
+    return this.deleteGeneric(
+        fileSystemOps = fileSystemOps,
+        recursive = recursive,
+        ignoreMissing = ignoreMissing,
         onIssue = onIssue
     )
 }

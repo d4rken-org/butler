@@ -134,37 +134,39 @@ fun Collection<SAFPath>.move(
  * ## Usage
  *
  * ```kotlin
- * val result = setOf(path1, path2).delete(
+ * val stateFlow = setOf(path1, path2).delete(
  *     fileSystemOps = safFileSystemOps,
  *     recursive = true,
  *     ignoreMissing = true,
- *     onProgress = { progress -> /* update UI */ },
  *     onIssue = { issue -> /* handle errors */ }
  * )
+ * stateFlow.collect { state ->
+ *     when (state) {
+ *         is DeleteAction.State.Progress -> /* update UI */
+ *         is DeleteAction.State.Result -> /* operation complete */
+ *     }
+ * }
  * ```
  */
-suspend fun SAFPath.delete(
+fun SAFPath.delete(
     fileSystemOps: SAFFileSystemOps,
     recursive: Boolean = true,
     ignoreMissing: Boolean = true,
-    onProgress: (suspend (DeleteAction.State.Progress<SAFPath, SAFPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): DeleteAction.State.Result<SAFPath, SAFPathLookup> = setOf(this).delete(
-    fileSystemOps, recursive, ignoreMissing, onProgress, onIssue
+): Flow<DeleteAction.State<SAFPath, SAFPathLookup>> = setOf(this).delete(
+    fileSystemOps, recursive, ignoreMissing, onIssue
 )
 
-suspend fun Collection<SAFPath>.delete(
+fun Collection<SAFPath>.delete(
     fileSystemOps: SAFFileSystemOps,
     recursive: Boolean = true,
     ignoreMissing: Boolean = true,
-    onProgress: (suspend (DeleteAction.State.Progress<SAFPath, SAFPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): DeleteAction.State.Result<SAFPath, SAFPathLookup> {
+): Flow<DeleteAction.State<SAFPath, SAFPathLookup>> {
     return this.deleteGeneric(
         fileSystemOps = fileSystemOps,
         recursive = recursive,
         ignoreMissing = ignoreMissing,
-        onProgress = onProgress,
         onIssue = onIssue
     )
 }

@@ -174,16 +174,17 @@ class SAFGateway @Inject constructor(
     ): Flow<DeleteAction.State<SAFPath, SAFPathLookup>> = flow {
         log(TAG, VERBOSE) { "delete(): ${targets.size} targets" }
 
-        val result = targets.delete(
+        targets.delete(
             fileSystemOps = fileSystemOps,
             recursive = options.recursive,
             ignoreMissing = options.ignoreMissing,
-            onProgress = { progress -> emit(progress) },
             onIssue = options.onIssue
-        )
-
-        log(TAG, INFO) { "delete(): Finished, deleted ${result.deleted.size} items" }
-        emit(result)
+        ).collect { state ->
+            emit(state)
+            if (state is DeleteAction.State.Result) {
+                log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
+            }
+        }
     }.flowOn(dispatcherProvider.IO)
 
     override suspend fun copy(

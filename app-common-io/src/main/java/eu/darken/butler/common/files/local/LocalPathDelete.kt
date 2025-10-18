@@ -18,6 +18,8 @@ import eu.darken.butler.common.files.local.operations.core.PathOperationProgress
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.io.R
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
 import java.nio.file.AccessDeniedException
 import java.nio.file.DirectoryNotEmptyException
@@ -28,7 +30,6 @@ internal class LocalPathDelete(
     private val targets: Collection<LocalPath>,
     private val recursive: Boolean,
     private val ignoreMissing: Boolean,
-    private val onProgress: (suspend (DeleteAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)?,
     private val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
 ) {
     private val deleted = linkedSetOf<LocalPathLookup>()
@@ -73,7 +74,7 @@ internal class LocalPathDelete(
         ) : WorkItem()
     }
 
-    suspend fun execute(): DeleteAction.State.Result<LocalPath, LocalPathLookup> {
+    fun execute(): Flow<DeleteAction.State<LocalPath, LocalPathLookup>> = flow {
         check(!hasExecuted) { "LocalPathDelete can only be executed once" }
         hasExecuted = true
 
@@ -93,7 +94,7 @@ internal class LocalPathDelete(
             when (val item = workQueue.removeFirst()) {
                 is WorkItem.ScanPath -> {
                     scanItemsRemaining--
-                    val childrenAdded = processScan(item)
+                    val childrenAdded = processScan(item, ::emit)
                     scanItemsRemaining += childrenAdded
 
                     if (scanItemsRemaining == 0) {
@@ -105,13 +106,15 @@ internal class LocalPathDelete(
                     }
                 }
 
-                is WorkItem.DeletePath -> processDeletePath(item)
+                is WorkItem.DeletePath -> processDeletePath(item, ::emit)
             }
         }
 
-        return DeleteAction.State.Result(
-            deleted = deleted,
-            skipped = skipped,
+        emit(
+            DeleteAction.State.Result(
+                deleted = deleted,
+                skipped = skipped,
+            )
         )
     }
 
@@ -258,7 +261,10 @@ internal class LocalPathDelete(
         }
     }
 
-    private suspend fun processScan(item: WorkItem.ScanPath): Int {
+    private suspend fun processScan(
+        item: WorkItem.ScanPath,
+        emit: suspend (DeleteAction.State<LocalPath, LocalPathLookup>) -> Unit
+    ): Int {
         log(TAG, VERBOSE) { "Scanning path: ${item.path}" }
 
         // Check file existence first when ignoreMissing is enabled
@@ -286,7 +292,7 @@ internal class LocalPathDelete(
 
                 // Report scan progress with throttling
                 if (progressTracker.shouldReportProgress()) {
-                    reportScanProgress(lookup)
+                    reportScanProgress(lookup, emit)
                 }
 
                 return 0 // No children for files
@@ -301,7 +307,7 @@ internal class LocalPathDelete(
 
                     // Report scan progress with throttling
                     if (progressTracker.shouldReportProgress()) {
-                        reportScanProgress(lookup)
+                        reportScanProgress(lookup, emit)
                     }
 
                     return 0
@@ -357,7 +363,7 @@ internal class LocalPathDelete(
 
                     // Report scan progress with throttling
                     if (progressTracker.shouldReportProgress()) {
-                        reportScanProgress(lookup)
+                        reportScanProgress(lookup, emit)
                     }
 
                     return childrenFound
@@ -368,7 +374,10 @@ internal class LocalPathDelete(
         }
     }
 
-    private suspend fun processDeletePath(item: WorkItem.DeletePath) {
+    private suspend fun processDeletePath(
+        item: WorkItem.DeletePath,
+        emit: suspend (DeleteAction.State<LocalPath, LocalPathLookup>) -> Unit
+    ) {
         log(TAG, VERBOSE) { "Deleting path: ${item.path}" }
 
         val lookup = item.cachedLookup
@@ -380,7 +389,7 @@ internal class LocalPathDelete(
         try {
             // Report progress with throttling
             if (progressTracker.shouldReportProgress()) {
-                reportProgress(lookup)
+                reportProgress(lookup, emit)
             }
 
             fileSystemOps.delete(lookup.lookedUp, recursive = false)
@@ -410,15 +419,18 @@ internal class LocalPathDelete(
         } finally {
             // Force final progress report
             if (progressTracker.shouldReportProgress(force = true)) {
-                reportProgress(lookup)
+                reportProgress(lookup, emit)
             }
         }
     }
 
-    private suspend fun reportScanProgress(lookup: LocalPathLookup) {
+    private suspend fun reportScanProgress(
+        lookup: LocalPathLookup,
+        emit: suspend (DeleteAction.State<LocalPath, LocalPathLookup>) -> Unit
+    ) {
         val snapshot = progressTracker.createSnapshot()
 
-        onProgress?.invoke(
+        emit(
             DeleteAction.State.Progress(
                 target = lookup,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(
@@ -437,10 +449,13 @@ internal class LocalPathDelete(
         )
     }
 
-    private suspend fun reportProgress(lookup: LocalPathLookup) {
+    private suspend fun reportProgress(
+        lookup: LocalPathLookup,
+        emit: suspend (DeleteAction.State<LocalPath, LocalPathLookup>) -> Unit
+    ) {
         val snapshot = progressTracker.createSnapshot()
 
-        onProgress?.invoke(
+        emit(
             DeleteAction.State.Progress(
                 target = lookup,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(
@@ -470,25 +485,22 @@ internal class LocalPathDelete(
     }
 }
 
-suspend fun LocalPath.delete(
+fun LocalPath.delete(
     fileSystemOps: LocalFileSystemOps,
     recursive: Boolean = true,
     ignoreMissing: Boolean = true,
-    onProgress: (suspend (DeleteAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-) = setOf(this).delete(fileSystemOps, recursive, ignoreMissing, onProgress, onIssue)
+) = setOf(this).delete(fileSystemOps, recursive, ignoreMissing, onIssue)
 
-suspend fun Collection<LocalPath>.delete(
+fun Collection<LocalPath>.delete(
     fileSystemOps: LocalFileSystemOps,
     recursive: Boolean = true,
     ignoreMissing: Boolean = true,
-    onProgress: (suspend (DeleteAction.State.Progress<LocalPath, LocalPathLookup>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): DeleteAction.State.Result<LocalPath, LocalPathLookup> = LocalPathDelete(
+): Flow<DeleteAction.State<LocalPath, LocalPathLookup>> = LocalPathDelete(
     fileSystemOps = fileSystemOps,
     targets = this,
     recursive = recursive,
     ignoreMissing = ignoreMissing,
-    onProgress = onProgress,
     onIssue = onIssue
 ).execute()

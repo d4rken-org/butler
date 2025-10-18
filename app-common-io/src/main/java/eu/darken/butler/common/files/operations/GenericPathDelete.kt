@@ -15,6 +15,8 @@ import eu.darken.butler.common.files.local.operations.core.PathOperationProgress
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.io.R
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
 
 /**
@@ -50,7 +52,6 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
     private val recursive: Boolean,
     private val ignoreMissing: Boolean,
     private val fileSystemOps: FileSystemOps<P, PL, PLE>,
-    private val onProgress: (suspend (DeleteAction.State.Progress<P, PL>) -> Unit)?,
     private val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
 ) {
 
@@ -90,7 +91,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
         }
     }
 
-    suspend fun execute(): DeleteAction.State.Result<P, PL> {
+    fun execute(): Flow<DeleteAction.State<P, PL>> = flow {
         log(TAG, DEBUG) {
             "execute(): Deleting ${targets.size} targets (recursive=$recursive, ignoreMissing=$ignoreMissing)"
         }
@@ -106,7 +107,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
             when (val item = workQueue.removeFirst()) {
                 is WorkItem.ScanPath<*> -> {
                     scanItemsRemaining--
-                    val childrenAdded = processScan(item as WorkItem.ScanPath<P>)
+                    val childrenAdded = processScan(item as WorkItem.ScanPath<P>, ::emit)
                     scanItemsRemaining += childrenAdded
 
                     // When scan completes, add all deferred deletions to queue
@@ -118,17 +119,22 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
                     }
                 }
 
-                is WorkItem.DeletePath<*, *> -> processDeletePath(item as WorkItem.DeletePath<P, PL>)
+                is WorkItem.DeletePath<*, *> -> processDeletePath(item as WorkItem.DeletePath<P, PL>, ::emit)
             }
         }
 
-        return DeleteAction.State.Result(
-            deleted = deleted,
-            skipped = skipped,
+        emit(
+            DeleteAction.State.Result(
+                deleted = deleted,
+                skipped = skipped,
+            )
         )
     }
 
-    private suspend fun processScan(item: WorkItem.ScanPath<P>): Int {
+    private suspend fun processScan(
+        item: WorkItem.ScanPath<P>,
+        emit: suspend (DeleteAction.State<P, PL>) -> Unit
+    ): Int {
         log(TAG, VERBOSE) { "Scanning path: ${item.path}" }
 
         val lookup = try {
@@ -154,7 +160,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
 
                 // Report scan progress with throttling
                 if (progressTracker.shouldReportProgress()) {
-                    reportScanProgress(lookup)
+                    reportScanProgress(lookup, emit)
                 }
 
                 return 0
@@ -169,7 +175,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
 
                     // Report scan progress with throttling
                     if (progressTracker.shouldReportProgress()) {
-                        reportScanProgress(lookup)
+                        reportScanProgress(lookup, emit)
                     }
 
                     return 0
@@ -196,7 +202,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
 
                     // Report scan progress with throttling
                     if (progressTracker.shouldReportProgress()) {
-                        reportScanProgress(lookup)
+                        reportScanProgress(lookup, emit)
                     }
 
                     return childrenFound
@@ -207,7 +213,10 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
         }
     }
 
-    private suspend fun processDeletePath(item: WorkItem.DeletePath<P, PL>) {
+    private suspend fun processDeletePath(
+        item: WorkItem.DeletePath<P, PL>,
+        emit: suspend (DeleteAction.State<P, PL>) -> Unit
+    ) {
         // Use lookup from scan phase to avoid redundant lookup
         val lookup = item.lookup
         log(TAG, VERBOSE) { "Deleting path: ${item.path}" }
@@ -220,7 +229,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
         try {
             // Report progress with throttling
             if (progressTracker.shouldReportProgress()) {
-                reportProgress(lookup)
+                reportProgress(lookup, emit)
             }
 
             val deleteResult = fileSystemOps.delete(lookup.lookedUp)
@@ -247,7 +256,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
         } finally {
             // Force final progress report
             if (progressTracker.shouldReportProgress(force = true)) {
-                reportProgress(lookup)
+                reportProgress(lookup, emit)
             }
         }
     }
@@ -288,10 +297,10 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
         )
     }
 
-    private suspend fun reportScanProgress(lookup: PL) {
+    private suspend fun reportScanProgress(lookup: PL, emit: suspend (DeleteAction.State<P, PL>) -> Unit) {
         val snapshot = progressTracker.createSnapshot()
 
-        onProgress?.invoke(
+        emit(
             DeleteAction.State.Progress(
                 target = lookup,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(
@@ -310,10 +319,10 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
         )
     }
 
-    private suspend fun reportProgress(lookup: PL) {
+    private suspend fun reportProgress(lookup: PL, emit: suspend (DeleteAction.State<P, PL>) -> Unit) {
         val snapshot = progressTracker.createSnapshot()
 
-        onProgress?.invoke(
+        emit(
             DeleteAction.State.Progress(
                 target = lookup,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(
@@ -346,25 +355,22 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
 /**
  * Extension function for easy use of GenericPathDelete.
  */
-suspend fun <P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>> P.deleteGeneric(
+fun <P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>> P.deleteGeneric(
     fileSystemOps: FileSystemOps<P, PL, PLE>,
     recursive: Boolean = true,
     ignoreMissing: Boolean = true,
-    onProgress: (suspend (DeleteAction.State.Progress<P, PL>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-) = setOf(this).deleteGeneric(fileSystemOps, recursive, ignoreMissing, onProgress, onIssue)
+) = setOf(this).deleteGeneric(fileSystemOps, recursive, ignoreMissing, onIssue)
 
-suspend fun <P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>> Collection<P>.deleteGeneric(
+fun <P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>> Collection<P>.deleteGeneric(
     fileSystemOps: FileSystemOps<P, PL, PLE>,
     recursive: Boolean = true,
     ignoreMissing: Boolean = true,
-    onProgress: (suspend (DeleteAction.State.Progress<P, PL>) -> Unit)? = null,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): DeleteAction.State.Result<P, PL> = GenericPathDelete(
+): Flow<DeleteAction.State<P, PL>> = GenericPathDelete(
     targets = this,
     recursive = recursive,
     ignoreMissing = ignoreMissing,
     fileSystemOps = fileSystemOps,
-    onProgress = onProgress,
     onIssue = onIssue
 ).execute()

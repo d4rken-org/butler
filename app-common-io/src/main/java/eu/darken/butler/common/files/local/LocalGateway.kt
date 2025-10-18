@@ -625,7 +625,7 @@ class LocalGateway @Inject constructor(
         mode: Mode,
     ): Flow<DeleteAction.State<LocalPath, LocalPathLookup>> = flow {
         log(TAG, VERBOSE) { "delete(): ${targets.size} targets" }
-        val result = when (mode) {
+        when (mode) {
             Mode.NORMAL -> {
                 log(TAG, VERBOSE) { "delete(NORMAL): ${targets.size} targets" }
                 targets.delete(
@@ -633,8 +633,12 @@ class LocalGateway @Inject constructor(
                     recursive = options.recursive,
                     ignoreMissing = options.ignoreMissing,
                     onIssue = options.onIssue,
-                    onProgress = { progress -> emit(progress) }
-                )
+                ).collect { state ->
+                    emit(state)
+                    if (state is DeleteAction.State.Result) {
+                        log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
+                    }
+                }
             }
 
             Mode.ROOT -> {
@@ -662,8 +666,12 @@ class LocalGateway @Inject constructor(
                             recursive = options.recursive,
                             ignoreMissing = options.ignoreMissing,
                             onIssue = options.onIssue,
-                            onProgress = { progress -> emit(progress) }
-                        )
+                        ).collect { state ->
+                            emit(state)
+                            if (state is DeleteAction.State.Result) {
+                                log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
+                            }
+                        }
                     }
                     hasRoot() -> {
                         log(TAG, VERBOSE) { "delete(AUTO->ROOT): ${targets.size} targets" }
@@ -677,9 +685,6 @@ class LocalGateway @Inject constructor(
                 }
             }
         }
-
-        log(TAG, INFO) { "delete(): Finished, deleted ${result.deleted} items" }
-        emit(result)
     }.flowOn(dispatcherProvider.IO)
 
     override suspend fun copy(

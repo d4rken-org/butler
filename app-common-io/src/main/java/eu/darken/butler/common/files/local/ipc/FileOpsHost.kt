@@ -254,22 +254,17 @@ class FileOpsHost @Inject constructor(
             val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? =
                 if (callback != null) ::handleIssue else null
 
-            // Execute delete with progress callback
-            val result = targets.delete(
+            // Execute delete and collect flow
+            targets.delete(
                 fileSystemOps = fileSystemOps,
                 recursive = recursive,
                 ignoreMissing = ignoreMissing,
                 onIssue = onIssue,
-                onProgress = { progress ->
-                    // Convert and emit progress event
-                    val event = progress.toDeleteOperationEvent()
-                    emit(event)
-                }
-            )
-
-            // Emit final result event
-            val resultEvent = result.toDeleteOperationEvent()
-            emit(resultEvent)
+            ).collect { state ->
+                // Convert and emit each state as event
+                val event = state.toDeleteOperationEvent()
+                emit(event)
+            }
         }
             .catch { e ->
                 log(TAG, ERROR) { "deleteStream() operation failed: ${e.asLog()}" }
