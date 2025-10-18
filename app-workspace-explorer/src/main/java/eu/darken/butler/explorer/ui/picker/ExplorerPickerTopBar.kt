@@ -106,10 +106,16 @@ fun ExplorerPickerTopBar(
 
         // Row 2: Breadcrumbs or fallback title
         if (breadcrumbs != null) {
-            BreadcrumbBar(
-                breadcrumbs = breadcrumbs,
-                onBreadcrumbClick = onBreadcrumbClick
-            )
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainer,
+                tonalElevation = 1.dp,
+            ) {
+                BreadcrumbBar(
+                    breadcrumbs = breadcrumbs,
+                    onBreadcrumbClick = onBreadcrumbClick,
+                    showBackground = false,
+                )
+            }
         } else {
             // Fallback to static title if breadcrumbs not available
             Surface(

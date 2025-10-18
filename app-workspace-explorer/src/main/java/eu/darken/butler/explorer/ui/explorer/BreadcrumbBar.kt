@@ -67,6 +67,7 @@ fun BreadcrumbBar(
     onBreadcrumbClick: (ExplorerNavigation) -> Unit,
     onNavigateToPath: ((String) -> Unit)? = null,
     safLocationManager: SAFLocationManager? = null,
+    showBackground: Boolean = true,
 ) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
@@ -157,8 +158,15 @@ fun BreadcrumbBar(
         modifier = modifier
             .fillMaxWidth()
             .height(40.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+            .then(
+                if (showBackground) {
+                    Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                } else {
+                    Modifier
+                }
+            )
             .padding(horizontal = 8.dp),
         contentAlignment = Alignment.CenterStart
     ) {
