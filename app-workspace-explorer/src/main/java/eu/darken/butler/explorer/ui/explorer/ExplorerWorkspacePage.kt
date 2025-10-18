@@ -261,6 +261,7 @@ fun ExplorerWorkspacePage(
                         selectionCount = mainState.selectionState.selectedItems.size,
                         breadcrumbs = mainState.breadcrumbs,
                         currentLocation = mainState.currentLocation,
+                        scrollBehavior = scrollBehavior,
                         onBreadcrumbClick = { navigation -> vm?.navigate(navigation) },
                         onCancel = { vm?.cancelPicker() },
                         onConfirm = { vm?.confirmPickerSelection() },

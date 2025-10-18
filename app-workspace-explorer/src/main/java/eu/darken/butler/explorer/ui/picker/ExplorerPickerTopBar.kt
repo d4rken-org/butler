@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
@@ -11,11 +12,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
@@ -27,6 +32,7 @@ import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.BreadcrumbBar
 import eu.darken.butler.workspace.core.picker.PickerConfig
+import kotlin.math.roundToInt
 
 @Composable
 fun ExplorerPickerTopBar(
@@ -35,12 +41,15 @@ fun ExplorerPickerTopBar(
     selectionCount: Int,
     breadcrumbs: List<ExplorerBreadcrumb>?,
     currentLocation: ExplorerLocation?,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
     onBreadcrumbClick: (ExplorerNavigation) -> Unit,
     onCancel: () -> Unit,
     onConfirm: () -> Unit,
 ) {
+    val density = LocalDensity.current
+
     Column(modifier = modifier) {
-        // Row 1: Action bar with Cancel and Select buttons
+        // Row 1: Action bar with Cancel and Select buttons (pinned, always visible)
         Surface(
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 3.dp,
@@ -104,9 +113,16 @@ fun ExplorerPickerTopBar(
         // Divider for visual separation
         HorizontalDivider()
 
-        // Row 2: Breadcrumbs or fallback title
+        // Row 2: Breadcrumbs or fallback title (collapsible when scrolling)
         if (breadcrumbs != null) {
             Surface(
+                modifier = Modifier
+                    .height(
+                        with(density) {
+                            (40.dp.toPx() + (scrollBehavior?.state?.heightOffset ?: 0f)).toDp()
+                        }.coerceAtLeast(0.dp)
+                    )
+                    .clipToBounds(),
                 color = MaterialTheme.colorScheme.surfaceContainer,
                 tonalElevation = 1.dp,
             ) {
@@ -119,6 +135,13 @@ fun ExplorerPickerTopBar(
         } else {
             // Fallback to static title if breadcrumbs not available
             Surface(
+                modifier = Modifier
+                    .height(
+                        with(density) {
+                            (52.dp.toPx() + (scrollBehavior?.state?.heightOffset ?: 0f)).toDp()
+                        }.coerceAtLeast(0.dp)
+                    )
+                    .clipToBounds(),
                 color = MaterialTheme.colorScheme.surfaceVariant,
                 tonalElevation = 2.dp,
             ) {
