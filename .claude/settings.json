@@ -2,6 +2,7 @@
   "permissions": {
 	"allow": [
 	  "mcp__ide__getDiagnostics",
+	  "Skill(screenshot)",
 	  "Bash(./gradlew tasks:*)",
 	  "Bash(./gradlew:*)",
 	  "Bash(find:*)",
