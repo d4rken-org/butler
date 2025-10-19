@@ -18,6 +18,7 @@
 	  "Bash(git add:*)",
 	  "Bash(git diff:*)",
 	  "Bash(xargs:*)",
+	  "Bash(adb devices)",
 	  "WebSearch",
 	  "WebFetch(domain:support.claude.com)",
 	  "WebFetch(domain:support.google.com)",
