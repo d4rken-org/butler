@@ -183,7 +183,7 @@ fun SearcherWorkspacePage(
                 modifier = Modifier
                     .fillMaxSize()
                     .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp,
@@ -248,7 +248,8 @@ fun SearcherWorkspacePage(
                         SearchStatusCard(
                             state = currentState,
                             onCancel = onCancelSearch,
-                            onClear = onClearResults
+                            onClear = onClearResults,
+                            modifier = Modifier.padding(vertical = 8.dp)
                         )
                     }
                 }
@@ -507,17 +508,7 @@ fun SearcherWorkspacePageHost(
         onResultClick = vm::showQuickActions,
         onClearHistory = vm::clearSearchHistory,
         onHistoryItemRemove = vm::removeHistoryItem,
-        onHistoryItemClick = { item ->
-            item.searchQuery?.let { query ->
-                vm.updateSearchQuery(TextFieldValue(query.query))
-                vm.updateSearchTargets(query.targets)
-                vm.updateFilter(query.filter)
-                vm.performExplicitSearch()
-            } ?: run {
-                vm.updateSearchQuery(TextFieldValue(item.baseQuery))
-                vm.performExplicitSearch()
-            }
-        },
+        onHistoryItemClick = vm::restoreFromHistory,
         onToggleCaseSensitive = vm::toggleCaseSensitive,
         onToggleWholeWord = vm::toggleWholeWord,
         onToggleRegex = vm::toggleRegex,
@@ -556,7 +547,13 @@ fun SearchResultRow(
         fileType = result.fileType,
         size = result.size,
         modifiedAt = result.modifiedAt,
-        metadata = extractFileMetadata(result)
+        metadata = extractFileMetadata(result),
+        matchContext = result.matchContext?.let { context ->
+            FileRowData.MatchContext(
+                lineNumber = context.lineNumber,
+                matchedLine = context.matchedLine
+            )
+        }
     )
 
     SelectableFileRow(

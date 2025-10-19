@@ -53,16 +53,6 @@ fun SelectableFileRow(
         label = "background_color"
     )
 
-    val checkboxAlpha by animateFloatAsState(
-        targetValue = if (isSelectionMode) 1f else 0f,
-        label = "checkbox_alpha"
-    )
-
-    val checkboxScale by animateFloatAsState(
-        targetValue = if (isSelectionMode) 1f else 0.7f,
-        label = "checkbox_scale"
-    )
-
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -78,15 +68,12 @@ fun SelectableFileRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Checkbox (visible in selection mode)
+            // Leading content - either checkbox OR icon
             Box(
-                modifier = Modifier
-                    .size(24.dp)
-                    .alpha(checkboxAlpha)
-                    .scale(checkboxScale),
+                modifier = Modifier.size(28.dp),
                 contentAlignment = Alignment.Center
             ) {
                 if (isSelectionMode) {
@@ -94,15 +81,10 @@ fun SelectableFileRow(
                         checked = isSelected,
                         onCheckedChange = { onClick() }
                     )
+                } else {
+                    StandardFileIcon(data)
                 }
             }
-
-            if (isSelectionMode) {
-                Spacer(modifier = Modifier.width(12.dp))
-            }
-
-            // File icon
-            StandardFileIcon(data)
 
             Spacer(modifier = Modifier.width(12.dp))
 

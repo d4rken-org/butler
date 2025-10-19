@@ -247,6 +247,41 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         performSearch(saveToHistory = true)
     }
 
+    fun restoreFromHistory(item: SearchHistory.SearchHistoryItem) {
+        log(TAG, INFO) { "Restoring search from history: ${item.baseQuery}" }
+        item.searchQuery?.let { query ->
+            // Update all parameters atomically
+            searchQuery.value = TextFieldValue(query.query)
+            searchTargets.value = query.targets
+            currentFilter.value = query.filter
+
+            // Set initial progress immediately for instant UI feedback
+            val initialProgress = (query.targets.firstOrNull() as? SearchTarget.Path)?.let { firstTarget ->
+                SearchEngine.SearchProgress(
+                    currentPath = firstTarget.path,
+                    itemsScanned = 0,
+                    resultsFound = 0
+                )
+            }
+
+            // Set SEARCHING state immediately to prevent "no results" flash
+            // LaunchedEffect in UI will trigger actual search after debounce delay (500ms)
+            // This gives gateway resources time to initialize
+            searchState.update {
+                it.copy(
+                    status = SearchState.Status.SEARCHING,
+                    results = emptyList(),
+                    progress = initialProgress,
+                    error = null
+                )
+            }
+        } ?: run {
+            // Fallback for legacy history items without full query
+            searchQuery.value = TextFieldValue(item.baseQuery)
+            // LaunchedEffect will handle the search trigger
+        }
+    }
+
     fun performSearch(saveToHistory: Boolean = false) {
         val query = searchQuery.value.text
         if (query.isBlank()) return
@@ -255,14 +290,30 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
         activeSearchJob?.cancel()
 
-        // Clear previous results and set searching state
+        // Get targets early to provide immediate progress feedback
+        val targets = searchTargets.value
+
+        // Set initial progress with first target for immediate contextual feedback
+        val initialProgress = (targets.firstOrNull() as? SearchTarget.Path)?.let { firstTarget ->
+            SearchEngine.SearchProgress(
+                currentPath = firstTarget.path,
+                itemsScanned = 0,
+                resultsFound = 0
+            )
+        }
+
+        // Clear previous results and set searching state with initial progress
         searchState.update {
-            it.copy(status = SearchState.Status.SEARCHING, results = emptyList(), error = null)
+            it.copy(
+                status = SearchState.Status.SEARCHING,
+                results = emptyList(),
+                progress = initialProgress,
+                error = null
+            )
         }
 
         // Start the search
         activeSearchJob = vmScope.launch {
-            val targets = searchTargets.value
             if (targets.isEmpty()) {
                 log(TAG, WARN) { "Cannot perform search: no search targets configured" }
                 searchState.update { it.copy(status = SearchState.Status.ERROR, error = Exception("No search targets configured")) }

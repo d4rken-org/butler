@@ -21,6 +21,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -80,11 +81,8 @@ fun SearchStatusCard(
                     Text(
                         text = if (state.isSearching) {
                             state.searchState.progress?.let { progress ->
-                                val folderName = when (val path = progress.currentPath) {
-                                    is LocalPath -> path.parent?.name ?: path.name
-                                    else -> path.name
-                                }
-                                stringResource(R.string.searcher_progress_searching_in, folderName)
+                                val pathName = progress.currentPath.userReadablePath.get(LocalContext.current)
+                                stringResource(R.string.searcher_progress_searching_in, pathName)
                             } ?: stringResource(R.string.searcher_progress_searching)
                         } else {
                             when {

@@ -28,6 +28,7 @@ fun FileInfo(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
+        // Line 1: File name
         Text(
             text = data.name,
             style = MaterialTheme.typography.bodyMedium,
@@ -35,9 +36,32 @@ fun FileInfo(
             overflow = TextOverflow.Ellipsis
         )
 
-        if (showPath) {
+        // Line 2: Parent directory • Size • Date (combined on one line)
+        val isDirectory = data.fileType == FileType.DIRECTORY
+        val combinedDetails = buildString {
+            if (showPath) {
+                // Extract parent directory from full path
+                val parentDir = data.path.substringBeforeLast('/', "")
+                    .substringAfterLast('/', data.path.substringBeforeLast('/'))
+                if (parentDir.isNotEmpty()) {
+                    append(parentDir)
+                }
+            }
+
+            if (!isDirectory && data.size != null) {
+                if (isNotEmpty()) append(" • ")
+                append(formatFileSize(data.size))
+            }
+
+            if (data.modifiedAt != null) {
+                if (isNotEmpty()) append(" • ")
+                append(formatRelativeTime(data.modifiedAt))
+            }
+        }
+
+        if (combinedDetails.isNotEmpty()) {
             Text(
-                text = data.path,
+                text = combinedDetails,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
@@ -45,30 +69,34 @@ fun FileInfo(
             )
         }
 
-        val isDirectory = data.fileType == FileType.DIRECTORY
-        val details = buildString {
-            if (!isDirectory && data.size != null) {
-                append(formatFileSize(data.size))
+        // Line 3: Match context (if available)
+        data.matchContext?.let { context ->
+            val matchText = buildString {
+                context.lineNumber?.let { lineNum ->
+                    append("Line $lineNum")
+                }
+                context.matchedLine?.let { line ->
+                    if (isNotEmpty()) append(": ")
+                    append(line.trim())
+                }
             }
-            if (data.modifiedAt != null) {
-                if (isNotEmpty()) append(" • ")
-                append(formatRelativeTime(data.modifiedAt))
+
+            if (matchText.isNotEmpty()) {
+                Text(
+                    text = matchText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
-        }
-        
-        if (details.isNotEmpty()) {
-            Text(
-                text = details,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
 
         if (showMetadata && data.metadata.isNotEmpty()) {
             val metadataText = data.metadata.entries
                 .take(2)
                 .joinToString(" • ") { "${it.key}: ${it.value}" }
-            
+
             Text(
                 text = metadataText,
                 style = MaterialTheme.typography.bodySmall,

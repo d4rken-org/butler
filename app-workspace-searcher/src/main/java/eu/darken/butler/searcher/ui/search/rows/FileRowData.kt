@@ -9,8 +9,14 @@ data class FileRowData(
     val fileType: FileType,
     val size: Long? = null,
     val modifiedAt: Instant? = null,
-    val metadata: Map<String, String> = emptyMap()
-)
+    val metadata: Map<String, String> = emptyMap(),
+    val matchContext: MatchContext? = null
+) {
+    data class MatchContext(
+        val lineNumber: Int?,
+        val matchedLine: String?
+    )
+}
 
 sealed class FileRowType {
     object Default : FileRowType()
