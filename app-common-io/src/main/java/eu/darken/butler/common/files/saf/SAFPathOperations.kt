@@ -5,6 +5,7 @@ import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.operations.TransferStrategy
 import eu.darken.butler.common.files.operations.copyGeneric
 import eu.darken.butler.common.files.operations.deleteGeneric
 import eu.darken.butler.common.files.operations.moveGeneric
@@ -66,19 +67,14 @@ fun Collection<SAFPath>.copy(
     destination: SAFPath,
     fileSystemOps: SAFFileSystemOps,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): Flow<CopyAction.State<SAFPath, SAFPathLookup, SAFPath, SAFPathLookup>> {
-    val strategy = SAFPathCopyStrategy()
-
-    // For same-type SAF operations, sourceOps and destOps are the same instance
-    return this.copyGeneric(
-        destination = destination,
-        sourceOps = fileSystemOps,
-        destOps = fileSystemOps,
-        strategy = strategy,
-        options = eu.darken.butler.common.files.operations.TransferStrategy.Options(),
-        onIssue = onIssue
-    )
-}
+): Flow<CopyAction.State<SAFPath, SAFPathLookup, SAFPath, SAFPathLookup>> = this.copyGeneric(
+    destination = destination,
+    sourceOps = fileSystemOps,
+    destOps = fileSystemOps,
+    strategy = SAFPathCopyStrategy(),
+    options = TransferStrategy.Options(),
+    onIssue = onIssue
+)
 
 /**
  * SAFPath move operation using the generic framework.
@@ -113,18 +109,14 @@ fun Collection<SAFPath>.move(
     destination: SAFPath,
     fileSystemOps: SAFFileSystemOps,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): Flow<MoveAction.State<SAFPath, SAFPathLookup, SAFPath, SAFPathLookup>> {
-    val strategy = SAFPathMoveStrategy()
-
-    return this.moveGeneric(
-        destination = destination,
-        sourceOps = fileSystemOps,
-        destOps = fileSystemOps,
-        strategy = strategy,
-        options = eu.darken.butler.common.files.operations.TransferStrategy.Options(),
-        onIssue = onIssue
-    )
-}
+): Flow<MoveAction.State<SAFPath, SAFPathLookup, SAFPath, SAFPathLookup>> = this.moveGeneric(
+    destination = destination,
+    sourceOps = fileSystemOps,
+    destOps = fileSystemOps,
+    strategy = SAFPathMoveStrategy(),
+    options = TransferStrategy.Options(),
+    onIssue = onIssue
+)
 
 /**
  * SAFPath delete operation using the generic framework.
@@ -162,11 +154,9 @@ fun Collection<SAFPath>.delete(
     recursive: Boolean = true,
     ignoreMissing: Boolean = true,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-): Flow<DeleteAction.State<SAFPath, SAFPathLookup>> {
-    return this.deleteGeneric(
-        fileSystemOps = fileSystemOps,
-        recursive = recursive,
-        ignoreMissing = ignoreMissing,
-        onIssue = onIssue
-    )
-}
+): Flow<DeleteAction.State<SAFPath, SAFPathLookup>> = this.deleteGeneric(
+    fileSystemOps = fileSystemOps,
+    recursive = recursive,
+    ignoreMissing = ignoreMissing,
+    onIssue = onIssue
+)
