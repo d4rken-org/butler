@@ -142,18 +142,15 @@ class ShizukuManager @Inject constructor(
 
     suspend fun requestPermission() = shizukuWrapper.requestPermission()
 
-    suspend fun isOurServiceAvailable(): Boolean = cacheLock.withLock {
-
-        withContext(dispatcherProvider.IO) {
-            try {
-                log(TAG, VERBOSE) { "isOurServiceAvailable(): Requesting service client (CACHE MISS)" }
-                serviceClient.get().use { it.item.ipc.checkBase() != null }
-            } catch (e: Exception) {
-                log(TAG, WARN) { "isOurServiceAvailable(): Error during checkBase(): $e" }
-                false
-            }
-        }.also { log(TAG) { "isOurServiceAvailable(): $it" } }
-    }
+    suspend fun isOurServiceAvailable(): Boolean = withContext(dispatcherProvider.IO) {
+        try {
+            log(TAG, VERBOSE) { "isOurServiceAvailable(): Requesting service client (CACHE MISS)" }
+            serviceClient.get().use { it.item.ipc.checkBase() != null }
+        } catch (e: Exception) {
+            log(TAG, WARN) { "isOurServiceAvailable(): Error during checkBase(): $e" }
+            false
+        }
+    }.also { log(TAG) { "isOurServiceAvailable(): $it" } }
 
     /**
      * Did the user consent to Butler using Shizuku and is Shizuku available?
