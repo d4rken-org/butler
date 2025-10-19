@@ -10,24 +10,24 @@ import eu.darken.butler.common.files.operations.TransferStrategy
 /**
  * Strategy for moving files using SAFPath (Storage Access Framework).
  *
- * Move operation in SAF has limitations compared to LocalPath:
- * - **No atomic move**: SAF doesn't support atomic move operations
- * - **Always copy+delete**: Unlike LocalPath which tries Files.move() with ATOMIC_MOVE,
- *   SAF always performs copy then delete
+ * Move operation attempts atomic moves when possible using DocumentsContract.moveDocument().
+ * This mirrors LocalPath behavior for optimal performance.
  *
  * ## Implementation Strategy
  *
- * 1. Copy file using SAFPathCopyStrategy
- * 2. Delete source file after successful copy
+ * 1. Try atomic move using DocumentsContract.moveDocument() (API 24+)
+ * 2. On failure, fall back to copy+delete pattern:
+ *    - Copy file using SAFPathCopyStrategy
+ *    - Delete source file after successful copy
  * 3. No rollback on failure (source remains if delete fails)
  *
  * ## Comparison with LocalPath
  *
  * | Feature | LocalPath | SAFPath |
  * |---------|-----------|---------|
- * | Atomic move | Yes (same filesystem) | No |
- * | Fallback | Copy+delete | Always copy+delete |
- * | Performance | Fast (rename) | Slower (full copy) |
+ * | Atomic move | Yes (same filesystem) | Yes (same document tree) |
+ * | Fallback | Copy+delete | Copy+delete |
+ * | Performance | Fast (rename) | Fast (atomic) or slower (copy) |
  *
  * @see LocalPathMoveStrategy for comparison
  * @see SAFPathCopyStrategy for copy implementation
@@ -49,7 +49,24 @@ class SAFPathMoveStrategy : TransferStrategy<
     ): TransferStrategy.TransferResult<SAFPath, SAFPath> {
         log(TAG, DEBUG) { "Moving SAF file: ${sourceLookup.lookedUp} -> $destination" }
 
-        // SAF move is always copy+delete (no atomic move available)
+        // Try atomic move first (most efficient)
+        try {
+            sourceOps.move(sourceLookup.lookedUp, destination)
+            log(TAG, DEBUG) { "Atomic move succeeded: ${sourceLookup.lookedUp} -> $destination" }
+
+            onProgress(sourceLookup.size)
+
+            return TransferStrategy.TransferResult.Success(
+                source = sourceLookup.lookedUp,
+                destination = destination,
+                bytesTransferred = sourceLookup.size
+            )
+        } catch (e: Exception) {
+            log(TAG, DEBUG) { "Atomic move not supported or failed, falling back to copy+delete: ${e.message}" }
+            // Fall through to copy+delete
+        }
+
+        // Atomic move failed - use copy+delete fallback
         // Step 1: Copy file to destination
         val copyResult = copyStrategy.transferFile(
             sourceLookup = sourceLookup,

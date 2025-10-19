@@ -5,7 +5,6 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.LocalPathLookupExtended
 import eu.darken.butler.common.files.metadata.FileType
@@ -31,7 +30,7 @@ import okio.source
  * @see eu.darken.butler.common.files.saf.SAFPathMoveStrategy for comparison
  */
 class LocalPathMoveStrategy(
-    private val fileSystemOps: LocalFileSystemOps
+    private val fileSystemOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>
 ) : eu.darken.butler.common.files.operations.TransferStrategy<
     LocalPath, LocalPathLookup, LocalPathLookupExtended,  // Source types
     LocalPath, LocalPathLookup, LocalPathLookupExtended   // Destination types

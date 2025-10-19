@@ -218,6 +218,19 @@ class MockSAFFileSystemOps : MockFileSystemOps<SAFPath, SAFPathLookup, SAFPathLo
             throw MissingUriPermissionException(path = destination)
         }
 
+        // Simulate SAF atomic move behavior:
+        // - Same tree: atomic move succeeds
+        // - Different tree: throws exception
+        val sourceTree = source.treeRootUri
+        val destTree = destination.treeRootUri
+
+        if (sourceTree != destTree) {
+            throw eu.darken.butler.common.files.errors.WriteException(
+                "Cannot move across different document trees",
+                source
+            )
+        }
+
         return super.move(source, destination)
     }
 

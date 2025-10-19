@@ -79,7 +79,8 @@ fun Collection<SAFPath>.copy(
 /**
  * SAFPath move operation using the generic framework.
  *
- * Move is implemented as copy+delete since SAF doesn't support atomic moves.
+ * Move attempts atomic operations using DocumentsContract.moveDocument() (API 24+).
+ * Falls back to copy+delete when atomic move is not supported (e.g., cross-tree moves).
  *
  * ## Usage
  *
