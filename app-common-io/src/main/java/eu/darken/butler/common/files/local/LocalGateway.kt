@@ -51,7 +51,6 @@ class LocalGateway @Inject constructor(
     @AppScope private val appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
     private val fileSystemOps: LocalFileSystemOps,
-    private val storageEnvironment: StorageEnvironment,
     private val rootManager: RootManager,
     private val adbManager: AdbManager,
     private val accessibilityChecker: LocalPathAccessChecker,
