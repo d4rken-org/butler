@@ -40,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -180,6 +181,19 @@ fun ExplorerWorkspacePage(
     // Set the bottom bar height for scroll behavior
     bottomBarScrollBehavior.state.setHeight(64.dp)
 
+    // Handle back button for picker mode
+    if (mainState.pickerConfig != null) {
+        BackHandler(enabled = true) {
+            if (mainState.canGoBack) {
+                // Navigate up in directory hierarchy
+                vm?.goBack()
+            } else {
+                // At root, dismiss picker
+                vm?.cancelPicker()
+            }
+        }
+    }
+
     // Derived states for stable recomposition
     val hasOperations by remember {
         derivedStateOf { operationsState.operations.isNotEmpty() }
@@ -239,16 +253,32 @@ fun ExplorerWorkspacePage(
                 }
             },
             topBar = {
-                ExplorerTopBar(
-                    breadcrumbs = mainState.breadcrumbs,
-                    scrollBehavior = scrollBehavior,
-                    onBreadcrumbClick = { target -> vm?.navigate(target) },
-                    onNavigateToPath = { path -> vm?.navigateToPathString(path) },
-                    workspaceButtonState = workspaceButtonState,
-                    showWorkspaceButton = design.isSingle,
-                    workspaceActionHandler = workspaceActionHandler,
-                    safLocationManager = vm?.safLocationManager,
-                )
+                val pickerConfig = mainState.pickerConfig
+                if (pickerConfig != null) {
+                    // Picker mode - use simplified picker top bar
+                    eu.darken.butler.explorer.ui.picker.ExplorerPickerTopBar(
+                        selection = pickerConfig.selection,
+                        selectionCount = mainState.selectionState.selectedItems.size,
+                        breadcrumbs = mainState.breadcrumbs,
+                        currentLocation = mainState.currentLocation,
+                        scrollBehavior = scrollBehavior,
+                        onBreadcrumbClick = { navigation -> vm?.navigate(navigation) },
+                        onCancel = { vm?.cancelPicker() },
+                        onConfirm = { vm?.confirmPickerSelection() },
+                    )
+                } else {
+                    // Normal mode - use full explorer top bar
+                    ExplorerTopBar(
+                        breadcrumbs = mainState.breadcrumbs,
+                        scrollBehavior = scrollBehavior,
+                        onBreadcrumbClick = { target -> vm?.navigate(target) },
+                        onNavigateToPath = { path -> vm?.navigateToPathString(path) },
+                        workspaceButtonState = workspaceButtonState,
+                        showWorkspaceButton = design.isSingle,
+                        workspaceActionHandler = workspaceActionHandler,
+                        safLocationManager = vm?.safLocationManager,
+                    )
+                }
             },
         ) { paddingValues ->
             Box(
@@ -256,13 +286,17 @@ fun ExplorerWorkspacePage(
                     .fillMaxSize()
                     .padding(top = paddingValues.calculateTopPadding())
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize()
+                PullToRefreshBox(
+                    isRefreshing = mainState.progress != null,
+                    onRefresh = { vm?.retryNavigation() }
                 ) {
-                    ExplorerInfoBar(
-                        info = mainState.info,
-                        selectedCount = mainState.selectionState.selectedItems.size,
-                    )
+                    Column(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        ExplorerInfoBar(
+                            info = mainState.info,
+                            selectedCount = mainState.selectionState.selectedItems.size,
+                        )
 
                     mainState.error?.let { error ->
                         NavigationErrorCard(
@@ -293,22 +327,17 @@ fun ExplorerWorkspacePage(
                             )
                         }
                         mainStateSnap.items.isEmpty() -> {
-                            PullToRefreshBox(
-                                isRefreshing = mainStateSnap.progress != null,
-                                onRefresh = { vm?.retryNavigation() }
+                            BoxWithConstraints(
+                                modifier = Modifier.fillMaxSize()
                             ) {
-                                BoxWithConstraints(
-                                    modifier = Modifier.fillMaxSize()
+                                Box(
+                                    modifier = Modifier
+                                        .heightIn(min = maxHeight)
+                                        .fillMaxWidth()
+                                        .verticalScroll(rememberScrollState()),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .heightIn(min = maxHeight)
-                                            .fillMaxWidth()
-                                            .verticalScroll(rememberScrollState()),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        EmptyDirectoryState()
-                                    }
+                                    EmptyDirectoryState()
                                 }
                             }
                         }
@@ -317,11 +346,7 @@ fun ExplorerWorkspacePage(
                                 modifier = Modifier.fillMaxSize()
                             ) {
                                 if (mainStateSnap.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
-                                    PullToRefreshBox(
-                                        isRefreshing = mainStateSnap.progress != null,
-                                        onRefresh = { vm?.retryNavigation() }
-                                    ) {
-                                        LazyColumn(
+                                    LazyColumn(
                                             state = listState,
                                             modifier = Modifier
                                                 .fillMaxSize()
@@ -349,16 +374,9 @@ fun ExplorerWorkspacePage(
                                                         item = item,
                                                         isSelected = mainStateSnap.selectionState.selectedItems.contains(item),
                                                         onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                        onClick = {
-                                                            if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
-                                                                vm?.toggleItemSelection(item)
-                                                            } else {
-                                                                vm?.navigate(item)
-                                                            }
-                                                        },
-                                                        onLongClick = { vm?.toggleItemSelection(item) },
-                                                        showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
-                                                            item in mainStateSnap.selectionState.selectableItems
+                                                        onClick = { vm?.onItemClick(item) },
+                                                        onLongClick = { vm?.onItemLongClick(item) },
+                                                        showSelection = mainStateSnap.shouldShowSelection(item)
                                                     )
 
                                                     is ExplorerItem.Peek -> PeekRow(
@@ -388,13 +406,8 @@ fun ExplorerWorkspacePage(
                                                 }
                                             }
                                         }
-                                    }
                                 } else {
-                                    PullToRefreshBox(
-                                        isRefreshing = mainStateSnap.progress != null,
-                                        onRefresh = { vm?.retryNavigation() }
-                                    ) {
-                                        LazyVerticalGrid(
+                                    LazyVerticalGrid(
                                             state = gridState,
                                             columns = GridCells.Adaptive(minSize = 120.dp),
                                             modifier = Modifier
@@ -424,16 +437,9 @@ fun ExplorerWorkspacePage(
                                                         item = item,
                                                         isSelected = mainStateSnap.selectionState.selectedItems.contains(item),
                                                         onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                        onClick = {
-                                                            if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
-                                                                vm?.toggleItemSelection(item)
-                                                            } else {
-                                                                vm?.navigate(item)
-                                                            }
-                                                        },
-                                                        onLongClick = { vm?.toggleItemSelection(item) },
-                                                        showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
-                                                            item in mainStateSnap.selectionState.selectableItems
+                                                        onClick = { vm?.onItemClick(item) },
+                                                        onLongClick = { vm?.onItemLongClick(item) },
+                                                        showSelection = mainStateSnap.shouldShowSelection(item)
                                                     )
                                                     is ExplorerItem.Shortcut -> ShortcutGrid(
                                                         item = item,
@@ -462,11 +468,11 @@ fun ExplorerWorkspacePage(
                                                 }
                                             }
                                         }
-                                    }
                                 }
                             }
                         }
                     }
+                }
                 }
 
                 mainState.progress?.let {

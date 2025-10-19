@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -61,6 +62,11 @@ class WorkspaceRepo @Inject constructor(
         .setupCommonEventHandlers(TAG, enabled = Bugs.isDebug) { "WorkspaceEvents" }
         .replayingShare(appScope)
 
+    override suspend fun emitEvent(event: WorkspaceEvent) {
+        log(TAG) { "emitEvent($event)" }
+        _events.emit(event)
+    }
+
     private fun create(
         type: Workspace.Type,
         arguments: Workspace.Arguments? = null,
@@ -76,7 +82,7 @@ class WorkspaceRepo @Inject constructor(
             )
             Workspace.Type.EXPLORER -> explorerWorkspaceFactory.create(
                 id = Workspace.Id(),
-                arguments = arguments as ExplorerWorkspace.Arguments?
+                arguments = arguments
             )
             Workspace.Type.SEARCHER -> searcherWorkspaceFactory.create(
                 id = Workspace.Id(),
@@ -97,6 +103,14 @@ class WorkspaceRepo @Inject constructor(
         }
 
         _workspaces.value = wip
+
+        // Track parent-child relationship for sub-workspaces
+        if (arguments is Workspace.ArgumentsForResult) {
+            val callerId = arguments.callerWorkspaceId
+            if (callerId != null) {
+                log(TAG) { "Created sub-workspace: ${newWorkspace.id} -> caller: $callerId" }
+            }
+        }
 
         return newWorkspace.id
     }
@@ -127,6 +141,20 @@ class WorkspaceRepo @Inject constructor(
 
             is WorkspaceAction.Close -> {
                 log(TAG, INFO) { "Closing workspace with id ${action.id}" }
+
+                // Find and close all child workspaces owned by this workspace
+                val childWorkspaces = _workspaces.value.filter { ws ->
+                    val info = ws.info.first()
+                    info.callerWorkspaceId == action.id
+                }
+                if (childWorkspaces.isNotEmpty()) {
+                    log(TAG) { "Auto-closing ${childWorkspaces.size} child workspace(s)" }
+                    childWorkspaces.forEach { childWs ->
+                        _workspaces.value = _workspaces.value.filter { it.id != childWs.id }
+                        _events.emit(WorkspaceEvent.Closed(workspaceId = childWs.id))
+                    }
+                }
+
                 _workspaces.value = _workspaces.value.filter { it.id != action.id }
                 _events.emit(WorkspaceEvent.Closed(workspaceId = action.id))
                 WorkspaceAction.Close.Result

@@ -31,6 +31,30 @@
     <string name="explorer_file_items_count">%1$d items</string>
     <string name="explorer_file_pages_count">%1$d pages</string>
 
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">Select Folder</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="zero">Select Folders</item>
+        <item quantity="one">Select Folder (%d)</item>
+        <item quantity="other">Select Folders (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">Select File</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="zero">Select Files</item>
+        <item quantity="one">Select File (%d)</item>
+        <item quantity="other">Select Files (%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="zero">Select Items</item>
+        <item quantity="one">Select Item (%d)</item>
+        <item quantity="other">Select Items (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">Select This Folder</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="one">Select %d</item>
+        <item quantity="other">Select %d</item>
+    </plurals>
+
     <!-- Explorer Actions -->
     <string name="explorer_action_refresh">Refresh</string>
     <string name="explorer_action_sort">Sort</string>

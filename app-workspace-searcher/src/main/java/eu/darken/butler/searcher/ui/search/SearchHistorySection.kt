@@ -37,6 +37,7 @@ import eu.darken.butler.common.ui.SwipeToDismissItem
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchHistory
 import eu.darken.butler.searcher.core.SearchQuery
+import eu.darken.butler.searcher.core.SearchTarget
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -144,8 +145,11 @@ fun SearchHistoryItem(
                     )
                 }
 
-                // Line 2: Path with icon
-                historyItem.searchQuery?.path?.let { path ->
+                // Line 2: Path with icon (show first path if multiple)
+                historyItem.searchQuery?.targets?.firstOrNull()?.let { target ->
+                    val pathString = when (target) {
+                        is SearchTarget.Path -> target.path.path
+                    }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -158,7 +162,7 @@ fun SearchHistoryItem(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = path.path,
+                            text = pathString,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
@@ -212,7 +216,7 @@ private fun SearchHistoryItemPreview() {
                 baseQuery = "gradle build",
                 searchQuery = SearchQuery.create(
                     query = "gradle build",
-                    path = LocalPath.build("/home/user/projects"),
+                    paths = listOf(LocalPath.build("/home/user/projects")),
                     caseSensitive = false,
                     wholeWord = false,
                     useRegex = false
@@ -236,7 +240,7 @@ private fun SearchHistoryItemNoResultsPreview() {
                 baseQuery = "nonexistent",
                 searchQuery = SearchQuery.create(
                     query = "nonexistent",
-                    path = LocalPath.build("/storage/emulated/0"),
+                    paths = listOf(LocalPath.build("/storage/emulated/0")),
                     caseSensitive = true,
                     wholeWord = true,
                     useRegex = false

@@ -18,8 +18,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
@@ -32,13 +32,15 @@ fun SearchToolbarCard(
     state: SearcherWorkspaceViewModel.State,
     design: WorkspaceDesign,
     onUpdateQuery: (TextFieldValue) -> Unit,
-    onUpdateSearchPath: (APath<*>) -> Unit,
+    onRemoveSearchPath: (SearchTarget) -> Unit,
+    onTogglePathEnabled: (SearchTarget) -> Unit,
     onPerformSearch: () -> Unit,
     onExplicitSearch: () -> Unit = onPerformSearch,
     onCancelSearch: () -> Unit,
     onToggleCaseSensitive: () -> Unit,
     onToggleWholeWord: () -> Unit,
     onToggleRegex: () -> Unit,
+    onOpenPathPicker: (() -> Unit)? = null,
     workspaceButtonState: WorkspaceButtonViewModel.State? = null,
     workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
@@ -54,7 +56,7 @@ fun SearchToolbarCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -80,13 +82,6 @@ fun SearchToolbarCard(
                 }
             }
 
-            SearchPathBar(
-                path = state.searchPath,
-                onPathChange = onUpdateSearchPath,
-                onPerformSearch = onPerformSearch,
-                isSearching = state.isSearching
-            )
-
             SearchOptionsRow(
                 caseSensitive = state.caseSensitive,
                 wholeWord = state.wholeWord,
@@ -95,6 +90,14 @@ fun SearchToolbarCard(
                 onToggleWholeWord = onToggleWholeWord,
                 onToggleRegex = onToggleRegex,
                 modifier = Modifier.fillMaxWidth()
+            )
+
+            MultiPathChipBar(
+                paths = state.searchTargets,
+                onPathRemove = onRemoveSearchPath,
+                onPathToggle = onTogglePathEnabled,
+                onAddPathClick = { onOpenPathPicker?.invoke() },
+                isSearching = state.isSearching,
             )
         }
     }
@@ -107,7 +110,10 @@ private fun SearchToolbarCardPreview() {
         SearchToolbarCard(
             state = SearcherWorkspaceViewModel.State(
                 id = Workspace.Id(),
-                searchPath = LocalPath.build("/storage/emulated/0/Documents"),
+                searchTargets = listOf(
+                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
+                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download"))
+                ),
                 searchQuery = TextFieldValue("example search"),
                 caseSensitive = false,
                 wholeWord = false,
@@ -115,7 +121,8 @@ private fun SearchToolbarCardPreview() {
             ),
             design = WorkspaceDesign(),
             onUpdateQuery = {},
-            onUpdateSearchPath = {},
+            onRemoveSearchPath = {},
+            onTogglePathEnabled = {},
             onPerformSearch = {},
             onCancelSearch = {},
             onToggleCaseSensitive = {},

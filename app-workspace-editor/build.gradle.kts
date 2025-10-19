@@ -46,7 +46,6 @@ dependencies {
     implementation(project(":app-common"))
     implementation(project(":app-common-io"))
     implementation(project(":app-workspace"))
-    implementation(project(":app-common-picker"))
 
     addAndroidCore()
     addAndroidUI()

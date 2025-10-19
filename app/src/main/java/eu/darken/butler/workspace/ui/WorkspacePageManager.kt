@@ -52,6 +52,9 @@ class WorkspacePageManager @Inject constructor(
                     is WorkspaceEvent.Closed -> {
                         handleWorkspaceClosed(event.workspaceId)
                     }
+                    is WorkspaceEvent.ResultEvent -> {
+                        // Handled by individual workspaces, UI manager ignores it
+                    }
                     is WorkspaceEvent.Reordered -> {
                         log(TAG) { "Workspaces reordered: ${event.workspaceIds}" }
                     }

@@ -9,6 +9,12 @@ interface WorkspaceRemote {
     
     val events: Flow<WorkspaceEvent>
 
+    /**
+     * Emit a workspace event
+     * Allows workspaces to communicate results (e.g., picker selection)
+     */
+    suspend fun emitEvent(event: WorkspaceEvent)
+
     data class State(
         val infos: List<Workspace.Info> = emptyList(),
         val panelMode: WorkspacePanelMode = WorkspacePanelMode.AUTO,

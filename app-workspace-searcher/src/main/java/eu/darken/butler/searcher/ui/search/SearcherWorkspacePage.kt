@@ -40,10 +40,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.error.ErrorEventHandler
-import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchHistory
+import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearchResult
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
 import eu.darken.butler.searcher.ui.search.rows.FileRowData
@@ -75,7 +75,8 @@ fun SearcherWorkspacePage(
     vm: SearcherWorkspaceViewModel? = null,
     workspaceActionHandler: WorkspaceActionHandler? = null,
     onUpdateQuery: (TextFieldValue) -> Unit = {},
-    onUpdateSearchPath: (APath<*>) -> Unit = {},
+    onRemoveSearchPath: (SearchTarget) -> Unit = {},
+    onTogglePathEnabled: (SearchTarget) -> Unit = {},
     onPerformSearch: () -> Unit = {},
     onExplicitSearch: () -> Unit = {},
     onCancelSearch: () -> Unit = {},
@@ -99,6 +100,7 @@ fun SearcherWorkspacePage(
     onOperationDismiss: (Operation.Id) -> Unit = {},
     onOperationsClearCompleted: () -> Unit = {},
     onOpenSetup: () -> Unit = {},
+    onOpenPathPicker: (() -> Unit)? = null,
 ) {
     val state by waitForState(stateSource)
     val clipboardState by clipboardStateSource.collectAsState(initial = SearcherWorkspaceViewModel.ClipboardState())
@@ -200,23 +202,29 @@ fun SearcherWorkspacePage(
                         state = currentState,
                         design = design,
                         onUpdateQuery = onUpdateQuery,
-                        onUpdateSearchPath = onUpdateSearchPath,
+                        onRemoveSearchPath = onRemoveSearchPath,
+                        onTogglePathEnabled = onTogglePathEnabled,
                         onPerformSearch = onPerformSearch,
                         onExplicitSearch = onExplicitSearch,
                         onCancelSearch = onCancelSearch,
                         onToggleCaseSensitive = onToggleCaseSensitive,
                         onToggleWholeWord = onToggleWholeWord,
                         onToggleRegex = onToggleRegex,
+                        onOpenPathPicker = onOpenPathPicker,
                         workspaceButtonState = workspaceButtonState,
                         workspaceActionHandler = workspaceActionHandler,
                     )
                 }
 
                 // Show permission card if needed
-                if (currentState.needsPermissions) {
+                if (currentState.needsPermissions && currentState.searchTargets.isNotEmpty()) {
                     item {
+                        val firstTarget = currentState.searchTargets.first()
+                        val searchPath = when (firstTarget) {
+                            is SearchTarget.Path -> firstTarget.path
+                        }
                         PermissionSetupCard(
-                            searchPath = currentState.searchPath,
+                            searchPath = searchPath,
                             permissionState = currentState.permissionState,
                             onOpenSetup = onOpenSetup,
                             modifier = Modifier.padding(top = 8.dp)
@@ -490,7 +498,8 @@ fun SearcherWorkspacePageHost(
         vm = vm,
         workspaceActionHandler = workspaceButtonVm,
         onUpdateQuery = vm::updateSearchQuery,
-        onUpdateSearchPath = vm::updateSearchPath,
+        onRemoveSearchPath = vm::removeSearchTarget,
+        onTogglePathEnabled = vm::toggleTargetEnabled,
         onPerformSearch = vm::performSearch,
         onExplicitSearch = vm::performExplicitSearch,
         onCancelSearch = vm::cancelSearch,
@@ -501,7 +510,7 @@ fun SearcherWorkspacePageHost(
         onHistoryItemClick = { item ->
             item.searchQuery?.let { query ->
                 vm.updateSearchQuery(TextFieldValue(query.query))
-                vm.updateSearchPath(query.path)
+                vm.updateSearchTargets(query.targets)
                 vm.updateFilter(query.filter)
                 vm.performExplicitSearch()
             } ?: run {
@@ -524,6 +533,7 @@ fun SearcherWorkspacePageHost(
         onOperationDismiss = vm::dismissOperation,
         onOperationsClearCompleted = vm::clearCompletedOperations,
         onOpenSetup = vm::navigateToSetup,
+        onOpenPathPicker = vm::openPathPicker,
     )
 }
 

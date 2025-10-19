@@ -21,6 +21,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.main.ui.motd.MotdCard
+import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.ui.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
@@ -103,7 +104,7 @@ fun WorkspaceScreen(
         if (!design.isSingle) {
             AdaptiveWorkspaceLayout(
                 design = design,
-                workspaces = state.all,
+                workspaces = state.tabWorkspaces,
                 selected = state.selected,
                 focusedId = state.focused,
                 dividerPositions = dividerPositions,
@@ -140,6 +141,19 @@ fun WorkspaceScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
+    }
+
+    // Modal workspace overlay (picker dialogs, etc.)
+    state.modalWorkspace?.let { modalWorkspace ->
+        WorkspaceModalDialog(
+            workspace = modalWorkspace,
+            onDismissRequest = {
+                // Dismiss by closing the modal workspace
+                workspaceActionHandler?.executeWorkspaceAction(
+                    WorkspaceAction.Close(modalWorkspace.id)
+                )
+            },
+        )
     }
 }
 

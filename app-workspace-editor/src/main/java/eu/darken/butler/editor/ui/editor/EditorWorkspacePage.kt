@@ -47,12 +47,6 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.picker.core.FilePickerConfig
-import eu.darken.butler.common.picker.core.FilePickerResult
-import eu.darken.butler.common.picker.core.SelectionMode
-import eu.darken.butler.common.picker.ui.FilePickerHost
-import eu.darken.butler.common.picker.ui.FilePickerMode
-import eu.darken.butler.common.picker.ui.rememberFilePickerLauncher
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.MemoryStats
@@ -90,7 +84,7 @@ fun EditorWorkspacePageHost(
             workspaceActionHandler = workspaceButtonVm,
             design = design,
             state = state,
-            onOpenFile = vm::openFile,
+            onOpenFile = vm::launchFilePicker,
             onSaveFile = vm::saveFile,
             onCloseFile = vm::closeFile,
             onTextChange = vm::insertText,
@@ -120,7 +114,7 @@ fun EditorWorkspacePage(
     workspaceActionHandler: WorkspaceActionHandler? = null,
     design: WorkspaceDesign,
     state: EditorWorkspaceViewModel.State,
-    onOpenFile: (APath<*>) -> Unit,
+    onOpenFile: () -> Unit,
     onSaveFile: () -> Unit,
     onCloseFile: () -> Unit,
     onTextChange: (String) -> Unit,
@@ -138,20 +132,6 @@ fun EditorWorkspacePage(
     var showSearchDialog by remember { mutableStateOf(false) }
     var showMemoryStats by remember { mutableStateOf(false) }
 
-    // File picker launcher
-    val filePickerLauncher = rememberFilePickerLauncher { result ->
-        when (result) {
-            is FilePickerResult.Selected -> {
-                if (result.paths.isNotEmpty()) {
-                    onOpenFile(result.paths.first())
-                }
-            }
-            FilePickerResult.Cancelled -> {
-                // User cancelled, do nothing
-            }
-        }
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -163,17 +143,7 @@ fun EditorWorkspacePage(
             isModified = state.isModified,
             hasFile = state.hasFile || state.currentContent.isNotEmpty(),
             isLoading = state.isLoading,
-            onOpenFile = {
-                filePickerLauncher.launch(
-                    config = FilePickerConfig(
-                        mode = SelectionMode.SingleFile,
-                        filters = listOf("*.txt", "*.md", "*.json", "*.xml", "*.log"),
-                        title = "Open File",
-                        showHiddenFiles = false
-                    ),
-                    mode = FilePickerMode.BOTTOM_SHEET
-                )
-            },
+            onOpenFile = onOpenFile,
             onSaveFile = onSaveFile,
             onCloseFile = onCloseFile,
             onUndo = onUndo,
@@ -276,12 +246,6 @@ fun EditorWorkspacePage(
             onDismiss = { showSearchDialog = false }
         )
     }
-
-    // File picker host
-    FilePickerHost(
-        launcher = filePickerLauncher,
-        mode = FilePickerMode.BOTTOM_SHEET
-    )
 }
 
 @Composable

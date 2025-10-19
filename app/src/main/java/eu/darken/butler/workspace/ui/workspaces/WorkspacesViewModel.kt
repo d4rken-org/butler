@@ -146,14 +146,21 @@ class WorkspacesViewModel @Inject constructor(
             get() = focusedWorkspace
 
         val current: Workspace.Info?
-            get() = state.infos.firstOrNull { it.id == focused }
+            get() = tabWorkspaces.firstOrNull { it.id == focused }
 
         val selected: Map<Int, Workspace.Info>
             get() = selectedWorkspaces.mapNotNull { (position, id) ->
-                state.infos.find { it.id == id }?.let { position to it }
+                tabWorkspaces.find { it.id == id }?.let { position to it }
             }.toMap()
 
         val all: List<Workspace.Info>
             get() = state.infos
+
+        // Filter workspaces by caller relationship
+        val tabWorkspaces: List<Workspace.Info>
+            get() = state.infos.filter { !it.isSubWorkspace }
+
+        val modalWorkspace: Workspace.Info?
+            get() = state.infos.firstOrNull { it.isSubWorkspace }
     }
 }

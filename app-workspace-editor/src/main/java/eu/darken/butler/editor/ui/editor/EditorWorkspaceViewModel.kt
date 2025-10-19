@@ -18,7 +18,13 @@ import eu.darken.butler.editor.core.MemoryStats
 import eu.darken.butler.editor.core.SearchResult
 import eu.darken.butler.editor.core.TextPosition
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
+import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.handleResult
+import eu.darken.butler.workspace.core.launchPicker
+import eu.darken.butler.workspace.core.picker.PickerConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
@@ -26,6 +32,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 @HiltViewModel(assistedFactory = EditorWorkspaceViewModel.Factory::class)
@@ -34,6 +41,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     dispatchers: DispatcherProvider,
     navCtrl: NavigationController,
     private val workspaceProvider: WorkspaceProvider,
+    private val workspaceRemote: WorkspaceRemote,
 ) : ViewModel4(dispatchers, logTag("Editor", "Workspace", id.shortTag, "Page"), navCtrl) {
 
     private val workspaceFlow = flow {
@@ -110,9 +118,22 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 log(tag, Logging.Priority.ERROR) { "Failed to monitor workspace - ${e.asLog()}" }
             }
             .launchInViewModel()
+
+        // Listen for picker results
+        workspaceRemote.events
+            .handleResult<WorkspaceEvent.PickerResult>(callerWorkspaceId = id) { result ->
+                log(tag) { "Received picker result: ${result.selectedPaths.firstOrNull()}" }
+                result.selectedPaths.firstOrNull()?.let { openFile(it) }
+            }
+            .launchIn(vmScope)
     }
 
     // All operations delegate to workspace
+
+    fun launchFilePicker() = launch {
+        val currentPath = state.first().fileInfo?.path?.parent
+        workspaceRemote.launchPicker(id, currentPath, PickerConfig.Selection.FileSingle)
+    }
 
     fun openFile(filePath: APath<*>) {
         launch {
