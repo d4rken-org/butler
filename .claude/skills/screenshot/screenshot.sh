@@ -22,8 +22,9 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Create temp directory if it doesn't exist
-SCREENSHOT_DIR=".claude/tmp"
+# Find project root and create temp directory if it doesn't exist
+PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "$HOME")
+SCREENSHOT_DIR="${PROJECT_ROOT}/.claude/tmp"
 mkdir -p "$SCREENSHOT_DIR"
 
 # Generate filename
