@@ -9,8 +9,8 @@ import kotlin.time.Instant
 data class SAFPathLookup(
     override val lookedUp: SAFPath,
     override val fileType: FileType,
-    override val size: Long,
-    override val modifiedAt: Instant,
+    override val size: Long?,
+    override val modifiedAt: Instant?,
     override val target: LocalPath? = null,
-    override val error: String? = null,
+    override val error: Throwable? = null,
 ) : APathLookup<SAFPath>

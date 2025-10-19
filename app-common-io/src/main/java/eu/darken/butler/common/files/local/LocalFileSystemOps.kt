@@ -71,8 +71,8 @@ class LocalFileSystemOps @Inject constructor(
         val fileType: FileType =
             path.file.getAPathFileType() ?: throw ReadException("Does not exist or can't be read", path)
 
-        var size = -1L
-        var modifiedAt = Instant.DISTANT_PAST
+        var size: Long? = null
+        var modifiedAt: Instant? = null
         var target: LocalPath? = null
         val errors = mutableListOf<String>()
 
@@ -97,7 +97,9 @@ class LocalFileSystemOps @Inject constructor(
             size = size,
             modifiedAt = modifiedAt,
             target = target,
-            error = errors.joinToString("; ").ifEmpty { null }
+            error = errors.takeIf { it.isNotEmpty() }?.let {
+                ReadException(errors.joinToString("; "), path)
+            }
         )
     } catch (e: Exception) {
         throw ReadException(path = path, cause = e)
@@ -109,7 +111,7 @@ class LocalFileSystemOps @Inject constructor(
         val fstat: StructStat? = try {
             Os.lstat(path.file.path)
         } catch (e: Exception) {
-            log(LocalGateway.TAG, WARN) { "fstat failed on $this: ${e.asLog()}" }
+            log(LocalGateway.TAG, WARN) { "fstat failed on $this: $e" }
             null
         }
 

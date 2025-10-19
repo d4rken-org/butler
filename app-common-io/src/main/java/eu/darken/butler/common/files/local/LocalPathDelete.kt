@@ -287,7 +287,7 @@ internal class LocalPathDelete(
             FileType.SYMBOLIC_LINK, FileType.FILE -> {
                 // Files: defer deletion until scan completes (using addFirst for post-order)
                 progressTracker.totalItems++
-                progressTracker.totalBytes += lookup.size
+                progressTracker.totalBytes += lookup.size ?: 0L
                 deferredDeletions.addFirst(WorkItem.DeletePath(path = item.path, cachedLookup = lookup))
 
                 // Report scan progress with throttling
@@ -302,7 +302,7 @@ internal class LocalPathDelete(
                 if (!recursive) {
                     // Non-recursive: defer directory deletion (will fail if not empty, using addFirst for post-order)
                     progressTracker.totalItems++
-                    progressTracker.totalBytes += lookup.size
+                    progressTracker.totalBytes += lookup.size ?: 0L
                     deferredDeletions.addFirst(WorkItem.DeletePath(path = item.path, cachedLookup = lookup))
 
                     // Report scan progress with throttling
@@ -333,7 +333,7 @@ internal class LocalPathDelete(
                             is AccessDeniedException -> {
                                 // Add item before handling error so counts are correct
                                 progressTracker.totalItems++
-                                progressTracker.totalBytes += lookup.size
+                                progressTracker.totalBytes += lookup.size ?: 0L
                                 handleScanError(cause, lookup, item)
                                 return 0
                             }
@@ -341,7 +341,7 @@ internal class LocalPathDelete(
                             is SecurityException -> {
                                 // Add item before handling error so counts are correct
                                 progressTracker.totalItems++
-                                progressTracker.totalBytes += lookup.size
+                                progressTracker.totalBytes += lookup.size ?: 0L
                                 handleScanError(cause, lookup, item)
                                 return 0
                             }
@@ -349,7 +349,7 @@ internal class LocalPathDelete(
                             else -> {
                                 // Add item before handling error so counts are correct
                                 progressTracker.totalItems++
-                                progressTracker.totalBytes += lookup.size
+                                progressTracker.totalBytes += lookup.size ?: 0L
                                 handleScanError(cause ?: e, lookup, item)
                                 return 0
                             }
@@ -358,7 +358,7 @@ internal class LocalPathDelete(
 
                     // After successfully scanning children, defer directory deletion (using addFirst for post-order)
                     progressTracker.totalItems++
-                    progressTracker.totalBytes += lookup.size
+                    progressTracker.totalBytes += lookup.size ?: 0L
                     deferredDeletions.addFirst(WorkItem.DeletePath(path = item.path, cachedLookup = lookup))
 
                     // Report scan progress with throttling
@@ -383,7 +383,7 @@ internal class LocalPathDelete(
         val lookup = item.cachedLookup
         // Only start tracking if not already started (handles retry case)
         if (progressTracker.currentFileSize == 0L) {
-            progressTracker.startFile(lookup.size)
+            progressTracker.startFile(lookup.size ?: 0L)
         }
 
         try {
@@ -394,7 +394,7 @@ internal class LocalPathDelete(
 
             fileSystemOps.delete(lookup.lookedUp, recursive = false)
             deleted += lookup
-            progressTracker.completeItem(lookup.size)
+            progressTracker.completeItem(lookup.size ?: 0L)
         } catch (e: WriteException) {
             when (e.cause) {
                 is NoSuchFileException -> {
@@ -469,8 +469,8 @@ internal class LocalPathDelete(
                 secondaryProgress = eu.darken.butler.common.progress.Progress.Data(
                     primary = lookup.lookedUp.name.toCaString(),
                     count = eu.darken.butler.common.progress.Progress.Count.Size(
-                        current = lookup.size,
-                        max = lookup.size
+                        current = lookup.size ?: 0L,
+                        max = lookup.size ?: 0L
                     )
                 ),
                 deletedBytes = snapshot.processedBytes,

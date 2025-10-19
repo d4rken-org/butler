@@ -124,12 +124,12 @@ class LocalPathCopyStrategy(
         // Create new symlink at destination
         destOps.createSymlink(destination, newTarget)
 
-        onProgress(sourceLookup.size)
+        onProgress(sourceLookup.size ?: 0L)
 
         return eu.darken.butler.common.files.operations.TransferStrategy.TransferResult.Success(
             source = sourceLookup.lookedUp,
             destination = destination,
-            bytesTransferred = sourceLookup.size
+            bytesTransferred = sourceLookup.size ?: 0L
         )
     }
 
@@ -165,12 +165,12 @@ class LocalPathCopyStrategy(
             copyAttributes(resolvedPath, destination, sourceOps, destOps)
         }
 
-        onProgress(sourceLookup.size)
+        onProgress(sourceLookup.size ?: 0L)
 
         return eu.darken.butler.common.files.operations.TransferStrategy.TransferResult.Success(
             source = sourceLookup.lookedUp,
             destination = destination,
-            bytesTransferred = sourceLookup.size
+            bytesTransferred = sourceLookup.size ?: 0L
         )
     }
 
@@ -223,7 +223,7 @@ class LocalPathCopyStrategy(
             val sourceExtended = sourceOps.lookupExtended(source)
 
             // Set modified time
-            destOps.setModifiedAt(destination, sourceLookup.modifiedAt)
+            sourceLookup.modifiedAt?.let { destOps.setModifiedAt(destination, it) }
 
             // Copy POSIX permissions if available
             sourceExtended.permissions?.let { permissions ->

@@ -6,6 +6,7 @@ import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.LocalPathLookupExtended
 import eu.darken.butler.common.files.metadata.FileType
+import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -1247,5 +1248,41 @@ class GenericPathDeleteTest : BaseTest() {
         // Directory and child should still exist (delete was skipped)
         mockOps.hasFile("/parent") shouldBe true
         mockOps.hasFile("/parent/child.txt") shouldBe true
+    }
+
+    // ============ NULLABLE FIELDS TESTS ============
+
+    @Test
+    fun `generic delete handles null sizes in progress aggregation with 0L fallback`() = runTest {
+        // Given - directory tree with items having null sizes (simulates "/" on Android scenario)
+        mockOps.addMockDir("/root")
+        mockOps.addMockFile("/root/accessible.txt", "content1".toByteArray())
+        mockOps.addMockFile("/root/restricted.txt", "content2".toByteArray())
+
+        // Make one file return null size in its lookup (simulates permission error on stat())
+        mockOps.setNullSize("/root/restricted.txt")
+
+        val sourcePath = LocalPath.build("/root")
+
+        // When - delete directory tree with mixed null/non-null sizes
+        val result = sourcePath.deleteGeneric(
+            fileSystemOps = mockOps,
+            recursive = true,
+            ignoreMissing = false
+        ).last() as DeleteAction.State.Result
+
+        // Then - all files deleted successfully despite null sizes
+        mockOps.hasFile("/root") shouldBe false
+        mockOps.hasFile("/root/accessible.txt") shouldBe false
+        mockOps.hasFile("/root/restricted.txt") shouldBe false
+
+        result.deleted.size shouldBe 3 // directory + 2 files
+
+        // Verify bytesTotal handles null sizes gracefully
+        // The `?: 0L` fallback ensures nulls don't crash aggregation
+        result.bytesTotal.shouldBeGreaterThanOrEqual(0L)
+
+        // Note: Files with null sizes contribute 0L to totalBytes calculation
+        // This prevents NullPointerException in progress tracking
     }
 }

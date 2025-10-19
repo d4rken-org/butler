@@ -97,7 +97,8 @@ class DeleteOperation @AssistedInject constructor(
                                 issue = issue,
                             )
                         )
-                        val resolution = issueHandler.handleIssue(operationContext.id, issue) as PathActionIssue.Resolution
+                        val resolution =
+                            issueHandler.handleIssue(operationContext.id, issue) as PathActionIssue.Resolution
                         emit(stateActive)
                         resolution
                     }
@@ -169,7 +170,10 @@ class DeleteOperation @AssistedInject constructor(
                                         overallEta.toInt(),
                                         overallEta
                                     )
-                                    " • " + ctx.getString(eu.darken.butler.workspace.R.string.workspace_operation_progress_time_remaining, duration)
+                                    " • " + ctx.getString(
+                                        eu.darken.butler.workspace.R.string.workspace_operation_progress_time_remaining,
+                                        duration
+                                    )
                                 } else ""
                                 speedPart + etaPart
                             }
@@ -186,7 +190,10 @@ class DeleteOperation @AssistedInject constructor(
                                 primary = deleteState.target.lookedUp.name.toCaString(),
                                 secondary = caString { ctx ->
                                     val bytesFormatted = Formatter.formatShortFileSize(ctx, deleteState.deletedBytes)
-                                    ctx.getString(eu.darken.butler.workspace.R.string.workspace_operation_progress_bytes_freed, bytesFormatted)
+                                    ctx.getString(
+                                        eu.darken.butler.workspace.R.string.workspace_operation_progress_bytes_freed,
+                                        bytesFormatted
+                                    )
                                 }
                             )
                         } else null
@@ -197,10 +204,11 @@ class DeleteOperation @AssistedInject constructor(
                         )
                         emit(stateActive)
                     }
+
                     is DeleteAction.State.Result<APath<*>, APathLookup<APath<*>>> -> {
                         reportBuilder.setDeletions(deleteState.deleted)
                         reportBuilder.setSkipped(deleteState.skipped)
-                        reportBuilder.setBytesFreed(deleteState.deleted.sumOf { it.size })
+                        reportBuilder.setBytesFreed(deleteState.deleted.mapNotNull { it.size }.sum())
                     }
                 }
             }

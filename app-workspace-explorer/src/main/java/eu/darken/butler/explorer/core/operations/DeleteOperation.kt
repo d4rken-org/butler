@@ -211,7 +211,7 @@ class DeleteOperation @AssistedInject constructor(
                         fileSystemHinter.trackPathsRemoved(operationContext.id, deleted)
                         reportBuilder.setDeletions(deleted)
                         reportBuilder.setSkipped(skipped)
-                        reportBuilder.setBytesFreed(deleted.sumOf { it.size })
+                        reportBuilder.setBytesFreed(deleted.mapNotNull { it.size }.sum())
                     }
                 }
             }

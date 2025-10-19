@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import okio.buffer
 import okio.use
+import kotlin.time.Instant
 
 /**
  * Data source interface for editor content.
@@ -59,8 +60,8 @@ class FileDataSource @AssistedInject constructor(
             fileContent = String(content)
             _fileInfo.value = FileInfo(
                 path = filePath,
-                size = lookup.size,
-                lastModified = lookup.modifiedAt,
+                size = lookup.size ?: 0L,
+                lastModified = lookup.modifiedAt ?: Instant.DISTANT_PAST,
                 canWrite = true // We'll assume writable for now
             )
             

@@ -47,7 +47,7 @@ internal fun DirectoryRow(
                 append(stringResource(R.string.explorer_file_items_count, count))
                 append(" • ")
             }
-            append(formatDate(item.lookup.modifiedAt))
+            append(item.lookup.modifiedAt?.let { formatDate(it) ?: "?" })
             item.permissions?.let { perms ->
                 append(" • ")
                 append(perms.mode)

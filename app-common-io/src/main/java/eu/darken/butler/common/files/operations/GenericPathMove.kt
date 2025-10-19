@@ -246,7 +246,7 @@ internal class GenericPathMove<
         when (lookup.fileType) {
             FileType.FILE, FileType.SYMBOLIC_LINK -> {
                 progressTracker.totalItems++
-                progressTracker.totalBytes += lookup.size
+                progressTracker.totalBytes += lookup.size ?: 0L
                 workQueue.addLast(WorkItem.MoveFile(lookup, destPath, item.topLevelSource))
 
                 // Report scan progress with throttling
@@ -259,7 +259,7 @@ internal class GenericPathMove<
 
             FileType.DIRECTORY -> {
                 progressTracker.totalItems++
-                progressTracker.totalBytes += lookup.size
+                progressTracker.totalBytes += lookup.size ?: 0L
 
                 // Add directory to cleanup queue (post-order)
                 sourceDirectories.addFirst(item.source)
@@ -319,7 +319,7 @@ internal class GenericPathMove<
         // Move file (strategy handles whether it's atomic or copy+delete)
         // Only start tracking if not already started (handles retry case)
         if (progressTracker.currentFileSize == 0L) {
-            progressTracker.startFile(item.sourceLookup.size)
+            progressTracker.startFile(item.sourceLookup.size ?: 0L)
         }
 
         try {

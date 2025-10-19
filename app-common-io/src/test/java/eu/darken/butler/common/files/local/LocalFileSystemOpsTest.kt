@@ -12,8 +12,10 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.longs.shouldBeGreaterThan
+import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkConstructor
@@ -492,7 +494,7 @@ class LocalFileSystemOpsTest : BaseTest() {
         lookup.fileType shouldNotBe FileType.UNKNOWN
         lookup.lookedUp shouldBe path
         // Other fields should have valid data or sentinel values
-        lookup.size shouldBeGreaterThan -1L
+        lookup.size?.shouldBeGreaterThanOrEqual(0L)
     }
 
     // ============ CREATEPARENTS FLAG TESTS ============
@@ -535,5 +537,73 @@ class LocalFileSystemOpsTest : BaseTest() {
         path.file.exists() shouldBe true
         path.file.isFile shouldBe true
         path.file.parentFile?.exists() shouldBe true
+    }
+
+    // ============ NULLABLE FIELDS TESTS ============
+
+    @Test
+    fun `LocalPathLookup can be created with null size and modifiedAt`() = runTest {
+        // Given - a lookup with null size and modifiedAt (simulates "/" on Android)
+        val path = LocalPath.build("/restricted")
+        val lookup = LocalPathLookup(
+            lookedUp = path,
+            fileType = FileType.DIRECTORY,
+            size = null,
+            modifiedAt = null,
+            error = ReadException("Permission denied", path)
+        )
+
+        // Then - lookup object created successfully with null fields
+        lookup.lookedUp shouldBe path
+        lookup.fileType shouldBe FileType.DIRECTORY
+        lookup.size shouldBe null
+        lookup.modifiedAt shouldBe null
+        lookup.error shouldNotBe null
+        lookup.error.shouldBeInstanceOf<ReadException>()
+    }
+
+    @Test
+    fun `LocalPathLookup with null size can be used in operations`() = runTest {
+        // Given - a lookup with null size
+        val path = LocalPath.build("/test")
+        val lookup = LocalPathLookup(
+            lookedUp = path,
+            fileType = FileType.FILE,
+            size = null,  // Null size due to permission error
+            modifiedAt = kotlin.time.Instant.fromEpochMilliseconds(0),
+            error = ReadException("Size unavailable", path)
+        )
+
+        // Then - can safely access size with elvis operator
+        val safeSize = lookup.size ?: 0L
+        safeSize shouldBe 0L
+
+        // And error field is properly typed as Throwable
+        lookup.error.shouldBeInstanceOf<ReadException>()
+        lookup.error?.message shouldBe "Size unavailable <-> /test"
+    }
+
+    @Test
+    fun `LocalPathLookup error field is Throwable not String`() = runTest {
+        // Given - a lookup with an error
+        val path = LocalPath.build("/error-test")
+        val testException = ReadException("Test error", path, SecurityException("Original cause"))
+        val lookup = LocalPathLookup(
+            lookedUp = path,
+            fileType = FileType.FILE,
+            size = null,
+            modifiedAt = null,
+            error = testException
+        )
+
+        // Then - error is a Throwable with full exception details
+        lookup.error shouldNotBe null
+        lookup.error.shouldBeInstanceOf<ReadException>()
+
+        // And we can access cause chain
+        val exception = lookup.error as ReadException
+        exception.message shouldBe "Test error <-> /error-test"
+        exception.cause.shouldBeInstanceOf<SecurityException>()
+        exception.cause?.message shouldBe "Original cause"
     }
 }

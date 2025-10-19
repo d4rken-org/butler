@@ -150,7 +150,7 @@ class DirectoryLocationLoader @AssistedInject constructor(
                 is ExplorerItem.Directory -> directoryCount++
                 is ExplorerItem.File -> {
                     fileCount++
-                    totalSize += item.lookup.size
+                    totalSize += item.lookup.size ?: 0L
                 }
             }
         }

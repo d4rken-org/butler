@@ -32,7 +32,7 @@ interface DeleteAction<P : APath<P>, PL : APathLookup<P>> {
             val skipped: Set<PL>,
         ) : State<P, PL> {
             @Suppress("UNCHECKED_CAST")
-            val bytesTotal: Long get() = (deleted as Set<APathLookup<*>>).sumOf { it.size }
+            val bytesTotal: Long get() = (deleted as Set<APathLookup<*>>).mapNotNull { it.size }.sum()
         }
     }
 }

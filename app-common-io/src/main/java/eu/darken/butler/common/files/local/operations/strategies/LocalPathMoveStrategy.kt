@@ -1,6 +1,7 @@
 package eu.darken.butler.common.files.local.operations.strategies
 
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.FileSystemOps
@@ -32,9 +33,9 @@ import okio.source
 class LocalPathMoveStrategy(
     private val fileSystemOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>
 ) : eu.darken.butler.common.files.operations.TransferStrategy<
-    LocalPath, LocalPathLookup, LocalPathLookupExtended,  // Source types
-    LocalPath, LocalPathLookup, LocalPathLookupExtended   // Destination types
-    > {
+        LocalPath, LocalPathLookup, LocalPathLookupExtended,  // Source types
+        LocalPath, LocalPathLookup, LocalPathLookupExtended   // Destination types
+        > {
 
     override suspend fun transferFile(
         sourceLookup: LocalPathLookup,
@@ -56,12 +57,12 @@ class LocalPathMoveStrategy(
             sourceOps.move(sourceLookup.lookedUp, destination)
             log(TAG, DEBUG) { "Atomic move succeeded: ${sourceLookup.lookedUp} -> $destination" }
 
-            onProgress(sourceLookup.size)
+            onProgress(sourceLookup.size ?: 0L)
 
             return eu.darken.butler.common.files.operations.TransferStrategy.TransferResult.Success(
                 source = sourceLookup.lookedUp,
                 destination = destination,
-                bytesTransferred = sourceLookup.size
+                bytesTransferred = sourceLookup.size ?: 0L
             )
         } catch (e: java.nio.file.AtomicMoveNotSupportedException) {
             log(TAG, DEBUG) { "Atomic move not supported, falling back to copy+delete" }
@@ -131,12 +132,12 @@ class LocalPathMoveStrategy(
         sourceOps.delete(sourceLookup.lookedUp, recursive = false)
         log(TAG, DEBUG) { "Source symlink deleted" }
 
-        onProgress(sourceLookup.size)
+        onProgress(sourceLookup.size ?: 0L)
 
         return eu.darken.butler.common.files.operations.TransferStrategy.TransferResult.Success(
             source = sourceLookup.lookedUp,
             destination = destination,
-            bytesTransferred = sourceLookup.size
+            bytesTransferred = sourceLookup.size ?: 0L
         )
     }
 
@@ -165,7 +166,7 @@ class LocalPathMoveStrategy(
                 LocalPath.build(relativePath.toFile())
             }
             destOps.createSymlink(destination, newTarget)
-            totalBytesTransferred = sourceLookup.size
+            totalBytesTransferred = sourceLookup.size ?: 0L
         } else {
             // Regular file copy with progress tracking
             sourceOps.openInputStream(sourceLookup.lookedUp).source().buffer().use { source ->
@@ -210,7 +211,7 @@ class LocalPathMoveStrategy(
             val sourceExtended = sourceOps.lookupExtended(source)
 
             // Set modified time
-            destOps.setModifiedAt(destination, sourceLookup.modifiedAt)
+            sourceLookup.modifiedAt?.let { destOps.setModifiedAt(destination, it) }
 
             // Copy POSIX permissions if available
             sourceExtended.permissions?.let { permissions ->

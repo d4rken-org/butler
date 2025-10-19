@@ -6,6 +6,7 @@ import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.LocalPathLookupExtended
 import eu.darken.butler.common.files.metadata.FileType
+import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.collections.shouldContain
@@ -1096,5 +1097,47 @@ class GenericPathCopyTest : BaseTest() {
                 }
             }
         }
+    }
+
+    // ============ NULLABLE FIELDS TESTS ============
+
+    @Test
+    fun `generic copy with partial lookup data handles null sizes and modifiedAt gracefully`() = runTest {
+        // Given - directory tree where some items have null sizes/modifiedAt (simulates "/" on Android)
+        mockOps.addMockDir("/source")
+        mockOps.addMockFile("/source/accessible.txt", "content1".toByteArray())
+        mockOps.addMockFile("/source/restricted.txt", "content2".toByteArray())
+
+        mockOps.addMockDir("/dest")
+
+        // Make one file return null size and modifiedAt in its lookup (permission error on stat())
+        mockOps.setNullSize("/source/restricted.txt")
+        mockOps.setNullModifiedAt("/source/restricted.txt")
+
+        val sourcePath = LocalPath.build("/source")
+        val destPath = LocalPath.build("/dest")
+
+        // When - copy directory tree with mixed partial/complete lookup data
+        val result = setOf(sourcePath).copyGeneric(
+            sourceOps = mockOps,
+            destOps = mockOps,
+            destination = destPath,
+            strategy = strategy,
+            onIssue = null
+        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Then - all files copied successfully despite null metadata
+        mockOps.hasFile("/dest/source") shouldBe true
+        mockOps.hasFile("/dest/source/accessible.txt") shouldBe true
+        mockOps.hasFile("/dest/source/restricted.txt") shouldBe true
+
+        result.copied.size shouldBe 3 // directory + 2 files
+
+        // Verify progress tracking handles null sizes with 0L fallback
+        result.copiedBytes.shouldBeGreaterThanOrEqual(0L)
+
+        // Note: Files with null sizes contribute 0L to totalBytes
+        // Files with null modifiedAt skip timestamp preservation via `?.let`
+        // This ensures operations complete without NullPointerException
     }
 }

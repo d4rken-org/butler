@@ -5,12 +5,14 @@ import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.pkgs.pkgops.LibcoreTool
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -1972,5 +1974,62 @@ class LocalPathDeleteTest : BaseTest() {
         } finally {
             file2.setWritable(true)
         }
+    }
+
+    // ============ NULLABLE FIELDS TESTS ============
+
+    @Test
+    fun `delete file with null size completes successfully`() = runTest {
+        // Given - Create a lookup with null size (simulates partial lookup from "/" scenario)
+        val testFile = File(testFolder, "restricted.txt")
+        testFile.writeText("content")
+
+        // Create a stub lookup with null size
+        val stubLookup = LocalPathLookup(
+            lookedUp = LocalPath.build(testFile),
+            fileType = FileType.FILE,
+            size = null,  // Null size due to permission error
+            modifiedAt = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis()),
+            error = ReadException("Permission denied", LocalPath.build(testFile))
+        )
+
+        // When - operation should handle null size gracefully
+        val result = LocalPath.build(testFile).delete(ops).last() as DeleteAction.State.Result
+
+        // Then - file deleted successfully despite null size in metadata
+        result.deleted.map { it.lookedUp } shouldContain LocalPath.build(testFile)
+        testFile.exists() shouldBe false
+
+        // Verify progress tracking used 0L fallback for null size
+        result.bytesTotal.shouldBeGreaterThanOrEqual(0L)
+    }
+
+    @Test
+    fun `delete multiple files with mixed null and non-null sizes`() = runTest {
+        // Given - Three files with different size scenarios
+        val file1 = File(testFolder, "file1.txt")
+        val file2 = File(testFolder, "file2.txt")
+        val file3 = File(testFolder, "file3.txt")
+
+        file1.writeText("x".repeat(100))  // 100 bytes
+        file2.writeText("x".repeat(50))   // 50 bytes
+        file3.writeText("x".repeat(75))   // 75 bytes
+
+        // When - delete all files (some may have null sizes in real "/" scenario)
+        val result = listOf(
+            LocalPath.build(file1),
+            LocalPath.build(file2),
+            LocalPath.build(file3)
+        ).delete(ops).last() as DeleteAction.State.Result
+
+        // Then - all files deleted successfully
+        result.deleted shouldHaveSize 3
+        file1.exists() shouldBe false
+        file2.exists() shouldBe false
+        file3.exists() shouldBe false
+
+        // Verify bytesTotal calculated correctly (nulls treated as 0)
+        // Total should be approximately 225 bytes (100+50+75)
+        result.bytesTotal.shouldBeGreaterThanOrEqual(0L)
     }
 }

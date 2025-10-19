@@ -135,7 +135,7 @@ class MockSAFFileSystemOps : MockFileSystemOps<SAFPath, SAFPathLookup, SAFPathLo
             every { name } returns path.name
             every { isDirectory } returns (mockFile.type == FileType.DIRECTORY)
             every { isFile } returns (mockFile.type == FileType.FILE)
-            every { length } returns mockFile.size
+            every { length } returns (mockFile.size ?: 0L)
             every { lastModified } returns (mockFile.modifiedAt ?: Instant.fromEpochMilliseconds(0))
             every { readable } returns true
             every { writable } returns true

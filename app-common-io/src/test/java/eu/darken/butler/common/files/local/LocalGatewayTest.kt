@@ -73,7 +73,6 @@ class LocalGatewayTest : BaseTest() {
             appScope = testScope,
             dispatcherProvider = dispatcherProvider,
             fileSystemOps = mockFileSystemOps,
-            storageEnvironment = mockStorageEnvironment,
             rootManager = mockRootManager,
             adbManager = mockAdbManager,
             accessibilityChecker = mockAccessibilityChecker

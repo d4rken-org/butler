@@ -65,7 +65,7 @@ import kotlin.time.Instant
  * @param lookupFactory Factory function to create path lookups from mock data
  */
 open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>>(
-    private val lookupFactory: (path: P, type: FileType, size: Long, modifiedAt: Instant?, permissions: Permissions?, ownership: Ownership?) -> PL
+    private val lookupFactory: (path: P, type: FileType, size: Long?, modifiedAt: Instant?, permissions: Permissions?, ownership: Ownership?) -> PL
 ) : FileSystemOps<P, PL, PLE> {
 
     /**
@@ -73,7 +73,7 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
      */
     data class MockFile(
         val type: FileType,
-        val size: Long,
+        var size: Long?,
         val content: ByteArray = ByteArray(0),
         val children: MutableList<String> = mutableListOf(),
         var modifiedAt: Instant? = null,
@@ -674,5 +674,21 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
                 }
             }
         }
+    }
+
+    /**
+     * Set size to null for a specific path (simulates permission errors during stat()).
+     */
+    fun setNullSize(path: String) {
+        val mockFile = files[path] ?: error("Path not found: $path")
+        files[path] = mockFile.copy(size = null)
+    }
+
+    /**
+     * Set modifiedAt to null for a specific path (simulates permission errors during stat()).
+     */
+    fun setNullModifiedAt(path: String) {
+        val mockFile = files[path] ?: error("Path not found: $path")
+        files[path] = mockFile.copy(modifiedAt = null)
     }
 }

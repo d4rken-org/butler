@@ -43,7 +43,7 @@ internal fun RegularFileGrid(
             )
         },
         primaryText = item.displayName.get(LocalContext.current),
-        secondaryText = formatFileSize(item.lookup.size)
+        secondaryText = formatFileSize(item.lookup.size ?: -1L)
     )
 }
 

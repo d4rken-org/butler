@@ -266,7 +266,7 @@ internal class GenericPathCopy<
             FileType.FILE, FileType.SYMBOLIC_LINK -> {
                 // SYMBOLIC_LINK only when followSymlinks=false (otherwise resolved above)
                 progressTracker.totalItems++
-                progressTracker.totalBytes += effectiveLookup.size
+                progressTracker.totalBytes += effectiveLookup.size ?: 0L
                 workQueue.addLast(WorkItem.CopyFile(effectiveLookup, destPath, item.topLevelSource))
 
                 // Report scan progress with throttling
@@ -279,7 +279,7 @@ internal class GenericPathCopy<
 
             FileType.DIRECTORY -> {
                 progressTracker.totalItems++
-                progressTracker.totalBytes += effectiveLookup.size
+                progressTracker.totalBytes += effectiveLookup.size ?: 0L
 
                 // Report scan progress with throttling
                 if (progressTracker.shouldReportProgress()) {
@@ -356,7 +356,7 @@ internal class GenericPathCopy<
         // Copy file - detect conflicts via exception
         // Only start tracking if not already started (handles retry case)
         if (progressTracker.currentFileSize == 0L) {
-            progressTracker.startFile(item.sourceLookup.size)
+            progressTracker.startFile(item.sourceLookup.size ?: 0L)
         }
 
         try {

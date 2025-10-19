@@ -22,7 +22,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -113,18 +112,23 @@ private fun ItemInfoContent(
             is ExplorerDialogState.ItemInfo.InfoContext.SingleFile -> {
                 SingleFileInfo(item = context.item, onCopyToClipboard = onCopyToClipboard)
             }
+
             is ExplorerDialogState.ItemInfo.InfoContext.SingleDirectory -> {
                 SingleDirectoryInfo(item = context.item, onCopyToClipboard = onCopyToClipboard)
             }
+
             is ExplorerDialogState.ItemInfo.InfoContext.SingleSAF -> {
                 SingleSAFInfo(item = context.item, onCopyToClipboard = onCopyToClipboard)
             }
+
             is ExplorerDialogState.ItemInfo.InfoContext.MultipleItems -> {
                 MultipleItemsInfo(context = context)
             }
+
             is ExplorerDialogState.ItemInfo.InfoContext.DeviceView -> {
                 DeviceViewInfo(location = context.location)
             }
+
             is ExplorerDialogState.ItemInfo.InfoContext.HomeView -> {
                 HomeViewInfo(location = context.location)
             }
@@ -159,7 +163,7 @@ private fun SingleFileInfo(
 
         InfoRow(
             label = stringResource(R.string.explorer_info_size_label),
-            value = formatFileSize(item.lookup.size)
+            value = item.lookup.size?.let { formatFileSize(it) } ?: "?"
         )
 
         item.lookup.modifiedAt?.let { modifiedAt ->

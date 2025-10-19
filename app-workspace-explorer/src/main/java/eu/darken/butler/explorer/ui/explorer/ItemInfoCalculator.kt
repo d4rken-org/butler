@@ -21,6 +21,7 @@ class ItemInfoCalculator @Inject constructor() {
                     else -> null
                 }
             }
+
             selectedItems.size > 1 -> {
                 val fileCount = selectedItems.count { it is ExplorerItem.File }
                 val directoryCount = selectedItems.count { it is ExplorerItem.Directory }
@@ -28,7 +29,8 @@ class ItemInfoCalculator @Inject constructor() {
                 // Calculate total size - only for items that have size information
                 val totalSize = selectedItems
                     .filterIsInstance<ExplorerItem.Lookup>()
-                    .sumOf { it.lookup.size }
+                    .mapNotNull { it.lookup.size }
+                    .sum()
 
                 ExplorerDialogState.ItemInfo.InfoContext.MultipleItems(
                     selectedItems = selectedItems,
@@ -37,6 +39,7 @@ class ItemInfoCalculator @Inject constructor() {
                     totalSize = if (totalSize > 0) totalSize else null,
                 )
             }
+
             else -> null
         }
     }

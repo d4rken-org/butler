@@ -1,6 +1,8 @@
 package eu.darken.butler.common.files.saf
 
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
+import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.FileSystemOps
@@ -33,9 +35,9 @@ import eu.darken.butler.common.files.operations.TransferStrategy
  * @see SAFPathCopyStrategy for copy implementation
  */
 class SAFPathMoveStrategy : TransferStrategy<
-    SAFPath, SAFPathLookup, SAFPathLookupExtended,      // Source types
-    SAFPath, SAFPathLookup, SAFPathLookupExtended       // Destination types
-> {
+        SAFPath, SAFPathLookup, SAFPathLookupExtended,      // Source types
+        SAFPath, SAFPathLookup, SAFPathLookupExtended       // Destination types
+        > {
 
     private val copyStrategy = SAFPathCopyStrategy()
 
@@ -54,12 +56,12 @@ class SAFPathMoveStrategy : TransferStrategy<
             sourceOps.move(sourceLookup.lookedUp, destination)
             log(TAG, DEBUG) { "Atomic move succeeded: ${sourceLookup.lookedUp} -> $destination" }
 
-            onProgress(sourceLookup.size)
+            onProgress(sourceLookup.size ?: 0L)
 
             return TransferStrategy.TransferResult.Success(
                 source = sourceLookup.lookedUp,
                 destination = destination,
-                bytesTransferred = sourceLookup.size
+                bytesTransferred = sourceLookup.size ?: 0L
             )
         } catch (e: Exception) {
             log(TAG, DEBUG) { "Atomic move not supported or failed, falling back to copy+delete: ${e.message}" }

@@ -11,8 +11,8 @@ import kotlin.time.Instant
 data class LocalPathLookup(
     override val lookedUp: LocalPath,
     override val fileType: FileType,
-    override val size: Long,
-    override val modifiedAt: Instant,
+    override val size: Long?,
+    override val modifiedAt: Instant?,
     override val target: LocalPath? = null,
-    override val error: String? = null,
+    override val error: Throwable? = null,
 ) : APathLookup<LocalPath>, Parcelable

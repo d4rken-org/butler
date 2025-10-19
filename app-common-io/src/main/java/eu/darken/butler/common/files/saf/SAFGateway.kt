@@ -5,7 +5,10 @@ import android.system.Os
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.Bugs
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -20,7 +23,7 @@ import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
 import eu.darken.butler.common.files.metadata.FileSystem
-import eu.darken.butler.common.files.saf.SAFFileSystemOps.*
+import eu.darken.butler.common.files.saf.SAFFileSystemOps.FileMode
 import eu.darken.butler.common.sharedresource.SharedResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -108,9 +111,9 @@ class SAFGateway @Inject constructor(
             val start = lookup(path)
             log(TAG, VERBOSE) { "du($path) -> $start" }
 
-            if (start.isFile) return@runIO start.size
+            if (start.isFile) return@runIO start.size ?: 0L
 
-            var total = start.size
+            var total = start.size ?: 0L
 
             val queue = LinkedList(listOf(start))
             while (!queue.isEmpty()) {
@@ -124,7 +127,7 @@ class SAFGateway @Inject constructor(
                 }
 
                 newBatch.forEach { child ->
-                    total += child.size
+                    total += child.size ?: 0L
                     if (child.isDirectory) queue.addFirst(child)
                 }
             }

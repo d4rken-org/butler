@@ -151,32 +151,5 @@ class PathOperationProgressTracker(
         val currentFileSize: Long,
         val currentFileBytes: Long,
         val currentFileStartTime: Instant?
-    ) {
-        /**
-         * Calculates the percentage complete based on item count.
-         */
-        fun itemPercentage(): Float {
-            return if (totalItems > 0) {
-                (itemsProcessed.toFloat() / totalItems.toFloat()) * 100f
-            } else 0f
-        }
-
-        /**
-         * Calculates the percentage complete based on bytes.
-         */
-        fun bytePercentage(): Float {
-            return if (totalBytes > 0) {
-                (processedBytes.toFloat() / totalBytes.toFloat()) * 100f
-            } else 0f
-        }
-
-        /**
-         * Calculates the current file's percentage complete.
-         */
-        fun currentFilePercentage(): Float {
-            return if (currentFileSize > 0) {
-                (currentFileBytes.toFloat() / currentFileSize.toFloat()) * 100f
-            } else 0f
-        }
-    }
+    )
 }

@@ -155,7 +155,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
             FileType.SYMBOLIC_LINK, FileType.FILE -> {
                 // Files: defer deletion until scan completes (using addFirst for post-order)
                 progressTracker.totalItems++
-                progressTracker.totalBytes += lookup.size
+                progressTracker.totalBytes += lookup.size ?: 0L
                 deferredDeletions.addFirst(WorkItem.DeletePath(lookup))
 
                 // Report scan progress with throttling
@@ -170,7 +170,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
                 if (!recursive) {
                     // Non-recursive: defer directory deletion (will fail if not empty)
                     progressTracker.totalItems++
-                    progressTracker.totalBytes += lookup.size
+                    progressTracker.totalBytes += lookup.size ?: 0L
                     deferredDeletions.addFirst(WorkItem.DeletePath(lookup))
 
                     // Report scan progress with throttling
@@ -197,7 +197,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
 
                     // After successfully scanning children, defer directory deletion (post-order)
                     progressTracker.totalItems++
-                    progressTracker.totalBytes += lookup.size
+                    progressTracker.totalBytes += lookup.size ?: 0L
                     deferredDeletions.addFirst(WorkItem.DeletePath(lookup))
 
                     // Report scan progress with throttling
@@ -223,7 +223,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
 
         // Only start tracking if not already started (handles retry case)
         if (progressTracker.currentFileSize == 0L) {
-            progressTracker.startFile(lookup.size)
+            progressTracker.startFile(lookup.size ?: 0L)
         }
 
         try {
@@ -236,19 +236,19 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
             if (!deleteResult && ignoreMissing) {
                 // File might have been deleted between scan and delete phases
                 log(TAG, VERBOSE) { "File not found during delete (ignoreMissing=true): ${item.path}" }
-                progressTracker.completeItem(lookup.size)
+                progressTracker.completeItem(lookup.size ?: 0L)
                 return
             }
 
             deleted += lookup
-            progressTracker.completeItem(lookup.size)
+            progressTracker.completeItem(lookup.size ?: 0L)
 
         } catch (e: Exception) {
             // Handle case where file was deleted between scan and delete phases
             if (ignoreMissing && (e is java.io.FileNotFoundException ||
                 e.cause is java.io.FileNotFoundException)) {
                 log(TAG, VERBOSE) { "File already deleted (ignoreMissing=true): ${item.path}" }
-                progressTracker.completeItem(lookup.size)
+                progressTracker.completeItem(lookup.size ?: 0L)
                 return
             }
             handleDeleteError(e, item)
@@ -283,7 +283,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
             onSkip = {
                 // When skipped, add to progress tracking and skipped set
                 progressTracker.totalItems++
-                progressTracker.totalBytes += lookup.size
+                progressTracker.totalBytes += lookup.size ?: 0L
                 skipped.add(it)
             },
             onRetry = {
@@ -336,8 +336,8 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
                 secondaryProgress = eu.darken.butler.common.progress.Progress.Data(
                     primary = lookup.lookedUp.name.toCaString(),
                     count = eu.darken.butler.common.progress.Progress.Count.Size(
-                        current = lookup.size,
-                        max = lookup.size
+                        current = lookup.size ?: 0L,
+                        max = lookup.size ?: 0L
                     )
                 ),
                 deletedBytes = snapshot.processedBytes,
