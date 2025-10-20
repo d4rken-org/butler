@@ -135,6 +135,7 @@ class DirectoryLocationLoader @AssistedInject constructor(
             targetPath,
             LookupOptions(
                 continueOnError = true,
+                fallbackToUnknown = true,
                 fetchSize = true,
                 fetchModifiedAt = true
             ),
@@ -187,6 +188,7 @@ class DirectoryLocationLoader @AssistedInject constructor(
             targetPath,
             LookupOptions(
                 continueOnError = true,
+                fallbackToUnknown = true,
                 fetchCreatedAt = true,
                 fetchOwnership = true,
                 fetchPermissions = true

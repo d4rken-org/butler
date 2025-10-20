@@ -13,6 +13,7 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class LookupOptions(
     val continueOnError: Boolean = false,
+    val fallbackToUnknown: Boolean = false,
     val fetchSize: Boolean = false,
     val fetchModifiedAt: Boolean = false,
     val fetchOwnership: Boolean = false,

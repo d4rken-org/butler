@@ -8,29 +8,6 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 
-@Suppress("FunctionName")
-fun File(vararg crumbs: String): File {
-    var compacter = File(crumbs[0])
-    for (i in 1 until crumbs.size) {
-        compacter = File(compacter, crumbs[i])
-    }
-    return compacter
-}
-
-fun File.requireExists(): File {
-    if (!exists()) {
-        throw IllegalStateException("Path doesn't exist, but should: $this")
-    }
-    return this
-}
-
-fun File.requireNotExists(): File {
-    if (exists()) {
-        throw IllegalStateException("Path exist, but shouldn't: $this")
-    }
-    return this
-}
-
 fun File.tryMkDirs(): File {
     if (exists()) {
         if (isDirectory) {
@@ -80,23 +57,6 @@ fun File.deleteAll() {
         log(WARN) { "File.release(): File didn't exist: $this" }
     } else {
         throw FileNotFoundException("Failed to delete file: $this")
-    }
-}
-
-fun File.isSymbolicLink(): Boolean {
-    return try {
-        // Try NIO first as it's more reliable on newer Android versions
-        java.nio.file.Files.isSymbolicLink(this.toPath())
-    } catch (e: Exception) {
-        log(WARN) { "File.isSymbolicLink() failed: $e" }
-        // Fallback to Os.lstat() which works even for broken symlinks and doesn't require following the link
-        try {
-            val stat = Os.lstat(this.path)
-            OsConstants.S_ISLNK(stat.st_mode)
-        } catch (e2: Exception) {
-            log(WARN) { "File.isSymbolicLink() failed: $e2" }
-            false
-        }
     }
 }
 

@@ -2,6 +2,7 @@ package eu.darken.butler.common.files.local
 
 import android.os.StatFs
 import android.system.Os
+import android.system.OsConstants
 import android.system.StructStat
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
@@ -68,15 +69,58 @@ class LocalFileSystemOps @Inject constructor(
 ) : FileSystemOps<LocalPath, LocalPathLookup> {
 
     override suspend fun lookup(path: LocalPath, options: LookupOptions): LocalPathLookup = try {
-        // In cases like reading "/" we can still get the file type for restricted items
-        val fileType: FileType =
-            path.file.getAPathFileType() ?: throw ReadException("Does not exist or can't be read", path)
+        val javaFile = path.toFile()
+        val nioPath = path.toNioPath()
 
-        var size: Long? = null
-        var modifiedAt: Instant? = null
-        var target: LocalPath? = null
         val errors = mutableListOf<String>()
 
+        val fstat: StructStat? by lazy {
+            try {
+                Os.lstat(path.file.path)
+            } catch (e: Exception) {
+                log(TAG, WARN) { "fstat failed on $path: $e" }
+                null
+            }
+        }
+
+        val fileType: FileType = when {
+            // Order matters!
+            try {
+                Files.isSymbolicLink(nioPath)
+            } catch (e: Exception) {
+                log(TAG, WARN) { "Failed to check 'isSymbolicLink' on $this: $e" }
+                fstat?.let { OsConstants.S_ISLNK(it.st_mode) } ?: false
+            } -> FileType.SYMBOLIC_LINK
+
+            try {
+                javaFile.isDirectory
+            } catch (e: Exception) {
+                log(TAG, WARN) { "Failed to check 'isDirectory' on $this: $e" }
+                false
+            } -> FileType.DIRECTORY
+
+            try {
+                javaFile.isFile
+            } catch (e: Exception) {
+                log(TAG, WARN) { "Failed to check 'isFile' on $this: $e" }
+                false
+            } -> FileType.FILE
+
+            try {
+                javaFile.exists()
+            } catch (e: Exception) {
+                log(TAG, WARN) { "Failed to check 'exists' on $this: $e" }
+                false
+            } -> FileType.UNKNOWN
+
+            options.fallbackToUnknown -> {
+                FileType.UNKNOWN
+            }
+
+            else -> throw ReadException("Does not exist or can't be read :(", path)
+        }
+
+        var size: Long? = null
         if (options.fetchSize) {
             try {
                 size = path.file.length()
@@ -84,6 +128,8 @@ class LocalFileSystemOps @Inject constructor(
                 errors.add("Size: ${e.message}")
             }
         }
+
+        var modifiedAt: Instant? = null
         if (options.fetchModifiedAt) {
             try {
                 modifiedAt = Instant.fromEpochMilliseconds(path.file.lastModified())
@@ -92,6 +138,7 @@ class LocalFileSystemOps @Inject constructor(
             }
         }
 
+        var target: LocalPath? = null
         if (fileType == FileType.SYMBOLIC_LINK) {
             try {
                 target = path.file.readLink()?.let { LocalPath.build(it) }
@@ -100,51 +147,33 @@ class LocalFileSystemOps @Inject constructor(
             }
         }
 
-        // Conditionally fetch extended metadata based on options
         var ownership: Ownership? = null
-        var permissions: Permissions? = null
-        var createdAt: Instant? = null
+        if (options.fetchOwnership && fstat != null) {
+            val uid = fstat!!.st_uid
+            val gid = fstat!!.st_gid
 
-        // Fetch fstat if we need ownership or permissions (single syscall for both)
-        if (options.fetchOwnership || options.fetchPermissions) {
-            val fstat: StructStat? = try {
-                Os.lstat(path.file.path)
-            } catch (e: Exception) {
-                log(LocalGateway.TAG, WARN) { "fstat failed on $path: $e" }
-                null
-            }
+            val userName: String? = libcoreTool.getNameForUid(uid)
+            val groupName: String? = libcoreTool.getNameForGid(gid)
 
-            if (fstat != null) {
-                if (options.fetchOwnership) {
-                    val uid = fstat.st_uid
-                    val gid = fstat.st_gid
-
-                    val userName: String? = libcoreTool.getNameForUid(uid)
-                    val groupName: String? = libcoreTool.getNameForGid(gid)
-
-                    ownership = Ownership(
-                        userId = uid,
-                        groupId = gid,
-                        userName = userName,
-                        groupName = groupName
-                    )
-                }
-
-                if (options.fetchPermissions) {
-                    permissions = Permissions(mode = fstat.st_mode)
-                }
-            }
+            ownership = Ownership(
+                userId = uid,
+                groupId = gid,
+                userName = userName,
+                groupName = groupName
+            )
         }
 
-        // Fetch creation time if requested (separate syscall)
+        var permissions: Permissions? = null
+        if (options.fetchPermissions && fstat != null) {
+            permissions = Permissions(mode = fstat!!.st_mode)
+        }
+
+        var createdAt: Instant? = null
         if (options.fetchCreatedAt) {
             val basicAttributes = try {
-                Files.readAttributes(
-                    path.toNioPath(),
-                    BasicFileAttributes::class.java
-                )
+                Files.readAttributes(path.toNioPath(), BasicFileAttributes::class.java)
             } catch (e: Exception) {
-                log(LocalGateway.TAG, WARN) { "BasicFileAttributes failed on $path: ${e.asLog()}" }
+                log(TAG, WARN) { "BasicFileAttributes failed on $path: ${e.asLog()}" }
                 null
             }
 
@@ -259,33 +288,29 @@ class LocalFileSystemOps @Inject constructor(
         }
     }
 
-    override suspend fun openInputStream(path: LocalPath): InputStream {
-        return try {
-            Files.newInputStream(path.toNioPath())
-        } catch (e: IOException) {
-            throw ReadException(path = path, cause = e)
-        }
+    override suspend fun openInputStream(path: LocalPath): InputStream = try {
+        Files.newInputStream(path.toNioPath())
+    } catch (e: IOException) {
+        throw ReadException(path = path, cause = e)
     }
 
-    override suspend fun openOutputStream(path: LocalPath, append: Boolean): OutputStream {
-        return try {
-            if (append) {
-                Files.newOutputStream(
-                    path.toNioPath(),
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.APPEND
-                )
-            } else {
-                Files.newOutputStream(
-                    path.toNioPath(),
-                    StandardOpenOption.CREATE_NEW
-                )
-            }
-        } catch (e: FileAlreadyExistsException) {
-            throw PathAlreadyExistsException(path = path, cause = e)
-        } catch (e: IOException) {
-            throw WriteException(path = path, cause = e)
+    override suspend fun openOutputStream(path: LocalPath, append: Boolean): OutputStream = try {
+        if (append) {
+            Files.newOutputStream(
+                path.toNioPath(),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.APPEND
+            )
+        } else {
+            Files.newOutputStream(
+                path.toNioPath(),
+                StandardOpenOption.CREATE_NEW
+            )
         }
+    } catch (e: FileAlreadyExistsException) {
+        throw PathAlreadyExistsException(path = path, cause = e)
+    } catch (e: IOException) {
+        throw WriteException(path = path, cause = e)
     }
 
     override suspend fun setModifiedAt(path: LocalPath, modifiedAt: Instant): Boolean {
@@ -296,36 +321,34 @@ class LocalFileSystemOps @Inject constructor(
         }
     }
 
-    override suspend fun setPermissions(path: LocalPath, permissions: Permissions): Boolean {
-        return try {
-            path.file.setPermissions(permissions)
-        } catch (e: Exception) {
-            false
-        }
+    override suspend fun setPermissions(path: LocalPath, permissions: Permissions): Boolean = try {
+        Os.chmod(path.path, permissions.mode)
+        true
+    } catch (e: Exception) {
+        log(TAG, VERBOSE) { "setPermissions $permissions failed on $path: $e" }
+        false
     }
 
-    override suspend fun setOwnership(path: LocalPath, ownership: Ownership): Boolean {
-        return try {
-            path.file.setOwnership(ownership)
-        } catch (e: Exception) {
-            false
-        }
+    override suspend fun setOwnership(path: LocalPath, ownership: Ownership): Boolean = try {
+        Os.lchown(path.path, ownership.userId.toInt(), ownership.groupId.toInt())
+        true
+    } catch (e: Exception) {
+        log(TAG, VERBOSE) { "setOwnership $ownership failed on $path: $e" }
+        false
     }
 
-    override suspend fun createSymlink(linkPath: LocalPath, targetPath: LocalPath): Boolean {
-        return try {
-            // targetPath can be absolute or relative
-            // If relative, it will be resolved relative to linkPath's parent
-            val linkNioPath = linkPath.toNioPath()
-            val targetNioPath = targetPath.toNioPath()
+    override suspend fun createSymlink(linkPath: LocalPath, targetPath: LocalPath): Boolean = try {
+        // targetPath can be absolute or relative
+        // If relative, it will be resolved relative to linkPath's parent
+        val linkNioPath = linkPath.toNioPath()
+        val targetNioPath = targetPath.toNioPath()
 
-            Files.createSymbolicLink(linkNioPath, targetNioPath)
-            true
-        } catch (e: FileAlreadyExistsException) {
-            throw PathAlreadyExistsException(message = "Symlink already exists", path = linkPath, cause = e)
-        } catch (e: IOException) {
-            throw WriteException(path = linkPath, cause = e)
-        }
+        Files.createSymbolicLink(linkNioPath, targetNioPath)
+        true
+    } catch (e: FileAlreadyExistsException) {
+        throw PathAlreadyExistsException(message = "Symlink already exists", path = linkPath, cause = e)
+    } catch (e: IOException) {
+        throw WriteException(path = linkPath, cause = e)
     }
 
     override suspend fun readSymbolicLink(linkPath: LocalPath): LocalPath = try {

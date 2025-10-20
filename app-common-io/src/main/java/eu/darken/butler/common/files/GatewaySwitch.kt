@@ -66,7 +66,6 @@ class GatewaySwitch @Inject constructor(
                 localGateway.also { adoptChildResource(it) }
             }
 
-            else -> throw IllegalArgumentException("Can't map $path to gateway")
         }
         return gateway
     }
@@ -231,13 +230,11 @@ class GatewaySwitch @Inject constructor(
         Type.FORCED_LOCAL -> when (this) {
             is LocalPath -> this
             is SAFPath -> mapper.toLocalPath(this) ?: throw IOException("Can't map $this to LOCAL")
-            else -> throw IllegalArgumentException("Can't map $this to $type")
         }
 
         Type.FORCED_SAF -> when (this) {
             is LocalPath -> mapper.toSAFPath(this) ?: throw IOException("Can't map $this to SAF")
             is SAFPath -> this
-            else -> throw IllegalArgumentException("Can't map $this to $type")
         }
     }
 
