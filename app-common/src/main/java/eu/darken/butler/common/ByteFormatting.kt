@@ -8,34 +8,48 @@ import java.text.DecimalFormatSymbols
 import java.util.Locale
 import kotlin.math.roundToInt
 
-    fun stripSizeUnit(formattedSize: String): Double? {
-        val ds = DecimalFormatSymbols(Locale.getDefault()).decimalSeparator
-        val match = Regex("^(\\d+(?:$ds\\d+)?)\\s*?.+\$").matchEntire(formattedSize) ?: return null
-        val (value) = match.destructured
-        return value.toDoubleOrNull()
-    }
+fun stripSizeUnit(formattedSize: String): Double? {
+    val ds = DecimalFormatSymbols(Locale.getDefault()).decimalSeparator
+    val match = Regex("^(\\d+(?:$ds\\d+)?)\\s*?.+\$").matchEntire(formattedSize) ?: return null
+    val (value) = match.destructured
+    return value.toDoubleOrNull()
+}
 
-    fun formatSizeWithUnit(
-        context: Context,
-        size: Long,
-        shortFormat: Boolean = true,
-    ): Pair<String, Int> {
-        val formatted = formatFileSize(context, size, shortFormat)
-        val quantity = stripSizeUnit(formatted)?.roundToInt() ?: size.toInt()
-        return formatted to quantity
-    }
+fun formatSizeWithUnit(
+    context: Context,
+    size: Long,
+    shortFormat: Boolean = true,
+): Pair<String, Int> {
+    val formatted = formatFileSize(context, size, shortFormat)
+    val quantity = stripSizeUnit(formatted)?.roundToInt() ?: size.toInt()
+    return formatted to quantity
+}
 
-    fun formatFileSize(
-        context: Context,
-        bytes: Long,
-        shortFormat: Boolean = true,
-    ): String = if (shortFormat) {
-        Formatter.formatShortFileSize(context, bytes)
-    } else {
-        Formatter.formatFileSize(context, bytes)
-    }
+fun formatFileSize(
+    context: Context,
+    bytes: Long,
+    shortFormat: Boolean = true,
+): String = if (shortFormat) {
+    Formatter.formatShortFileSize(context, bytes)
+} else {
+    Formatter.formatFileSize(context, bytes)
+}
 
-    @Composable
-    fun formatFileSize(bytes: Long, shortFormat: Boolean = true): String {
-        return formatFileSize(context = LocalContext.current, bytes = bytes, shortFormat = shortFormat)
-    }
+@Composable
+fun formatFileSize(bytes: Long, shortFormat: Boolean = true): String {
+    return formatFileSize(context = LocalContext.current, bytes = bytes, shortFormat = shortFormat)
+}
+
+fun formatSpeed(
+    context: Context,
+    bytesPerSecond: Long,
+    shortFormat: Boolean = true,
+): String {
+    val sizeFormatted = formatFileSize(context, bytesPerSecond, shortFormat)
+    return context.getString(R.string.general_speed_per_second_label, sizeFormatted)
+}
+
+@Composable
+fun formatSpeed(bytesPerSecond: Long, shortFormat: Boolean = true): String {
+    return formatSpeed(context = LocalContext.current, bytesPerSecond = bytesPerSecond, shortFormat = shortFormat)
+}

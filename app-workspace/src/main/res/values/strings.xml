@@ -85,6 +85,7 @@
     <string name="operations_details_path_added_marker">A</string>
     <string name="operations_details_path_removed_marker">D</string>
     <string name="operations_details_path_modified_marker">M</string>
+    <string name="workspace_operations_performance_graph_label">Performance graph</string>
 
     <!-- Delete Confirmation Dialog -->
     <string name="workspace_dialog_delete_title_single">Delete item?</string>
@@ -138,4 +139,8 @@
     <string name="workspace_operation_progress_bytes_speed_freed">%1$s/s freed.</string>
     <string name="workspace_operation_progress_bytes_freed">%1$s freed.</string>
     <string name="workspace_operation_progress_time_remaining">%1$s remaining.</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_not_enough_data">Not enough data</string>
+    <string name="workspace_operation_performance_speed_label">Speed: %1$s</string>
 </resources>
