@@ -87,9 +87,9 @@ sealed interface ExplorerItem {
         override val childCount: Int? = null
     ) : Directory {
         override fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?) = copy(
-            ownership = ownership,
-            permissions = permissions,
-            createdAt = createdAt
+            ownership = ownership ?: this.ownership,
+            permissions = permissions ?: this.permissions,
+            createdAt = createdAt ?: this.createdAt,
         )
     }
 
@@ -101,9 +101,9 @@ sealed interface ExplorerItem {
         override val createdAt: Instant? = null,
     ) : File {
         override fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?) = copy(
-            ownership = ownership,
-            permissions = permissions,
-            createdAt = createdAt
+            ownership = ownership ?: this.ownership,
+            permissions = permissions ?: this.permissions,
+            createdAt = createdAt ?: this.createdAt,
         )
     }
 
@@ -117,9 +117,9 @@ sealed interface ExplorerItem {
         val isBroken: Boolean = false
     ) : File {
         override fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?) = copy(
-            ownership = ownership,
-            permissions = permissions,
-            createdAt = createdAt
+            ownership = ownership ?: this.ownership,
+            permissions = permissions ?: this.permissions,
+            createdAt = createdAt ?: this.createdAt,
         )
     }
 }

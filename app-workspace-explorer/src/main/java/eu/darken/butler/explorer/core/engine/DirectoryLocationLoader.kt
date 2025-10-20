@@ -131,7 +131,14 @@ class DirectoryLocationLoader @AssistedInject constructor(
         log(tag) { "loadContent(): Loading content: $targetPath" }
         updateProgressMsg(R.string.explorer_loader_progress_directory_content_details)
 
-        val basicLookups = gatewaySwitch.lookupFiles(targetPath)
+        val basicLookups = gatewaySwitch.lookupFiles(
+            targetPath,
+            LookupOptions(
+                continueOnError = true,
+                fetchSize = true,
+                fetchModifiedAt = true
+            ),
+        )
         log(tag) { "loadContent(): ${basicLookups.size} lookups" }
 
         val fileClassifier = FileTypeClassifier()
@@ -176,21 +183,25 @@ class DirectoryLocationLoader @AssistedInject constructor(
         log(tag) { "loadContentExtended(): Loading content extended: $targetPath" }
         updateProgressMsg(R.string.explorer_loader_progress_directory_content_extended)
 
-        val extendedLookups = gatewaySwitch.lookupFiles(targetPath, LookupOptions.EXTENDED).associateBy { it.path }
+        val extendedLookups = gatewaySwitch.lookupFiles(
+            targetPath,
+            LookupOptions(
+                continueOnError = true,
+                fetchCreatedAt = true,
+                fetchOwnership = true,
+                fetchPermissions = true
+            ),
+        ).associateBy { it.path }
         val fileClassifier = FileTypeClassifier()
 
         val items = state.items!!.map { item ->
-            val extendedLookup = extendedLookups[item.path.path]
-            if (extendedLookup != null) {
-                val basicItem = fileClassifier.classify(extendedLookup)
-                basicItem.withExtendedData(
-                    ownership = extendedLookup.ownership,
-                    permissions = extendedLookup.permissions,
-                    createdAt = extendedLookup.createdAt,
-                )
-            } else {
-                item
-            }
+            val extendedLookup = extendedLookups[item.path.path] ?: return@map item
+
+            fileClassifier.classify(extendedLookup).withExtendedData(
+                ownership = extendedLookup.ownership,
+                permissions = extendedLookup.permissions,
+                createdAt = extendedLookup.createdAt,
+            )
         }
 
         updateState { copy(items = items) }

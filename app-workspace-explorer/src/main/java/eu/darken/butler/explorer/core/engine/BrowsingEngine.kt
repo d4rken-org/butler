@@ -9,6 +9,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.explorer.core.BreadcrumbGenerator
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -147,10 +148,8 @@ class BrowsingEngine @AssistedInject constructor(
                     log(tag) { "applyIncrementalUpdate(): Event doesn't affect current directory" }
                     return current
                 }
-
                 log(tag) { "applyIncrementalUpdate(): Adding ${affectedPaths.size} paths" }
-                val newLookups = affectedPaths.map { gatewaySwitch.lookup(it.lookedUp) }
-                val newItems = directoryLoader.classifyLookups(newLookups)
+                val newItems = directoryLoader.classifyLookups(affectedPaths)
                 current.copy(items = (currentItems + newItems).distinctBy { it.path.path })
             }
             is FileSystemEvent.Removed -> {
@@ -174,9 +173,7 @@ class BrowsingEngine @AssistedInject constructor(
                 }
 
                 log(tag) { "applyIncrementalUpdate(): Modifying ${affectedPaths.size} paths" }
-                val updatedLookups = affectedPaths
-                    .map { gatewaySwitch.lookup(it.lookedUp) }
-                val updatedItems = directoryLoader.classifyLookups(updatedLookups).associateBy { it.path.path }
+                val updatedItems = directoryLoader.classifyLookups(affectedPaths).associateBy { it.path.path }
                 current.copy(items = currentItems.map { item ->
                     updatedItems[item.path.path] ?: item
                 })

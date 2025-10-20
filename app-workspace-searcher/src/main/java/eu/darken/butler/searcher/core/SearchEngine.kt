@@ -8,6 +8,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.LookupOptions
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -87,7 +88,7 @@ class SearchEngine @Inject constructor(
                         )
 
                         delay(3000)
-                        typedGateway.walk(searchPath, walkOptions)
+                        typedGateway.walk(searchPath, LookupOptions.MAX, walkOptions)
                             .cancellable()
                             .mapNotNull { lookup ->
                                 if (matchesSearch(lookup, searchQuery)) {
