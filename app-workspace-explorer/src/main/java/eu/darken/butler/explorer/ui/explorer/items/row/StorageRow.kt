@@ -69,7 +69,11 @@ fun StorageRow(
                 totalBytes != null && availableBytes != null -> {
                     val total = eu.darken.butler.common.formatFileSize(context, totalBytes)
                     val free = eu.darken.butler.common.formatFileSize(context, availableBytes)
-                    "$total • $free ${stringResource(R.string.explorer_info_device_storage_free_label).lowercase()}"
+                    val typeLabel = when (item) {
+                        is ExplorerItem.Storage.Local -> stringResource(R.string.explorer_file_storage_local_label)
+                        is ExplorerItem.Storage.SAF -> stringResource(R.string.explorer_file_storage_saf_label)
+                    }
+                    stringResource(R.string.explorer_file_storage_size_format, typeLabel, total, free)
                 }
                 item is ExplorerItem.Storage.SAF -> stringResource(R.string.explorer_file_storage_saf_label)
                 item is ExplorerItem.Storage.Local -> stringResource(R.string.explorer_file_storage_local_label)

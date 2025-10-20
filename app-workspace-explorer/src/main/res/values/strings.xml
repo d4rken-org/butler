@@ -22,11 +22,12 @@
 
     <!-- File Row UI Strings -->
     <string name="explorer_file_shortcut_label">Shortcut</string>
-    <string name="explorer_file_storage_local_label">Local storage</string>
-    <string name="explorer_file_storage_saf_label">Storage Access Framework</string>
+    <string name="explorer_file_storage_local_label">Local</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
     <string name="explorer_file_storage_saf_read_only_label">Read-only access</string>
     <string name="explorer_file_storage_saf_write_only_label">Write-only access</string>
     <string name="explorer_file_storage_saf_no_access_label">No access</string>
+    <string name="explorer_file_storage_size_format">%1$s • %2$s total • %3$s free</string>
     <string name="explorer_file_broken_link_label">Broken link</string>
     <string name="explorer_file_items_count">%1$d items</string>
     <string name="explorer_file_pages_count">%1$d pages</string>

@@ -99,7 +99,11 @@ fun StorageGrid(
                     val context = LocalContext.current
                     val total = eu.darken.butler.common.formatFileSize(context, totalBytes, shortFormat = true)
                     val free = eu.darken.butler.common.formatFileSize(context, availableBytes, shortFormat = true)
-                    "$total • $free free"
+                    val typeLabel = when (item) {
+                        is ExplorerItem.Storage.Local -> stringResource(R.string.explorer_file_storage_local_label)
+                        is ExplorerItem.Storage.SAF -> stringResource(R.string.explorer_file_storage_saf_label)
+                    }
+                    stringResource(R.string.explorer_file_storage_size_format, typeLabel, total, free)
                 }
                 else -> null
             }
