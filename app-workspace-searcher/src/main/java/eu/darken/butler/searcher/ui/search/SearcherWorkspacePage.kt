@@ -450,7 +450,10 @@ fun SearcherWorkspacePage(
         SearcherDialogHost(
             dialogState = currentState.dialogState,
             onDismiss = { vm?.dismissDialog() },
-            onDeleteConfirmed = { vm?.onDeleteConfirmed(it) }
+            onDeleteConfirmed = { vm?.onDeleteConfirmed(it) },
+            onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
+            onNavigateToClipboardSource = { clip -> vm?.navigateToClipboardSource(clip) },
+            onRemoveClipboardEntry = { clip -> vm?.removeClipboardEntry(clip) },
         )
 
         // Operation dialog host

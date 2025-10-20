@@ -5,6 +5,8 @@ import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.workspace.ui.clipboard.details.ClipboardInfoBottomSheet
 import eu.darken.butler.workspace.ui.dialogs.DeleteConfirmationDialog
+import eu.darken.butler.workspace.ui.dialogs.FileInfoBottomSheet
+import eu.darken.butler.workspace.ui.dialogs.MultipleItemsInfoBottomSheet
 
 @Composable
 fun ExplorerDialogHost(
@@ -104,11 +106,52 @@ fun ExplorerDialogHost(
         }
 
         is ExplorerDialogState.ItemInfo -> {
-            ItemInfoBottomSheet(
-                context = dialogState.context,
-                onDismiss = { vm?.dismissDialog() },
-                onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) }
-            )
+            when (val context = dialogState.context) {
+                is ExplorerDialogState.ItemInfo.InfoContext.SingleFile -> {
+                    // Use shared component for single files
+                    FileInfoBottomSheet(
+                        lookup = context.item.lookup,
+                        onDismiss = { vm?.dismissDialog() },
+                        onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
+                        ownership = context.item.ownership,
+                        permissions = context.item.permissions,
+                        createdAt = context.item.createdAt,
+                        mimeInfo = context.item.mimeType,
+                    )
+                }
+                is ExplorerDialogState.ItemInfo.InfoContext.SingleDirectory -> {
+                    // Use shared component for single directories
+                    FileInfoBottomSheet(
+                        lookup = context.item.lookup,
+                        onDismiss = { vm?.dismissDialog() },
+                        onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
+                        ownership = context.item.ownership,
+                        permissions = context.item.permissions,
+                        createdAt = context.item.createdAt,
+                        childCount = context.item.childCount,
+                    )
+                }
+                is ExplorerDialogState.ItemInfo.InfoContext.MultipleItems -> {
+                    // Use shared component for multiple items
+                    MultipleItemsInfoBottomSheet(
+                        totalCount = context.selectedItems.size,
+                        fileCount = context.fileCount,
+                        directoryCount = context.directoryCount,
+                        totalSize = context.totalSize,
+                        onDismiss = { vm?.dismissDialog() },
+                    )
+                }
+                // Keep Explorer-specific contexts with original ItemInfoBottomSheet
+                is ExplorerDialogState.ItemInfo.InfoContext.SingleSAF,
+                is ExplorerDialogState.ItemInfo.InfoContext.DeviceView,
+                is ExplorerDialogState.ItemInfo.InfoContext.HomeView -> {
+                    ItemInfoBottomSheet(
+                        context = context,
+                        onDismiss = { vm?.dismissDialog() },
+                        onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) }
+                    )
+                }
+            }
         }
     }
 }

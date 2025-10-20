@@ -615,8 +615,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 systemClipboardHelper.copyToClipboard(action.result.path.path)
             }
             is SearcherAction.Properties -> {
-                // TODO: Implement file properties dialog
-                log(TAG, WARN) { "Properties action not yet implemented" }
+                showFileProperties(action.result)
             }
             is SearcherAction.SelectAll -> selectAll()
             is SearcherAction.DeselectAll -> deselectAll()
@@ -816,6 +815,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     fun removeClipboardEntry(clip: ClipboardClip) = launch {
         log(TAG) { "removeClipboardEntry($clip)" }
         clipboardRepo.remove(clip.id)
+        dismissDialog()
     }
 
     fun clearAllClipboard() = launch {
@@ -823,9 +823,42 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         clipboardRepo.clear()
     }
 
+    fun showFileProperties(result: SearchResult) {
+        log(TAG) { "showFileProperties(${result.name})" }
+        dialogStateFlow.value = SearcherDialogState.FileInfo(result)
+    }
+
     fun showClipboardInfo(clip: ClipboardClip) {
         log(TAG) { "showClipboardInfo($clip)" }
-        // TODO: Implement clipboard info dialog for searcher
+        dialogStateFlow.value = SearcherDialogState.ClipboardInfo(clip)
+    }
+
+    fun navigateToClipboardSource(clip: ClipboardClip) = launch {
+        log(TAG) { "navigateToClipboardSource($clip)" }
+        dismissDialog()
+
+        when (clip) {
+            is ClipboardClip.Paths -> {
+                if (clip.paths.isNotEmpty()) {
+                    val firstPath = clip.paths.first()
+                    val parentPath = firstPath.parent
+                    if (parentPath != null) {
+                        // Open Explorer at the source path
+                        workspaceRemote.execute(
+                            WorkspaceAction.Create(
+                                type = Workspace.Type.EXPLORER,
+                                arguments = ExplorerArguments(startPath = parentPath)
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    fun copyPathToSystemClipboard(text: String) {
+        log(TAG) { "copyPathToSystemClipboard($text)" }
+        systemClipboardHelper.copyToClipboard(text)
     }
 
     fun cancelOperation(id: Operation.Id) = launch {
