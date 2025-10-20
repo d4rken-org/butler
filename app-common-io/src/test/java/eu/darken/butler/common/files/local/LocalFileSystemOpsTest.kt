@@ -72,7 +72,7 @@ class LocalFileSystemOpsTest : BaseTest() {
         // Should either succeed with partial data or throw ReadException
         // Depending on permissions, it might get file type but not size
         try {
-            val lookup = fileSystemOps.lookup(restrictedPath)
+            val lookup = fileSystemOps.lookup(restrictedPath, LookupOptions.BASE)
             // If lookup succeeds, it should have some data
             lookup.lookedUp shouldBe restrictedPath
             // Error field may be populated if partial data was collected
@@ -86,12 +86,12 @@ class LocalFileSystemOpsTest : BaseTest() {
         val nonExistentPath = LocalPath.build("/tmp/non-existent-file-${System.currentTimeMillis()}")
 
         shouldThrow<ReadException> {
-            fileSystemOps.lookup(nonExistentPath)
+            fileSystemOps.lookup(nonExistentPath, LookupOptions())
         }
     }
 
     @Test
-    fun `lookup with EXTENDED options returns extended metadata`(@TempDir tempDir: File) = runTest {
+    fun `lookup with BASE options returns extended metadata`(@TempDir tempDir: File) = runTest {
         val testFile = File(tempDir, "test.txt").apply {
             writeText("content")
             setReadable(true)
@@ -99,7 +99,7 @@ class LocalFileSystemOpsTest : BaseTest() {
         }
         val path = LocalPath.build(testFile)
 
-        val extended = fileSystemOps.lookup(path, LookupOptions.EXTENDED)
+        val extended = fileSystemOps.lookup(path, LookupOptions.BASE)
 
         extended.lookedUp shouldBe path
         extended.fileType shouldBe FileType.FILE
@@ -148,7 +148,7 @@ class LocalFileSystemOpsTest : BaseTest() {
         File(tempDir, "file2.txt").apply { writeText("content2") }
         val path = LocalPath.build(tempDir)
 
-        val lookups = fileSystemOps.lookupFiles(path)
+        val lookups = fileSystemOps.lookupFiles(path, LookupOptions.BASE)
 
         lookups shouldHaveSize 2
         lookups.all { it.fileType == FileType.FILE } shouldBe true
@@ -157,12 +157,12 @@ class LocalFileSystemOpsTest : BaseTest() {
     }
 
     @Test
-    fun `lookupFiles with EXTENDED options returns extended lookups for children`(@TempDir tempDir: File) = runTest {
+    fun `lookupFiles with BASE options returns extended lookups for children`(@TempDir tempDir: File) = runTest {
         File(tempDir, "file1.txt").apply { writeText("content1") }
         File(tempDir, "file2.txt").apply { writeText("content2") }
         val path = LocalPath.build(tempDir)
 
-        val lookups = fileSystemOps.lookupFiles(path, LookupOptions.EXTENDED)
+        val lookups = fileSystemOps.lookupFiles(path, LookupOptions.BASE)
 
         lookups shouldHaveSize 2
         lookups.all { it.fileType == FileType.FILE } shouldBe true
@@ -489,7 +489,7 @@ class LocalFileSystemOpsTest : BaseTest() {
         }
         val path = LocalPath.build(testFile)
 
-        val lookup = fileSystemOps.lookup(path)
+        val lookup = fileSystemOps.lookup(path, LookupOptions.BASE)
 
         // Should always get the file type at minimum
         lookup.fileType shouldNotBe FileType.UNKNOWN
@@ -571,7 +571,7 @@ class LocalFileSystemOpsTest : BaseTest() {
             lookedUp = path,
             fileType = FileType.FILE,
             size = null,  // Null size due to permission error
-            modifiedAt = kotlin.time.Instant.fromEpochMilliseconds(0),
+            modifiedAt = Instant.fromEpochMilliseconds(0),
             error = ReadException("Size unavailable", path)
         )
 
@@ -606,5 +606,178 @@ class LocalFileSystemOpsTest : BaseTest() {
         exception.message shouldBe "Test error <-> /error-test"
         exception.cause.shouldBeInstanceOf<SecurityException>()
         exception.cause?.message shouldBe "Original cause"
+    }
+
+    // ============ LOOKUPOPTIONS BEHAVIOR TESTS ============
+
+    @Test
+    fun `lookup with fetchSize=false returns null size`(@TempDir tempDir: File) = runTest {
+        val testFile = File(tempDir, "test.txt").apply { writeText("1234567890") }
+        val path = LocalPath.build(testFile)
+
+        val lookup = fileSystemOps.lookup(path, LookupOptions(fetchSize = false))
+
+        lookup.fileType shouldBe FileType.FILE
+        lookup.size shouldBe null // Size not fetched
+    }
+
+    @Test
+    fun `lookup with fetchSize=true returns actual size`(@TempDir tempDir: File) = runTest {
+        val testFile = File(tempDir, "test.txt").apply { writeText("1234567890") }
+        val path = LocalPath.build(testFile)
+
+        val lookup = fileSystemOps.lookup(path, LookupOptions(fetchSize = true))
+
+        lookup.fileType shouldBe FileType.FILE
+        lookup.size shouldBe 10L // Size fetched
+    }
+
+    @Test
+    fun `lookup with fetchModifiedAt=false returns null timestamp`(@TempDir tempDir: File) = runTest {
+        val testFile = File(tempDir, "test.txt").apply { createNewFile() }
+        val path = LocalPath.build(testFile)
+
+        val lookup = fileSystemOps.lookup(path, LookupOptions(fetchModifiedAt = false))
+
+        lookup.fileType shouldBe FileType.FILE
+        lookup.modifiedAt shouldBe null // Timestamp not fetched
+    }
+
+    @Test
+    fun `lookup with fetchModifiedAt=true returns actual timestamp`(@TempDir tempDir: File) = runTest {
+        val testFile = File(tempDir, "test.txt").apply { createNewFile() }
+        val path = LocalPath.build(testFile)
+
+        val lookup = fileSystemOps.lookup(path, LookupOptions(fetchModifiedAt = true))
+
+        lookup.fileType shouldBe FileType.FILE
+        lookup.modifiedAt shouldNotBe null // Timestamp fetched
+    }
+
+    @Test
+    fun `lookup with minimal options returns only fileType`(@TempDir tempDir: File) = runTest {
+        val testFile = File(tempDir, "test.txt").apply { writeText("content") }
+        val path = LocalPath.build(testFile)
+
+        val lookup = fileSystemOps.lookup(path, LookupOptions()) // All false
+
+        lookup.fileType shouldBe FileType.FILE
+        lookup.size shouldBe null
+        lookup.modifiedAt shouldBe null
+        lookup.ownership shouldBe null
+        lookup.permissions shouldBe null
+        lookup.createdAt shouldBe null
+    }
+
+    @Test
+    fun `lookup with BASE preset returns all metadata`(@TempDir tempDir: File) = runTest {
+        val testFile = File(tempDir, "test.txt").apply { writeText("content") }
+        val path = LocalPath.build(testFile)
+
+        val lookup = fileSystemOps.lookup(path, LookupOptions.BASE)
+
+        lookup.fileType shouldBe FileType.FILE
+        lookup.size shouldNotBe null
+        lookup.modifiedAt shouldNotBe null
+        lookup.createdAt shouldNotBe null
+        // Note: ownership and permissions require Android APIs (Os.lstat)
+        // They will be null in JVM tests but populated on Android
+    }
+
+    @Test
+    fun `lookup with MAX preset returns all metadata and supports continueOnError`(@TempDir tempDir: File) = runTest {
+        val testFile = File(tempDir, "test.txt").apply { writeText("content") }
+        val path = LocalPath.build(testFile)
+
+        val lookup = fileSystemOps.lookup(path, LookupOptions.MAX)
+
+        // MAX is same as BASE for single lookups (continueOnError only affects batch)
+        lookup.fileType shouldBe FileType.FILE
+        lookup.size shouldNotBe null
+        lookup.modifiedAt shouldNotBe null
+        lookup.createdAt shouldNotBe null
+    }
+
+    @Test
+    fun `lookup with fetchOwnership=true attempts to fetch ownership`(@TempDir tempDir: File) = runTest {
+        val testFile = File(tempDir, "test.txt").apply { createNewFile() }
+        val path = LocalPath.build(testFile)
+
+        val lookup = fileSystemOps.lookup(
+            path,
+            LookupOptions(fetchOwnership = true)
+        )
+
+        lookup.fileType shouldBe FileType.FILE
+        // On JVM tests: ownership will be null (requires Android Os.lstat)
+        // On Android: ownership should be populated
+        // This test verifies the method doesn't throw when fetchOwnership=true
+    }
+
+    @Test
+    fun `lookup with fetchPermissions=true attempts to fetch permissions`(@TempDir tempDir: File) = runTest {
+        val testFile = File(tempDir, "test.txt").apply { createNewFile() }
+        val path = LocalPath.build(testFile)
+
+        val lookup = fileSystemOps.lookup(
+            path,
+            LookupOptions(fetchPermissions = true)
+        )
+
+        lookup.fileType shouldBe FileType.FILE
+        // On JVM tests: permissions will be null (requires Android Os.lstat)
+        // On Android: permissions should be populated
+        // This test verifies the method doesn't throw when fetchPermissions=true
+    }
+
+    @Test
+    fun `lookup with fetchCreatedAt=true returns creation timestamp`(@TempDir tempDir: File) = runTest {
+        val testFile = File(tempDir, "test.txt").apply { createNewFile() }
+        val path = LocalPath.build(testFile)
+
+        val lookup = fileSystemOps.lookup(
+            path,
+            LookupOptions(fetchCreatedAt = true)
+        )
+
+        lookup.fileType shouldBe FileType.FILE
+        lookup.createdAt shouldNotBe null // Available via Files.readAttributes
+    }
+
+    @Test
+    fun `lookup with fetchCreatedAt=false returns null creation timestamp`(@TempDir tempDir: File) = runTest {
+        val testFile = File(tempDir, "test.txt").apply { createNewFile() }
+        val path = LocalPath.build(testFile)
+
+        val lookup = fileSystemOps.lookup(
+            path,
+            LookupOptions(fetchCreatedAt = false)
+        )
+
+        lookup.fileType shouldBe FileType.FILE
+        lookup.createdAt shouldBe null // Not fetched
+    }
+
+    @Test
+    fun `lookup with selective options fetches only requested metadata`(@TempDir tempDir: File) = runTest {
+        val testFile = File(tempDir, "test.txt").apply { writeText("selective") }
+        val path = LocalPath.build(testFile)
+
+        // Fetch only size and createdAt, not modifiedAt
+        val lookup = fileSystemOps.lookup(
+            path,
+            LookupOptions(
+                fetchSize = true,
+                fetchModifiedAt = false,
+                fetchCreatedAt = true
+            )
+        )
+
+        lookup.fileType shouldBe FileType.FILE
+        lookup.size shouldNotBe null // Fetched
+        lookup.modifiedAt shouldBe null // Not fetched
+        lookup.createdAt shouldNotBe null // Fetched
+        lookup.ownership shouldBe null // Not requested
+        lookup.permissions shouldBe null // Not requested
     }
 }

@@ -133,6 +133,8 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
     private var failListFilesCount = 0
     private var failListFilesException: (() -> Exception)? = null
 
+    suspend fun lookup(path: P) = lookup(path, LookupOptions.BASE)
+
     override suspend fun lookup(path: P, options: LookupOptions): PL {
         lookupCalls.add(path.path)
 
@@ -142,8 +144,8 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
         return lookupFactory(
             path,
             mockFile.type,
-            mockFile.size,
-            mockFile.modifiedAt,
+            if (options.fetchSize) mockFile.size else null,
+            if (options.fetchModifiedAt) mockFile.modifiedAt else null,
             if (options.fetchPermissions) mockFile.permissions else null,
             if (options.fetchOwnership) mockFile.ownership else null,
             if (options.fetchCreatedAt) null else null // Not tracked in MockFile currently
@@ -580,7 +582,10 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
     /**
      * Configure openInputStream to fail the next N times with specified exception.
      */
-    fun setFailOpenInputStream(count: Int, exceptionFactory: () -> Exception = { java.io.IOException("Temporary failure") }) {
+    fun setFailOpenInputStream(
+        count: Int,
+        exceptionFactory: () -> Exception = { java.io.IOException("Temporary failure") }
+    ) {
         failOpenInputStreamCount = count
         failOpenInputStreamException = exceptionFactory
     }
@@ -588,7 +593,10 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
     /**
      * Configure openOutputStream to fail the next N times with specified exception.
      */
-    fun setFailOpenOutputStream(count: Int, exceptionFactory: () -> Exception = { java.io.IOException("Temporary failure") }) {
+    fun setFailOpenOutputStream(
+        count: Int,
+        exceptionFactory: () -> Exception = { java.io.IOException("Temporary failure") }
+    ) {
         failOpenOutputStreamCount = count
         failOpenOutputStreamException = exceptionFactory
     }

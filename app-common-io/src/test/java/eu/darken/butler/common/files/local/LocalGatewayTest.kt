@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.local
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.storage.StorageEnvironment
@@ -117,14 +118,14 @@ class LocalGatewayTest : BaseTest() {
         val mockLookup = mockk<LocalPathLookup>()
 
         // Mock normal mode success
-        coEvery { mockFileSystemOps.lookup(path) } returns mockLookup
+        coEvery { mockFileSystemOps.lookup(path, any()) } returns mockLookup
 
         // Execute
-        val result = gateway.lookup(path, mode = LocalGateway.Mode.AUTO)
+        val result = gateway.lookup(path, LookupOptions.BASE, mode = LocalGateway.Mode.AUTO)
 
         // Verify
         result shouldBe mockLookup
-        coVerify(exactly = 1) { mockFileSystemOps.lookup(path) }
+        coVerify(exactly = 1) { mockFileSystemOps.lookup(path, any()) }
     }
 
     @Test
