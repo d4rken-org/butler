@@ -2,7 +2,6 @@ package eu.darken.butler.common.files.operations
 
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
-import eu.darken.butler.common.files.APathLookupExtended
 import eu.darken.butler.common.files.FileSystemOps
 
 /**
@@ -52,14 +51,12 @@ import eu.darken.butler.common.files.FileSystemOps
  *
  * @param SP The source path type (LocalPath, SAFPath, etc.)
  * @param SPL The source path lookup type (LocalPathLookup, SAFPathLookup, etc.)
- * @param SPLE The source path lookup extended type (LocalPathLookupExtended, SAFPathLookupExtended, etc.)
  * @param DP The destination path type (LocalPath, SAFPath, etc.)
  * @param DPL The destination path lookup type (LocalPathLookup, SAFPathLookup, etc.)
- * @param DPLE The destination path lookup extended type (LocalPathLookupExtended, SAFPathLookupExtended, etc.)
  */
 interface TransferStrategy<
-    SP : APath<SP>, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
-    DP : APath<DP>, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
+    SP : APath<SP>, SPL : APathLookup<SP>,  // Source types
+    DP : APath<DP>, DPL : APathLookup<DP>   // Destination types
 > {
 
     /**
@@ -160,8 +157,8 @@ interface TransferStrategy<
     suspend fun transferFile(
         sourceLookup: SPL,
         destination: DP,
-        sourceOps: FileSystemOps<SP, SPL, SPLE>,
-        destOps: FileSystemOps<DP, DPL, DPLE>,
+        sourceOps: FileSystemOps<SP, SPL>,
+        destOps: FileSystemOps<DP, DPL>,
         options: Options,
         onProgress: suspend (bytesTransferred: Long) -> Unit
     ): TransferResult<SP, DP>
@@ -200,8 +197,8 @@ interface TransferStrategy<
     suspend fun createDirectory(
         sourceLookup: SPL,
         destination: DP,
-        sourceOps: FileSystemOps<SP, SPL, SPLE>,
-        destOps: FileSystemOps<DP, DPL, DPLE>,
+        sourceOps: FileSystemOps<SP, SPL>,
+        destOps: FileSystemOps<DP, DPL>,
         options: Options
     ): TransferResult<SP, DP>
 }

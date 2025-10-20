@@ -13,6 +13,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.extensions.getFileSystemInfo
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.R
@@ -175,7 +176,7 @@ class DirectoryLocationLoader @AssistedInject constructor(
         log(tag) { "loadContentExtended(): Loading content extended: $targetPath" }
         updateProgressMsg(R.string.explorer_loader_progress_directory_content_extended)
 
-        val extendedLookups = gatewaySwitch.lookupFilesExtended(targetPath).associateBy { it.path }
+        val extendedLookups = gatewaySwitch.lookupFiles(targetPath, LookupOptions.EXTENDED).associateBy { it.path }
         val fileClassifier = FileTypeClassifier()
 
         val items = state.items!!.map { item ->

@@ -4,7 +4,6 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
-import eu.darken.butler.common.files.local.LocalPathLookupExtended
 import eu.darken.butler.common.files.metadata.FileType
 import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
@@ -37,21 +36,24 @@ import testhelpers.BaseTest
  */
 class GenericPathCopyTest : BaseTest() {
 
-    private lateinit var mockOps: MockFileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>
+    private lateinit var mockOps: MockFileSystemOps<LocalPath, LocalPathLookup>
     private lateinit var strategy: GenericCrossTypeCopyStrategy<
-        LocalPath, LocalPathLookup, LocalPathLookupExtended,
-        LocalPath, LocalPathLookup, LocalPathLookupExtended
+        LocalPath, LocalPathLookup,
+        LocalPath, LocalPathLookup
     >
 
     @BeforeEach
     fun setup() {
-        mockOps = MockFileSystemOps { path, type, size, modifiedAt, permissions, ownership ->
+        mockOps = MockFileSystemOps { path, type, size, modifiedAt, permissions, ownership, createdAt ->
             LocalPathLookup(
                 lookedUp = path,
                 fileType = type,
                 size = size,
                 modifiedAt = modifiedAt ?: kotlin.time.Instant.fromEpochMilliseconds(0),
-                target = null
+                target = null,
+                ownership = ownership,
+                permissions = permissions,
+                createdAt = createdAt,
             )
         }
         strategy = GenericCrossTypeCopyStrategy()

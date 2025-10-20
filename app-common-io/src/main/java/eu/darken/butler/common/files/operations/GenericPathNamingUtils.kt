@@ -1,6 +1,7 @@
 package eu.darken.butler.common.files.operations
 
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileSystemOps
 
 /**
@@ -10,10 +11,11 @@ import eu.darken.butler.common.files.FileSystemOps
  * (LocalPath, SAFPath, RootPath, etc.) using the FileSystemOps abstraction.
  *
  * @param P Path type (LocalPath, SAFPath, etc.)
+ * @param PL Lookup type for the path
  * @param ops FileSystemOps instance to check for existing paths
  */
-class GenericPathNamingUtils<P : APath<P>>(
-    private val ops: FileSystemOps<P, *, *>
+class GenericPathNamingUtils<P : APath<P>, PL : APathLookup<P>>(
+    private val ops: FileSystemOps<P, PL>
 ) {
 
     /**

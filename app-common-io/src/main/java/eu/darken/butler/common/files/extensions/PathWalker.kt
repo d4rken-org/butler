@@ -7,7 +7,6 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.APathLookup
-import eu.darken.butler.common.files.APathLookupExtended
 import kotlinx.coroutines.flow.AbstractFlow
 import kotlinx.coroutines.flow.FlowCollector
 import java.io.IOException
@@ -18,8 +17,7 @@ import java.util.LinkedList
 class PathWalker<
         P : APath<P>,
         PL : APathLookup<P>,
-        PLE : APathLookupExtended<P>,
-        GT : APathGateway<P, PL, PLE>
+        GT : APathGateway<P, PL>
         >(
     private val gateway: GT,
     private val start: P,

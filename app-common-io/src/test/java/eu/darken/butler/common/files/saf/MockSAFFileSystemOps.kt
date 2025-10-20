@@ -1,5 +1,6 @@
 package eu.darken.butler.common.files.saf
 
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.operations.MockFileSystemOps
@@ -57,8 +58,8 @@ import kotlin.time.Instant
  * - Supports SAFPath URI structure
  * - Tracks SAFDocFile behavior
  */
-class MockSAFFileSystemOps : MockFileSystemOps<SAFPath, SAFPathLookup, SAFPathLookupExtended>(
-    lookupFactory = { _, _, _, _, _, _ ->
+class MockSAFFileSystemOps : MockFileSystemOps<SAFPath, SAFPathLookup>(
+    lookupFactory = { _, _, _, _, _, _, _ ->
         // Placeholder - we override lookup() to bypass this factory
         // SAFDocFile requires Android Context/ContentResolver which can't be mocked easily
         throw UnsupportedOperationException("Use lookup() override instead")
@@ -118,7 +119,7 @@ class MockSAFFileSystemOps : MockFileSystemOps<SAFPath, SAFPathLookup, SAFPathLo
         pathsWithoutPermission.remove(safPath.path)
     }
 
-    override suspend fun lookup(path: SAFPath): SAFPathLookup {
+    override suspend fun lookup(path: SAFPath, options: LookupOptions): SAFPathLookup {
         // Check permission first
         if (pathsWithoutPermission.contains(path.path)) {
             throw MissingUriPermissionException(path = path)
@@ -147,40 +148,19 @@ class MockSAFFileSystemOps : MockFileSystemOps<SAFPath, SAFPathLookup, SAFPathLo
             fileType = mockFile.type,
             size = mockFile.size,
             modifiedAt = mockFile.modifiedAt ?: Instant.fromEpochMilliseconds(0),
+            ownership = if (options.fetchOwnership) mockFile.ownership else null,
+            permissions = if (options.fetchPermissions) mockFile.permissions else null,
+            createdAt = if (options.fetchCreatedAt) null else null,
         )
     }
 
-    override suspend fun lookupExtended(path: SAFPath): SAFPathLookupExtended {
+    override suspend fun lookupFiles(path: SAFPath, options: LookupOptions): List<SAFPathLookup> {
         // Check permission first
         if (pathsWithoutPermission.contains(path.path)) {
             throw MissingUriPermissionException(path = path)
         }
 
-        val basicLookup = lookup(path)
-        return SAFPathLookupExtended(
-            lookup = basicLookup,
-            ownership = null,
-            permissions = null,
-            createdAt = null,
-        )
-    }
-
-    override suspend fun lookupFiles(path: SAFPath): List<SAFPathLookup> {
-        // Check permission first
-        if (pathsWithoutPermission.contains(path.path)) {
-            throw MissingUriPermissionException(path = path)
-        }
-
-        return listFiles(path).map { lookup(it) }
-    }
-
-    override suspend fun lookupFilesExtended(path: SAFPath): List<SAFPathLookupExtended> {
-        // Check permission first
-        if (pathsWithoutPermission.contains(path.path)) {
-            throw MissingUriPermissionException(path = path)
-        }
-
-        return listFiles(path).map { lookupExtended(it) }
+        return listFiles(path).map { lookup(it, options) }
     }
 
     override suspend fun listFiles(path: SAFPath): List<SAFPath> {

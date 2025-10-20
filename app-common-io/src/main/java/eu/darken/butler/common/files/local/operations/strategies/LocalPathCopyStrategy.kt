@@ -5,9 +5,9 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.local.LocalPathLookup
-import eu.darken.butler.common.files.local.LocalPathLookupExtended
 import eu.darken.butler.common.files.metadata.FileType
 import okio.buffer
 import okio.sink
@@ -35,15 +35,15 @@ import okio.source
 class LocalPathCopyStrategy(
     private val fileSystemOps: LocalFileSystemOps
 ) : eu.darken.butler.common.files.operations.TransferStrategy<
-    LocalPath, LocalPathLookup, LocalPathLookupExtended,  // Source types
-    LocalPath, LocalPathLookup, LocalPathLookupExtended   // Destination types
+    LocalPath, LocalPathLookup,  // Source types
+    LocalPath, LocalPathLookup   // Destination types
     > {
 
     override suspend fun transferFile(
         sourceLookup: LocalPathLookup,
         destination: LocalPath,
-        sourceOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>,
-        destOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>,
+        sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
+        destOps: FileSystemOps<LocalPath, LocalPathLookup>,
         options: eu.darken.butler.common.files.operations.TransferStrategy.Options,
         onProgress: suspend (bytesTransferred: Long) -> Unit
     ): eu.darken.butler.common.files.operations.TransferStrategy.TransferResult<LocalPath, LocalPath> {
@@ -65,8 +65,8 @@ class LocalPathCopyStrategy(
     override suspend fun createDirectory(
         sourceLookup: LocalPathLookup,
         destination: LocalPath,
-        sourceOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>,
-        destOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>,
+        sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
+        destOps: FileSystemOps<LocalPath, LocalPathLookup>,
         options: eu.darken.butler.common.files.operations.TransferStrategy.Options
     ): eu.darken.butler.common.files.operations.TransferStrategy.TransferResult<LocalPath, LocalPath> {
         log(TAG, DEBUG) { "Creating directory: $destination" }
@@ -105,8 +105,8 @@ class LocalPathCopyStrategy(
         sourceLookup: LocalPathLookup,
         destination: LocalPath,
         onProgress: suspend (bytesTransferred: Long) -> Unit,
-        sourceOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>,
-        destOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>
+        sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
+        destOps: FileSystemOps<LocalPath, LocalPathLookup>
     ): eu.darken.butler.common.files.operations.TransferStrategy.TransferResult<LocalPath, LocalPath> {
         val linkTarget = sourceOps.readSymbolicLink(sourceLookup.lookedUp)
 
@@ -138,8 +138,8 @@ class LocalPathCopyStrategy(
         destination: LocalPath,
         options: eu.darken.butler.common.files.operations.TransferStrategy.Options,
         onProgress: suspend (bytesTransferred: Long) -> Unit,
-        sourceOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>,
-        destOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>
+        sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
+        destOps: FileSystemOps<LocalPath, LocalPathLookup>
     ): eu.darken.butler.common.files.operations.TransferStrategy.TransferResult<LocalPath, LocalPath> {
         // Read the symlink target
         val linkTarget = sourceOps.readSymbolicLink(sourceLookup.lookedUp)
@@ -179,8 +179,8 @@ class LocalPathCopyStrategy(
         destination: LocalPath,
         options: eu.darken.butler.common.files.operations.TransferStrategy.Options,
         onProgress: suspend (bytesTransferred: Long) -> Unit,
-        sourceOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>,
-        destOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>
+        sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
+        destOps: FileSystemOps<LocalPath, LocalPathLookup>
     ): eu.darken.butler.common.files.operations.TransferStrategy.TransferResult<LocalPath, LocalPath> {
         var totalBytesTransferred = 0L
 
@@ -214,13 +214,13 @@ class LocalPathCopyStrategy(
     private suspend fun copyAttributes(
         source: LocalPath,
         destination: LocalPath,
-        sourceOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>,
-        destOps: FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>
+        sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
+        destOps: FileSystemOps<LocalPath, LocalPathLookup>
     ) {
         try {
             // Get source attributes
             val sourceLookup = sourceOps.lookup(source)
-            val sourceExtended = sourceOps.lookupExtended(source)
+            val sourceExtended = sourceOps.lookup(source, LookupOptions.EXTENDED)
 
             // Set modified time
             sourceLookup.modifiedAt?.let { destOps.setModifiedAt(destination, it) }

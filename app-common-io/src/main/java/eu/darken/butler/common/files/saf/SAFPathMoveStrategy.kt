@@ -35,8 +35,8 @@ import eu.darken.butler.common.files.operations.TransferStrategy
  * @see SAFPathCopyStrategy for copy implementation
  */
 class SAFPathMoveStrategy : TransferStrategy<
-        SAFPath, SAFPathLookup, SAFPathLookupExtended,      // Source types
-        SAFPath, SAFPathLookup, SAFPathLookupExtended       // Destination types
+        SAFPath, SAFPathLookup,      // Source types
+        SAFPath, SAFPathLookup       // Destination types
         > {
 
     private val copyStrategy = SAFPathCopyStrategy()
@@ -44,8 +44,8 @@ class SAFPathMoveStrategy : TransferStrategy<
     override suspend fun transferFile(
         sourceLookup: SAFPathLookup,
         destination: SAFPath,
-        sourceOps: FileSystemOps<SAFPath, SAFPathLookup, SAFPathLookupExtended>,
-        destOps: FileSystemOps<SAFPath, SAFPathLookup, SAFPathLookupExtended>,
+        sourceOps: FileSystemOps<SAFPath, SAFPathLookup>,
+        destOps: FileSystemOps<SAFPath, SAFPathLookup>,
         options: TransferStrategy.Options,
         onProgress: suspend (bytesTransferred: Long) -> Unit
     ): TransferStrategy.TransferResult<SAFPath, SAFPath> {
@@ -106,8 +106,8 @@ class SAFPathMoveStrategy : TransferStrategy<
     override suspend fun createDirectory(
         sourceLookup: SAFPathLookup,
         destination: SAFPath,
-        sourceOps: FileSystemOps<SAFPath, SAFPathLookup, SAFPathLookupExtended>,
-        destOps: FileSystemOps<SAFPath, SAFPathLookup, SAFPathLookupExtended>,
+        sourceOps: FileSystemOps<SAFPath, SAFPathLookup>,
+        destOps: FileSystemOps<SAFPath, SAFPathLookup>,
         options: TransferStrategy.Options
     ): TransferStrategy.TransferResult<SAFPath, SAFPath> {
         log(TAG, DEBUG) { "Moving SAF directory: ${sourceLookup.lookedUp} -> $destination" }

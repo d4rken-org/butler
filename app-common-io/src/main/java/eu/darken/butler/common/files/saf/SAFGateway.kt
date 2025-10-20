@@ -43,8 +43,8 @@ class SAFGateway @Inject constructor(
     @AppScope private val appScope: CoroutineScope,
     private val fileSystemOps: SAFFileSystemOps,
     private val dispatcherProvider: DispatcherProvider,
-) : APathGateway<SAFPath, SAFPathLookup, SAFPathLookupExtended>,
-    FileSystemOps<SAFPath, SAFPathLookup, SAFPathLookupExtended> by fileSystemOps {
+) : APathGateway<SAFPath, SAFPathLookup>,
+    FileSystemOps<SAFPath, SAFPathLookup> by fileSystemOps {
 
     override val sharedResource = SharedResource.createKeepAlive(TAG, appScope + dispatcherProvider.IO)
 

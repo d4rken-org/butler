@@ -6,7 +6,6 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
-import eu.darken.butler.common.files.APathLookupExtended
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
@@ -45,13 +44,12 @@ import kotlinx.coroutines.isActive
  *
  * @param P The path type (LocalPath, SAFPath, FtpPath, etc.)
  * @param PL The path lookup type (LocalPathLookup, SAFPathLookup, etc.)
- * @param PLE The path lookup extended type (LocalPathLookupExtended, SAFPathLookupExtended, etc.)
  */
-internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>>(
+internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
     private val targets: Collection<P>,
     private val recursive: Boolean,
     private val ignoreMissing: Boolean,
-    private val fileSystemOps: FileSystemOps<P, PL, PLE>,
+    private val fileSystemOps: FileSystemOps<P, PL>,
     private val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
 ) {
 
@@ -355,15 +353,15 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
 /**
  * Extension function for easy use of GenericPathDelete.
  */
-fun <P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>> P.deleteGeneric(
-    fileSystemOps: FileSystemOps<P, PL, PLE>,
+fun <P : APath<P>, PL : APathLookup<P>> P.deleteGeneric(
+    fileSystemOps: FileSystemOps<P, PL>,
     recursive: Boolean = true,
     ignoreMissing: Boolean = true,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
 ) = setOf(this).deleteGeneric(fileSystemOps, recursive, ignoreMissing, onIssue)
 
-fun <P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>> Collection<P>.deleteGeneric(
-    fileSystemOps: FileSystemOps<P, PL, PLE>,
+fun <P : APath<P>, PL : APathLookup<P>> Collection<P>.deleteGeneric(
+    fileSystemOps: FileSystemOps<P, PL>,
     recursive: Boolean = true,
     ignoreMissing: Boolean = true,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null

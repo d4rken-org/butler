@@ -9,6 +9,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.core.local.readLink
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.ReadException
@@ -64,9 +65,9 @@ import kotlin.time.Instant
 @Singleton
 class LocalFileSystemOps @Inject constructor(
     private val libcoreTool: LibcoreTool,
-) : FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended> {
+) : FileSystemOps<LocalPath, LocalPathLookup> {
 
-    override suspend fun lookup(path: LocalPath): LocalPathLookup = try {
+    override suspend fun lookup(path: LocalPath, options: LookupOptions): LocalPathLookup = try {
         // In cases like reading "/" we can still get the file type for restricted items
         val fileType: FileType =
             path.file.getAPathFileType() ?: throw ReadException("Does not exist or can't be read", path)
@@ -91,6 +92,57 @@ class LocalFileSystemOps @Inject constructor(
             }
         }
 
+        // Conditionally fetch extended metadata based on options
+        var ownership: Ownership? = null
+        var permissions: Permissions? = null
+        var createdAt: Instant? = null
+
+        // Fetch fstat if we need ownership or permissions (single syscall for both)
+        if (options.fetchOwnership || options.fetchPermissions) {
+            val fstat: StructStat? = try {
+                Os.lstat(path.file.path)
+            } catch (e: Exception) {
+                log(LocalGateway.TAG, WARN) { "fstat failed on $path: $e" }
+                null
+            }
+
+            if (fstat != null) {
+                if (options.fetchOwnership) {
+                    val uid = fstat.st_uid
+                    val gid = fstat.st_gid
+
+                    val userName: String? = libcoreTool.getNameForUid(uid)
+                    val groupName: String? = libcoreTool.getNameForGid(gid)
+
+                    ownership = Ownership(
+                        userId = uid,
+                        groupId = gid,
+                        userName = userName,
+                        groupName = groupName
+                    )
+                }
+
+                if (options.fetchPermissions) {
+                    permissions = Permissions(mode = fstat.st_mode)
+                }
+            }
+        }
+
+        // Fetch creation time if requested (separate syscall)
+        if (options.fetchCreatedAt) {
+            val basicAttributes = try {
+                Files.readAttributes(
+                    path.toNioPath(),
+                    BasicFileAttributes::class.java
+                )
+            } catch (e: Exception) {
+                log(LocalGateway.TAG, WARN) { "BasicFileAttributes failed on $path: ${e.asLog()}" }
+                null
+            }
+
+            createdAt = basicAttributes?.let { Instant.fromEpochMilliseconds(it.creationTime().toMillis()) }
+        }
+
         LocalPathLookup(
             lookedUp = path,
             fileType = fileType,
@@ -99,58 +151,10 @@ class LocalFileSystemOps @Inject constructor(
             target = target,
             error = errors.takeIf { it.isNotEmpty() }?.let {
                 ReadException(errors.joinToString("; "), path)
-            }
-        )
-    } catch (e: Exception) {
-        throw ReadException(path = path, cause = e)
-    }
-
-    override suspend fun lookupExtended(path: LocalPath): LocalPathLookupExtended = try {
-        val basicLookup = lookup(path)
-
-        val fstat: StructStat? = try {
-            Os.lstat(path.file.path)
-        } catch (e: Exception) {
-            log(LocalGateway.TAG, WARN) { "fstat failed on $this: $e" }
-            null
-        }
-
-        val ownership = fstat?.let {
-            val uid = it.st_uid
-            val gid = it.st_gid
-
-            val userName: String? = libcoreTool.getNameForUid(uid)
-            val groupName: String? = libcoreTool.getNameForGid(gid)
-
-            // TODO use Files.readAttributes as fallback?
-
-            Ownership(
-                userId = uid,
-                groupId = gid,
-                userName = userName,
-                groupName = groupName
-            )
-        }
-
-        val basicAttributes = try {
-            Files.readAttributes(
-                path.toNioPath(),
-                BasicFileAttributes::class.java
-            )
-        } catch (e: Exception) {
-            log(LocalGateway.TAG, WARN) { "BasicFileAttributes failed on $this: ${e.asLog()}" }
-            null
-        }
-
-        val permissions = fstat?.let {
-            Permissions(mode = it.st_mode)
-        }
-
-        LocalPathLookupExtended(
-            lookup = basicLookup,
+            },
             ownership = ownership,
             permissions = permissions,
-            createdAt = basicAttributes?.let { Instant.fromEpochMilliseconds(it.creationTime().toMillis()) },
+            createdAt = createdAt,
         )
     } catch (e: Exception) {
         throw ReadException(path = path, cause = e)

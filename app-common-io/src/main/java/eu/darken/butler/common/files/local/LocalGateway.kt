@@ -12,6 +12,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
@@ -54,7 +55,7 @@ class LocalGateway @Inject constructor(
     private val rootManager: RootManager,
     private val adbManager: AdbManager,
     private val accessibilityChecker: LocalPathAccessChecker,
-) : APathGateway<LocalPath, LocalPathLookup, LocalPathLookupExtended> {
+) : APathGateway<LocalPath, LocalPathLookup> {
 
     // Represents the resource that keeps the gateway resources alive
     // Internal resources should add themselfes as child to this
@@ -230,16 +231,16 @@ class LocalGateway @Inject constructor(
         adbOp = { it.move(source, destination) }
     )
 
-    override suspend fun lookup(path: LocalPath): LocalPathLookup = lookup(path, Mode.AUTO)
+    override suspend fun lookup(path: LocalPath, options: LookupOptions): LocalPathLookup = lookup(path, options, Mode.AUTO)
 
-    suspend fun lookup(path: LocalPath, mode: Mode = Mode.AUTO): LocalPathLookup = executeWithModeSelection(
+    suspend fun lookup(path: LocalPath, options: LookupOptions = LookupOptions.BASIC, mode: Mode = Mode.AUTO): LocalPathLookup = executeWithModeSelection(
         mode = mode,
         operation = "lookup",
         path = path,
         forWriting = false,
-        normalOp = { fileSystemOps.lookup(path) },
-        rootOp = { it.lookup(path) },
-        adbOp = { it.lookup(path) }
+        normalOp = { fileSystemOps.lookup(path, options) },
+        rootOp = { it.lookup(path, options) },
+        adbOp = { it.lookup(path, options) }
     )
 
 
@@ -256,49 +257,19 @@ class LocalGateway @Inject constructor(
     )
 
 
-    override suspend fun lookupExtended(path: LocalPath): LocalPathLookupExtended = lookupExtended(path, Mode.AUTO)
 
-    suspend fun lookupExtended(
-        path: LocalPath,
-        mode: Mode = Mode.AUTO
-    ): LocalPathLookupExtended = executeWithModeSelection(
-        mode = mode,
-        operation = "lookupExtended",
-        path = path,
-        forWriting = false,
-        normalOp = { fileSystemOps.lookupExtended(path) },
-        rootOp = { rootOps { it.lookupExtended(path) } },
-        adbOp = { adbOps { it.lookupExtended(path) } }
-    )
+    override suspend fun lookupFiles(path: LocalPath, options: LookupOptions): List<LocalPathLookup> = lookupFiles(path, options, Mode.AUTO)
 
-    override suspend fun lookupFiles(path: LocalPath): List<LocalPathLookup> = lookupFiles(path, Mode.AUTO)
-
-    suspend fun lookupFiles(path: LocalPath, mode: Mode = Mode.AUTO): List<LocalPathLookup> = executeWithModeSelection(
+    suspend fun lookupFiles(path: LocalPath, options: LookupOptions = LookupOptions.BASIC, mode: Mode = Mode.AUTO): List<LocalPathLookup> = executeWithModeSelection(
         mode = mode,
         operation = "lookupFiles",
         path = path,
         forWriting = false,
-        normalOp = { fileSystemOps.lookupFiles(path) },
-        rootOp = { rootOps { it.lookupFiles(path) } },
-        adbOp = { adbOps { it.lookupFiles(path) } }
+        normalOp = { fileSystemOps.lookupFiles(path, options) },
+        rootOp = { rootOps { it.lookupFiles(path, options) } },
+        adbOp = { adbOps { it.lookupFiles(path, options) } }
     )
 
-    override suspend fun lookupFilesExtended(
-        path: LocalPath
-    ): List<LocalPathLookupExtended> = lookupFilesExtended(path, Mode.AUTO)
-
-    suspend fun lookupFilesExtended(
-        path: LocalPath,
-        mode: Mode = Mode.AUTO
-    ): List<LocalPathLookupExtended> = executeWithModeSelection(
-        mode = mode,
-        operation = "lookupFilesExtended",
-        path = path,
-        forWriting = false,
-        normalOp = { fileSystemOps.lookupFilesExtended(path) },
-        rootOp = { rootOps { it.lookupFilesExtendedStream(path) } },
-        adbOp = { adbOps { it.lookupFilesExtendedStream(path) } }
-    )
 
     override suspend fun walk(
         path: LocalPath,

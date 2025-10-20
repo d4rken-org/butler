@@ -58,9 +58,9 @@ class SearchEngine @Inject constructor(
 
             try {
                 when (val gateway = gatewaySwitch.getGateway(searchPath)) {
-                    is APathGateway<*, *, *> -> {
+                    is APathGateway<*, *> -> {
                         @Suppress("UNCHECKED_CAST")
-                        val typedGateway = gateway as APathGateway<APath<*>, APathLookup<APath<*>>, *>
+                        val typedGateway = gateway as APathGateway<APath<*>, APathLookup<APath<*>>>
 
                         val walkOptions = APathGateway.WalkOptions<APath<*>, APathLookup<APath<*>>>(
                             onFilter = { lookup ->

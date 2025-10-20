@@ -90,7 +90,7 @@ class LocalFileSystemOpsTest : BaseTest() {
     }
 
     @Test
-    fun `lookupExtended returns extended metadata`(@TempDir tempDir: File) = runTest {
+    fun `lookup with EXTENDED options returns extended metadata`(@TempDir tempDir: File) = runTest {
         val testFile = File(tempDir, "test.txt").apply {
             writeText("content")
             setReadable(true)
@@ -98,10 +98,10 @@ class LocalFileSystemOpsTest : BaseTest() {
         }
         val path = LocalPath.build(testFile)
 
-        val extended = fileSystemOps.lookupExtended(path)
+        val extended = fileSystemOps.lookup(path, eu.darken.butler.common.files.LookupOptions.EXTENDED)
 
-        extended.lookup.lookedUp shouldBe path
-        extended.lookup.fileType shouldBe FileType.FILE
+        extended.lookedUp shouldBe path
+        extended.fileType shouldBe FileType.FILE
         // Note: permissions and ownership require Android APIs (Os.lstat) which aren't
         // available in pure JVM unit tests. They will be null here but populated on Android.
         extended.createdAt shouldNotBe null
@@ -156,15 +156,15 @@ class LocalFileSystemOpsTest : BaseTest() {
     }
 
     @Test
-    fun `lookupFilesExtended returns extended lookups for children`(@TempDir tempDir: File) = runTest {
+    fun `lookupFiles with EXTENDED options returns extended lookups for children`(@TempDir tempDir: File) = runTest {
         File(tempDir, "file1.txt").apply { writeText("content1") }
         File(tempDir, "file2.txt").apply { writeText("content2") }
         val path = LocalPath.build(tempDir)
 
-        val lookups = fileSystemOps.lookupFilesExtended(path)
+        val lookups = fileSystemOps.lookupFiles(path, eu.darken.butler.common.files.LookupOptions.EXTENDED)
 
         lookups shouldHaveSize 2
-        lookups.all { it.lookup.fileType == FileType.FILE } shouldBe true
+        lookups.all { it.fileType == FileType.FILE } shouldBe true
         // Note: permissions and ownership require Android APIs (Os.lstat) which aren't
         // available in pure JVM unit tests. Verify the method returns data, not the values.
         lookups.all { it.createdAt != null } shouldBe true

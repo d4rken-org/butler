@@ -5,7 +5,6 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
-import eu.darken.butler.common.files.APathLookupExtended
 import eu.darken.butler.common.files.FileSystemOps
 
 /**
@@ -51,23 +50,21 @@ import eu.darken.butler.common.files.FileSystemOps
  *
  * @param SP The source path type (LocalPath, SAFPath, FTPPath, etc.)
  * @param SPL The source path lookup type
- * @param SPLE The source path lookup extended type
  * @param DP The destination path type (LocalPath, SAFPath, FTPPath, etc.)
  * @param DPL The destination path lookup type
- * @param DPLE The destination path lookup extended type
  */
 class GenericCrossTypeMoveStrategy<
-    SP : APath<SP>, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,
-    DP : APath<DP>, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>
-> : TransferStrategy<SP, SPL, SPLE, DP, DPL, DPLE> {
+    SP : APath<SP>, SPL : APathLookup<SP>,
+    DP : APath<DP>, DPL : APathLookup<DP>
+> : TransferStrategy<SP, SPL, DP, DPL> {
 
-    private val copyStrategy = GenericCrossTypeCopyStrategy<SP, SPL, SPLE, DP, DPL, DPLE>()
+    private val copyStrategy = GenericCrossTypeCopyStrategy<SP, SPL, DP, DPL>()
 
     override suspend fun transferFile(
         sourceLookup: SPL,
         destination: DP,
-        sourceOps: FileSystemOps<SP, SPL, SPLE>,
-        destOps: FileSystemOps<DP, DPL, DPLE>,
+        sourceOps: FileSystemOps<SP, SPL>,
+        destOps: FileSystemOps<DP, DPL>,
         options: TransferStrategy.Options,
         onProgress: suspend (bytesTransferred: Long) -> Unit
     ): TransferStrategy.TransferResult<SP, DP> {
@@ -111,8 +108,8 @@ class GenericCrossTypeMoveStrategy<
     override suspend fun createDirectory(
         sourceLookup: SPL,
         destination: DP,
-        sourceOps: FileSystemOps<SP, SPL, SPLE>,
-        destOps: FileSystemOps<DP, DPL, DPLE>,
+        sourceOps: FileSystemOps<SP, SPL>,
+        destOps: FileSystemOps<DP, DPL>,
         options: TransferStrategy.Options
     ): TransferStrategy.TransferResult<SP, DP> {
         log(TAG, DEBUG) { "Moving directory cross-type: ${sourceLookup.lookedUp} → $destination" }

@@ -4,7 +4,6 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
-import eu.darken.butler.common.files.local.LocalPathLookupExtended
 import eu.darken.butler.common.files.metadata.FileType
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.should
@@ -37,21 +36,24 @@ import testhelpers.BaseTest
  */
 class GenericPathMoveTest : BaseTest() {
 
-    private lateinit var mockOps: MockFileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>
+    private lateinit var mockOps: MockFileSystemOps<LocalPath, LocalPathLookup>
     private lateinit var strategy: GenericCrossTypeMoveStrategy<
-        LocalPath, LocalPathLookup, LocalPathLookupExtended,
-        LocalPath, LocalPathLookup, LocalPathLookupExtended
+        LocalPath, LocalPathLookup,
+        LocalPath, LocalPathLookup
     >
 
     @BeforeEach
     fun setup() {
-        mockOps = MockFileSystemOps { path, type, size, modifiedAt, permissions, ownership ->
+        mockOps = MockFileSystemOps { path, type, size, modifiedAt, permissions, ownership, createdAt ->
             LocalPathLookup(
                 lookedUp = path,
                 fileType = type,
                 size = size,
                 modifiedAt = modifiedAt ?: kotlin.time.Instant.fromEpochMilliseconds(0),
-                target = null
+                target = null,
+                ownership = ownership,
+                permissions = permissions,
+                createdAt = createdAt,
             )
         }
         strategy = GenericCrossTypeMoveStrategy()
@@ -391,14 +393,17 @@ class GenericPathMoveTest : BaseTest() {
         mockOps.addMockDir("/dest")
 
         val deletionOrder = mutableListOf<String>()
-        val spyOps = object : MockFileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>(
-            lookupFactory = { path, type, size, modifiedAt, permissions, ownership ->
+        val spyOps = object : MockFileSystemOps<LocalPath, LocalPathLookup>(
+            lookupFactory = { path, type, size, modifiedAt, permissions, ownership, createdAt ->
                 LocalPathLookup(
                     lookedUp = path,
                     fileType = type,
                     size = size,
                     modifiedAt = modifiedAt ?: kotlin.time.Instant.fromEpochMilliseconds(0),
-                    target = null
+                    target = null,
+                    ownership = ownership,
+                    permissions = permissions,
+                    createdAt = createdAt,
                 )
             }
         ) {
