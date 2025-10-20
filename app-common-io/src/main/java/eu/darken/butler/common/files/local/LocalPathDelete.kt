@@ -1,11 +1,7 @@
 package eu.darken.butler.common.files.local
 
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
@@ -111,7 +107,7 @@ internal class LocalPathDelete(
         }
 
         emit(
-            DeleteAction.State.Result(
+            DeleteAction.State.Completed(
                 deleted = deleted,
                 skipped = skipped,
             )
@@ -431,7 +427,7 @@ internal class LocalPathDelete(
         val snapshot = progressTracker.createSnapshot()
 
         emit(
-            DeleteAction.State.Progress(
+            DeleteAction.State.Active(
                 target = lookup,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(
                     primary = R.string.general_scan_progress_title.toCaString(),
@@ -456,7 +452,7 @@ internal class LocalPathDelete(
         val snapshot = progressTracker.createSnapshot()
 
         emit(
-            DeleteAction.State.Progress(
+            DeleteAction.State.Active(
                 target = lookup,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(
                     primary = R.string.general_delete_progress_title.toCaString(),

@@ -5,10 +5,7 @@ import android.system.Os
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.Bugs
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -23,7 +20,7 @@ import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
 import eu.darken.butler.common.files.metadata.FileSystem
-import eu.darken.butler.common.files.saf.SAFFileSystemOps.FileMode
+import eu.darken.butler.common.files.saf.SAFFileSystemOps.*
 import eu.darken.butler.common.sharedresource.SharedResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -184,7 +181,7 @@ class SAFGateway @Inject constructor(
             onIssue = options.onIssue
         ).collect { state ->
             emit(state)
-            if (state is DeleteAction.State.Result) {
+            if (state is DeleteAction.State.Completed) {
                 log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
             }
         }
@@ -204,7 +201,7 @@ class SAFGateway @Inject constructor(
             onIssue = onIssue,
         ).collect { state ->
             emit(state)
-            if (state is CopyAction.State.Result) {
+            if (state is CopyAction.State.Completed) {
                 log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
             }
         }
@@ -224,7 +221,7 @@ class SAFGateway @Inject constructor(
             onIssue = onIssue,
         ).collect { state ->
             emit(state)
-            if (state is MoveAction.State.Result) {
+            if (state is MoveAction.State.Completed) {
                 log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
             }
         }

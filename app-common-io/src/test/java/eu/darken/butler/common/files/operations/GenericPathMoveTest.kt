@@ -6,22 +6,20 @@ import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.LocalPathLookupExtended
 import eu.darken.butler.common.files.metadata.FileType
-import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.flow.last
-import testhelpers.firstPath
-import testhelpers.shouldBePaths
-import testhelpers.shouldContainPath
-import testhelpers.toPaths
-import testhelpers.toPathPairs
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import testhelpers.firstPath
+import testhelpers.shouldBePaths
+import testhelpers.shouldContainPath
+import testhelpers.toPathPairs
 
 /**
  * Tests for GenericPathMove orchestrator using MockFileSystemOps.
@@ -84,7 +82,7 @@ class GenericPathMoveTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - destination is used as final path (rename semantics)
         mockOps.hasFile("/dest/renamed.txt") shouldBe true
@@ -121,7 +119,7 @@ class GenericPathMoveTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - moved INTO destination directory (appends source name)
         mockOps.hasFile("/dest/file.txt") shouldBe true
@@ -159,7 +157,7 @@ class GenericPathMoveTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - destination is used as final directory name (rename semantics)
         mockOps.hasFile("/dest/renameddir") shouldBe true
@@ -200,7 +198,7 @@ class GenericPathMoveTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - multiple sources always append names to destination
         mockOps.hasFile("/dest/file1.txt") shouldBe true
@@ -240,7 +238,7 @@ class GenericPathMoveTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - verify structure preserved: /dest/topfolder/subfolder/file.txt
         mockOps.hasFile("/dest/topfolder/subfolder/file.txt") shouldBe true
@@ -274,7 +272,7 @@ class GenericPathMoveTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - verify full path preserved
         mockOps.hasFile("/dest/level1/level2/level3/level4/deep.txt") shouldBe true
@@ -306,7 +304,7 @@ class GenericPathMoveTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - all files moved to /dest/ (not /dest/folder/)
         mockOps.hasFile("/dest/file1.txt") shouldBe true
@@ -337,7 +335,7 @@ class GenericPathMoveTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
         mockOps.hasFile("/dest/document.pdf") shouldBe true
@@ -367,7 +365,7 @@ class GenericPathMoveTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - verify entire structure moved
         mockOps.hasFile("/dest/project/README.md") shouldBe true
@@ -485,7 +483,7 @@ class GenericPathMoveTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - verify moved pairs in result
         result.movedFiles shouldContainPath (sourceFolder to LocalPath.build("/dest/folder"))
@@ -500,7 +498,8 @@ class GenericPathMoveTest : BaseTest() {
         mockOps.addMockFile("/source/folder/file2.txt", "content2".toByteArray())
         mockOps.addMockDir("/dest")
 
-        val progressUpdates = mutableListOf<MoveAction.State.Progress<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>>()
+        val progressUpdates =
+            mutableListOf<MoveAction.State.Active<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
 
         // When
         setOf(LocalPath.build("/source/folder")).moveGeneric(
@@ -510,7 +509,7 @@ class GenericPathMoveTest : BaseTest() {
             strategy = strategy,
             onIssue = null
         ).onEach { state ->
-            if (state is MoveAction.State.Progress) progressUpdates.add(state)
+            if (state is MoveAction.State.Active) progressUpdates.add(state)
         }.last()
 
         // Then - should receive progress updates for files
@@ -538,7 +537,7 @@ class GenericPathMoveTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
         result.bytesMoved shouldBe expectedBytes
@@ -570,7 +569,7 @@ class GenericPathMoveTest : BaseTest() {
                 issueCount++
                 PathActionIssue.PathAlreadyExists.Resolution.Skip(applyToAll = true)
             }
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - only asked once due to apply-to-all
         issueCount shouldBe 1
@@ -609,7 +608,7 @@ class GenericPathMoveTest : BaseTest() {
                 issueCount++
                 PathActionIssue.PathAlreadyExists.Resolution.Overwrite(applyToAll = true)
             }
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - only asked once due to apply-to-all
         issueCount shouldBe 1
@@ -654,7 +653,7 @@ class GenericPathMoveTest : BaseTest() {
                     applyToAll = true
                 )
             }
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - only asked once due to apply-to-all
         issueCount shouldBe 1
@@ -704,7 +703,7 @@ class GenericPathMoveTest : BaseTest() {
                 issueCount++
                 PathActionIssue.PathAlreadyExists.Resolution.Merge(applyToAll = true)
             }
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - only asked once due to apply-to-all
         issueCount shouldBe 1
@@ -749,7 +748,7 @@ class GenericPathMoveTest : BaseTest() {
                 issueCount++
                 PathActionIssue.PathAlreadyExists.Resolution.Overwrite(applyToAll = true)
             }
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - only asked once due to apply-to-all
         issueCount shouldBe 1
@@ -794,7 +793,7 @@ class GenericPathMoveTest : BaseTest() {
                 issueCount++
                 PathActionIssue.PathAlreadyExists.Resolution.Skip(applyToAll = true)
             }
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - only asked once due to apply-to-all
         issueCount shouldBe 1
@@ -839,7 +838,7 @@ class GenericPathMoveTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - file deleted and replaced with directory
         mockOps.hasFile("/dest/item") shouldBe true
@@ -873,7 +872,7 @@ class GenericPathMoveTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null  // No handler - should auto-merge
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - directories merged (both files exist)
         mockOps.hasFile("/dest/folder") shouldBe true
@@ -917,7 +916,7 @@ class GenericPathMoveTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - both files exist in merged directory
         mockOps.hasFile("/dest/project") shouldBe true
@@ -952,7 +951,7 @@ class GenericPathMoveTest : BaseTest() {
             onIssue = { issue ->
                 PathActionIssue.PathAlreadyExists.Resolution.RenameSource("Parent-new")
             }
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - all paths updated to use Parent-new
         mockOps.hasFile("/dest/Parent-new") shouldBe true
@@ -996,7 +995,7 @@ class GenericPathMoveTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - file successfully moved after retry
         mockOps.hasFile("/dest/file.txt") shouldBe true
@@ -1045,7 +1044,7 @@ class GenericPathMoveTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - file skipped after retries
         // Note: partial file may or may not exist depending on when failures occurred
@@ -1064,7 +1063,8 @@ class GenericPathMoveTest : BaseTest() {
 
         mockOps.setFailOpenOutputStream(1)
 
-        val progressUpdates = mutableListOf<MoveAction.State.Progress<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>>()
+        val progressUpdates =
+            mutableListOf<MoveAction.State.Active<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
 
         // When - move with progress tracking
         setOf(LocalPath.build("/source/file.txt")).moveGeneric(
@@ -1083,7 +1083,7 @@ class GenericPathMoveTest : BaseTest() {
                 }
             }
         ).onEach { state ->
-            if (state is MoveAction.State.Progress) progressUpdates.add(state)
+            if (state is MoveAction.State.Active) progressUpdates.add(state)
         }.last()
 
         // Then - progress should never decrease (no regression)
@@ -1128,7 +1128,7 @@ class GenericPathMoveTest : BaseTest() {
                     else -> TODO("Unexpected issue type: $issue")
                 }
             }
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - directory should be ONLY in skipped, NOT in moved
         result.movedFiles.toPathPairs().map { it.first } shouldNotBe setOf(LocalPath.build("/source/parent"))
@@ -1179,7 +1179,7 @@ class GenericPathMoveTest : BaseTest() {
                     else -> TODO("Unexpected issue type: $issue")
                 }
             }
-        ).last() as MoveAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - directory and children successfully moved after retry
         retryInvoked shouldBe true
@@ -1209,7 +1209,8 @@ class GenericPathMoveTest : BaseTest() {
         val sourcePath = LocalPath.build("/source")
         val destPath = LocalPath.build("/dest")
 
-        val progressUpdates = mutableListOf<MoveAction.State.Progress<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
+        val progressUpdates =
+            mutableListOf<MoveAction.State.Active<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
 
         // When - move files and collect progress updates
         val result = setOf(sourcePath).moveGeneric(
@@ -1219,10 +1220,10 @@ class GenericPathMoveTest : BaseTest() {
             strategy = strategy,
             onIssue = null
         ).onEach { state ->
-            if (state is MoveAction.State.Progress) {
+            if (state is MoveAction.State.Active) {
                 progressUpdates.add(state)
             }
-        }.last() as MoveAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        }.last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - operation succeeded
         result.movedFiles.size shouldBe 4  // source dir + 3 files

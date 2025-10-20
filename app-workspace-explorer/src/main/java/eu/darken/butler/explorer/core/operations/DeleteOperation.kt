@@ -12,14 +12,12 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.delete
 import eu.darken.butler.common.getQuantityString2
-import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
@@ -108,7 +106,7 @@ class DeleteOperation @AssistedInject constructor(
             )
             .onEach { deleteState ->
                 when (deleteState) {
-                    is DeleteAction.State.Progress<*, *> -> {
+                    is DeleteAction.State.Active<*, *> -> {
                         val now = Clock.System.now()
                         val elapsed = lastSpeedUpdate.elapsedNow().inWholeMilliseconds / 1000.0
 
@@ -202,7 +200,7 @@ class DeleteOperation @AssistedInject constructor(
                         )
                         emit(stateActive)
                     }
-                    is DeleteAction.State.Result<*, *> -> {
+                    is DeleteAction.State.Completed<*, *> -> {
                         @Suppress("UNCHECKED_CAST")
                         val deleted = deleteState.deleted as Set<APathLookup<*>>
                         @Suppress("UNCHECKED_CAST")

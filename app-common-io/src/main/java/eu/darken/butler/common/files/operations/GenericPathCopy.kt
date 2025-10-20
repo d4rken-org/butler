@@ -1,11 +1,7 @@
 package eu.darken.butler.common.files.operations
 
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
@@ -228,7 +224,7 @@ internal class GenericPathCopy<
         // For cross-type, this won't compile - cross-type operations should use their own result type
         @Suppress("UNCHECKED_CAST")
         emit(
-            CopyAction.State.Result(
+            CopyAction.State.Completed(
                 copied = copied,
                 skipped = skipped,
                 copiedBytes = totalBytesTransferred
@@ -657,7 +653,7 @@ internal class GenericPathCopy<
         val snapshot = progressTracker.createSnapshot()
 
         emit(
-            CopyAction.State.Progress(
+            CopyAction.State.Active(
                 currentSource = lookup,
                 currentDestination = null,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(
@@ -681,7 +677,7 @@ internal class GenericPathCopy<
 
         @Suppress("UNCHECKED_CAST")
         emit(
-            CopyAction.State.Progress(
+            CopyAction.State.Active(
                 currentSource = lookup,
                 currentDestination = destLookup,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(

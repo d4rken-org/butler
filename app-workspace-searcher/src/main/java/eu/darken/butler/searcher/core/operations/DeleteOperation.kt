@@ -106,7 +106,7 @@ class DeleteOperation @AssistedInject constructor(
             )
             .onEach { deleteState ->
                 when (deleteState) {
-                    is DeleteAction.State.Progress<APath<*>, APathLookup<APath<*>>> -> {
+                    is DeleteAction.State.Active<APath<*>, APathLookup<APath<*>>> -> {
                         val now = Clock.System.now()
                         val elapsed = lastSpeedUpdate.elapsedNow().inWholeMilliseconds / 1000.0
 
@@ -205,7 +205,7 @@ class DeleteOperation @AssistedInject constructor(
                         emit(stateActive)
                     }
 
-                    is DeleteAction.State.Result<APath<*>, APathLookup<APath<*>>> -> {
+                    is DeleteAction.State.Completed<APath<*>, APathLookup<APath<*>>> -> {
                         reportBuilder.setDeletions(deleteState.deleted)
                         reportBuilder.setSkipped(deleteState.skipped)
                         reportBuilder.setBytesFreed(deleteState.deleted.mapNotNull { it.size }.sum())

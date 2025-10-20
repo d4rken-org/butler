@@ -110,7 +110,7 @@ class CopyOperation @AssistedInject constructor(
                 },
             )
             .onEach { copyState ->
-                if (copyState !is CopyAction.State.Progress<*, *, *, *>) return@onEach
+                if (copyState !is CopyAction.State.Active<*, *, *, *>) return@onEach
                 if (Bugs.isTrace) log(tag, VERBOSE) { "Progress: $copyState" }
 
                 val now = Clock.System.now()
@@ -231,7 +231,7 @@ class CopyOperation @AssistedInject constructor(
             }
             .last()
 
-        result as CopyAction.State.Result<*, *, *, *>
+        result as CopyAction.State.Completed<*, *, *, *>
 
         val copiedDestinations = result.copied.map { it.second }.toSet()
         fileSystemHinter.trackPathsAdded(operationContext.id,copiedDestinations.toSet())

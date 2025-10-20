@@ -1,11 +1,7 @@
 package eu.darken.butler.common.files.operations
 
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
@@ -216,7 +212,7 @@ internal class GenericPathMove<
         cleanupSourceDirectories()
 
         emit(
-            MoveAction.State.Result(
+            MoveAction.State.Completed(
                 movedFiles = moved,
                 skippedFiles = skipped,
                 bytesMoved = progressTracker.processedBytes
@@ -642,7 +638,7 @@ internal class GenericPathMove<
         val snapshot = progressTracker.createSnapshot()
 
         emit(
-            MoveAction.State.Progress(
+            MoveAction.State.Active(
                 currentSource = lookup,
                 currentDestination = null,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(
@@ -665,7 +661,7 @@ internal class GenericPathMove<
         val snapshot = progressTracker.createSnapshot()
 
         emit(
-            MoveAction.State.Progress(
+            MoveAction.State.Active(
                 currentSource = lookup,
                 currentDestination = destination,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(

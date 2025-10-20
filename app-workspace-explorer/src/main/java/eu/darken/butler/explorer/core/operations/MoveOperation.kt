@@ -12,8 +12,6 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
@@ -110,7 +108,7 @@ class MoveOperation @AssistedInject constructor(
                 },
             )
             .onEach { moveState ->
-                if (moveState !is MoveAction.State.Progress<*, *, *, *>) return@onEach
+                if (moveState !is MoveAction.State.Active<*, *, *, *>) return@onEach
 
                 val now = Clock.System.now()
                 val elapsed = lastSpeedUpdate.elapsedNow().inWholeMilliseconds / 1000.0
@@ -237,7 +235,7 @@ class MoveOperation @AssistedInject constructor(
             }
             .last()
 
-        result as MoveAction.State.Result<*, *, *, *>
+        result as MoveAction.State.Completed<*, *, *, *>
 
         // Track filesystem changes - sources were removed
         // TODO don't we have the lookup from earlier?
