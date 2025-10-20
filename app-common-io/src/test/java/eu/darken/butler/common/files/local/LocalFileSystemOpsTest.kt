@@ -91,6 +91,22 @@ class LocalFileSystemOpsTest : BaseTest() {
     }
 
     @Test
+    fun `lookup with fallbackToUnknown=true returns UNKNOWN for non-existent file`() = runTest {
+        val nonExistentPath = LocalPath.build("/tmp/non-existent-file-${System.currentTimeMillis()}")
+
+        val lookup = fileSystemOps.lookup(
+            nonExistentPath,
+            LookupOptions(fallbackToUnknown = true)
+        )
+
+        lookup.lookedUp shouldBe nonExistentPath
+        lookup.fileType shouldBe FileType.UNKNOWN
+        lookup.size shouldBe null
+        lookup.modifiedAt shouldBe null
+        lookup.error shouldNotBe null // Should capture the underlying exception
+    }
+
+    @Test
     fun `lookup with BASE options returns extended metadata`(@TempDir tempDir: File) = runTest {
         val testFile = File(tempDir, "test.txt").apply {
             writeText("content")

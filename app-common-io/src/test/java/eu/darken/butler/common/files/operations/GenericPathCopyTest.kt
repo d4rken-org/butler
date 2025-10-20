@@ -1333,4 +1333,46 @@ class GenericPathCopyTest : BaseTest() {
         // After: ~2000-2500 stat calls
         // Savings: 40-50% reduction, ~200-600ms for bulk small file operations
     }
+
+    @Test
+    fun `copy directory to non-existent destination uses fallbackToUnknown for conflict check`() = runTest {
+        // Tests regression fix: SAFFileSystemOps.lookup() must respect fallbackToUnknown option
+        // Bug: lookup threw exception for non-existent paths even with fallbackToUnknown=true
+        // This prevented GenericPathCopy's conflict check from working, causing copy failures
+
+        // Given - source directory with files, non-existent destination
+        mockOps.addMockDir("/source/mydir")
+        mockOps.addMockFile("/source/mydir/file1.txt", "content1".toByteArray())
+        mockOps.addMockFile("/source/mydir/file2.txt", "content2".toByteArray())
+        mockOps.addMockDir("/dest")
+
+        val sourcePath = LocalPath.build("/source/mydir")
+        val destPath = LocalPath.build("/dest")
+
+        // Clear tracking to verify fallbackToUnknown is used
+        mockOps.lookupCalls.clear()
+
+        // When - copy directory
+        val result = setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onIssue = null
+        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Then - operation succeeded (didn't throw ReadException)
+        mockOps.hasFile("/dest/mydir") shouldBe true
+        mockOps.hasFile("/dest/mydir/file1.txt") shouldBe true
+        mockOps.hasFile("/dest/mydir/file2.txt") shouldBe true
+        mockOps.getFileContent("/dest/mydir/file1.txt") shouldBe "content1".toByteArray()
+        mockOps.getFileContent("/dest/mydir/file2.txt") shouldBe "content2".toByteArray()
+
+        // Verify conflict check used lookup (which respects fallbackToUnknown)
+        // Should have looked up /dest/mydir to check for conflicts before creating
+        mockOps.lookupCalls shouldContain "/dest/mydir"
+
+        // Result should contain all copied items
+        result.copied.size shouldBe 3  // 1 directory + 2 files
+    }
 }

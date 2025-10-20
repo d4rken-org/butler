@@ -113,7 +113,7 @@ class GenericCrossTypeMoveStrategy<
         destOps: FileSystemOps<DP, DPL>,
         options: TransferStrategy.Options
     ): TransferStrategy.TransferResult<SP, DP> {
-        log(TAG, DEBUG) { "Moving directory cross-type: ${sourceLookup.lookedUp} → $destination" }
+        log(TAG, DEBUG) { "Moving directory cross-type: ${sourceLookup.lookedUp} → $destination ($options)" }
 
         // For directories, we just create at destination
         // The move operation (GenericPathMove) will handle cleanup of empty source

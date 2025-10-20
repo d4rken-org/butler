@@ -47,13 +47,29 @@ object MockDataProvider {
         modifiedAt: Instant = Instant.parse("2023-10-15T10:30:00Z"),
         target: LocalPath? = null
     ): APathLookup<*> {
-        // Create a mock implementation for previews
+        // Create a mock implementation for previews with realistic metadata
+        val mockOwnership = Ownership(
+            userId = 1000,
+            groupId = 1000,
+            userName = "user",
+            groupName = "user"
+        )
+        // File: 644 (rw-r--r--), Directory: 755 (rwxr-xr-x)
+        val mockPermissions = when (fileType) {
+            FileType.DIRECTORY -> Permissions(mode = 493) // 755 octal
+            else -> Permissions(mode = 420) // 644 octal
+        }
+
         return object : APathLookup<LocalPath> {
             override val lookedUp: LocalPath = LocalPath.build(path)
             override val size: Long = size
             override val fileType: FileType = fileType
             override val modifiedAt: Instant = modifiedAt
             override val target: LocalPath? = target
+            override val ownership: Ownership = mockOwnership
+            override val permissions: Permissions = mockPermissions
+            override val createdAt: Instant = createdAt
+            override val error: Throwable? = null // No errors in mock preview data
         }
     }
 

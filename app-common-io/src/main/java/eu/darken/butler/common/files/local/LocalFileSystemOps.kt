@@ -114,6 +114,7 @@ class LocalFileSystemOps @Inject constructor(
             } -> FileType.UNKNOWN
 
             options.fallbackToUnknown -> {
+                errors.add("File does not exist or cannot be accessed")
                 FileType.UNKNOWN
             }
 

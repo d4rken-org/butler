@@ -111,7 +111,7 @@ class GenericCrossTypeCopyStrategy<
         destOps: FileSystemOps<DP, DPL>,
         options: TransferStrategy.Options
     ): TransferStrategy.TransferResult<SP, DP> {
-        log(TAG, DEBUG) { "Creating directory cross-type: $destination" }
+        log(TAG, DEBUG) { "Copying directory cross-type: ${sourceLookup.lookedUp} → $destination ($options)" }
 
         // Create directory at destination (parent exists from depth-first traversal)
         destOps.createDir(destination)

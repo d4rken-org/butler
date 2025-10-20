@@ -15,9 +15,11 @@ import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.metadata.FileSystem
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import kotlinx.coroutines.delay
 import okio.FileHandle
 import java.io.IOException
 import java.io.InputStream
@@ -25,6 +27,7 @@ import java.io.OutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
@@ -205,6 +208,23 @@ class SAFFileSystemOps @Inject constructor(
             lookup
         } catch (e: Exception) {
             log(TAG, WARN) { "lookup($path, $options) failed." }
+
+            // If fallbackToUnknown is true, return synthetic lookup instead of throwing
+            if (options.fallbackToUnknown) {
+                log(TAG, VERBOSE) { "Returning UNKNOWN lookup for non-existent path: $path" }
+                return SAFPathLookup(
+                    lookedUp = path,
+                    fileType = FileType.UNKNOWN,
+                    size = null,
+                    modifiedAt = null,
+                    target = null,
+                    error = e,
+                    ownership = null,
+                    permissions = null,
+                    createdAt = null,
+                )
+            }
+
             throw ReadException(path = path, cause = e)
         }
     }
@@ -420,6 +440,9 @@ class SAFFileSystemOps @Inject constructor(
             }
 
             createDocumentFile(DocumentsContract.Document.MIME_TYPE_DIR, path)
+
+            // Wait for DocumentsProvider to make directory queryable (race condition fix)
+            waitUntilQueryable(path)
         } catch (e: PathAlreadyExistsException) {
             throw e // Re-throw PathAlreadyExistsException as-is
         } catch (e: Exception) {
@@ -438,6 +461,9 @@ class SAFFileSystemOps @Inject constructor(
             if (docFile.exists) throw PathAlreadyExistsException(path = path)
 
             createDocumentFile("application/octet-stream", path)
+
+            // Wait for DocumentsProvider to make file queryable (race condition fix)
+            waitUntilQueryable(path)
         } catch (e: PathAlreadyExistsException) {
             throw e // Re-throw PathAlreadyExistsException as-is
         } catch (e: Exception) {
@@ -676,6 +702,36 @@ class SAFFileSystemOps @Inject constructor(
 
     enum class FileMode(val value: String) {
         READ_WRITE("rw"), WRITE("w"), READ("r")
+    }
+
+    /**
+     * Wait until a newly created path becomes queryable.
+     *
+     * Works around SAF DocumentsProvider race condition where newly created files/directories
+     * exist but their metadata isn't immediately queryable. Retries lookup with delays.
+     *
+     * @param path The path to verify
+     * @param maxAttempts Maximum number of lookup attempts (default: 3)
+     */
+    private suspend fun waitUntilQueryable(path: SAFPath, maxAttempts: Int = 3) {
+        repeat(maxAttempts) { attempt ->
+            if (attempt > 0) delay(50.milliseconds)
+
+            try {
+                // Try to lookup the path - if this succeeds, it's queryable
+                lookup(path, LookupOptions())
+                if (Bugs.isTrace) log(TAG, VERBOSE) { "Path queryable after ${attempt + 1} attempt(s): $path" }
+                return // Success!
+            } catch (e: Exception) {
+                if (attempt == maxAttempts - 1) {
+                    // Last attempt failed - log but don't throw
+                    // Path was created, just not immediately queryable
+                    log(TAG, WARN) {
+                        "Path created but not queryable after $maxAttempts attempts: $path - ${e.asLog()}"
+                    }
+                }
+            }
+        }
     }
 
     companion object {
