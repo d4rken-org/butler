@@ -38,14 +38,16 @@ import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogEvent
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
 import eu.darken.butler.setup.core.SetupModule
+import eu.darken.butler.explorer.core.arguments.ExternalExplorerArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.createAndFocus
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
-import eu.darken.butler.workspace.core.picker.PickerConfig
+import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.operations.Operation
@@ -601,7 +603,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                             onWorkspaceAction(
                                 WorkspaceAction.Create(
                                     type = Workspace.Type.EXPLORER,
-                                    arguments = ExplorerArguments(
+                                    arguments = ExternalExplorerArguments(
                                         startPath = parentPath
                                     )
                                 )
@@ -843,12 +845,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     val firstPath = clip.paths.first()
                     val parentPath = firstPath.parent
                     if (parentPath != null) {
-                        // Open Explorer at the source path
-                        workspaceRemote.execute(
-                            WorkspaceAction.Create(
-                                type = Workspace.Type.EXPLORER,
-                                arguments = ExplorerArguments(startPath = parentPath)
-                            )
+                        // Open Explorer at the source path and switch to it
+                        workspaceRemote.createAndFocus(
+                            type = Workspace.Type.EXPLORER,
+                            arguments = ExternalExplorerArguments(startPath = parentPath)
                         )
                     }
                 }

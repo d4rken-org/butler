@@ -19,14 +19,3 @@ data class EditorArguments(
     @IgnoredOnParcel
     override val type: Workspace.Type = Workspace.Type.EDITOR
 }
-
-/**
- * Arguments for opening a path in the explorer workspace
- */
-@Parcelize
-data class ExplorerArguments(
-    val startPath: APath<*>? = null,
-) : Workspace.Arguments {
-    @IgnoredOnParcel
-    override val type: Workspace.Type = Workspace.Type.EXPLORER
-}

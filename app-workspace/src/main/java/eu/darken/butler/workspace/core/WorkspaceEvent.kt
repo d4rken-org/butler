@@ -16,6 +16,10 @@ sealed interface WorkspaceEvent {
         val workspaceIds: List<Workspace.Id>,
     ) : WorkspaceEvent
 
+    data class SelectionRequested(
+        val workspaceId: Workspace.Id,
+    ) : WorkspaceEvent
+
     data object AllClosed : WorkspaceEvent
 
     /**

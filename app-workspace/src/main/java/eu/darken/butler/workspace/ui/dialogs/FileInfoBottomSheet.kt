@@ -51,6 +51,21 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 /**
+ * Data class encapsulating all file/directory information for display.
+ *
+ * Provides a clean API for FileInfoBottomSheet by grouping all metadata fields.
+ * Workspaces provide what they have - missing fields won't be displayed.
+ */
+data class FileInfo(
+    val lookup: APathLookup<*>,
+    val ownership: Ownership? = null,
+    val permissions: Permissions? = null,
+    val createdAt: Instant? = null,
+    val mimeInfo: MimeInfo? = null,
+    val childCount: Int? = null,
+)
+
+/**
  * Shared bottom sheet for displaying file/directory information.
  *
  * Shows basic info from APathLookup (available to all workspaces) and optionally
@@ -58,16 +73,10 @@ import kotlin.time.Instant
  */
 @Composable
 fun FileInfoBottomSheet(
-    lookup: APathLookup<*>,
+    fileInfo: FileInfo,
     onDismiss: () -> Unit,
     onCopyToClipboard: (String) -> Unit,
     modifier: Modifier = Modifier,
-    // Optional extended fields - only shown if provided
-    ownership: Ownership? = null,
-    permissions: Permissions? = null,
-    createdAt: Instant? = null,
-    mimeInfo: MimeInfo? = null,
-    childCount: Int? = null,
 ) {
     val isInPreview = LocalInspectionMode.current
 
@@ -77,13 +86,13 @@ fun FileInfoBottomSheet(
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
         ) {
             FileInfoContent(
-                lookup = lookup,
+                lookup = fileInfo.lookup,
                 onCopyToClipboard = onCopyToClipboard,
-                ownership = ownership,
-                permissions = permissions,
-                createdAt = createdAt,
-                mimeInfo = mimeInfo,
-                childCount = childCount,
+                ownership = fileInfo.ownership,
+                permissions = fileInfo.permissions,
+                createdAt = fileInfo.createdAt,
+                mimeInfo = fileInfo.mimeInfo,
+                childCount = fileInfo.childCount,
             )
         }
     } else {
@@ -95,13 +104,13 @@ fun FileInfoBottomSheet(
             modifier = modifier,
         ) {
             FileInfoContent(
-                lookup = lookup,
+                lookup = fileInfo.lookup,
                 onCopyToClipboard = onCopyToClipboard,
-                ownership = ownership,
-                permissions = permissions,
-                createdAt = createdAt,
-                mimeInfo = mimeInfo,
-                childCount = childCount,
+                ownership = fileInfo.ownership,
+                permissions = fileInfo.permissions,
+                createdAt = fileInfo.createdAt,
+                mimeInfo = fileInfo.mimeInfo,
+                childCount = fileInfo.childCount,
             )
         }
     }
@@ -422,10 +431,12 @@ private fun FileInfoBottomSheetPreviewFile() {
         )
 
         FileInfoBottomSheet(
-            lookup = mockLookup,
+            fileInfo = FileInfo(
+                lookup = mockLookup,
+                mimeInfo = MimeInfo("text/plain"),
+            ),
             onDismiss = {},
             onCopyToClipboard = {},
-            mimeInfo = MimeInfo("text/plain"),
         )
     }
 }
@@ -442,10 +453,12 @@ private fun FileInfoBottomSheetPreviewDirectory() {
         )
 
         FileInfoBottomSheet(
-            lookup = mockLookup,
+            fileInfo = FileInfo(
+                lookup = mockLookup,
+                childCount = 42,
+            ),
             onDismiss = {},
             onCopyToClipboard = {},
-            childCount = 42,
         )
     }
 }
