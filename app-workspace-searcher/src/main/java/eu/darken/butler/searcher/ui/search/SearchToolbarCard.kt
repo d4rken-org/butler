@@ -1,20 +1,32 @@
 package eu.darken.butler.searcher.ui.search
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -31,6 +43,7 @@ fun SearchToolbarCard(
     modifier: Modifier = Modifier,
     state: SearcherWorkspaceViewModel.State,
     design: WorkspaceDesign,
+    collapsedFraction: Float = 0f,
     onUpdateQuery: (TextFieldValue) -> Unit,
     onRemoveSearchPath: (SearchTarget) -> Unit,
     onTogglePathEnabled: (SearchTarget) -> Unit,
@@ -44,6 +57,12 @@ fun SearchToolbarCard(
     workspaceButtonState: WorkspaceButtonViewModel.State? = null,
     workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
+    val isCollapsed = collapsedFraction > 0.5f
+    val cardPadding by animateDpAsState(
+        targetValue = if (isCollapsed) 8.dp else 16.dp,
+        label = "cardPadding"
+    )
+
     Card(
         modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -55,50 +74,101 @@ fun SearchToolbarCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(cardPadding),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                SearchBar(
-                    query = state.searchQuery,
-                    onQueryChange = onUpdateQuery,
-                    onSearch = onExplicitSearch,
-                    isSearching = state.isSearching,
-                    onCancel = if (state.isSearching) onCancelSearch else null,
-                    modifier = Modifier.weight(1f)
-                )
-
-                if (design.isSingle) {
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    WorkspaceButton(
-                        state = workspaceButtonState,
-                        workspaceActionHandler = workspaceActionHandler,
+            if (isCollapsed) {
+                // Collapsed state - compact display
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Search,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.primary
                     )
+
+                    Text(
+                        text = state.searchQuery.text.ifBlank { "Search" },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (state.searchQuery.text.isBlank()) {
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    if (design.isSingle) {
+                        WorkspaceButton(
+                            state = workspaceButtonState,
+                            workspaceActionHandler = workspaceActionHandler,
+                            modifier = Modifier.graphicsLayer {
+                                scaleX = 0.75f
+                                scaleY = 0.75f
+                            }
+                        )
+                    }
+                }
+            } else {
+                // Expanded state - full interactive card
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
+                ) {
+                    SearchBar(
+                        query = state.searchQuery,
+                        onQueryChange = onUpdateQuery,
+                        onSearch = onExplicitSearch,
+                        isSearching = state.isSearching,
+                        onCancel = if (state.isSearching) onCancelSearch else null,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    if (design.isSingle) {
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        WorkspaceButton(
+                            state = workspaceButtonState,
+                            workspaceActionHandler = workspaceActionHandler,
+                        )
+                    }
+                }
+
+                AnimatedVisibility(
+                    visible = !isCollapsed,
+                    enter = expandVertically(),
+                    exit = shrinkVertically()
+                ) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        SearchOptionsRow(
+                            caseSensitive = state.caseSensitive,
+                            wholeWord = state.wholeWord,
+                            useRegex = state.useRegex,
+                            onToggleCaseSensitive = onToggleCaseSensitive,
+                            onToggleWholeWord = onToggleWholeWord,
+                            onToggleRegex = onToggleRegex,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        MultiPathChipBar(
+                            paths = state.searchTargets,
+                            onPathRemove = onRemoveSearchPath,
+                            onPathToggle = onTogglePathEnabled,
+                            onAddPathClick = { onOpenPathPicker?.invoke() },
+                            isSearching = state.isSearching,
+                        )
+                    }
                 }
             }
-
-            SearchOptionsRow(
-                caseSensitive = state.caseSensitive,
-                wholeWord = state.wholeWord,
-                useRegex = state.useRegex,
-                onToggleCaseSensitive = onToggleCaseSensitive,
-                onToggleWholeWord = onToggleWholeWord,
-                onToggleRegex = onToggleRegex,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            MultiPathChipBar(
-                paths = state.searchTargets,
-                onPathRemove = onRemoveSearchPath,
-                onPathToggle = onTogglePathEnabled,
-                onAddPathClick = { onOpenPathPicker?.invoke() },
-                isSearching = state.isSearching,
-            )
         }
     }
 }
