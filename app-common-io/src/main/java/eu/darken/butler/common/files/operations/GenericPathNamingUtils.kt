@@ -52,15 +52,19 @@ class GenericPathNamingUtils<P : APath<P>, PL : APathLookup<P>>(
      *
      * @param parentPath The parent directory where the file will be created
      * @param originalName The original filename to make unique
+     * @param knownToExist If true, skips checking if original name is unique (optimization for conflict resolution)
      * @return A unique filename that doesn't conflict with existing files
      */
     suspend fun generateUniqueName(
         parentPath: P,
-        originalName: String
+        originalName: String,
+        knownToExist: Boolean = false
     ): String {
-        // Check if original name is already unique
-        val testPath = parentPath.child(originalName)
-        if (!ops.exists(testPath)) return originalName
+        // Check if original name is already unique (skip if we know it exists)
+        if (!knownToExist) {
+            val testPath = parentPath.child(originalName)
+            if (!ops.exists(testPath)) return originalName
+        }
 
         // Split into base name and extension
         val lastDotIndex = originalName.lastIndexOf('.')

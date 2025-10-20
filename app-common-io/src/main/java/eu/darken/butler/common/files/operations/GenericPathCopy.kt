@@ -175,10 +175,8 @@ internal class GenericPathCopy<
         log(TAG, DEBUG) { "execute(): Copying ${sources.size} sources to $destination" }
 
         // Check if destination exists and is a directory (for path calculation logic)
-        if (destOps.exists(destination)) {
-            val destLookup = destOps.lookup(destination, LookupOptions())
-            destinationExistedAsDirectory = destLookup.fileType == FileType.DIRECTORY
-        }
+        val destLookup = destOps.lookup(destination, LookupOptions(fallbackToUnknown = true))
+        destinationExistedAsDirectory = destLookup.fileType == FileType.DIRECTORY
 
         // Initialize work queue with scan items for all sources
         scanItemsRemaining = sources.size
@@ -236,8 +234,11 @@ internal class GenericPathCopy<
     ): Int {
         log(TAG, VERBOSE) { "Scanning source: ${item.source}" }
 
+        // Use MAX lookup options when preserving attributes to avoid redundant lookup in copyAttributes
+        val lookupOptions = if (options.preserveAttributes) LookupOptions.MAX else LookupOptions.BASE
+
         val lookup = try {
-            sourceOps.lookup(item.source, LookupOptions.BASE)
+            sourceOps.lookup(item.source, lookupOptions)
         } catch (e: Exception) {
             if (item.source == item.topLevelSource) {
                 throw e // Top-level source must exist
@@ -370,7 +371,10 @@ internal class GenericPathCopy<
 
             when (result) {
                 is TransferStrategy.TransferResult.Success -> {
-                    val destLookup = destOps.lookup(result.destination, LookupOptions.BASE)
+                    // Use destinationLookup from result if available, otherwise lookup
+                    @Suppress("UNCHECKED_CAST")
+                    val destLookup = result.destinationLookup as? DPL
+                        ?: destOps.lookup(result.destination, LookupOptions.BASE)
                     copied.add(item.sourceLookup to destLookup)
                     totalBytesTransferred += result.bytesTransferred
                     progressTracker.completeFile()
@@ -410,9 +414,9 @@ internal class GenericPathCopy<
         log(TAG, VERBOSE) { "Creating directory: ${item.sourceLookup.lookedUp} -> $adjustedDest" }
 
         // Check for conflicts before creating
-        if (destOps.exists(adjustedDest)) {
+        val destLookup = destOps.lookup(adjustedDest, LookupOptions.BASE.copy(fallbackToUnknown = true))
+        if (destLookup.fileType != FileType.UNKNOWN) {
             log(TAG, VERBOSE) { "Directory collision detected: $adjustedDest" }
-            val destLookup = destOps.lookup(adjustedDest, LookupOptions.BASE)
             handleDirectoryConflict(item, adjustedDest, destLookup)
             return
         }
@@ -429,7 +433,10 @@ internal class GenericPathCopy<
 
             when (result) {
                 is TransferStrategy.TransferResult.Success -> {
-                    val destLookup = destOps.lookup(result.destination, LookupOptions.BASE)
+                    // Use destinationLookup from result if available, otherwise lookup
+                    @Suppress("UNCHECKED_CAST")
+                    val destLookup = result.destinationLookup as? DPL
+                        ?: destOps.lookup(result.destination, LookupOptions.BASE)
                     copied.add(item.sourceLookup to destLookup)
                     totalBytesTransferred += result.bytesTransferred
                     progressTracker.completeItem()

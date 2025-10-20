@@ -58,10 +58,14 @@ class LocalPathMoveStrategy(
 
             onProgress(sourceLookup.size ?: 0L)
 
+            // Lookup moved destination to avoid redundant stat in caller
+            val destLookup = destOps.lookup(destination, LookupOptions.BASE)
+
             return eu.darken.butler.common.files.operations.TransferStrategy.TransferResult.Success(
                 source = sourceLookup.lookedUp,
                 destination = destination,
-                bytesTransferred = sourceLookup.size ?: 0L
+                bytesTransferred = sourceLookup.size ?: 0L,
+                destinationLookup = destLookup
             )
         } catch (e: java.nio.file.AtomicMoveNotSupportedException) {
             log(TAG, DEBUG) { "Atomic move not supported, falling back to copy+delete" }
@@ -84,10 +88,14 @@ class LocalPathMoveStrategy(
         // Parent exists due to GenericPathMove's depth-first traversal
         destOps.createDir(destination)
 
+        // Lookup created destination to avoid redundant stat in caller
+        val destLookup = destOps.lookup(destination, LookupOptions.BASE)
+
         return eu.darken.butler.common.files.operations.TransferStrategy.TransferResult.Success(
             source = sourceLookup.lookedUp,
             destination = destination,
-            bytesTransferred = 0L
+            bytesTransferred = 0L,
+            destinationLookup = destLookup
         )
     }
 
@@ -133,10 +141,14 @@ class LocalPathMoveStrategy(
 
         onProgress(sourceLookup.size ?: 0L)
 
+        // Lookup moved destination to avoid redundant stat in caller
+        val destLookup = destOps.lookup(destination, LookupOptions.BASE)
+
         return eu.darken.butler.common.files.operations.TransferStrategy.TransferResult.Success(
             source = sourceLookup.lookedUp,
             destination = destination,
-            bytesTransferred = sourceLookup.size ?: 0L
+            bytesTransferred = sourceLookup.size ?: 0L,
+            destinationLookup = destLookup
         )
     }
 
@@ -184,35 +196,43 @@ class LocalPathMoveStrategy(
 
             // Copy file attributes if requested
             if (options.preserveAttributes) {
-                copyAttributes(sourceLookup.lookedUp, destination, sourceOps, destOps)
+                copyAttributes(sourceLookup, destination, sourceOps, destOps)
             }
         }
 
         // Delete source after successful copy
         sourceOps.delete(sourceLookup.lookedUp, recursive = false)
 
+        // Lookup moved destination to avoid redundant stat in caller
+        val destLookup = destOps.lookup(destination, LookupOptions.BASE)
+
         return eu.darken.butler.common.files.operations.TransferStrategy.TransferResult.Success(
             source = sourceLookup.lookedUp,
             destination = destination,
-            bytesTransferred = totalBytesTransferred
+            bytesTransferred = totalBytesTransferred,
+            destinationLookup = destLookup
         )
     }
 
     private suspend fun copyAttributes(
-        source: LocalPath,
+        sourceLookup: LocalPathLookup,
         destination: LocalPath,
         sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
         destOps: FileSystemOps<LocalPath, LocalPathLookup>
     ) {
         try {
-            // Get source attributes
-            val sourceLookup = sourceOps.lookup(source, LookupOptions.MAX)
+            // Re-lookup with MAX if permissions not already fetched
+            val lookupWithAttributes = if (sourceLookup.permissions == null) {
+                sourceOps.lookup(sourceLookup.lookedUp, LookupOptions.MAX)
+            } else {
+                sourceLookup
+            }
 
             // Set modified time
-            sourceLookup.modifiedAt?.let { destOps.setModifiedAt(destination, it) }
+            lookupWithAttributes.modifiedAt?.let { destOps.setModifiedAt(destination, it) }
 
             // Copy POSIX permissions if available
-            sourceLookup.permissions?.let { permissions ->
+            lookupWithAttributes.permissions?.let { permissions ->
                 destOps.setPermissions(destination, permissions)
             }
         } catch (e: Exception) {

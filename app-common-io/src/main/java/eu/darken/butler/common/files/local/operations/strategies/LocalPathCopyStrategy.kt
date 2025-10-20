@@ -9,6 +9,7 @@ import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.operations.TransferStrategy
 import okio.buffer
 import okio.sink
 import okio.source
@@ -34,7 +35,7 @@ import okio.source
  */
 class LocalPathCopyStrategy(
     private val fileSystemOps: LocalFileSystemOps
-) : eu.darken.butler.common.files.operations.TransferStrategy<
+) : TransferStrategy<
     LocalPath, LocalPathLookup,  // Source types
     LocalPath, LocalPathLookup   // Destination types
     > {
@@ -44,9 +45,9 @@ class LocalPathCopyStrategy(
         destination: LocalPath,
         sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
         destOps: FileSystemOps<LocalPath, LocalPathLookup>,
-        options: eu.darken.butler.common.files.operations.TransferStrategy.Options,
+        options: TransferStrategy.Options,
         onProgress: suspend (bytesTransferred: Long) -> Unit
-    ): eu.darken.butler.common.files.operations.TransferStrategy.TransferResult<LocalPath, LocalPath> {
+    ): TransferStrategy.TransferResult<LocalPath, LocalPath> {
         log(TAG, DEBUG) { "Copying file: ${sourceLookup.lookedUp} -> $destination" }
 
         // Handle symlinks based on options
@@ -67,8 +68,8 @@ class LocalPathCopyStrategy(
         destination: LocalPath,
         sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
         destOps: FileSystemOps<LocalPath, LocalPathLookup>,
-        options: eu.darken.butler.common.files.operations.TransferStrategy.Options
-    ): eu.darken.butler.common.files.operations.TransferStrategy.TransferResult<LocalPath, LocalPath> {
+        options: TransferStrategy.Options
+    ): TransferStrategy.TransferResult<LocalPath, LocalPath> {
         log(TAG, DEBUG) { "Creating directory: $destination" }
 
         // If the source is a symlink and we're not following symlinks, recreate the symlink
@@ -94,10 +95,14 @@ class LocalPathCopyStrategy(
             destOps.createDir(destination)
         }
 
-        return eu.darken.butler.common.files.operations.TransferStrategy.TransferResult.Success(
+        // Lookup created destination to avoid redundant stat in caller
+        val destLookup = destOps.lookup(destination, LookupOptions.BASE)
+
+        return TransferStrategy.TransferResult.Success(
             source = sourceLookup.lookedUp,
             destination = destination,
-            bytesTransferred = 0L
+            bytesTransferred = 0L,
+            destinationLookup = destLookup
         )
     }
 
@@ -107,7 +112,7 @@ class LocalPathCopyStrategy(
         onProgress: suspend (bytesTransferred: Long) -> Unit,
         sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
         destOps: FileSystemOps<LocalPath, LocalPathLookup>
-    ): eu.darken.butler.common.files.operations.TransferStrategy.TransferResult<LocalPath, LocalPath> {
+    ): TransferStrategy.TransferResult<LocalPath, LocalPath> {
         val linkTarget = sourceOps.readSymbolicLink(sourceLookup.lookedUp)
 
         // Adjust symlink target if it's relative
@@ -126,21 +131,25 @@ class LocalPathCopyStrategy(
 
         onProgress(sourceLookup.size ?: 0L)
 
-        return eu.darken.butler.common.files.operations.TransferStrategy.TransferResult.Success(
+        // Lookup created destination to avoid redundant stat in caller
+        val destLookup = destOps.lookup(destination, LookupOptions.BASE)
+
+        return TransferStrategy.TransferResult.Success(
             source = sourceLookup.lookedUp,
             destination = destination,
-            bytesTransferred = sourceLookup.size ?: 0L
+            bytesTransferred = sourceLookup.size ?: 0L,
+            destinationLookup = destLookup
         )
     }
 
     private suspend fun copySymlinkTarget(
         sourceLookup: LocalPathLookup,
         destination: LocalPath,
-        options: eu.darken.butler.common.files.operations.TransferStrategy.Options,
+        options: TransferStrategy.Options,
         onProgress: suspend (bytesTransferred: Long) -> Unit,
         sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
         destOps: FileSystemOps<LocalPath, LocalPathLookup>
-    ): eu.darken.butler.common.files.operations.TransferStrategy.TransferResult<LocalPath, LocalPath> {
+    ): TransferStrategy.TransferResult<LocalPath, LocalPath> {
         // Read the symlink target
         val linkTarget = sourceOps.readSymbolicLink(sourceLookup.lookedUp)
 
@@ -162,26 +171,32 @@ class LocalPathCopyStrategy(
 
         // Copy attributes if requested
         if (options.preserveAttributes) {
-            copyAttributes(resolvedPath, destination, sourceOps, destOps)
+            // Lookup resolved path to get its attributes
+            val resolvedLookup = sourceOps.lookup(resolvedPath, LookupOptions.MAX)
+            copyAttributes(resolvedLookup, destination, sourceOps, destOps)
         }
 
         onProgress(sourceLookup.size ?: 0L)
 
-        return eu.darken.butler.common.files.operations.TransferStrategy.TransferResult.Success(
+        // Lookup created destination to avoid redundant stat in caller
+        val destLookup = destOps.lookup(destination, LookupOptions.BASE)
+
+        return TransferStrategy.TransferResult.Success(
             source = sourceLookup.lookedUp,
             destination = destination,
-            bytesTransferred = sourceLookup.size ?: 0L
+            bytesTransferred = sourceLookup.size ?: 0L,
+            destinationLookup = destLookup
         )
     }
 
     private suspend fun copyRegularFile(
         sourceLookup: LocalPathLookup,
         destination: LocalPath,
-        options: eu.darken.butler.common.files.operations.TransferStrategy.Options,
+        options: TransferStrategy.Options,
         onProgress: suspend (bytesTransferred: Long) -> Unit,
         sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
         destOps: FileSystemOps<LocalPath, LocalPathLookup>
-    ): eu.darken.butler.common.files.operations.TransferStrategy.TransferResult<LocalPath, LocalPath> {
+    ): TransferStrategy.TransferResult<LocalPath, LocalPath> {
         var totalBytesTransferred = 0L
 
         // Chunked file copy with progress tracking
@@ -201,31 +216,39 @@ class LocalPathCopyStrategy(
 
         // Copy file attributes if requested
         if (options.preserveAttributes) {
-            copyAttributes(sourceLookup.lookedUp, destination, sourceOps, destOps)
+            copyAttributes(sourceLookup, destination, sourceOps, destOps)
         }
 
-        return eu.darken.butler.common.files.operations.TransferStrategy.TransferResult.Success(
+        // Lookup created destination to avoid redundant stat in caller
+        val destLookup = destOps.lookup(destination, LookupOptions.BASE)
+
+        return TransferStrategy.TransferResult.Success(
             source = sourceLookup.lookedUp,
             destination = destination,
-            bytesTransferred = totalBytesTransferred
+            bytesTransferred = totalBytesTransferred,
+            destinationLookup = destLookup
         )
     }
 
     private suspend fun copyAttributes(
-        source: LocalPath,
+        sourceLookup: LocalPathLookup,
         destination: LocalPath,
         sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
         destOps: FileSystemOps<LocalPath, LocalPathLookup>
     ) {
         try {
-            // Get source attributes
-            val sourceLookup = sourceOps.lookup(source, LookupOptions.MAX)
+            // Re-lookup with MAX if permissions not already fetched
+            val lookupWithAttributes = if (sourceLookup.permissions == null) {
+                sourceOps.lookup(sourceLookup.lookedUp, LookupOptions.MAX)
+            } else {
+                sourceLookup
+            }
 
             // Set modified time
-            sourceLookup.modifiedAt?.let { destOps.setModifiedAt(destination, it) }
+            lookupWithAttributes.modifiedAt?.let { destOps.setModifiedAt(destination, it) }
 
             // Copy POSIX permissions if available
-            sourceLookup.permissions?.let { permissions ->
+            lookupWithAttributes.permissions?.let { permissions ->
                 destOps.setPermissions(destination, permissions)
             }
         } catch (e: Exception) {

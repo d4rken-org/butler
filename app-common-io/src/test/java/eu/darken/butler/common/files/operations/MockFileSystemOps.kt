@@ -139,7 +139,18 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
         lookupCalls.add(path.path)
 
         val mockFile = files[path.path]
-            ?: throw NoSuchFileException(path.path)
+
+        // Handle fallbackToUnknown option (matches LocalFileSystemOps behavior)
+        if (mockFile == null) {
+            if (options.fallbackToUnknown) {
+                return lookupFactory(
+                    path,
+                    FileType.UNKNOWN,
+                    null, null, null, null, null
+                )
+            }
+            throw NoSuchFileException(path.path)
+        }
 
         return lookupFactory(
             path,

@@ -96,11 +96,14 @@ interface TransferStrategy<
          * @param source The source path
          * @param destination The actual destination path (may differ from requested if renamed)
          * @param bytesTransferred Number of bytes transferred
+         * @param destinationLookup Optional lookup of created destination (avoids redundant stat).
+         *                          Should be of type DPL (APathLookup<DP>) when present.
          */
         data class Success<SP : APath<SP>, DP : APath<DP>>(
             val source: SP,
             val destination: DP,
-            val bytesTransferred: Long
+            val bytesTransferred: Long,
+            val destinationLookup: Any? = null
         ) : TransferResult<SP, DP>()
 
         /**

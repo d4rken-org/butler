@@ -325,7 +325,8 @@ class TransferConflictResolver<
         path.parent?.let { parentPath ->
             namingUtils.generateUniqueName(
                 parentPath = parentPath,
-                originalName = path.name
+                originalName = path.name,
+                knownToExist = true  // We're in conflict resolution, so we know it exists
             )
         } ?: "${path.name} (1)"
 }
