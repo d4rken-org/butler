@@ -1,7 +1,6 @@
 package eu.darken.butler.common.files.local.operations.core
 
-import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.serialization.InstantSerializer
@@ -42,7 +41,10 @@ data class PerformanceHistory(
      * Add a new sample with adaptive downsampling for old data.
      */
     fun addSample(sample: PerformanceSample, totalBytes: Long = 0L): PerformanceHistory {
-        log(TAG, DEBUG) { "Adding sample. Current: ${samples.size} → New: ${samples.size + 1}, Speed: ${sample.bytesPerSecond / 1_000_000f} MB/s" }
+        log(
+            TAG,
+            DEBUG
+        ) { "Adding sample. Current: ${samples.size} → New: ${samples.size + 1}, Speed: ${sample.bytesPerSecond / 1_000_000f} MB/s" }
 
         val updatedSamples = (samples + sample).let { allSamples ->
             if (allSamples.size <= MAX_SAMPLES) {
@@ -96,6 +98,10 @@ data class PerformanceHistory(
         val downsampledOld = oldSamples.filterIndexed { index, _ -> index % 4 == 0 }
 
         return (downsampledOld + recentSamples).takeLast(MAX_SAMPLES)
+    }
+
+    override fun toString(): String {
+        return "PerformanceHistory(startTime=$startTime, total=$totalBytes, samples=${samples.size})"
     }
 
     companion object {
