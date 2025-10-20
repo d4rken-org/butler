@@ -19,7 +19,7 @@ sealed interface ExplorerLocation {
         override val items: List<ExplorerItem>? = null,
         override val info: Info? = null,
         override val permissionState: PermissionState = PermissionState(),
-        override val progress: Progress.Data? = Progress.Data(),
+        override val progress: Progress.Data? = null,
     ) : ExplorerLocation {
         data class Info(
             val shortcutCount: Int,
@@ -32,7 +32,7 @@ sealed interface ExplorerLocation {
         override val items: List<ExplorerItem>? = null,
         override val info: Info? = null,
         override val permissionState: PermissionState = PermissionState(),
-        override val progress: Progress.Data? = Progress.Data(),
+        override val progress: Progress.Data? = null,
     ) : ExplorerLocation {
         data class Info(
             val locationCount: Int,
@@ -45,7 +45,7 @@ sealed interface ExplorerLocation {
         override val items: List<ExplorerItem.Path>? = null,
         override val info: Info? = null,
         override val permissionState: PermissionState = PermissionState(),
-        override val progress: Progress.Data? = Progress.Data(),
+        override val progress: Progress.Data? = null,
         val path: APath<*>,
         val parent: ExplorerNavigation.Target? = null,
     ) : ExplorerLocation {

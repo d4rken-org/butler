@@ -1,16 +1,19 @@
 package eu.darken.butler.explorer.core.engine
 
-import android.os.Environment
-import android.os.StatFs
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Code
 import androidx.compose.material.icons.twotone.FolderShared
+import androidx.compose.material.icons.twotone.SdCard
 import androidx.compose.material.icons.twotone.Storage
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import eu.darken.butler.common.storage.StorageEnvironment
+import eu.darken.butler.common.storage.StorageManager2
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.workspace.core.permissions.PermissionState
@@ -21,6 +24,9 @@ import javax.inject.Singleton
 
 @Singleton
 class DeviceLocationLoader @Inject constructor(
+    private val gatewaySwitch: GatewaySwitch,
+    private val storageEnvironment: StorageEnvironment,
+    private val storageManager2: StorageManager2,
     private val safLocationManager: SAFLocationManager,
 ) {
 
@@ -40,7 +46,9 @@ class DeviceLocationLoader @Inject constructor(
         .map { safLocations ->
             log(tag) { "loadDevice(): Loading device location with ${safLocations.size} SAF locations" }
 
-            val staticLocations = listOf(
+            val forStorageCals = mutableListOf<APath<*>>()
+
+            val localStorage = mutableListOf(
                 ExplorerItem.Storage.Local(
                     localId = "root",
                     displayIcon = Icons.TwoTone.Code,
@@ -49,15 +57,34 @@ class DeviceLocationLoader @Inject constructor(
                         LocalPath.build("/")
                     ),
                 ),
-                ExplorerItem.Storage.Local(
-                    localId = "internal-public",
-                    displayIcon = Icons.TwoTone.Storage,
-                    displayName = R.string.explorer_navigation_internal_storage.toCaString(),
-                    target = ExplorerNavigation.Target.Directory(
-                        LocalPath.build(Environment.getExternalStorageDirectory())
-                    ),
-                ),
             )
+
+            storageManager2.storageVolumes
+                .mapIndexedNotNull { index, volume ->
+                    log(TAG) { "Loading volume: $volume" }
+                    val path = volume.directory?.let { LocalPath.build(it) }
+                        ?: volume.path?.let { LocalPath.build(it) }
+                        ?: return@mapIndexedNotNull null
+
+                    forStorageCals.add(path)
+
+                    ExplorerItem.Storage.Local(
+                        localId = "volume-${volume.uuid}",
+                        displayIcon = when (index) {
+                            0 -> Icons.TwoTone.Storage
+                            else -> Icons.TwoTone.SdCard
+                        },
+                        displayName = volume.userLabel
+                            ?.takeIf { it.isNotBlank() }
+                            ?.toCaString()
+                            ?: when (index) {
+                                0 -> R.string.explorer_navigation_internal_storage.toCaString()
+                                else -> R.string.explorer_navigation_external_storage.toCaString()
+                            },
+                        target = ExplorerNavigation.Target.Directory(path),
+                    )
+                }
+                .forEach { localStorage.add(it) }
 
             // Convert SAF locations to storage items
             val safStorage = safLocations.map { location ->
@@ -69,20 +96,17 @@ class DeviceLocationLoader @Inject constructor(
                 )
             }
 
-            val allLocations = staticLocations + safStorage
+            val allLocations = localStorage + safStorage
 
-            // Calculate combined storage info
-            val stat = try {
-                StatFs(Environment.getDataDirectory().path)
-            } catch (e: Exception) {
-                log(tag) { "loadDevice(): Failed to get storage info: ${e.message}" }
-                null
-            }
+            val fileSystemInfos = forStorageCals
+                .map { gatewaySwitch.getFileSystem(it) }
 
+            val total = fileSystemInfos.mapNotNull { it.totalSpace }.sum()
+            val free = fileSystemInfos.mapNotNull { it.freeSpace }.sum()
             val info = ExplorerLocation.Device.Info(
                 locationCount = allLocations.size,
-                totalCapacity = stat?.totalBytes,
-                usedSpace = stat?.let { it.totalBytes - it.availableBytes },
+                totalCapacity = total,
+                usedSpace = total - free,
             )
 
             log(tag) { "loadDevice(): Created device with ${allLocations.size} storage locations" }
@@ -94,4 +118,8 @@ class DeviceLocationLoader @Inject constructor(
                 progress = null,
             )
         }
+
+    companion object {
+        val TAG = logTag("Explorer", "DeviceLocationLoader")
+    }
 }

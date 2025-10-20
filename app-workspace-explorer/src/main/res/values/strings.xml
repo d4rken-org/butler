@@ -120,6 +120,7 @@
     <string name="explorer_navigation_device">Device</string>
     <string name="explorer_navigation_root">Root</string>
     <string name="explorer_navigation_internal_storage">Internal public storage</string>
+    <string name="explorer_navigation_external_storage">External public storage</string>
 
     <string name="explorer_loader_progress_directory_loading">Browsing %s</string>
     <string name="explorer_loader_progress_directory_permissions">Checking permissions</string>
