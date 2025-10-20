@@ -6,8 +6,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -32,7 +32,7 @@ internal fun RegularFileGrid(
         onLongClick = onLongClick,
         showSelection = showSelection,
         icon = {
-            AsyncImage(
+            TintedAsyncImage(
                 model = item.lookup,
                 contentDescription = stringResource(R.string.explorer_file_regular_content_desc),
                 modifier = Modifier.size(20.dp)
