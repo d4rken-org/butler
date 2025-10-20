@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -137,7 +138,11 @@ fun PathAlreadyExistsIssueSheet(
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
                         )
-                        Text(stringResource(R.string.explorer_issue_common_skip))
+                        Text(
+                            text = stringResource(R.string.explorer_issue_common_skip),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     }
                 }
             }
@@ -164,7 +169,11 @@ fun PathAlreadyExistsIssueSheet(
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp),
                                 )
-                                Text(stringResource(R.string.explorer_issue_collision_merge))
+                                Text(
+                                    text = stringResource(R.string.explorer_issue_collision_merge),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
                             }
                         }
                     }
@@ -185,7 +194,11 @@ fun PathAlreadyExistsIssueSheet(
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp),
                                 )
-                                Text(stringResource(R.string.explorer_issue_collision_overwrite))
+                                Text(
+                                    text = stringResource(R.string.explorer_issue_collision_overwrite),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
                             }
                         }
                     }
@@ -218,7 +231,11 @@ fun PathAlreadyExistsIssueSheet(
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp),
                                 )
-                                Text(stringResource(R.string.explorer_issue_common_rename_new))
+                                Text(
+                                    text = stringResource(R.string.explorer_issue_common_rename_new),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.MiddleEllipsis,
+                                )
                             }
                         }
                     }
@@ -243,7 +260,11 @@ fun PathAlreadyExistsIssueSheet(
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp),
                                 )
-                                Text(stringResource(R.string.explorer_issue_common_rename_existing))
+                                Text(
+                                    text = stringResource(R.string.explorer_issue_common_rename_existing),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.MiddleEllipsis,
+                                )
                             }
                         }
                     }
@@ -266,7 +287,11 @@ fun PathAlreadyExistsIssueSheet(
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
                     )
-                    Text(stringResource(R.string.explorer_issue_common_cancel))
+                    Text(
+                        text = stringResource(R.string.explorer_issue_common_cancel),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
             }
         }
