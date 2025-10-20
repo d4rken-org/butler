@@ -50,17 +50,17 @@ fun SearchStatusCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(horizontal = 16.dp, vertical = 4.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // Icon - show circular progress when searching, static icon otherwise
                 if (state.isSearching) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(20.dp),
                         color = MaterialTheme.colorScheme.primary,
                         strokeWidth = 2.dp
                     )
@@ -75,7 +75,7 @@ fun SearchStatusCard(
                 
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                    verticalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
                     // Primary message
                     Text(
@@ -126,7 +126,7 @@ fun SearchStatusCard(
                 
                 // Fixed-width container for action area to prevent width changes
                 Box(
-                    modifier = Modifier.width(72.dp), // Fixed width for consistent layout
+                    modifier = Modifier.width(64.dp), // Fixed width for consistent layout
                     contentAlignment = Alignment.Center
                 ) {
                     // Always show an action button to maintain consistent UI

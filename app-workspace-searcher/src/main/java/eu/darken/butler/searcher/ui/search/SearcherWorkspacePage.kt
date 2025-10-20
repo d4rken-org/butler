@@ -127,8 +127,8 @@ fun SearcherWorkspacePage(
 
     // Set the top toolbar heights (expanded and collapsed)
     topToolbarScrollBehavior.state.setHeights(
-        expandedHeightDp = 180.dp, // Full card with all options
-        collapsedHeightDp = 40.dp  // Minimal compact state
+        expandedHeightDp = 164.dp, // Full card with all options (actual measured height)
+        collapsedHeightDp = 44.dp  // Minimal compact state (actual measured height)
     )
 
     // Derived states for stable recomposition - at top level for immediate reactivity
@@ -144,7 +144,7 @@ fun SearcherWorkspacePage(
 
     // Get current toolbar height for layout calculations
     val currentToolbarHeight = topToolbarScrollBehavior.state.getCurrentHeightDp()
-    val statusCardHeight = 80.dp // Fixed height for status card
+    val statusCardHeight = 60.dp // Fixed height for status card
 
     // Determine if status card should be visible
     val showStatusCard = state?.let { currentState ->
@@ -212,7 +212,7 @@ fun SearcherWorkspacePage(
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp,
-                    top = 16.dp + currentToolbarHeight + 16.dp + (if (showStatusCard) statusCardHeight + 16.dp else 0.dp),
+                    top = 16.dp + currentToolbarHeight + 16.dp + (if (showStatusCard) statusCardHeight + 8.dp else 0.dp),
                     bottom = run {
                         val actionBarHeight = if (hasActions) 64.dp else 0.dp
                         val clipboardHeight = if (hasClipboard) 88.dp else 0.dp

@@ -176,10 +176,10 @@ private fun FileInfoContent(
             )
 
             // Size - always shown for files, shown for directories if available
-            if (lookup.fileType == FileType.FILE || lookup.size > 0) {
+            if (lookup.fileType == FileType.FILE || (lookup.size ?: 0) > 0) {
                 InfoRow(
                     label = stringResource(R.string.workspace_file_info_size_label),
-                    value = formatFileSize(lookup.size)
+                    value = formatFileSize(lookup.size ?: 0)
                 )
             }
 
