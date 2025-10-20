@@ -71,10 +71,9 @@ fun StorageRow(
                     val free = eu.darken.butler.common.formatFileSize(context, availableBytes)
                     "$total • $free ${stringResource(R.string.explorer_info_device_storage_free_label).lowercase()}"
                 }
-                else -> when (item) {
-                    is ExplorerItem.Storage.Local -> stringResource(R.string.explorer_file_storage_local_label)
-                    is ExplorerItem.Storage.SAF -> stringResource(R.string.explorer_file_storage_saf_label)
-                }
+                item is ExplorerItem.Storage.SAF -> stringResource(R.string.explorer_file_storage_saf_label)
+                item is ExplorerItem.Storage.Local -> stringResource(R.string.explorer_file_storage_local_label)
+                else -> null
             }
         },
         trailingContent = if (item is ExplorerItem.Storage.SAF) {
