@@ -1,9 +1,7 @@
 package eu.darken.butler.searcher.core
 
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
@@ -128,14 +126,14 @@ class SearchEngine @Inject constructor(
         }
 
         // Size filter
-        if (filter.minSize != null && (lookup.size != null && lookup.size!! < filter.minSize)) return false
-        if (filter.maxSize != null && (lookup.size != null && lookup.size!! > filter.maxSize)) return false
+        if (filter.minSize != null && lookup.size?.let { it < filter.minSize } == true) return false
+        if (filter.maxSize != null && lookup.size?.let { it > filter.maxSize } == true) return false
 
         // Modified date filter
-        if (filter.modifiedAfter != null && (lookup.modifiedAt != null && lookup.modifiedAt!! < filter.modifiedAfter)) {
+        if (filter.modifiedAfter != null && lookup.modifiedAt?.let { it < filter.modifiedAfter } == true) {
             return false
         }
-        if (filter.modifiedBefore != null && (lookup.modifiedAt != null && lookup.modifiedAt!! > filter.modifiedBefore)) return false
+        if (filter.modifiedBefore != null && lookup.modifiedAt?.let { it > filter.modifiedBefore } == true) return false
 
         // Path filters
         val pathStr = lookup.path
