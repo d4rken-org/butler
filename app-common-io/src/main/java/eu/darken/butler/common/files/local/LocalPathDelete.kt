@@ -1,14 +1,11 @@
 package eu.darken.butler.common.files.local
 
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.ReadException
@@ -217,7 +214,11 @@ internal class LocalPathDelete(
         handleScanError_internal(error, lookup, originalItem)
     }
 
-    private suspend fun handleScanError_internal(error: Throwable, lookup: LocalPathLookup, originalItem: WorkItem.ScanPath) {
+    private suspend fun handleScanError_internal(
+        error: Throwable,
+        lookup: LocalPathLookup,
+        originalItem: WorkItem.ScanPath
+    ) {
         log(TAG, ERROR) { "Scan error: ${lookup.lookedUp} - $error" }
 
         // Check "apply to all" fast path
@@ -274,7 +275,7 @@ internal class LocalPathDelete(
         }
 
         val lookup = try {
-            fileSystemOps.lookup(item.path)
+            fileSystemOps.lookup(item.path, LookupOptions(fetchSize = true, fetchModifiedAt = true))
         } catch (e: NoSuchFileException) {
             if (ignoreMissing) {
                 log(TAG, VERBOSE) { "Skipping missing file (ignoreMissing=true): ${item.path}" }

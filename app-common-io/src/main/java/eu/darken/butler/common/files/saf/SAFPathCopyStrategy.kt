@@ -4,6 +4,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.FileSystemOps
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.operations.TransferStrategy
 import okio.buffer
@@ -41,7 +42,7 @@ import okio.source
 class SAFPathCopyStrategy : TransferStrategy<
     SAFPath, SAFPathLookup,      // Source types
     SAFPath, SAFPathLookup       // Destination types
-> {
+    > {
 
     override suspend fun transferFile(
         sourceLookup: SAFPathLookup,
@@ -72,7 +73,7 @@ class SAFPathCopyStrategy : TransferStrategy<
 
         // Copy attributes if requested
         if (options.preserveAttributes) {
-            val destLookup = destOps.lookup(destination)
+            val destLookup = destOps.lookup(destination, LookupOptions.MAX)
             copyAttributes(sourceLookup, destLookup, destOps)
         }
 
@@ -117,7 +118,7 @@ class SAFPathCopyStrategy : TransferStrategy<
 
         // Copy file attributes if requested
         if (options.preserveAttributes) {
-            val destLookup = fileSystemOps.lookup(destination)
+            val destLookup = fileSystemOps.lookup(destination, LookupOptions.MAX)
             copyAttributes(sourceLookup, destLookup, fileSystemOps)
         }
 

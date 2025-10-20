@@ -68,12 +68,17 @@ class FileOpsHost @Inject constructor(
         throw e.wrapToPropagate()
     }
 
-    override fun walkStream(path: LocalPath, pathDoesNotContain: List<String>): RemoteInputStream = try {
+    override fun walkStream(
+        path: LocalPath,
+        lookupOptions: LookupOptions,
+        pathDoesNotContain: List<String>
+    ): RemoteInputStream = try {
         if (Bugs.isTrace) log(TAG, VERBOSE) { "walkStream($path)..." }
         runBlocking {
             DirectLocalWalker(
                 fileSystemOps = fileSystemOps,
                 start = path,
+                lookupOptions = lookupOptions,
                 onFilter = { lookup ->
                     pathDoesNotContain.none { lookup.path.contains(it) }
                 },

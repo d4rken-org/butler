@@ -7,6 +7,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileSystemOps
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
@@ -136,7 +137,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
         log(TAG, VERBOSE) { "Scanning path: ${item.path}" }
 
         val lookup = try {
-            fileSystemOps.lookup(item.path)
+            fileSystemOps.lookup(item.path, LookupOptions.BASE)
         } catch (e: Exception) {
             if (ignoreMissing) {
                 log(TAG, VERBOSE) { "Skipping missing file (ignoreMissing=true): ${item.path}" }
@@ -244,7 +245,8 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
         } catch (e: Exception) {
             // Handle case where file was deleted between scan and delete phases
             if (ignoreMissing && (e is java.io.FileNotFoundException ||
-                e.cause is java.io.FileNotFoundException)) {
+                    e.cause is java.io.FileNotFoundException)
+            ) {
                 log(TAG, VERBOSE) { "File already deleted (ignoreMissing=true): ${item.path}" }
                 progressTracker.completeItem(lookup.size ?: 0L)
                 return

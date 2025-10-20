@@ -177,8 +177,10 @@ class SAFFileSystemOps @Inject constructor(
         return try {
             val now = Clock.System.now()
 
+            val isCatchWorthy = options.fetchSize && options.fetchModifiedAt
+
             // Check lookup cache first (only for basic lookups to avoid caching stale extended data)
-            if (options == LookupOptions()) {
+            if (isCatchWorthy) {
                 val cached = lookupCache[path]
                 if (cached != null) {
                     val age = now - cached.cachedAt
@@ -196,7 +198,7 @@ class SAFFileSystemOps @Inject constructor(
             val lookup = path.resolveDocFile().performLookup(path, options)
 
             // Cache only basic lookups
-            if (options == LookupOptions()) {
+            if (isCatchWorthy) {
                 lookupCache[path] = LookupCacheEntry(lookup, now)
             }
 
@@ -396,7 +398,7 @@ class SAFFileSystemOps @Inject constructor(
         docFileCache[parentPath] = CacheEntry(newParentDocFile, now)
 
         // Also cache lookup data (basic only for newly created directory)
-        val lookup = newParentDocFile.performLookup(parentPath, LookupOptions())
+        val lookup = newParentDocFile.performLookup(parentPath, LookupOptions.BASE)
         lookupCache[parentPath] = LookupCacheEntry(lookup, now)
     }
 
@@ -409,12 +411,12 @@ class SAFFileSystemOps @Inject constructor(
             val docFile = path.resolveDocFile()
 
             if (docFile.exists) {
-                if (docFile.isDirectory)                     return // Already exists - idempotent
+                if (docFile.isDirectory) return // Already exists - idempotent
 
-                    throw PathAlreadyExistsException(
-                        message = "Path exists but is not a directory",
-                        path = path
-                    )
+                throw PathAlreadyExistsException(
+                    message = "Path exists but is not a directory",
+                    path = path
+                )
             }
 
             createDocumentFile(DocumentsContract.Document.MIME_TYPE_DIR, path)
@@ -433,7 +435,7 @@ class SAFFileSystemOps @Inject constructor(
             ensureParentExists(path, createParents)
 
             val docFile = path.resolveDocFile()
-            if (docFile.exists)                 throw PathAlreadyExistsException(path = path)
+            if (docFile.exists) throw PathAlreadyExistsException(path = path)
 
             createDocumentFile("application/octet-stream", path)
         } catch (e: PathAlreadyExistsException) {

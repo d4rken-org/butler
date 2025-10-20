@@ -1,7 +1,6 @@
 package eu.darken.butler.common.files.local.operations.strategies
 
-import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.FileSystemOps
@@ -33,9 +32,9 @@ import okio.source
 class LocalPathMoveStrategy(
     private val fileSystemOps: FileSystemOps<LocalPath, LocalPathLookup>
 ) : eu.darken.butler.common.files.operations.TransferStrategy<
-        LocalPath, LocalPathLookup,  // Source types
-        LocalPath, LocalPathLookup   // Destination types
-        > {
+    LocalPath, LocalPathLookup,  // Source types
+    LocalPath, LocalPathLookup   // Destination types
+    > {
 
     override suspend fun transferFile(
         sourceLookup: LocalPathLookup,
@@ -207,14 +206,13 @@ class LocalPathMoveStrategy(
     ) {
         try {
             // Get source attributes
-            val sourceLookup = sourceOps.lookup(source)
-            val sourceExtended = sourceOps.lookup(source, LookupOptions.EXTENDED)
+            val sourceLookup = sourceOps.lookup(source, LookupOptions.MAX)
 
             // Set modified time
             sourceLookup.modifiedAt?.let { destOps.setModifiedAt(destination, it) }
 
             // Copy POSIX permissions if available
-            sourceExtended.permissions?.let { permissions ->
+            sourceLookup.permissions?.let { permissions ->
                 destOps.setPermissions(destination, permissions)
             }
         } catch (e: Exception) {

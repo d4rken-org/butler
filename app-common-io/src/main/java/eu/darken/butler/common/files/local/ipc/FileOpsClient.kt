@@ -69,14 +69,16 @@ class FileOpsClient @AssistedInject constructor(
      */
     fun walk(
         path: LocalPath,
-        options: APathGateway.WalkOptions<LocalPath, LocalPathLookup>,
+        lookupOptions: LookupOptions,
+        walkOptions: APathGateway.WalkOptions<LocalPath, LocalPathLookup>,
     ): Flow<LocalPathLookup> {
-        if (!options.isDirect) throw IllegalArgumentException("Only direct walk options are supported")
+        if (!walkOptions.isDirect) throw IllegalArgumentException("Only direct walk options are supported")
 
         val output = try {
             fileOpsConnection.walkStream(
                 path,
-                (options.pathDoesNotContain ?: emptyList()).toMutableList(),
+                lookupOptions,
+                (walkOptions.pathDoesNotContain ?: emptyList()).toMutableList(),
             )
         } catch (e: Exception) {
             throw e.refineException()

@@ -5,6 +5,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.metadata.FileType
 import kotlinx.coroutines.flow.Flow
@@ -22,8 +23,9 @@ val APathLookup<*>.isFile: Boolean
 
 suspend fun <P : APath<P>, PL : APathLookup<P>, GT : APathGateway<P, PL>> PL.walk(
     gateway: GT,
-    options: APathGateway.WalkOptions<P, PL> = APathGateway.WalkOptions()
-): Flow<PL> = lookedUp.walk(gateway, options)
+    lookupOptions: LookupOptions,
+    walkOptions: APathGateway.WalkOptions<P, PL> = APathGateway.WalkOptions()
+): Flow<PL> = lookedUp.walk(gateway, lookupOptions, walkOptions)
 
 suspend fun <P : APath<P>, PL : APathLookup<P>, GT : APathGateway<P, PL>> PL.du(
     gateway: GT,
@@ -64,8 +66,9 @@ suspend fun <P : APath<P>, PL : APathLookup<P>> PL.canWrite(
 ): Boolean = lookedUp.canWrite(gateway)
 
 suspend fun <P : APath<P>, PL : APathLookup<P>> PL.lookupFiles(
-    gateway: APathGateway<P, out APathLookup<P>>
-): Collection<APathLookup<*>> = lookedUp.lookupFiles(gateway)
+    gateway: APathGateway<P, out APathLookup<P>>,
+    options: LookupOptions,
+): Collection<APathLookup<*>> = lookedUp.lookupFiles(gateway, options)
 
 fun APathLookup<*>.matches(other: APath<*>): Boolean = lookedUp.matches(other)
 fun APath<*>.matches(other: APathLookup<*>): Boolean = matches(other.lookedUp)
@@ -89,11 +92,13 @@ fun APathLookup<*>.isDescendantOf(ancestor: APathLookup<*>): Boolean = lookedUp.
 
 fun APathLookup<*>.isDescendantOfOrSelf(ancestor: APath<*>): Boolean = lookedUp.isDescendantOfOrSelf(ancestor)
 fun APath<*>.isDescendantOfOrSelf(ancestor: APathLookup<*>): Boolean = isDescendantOfOrSelf(ancestor.lookedUp)
-fun APathLookup<*>.isDescendantOfOrSelf(ancestor: APathLookup<*>): Boolean = lookedUp.isDescendantOfOrSelf(ancestor.lookedUp)
+fun APathLookup<*>.isDescendantOfOrSelf(ancestor: APathLookup<*>): Boolean =
+    lookedUp.isDescendantOfOrSelf(ancestor.lookedUp)
 
 fun APathLookup<*>.isAncestorOfOrSelf(descendant: APath<*>): Boolean = lookedUp.isAncestorOfOrSelf(descendant)
 fun APath<*>.isAncestorOfOrSelf(descendant: APathLookup<*>): Boolean = isAncestorOfOrSelf(descendant.lookedUp)
-fun APathLookup<*>.isAncestorOfOrSelf(descendant: APathLookup<*>): Boolean = lookedUp.isAncestorOfOrSelf(descendant.lookedUp)
+fun APathLookup<*>.isAncestorOfOrSelf(descendant: APathLookup<*>): Boolean =
+    lookedUp.isAncestorOfOrSelf(descendant.lookedUp)
 
 fun APathLookup<*>.isParentOf(child: APath<*>): Boolean = lookedUp.isParentOf(child)
 fun APath<*>.isParentOf(child: APathLookup<*>): Boolean = isParentOf(child.lookedUp)

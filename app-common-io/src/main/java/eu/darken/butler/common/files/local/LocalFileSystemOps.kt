@@ -77,11 +77,19 @@ class LocalFileSystemOps @Inject constructor(
         var target: LocalPath? = null
         val errors = mutableListOf<String>()
 
-        try {
-            size = path.file.length()
-            modifiedAt = Instant.fromEpochMilliseconds(path.file.lastModified())
-        } catch (e: Exception) {
-            errors.add("Attributes: ${e.message}")
+        if (options.fetchSize) {
+            try {
+                size = path.file.length()
+            } catch (e: Exception) {
+                errors.add("Size: ${e.message}")
+            }
+        }
+        if (options.fetchModifiedAt) {
+            try {
+                modifiedAt = Instant.fromEpochMilliseconds(path.file.lastModified())
+            } catch (e: Exception) {
+                errors.add("ModifiedAt: ${e.message}")
+            }
         }
 
         if (fileType == FileType.SYMBOLIC_LINK) {
@@ -149,12 +157,12 @@ class LocalFileSystemOps @Inject constructor(
             size = size,
             modifiedAt = modifiedAt,
             target = target,
-            error = errors.takeIf { it.isNotEmpty() }?.let {
-                ReadException(errors.joinToString("; "), path)
-            },
             ownership = ownership,
             permissions = permissions,
             createdAt = createdAt,
+            error = errors.takeIf { it.isNotEmpty() }?.let {
+                ReadException(errors.joinToString("; "), path)
+            },
         )
     } catch (e: Exception) {
         throw ReadException(path = path, cause = e)

@@ -5,6 +5,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
@@ -21,9 +22,10 @@ import kotlin.time.Instant
 
 suspend fun <P : APath<P>, PL : APathLookup<P>, GT : APathGateway<P, PL>> P.walk(
     gateway: GT,
-    options: APathGateway.WalkOptions<P, PL> = APathGateway.WalkOptions()
+    lookupOptions: LookupOptions,
+    walkOptions: APathGateway.WalkOptions<P, PL> = APathGateway.WalkOptions()
 ): Flow<PL> {
-    return gateway.walk(this, options)
+    return gateway.walk(this, lookupOptions, walkOptions)
 }
 
 suspend fun <P : APath<P>, PL : APathLookup<P>, GT : APathGateway<P, PL>> P.du(
@@ -53,7 +55,7 @@ suspend fun <T : APath<T>> T.requireNotExists(gateway: APathGateway<T, out APath
 
 suspend fun <T : APath<T>> T.createFileIfNecessary(gateway: APathGateway<T, out APathLookup<T>>): T {
     if (exists(gateway)) {
-        if (gateway.lookup(this).fileType == FileType.FILE) {
+        if (gateway.lookup(this, LookupOptions()).fileType == FileType.FILE) {
             log(VERBOSE) { "File already exists, not creating: $this" }
             return this
         } else {
@@ -72,7 +74,7 @@ suspend fun <T : APath<T>> T.createFile(gateway: APathGateway<T, out APathLookup
 
 suspend fun <T : APath<T>> T.createDirIfNecessary(gateway: APathGateway<T, out APathLookup<T>>): T {
     if (exists(gateway)) {
-        if (gateway.lookup(this).isDirectory) {
+        if (gateway.lookup(this, LookupOptions()).isDirectory) {
             log(VERBOSE) { "Directory already exists, not creating: $this" }
             return this
         } else {
@@ -105,84 +107,74 @@ suspend fun <P : APath<P>, PL : APathLookup<P>> Collection<P>.delete(
 suspend fun <T : APath<T>> T.file(
     gateway: APathGateway<T, out APathLookup<T>>,
     readWrite: Boolean,
-): FileHandle {
-    return gateway.file(this, readWrite)
-}
+): FileHandle = gateway.file(this, readWrite)
 
 suspend fun <T : APath<T>> T.createSymlink(
     gateway: APathGateway<T, out APathLookup<T>>,
     target: T
-): Boolean {
-    return gateway.createSymlink(this, target)
-}
+): Boolean = gateway.createSymlink(this, target)
 
 suspend fun <T : APath<T>> T.setModifiedAt(
     gateway: APathGateway<T, out APathLookup<T>>,
     modifiedAt: Instant
-): Boolean {
-    return gateway.setModifiedAt(this, modifiedAt)
-}
+): Boolean = gateway.setModifiedAt(this, modifiedAt)
 
 suspend fun <T : APath<T>> T.setPermissions(
     gateway: APathGateway<T, out APathLookup<T>>,
     permissions: Permissions
-): Boolean {
-    return gateway.setPermissions(this, permissions)
-}
+): Boolean = gateway.setPermissions(this, permissions)
 
 suspend fun <T : APath<T>> T.setOwnership(
     gateway: APathGateway<T, out APathLookup<T>>,
     ownership: Ownership
-): Boolean {
-    return gateway.setOwnership(this, ownership)
-}
+): Boolean = gateway.setOwnership(this, ownership)
 
-suspend fun <P : APath<P>, PL : APathLookup<P>> P.lookup(gateway: APathGateway<P, PL>): PL {
-    return gateway.lookup(this)
-}
+suspend fun <P : APath<P>, PL : APathLookup<P>> P.lookup(
+    gateway: APathGateway<P, PL>,
+    options: LookupOptions
+): PL = gateway.lookup(this, options)
 
-suspend fun <P : APath<P>, PL : APathLookup<P>> P.lookupFiles(gateway: APathGateway<P, PL>): Collection<PL> {
-    return gateway.lookupFiles(this)
-}
+suspend fun <P : APath<P>, PL : APathLookup<P>> P.lookupFiles(
+    gateway: APathGateway<P, PL>,
+    options: LookupOptions
+): Collection<PL> = gateway.lookupFiles(this, options)
 
-suspend fun <P : APath<P>, PL : APathLookup<P>> P.lookupFilesOrNull(gateway: APathGateway<P, PL>): Collection<PL>? {
-    return if (exists(gateway)) gateway.lookupFiles(this) else null
-}
+suspend fun <T : APath<T>> T.listFiles(
+    gateway: APathGateway<T, out APathLookup<T>>
+): Collection<T> = gateway.listFiles(this)
 
-suspend fun <T : APath<T>> T.listFiles(gateway: APathGateway<T, out APathLookup<T>>): Collection<T> {
-    return gateway.listFiles(this)
-}
+suspend fun <T : APath<T>> T.canRead(
+    gateway: APathGateway<T, out APathLookup<T>>
+): Boolean = gateway.canRead(this)
 
-suspend fun <T : APath<T>> T.canRead(gateway: APathGateway<T, out APathLookup<T>>): Boolean {
-    return gateway.canRead(this)
-}
+suspend fun <T : APath<T>> T.canWrite(
+    gateway: APathGateway<T, out APathLookup<T>>
+): Boolean = gateway.canWrite(this)
 
-suspend fun <T : APath<T>> T.canWrite(gateway: APathGateway<T, out APathLookup<T>>): Boolean {
-    return gateway.canWrite(this)
-}
+suspend fun <T : APath<T>> T.isFile(
+    gateway: APathGateway<T, out APathLookup<T>>
+): Boolean = gateway.lookup(this, LookupOptions()).fileType == FileType.FILE
 
-suspend fun <T : APath<T>> T.isFile(gateway: APathGateway<T, out APathLookup<T>>): Boolean {
-    return gateway.lookup(this).fileType == FileType.FILE
-}
+suspend fun <T : APath<T>> T.isDirectory(
+    gateway: APathGateway<T, out APathLookup<T>>
+): Boolean = gateway.lookup(this, LookupOptions()).fileType == FileType.DIRECTORY
 
-suspend fun <T : APath<T>> T.isDirectory(gateway: APathGateway<T, out APathLookup<T>>): Boolean {
-    return gateway.lookup(this).fileType == FileType.DIRECTORY
-}
-
-suspend fun <T : APath<T>> T.getFileSystemInfo(gateway: APathGateway<T, out APathLookup<T>>): FileSystem {
-    return gateway.getFileSystem(this)
-}
+suspend fun <T : APath<T>> T.getFileSystemInfo(
+    gateway: APathGateway<T, out APathLookup<T>>
+): FileSystem = gateway.getFileSystem(this)
 
 suspend fun <P : APath<P>, PL : APathLookup<P>> P.copy(
     gateway: APathGateway<P, PL>,
     destination: P,
     options: CopyAction.Options = CopyAction.Options(),
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
-): Flow<CopyAction.State<P, PL, P, PL>> {
-    return gateway.copy(sources = setOf(this), destination = destination, options = options, onIssue = onIssue)
-        .onCompletion {
-            log(VERBOSE) { "P.copy(destination=$destination, options=$options, onIssue=$onIssue): Copied $this" }
-        }
+): Flow<CopyAction.State<P, PL, P, PL>> = gateway.copy(
+    sources = setOf(this),
+    destination = destination,
+    options = options,
+    onIssue = onIssue
+).onCompletion {
+    log(VERBOSE) { "P.copy(destination=$destination, options=$options, onIssue=$onIssue): Copied $this" }
 }
 
 suspend fun <P : APath<P>, PL : APathLookup<P>> Set<P>.copy(
@@ -190,11 +182,13 @@ suspend fun <P : APath<P>, PL : APathLookup<P>> Set<P>.copy(
     destination: P,
     options: CopyAction.Options = CopyAction.Options(),
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
-): Flow<CopyAction.State<P, PL, P, PL>> {
-    return gateway.copy(sources = this, destination = destination, options = options, onIssue = onIssue)
-        .onCompletion {
-            log(VERBOSE) { "Set<P>.copy(destination=$destination, options=$options, onIssue=onIssue): Copied $this" }
-        }
+): Flow<CopyAction.State<P, PL, P, PL>> = gateway.copy(
+    sources = this,
+    destination = destination,
+    options = options,
+    onIssue = onIssue
+).onCompletion {
+    log(VERBOSE) { "Set<P>.copy(destination=$destination, options=$options, onIssue=onIssue): Copied $this" }
 }
 
 suspend fun <P : APath<P>, PL : APathLookup<P>> P.move(
@@ -202,21 +196,26 @@ suspend fun <P : APath<P>, PL : APathLookup<P>> P.move(
     destination: P,
     options: MoveAction.Options = MoveAction.Options(),
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
-): Flow<MoveAction.State<P, PL, P, PL>> {
-    return gateway.move(sources = setOf(this), destination = destination, options = options, onIssue = onIssue)
-        .onCompletion {
-            log(VERBOSE) { "T.move(destination=$destination, options=$options, onIssue=$onIssue): Moved $this" }
-        }
-}
+): Flow<MoveAction.State<P, PL, P, PL>> =
+    gateway.move(
+        sources = setOf(this),
+        destination = destination,
+        options = options,
+        onIssue = onIssue
+    ).onCompletion {
+        log(VERBOSE) { "T.move(destination=$destination, options=$options, onIssue=$onIssue): Moved $this" }
+    }
 
 suspend fun <P : APath<P>, PL : APathLookup<P>> Set<P>.move(
     gateway: APathGateway<P, PL>,
     destination: P,
     options: MoveAction.Options = MoveAction.Options(),
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
-): Flow<MoveAction.State<P, PL, P, PL>> {
-    return gateway.move(sources = this, destination = destination, options = options, onIssue = onIssue)
-        .onCompletion {
-            log(VERBOSE) { "Set<T>.move(destination=$destination, options=$options, onIssue=$onIssue): Moved $this" }
-        }
+): Flow<MoveAction.State<P, PL, P, PL>> = gateway.move(
+    sources = this,
+    destination = destination,
+    options = options,
+    onIssue = onIssue
+).onCompletion {
+    log(VERBOSE) { "Set<T>.move(destination=$destination, options=$options, onIssue=$onIssue): Moved $this" }
 }

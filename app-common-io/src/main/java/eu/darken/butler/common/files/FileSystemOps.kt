@@ -71,7 +71,7 @@ interface FileSystemOps<P : APath<P>, PL : APathLookup<P>> {
      * @return Path lookup with metadata
      * @throws eu.darken.butler.common.files.errors.ReadException if path cannot be read or doesn't exist
      */
-    suspend fun lookup(path: P, options: LookupOptions = LookupOptions()): PL
+    suspend fun lookup(path: P, options: LookupOptions): PL
 
     /**
      * List immediate children of a directory.
@@ -100,7 +100,7 @@ interface FileSystemOps<P : APath<P>, PL : APathLookup<P>> {
      * @return List of path lookups for all children (empty if directory is empty)
      * @throws eu.darken.butler.common.files.errors.ReadException if path cannot be read, doesn't exist, or is not a directory
      */
-    suspend fun lookupFiles(path: P, options: LookupOptions = LookupOptions()): List<PL> {
+    suspend fun lookupFiles(path: P, options: LookupOptions): List<PL> {
         return listFiles(path).map { lookup(it, options) }
     }
 
@@ -272,13 +272,11 @@ interface FileSystemOps<P : APath<P>, PL : APathLookup<P>> {
      * @param path The path to check
      * @return true if path can be read, false otherwise
      */
-    suspend fun canRead(path: P): Boolean {
-        return try {
-            lookup(path)
-            true
-        } catch (e: Exception) {
-            false
-        }
+    suspend fun canRead(path: P): Boolean = try {
+        lookup(path, LookupOptions())
+        true
+    } catch (_: Exception) {
+        false
     }
 
     /**
@@ -290,12 +288,11 @@ interface FileSystemOps<P : APath<P>, PL : APathLookup<P>> {
      * @param path The path to check
      * @return true if path can be written, false otherwise
      */
-    suspend fun canWrite(path: P): Boolean {
-        return try {
-            exists(path) && lookup(path).let { true }
-        } catch (e: Exception) {
-            false
-        }
+    suspend fun canWrite(path: P): Boolean = try {
+        // TODO is this correct?
+        exists(path) && lookup(path, LookupOptions()).let { true }
+    } catch (_: Exception) {
+        false
     }
 
     suspend fun getFileSystem(path: P): FileSystem

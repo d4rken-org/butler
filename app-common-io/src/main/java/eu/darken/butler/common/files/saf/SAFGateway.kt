@@ -5,15 +5,13 @@ import android.system.Os
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.Bugs
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.FileSystemOps
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
@@ -23,7 +21,7 @@ import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
 import eu.darken.butler.common.files.metadata.FileSystem
-import eu.darken.butler.common.files.saf.SAFFileSystemOps.FileMode
+import eu.darken.butler.common.files.saf.SAFFileSystemOps.*
 import eu.darken.butler.common.sharedresource.SharedResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -54,9 +52,10 @@ class SAFGateway @Inject constructor(
 
     override suspend fun walk(
         path: SAFPath,
-        options: APathGateway.WalkOptions<SAFPath, SAFPathLookup>,
+        lookupOptions: LookupOptions,
+        walkOptions: APathGateway.WalkOptions<SAFPath, SAFPathLookup>,
     ): Flow<SAFPathLookup> = flow {
-        val start = lookup(path)
+        val start = lookup(path, lookupOptions)
         log(TAG, VERBOSE) { "walk($path) -> $start" }
 
         if (start.isFile) {
@@ -70,10 +69,10 @@ class SAFGateway @Inject constructor(
             val lookUp = queue.removeFirst()
 
             val newBatch = try {
-                lookupFiles(lookUp.lookedUp)
+                lookupFiles(lookUp.lookedUp, lookupOptions)
             } catch (e: IOException) {
                 log(TAG, ERROR) { "Failed to read $lookUp: $e" }
-                if (options.onError?.invoke(lookUp, e) != false) {
+                if (walkOptions.onError?.invoke(lookUp, e) != false) {
                     emptyList()
                 } else {
                     throw e
@@ -82,7 +81,7 @@ class SAFGateway @Inject constructor(
 
             newBatch
                 .filter {
-                    val allowed = options.onFilter?.invoke(it) ?: true
+                    val allowed = walkOptions.onFilter?.invoke(it) ?: true
                     if (Bugs.isTrace) {
                         if (!allowed) log(TAG, VERBOSE) { "Skipping (filter): $it" }
                     }
@@ -108,7 +107,7 @@ class SAFGateway @Inject constructor(
         options: APathGateway.DuOptions<SAFPath, SAFPathLookup>,
     ): Long = runIO {
         try {
-            val start = lookup(path)
+            val start = lookup(path, LookupOptions(fetchSize = true))
             log(TAG, VERBOSE) { "du($path) -> $start" }
 
             if (start.isFile) return@runIO start.size ?: 0L
@@ -120,7 +119,7 @@ class SAFGateway @Inject constructor(
                 val lookUp = queue.removeFirst()
 
                 val newBatch = try {
-                    lookupFiles(lookUp.lookedUp)
+                    lookupFiles(lookUp.lookedUp, LookupOptions(fetchSize = true))
                 } catch (e: IOException) {
                     log(TAG, ERROR) { "Failed to read $lookUp: $e" }
                     emptyList()

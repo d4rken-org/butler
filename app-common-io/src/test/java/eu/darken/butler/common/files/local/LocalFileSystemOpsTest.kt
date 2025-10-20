@@ -44,7 +44,7 @@ class LocalFileSystemOpsTest : BaseTest() {
         }
         val path = LocalPath.build(testFile)
 
-        val lookup = fileSystemOps.lookup(path)
+        val lookup = fileSystemOps.lookup(path, LookupOptions.BASE)
 
         lookup.lookedUp shouldBe path
         lookup.fileType shouldBe FileType.FILE
@@ -57,7 +57,7 @@ class LocalFileSystemOpsTest : BaseTest() {
     fun `lookup returns directory metadata`(@TempDir tempDir: File) = runTest {
         val path = LocalPath.build(tempDir)
 
-        val lookup = fileSystemOps.lookup(path)
+        val lookup = fileSystemOps.lookup(path, LookupOptions.BASE)
 
         lookup.lookedUp shouldBe path
         lookup.fileType shouldBe FileType.DIRECTORY

@@ -2,8 +2,7 @@ package eu.darken.butler.common.files
 
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -102,7 +101,7 @@ class GatewaySwitch @Inject constructor(
         return lookup(path, options, Type.CURRENT)
     }
 
-    suspend fun lookup(path: APath<*>, options: LookupOptions = LookupOptions(), type: Type): APathLookup<APath<*>> {
+    suspend fun lookup(path: APath<*>, options: LookupOptions, type: Type): APathLookup<APath<*>> {
         val mapped = path.toTargetType(type)
         return try {
             useGateway(mapped) { lookup(path, options) }
@@ -124,7 +123,7 @@ class GatewaySwitch @Inject constructor(
         return lookupFiles(path, options, Type.CURRENT)
     }
 
-    suspend fun lookupFiles(path: APath<*>, options: LookupOptions = LookupOptions(), type: Type): List<APathLookup<APath<*>>> {
+    suspend fun lookupFiles(path: APath<*>, options: LookupOptions, type: Type): List<APathLookup<APath<*>>> {
         val mapped = path.toTargetType(type)
         return try {
             useGateway(mapped) { lookupFiles(path, options) }
@@ -145,9 +144,10 @@ class GatewaySwitch @Inject constructor(
     @Suppress("UNCHECKED_CAST")
     override suspend fun walk(
         path: APath<*>,
-        options: APathGateway.WalkOptions<APath<*>, APathLookup<APath<*>>>
+        lookupOptions: LookupOptions,
+        walkOptions: APathGateway.WalkOptions<APath<*>, APathLookup<APath<*>>>
     ): Flow<APathLookup<APath<*>>> {
-        return useGateway(path) { walk(path, options) }
+        return useGateway(path) { walk(path, lookupOptions, walkOptions) }
     }
 
     @Suppress("UNCHECKED_CAST")

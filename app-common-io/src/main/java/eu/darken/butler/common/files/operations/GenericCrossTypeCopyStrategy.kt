@@ -56,7 +56,7 @@ import okio.source
 class GenericCrossTypeCopyStrategy<
     SP : APath<SP>, SPL : APathLookup<SP>,
     DP : APath<DP>, DPL : APathLookup<DP>
-> : TransferStrategy<SP, SPL, DP, DPL> {
+    > : TransferStrategy<SP, SPL, DP, DPL> {
 
     override suspend fun transferFile(
         sourceLookup: SPL,
@@ -149,7 +149,7 @@ class GenericCrossTypeCopyStrategy<
         destOps: FileSystemOps<DP, DPL>
     ) {
         try {
-            val sourceExtended = sourceOps.lookup(source, LookupOptions.EXTENDED)
+            val sourceExtended = sourceOps.lookup(source, LookupOptions.MAX)
 
             // Try modified time (most widely supported)
             sourceExtended.modifiedAt?.let { modTime ->

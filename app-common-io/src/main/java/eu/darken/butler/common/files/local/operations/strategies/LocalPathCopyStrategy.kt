@@ -219,14 +219,13 @@ class LocalPathCopyStrategy(
     ) {
         try {
             // Get source attributes
-            val sourceLookup = sourceOps.lookup(source)
-            val sourceExtended = sourceOps.lookup(source, LookupOptions.EXTENDED)
+            val sourceLookup = sourceOps.lookup(source, LookupOptions.MAX)
 
             // Set modified time
             sourceLookup.modifiedAt?.let { destOps.setModifiedAt(destination, it) }
 
             // Copy POSIX permissions if available
-            sourceExtended.permissions?.let { permissions ->
+            sourceLookup.permissions?.let { permissions ->
                 destOps.setPermissions(destination, permissions)
             }
         } catch (e: Exception) {
