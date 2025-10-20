@@ -210,13 +210,16 @@ fun OperationPerformanceGraph(
                 ),
             )
 
-            // Current speed label at last data point (Windows Explorer style)
-            val lastSample = performanceHistory.samples.lastOrNull()
-            if (lastSample != null) {
-                val currentSpeed = formatSpeed(lastSample.bytesPerSecond)
+            // Average speed label (Windows Explorer style)
+            if (performanceHistory.samples.isNotEmpty()) {
+                val averageSpeed = performanceHistory.samples
+                    .map { it.bytesPerSecond }
+                    .average()
+                    .toLong()
+                val formattedSpeed = formatSpeed(averageSpeed)
 
                 Text(
-                    text = stringResource(R.string.workspace_operation_performance_speed_label, currentSpeed),
+                    text = stringResource(R.string.workspace_operation_performance_avg_speed_label, formattedSpeed),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier

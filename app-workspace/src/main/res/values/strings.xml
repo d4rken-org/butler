@@ -142,5 +142,5 @@
 
     <!-- Performance Graph -->
     <string name="workspace_operation_performance_not_enough_data">Not enough data</string>
-    <string name="workspace_operation_performance_speed_label">Speed: %1$s</string>
+    <string name="workspace_operation_performance_avg_speed_label">Speed Ø: %1$s</string>
 </resources>
