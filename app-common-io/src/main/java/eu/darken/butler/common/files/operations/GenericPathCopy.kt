@@ -1,17 +1,13 @@
 package eu.darken.butler.common.files.operations
 
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
-import eu.darken.butler.common.files.APathLookupExtended
 import eu.darken.butler.common.files.FileSystemOps
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
@@ -67,25 +63,23 @@ import kotlinx.coroutines.isActive
  *
  * @param SP The source path type (LocalPath, SAFPath, etc.)
  * @param SPL The source path lookup type (LocalPathLookup, SAFPathLookup, etc.)
- * @param SPLE The source path lookup extended type (LocalPathLookupExtended, SAFPathLookupExtended, etc.)
  * @param DP The destination path type (LocalPath, SAFPath, etc.)
  * @param DPL The destination path lookup type (LocalPathLookup, SAFPathLookup, etc.)
- * @param DPLE The destination path lookup extended type (LocalPathLookupExtended, SAFPathLookupExtended, etc.)
  */
 internal class GenericPathCopy<
-        SP : APath<SP>, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
-        DP : APath<DP>, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
-        >(
+    SP : APath<SP>, SPL : APathLookup<SP>,  // Source types
+    DP : APath<DP>, DPL : APathLookup<DP>   // Destination types
+    >(
     private val sources: Collection<SP>,
     private val destination: DP,
-    private val sourceOps: FileSystemOps<SP, SPL, SPLE>,
-    private val destOps: FileSystemOps<DP, DPL, DPLE>,
-    private val strategy: TransferStrategy<SP, SPL, SPLE, DP, DPL, DPLE>,
+    private val sourceOps: FileSystemOps<SP, SPL>,
+    private val destOps: FileSystemOps<DP, DPL>,
+    private val strategy: TransferStrategy<SP, SPL, DP, DPL>,
     private val options: TransferStrategy.Options,
     private val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
 ) {
 
-    private val copied = linkedSetOf<Pair<SPL, DPL>>()
+    private val copied = linkedSetOf<Pair<SPL, APathLookup<DP>>>()
     private val skipped = linkedSetOf<SPL>()
     private var totalBytesTransferred = 0L
 
@@ -94,7 +88,7 @@ internal class GenericPathCopy<
     private val issueResolver = PathOperationIssueResolver(onIssue)
     private val errorHandler = TransferErrorHandler()
     private val pathCalculator = TransferPathCalculator()
-    private val conflictResolver = TransferConflictResolver<SP, SPL, DP, DPL, DPLE>(
+    private val conflictResolver = TransferConflictResolver<SP, SPL, DP, DPL>(
         destOps = destOps,
         issueResolver = issueResolver,
         progressTracker = progressTracker,
@@ -181,10 +175,8 @@ internal class GenericPathCopy<
         log(TAG, DEBUG) { "execute(): Copying ${sources.size} sources to $destination" }
 
         // Check if destination exists and is a directory (for path calculation logic)
-        if (destOps.exists(destination)) {
-            val destLookup = destOps.lookup(destination)
-            destinationExistedAsDirectory = destLookup.fileType == FileType.DIRECTORY
-        }
+        val destLookup = destOps.lookup(destination, LookupOptions(fallbackToUnknown = true))
+        destinationExistedAsDirectory = destLookup.fileType == FileType.DIRECTORY
 
         // Initialize work queue with scan items for all sources
         scanItemsRemaining = sources.size
@@ -242,8 +234,11 @@ internal class GenericPathCopy<
     ): Int {
         log(TAG, VERBOSE) { "Scanning source: ${item.source}" }
 
+        // Use MAX lookup options when preserving attributes to avoid redundant lookup in copyAttributes
+        val lookupOptions = if (options.preserveAttributes) LookupOptions.MAX else LookupOptions.BASE
+
         val lookup = try {
-            sourceOps.lookup(item.source)
+            sourceOps.lookup(item.source, lookupOptions)
         } catch (e: Exception) {
             if (item.source == item.topLevelSource) {
                 throw e // Top-level source must exist
@@ -376,10 +371,13 @@ internal class GenericPathCopy<
 
             when (result) {
                 is TransferStrategy.TransferResult.Success -> {
-                    val destLookup = destOps.lookup(result.destination)
+                    // Use destinationLookup from result if available, otherwise lookup
+                    val destLookup = result.destinationLookup
+                        ?: destOps.lookup(result.destination, LookupOptions.BASE)
                     copied.add(item.sourceLookup to destLookup)
                     totalBytesTransferred += result.bytesTransferred
                     progressTracker.completeFile()
+                    progressTracker.completeItem()
                 }
 
                 is TransferStrategy.TransferResult.Skipped -> {
@@ -394,7 +392,7 @@ internal class GenericPathCopy<
             }
         } catch (_: PathAlreadyExistsException) {
             log(TAG, VERBOSE) { "File collision detected: $adjustedDest" }
-            val destLookup = destOps.lookup(adjustedDest)
+            val destLookup = destOps.lookup(adjustedDest, LookupOptions.BASE)
             handleFileConflict(item, adjustedDest, destLookup)
         } catch (e: Exception) {
             handleCopyError(e, item)
@@ -415,9 +413,9 @@ internal class GenericPathCopy<
         log(TAG, VERBOSE) { "Creating directory: ${item.sourceLookup.lookedUp} -> $adjustedDest" }
 
         // Check for conflicts before creating
-        if (destOps.exists(adjustedDest)) {
+        val destLookup = destOps.lookup(adjustedDest, LookupOptions.BASE.copy(fallbackToUnknown = true))
+        if (destLookup.fileType != FileType.UNKNOWN) {
             log(TAG, VERBOSE) { "Directory collision detected: $adjustedDest" }
-            val destLookup = destOps.lookup(adjustedDest)
             handleDirectoryConflict(item, adjustedDest, destLookup)
             return
         }
@@ -434,7 +432,9 @@ internal class GenericPathCopy<
 
             when (result) {
                 is TransferStrategy.TransferResult.Success -> {
-                    val destLookup = destOps.lookup(result.destination)
+                    // Use destinationLookup from result if available, otherwise lookup
+                    val destLookup = result.destinationLookup
+                        ?: destOps.lookup(result.destination, LookupOptions.BASE)
                     copied.add(item.sourceLookup to destLookup)
                     totalBytesTransferred += result.bytesTransferred
                     progressTracker.completeItem()
@@ -529,7 +529,7 @@ internal class GenericPathCopy<
 
     private suspend fun processResolveConflict(item: WorkItem.ResolveConflict<SP, SPL, DP, DPL>) {
         val canMerge = item.originalItem is WorkItem.CreateDirectory<*, *, *> &&
-                item.destLookup.fileType == FileType.DIRECTORY
+            item.destLookup.fileType == FileType.DIRECTORY
 
         conflictResolver.processResolveConflict(
             sourceLookup = item.sourceLookup,
@@ -731,7 +731,7 @@ internal class GenericPathCopy<
             }
 
             // Lookup the target to get its actual file type
-            val targetLookup = sourceOps.lookup(resolvedPath)
+            val targetLookup = sourceOps.lookup(resolvedPath, LookupOptions.BASE)
 
             log(TAG, VERBOSE) {
                 "Resolved symlink for scanning: $symlinkPath -> $resolvedPath (${targetLookup.fileType})"
@@ -758,13 +758,13 @@ internal class GenericPathCopy<
  * - **Cross-type** (SP≠DP): Pass different FileSystemOps instances
  */
 fun <
-        SP : APath<SP>, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
-        DP : APath<DP>, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
-        > Collection<SP>.copyGeneric(
+    SP : APath<SP>, SPL : APathLookup<SP>,  // Source types
+    DP : APath<DP>, DPL : APathLookup<DP>   // Destination types
+    > Collection<SP>.copyGeneric(
     destination: DP,
-    sourceOps: FileSystemOps<SP, SPL, SPLE>,
-    destOps: FileSystemOps<DP, DPL, DPLE>,
-    strategy: TransferStrategy<SP, SPL, SPLE, DP, DPL, DPLE>,
+    sourceOps: FileSystemOps<SP, SPL>,
+    destOps: FileSystemOps<DP, DPL>,
+    strategy: TransferStrategy<SP, SPL, DP, DPL>,
     options: TransferStrategy.Options = TransferStrategy.Options(),
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
 ): Flow<CopyAction.State<SP, SPL, DP, DPL>> = GenericPathCopy(

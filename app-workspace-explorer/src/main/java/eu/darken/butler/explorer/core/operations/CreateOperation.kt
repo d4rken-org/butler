@@ -13,6 +13,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.delete
@@ -83,7 +84,7 @@ class CreateOperation @AssistedInject constructor(
             }
 
             val issue = PathActionIssue.PathAlreadyExists(
-                destination = gatewaySwitch.lookup(destinationPath),
+                destination = gatewaySwitch.lookup(destinationPath, LookupOptions.BASE),
                 canRenameSource = true,
                 canOverwrite = true,
             )
@@ -132,7 +133,7 @@ class CreateOperation @AssistedInject constructor(
                             val deleteIssue = PathActionIssue.UnknownError(
                                 exception = e,
                                 errorMessage = (e.message ?: e.toString()).toCaString(),
-                                destination = gatewaySwitch.lookup(destinationPath),
+                                destination = gatewaySwitch.lookup(destinationPath, LookupOptions.BASE),
                                 canRetry = true,
                                 canSkip = false,
                             )
@@ -182,7 +183,7 @@ class CreateOperation @AssistedInject constructor(
                 val createIssue = PathActionIssue.UnknownError(
                     exception = e,
                     errorMessage = (e.message ?: e.toString()).toCaString(),
-                    destination = gatewaySwitch.lookup(destinationPath),
+                    destination = gatewaySwitch.lookup(destinationPath, LookupOptions.BASE),
                     canRetry = true,
                     canSkip = false,
                 )
@@ -206,7 +207,7 @@ class CreateOperation @AssistedInject constructor(
             }
         }
 
-        val createdLookup = gatewaySwitch.lookup(destinationPath)
+        val createdLookup = gatewaySwitch.lookup(destinationPath, LookupOptions.BASE)
         fileSystemHinter.trackPathsAdded(operationContext.id, setOf(createdLookup))
 
         FileSystemEvent.Added(

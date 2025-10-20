@@ -125,6 +125,38 @@ fastlane android beta
 fastlane android production
 ```
 
+### Development Tooling
+
+#### Test File Structure Creator
+
+Located in
+`tooling/test-files/`, this tool creates comprehensive test file structures on Android devices for testing Butler's file operations, navigation, and performance.
+
+**Quick Usage:**
+
+```bash
+# 1. Check connected devices
+adb devices -l
+
+# 2. Push and execute script (use -s <SERIAL> for specific device)
+adb push tooling/test-files/create-test-files.sh /sdcard/
+adb shell "sh /sdcard/create-test-files.sh /sdcard/ButlerTests"
+```
+
+**What it creates:**
+
+- `adirwithlargefiles/` - 8 files from 100MB to 8GB with random data (~16.5GB total)
+- `adirwithmanyfiles/` - 4,000 small files (0-50KB each, ~100MB total)
+- `adirwithnesteddata/` - Balanced tree structure (~1,500 folders, ~3,500 files, 10 levels deep)
+
+**Requirements:**
+
+- 18GB free space on device
+- 15-25 minutes runtime (varies by device)
+
+**Full documentation:** See
+`tooling/test-files/README.md` for detailed usage, troubleshooting, and customization options.
+
 ## Architecture Overview
 
 ### Build Flavors

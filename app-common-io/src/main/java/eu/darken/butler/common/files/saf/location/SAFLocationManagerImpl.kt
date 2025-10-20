@@ -154,16 +154,18 @@ class SAFLocationManagerImpl @Inject constructor(
         return SAFDocFile.fromTreeUri(context, contentResolver, targetTreeUri)
     }
 
-    override suspend fun grantPermission(treeUri: Uri) = withContext(dispatcherProvider.IO) {
+    override suspend fun grantPermission(treeUri: Uri): String = withContext(dispatcherProvider.IO) {
         log(TAG) { "grantPermission(treeUri=$treeUri)" }
 
+        val locationId = treeUri.toLocationId()
         try {
             contentResolver.takePersistableUriPermission(
                 treeUri,
                 Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
             )
-            log(TAG) { "Successfully granted permission for $treeUri" }
+            log(TAG) { "Successfully granted permission for $treeUri (locationId=$locationId)" }
             refresh()
+            locationId
         } catch (e: SecurityException) {
             log(TAG, ERROR) { "Failed to take persistable URI permission: $e" }
             throw e

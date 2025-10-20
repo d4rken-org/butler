@@ -5,6 +5,7 @@ import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
 import eu.darken.butler.common.files.local.LocalFileSystemOps
@@ -18,13 +19,14 @@ import java.util.LinkedList
 class DirectLocalWalker(
     private val fileSystemOps: LocalFileSystemOps,
     private val start: LocalPath,
+    private val lookupOptions: LookupOptions ,
     private val onFilter: suspend (LocalPathLookup) -> Boolean = { true },
     private val onError: suspend (LocalPathLookup, Exception) -> Boolean = { _, _ -> true },
 ) : AbstractFlow<LocalPathLookup>() {
     private val tag = "$TAG#${hashCode()}"
 
     override suspend fun collectSafely(collector: FlowCollector<LocalPathLookup>) {
-        val startLookUp = fileSystemOps.lookup(start)
+        val startLookUp = fileSystemOps.lookup(start, lookupOptions)
         if (startLookUp.isFile) {
             collector.emit(startLookUp)
             return
@@ -37,7 +39,7 @@ class DirectLocalWalker(
 
             val newBatch = try {
                 // Use lookupFiles for efficient single-call operation
-                fileSystemOps.lookupFiles(lookUp.lookedUp)
+                fileSystemOps.lookupFiles(lookUp.lookedUp, lookupOptions)
             } catch (e: Exception) {
                 log(TAG, Logging.Priority.ERROR) { "Failed to read $lookUp: $e" }
                 if (onError(lookUp, e)) {

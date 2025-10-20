@@ -1,34 +1,12 @@
 package eu.darken.butler.common.files.core.local
 
 import android.system.Os
+import android.system.OsConstants
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
-
-@Suppress("FunctionName")
-fun File(vararg crumbs: String): File {
-    var compacter = File(crumbs[0])
-    for (i in 1 until crumbs.size) {
-        compacter = File(compacter, crumbs[i])
-    }
-    return compacter
-}
-
-fun File.requireExists(): File {
-    if (!exists()) {
-        throw IllegalStateException("Path doesn't exist, but should: $this")
-    }
-    return this
-}
-
-fun File.requireNotExists(): File {
-    if (exists()) {
-        throw IllegalStateException("Path exist, but shouldn't: $this")
-    }
-    return this
-}
 
 fun File.tryMkDirs(): File {
     if (exists()) {
@@ -82,20 +60,6 @@ fun File.deleteAll() {
     }
 }
 
-fun File.listFiles2(): List<File> {
-    if (!exists()) throw IOException("File does not exist")
-    if (!canRead()) throw IOException("Can't read $path")
-    return this.listFiles()?.toList() ?: throw IOException("Failed to listFiles() on $path")
-}
-
-fun File.isSymbolicLink(): Boolean {
-    return try {
-        java.nio.file.Files.isSymbolicLink(this.toPath())
-    } catch (e: Exception) {
-        false
-    }
-}
-
 fun File.createSymlink(target: File): Boolean {
     return try {
         java.nio.file.Files.createSymbolicLink(this.toPath(), target.toPath())
@@ -121,21 +85,6 @@ fun File.readLink(): String? = try {
         null
     }
 }
-
-fun File.isReadable(): Boolean = try {
-    if (isDirectory) {
-        canRead()
-    } else {
-        // canRead() may return true, while SELinux blocks open
-        // type=1400 audit(0.0:12576): avc: denied { open } for path="/data/data/alinktests/subdir/symtarget" dev="sda45" ino=2754227 scontext=u:r:untrusted_app_27:s0:c100,c257,c512,c768 tcontext=u:object_r:system_data_file:s0 tclass=file permissive=0
-        reader().use { it.read() }
-        true
-    }
-} catch (e: Exception) {
-    false
-}
-
-fun File.canReadExecute(): Boolean = canRead() && canExecute()
 
 val File.parents: Sequence<File>
     get() = sequence {

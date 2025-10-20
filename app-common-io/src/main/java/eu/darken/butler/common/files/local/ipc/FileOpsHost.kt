@@ -8,11 +8,11 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.local.LocalPathLookup
-import eu.darken.butler.common.files.local.LocalPathLookupExtended
 import eu.darken.butler.common.files.local.copy
 import eu.darken.butler.common.files.local.delete
 import eu.darken.butler.common.files.local.walkers.DirectLocalWalker
@@ -51,47 +51,34 @@ class FileOpsHost @Inject constructor(
         throw e.wrapToPropagate()
     }
 
-    override fun lookup(path: LocalPath): LocalPathLookup = try {
-        if (Bugs.isTrace) log(TAG, VERBOSE) { "lookup($path)..." }
-        runBlocking { fileSystemOps.lookup(path) }
+    override fun lookup(path: LocalPath, options: LookupOptions): LocalPathLookup = try {
+        if (Bugs.isTrace) log(TAG, VERBOSE) { "lookup($path, $options)..." }
+        runBlocking { fileSystemOps.lookup(path, options) }
     } catch (e: Exception) {
         log(TAG, ERROR) { "lookup(path=$path) failed\n${e.asLog()}" }
         throw e.wrapToPropagate()
     }
 
-    override fun lookupFilesStream(path: LocalPath): RemoteInputStream = try {
-        if (Bugs.isTrace) log(TAG, VERBOSE) { "lookupFilesStream($path)..." }
-        val lookups = runBlocking { fileSystemOps.lookupFiles(path) }
+    override fun lookupFilesStream(path: LocalPath, options: LookupOptions): RemoteInputStream = try {
+        if (Bugs.isTrace) log(TAG, VERBOSE) { "lookupFilesStream($path, $options)..." }
+        val lookups = runBlocking { fileSystemOps.lookupFiles(path, options) }
         lookups.toRemoteInputStream()
     } catch (e: Exception) {
         log(TAG, ERROR) { "lookupFiles(path=$path) failed\n${e.asLog()}" }
         throw e.wrapToPropagate()
     }
 
-    override fun lookupExtended(path: LocalPath): LocalPathLookupExtended = try {
-        if (Bugs.isTrace) log(TAG, VERBOSE) { "lookUpExtended($path)..." }
-        runBlocking { fileSystemOps.lookupExtended(path) }
-    } catch (e: Exception) {
-        log(TAG, ERROR) { "lookUpExtended(path=$path) failed\n${e.asLog()}" }
-        throw e.wrapToPropagate()
-    }
-
-    override fun lookupFilesExtended(path: LocalPath): List<LocalPathLookupExtended> = try {
-        if (Bugs.isTrace) log(TAG, VERBOSE) { "lookupFilesExtended($path)..." }
-        runBlocking { fileSystemOps.lookupFilesExtended(path) }.also {
-            if (Bugs.isTrace) log(TAG, VERBOSE) { "lookupFilesExtended($path) done: ${it.size} items" }
-        }
-    } catch (e: Exception) {
-        log(TAG, ERROR) { "lookupFilesExtended(path=$path) failed\n${e.asLog()}" }
-        throw e.wrapToPropagate()
-    }
-
-    override fun walkStream(path: LocalPath, pathDoesNotContain: List<String>): RemoteInputStream = try {
+    override fun walkStream(
+        path: LocalPath,
+        lookupOptions: LookupOptions,
+        pathDoesNotContain: List<String>
+    ): RemoteInputStream = try {
         if (Bugs.isTrace) log(TAG, VERBOSE) { "walkStream($path)..." }
         runBlocking {
             DirectLocalWalker(
                 fileSystemOps = fileSystemOps,
                 start = path,
+                lookupOptions = lookupOptions,
                 onFilter = { lookup ->
                     pathDoesNotContain.none { lookup.path.contains(it) }
                 },
@@ -99,15 +86,6 @@ class FileOpsHost @Inject constructor(
         }.toRemoteInputStream(appScope + dispatcherProvider.IO)
     } catch (e: Exception) {
         log(TAG, ERROR) { "walkStream(path=$path) failed\n${e.asLog()}" }
-        throw e.wrapToPropagate()
-    }
-
-    override fun lookupFilesExtendedStream(path: LocalPath): RemoteInputStream = try {
-        if (Bugs.isTrace) log(TAG, VERBOSE) { "lookupFilesExtendedStream($path)..." }
-        val lookups = runBlocking { fileSystemOps.lookupFilesExtended(path) }
-        lookups.toRemoteInputStream()
-    } catch (e: Exception) {
-        log(TAG, ERROR) { "lookupFilesExtendedStream(path=$path) failed\n${e.asLog()}" }
         throw e.wrapToPropagate()
     }
 

@@ -70,9 +70,10 @@ fun ClipboardBar(
     LaunchedEffect(clearAllAnimationTrigger) {
         if (clearAllAnimationTrigger > 0L) {
             // Wait for all swipe animations to complete before clearing
-            val totalAnimationTime = (clipboardEntries.size * 300L) + 800L
+            val totalAnimationTime = (clipboardEntries.size * 200L) + 500L
             delay(totalAnimationTime)
             onClearAll()
+            clearAllAnimationTrigger = 0L
         }
     }
 
@@ -128,7 +129,7 @@ fun ClipboardBar(
                             onRemoveClick = { onRemoveClick(entry) },
                             showOrigin = true, // Show origin for expanded entries
                             triggerDismiss = clearAllAnimationTrigger,
-                            dismissDelay = index * 300L, // Cascade delay
+                            dismissDelay = index * 200L, // Cascade delay
                         )
                         HorizontalDivider(
                             modifier = Modifier.padding(horizontal = 32.dp),
@@ -147,7 +148,7 @@ fun ClipboardBar(
                             onRemoveClick = { onRemoveClick(entry) },
                             showOrigin = isExpanded,
                             triggerDismiss = clearAllAnimationTrigger,
-                            dismissDelay = additionalEntries.size * 300L, // Latest entry has longest delay
+                            dismissDelay = additionalEntries.size * 200L, // Latest entry has longest delay
                         )
                     }
                 }

@@ -82,9 +82,10 @@ fun OperationsBar(
                 }
             }
             // Wait for all swipe animations to complete before clearing
-            val totalAnimationTime = (completedOps.size * 300L) + 800L
+            val totalAnimationTime = (completedOps.size * 200L) + 500L
             kotlinx.coroutines.delay(totalAnimationTime)
             onClearCompleted()
+            clearCompletedAnimationTrigger = 0L
         }
     }
 
@@ -179,7 +180,7 @@ fun OperationsBar(
                                     else -> false
                                 }
                             }
-                        val dismissDelay = if (canDismiss) completedOpsBeforeThis * 300L else 0L
+                        val dismissDelay = if (canDismiss) completedOpsBeforeThis * 200L else 0L
 
                         SwipeToDismissItem(
                             enabled = canDismiss,

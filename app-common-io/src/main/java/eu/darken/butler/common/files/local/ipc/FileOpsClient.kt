@@ -10,10 +10,10 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.local.LocalPathLookup
-import eu.darken.butler.common.files.local.LocalPathLookupExtended
 import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
@@ -30,7 +30,7 @@ import kotlin.time.Instant
 class FileOpsClient @AssistedInject constructor(
     @Assisted private val fileOpsConnection: FileOpsConnection
 ) : IpcClientModule,
-    FileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>,
+    FileSystemOps<LocalPath, LocalPathLookup>,
     CopyAction<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>,
     DeleteAction<LocalPath, LocalPathLookup> {
 
@@ -45,9 +45,9 @@ class FileOpsClient @AssistedInject constructor(
         throw e.refineException()
     }
 
-    override suspend fun lookup(path: LocalPath): LocalPathLookup = try {
-        fileOpsConnection.lookup(path).also {
-            if (Bugs.isTrace) log(TAG, VERBOSE) { "lookup($path): $it" }
+    override suspend fun lookup(path: LocalPath, options: LookupOptions): LocalPathLookup = try {
+        fileOpsConnection.lookup(path, options).also {
+            if (Bugs.isTrace) log(TAG, VERBOSE) { "lookup($path, $options): $it" }
         }
     } catch (e: Exception) {
         throw e.refineException()
@@ -56,31 +56,9 @@ class FileOpsClient @AssistedInject constructor(
     /**
      * Doesn't run into IPC buffer overflows on large directories
      */
-    override suspend fun lookupFiles(path: LocalPath): List<LocalPathLookup> = try {
-        fileOpsConnection.lookupFilesStream(path).toLocalPathLookups().also {
-            if (Bugs.isTrace) log(TAG, VERBOSE) { "lookupFiles($path) finished streaming, ${it.size} items" }
-        }
-    } catch (e: Exception) {
-        throw e.refineException()
-    }
-
-    override suspend fun lookupExtended(path: LocalPath): LocalPathLookupExtended = try {
-        fileOpsConnection.lookupExtended(path).also {
-            if (Bugs.isTrace) log(TAG, VERBOSE) { "lookupExtended($path): $it" }
-        }
-    } catch (e: Exception) {
-        throw e.refineException()
-    }
-
-    /**
-     * Doesn't run into IPC buffer overflows on large directories
-     */
-    fun lookupFilesExtendedStream(path: LocalPath): List<LocalPathLookupExtended> = try {
-        fileOpsConnection.lookupFilesExtendedStream(path).toLocalPathLookupExtended().also {
-            if (Bugs.isTrace) log(
-                TAG,
-                VERBOSE
-            ) { "lookupFilesExtendedStream($path) finished streaming, ${it.size} items" }
+    override suspend fun lookupFiles(path: LocalPath, options: LookupOptions): List<LocalPathLookup> = try {
+        fileOpsConnection.lookupFilesStream(path, options).toLocalPathLookups().also {
+            if (Bugs.isTrace) log(TAG, VERBOSE) { "lookupFiles($path, $options) finished streaming, ${it.size} items" }
         }
     } catch (e: Exception) {
         throw e.refineException()
@@ -91,14 +69,16 @@ class FileOpsClient @AssistedInject constructor(
      */
     fun walk(
         path: LocalPath,
-        options: APathGateway.WalkOptions<LocalPath, LocalPathLookup>,
+        lookupOptions: LookupOptions,
+        walkOptions: APathGateway.WalkOptions<LocalPath, LocalPathLookup>,
     ): Flow<LocalPathLookup> {
-        if (!options.isDirect) throw IllegalArgumentException("Only direct walk options are supported")
+        if (!walkOptions.isDirect) throw IllegalArgumentException("Only direct walk options are supported")
 
         val output = try {
             fileOpsConnection.walkStream(
                 path,
-                (options.pathDoesNotContain ?: emptyList()).toMutableList(),
+                lookupOptions,
+                (walkOptions.pathDoesNotContain ?: emptyList()).toMutableList(),
             )
         } catch (e: Exception) {
             throw e.refineException()

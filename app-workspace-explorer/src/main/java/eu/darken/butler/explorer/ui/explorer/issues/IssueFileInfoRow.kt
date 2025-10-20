@@ -77,7 +77,7 @@ fun PathIssueFileComparisonCard(
 
                 Text(
                     text = when (lookup.fileType) {
-                        FileType.FILE -> formatFileSize(lookup.size ?: -1L)
+                        FileType.FILE -> lookup.size?.let { formatFileSize(it) } ?: "?"
                         FileType.DIRECTORY -> stringResource(R.string.explorer_type_folder)
                         else -> "-"
                     },

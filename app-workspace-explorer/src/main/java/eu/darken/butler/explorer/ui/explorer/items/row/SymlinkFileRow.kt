@@ -54,7 +54,7 @@ internal fun SymlinkFileRow(
             if (item.isBroken) {
                 append(stringResource(R.string.explorer_file_broken_link_label))
             } else {
-                append(item.lookup.modifiedAt?.let { formatDate(it) ?: "?" })
+                append(item.lookup.modifiedAt?.let { formatDate(it) } ?: "?")
             }
         }
     )
