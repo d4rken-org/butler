@@ -4,7 +4,6 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.local.LocalPathLookup
-import eu.darken.butler.common.files.local.LocalPathLookupExtended
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.operations.MockFileSystemOps
 import eu.darken.butler.common.files.operations.TransferStrategy
@@ -525,28 +524,20 @@ class LocalPathMoveStrategyTest : BaseTest() {
  * - Cross-device moves (throws AtomicMoveNotSupportedException)
  * - Symlink support
  */
-private class MockLocalFileSystemOps : MockFileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>(
-    lookupFactory = { path, type, size, modifiedAt, permissions, ownership ->
+private class MockLocalFileSystemOps : MockFileSystemOps<LocalPath, LocalPathLookup>(
+    lookupFactory = { path, type, size, modifiedAt, permissions, ownership, createdAt ->
         LocalPathLookup(
             lookedUp = path,
             fileType = type,
             size = size,
             modifiedAt = modifiedAt ?: kotlin.time.Instant.fromEpochMilliseconds(0),
             target = null,
+            ownership = ownership,
+            permissions = permissions,
+            createdAt = createdAt,
         )
     }
 ) {
-    override suspend fun lookupExtended(path: LocalPath): LocalPathLookupExtended {
-        val basicLookup = lookup(path)
-        val mockFile = files[path.path]!!
-
-        return LocalPathLookupExtended(
-            lookup = basicLookup,
-            ownership = mockFile.ownership,
-            permissions = mockFile.permissions,
-            createdAt = null,
-        )
-    }
 
     override suspend fun move(source: LocalPath, destination: LocalPath): Boolean {
         // Simulate local file system atomic move behavior:

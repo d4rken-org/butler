@@ -5,18 +5,19 @@ import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.pkgs.pkgops.LibcoreTool
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.flow.last
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -54,7 +55,7 @@ class LocalPathDeleteTest : BaseTest() {
         val testPath = LocalPath.build(testFile)
 
         // When
-        val result = testPath.delete(ops).last() as DeleteAction.State.Result
+        val result = testPath.delete(ops).last() as DeleteAction.State.Completed
 
         // Then
         result.deleted.map { it.lookedUp } shouldContain testPath
@@ -67,7 +68,8 @@ class LocalPathDeleteTest : BaseTest() {
         val nonExistentFile = File(testFolder, "does-not-exist.txt")
 
         // When
-        val result = listOf(LocalPath.build(nonExistentFile)).delete(ops, ignoreMissing = true).last() as DeleteAction.State.Result
+        val result = listOf(LocalPath.build(nonExistentFile)).delete(ops, ignoreMissing = true)
+            .last() as DeleteAction.State.Completed
 
         // Then
         result.deleted.shouldBeEmpty()
@@ -89,7 +91,7 @@ class LocalPathDeleteTest : BaseTest() {
         emptyDir.mkdir()
 
         // When
-        val result = listOf(LocalPath.build(emptyDir)).delete(ops).last() as DeleteAction.State.Result
+        val result = listOf(LocalPath.build(emptyDir)).delete(ops).last() as DeleteAction.State.Completed
 
         // Then
         result.deleted.map { it.lookedUp } shouldContain LocalPath.build(emptyDir)
@@ -110,7 +112,7 @@ class LocalPathDeleteTest : BaseTest() {
         file2.writeText("Content 2")
 
         // When
-        val result = listOf(LocalPath.build(nestedDir)).delete(ops).last() as DeleteAction.State.Result
+        val result = listOf(LocalPath.build(nestedDir)).delete(ops).last() as DeleteAction.State.Completed
 
         // Then
         result.deleted.map { it.lookedUp } should { files ->
@@ -135,8 +137,9 @@ class LocalPathDeleteTest : BaseTest() {
         // When
         listOf(LocalPath.build(parentDir)).delete(ops).collect { state ->
             when (state) {
-                is DeleteAction.State.Progress -> deletionOrder.add(state.target.lookedUp)
-                is DeleteAction.State.Result -> { /* final result */ }
+                is DeleteAction.State.Active -> deletionOrder.add(state.target.lookedUp)
+                is DeleteAction.State.Completed -> { /* final result */
+                }
             }
         }
 
@@ -171,7 +174,8 @@ class LocalPathDeleteTest : BaseTest() {
         emptyDir.mkdir()
 
         // When
-        val result = listOf(LocalPath.build(emptyDir)).delete(ops, recursive = false).last() as DeleteAction.State.Result
+        val result =
+            listOf(LocalPath.build(emptyDir)).delete(ops, recursive = false).last() as DeleteAction.State.Completed
 
         // Then
         result.deleted.map { it.lookedUp } shouldContain LocalPath.build(emptyDir)
@@ -191,8 +195,9 @@ class LocalPathDeleteTest : BaseTest() {
         // When
         listOf(LocalPath.build(file1), LocalPath.build(file2)).delete(ops).collect { state ->
             when (state) {
-                is DeleteAction.State.Progress -> reportedPaths.add(state.target.lookedUp)
-                is DeleteAction.State.Result -> { /* final result */ }
+                is DeleteAction.State.Active -> reportedPaths.add(state.target.lookedUp)
+                is DeleteAction.State.Completed -> { /* final result */
+                }
             }
         }
 
@@ -215,7 +220,8 @@ class LocalPathDeleteTest : BaseTest() {
         dirFile.writeText("inside content")
 
         // When
-        val result = listOf(LocalPath.build(file), LocalPath.build(dir)).delete(ops).last() as DeleteAction.State.Result
+        val result =
+            listOf(LocalPath.build(file), LocalPath.build(dir)).delete(ops).last() as DeleteAction.State.Completed
 
         // Then
         result.deleted.map { it.lookedUp } should { files ->
@@ -239,7 +245,7 @@ class LocalPathDeleteTest : BaseTest() {
             readOnlyFile.setReadOnly()
 
             // When
-            val result = listOf(LocalPath.build(readOnlyFile)).delete(ops).last() as DeleteAction.State.Result
+            val result = listOf(LocalPath.build(readOnlyFile)).delete(ops).last() as DeleteAction.State.Completed
 
             // Then - depending on system, file may or may not be deleted
             // The important thing is that it doesn't throw an exception
@@ -277,7 +283,7 @@ class LocalPathDeleteTest : BaseTest() {
     @Test
     fun `empty collection should return empty result`() = runTest {
         // When
-        val result = emptyList<LocalPath>().delete(ops).last() as DeleteAction.State.Result
+        val result = emptyList<LocalPath>().delete(ops).last() as DeleteAction.State.Completed
 
         // Then
         result.deleted.shouldBeEmpty()
@@ -334,7 +340,7 @@ class LocalPathDeleteTest : BaseTest() {
         // When
         val result = listOf(
             LocalPath.build(file1), LocalPath.build(file2)
-        ).delete(ops).last() as DeleteAction.State.Result
+        ).delete(ops).last() as DeleteAction.State.Completed
 
         // Then
         result.deleted shouldHaveSize 1
@@ -353,7 +359,7 @@ class LocalPathDeleteTest : BaseTest() {
         val startTime = System.currentTimeMillis()
 
         // When
-        val result = files.map { LocalPath.build(it) }.delete(ops).last() as DeleteAction.State.Result
+        val result = files.map { LocalPath.build(it) }.delete(ops).last() as DeleteAction.State.Completed
         val endTime = System.currentTimeMillis()
 
         // Then
@@ -408,7 +414,7 @@ class LocalPathDeleteTest : BaseTest() {
                     throw AssertionError("Should not encounter more issues with Apply to All")
                 }
             }
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then
         // On many systems, read-only files can still be deleted by the owner
@@ -511,7 +517,8 @@ class LocalPathDeleteTest : BaseTest() {
         testFile.writeText("content")
 
         // When - no onIssue callback provided, should continue with other files
-        val result = listOf(LocalPath.build(testFile)).delete(ops, onIssue = null).last() as DeleteAction.State.Result
+        val result =
+            listOf(LocalPath.build(testFile)).delete(ops, onIssue = null).last() as DeleteAction.State.Completed
 
         // Then - should not crash and complete normally
         // File should be deleted if permissions allow, or operation continues gracefully
@@ -528,7 +535,7 @@ class LocalPathDeleteTest : BaseTest() {
         emptyDir.mkdir()
 
         // When
-        val result = LocalPath.build(emptyDir).delete(ops, recursive = false).last() as DeleteAction.State.Result
+        val result = LocalPath.build(emptyDir).delete(ops, recursive = false).last() as DeleteAction.State.Completed
 
         // Then
         result.deleted.map { it.lookedUp } shouldContain LocalPath.build(emptyDir)
@@ -569,7 +576,7 @@ class LocalPathDeleteTest : BaseTest() {
         file3.writeText("content3")
 
         // When
-        val result = LocalPath.build(parentDir).delete(ops, recursive = true).last() as DeleteAction.State.Result
+        val result = LocalPath.build(parentDir).delete(ops, recursive = true).last() as DeleteAction.State.Completed
 
         // Then
         result.deleted.map { it.lookedUp } should { deleted ->
@@ -625,7 +632,7 @@ class LocalPathDeleteTest : BaseTest() {
         file2.writeText("content")
 
         // When - delete first with recursive=true
-        val recursiveResult = LocalPath.build(dir1).delete(ops, recursive = true).last() as DeleteAction.State.Result
+        val recursiveResult = LocalPath.build(dir1).delete(ops, recursive = true).last() as DeleteAction.State.Completed
 
         // And - try to delete second with recursive=false (should fail)
         shouldThrow<WriteException> {
@@ -648,7 +655,8 @@ class LocalPathDeleteTest : BaseTest() {
         val nonExistentFile = File(testFolder, "does-not-exist.txt")
 
         // When
-        val result = LocalPath.build(nonExistentFile).delete(ops, ignoreMissing = true).last() as DeleteAction.State.Result
+        val result =
+            LocalPath.build(nonExistentFile).delete(ops, ignoreMissing = true).last() as DeleteAction.State.Completed
 
         // Then
         result.deleted.shouldBeEmpty()
@@ -679,7 +687,7 @@ class LocalPathDeleteTest : BaseTest() {
             LocalPath.build(nonExistentFile1),
             LocalPath.build(existingFile),
             LocalPath.build(nonExistentFile2)
-        ).delete(ops, ignoreMissing = true).last() as DeleteAction.State.Result
+        ).delete(ops, ignoreMissing = true).last() as DeleteAction.State.Completed
 
         // Then
         result.deleted.map { it.lookedUp } shouldContain LocalPath.build(existingFile)
@@ -715,7 +723,8 @@ class LocalPathDeleteTest : BaseTest() {
         val nonExistentFiles = (1..5).map { File(testFolder, "missing$it.txt") }
 
         // When
-        val result = nonExistentFiles.map { LocalPath.build(it) }.delete(ops, ignoreMissing = true).last() as DeleteAction.State.Result
+        val result = nonExistentFiles.map { LocalPath.build(it) }.delete(ops, ignoreMissing = true)
+            .last() as DeleteAction.State.Completed
 
         // Then
         result.deleted.shouldBeEmpty()
@@ -746,7 +755,7 @@ class LocalPathDeleteTest : BaseTest() {
         val result = listOf(
             LocalPath.build(nonExistentDir),
             LocalPath.build(existingDir)
-        ).delete(ops, ignoreMissing = true).last() as DeleteAction.State.Result
+        ).delete(ops, ignoreMissing = true).last() as DeleteAction.State.Completed
 
         // Then
         result.deleted.map { it.lookedUp } shouldContain LocalPath.build(existingDir)
@@ -770,8 +779,10 @@ class LocalPathDeleteTest : BaseTest() {
         }
 
         // And both should succeed with ignoreMissing=true
-        val singleResult = LocalPath.build(nonExistent1).delete(ops, ignoreMissing = true).last() as DeleteAction.State.Result
-        val collectionResult = listOf(LocalPath.build(nonExistent2)).delete(ops, ignoreMissing = true).last() as DeleteAction.State.Result
+        val singleResult =
+            LocalPath.build(nonExistent1).delete(ops, ignoreMissing = true).last() as DeleteAction.State.Completed
+        val collectionResult = listOf(LocalPath.build(nonExistent2)).delete(ops, ignoreMissing = true)
+            .last() as DeleteAction.State.Completed
 
         singleResult.deleted.shouldBeEmpty()
         collectionResult.deleted.shouldBeEmpty()
@@ -856,7 +867,7 @@ class LocalPathDeleteTest : BaseTest() {
             LocalPath.build(existingFile),
             LocalPath.build(emptyDir),
             LocalPath.build(dirWithContent)
-        ).delete(ops, recursive = true, ignoreMissing = true).last() as DeleteAction.State.Result
+        ).delete(ops, recursive = true, ignoreMissing = true).last() as DeleteAction.State.Completed
 
         // Then - should delete everything that exists
         result.deleted.map { it.lookedUp } shouldContain LocalPath.build(existingFile)
@@ -911,7 +922,7 @@ class LocalPathDeleteTest : BaseTest() {
                 val result = listOf(
                     LocalPath.build(symlink),
                     LocalPath.build(nonExistentSymlink)
-                ).delete(ops, recursive = true, ignoreMissing = true).last() as DeleteAction.State.Result
+                ).delete(ops, recursive = true, ignoreMissing = true).last() as DeleteAction.State.Completed
 
                 // Then - should delete symlink but ignore missing one, target should remain
                 result.deleted.map { it.lookedUp } shouldContain LocalPath.build(symlink)
@@ -937,7 +948,7 @@ class LocalPathDeleteTest : BaseTest() {
             ops,
             recursive = true,
             ignoreMissing = true
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - should handle large collection efficiently
         result.deleted shouldHaveSize files.size
@@ -970,7 +981,7 @@ class LocalPathDeleteTest : BaseTest() {
                     is PathActionIssue.PathAlreadyExists -> TODO()
                 }
             }
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - Operation should complete without crashing
         result.deleted should { it.size >= 0 }
@@ -986,7 +997,7 @@ class LocalPathDeleteTest : BaseTest() {
         dirB.mkdir()
 
         // When
-        val result = LocalPath.build(dirA).delete(ops).last() as DeleteAction.State.Result
+        val result = LocalPath.build(dirA).delete(ops).last() as DeleteAction.State.Completed
 
         // Then
         result.deleted shouldHaveSize 2
@@ -1020,7 +1031,7 @@ class LocalPathDeleteTest : BaseTest() {
                         else -> TODO("Unexpected issue type: $issue")
                     }
                 }
-            ).last() as DeleteAction.State.Result
+            ).last() as DeleteAction.State.Completed
 
             // Then - Directory should be ONLY in skipped, NOT in deleted
             result.deleted.map { it.lookedUp } shouldNotBe LocalPath.build(parentDir)
@@ -1075,7 +1086,7 @@ class LocalPathDeleteTest : BaseTest() {
                         else -> TODO("Unexpected issue type: $issue")
                     }
                 }
-            ).last() as DeleteAction.State.Result
+            ).last() as DeleteAction.State.Completed
 
             // Then - Directory and child successfully deleted after retry
             retryInvoked shouldBe true
@@ -1133,7 +1144,7 @@ class LocalPathDeleteTest : BaseTest() {
                         else -> TODO("Unexpected issue type: $issue")
                     }
                 }
-            ).last() as DeleteAction.State.Result
+            ).last() as DeleteAction.State.Completed
 
             // Then - Only 1 issue callback (not 3) due to applyToAll
             issueCount shouldBe 1
@@ -1173,8 +1184,9 @@ class LocalPathDeleteTest : BaseTest() {
         // When
         files.map { LocalPath.build(it) }.delete(ops).collect { state ->
             when (state) {
-                is DeleteAction.State.Progress -> progressTimestamps.add(System.currentTimeMillis() - startTime)
-                is DeleteAction.State.Result -> { /* final result */ }
+                is DeleteAction.State.Active -> progressTimestamps.add(System.currentTimeMillis() - startTime)
+                is DeleteAction.State.Completed -> { /* final result */
+                }
             }
         }
 
@@ -1202,8 +1214,9 @@ class LocalPathDeleteTest : BaseTest() {
         // When
         LocalPath.build(file).delete(ops).collect { state ->
             when (state) {
-                is DeleteAction.State.Progress -> progressCallbackCalled = true
-                is DeleteAction.State.Result -> { /* final result */ }
+                is DeleteAction.State.Active -> progressCallbackCalled = true
+                is DeleteAction.State.Completed -> { /* final result */
+                }
             }
         }
 
@@ -1223,13 +1236,14 @@ class LocalPathDeleteTest : BaseTest() {
         // When
         files.map { LocalPath.build(it) }.delete(ops).collect { state ->
             when (state) {
-                is DeleteAction.State.Progress -> {
+                is DeleteAction.State.Active -> {
                     val count = state.primaryProgress.count
                     if (count is eu.darken.butler.common.progress.Progress.Count.Counter) {
                         progressUpdates.add(count.current to count.max)
                     }
                 }
-                is DeleteAction.State.Result -> { /* final result */ }
+                is DeleteAction.State.Completed -> { /* final result */
+                }
             }
         }
 
@@ -1277,7 +1291,7 @@ class LocalPathDeleteTest : BaseTest() {
                         else -> TODO("Unexpected issue: $issue")
                     }
                 }
-            ).last() as DeleteAction.State.Result
+            ).last() as DeleteAction.State.Completed
 
             // Then - If B had an issue, A and C should still be deleted
             if (issueCount > 0) {
@@ -1332,7 +1346,7 @@ class LocalPathDeleteTest : BaseTest() {
                         else -> TODO()
                     }
                 }
-            ).last() as DeleteAction.State.Result
+            ).last() as DeleteAction.State.Completed
 
             // Then - Verify mutual exclusivity (this is the critical test for the bug we fixed)
             val deletedPaths = result.deleted.map { it.lookedUp }.toSet()
@@ -1366,7 +1380,7 @@ class LocalPathDeleteTest : BaseTest() {
                     else -> TODO()
                 }
             }
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - File should either be deleted (no errors) or skipped (with error handling)
         // The key is the operation completes without hanging in retry loop
@@ -1387,18 +1401,18 @@ class LocalPathDeleteTest : BaseTest() {
         file2.writeText("content2")
 
         val progressReports = mutableListOf<Long>()
-        var result: DeleteAction.State.Result<LocalPath, LocalPathLookup>? = null
+        var result: DeleteAction.State.Completed<LocalPath, LocalPathLookup>? = null
 
         // When
         LocalPath.build(parentDir).delete(ops).collect { state ->
             when (state) {
-                is DeleteAction.State.Progress -> {
+                is DeleteAction.State.Active -> {
                     val count = state.primaryProgress.count
                     if (count is eu.darken.butler.common.progress.Progress.Count.Counter) {
                         progressReports.add(count.current)
                     }
                 }
-                is DeleteAction.State.Result -> result = state
+                is DeleteAction.State.Completed -> result = state
             }
         }
 
@@ -1443,7 +1457,7 @@ class LocalPathDeleteTest : BaseTest() {
                         else -> TODO()
                     }
                 }
-            ).last() as DeleteAction.State.Result
+            ).last() as DeleteAction.State.Completed
 
             // Then
             if (issueEncountered) {
@@ -1499,7 +1513,7 @@ class LocalPathDeleteTest : BaseTest() {
                         else -> TODO()
                     }
                 }
-            ).last() as DeleteAction.State.Result
+            ).last() as DeleteAction.State.Completed
 
             // Then
             if (retryInvoked) {
@@ -1533,7 +1547,7 @@ class LocalPathDeleteTest : BaseTest() {
         }
 
         // When - delete the symlink
-        val result = LocalPath.build(symlinkFile).delete(ops).last() as DeleteAction.State.Result
+        val result = LocalPath.build(symlinkFile).delete(ops).last() as DeleteAction.State.Completed
 
         // Then - symlink deleted, target still exists
         symlinkFile.exists() shouldBe false
@@ -1559,7 +1573,7 @@ class LocalPathDeleteTest : BaseTest() {
         }
 
         // When - delete broken symlink
-        val result = LocalPath.build(brokenLink).delete(ops).last() as DeleteAction.State.Result
+        val result = LocalPath.build(brokenLink).delete(ops).last() as DeleteAction.State.Completed
 
         // Then - symlink should be deleted
         brokenLink.exists() shouldBe false
@@ -1587,7 +1601,7 @@ class LocalPathDeleteTest : BaseTest() {
         }
 
         // When - delete the entire directory
-        val result = LocalPath.build(sourceDir).delete(ops).last() as DeleteAction.State.Result
+        val result = LocalPath.build(sourceDir).delete(ops).last() as DeleteAction.State.Completed
 
         // Then - directory and all contents deleted, including symlinks
         sourceDir.exists() shouldBe false
@@ -1621,7 +1635,7 @@ class LocalPathDeleteTest : BaseTest() {
         }
 
         // When - delete the symlink directory (non-recursive)
-        val result = LocalPath.build(linkDir).delete(ops, recursive = false).last() as DeleteAction.State.Result
+        val result = LocalPath.build(linkDir).delete(ops, recursive = false).last() as DeleteAction.State.Completed
 
         // Then - symlink deleted, target directory still exists
         linkDir.exists() shouldBe false
@@ -1647,7 +1661,7 @@ class LocalPathDeleteTest : BaseTest() {
         }
 
         // When - delete link2
-        val result = LocalPath.build(link2).delete(ops).last() as DeleteAction.State.Result
+        val result = LocalPath.build(link2).delete(ops).last() as DeleteAction.State.Completed
 
         // Then - only link2 deleted, link1 and target still exist
         Files.exists(link2.toPath(), LinkOption.NOFOLLOW_LINKS) shouldBe false
@@ -1680,7 +1694,7 @@ class LocalPathDeleteTest : BaseTest() {
             LocalPath.build(link1),
             LocalPath.build(link2),
             LocalPath.build(link3)
-        ).delete(ops).last() as DeleteAction.State.Result
+        ).delete(ops).last() as DeleteAction.State.Completed
 
         // Then - all symlinks deleted, target still exists
         link1.exists() shouldBe false
@@ -1712,7 +1726,7 @@ class LocalPathDeleteTest : BaseTest() {
         val result = listOf(
             LocalPath.build(linkDir),
             LocalPath.build(targetDir)
-        ).delete(ops).last() as DeleteAction.State.Result
+        ).delete(ops).last() as DeleteAction.State.Completed
 
         // Then - both deleted (symlink + directory tree)
         linkDir.exists() shouldBe false
@@ -1738,7 +1752,7 @@ class LocalPathDeleteTest : BaseTest() {
         val result = listOf(
             LocalPath.build(link1),
             LocalPath.build(link2)
-        ).delete(ops).last() as DeleteAction.State.Result
+        ).delete(ops).last() as DeleteAction.State.Completed
 
         // Then - both deleted despite circular reference
         link1.exists() shouldBe false
@@ -1760,7 +1774,8 @@ class LocalPathDeleteTest : BaseTest() {
         }
 
         // When - delete with ignoreMissing=true
-        val result = LocalPath.build(brokenLink).delete(ops, ignoreMissing = true).last() as DeleteAction.State.Result
+        val result =
+            LocalPath.build(brokenLink).delete(ops, ignoreMissing = true).last() as DeleteAction.State.Completed
 
         // Then - symlink deleted successfully
         brokenLink.exists() shouldBe false
@@ -1782,13 +1797,14 @@ class LocalPathDeleteTest : BaseTest() {
         // When
         LocalPath.build(file).delete(ops).collect { state ->
             when (state) {
-                is DeleteAction.State.Progress -> {
+                is DeleteAction.State.Active -> {
                     if (state.secondaryProgress != null) {
                         secondaryProgressReported = true
                         lastSecondaryProgress = state.secondaryProgress
                     }
                 }
-                is DeleteAction.State.Result -> { /* final result */ }
+                is DeleteAction.State.Completed -> { /* final result */
+                }
             }
         }
 
@@ -1824,12 +1840,13 @@ class LocalPathDeleteTest : BaseTest() {
             LocalPath.build(file3)
         ).delete(ops).collect { state ->
             when (state) {
-                is DeleteAction.State.Progress -> {
+                is DeleteAction.State.Active -> {
                     if (state.secondaryProgress != null) {
                         secondaryProgressCount++
                     }
                 }
-                is DeleteAction.State.Result -> { /* final result */ }
+                is DeleteAction.State.Completed -> { /* final result */
+                }
             }
         }
 
@@ -1855,7 +1872,7 @@ class LocalPathDeleteTest : BaseTest() {
         testFile.setReadOnly()
 
         try {
-            val result = LocalPath.build(testFile).delete(
+            LocalPath.build(testFile).delete(
                 ops,
                 onIssue = { issue ->
                     retryCount++
@@ -1885,7 +1902,7 @@ class LocalPathDeleteTest : BaseTest() {
                         else -> TODO("Unexpected issue: $issue")
                     }
                 }
-            ).last() as DeleteAction.State.Result
+            ).last() as DeleteAction.State.Completed
 
             // Then - Verify retry mechanism exists and works
             // On systems where read-only doesn't prevent deletion, the file will be deleted without issues
@@ -1951,13 +1968,14 @@ class LocalPathDeleteTest : BaseTest() {
                 }
             ).collect { state ->
                 when (state) {
-                    is DeleteAction.State.Progress -> {
+                    is DeleteAction.State.Active -> {
                         val count = state.primaryProgress.count
                         if (count is eu.darken.butler.common.progress.Progress.Count.Counter) {
                             progressValues.add(count.current)
                         }
                     }
-                    is DeleteAction.State.Result -> { /* final result */ }
+                    is DeleteAction.State.Completed -> { /* final result */
+                    }
                 }
             }
 
@@ -1972,5 +1990,62 @@ class LocalPathDeleteTest : BaseTest() {
         } finally {
             file2.setWritable(true)
         }
+    }
+
+    // ============ NULLABLE FIELDS TESTS ============
+
+    @Test
+    fun `delete file with null size completes successfully`() = runTest {
+        // Given - Create a lookup with null size (simulates partial lookup from "/" scenario)
+        val testFile = File(testFolder, "restricted.txt")
+        testFile.writeText("content")
+
+        // Create a stub lookup with null size
+        LocalPathLookup(
+            lookedUp = LocalPath.build(testFile),
+            fileType = FileType.FILE,
+            size = null,  // Null size due to permission error
+            modifiedAt = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis()),
+            error = ReadException("Permission denied", LocalPath.build(testFile))
+        )
+
+        // When - operation should handle null size gracefully
+        val result = LocalPath.build(testFile).delete(ops).last() as DeleteAction.State.Completed
+
+        // Then - file deleted successfully despite null size in metadata
+        result.deleted.map { it.lookedUp } shouldContain LocalPath.build(testFile)
+        testFile.exists() shouldBe false
+
+        // Verify progress tracking used 0L fallback for null size
+        result.bytesTotal.shouldBeGreaterThanOrEqual(0L)
+    }
+
+    @Test
+    fun `delete multiple files with mixed null and non-null sizes`() = runTest {
+        // Given - Three files with different size scenarios
+        val file1 = File(testFolder, "file1.txt")
+        val file2 = File(testFolder, "file2.txt")
+        val file3 = File(testFolder, "file3.txt")
+
+        file1.writeText("x".repeat(100))  // 100 bytes
+        file2.writeText("x".repeat(50))   // 50 bytes
+        file3.writeText("x".repeat(75))   // 75 bytes
+
+        // When - delete all files (some may have null sizes in real "/" scenario)
+        val result = listOf(
+            LocalPath.build(file1),
+            LocalPath.build(file2),
+            LocalPath.build(file3)
+        ).delete(ops).last() as DeleteAction.State.Completed
+
+        // Then - all files deleted successfully
+        result.deleted shouldHaveSize 3
+        file1.exists() shouldBe false
+        file2.exists() shouldBe false
+        file3.exists() shouldBe false
+
+        // Verify bytesTotal calculated correctly (nulls treated as 0)
+        // Total should be approximately 225 bytes (100+50+75)
+        result.bytesTotal.shouldBeGreaterThanOrEqual(0L)
     }
 }

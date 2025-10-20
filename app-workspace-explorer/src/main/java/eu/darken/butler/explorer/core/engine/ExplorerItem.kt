@@ -27,12 +27,16 @@ sealed interface ExplorerItem {
     sealed interface Storage : ExplorerItem {
         val displayIcon: ImageVector
         val target: ExplorerNavigation.Target.Directory
+        val totalBytes: Long?
+        val availableBytes: Long?
 
         data class Local(
             val localId: String,
             override val displayName: CaString,
             override val displayIcon: ImageVector,
             override val target: ExplorerNavigation.Target.Directory,
+            override val totalBytes: Long? = null,
+            override val availableBytes: Long? = null,
         ) : Storage {
             override val id: String get() = "local-$localId"
         }
@@ -42,6 +46,8 @@ sealed interface ExplorerItem {
             override val displayName: CaString,
             override val displayIcon: ImageVector,
             override val target: ExplorerNavigation.Target.Directory,
+            override val totalBytes: Long? = null,
+            override val availableBytes: Long? = null,
         ) : Storage {
             override val id: String get() = "saf-${location.id}"
         }
@@ -87,9 +93,9 @@ sealed interface ExplorerItem {
         override val childCount: Int? = null
     ) : Directory {
         override fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?) = copy(
-            ownership = ownership,
-            permissions = permissions,
-            createdAt = createdAt
+            ownership = ownership ?: this.ownership,
+            permissions = permissions ?: this.permissions,
+            createdAt = createdAt ?: this.createdAt,
         )
     }
 
@@ -101,9 +107,9 @@ sealed interface ExplorerItem {
         override val createdAt: Instant? = null,
     ) : File {
         override fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?) = copy(
-            ownership = ownership,
-            permissions = permissions,
-            createdAt = createdAt
+            ownership = ownership ?: this.ownership,
+            permissions = permissions ?: this.permissions,
+            createdAt = createdAt ?: this.createdAt,
         )
     }
 
@@ -117,9 +123,9 @@ sealed interface ExplorerItem {
         val isBroken: Boolean = false
     ) : File {
         override fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?) = copy(
-            ownership = ownership,
-            permissions = permissions,
-            createdAt = createdAt
+            ownership = ownership ?: this.ownership,
+            permissions = permissions ?: this.permissions,
+            createdAt = createdAt ?: this.createdAt,
         )
     }
 }

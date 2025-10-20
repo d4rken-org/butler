@@ -11,6 +11,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.workspace.core.Workspace
+import kotlin.time.Instant
 
 class ExplorerItemSorter @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
@@ -78,8 +79,8 @@ class ExplorerItemSorter @AssistedInject constructor(
             }
             SortSettings.Mode.SIZE -> items.sortedWith { a, b ->
                 if (a is ExplorerItem.Lookup && b is ExplorerItem.Lookup) {
-                    val sizeA = a.lookup.size
-                    val sizeB = b.lookup.size
+                    val sizeA = a.lookup.size ?: 0L
+                    val sizeB = b.lookup.size ?: 0L
                     sizeA.compareTo(sizeB)
                 } else {
                     0
@@ -87,8 +88,8 @@ class ExplorerItemSorter @AssistedInject constructor(
             }
             SortSettings.Mode.MODIFIED_AT -> items.sortedWith { a, b ->
                 if (a is ExplorerItem.Lookup && b is ExplorerItem.Lookup) {
-                    val timeA = a.lookup.modifiedAt
-                    val timeB = b.lookup.modifiedAt
+                    val timeA = a.lookup.modifiedAt ?: Instant.DISTANT_PAST
+                    val timeB = b.lookup.modifiedAt ?: Instant.DISTANT_PAST
                     timeA.compareTo(timeB)
                 } else {
                     0

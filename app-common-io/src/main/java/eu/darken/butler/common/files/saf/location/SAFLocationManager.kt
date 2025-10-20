@@ -91,9 +91,10 @@ interface SAFLocationManager {
      * across app restarts.
      *
      * @param treeUri The tree URI granted by the user
+     * @return The location ID of the newly created SAFLocation
      * @throws SecurityException if permission cannot be taken
      */
-    suspend fun grantPermission(treeUri: Uri)
+    suspend fun grantPermission(treeUri: Uri): String
 
     /**
      * Release persistent permission for a location.

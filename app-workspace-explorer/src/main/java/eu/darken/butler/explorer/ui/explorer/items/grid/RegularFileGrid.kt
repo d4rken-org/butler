@@ -1,16 +1,13 @@
 package eu.darken.butler.explorer.ui.explorer.items.grid
 
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -35,15 +32,14 @@ internal fun RegularFileGrid(
         onLongClick = onLongClick,
         showSelection = showSelection,
         icon = {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
+            TintedAsyncImage(
+                model = item.lookup,
                 contentDescription = stringResource(R.string.explorer_file_regular_content_desc),
-                tint = Color.White,
                 modifier = Modifier.size(20.dp)
             )
         },
         primaryText = item.displayName.get(LocalContext.current),
-        secondaryText = formatFileSize(item.lookup.size)
+        secondaryText = item.lookup.size?.let { formatFileSize(it) } ?: "?"
     )
 }
 

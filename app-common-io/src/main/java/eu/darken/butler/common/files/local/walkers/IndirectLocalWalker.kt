@@ -5,6 +5,7 @@ import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
 import eu.darken.butler.common.files.local.LocalGateway
@@ -19,13 +20,14 @@ class IndirectLocalWalker(
     private val gateway: LocalGateway,
     private val mode: LocalGateway.Mode = LocalGateway.Mode.AUTO,
     private val start: LocalPath,
+    private val lookupOptions: LookupOptions,
     private val onFilter: suspend (LocalPathLookup) -> Boolean = { true },
     private val onError: suspend (LocalPathLookup, Exception) -> Boolean = { _, _ -> true }
 ) : AbstractFlow<LocalPathLookup>() {
     private val tag = "$TAG#${hashCode()}"
 
     override suspend fun collectSafely(collector: FlowCollector<LocalPathLookup>) {
-        val startLookUp = gateway.lookup(start, mode)
+        val startLookUp = gateway.lookup(start, lookupOptions, mode)
 
         if (startLookUp.isFile) {
             collector.emit(startLookUp)
@@ -38,7 +40,7 @@ class IndirectLocalWalker(
             val lookUp = queue.removeFirst()
 
             val newBatch = try {
-                gateway.lookupFiles(lookUp.lookedUp, mode)
+                gateway.lookupFiles(lookUp.lookedUp, lookupOptions, mode)
             } catch (e: Exception) {
                 log(TAG, Logging.Priority.ERROR) { "Failed to read $lookUp: $e" }
                 if (onError(lookUp, e)) {

@@ -30,11 +30,11 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.icons.Discord
 import eu.darken.butler.common.debug.recorder.ui.RecorderConsentDialog
 import eu.darken.butler.common.error.ErrorEventHandler
-import eu.darken.butler.common.files.core.local.File
-import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
 import eu.darken.butler.common.settings.SettingsPreferenceItem
+import eu.darken.butler.common.ui.waitForState
+import java.io.File
 
 @Composable
 fun SupportScreenHost(vm: SupportScreenViewModel = hiltViewModel()) {

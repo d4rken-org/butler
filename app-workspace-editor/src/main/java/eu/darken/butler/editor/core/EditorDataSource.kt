@@ -4,6 +4,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.extensions.exists
 import eu.darken.butler.common.files.extensions.lookup
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import okio.buffer
 import okio.use
+import kotlin.time.Instant
 
 /**
  * Data source interface for editor content.
@@ -49,7 +51,7 @@ class FileDataSource @AssistedInject constructor(
                 return Result.failure(IllegalArgumentException("File does not exist: $filePath"))
             }
             
-            val lookup = filePath.lookup(gatewaySwitch)
+            val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
             val content = gatewaySwitch.file(filePath, readWrite = false).use { handle ->
                 handle.source().buffer().use { source ->
                     source.readByteArray()
@@ -59,8 +61,8 @@ class FileDataSource @AssistedInject constructor(
             fileContent = String(content)
             _fileInfo.value = FileInfo(
                 path = filePath,
-                size = lookup.size,
-                lastModified = lookup.modifiedAt,
+                size = lookup.size ?: 0L,
+                lastModified = lookup.modifiedAt ?: Instant.DISTANT_PAST,
                 canWrite = true // We'll assume writable for now
             )
             

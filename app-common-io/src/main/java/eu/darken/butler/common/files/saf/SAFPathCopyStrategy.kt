@@ -4,6 +4,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.FileSystemOps
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.operations.TransferStrategy
 import okio.buffer
@@ -39,15 +40,15 @@ import okio.source
  * @see LocalPathCopyStrategy for comparison
  */
 class SAFPathCopyStrategy : TransferStrategy<
-    SAFPath, SAFPathLookup, SAFPathLookupExtended,      // Source types
-    SAFPath, SAFPathLookup, SAFPathLookupExtended       // Destination types
-> {
+    SAFPath, SAFPathLookup,      // Source types
+    SAFPath, SAFPathLookup       // Destination types
+    > {
 
     override suspend fun transferFile(
         sourceLookup: SAFPathLookup,
         destination: SAFPath,
-        sourceOps: FileSystemOps<SAFPath, SAFPathLookup, SAFPathLookupExtended>,
-        destOps: FileSystemOps<SAFPath, SAFPathLookup, SAFPathLookupExtended>,
+        sourceOps: FileSystemOps<SAFPath, SAFPathLookup>,
+        destOps: FileSystemOps<SAFPath, SAFPathLookup>,
         options: TransferStrategy.Options,
         onProgress: suspend (bytesTransferred: Long) -> Unit
     ): TransferStrategy.TransferResult<SAFPath, SAFPath> {
@@ -61,8 +62,8 @@ class SAFPathCopyStrategy : TransferStrategy<
     override suspend fun createDirectory(
         sourceLookup: SAFPathLookup,
         destination: SAFPath,
-        sourceOps: FileSystemOps<SAFPath, SAFPathLookup, SAFPathLookupExtended>,
-        destOps: FileSystemOps<SAFPath, SAFPathLookup, SAFPathLookupExtended>,
+        sourceOps: FileSystemOps<SAFPath, SAFPathLookup>,
+        destOps: FileSystemOps<SAFPath, SAFPathLookup>,
         options: TransferStrategy.Options
     ): TransferStrategy.TransferResult<SAFPath, SAFPath> {
         log(TAG, DEBUG) { "Creating SAF directory: $destination" }
@@ -70,16 +71,21 @@ class SAFPathCopyStrategy : TransferStrategy<
         // Create directory (FileSystemOps handles parent creation)
         destOps.createDir(destination)
 
-        // Copy attributes if requested
-        if (options.preserveAttributes) {
-            val destLookup = destOps.lookup(destination)
-            copyAttributes(sourceLookup, destLookup, destOps)
+        // Copy attributes if requested and capture lookup
+        val destLookup = if (options.preserveAttributes) {
+            val lookup = destOps.lookup(destination, LookupOptions.MAX)
+            copyAttributes(sourceLookup, lookup, destOps)
+            lookup
+        } else {
+            // Lookup created destination to avoid redundant stat in caller
+            destOps.lookup(destination, LookupOptions.BASE)
         }
 
         return TransferStrategy.TransferResult.Success(
             source = sourceLookup.lookedUp,
             destination = destination,
-            bytesTransferred = 0L
+            bytesTransferred = 0L,
+            destinationLookup = destLookup
         )
     }
 
@@ -91,7 +97,7 @@ class SAFPathCopyStrategy : TransferStrategy<
     private suspend fun copyRegularFile(
         sourceLookup: SAFPathLookup,
         destination: SAFPath,
-        fileSystemOps: FileSystemOps<SAFPath, SAFPathLookup, SAFPathLookupExtended>,
+        fileSystemOps: FileSystemOps<SAFPath, SAFPathLookup>,
         options: TransferStrategy.Options,
         onProgress: suspend (bytesTransferred: Long) -> Unit
     ): TransferStrategy.TransferResult<SAFPath, SAFPath> {
@@ -115,16 +121,21 @@ class SAFPathCopyStrategy : TransferStrategy<
             }
         }
 
-        // Copy file attributes if requested
-        if (options.preserveAttributes) {
-            val destLookup = fileSystemOps.lookup(destination)
-            copyAttributes(sourceLookup, destLookup, fileSystemOps)
+        // Copy file attributes if requested and capture lookup
+        val destLookup = if (options.preserveAttributes) {
+            val lookup = fileSystemOps.lookup(destination, LookupOptions.MAX)
+            copyAttributes(sourceLookup, lookup, fileSystemOps)
+            lookup
+        } else {
+            // Lookup created destination to avoid redundant stat in caller
+            fileSystemOps.lookup(destination, LookupOptions.BASE)
         }
 
         return TransferStrategy.TransferResult.Success(
             source = sourceLookup.lookedUp,
             destination = destination,
-            bytesTransferred = totalBytesTransferred
+            bytesTransferred = totalBytesTransferred,
+            destinationLookup = destLookup
         )
     }
 
@@ -137,7 +148,7 @@ class SAFPathCopyStrategy : TransferStrategy<
     private suspend fun copyAttributes(
         source: SAFPathLookup,
         dest: SAFPathLookup,
-        fileSystemOps: FileSystemOps<SAFPath, SAFPathLookup, SAFPathLookupExtended>
+        fileSystemOps: FileSystemOps<SAFPath, SAFPathLookup>
     ) {
         try {
             // Copy last modified time

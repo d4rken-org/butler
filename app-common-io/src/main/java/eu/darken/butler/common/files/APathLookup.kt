@@ -4,16 +4,24 @@ import androidx.annotation.Keep
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.files.extensions.Segments
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.metadata.Ownership
+import eu.darken.butler.common.files.metadata.Permissions
 import kotlin.time.Instant
 
 @Keep
 interface APathLookup<T : APath<T>> {
     val lookedUp: T
     val fileType: FileType
-    val size: Long
-    val modifiedAt: Instant
+
+    val size: Long?
+    val modifiedAt: Instant?
     val target: APath<*>?
-    val error: String? get() = null
+
+    val ownership: Ownership?
+    val permissions: Permissions?
+    val createdAt: Instant?
+
+    val error: Throwable?
 
     val path: String
         get() = lookedUp.path

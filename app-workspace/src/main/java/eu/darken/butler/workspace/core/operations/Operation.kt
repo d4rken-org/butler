@@ -4,6 +4,7 @@ import android.os.Parcelable
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.parcel.UuidParceler
 import eu.darken.butler.common.progress.Progress
@@ -83,6 +84,10 @@ interface Operation {
                 ADDED, REMOVED, MODIFIED
             }
         }
+    }
+
+    interface HasPerformanceHistory {
+        val performanceHistory: PerformanceHistory?
     }
 
     data class Context(

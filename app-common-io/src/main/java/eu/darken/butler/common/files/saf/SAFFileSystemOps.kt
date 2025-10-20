@@ -9,14 +9,17 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.FileSystemOps
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.metadata.FileSystem
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import kotlinx.coroutines.delay
 import okio.FileHandle
 import java.io.IOException
 import java.io.InputStream
@@ -24,6 +27,7 @@ import java.io.OutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
@@ -74,7 +78,7 @@ import kotlin.time.Instant
 class SAFFileSystemOps @Inject constructor(
     private val contentResolver: ContentResolver,
     private val locationManager: SAFLocationManager
-) : FileSystemOps<SAFPath, SAFPathLookup, SAFPathLookupExtended> {
+) : FileSystemOps<SAFPath, SAFPathLookup> {
 
     private data class CacheEntry(
         val docFile: SAFDocFile,
@@ -134,86 +138,95 @@ class SAFFileSystemOps @Inject constructor(
         return docFile ?: throw MissingUriPermissionException(path = this)
     }
 
-    private fun SAFDocFile.performLookup(path: SAFPath): SAFPathLookup {
+    private fun SAFDocFile.performLookup(path: SAFPath, options: LookupOptions): SAFPathLookup {
         if (!readable) throw IOException("readable=false")
         val data = getLookupData()
+
+        // SAF extended metadata (ownership/permissions/createdAt)
+        // Note: SAF doesn't support Unix ownership/permissions, and has limited extended metadata support
+        var ownership: Ownership? = null
+        var permissions: Permissions? = null
+
+        // Try to get fstat data if extended metadata requested (usually returns null for SAF)
+        if (options.fetchOwnership || options.fetchPermissions) {
+            val fstat = if (supportsSetOwnership != false || supportsSetPermissions != false) {
+                fstat()
+            } else {
+                null
+            }
+
+            if (fstat != null) {
+                if (options.fetchOwnership) {
+                    ownership = Ownership(fstat.st_uid.toLong(), fstat.st_gid.toLong())
+                }
+                if (options.fetchPermissions) {
+                    permissions = Permissions(fstat.st_mode)
+                }
+            }
+        }
+
         return SAFPathLookup(
             lookedUp = path,
             fileType = data.fileType,
             size = data.size,
             modifiedAt = data.lastModified,
+            ownership = ownership,
+            permissions = permissions,
+            createdAt = null, // SAF doesn't support creation time
         )
     }
 
-    override suspend fun lookup(path: SAFPath): SAFPathLookup {
+    override suspend fun lookup(path: SAFPath, options: LookupOptions): SAFPathLookup {
         return try {
             val now = Clock.System.now()
 
-            // Check lookup cache first
-            val cached = lookupCache[path]
-            if (cached != null) {
-                val age = now - cached.cachedAt
-                if (age < CACHE_TTL) {
-                    if (Bugs.isTrace) log(TAG, VERBOSE) { "lookup() $path -> ${cached.lookup} (cached)" }
-                    return cached.lookup
-                } else {
-                    // Expired entry
-                    lookupCache.remove(path)
+            val isCatchWorthy = options.fetchSize && options.fetchModifiedAt
+
+            // Check lookup cache first (only for basic lookups to avoid caching stale extended data)
+            if (isCatchWorthy) {
+                val cached = lookupCache[path]
+                if (cached != null) {
+                    val age = now - cached.cachedAt
+                    if (age < CACHE_TTL) {
+                        if (Bugs.isTrace) log(TAG, VERBOSE) { "lookup() $path -> ${cached.lookup} (cached)" }
+                        return cached.lookup
+                    } else {
+                        // Expired entry
+                        lookupCache.remove(path)
+                    }
                 }
             }
 
-            // Cache miss or expired - perform lookup
-            val lookup = path.resolveDocFile().performLookup(path)
+            // Cache miss or expired or extended lookup - perform lookup
+            val lookup = path.resolveDocFile().performLookup(path, options)
 
-            // Cache the result
-            lookupCache[path] = LookupCacheEntry(lookup, now)
+            // Cache only basic lookups
+            if (isCatchWorthy) {
+                lookupCache[path] = LookupCacheEntry(lookup, now)
+            }
 
             lookup
         } catch (e: Exception) {
-            log(TAG, WARN) { "lookup($path) failed." }
+            log(TAG, WARN) { "lookup($path, $options) failed." }
+
+            // If fallbackToUnknown is true, return synthetic lookup instead of throwing
+            if (options.fallbackToUnknown) {
+                log(TAG, VERBOSE) { "Returning UNKNOWN lookup for non-existent path: $path" }
+                return SAFPathLookup(
+                    lookedUp = path,
+                    fileType = FileType.UNKNOWN,
+                    size = null,
+                    modifiedAt = null,
+                    target = null,
+                    error = e,
+                    ownership = null,
+                    permissions = null,
+                    createdAt = null,
+                )
+            }
+
             throw ReadException(path = path, cause = e)
         }
-    }
-
-    override suspend fun lookupExtended(path: SAFPath): SAFPathLookupExtended = try {
-        log(TAG, VERBOSE) { "lookupExtended($path)" }
-        val now = Clock.System.now()
-
-        // Resolve docFile once and reuse for both operations
-        val docFile = path.resolveDocFile()
-
-        // Check lookup cache for basic metadata
-        val cached = lookupCache[path]
-        val lookup = if (cached != null && (now - cached.cachedAt) < CACHE_TTL) {
-            // Cache hit - use cached lookup
-            if (Bugs.isTrace) log(TAG, VERBOSE) { "lookupExtended() using cached lookup for $path" }
-            cached.lookup
-        } else {
-            // Cache miss or expired - perform lookup and cache result
-            if (cached != null) {
-                lookupCache.remove(path)
-            }
-            val newLookup = docFile.performLookup(path)
-            lookupCache[path] = LookupCacheEntry(newLookup, now)
-            newLookup
-        }
-
-        // Query extended attributes using same docFile
-        val fstat = if (supportsSetOwnership != false || supportsSetPermissions != false) {
-            docFile.fstat()
-        } else {
-            null
-        }
-
-        SAFPathLookupExtended(
-            lookup = lookup,
-            ownership = fstat?.let { Ownership(it.st_uid.toLong(), it.st_gid.toLong()) },
-            permissions = fstat?.let { Permissions(it.st_mode) },
-            createdAt = null,
-        )
-    } catch (e: Exception) {
-        log(TAG, WARN) { "lookupExtended($path) failed." }
-        throw ReadException(path = path, cause = e)
     }
 
     override suspend fun listFiles(path: SAFPath): List<SAFPath> = try {
@@ -230,12 +243,15 @@ class SAFFileSystemOps @Inject constructor(
             val name = file.name ?: file.uri.pathSegments.last().split('/').last()
             val childPath = path.child(name)
 
-            // Populate lookup cache with batch-queried metadata
+            // Populate lookup cache with batch-queried metadata (basic only - no extended)
             val lookup = SAFPathLookup(
                 lookedUp = childPath,
                 fileType = lookupData.fileType,
                 size = lookupData.size,
                 modifiedAt = lookupData.lastModified,
+                ownership = null, // Not available in batch listing
+                permissions = null, // Not available in batch listing
+                createdAt = null, // SAF doesn't support creation time
             )
             lookupCache[childPath] = LookupCacheEntry(lookup, now)
 
@@ -401,8 +417,8 @@ class SAFFileSystemOps @Inject constructor(
         val now = Clock.System.now()
         docFileCache[parentPath] = CacheEntry(newParentDocFile, now)
 
-        // Also cache lookup data
-        val lookup = newParentDocFile.performLookup(parentPath)
+        // Also cache lookup data (basic only for newly created directory)
+        val lookup = newParentDocFile.performLookup(parentPath, LookupOptions.BASE)
         lookupCache[parentPath] = LookupCacheEntry(lookup, now)
     }
 
@@ -415,15 +431,18 @@ class SAFFileSystemOps @Inject constructor(
             val docFile = path.resolveDocFile()
 
             if (docFile.exists) {
-                if (docFile.isDirectory)                     return // Already exists - idempotent
+                if (docFile.isDirectory) return // Already exists - idempotent
 
-                    throw PathAlreadyExistsException(
-                        message = "Path exists but is not a directory",
-                        path = path
-                    )
+                throw PathAlreadyExistsException(
+                    message = "Path exists but is not a directory",
+                    path = path
+                )
             }
 
             createDocumentFile(DocumentsContract.Document.MIME_TYPE_DIR, path)
+
+            // Wait for DocumentsProvider to make directory queryable (race condition fix)
+            waitUntilQueryable(path)
         } catch (e: PathAlreadyExistsException) {
             throw e // Re-throw PathAlreadyExistsException as-is
         } catch (e: Exception) {
@@ -439,9 +458,12 @@ class SAFFileSystemOps @Inject constructor(
             ensureParentExists(path, createParents)
 
             val docFile = path.resolveDocFile()
-            if (docFile.exists)                 throw PathAlreadyExistsException(path = path)
+            if (docFile.exists) throw PathAlreadyExistsException(path = path)
 
             createDocumentFile("application/octet-stream", path)
+
+            // Wait for DocumentsProvider to make file queryable (race condition fix)
+            waitUntilQueryable(path)
         } catch (e: PathAlreadyExistsException) {
             throw e // Re-throw PathAlreadyExistsException as-is
         } catch (e: Exception) {
@@ -680,6 +702,36 @@ class SAFFileSystemOps @Inject constructor(
 
     enum class FileMode(val value: String) {
         READ_WRITE("rw"), WRITE("w"), READ("r")
+    }
+
+    /**
+     * Wait until a newly created path becomes queryable.
+     *
+     * Works around SAF DocumentsProvider race condition where newly created files/directories
+     * exist but their metadata isn't immediately queryable. Retries lookup with delays.
+     *
+     * @param path The path to verify
+     * @param maxAttempts Maximum number of lookup attempts (default: 3)
+     */
+    private suspend fun waitUntilQueryable(path: SAFPath, maxAttempts: Int = 3) {
+        repeat(maxAttempts) { attempt ->
+            if (attempt > 0) delay(50.milliseconds)
+
+            try {
+                // Try to lookup the path - if this succeeds, it's queryable
+                lookup(path, LookupOptions())
+                if (Bugs.isTrace) log(TAG, VERBOSE) { "Path queryable after ${attempt + 1} attempt(s): $path" }
+                return // Success!
+            } catch (e: Exception) {
+                if (attempt == maxAttempts - 1) {
+                    // Last attempt failed - log but don't throw
+                    // Path was created, just not immediately queryable
+                    log(TAG, WARN) {
+                        "Path created but not queryable after $maxAttempts attempts: $path - ${e.asLog()}"
+                    }
+                }
+            }
+        }
     }
 
     companion object {

@@ -24,7 +24,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.formatFileSize
@@ -78,7 +77,7 @@ fun PathIssueFileComparisonCard(
 
                 Text(
                     text = when (lookup.fileType) {
-                        FileType.FILE -> formatFileSize(lookup.size)
+                        FileType.FILE -> lookup.size?.let { formatFileSize(it) } ?: "?"
                         FileType.DIRECTORY -> stringResource(R.string.explorer_type_folder)
                         else -> "-"
                     },
@@ -87,7 +86,7 @@ fun PathIssueFileComparisonCard(
                 )
 
                 Text(
-                    text = dateFormat.format(Date(lookup.modifiedAt.toEpochMilliseconds())),
+                    text = lookup.modifiedAt?.let { dateFormat.format(Date(it.toEpochMilliseconds())) } ?: "?",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

@@ -43,6 +43,7 @@ import kotlin.time.Instant
  * // Production code
  * val safOps = SAFFileSystemOps(context, contentResolver) { uriPermissions }
  * val lookup = safOps.lookup(path)
+ * val extended = safOps.lookup(path, LookupOptions.EXTENDED)
  *
  * // Test code (no Android framework needed!)
  * val mockOps = MockFileSystemOps<SAFPath, SAFPathLookup>()
@@ -52,21 +53,25 @@ import kotlin.time.Instant
  *
  * @param P The path type (LocalPath, SAFPath, etc.)
  * @param PL The path lookup type (LocalPathLookup, SAFPathLookup, etc.)
- * @param PLE The path lookup extended type (LocalPathLookupExtended, SAFPathLookupExtended, etc.)
  */
-interface FileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>> {
+interface FileSystemOps<P : APath<P>, PL : APathLookup<P>> {
 
     /**
      * Look up metadata for a single path.
      *
-     * Returns a lookup object containing file metadata (size, type, permissions, etc.).
+     * Returns a lookup object containing file metadata. The amount of metadata fetched
+     * depends on the [options] parameter:
+     * - Basic metadata (fileType, size, modifiedAt) is always fetched
+     * - Extended metadata (ownership, permissions, createdAt) is optional for performance
+     *
      * Does not follow symlinks unless the implementation specifically documents that it does.
      *
      * @param path The path to look up
+     * @param options Controls which metadata to fetch (default: basic only)
      * @return Path lookup with metadata
      * @throws eu.darken.butler.common.files.errors.ReadException if path cannot be read or doesn't exist
      */
-    suspend fun lookup(path: P): PL
+    suspend fun lookup(path: P, options: LookupOptions): PL
 
     /**
      * List immediate children of a directory.
@@ -91,59 +96,12 @@ interface FileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExte
      * but implementations should override with a single optimized call when possible.
      *
      * @param path The directory path to list
+     * @param options Controls which metadata to fetch for each child (default: basic only)
      * @return List of path lookups for all children (empty if directory is empty)
      * @throws eu.darken.butler.common.files.errors.ReadException if path cannot be read, doesn't exist, or is not a directory
      */
-    suspend fun lookupFiles(path: P): List<PL> {
-        return listFiles(path).map { lookup(it) }
-    }
-
-    /**
-     * Look up extended metadata for a single path.
-     *
-     * Returns extended metadata including permissions, ownership, and creation time when available.
-     * This is slower than basic lookup() because it requires additional system calls.
-     *
-     * **Always returns an object** - individual fields may be null if not supported by the file system:
-     * - `permissions`: null if file system doesn't support POSIX permissions (e.g., SAF, FAT32)
-     * - `ownership`: null if not available or requires elevated privileges
-     * - `createdAt`: null if file system doesn't track creation time (e.g., ext4 on old kernels)
-     *
-     * ## Performance Notes
-     *
-     * - Slower than basic lookup() - involves additional syscalls
-     * - UI should use basic lookup() for list display, extended only when needed
-     * - Generic operations use this for attribute preservation (permissions, ownership)
-     *
-     * ## Portability
-     *
-     * Portable attributes (basic read/write/execute) can be preserved cross-type.
-     * Non-portable attributes (UIDs, ACLs, extended attributes) return null.
-     *
-     * @param path The path to look up
-     * @return Extended path lookup (never null, but fields may be null)
-     * @throws eu.darken.butler.common.files.errors.ReadException if path cannot be read or doesn't exist
-     */
-    suspend fun lookupExtended(path: P): PLE
-
-    /**
-     * List directory contents with extended metadata in a single operation.
-     *
-     * Combines listFiles() + extended lookup for all children.
-     * Even slower than lookupFiles() due to extended metadata queries.
-     *
-     * **Performance optimization for batch operations**: Implementations should override
-     * with a single optimized batch call when possible to reduce IPC overhead.
-     *
-     * Default implementation calls listFiles() and maps each to lookupExtended(),
-     * but implementations should batch when possible (e.g., single fstat call for all).
-     *
-     * @param path The directory path to list
-     * @return List of extended path lookups for all children (empty if directory is empty)
-     * @throws eu.darken.butler.common.files.errors.ReadException if path cannot be read, doesn't exist, or is not a directory
-     */
-    suspend fun lookupFilesExtended(path: P): List<PLE> {
-        return listFiles(path).map { lookupExtended(it) }
+    suspend fun lookupFiles(path: P, options: LookupOptions): List<PL> {
+        return listFiles(path).map { lookup(it, options) }
     }
 
     /**
@@ -314,13 +272,11 @@ interface FileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExte
      * @param path The path to check
      * @return true if path can be read, false otherwise
      */
-    suspend fun canRead(path: P): Boolean {
-        return try {
-            lookup(path)
-            true
-        } catch (e: Exception) {
-            false
-        }
+    suspend fun canRead(path: P): Boolean = try {
+        lookup(path, LookupOptions())
+        true
+    } catch (_: Exception) {
+        false
     }
 
     /**
@@ -332,12 +288,11 @@ interface FileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExte
      * @param path The path to check
      * @return true if path can be written, false otherwise
      */
-    suspend fun canWrite(path: P): Boolean {
-        return try {
-            exists(path) && lookup(path).let { true }
-        } catch (e: Exception) {
-            false
-        }
+    suspend fun canWrite(path: P): Boolean = try {
+        // TODO is this correct?
+        exists(path) && lookup(path, LookupOptions()).let { true }
+    } catch (_: Exception) {
+        false
     }
 
     suspend fun getFileSystem(path: P): FileSystem

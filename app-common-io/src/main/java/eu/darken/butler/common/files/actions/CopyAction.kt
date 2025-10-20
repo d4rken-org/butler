@@ -2,6 +2,7 @@ package eu.darken.butler.common.files.actions
 
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.progress.Progress
 import kotlinx.coroutines.flow.Flow
 import kotlin.time.Instant
 
@@ -26,14 +27,14 @@ interface CopyAction<
             SP : APath<SP>, SPL : APathLookup<SP>, // Source types
             DP : APath<DP>, DPL : APathLookup<DP>, // Destination types
             > {
-        data class Progress<
+        data class Active<
                 SP : APath<SP>, SPL : APathLookup<SP>, // Source types
                 DP : APath<DP>, DPL : APathLookup<DP>, // Destination types
                 >(
             val currentSource: SPL,
             val currentDestination: DP?,
-            val primaryProgress: eu.darken.butler.common.progress.Progress.Data,
-            val secondaryProgress: eu.darken.butler.common.progress.Progress.Data? = null,
+            val primaryProgress: Progress.Data,
+            val secondaryProgress: Progress.Data? = null,
             val copiedBytes: Long = 0L,
             val totalBytes: Long = 0L,
             val currentFileSize: Long = 0L,
@@ -41,11 +42,11 @@ interface CopyAction<
             val currentFileStartTime: Instant? = null,
         ) : State<SP, SPL, DP, DPL>
 
-        data class Result<
+        data class Completed<
                 SP : APath<SP>, SPL : APathLookup<SP>, // Source types
                 DP : APath<DP>, DPL : APathLookup<DP>, // Destination types
                 >(
-            val copied: Set<Pair<SPL, DPL>>,
+            val copied: Set<Pair<SPL, APathLookup<DP>>>,
             val skipped: Set<SPL> = emptySet(),
             val copiedBytes: Long,
         ) : State<SP, SPL, DP, DPL>

@@ -62,9 +62,23 @@ fun StorageRow(
             }
         },
         primaryText = item.displayName.get(context),
-        secondaryText = when (item) {
-            is ExplorerItem.Storage.Local -> stringResource(R.string.explorer_file_storage_local_label)
-            is ExplorerItem.Storage.SAF -> stringResource(R.string.explorer_file_storage_saf_label)
+        secondaryText = run {
+            val totalBytes = item.totalBytes
+            val availableBytes = item.availableBytes
+            when {
+                totalBytes != null && availableBytes != null -> {
+                    val total = eu.darken.butler.common.formatFileSize(context, totalBytes)
+                    val free = eu.darken.butler.common.formatFileSize(context, availableBytes)
+                    val typeLabel = when (item) {
+                        is ExplorerItem.Storage.Local -> stringResource(R.string.explorer_file_storage_local_label)
+                        is ExplorerItem.Storage.SAF -> stringResource(R.string.explorer_file_storage_saf_label)
+                    }
+                    stringResource(R.string.explorer_file_storage_size_format, typeLabel, total, free)
+                }
+                item is ExplorerItem.Storage.SAF -> stringResource(R.string.explorer_file_storage_saf_label)
+                item is ExplorerItem.Storage.Local -> stringResource(R.string.explorer_file_storage_local_label)
+                else -> null
+            }
         },
         trailingContent = if (item is ExplorerItem.Storage.SAF) {
             { PermissionIndicator(item.location) }

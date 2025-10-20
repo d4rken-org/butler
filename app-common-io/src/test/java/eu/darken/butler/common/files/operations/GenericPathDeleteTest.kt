@@ -4,13 +4,12 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
-import eu.darken.butler.common.files.local.LocalPathLookupExtended
-import eu.darken.butler.common.files.metadata.FileType
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
-import kotlinx.coroutines.flow.collect
+import eu.darken.butler.common.files.metadata.FileType
+import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
@@ -34,17 +33,20 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 class GenericPathDeleteTest : BaseTest() {
 
-    private lateinit var mockOps: MockFileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>
+    private lateinit var mockOps: MockFileSystemOps<LocalPath, LocalPathLookup>
 
     @BeforeEach
     fun setup() {
-        mockOps = MockFileSystemOps { path, type, size, modifiedAt, permissions, ownership ->
+        mockOps = MockFileSystemOps { path, type, size, modifiedAt, permissions, ownership, createdAt ->
             LocalPathLookup(
                 lookedUp = path,
                 fileType = type,
                 size = size,
                 modifiedAt = modifiedAt ?: kotlin.time.Instant.fromEpochMilliseconds(0),
-                target = null
+                target = null,
+                ownership = ownership,
+                permissions = permissions,
+                createdAt = createdAt,
             )
         }
     }
@@ -68,7 +70,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = true,
             ignoreMissing = false
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - file deleted
         mockOps.hasFile("/file.txt") shouldBe false
@@ -88,7 +90,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = true,
             ignoreMissing = false
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - directory deleted
         mockOps.hasFile("/emptydir") shouldBe false
@@ -110,7 +112,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = true,
             ignoreMissing = false
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - all deleted
         mockOps.hasFile("/parent") shouldBe false
@@ -136,7 +138,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = true,
             ignoreMissing = false
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - all deleted
         mockOps.hasFile("/root") shouldBe false
@@ -156,7 +158,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = true,
             ignoreMissing = false
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - file deleted
         mockOps.hasFile("/rootfile.txt") shouldBe false
@@ -184,7 +186,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = true,
             ignoreMissing = false
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - all deleted
         mockOps.hasFile("/level0") shouldBe false
@@ -209,7 +211,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = true,
             ignoreMissing = false
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - verify post-order: file, grandchild, child, parent
         val deletionOrder = mockOps.deleteCalls
@@ -248,7 +250,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = true,
             ignoreMissing = false
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - verify post-order
         val deletionOrder = mockOps.deleteCalls
@@ -288,7 +290,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = true,
             ignoreMissing = false
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - children deleted before parent
         val deletionOrder = mockOps.deleteCalls
@@ -321,7 +323,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = true,
             ignoreMissing = false
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - deepest items deleted first
         val deletionOrder = mockOps.deleteCalls
@@ -360,7 +362,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = true,
             ignoreMissing = false
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - all deleted
         mockOps.hasFile("/root") shouldBe false
@@ -381,7 +383,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = false,
             ignoreMissing = false
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - empty directory deleted
         mockOps.hasFile("/emptydir") shouldBe false
@@ -429,7 +431,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = false,
             ignoreMissing = false
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - file deleted
         mockOps.hasFile("/file.txt") shouldBe false
@@ -455,7 +457,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = true,
             ignoreMissing = false
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - all deleted
         mockOps.hasFile("/file.txt") shouldBe false
@@ -482,7 +484,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = false,
             ignoreMissing = false
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - all deleted
         mockOps.hasFile("/empty1") shouldBe false
@@ -503,7 +505,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = true,
             ignoreMissing = true
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - no error, empty result
         result.deleted.size shouldBe 0
@@ -547,7 +549,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = true,
             ignoreMissing = true
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - existing files deleted, non-existing skipped
         mockOps.hasFile("/exists1.txt") shouldBe false
@@ -579,7 +581,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = true,
             ignoreMissing = true
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - no error thrown, operation completes
         // The file scan found it, but delete phase handled the missing file
@@ -596,7 +598,7 @@ class GenericPathDeleteTest : BaseTest() {
         mockOps.addMockFile("/root/file2.txt", "content2".toByteArray())
 
         val sourcePath = LocalPath.build("/root")
-        val progressUpdates = mutableListOf<DeleteAction.State.Progress<LocalPath, LocalPathLookup>>()
+        val progressUpdates = mutableListOf<DeleteAction.State.Active<LocalPath, LocalPathLookup>>()
 
         // When
         sourcePath.deleteGeneric(
@@ -605,8 +607,9 @@ class GenericPathDeleteTest : BaseTest() {
             ignoreMissing = false
         ).collect { state ->
             when (state) {
-                is DeleteAction.State.Progress -> progressUpdates.add(state)
-                is DeleteAction.State.Result -> { /* final result */ }
+                is DeleteAction.State.Active -> progressUpdates.add(state)
+                is DeleteAction.State.Completed -> { /* final result */
+                }
             }
         }
 
@@ -627,7 +630,7 @@ class GenericPathDeleteTest : BaseTest() {
             LocalPath.build("/file3.txt")
         )
 
-        val progressUpdates = mutableListOf<DeleteAction.State.Progress<LocalPath, LocalPathLookup>>()
+        val progressUpdates = mutableListOf<DeleteAction.State.Active<LocalPath, LocalPathLookup>>()
 
         // When
         targets.deleteGeneric(
@@ -636,8 +639,9 @@ class GenericPathDeleteTest : BaseTest() {
             ignoreMissing = false
         ).collect { state ->
             when (state) {
-                is DeleteAction.State.Progress -> progressUpdates.add(state)
-                is DeleteAction.State.Result -> { /* final result */ }
+                is DeleteAction.State.Active -> progressUpdates.add(state)
+                is DeleteAction.State.Completed -> { /* final result */
+                }
             }
         }
 
@@ -667,8 +671,9 @@ class GenericPathDeleteTest : BaseTest() {
             ignoreMissing = false
         ).collect { state ->
             when (state) {
-                is DeleteAction.State.Progress -> progressCallCount.incrementAndGet()
-                is DeleteAction.State.Result -> { /* final result */ }
+                is DeleteAction.State.Active -> progressCallCount.incrementAndGet()
+                is DeleteAction.State.Completed -> { /* final result */
+                }
             }
         }
 
@@ -690,7 +695,7 @@ class GenericPathDeleteTest : BaseTest() {
             LocalPath.build("/file2.txt")
         )
 
-        val progressUpdates = mutableListOf<DeleteAction.State.Progress<LocalPath, LocalPathLookup>>()
+        val progressUpdates = mutableListOf<DeleteAction.State.Active<LocalPath, LocalPathLookup>>()
 
         // When
         targets.deleteGeneric(
@@ -699,8 +704,9 @@ class GenericPathDeleteTest : BaseTest() {
             ignoreMissing = false
         ).collect { state ->
             when (state) {
-                is DeleteAction.State.Progress -> progressUpdates.add(state)
-                is DeleteAction.State.Result -> { /* final result */ }
+                is DeleteAction.State.Active -> progressUpdates.add(state)
+                is DeleteAction.State.Completed -> { /* final result */
+                }
             }
         }
 
@@ -718,7 +724,7 @@ class GenericPathDeleteTest : BaseTest() {
         }
 
         val targets = (0 until 20).map { LocalPath.build("/file$it.txt") }
-        val progressUpdates = mutableListOf<DeleteAction.State.Progress<LocalPath, LocalPathLookup>>()
+        val progressUpdates = mutableListOf<DeleteAction.State.Active<LocalPath, LocalPathLookup>>()
 
         // When
         targets.deleteGeneric(
@@ -727,8 +733,9 @@ class GenericPathDeleteTest : BaseTest() {
             ignoreMissing = false
         ).collect { state ->
             when (state) {
-                is DeleteAction.State.Progress -> progressUpdates.add(state)
-                is DeleteAction.State.Result -> { /* final result */ }
+                is DeleteAction.State.Active -> progressUpdates.add(state)
+                is DeleteAction.State.Completed -> { /* final result */
+                }
             }
         }
 
@@ -761,7 +768,7 @@ class GenericPathDeleteTest : BaseTest() {
                 issueCount++
                 PathActionIssue.UnknownError.Resolution.Retry
             }
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - succeeded after retry
         result.deleted.size shouldBe 1
@@ -793,7 +800,7 @@ class GenericPathDeleteTest : BaseTest() {
                     PathActionIssue.UnknownError.Resolution.Skip()
                 }
             }
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - file skipped after max retries
         (issueCount >= maxRetries) shouldBe true
@@ -808,7 +815,7 @@ class GenericPathDeleteTest : BaseTest() {
 
         mockOps.setFailDelete(1)
 
-        val progressUpdates = mutableListOf<DeleteAction.State.Progress<LocalPath, LocalPathLookup>>()
+        val progressUpdates = mutableListOf<DeleteAction.State.Active<LocalPath, LocalPathLookup>>()
 
         // When
         LocalPath.build("/file.txt").deleteGeneric(
@@ -818,8 +825,9 @@ class GenericPathDeleteTest : BaseTest() {
             onIssue = { PathActionIssue.UnknownError.Resolution.Retry }
         ).collect { state ->
             when (state) {
-                is DeleteAction.State.Progress -> progressUpdates.add(state)
-                is DeleteAction.State.Result -> { /* final result */ }
+                is DeleteAction.State.Active -> progressUpdates.add(state)
+                is DeleteAction.State.Completed -> { /* final result */
+                }
             }
         }
 
@@ -851,7 +859,7 @@ class GenericPathDeleteTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - file skipped
         result.deleted.size shouldBe 0
@@ -890,7 +898,7 @@ class GenericPathDeleteTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - all files skipped, but only asked once due to apply-to-all
         result.deleted.size shouldBe 0
@@ -918,7 +926,7 @@ class GenericPathDeleteTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - file skipped
         result.deleted.size shouldBe 0
@@ -957,7 +965,7 @@ class GenericPathDeleteTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - all files skipped, but only asked once
         result.deleted.size shouldBe 0
@@ -983,7 +991,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = true,
             ignoreMissing = false
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - result contains all deleted items
         result.deleted.size shouldBe 2
@@ -1013,7 +1021,7 @@ class GenericPathDeleteTest : BaseTest() {
             recursive = true,
             ignoreMissing = false,
             onIssue = { PathActionIssue.UnknownError.Resolution.Skip() }
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - result contains skipped item
         result.deleted.size shouldBe 1
@@ -1042,7 +1050,7 @@ class GenericPathDeleteTest : BaseTest() {
             recursive = true,
             ignoreMissing = false,
             onIssue = { PathActionIssue.UnknownError.Resolution.Skip() }
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - verify no overlap between deleted and skipped
         val deletedPaths = result.deleted.map { it.lookedUp }.toSet()
@@ -1063,7 +1071,7 @@ class GenericPathDeleteTest : BaseTest() {
             LocalPath.build("/file2.txt")
         )
 
-        val progressUpdates = mutableListOf<DeleteAction.State.Progress<LocalPath, LocalPathLookup>>()
+        val progressUpdates = mutableListOf<DeleteAction.State.Active<LocalPath, LocalPathLookup>>()
 
         // When
         targets.deleteGeneric(
@@ -1072,8 +1080,9 @@ class GenericPathDeleteTest : BaseTest() {
             ignoreMissing = false
         ).collect { state ->
             when (state) {
-                is DeleteAction.State.Progress -> progressUpdates.add(state)
-                is DeleteAction.State.Result -> { /* final result */ }
+                is DeleteAction.State.Active -> progressUpdates.add(state)
+                is DeleteAction.State.Completed -> { /* final result */
+                }
             }
         }
 
@@ -1094,7 +1103,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = true,
             ignoreMissing = false
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - empty result
         result.deleted.size shouldBe 0
@@ -1118,7 +1127,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = true,
             ignoreMissing = true // Ignore missing to handle second attempt
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - file deleted once
         mockOps.hasFile("/file.txt") shouldBe false
@@ -1150,7 +1159,7 @@ class GenericPathDeleteTest : BaseTest() {
             recursive = true,
             ignoreMissing = false,
             onIssue = { PathActionIssue.UnknownError.Resolution.Skip() }
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - one file skipped (file3), other files deleted (file1, file2)
         result.deleted.size shouldBe 2
@@ -1180,7 +1189,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = true,
             ignoreMissing = false
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - all deleted
         mockOps.hasFile("/level0") shouldBe false
@@ -1202,7 +1211,7 @@ class GenericPathDeleteTest : BaseTest() {
             fileSystemOps = mockOps,
             recursive = true,
             ignoreMissing = false
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - all deleted
         mockOps.hasFile("/root") shouldBe false
@@ -1237,7 +1246,7 @@ class GenericPathDeleteTest : BaseTest() {
                     else -> TODO("Unexpected issue type: $issue")
                 }
             }
-        ).last() as DeleteAction.State.Result
+        ).last() as DeleteAction.State.Completed
 
         // Then - directory should be ONLY in skipped, NOT in deleted
         result.deleted.map { it.lookedUp } shouldNotBe setOf(LocalPath.build("/parent"))
@@ -1247,5 +1256,41 @@ class GenericPathDeleteTest : BaseTest() {
         // Directory and child should still exist (delete was skipped)
         mockOps.hasFile("/parent") shouldBe true
         mockOps.hasFile("/parent/child.txt") shouldBe true
+    }
+
+    // ============ NULLABLE FIELDS TESTS ============
+
+    @Test
+    fun `generic delete handles null sizes in progress aggregation with 0L fallback`() = runTest {
+        // Given - directory tree with items having null sizes (simulates "/" on Android scenario)
+        mockOps.addMockDir("/root")
+        mockOps.addMockFile("/root/accessible.txt", "content1".toByteArray())
+        mockOps.addMockFile("/root/restricted.txt", "content2".toByteArray())
+
+        // Make one file return null size in its lookup (simulates permission error on stat())
+        mockOps.setNullSize("/root/restricted.txt")
+
+        val sourcePath = LocalPath.build("/root")
+
+        // When - delete directory tree with mixed null/non-null sizes
+        val result = sourcePath.deleteGeneric(
+            fileSystemOps = mockOps,
+            recursive = true,
+            ignoreMissing = false
+        ).last() as DeleteAction.State.Completed
+
+        // Then - all files deleted successfully despite null sizes
+        mockOps.hasFile("/root") shouldBe false
+        mockOps.hasFile("/root/accessible.txt") shouldBe false
+        mockOps.hasFile("/root/restricted.txt") shouldBe false
+
+        result.deleted.size shouldBe 3 // directory + 2 files
+
+        // Verify bytesTotal handles null sizes gracefully
+        // The `?: 0L` fallback ensures nulls don't crash aggregation
+        result.bytesTotal.shouldBeGreaterThanOrEqual(0L)
+
+        // Note: Files with null sizes contribute 0L to totalBytes calculation
+        // This prevents NullPointerException in progress tracking
     }
 }

@@ -13,6 +13,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.extensions.getFileSystemInfo
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.R
@@ -122,7 +123,12 @@ class DirectoryLocationLoader @AssistedInject constructor(
         log(tag) { "loadPeek(): Peeked ${items.size} items" }
 
         updateState {
-            copy(items = items)
+            copy(
+                info = info?.copy(
+                    fileCount = items.size,
+                ),
+                items = items
+            )
         }
     }
 
@@ -130,7 +136,15 @@ class DirectoryLocationLoader @AssistedInject constructor(
         log(tag) { "loadContent(): Loading content: $targetPath" }
         updateProgressMsg(R.string.explorer_loader_progress_directory_content_details)
 
-        val basicLookups = gatewaySwitch.lookupFiles(targetPath)
+        val basicLookups = gatewaySwitch.lookupFiles(
+            targetPath,
+            LookupOptions(
+                continueOnError = true,
+                fallbackToUnknown = true,
+                fetchSize = true,
+                fetchModifiedAt = true
+            ),
+        )
         log(tag) { "loadContent(): ${basicLookups.size} lookups" }
 
         val fileClassifier = FileTypeClassifier()
@@ -150,7 +164,7 @@ class DirectoryLocationLoader @AssistedInject constructor(
                 is ExplorerItem.Directory -> directoryCount++
                 is ExplorerItem.File -> {
                     fileCount++
-                    totalSize += item.lookup.size
+                    totalSize += item.lookup.size ?: 0L
                 }
             }
         }
@@ -175,21 +189,27 @@ class DirectoryLocationLoader @AssistedInject constructor(
         log(tag) { "loadContentExtended(): Loading content extended: $targetPath" }
         updateProgressMsg(R.string.explorer_loader_progress_directory_content_extended)
 
-        val extendedLookups = gatewaySwitch.lookupFilesExtended(targetPath).associateBy { it.path }
-        val fileClassifier = FileTypeClassifier()
+        val extendedLookups = gatewaySwitch.lookupFiles(
+            targetPath,
+            LookupOptions(
+                continueOnError = true,
+                fallbackToUnknown = true,
+                fetchCreatedAt = true,
+                fetchOwnership = true,
+                fetchPermissions = true
+            ),
+        ).associateBy { it.path }
 
         val items = state.items!!.map { item ->
-            val extendedLookup = extendedLookups[item.path.path]
-            if (extendedLookup != null) {
-                val basicItem = fileClassifier.classify(extendedLookup)
-                basicItem.withExtendedData(
-                    ownership = extendedLookup.ownership,
-                    permissions = extendedLookup.permissions,
-                    createdAt = extendedLookup.createdAt,
-                )
-            } else {
-                item
-            }
+            if (item !is ExplorerItem.Lookup) return@map item
+
+            val extendedLookup = extendedLookups[item.path.path] ?: return@map item
+
+            item.withExtendedData(
+                ownership = extendedLookup.ownership,
+                permissions = extendedLookup.permissions,
+                createdAt = extendedLookup.createdAt,
+            )
         }
 
         updateState { copy(items = items) }

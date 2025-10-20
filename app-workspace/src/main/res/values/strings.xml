@@ -85,6 +85,7 @@
     <string name="operations_details_path_added_marker">A</string>
     <string name="operations_details_path_removed_marker">D</string>
     <string name="operations_details_path_modified_marker">M</string>
+    <string name="workspace_operations_performance_graph_label">Performance graph</string>
 
     <!-- Delete Confirmation Dialog -->
     <string name="workspace_dialog_delete_title_single">Delete item?</string>
@@ -163,4 +164,8 @@
     <string name="workspace_file_info_files_label">Files</string>
     <string name="workspace_file_info_directories_label">Directories</string>
     <string name="workspace_file_info_total_size_label">Total size</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_not_enough_data">Not enough data</string>
+    <string name="workspace_operation_performance_avg_speed_label">Speed Ø: %1$s</string>
 </resources>

@@ -2,7 +2,6 @@ package eu.darken.butler.common.files.operations
 
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
-import eu.darken.butler.common.files.local.LocalPathLookupExtended
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
@@ -20,18 +19,21 @@ import testhelpers.BaseTest
  */
 class GenericPathNamingUtilsTest : BaseTest() {
 
-    private lateinit var mockOps: MockFileSystemOps<LocalPath, LocalPathLookup, LocalPathLookupExtended>
-    private lateinit var namingUtils: GenericPathNamingUtils<LocalPath>
+    private lateinit var mockOps: MockFileSystemOps<LocalPath, LocalPathLookup>
+    private lateinit var namingUtils: GenericPathNamingUtils<LocalPath, LocalPathLookup>
 
     @BeforeEach
     fun setup() {
-        mockOps = MockFileSystemOps { path, type, size, modifiedAt, permissions, ownership ->
+        mockOps = MockFileSystemOps { path, type, size, modifiedAt, permissions, ownership, createdAt ->
             LocalPathLookup(
                 lookedUp = path,
                 fileType = type,
                 size = size,
                 modifiedAt = modifiedAt ?: kotlin.time.Instant.fromEpochMilliseconds(0),
-                target = null
+                target = null,
+                ownership = ownership,
+                permissions = permissions,
+                createdAt = createdAt,
             )
         }
         namingUtils = GenericPathNamingUtils(ops = mockOps)

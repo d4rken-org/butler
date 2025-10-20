@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -226,7 +227,11 @@ fun UnknownErrorIssueSheet(
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp),
                             )
-                            Text(stringResource(eu.darken.butler.common.R.string.general_retry_action))
+                            Text(
+                                text = stringResource(eu.darken.butler.common.R.string.general_retry_action),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
                         }
                     }
                 }
@@ -247,7 +252,11 @@ fun UnknownErrorIssueSheet(
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp),
                             )
-                            Text(stringResource(R.string.explorer_issue_common_skip))
+                            Text(
+                                text = stringResource(R.string.explorer_issue_common_skip),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
                         }
                     }
                 }
@@ -268,7 +277,11 @@ fun UnknownErrorIssueSheet(
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
                     )
-                    Text(stringResource(R.string.explorer_issue_common_cancel))
+                    Text(
+                        text = stringResource(R.string.explorer_issue_common_cancel),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
             }
         }

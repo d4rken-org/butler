@@ -1,17 +1,13 @@
 package eu.darken.butler.common.files.operations
 
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
-import eu.darken.butler.common.files.APathLookupExtended
 import eu.darken.butler.common.files.FileSystemOps
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
@@ -54,25 +50,23 @@ import kotlinx.coroutines.isActive
  *
  * @param SP The source path type (LocalPath, SAFPath, etc.)
  * @param SPL The source path lookup type (LocalPathLookup, SAFPathLookup, etc.)
- * @param SPLE The source path lookup extended type (LocalPathLookupExtended, SAFPathLookupExtended, etc.)
  * @param DP The destination path type (LocalPath, SAFPath, etc.)
  * @param DPL The destination path lookup type (LocalPathLookup, SAFPathLookup, etc.)
- * @param DPLE The destination path lookup extended type (LocalPathLookupExtended, SAFPathLookupExtended, etc.)
  */
 internal class GenericPathMove<
-        SP : APath<SP>, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
-        DP : APath<DP>, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
-        >(
+    SP : APath<SP>, SPL : APathLookup<SP>,  // Source types
+    DP : APath<DP>, DPL : APathLookup<DP>   // Destination types
+    >(
     private val sources: Collection<SP>,
     private val destination: DP,
-    private val sourceOps: FileSystemOps<SP, SPL, SPLE>,
-    private val destOps: FileSystemOps<DP, DPL, DPLE>,
-    private val strategy: TransferStrategy<SP, SPL, SPLE, DP, DPL, DPLE>,
+    private val sourceOps: FileSystemOps<SP, SPL>,
+    private val destOps: FileSystemOps<DP, DPL>,
+    private val strategy: TransferStrategy<SP, SPL, DP, DPL>,
     private val options: TransferStrategy.Options,
     private val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
 ) {
 
-    private val moved = linkedSetOf<Pair<SPL, DPL>>()
+    private val moved = linkedSetOf<Pair<SPL, APathLookup<DP>>>()
     private val skipped = linkedSetOf<SPL>()
     private var totalBytesTransferred = 0L
 
@@ -81,7 +75,7 @@ internal class GenericPathMove<
     private val issueResolver = PathOperationIssueResolver(onIssue)
     private val errorHandler = TransferErrorHandler()
     private val pathCalculator = TransferPathCalculator()
-    private val conflictResolver = TransferConflictResolver<SP, SPL, DP, DPL, DPLE>(
+    private val conflictResolver = TransferConflictResolver<SP, SPL, DP, DPL>(
         destOps = destOps,
         issueResolver = issueResolver,
         progressTracker = progressTracker,
@@ -169,10 +163,8 @@ internal class GenericPathMove<
         log(TAG, DEBUG) { "execute(): Moving ${sources.size} sources to $destination" }
 
         // Check if destination exists and is a directory (for path calculation logic)
-        if (destOps.exists(destination)) {
-            val destLookup = destOps.lookup(destination)
-            destinationExistedAsDirectory = destLookup.fileType == FileType.DIRECTORY
-        }
+        val destLookup = destOps.lookup(destination, LookupOptions(fallbackToUnknown = true))
+        destinationExistedAsDirectory = destLookup.fileType == FileType.DIRECTORY
 
         // Initialize work queue with scan items for all sources
         scanItemsRemaining = sources.size
@@ -216,7 +208,7 @@ internal class GenericPathMove<
         cleanupSourceDirectories()
 
         emit(
-            MoveAction.State.Result(
+            MoveAction.State.Completed(
                 movedFiles = moved,
                 skippedFiles = skipped,
                 bytesMoved = progressTracker.processedBytes
@@ -231,7 +223,7 @@ internal class GenericPathMove<
         log(TAG, VERBOSE) { "Scanning source: ${item.source}" }
 
         val lookup = try {
-            sourceOps.lookup(item.source)
+            sourceOps.lookup(item.source, LookupOptions.BASE)
         } catch (e: Exception) {
             if (item.source == item.topLevelSource) {
                 throw e // Top-level source must exist
@@ -246,7 +238,7 @@ internal class GenericPathMove<
         when (lookup.fileType) {
             FileType.FILE, FileType.SYMBOLIC_LINK -> {
                 progressTracker.totalItems++
-                progressTracker.totalBytes += lookup.size
+                progressTracker.totalBytes += lookup.size ?: 0L
                 workQueue.addLast(WorkItem.MoveFile(lookup, destPath, item.topLevelSource))
 
                 // Report scan progress with throttling
@@ -259,7 +251,7 @@ internal class GenericPathMove<
 
             FileType.DIRECTORY -> {
                 progressTracker.totalItems++
-                progressTracker.totalBytes += lookup.size
+                progressTracker.totalBytes += lookup.size ?: 0L
 
                 // Add directory to cleanup queue (post-order)
                 sourceDirectories.addFirst(item.source)
@@ -310,8 +302,8 @@ internal class GenericPathMove<
         log(TAG, VERBOSE) { "Moving file: ${item.sourceLookup.lookedUp} -> $adjustedDest" }
 
         // Check for conflicts
-        if (destOps.exists(adjustedDest)) {
-            val destLookup = destOps.lookup(adjustedDest)
+        val destLookup = destOps.lookup(adjustedDest, LookupOptions.BASE.copy(fallbackToUnknown = true))
+        if (destLookup.fileType != FileType.UNKNOWN) {
             handleFileConflict(item, adjustedDest, destLookup)
             return
         }
@@ -319,7 +311,7 @@ internal class GenericPathMove<
         // Move file (strategy handles whether it's atomic or copy+delete)
         // Only start tracking if not already started (handles retry case)
         if (progressTracker.currentFileSize == 0L) {
-            progressTracker.startFile(item.sourceLookup.size)
+            progressTracker.startFile(item.sourceLookup.size ?: 0L)
         }
 
         try {
@@ -339,11 +331,13 @@ internal class GenericPathMove<
 
             when (result) {
                 is TransferStrategy.TransferResult.Success -> {
-                    // Lookup destination after successful transfer
-                    val destLookup = destOps.lookup(result.destination)
+                    // Use destinationLookup from result if available, otherwise lookup
+                    val destLookup = result.destinationLookup
+                        ?: destOps.lookup(result.destination, LookupOptions.BASE)
                     moved.add(item.sourceLookup to destLookup)
                     totalBytesTransferred += result.bytesTransferred
                     progressTracker.completeFile()
+                    progressTracker.completeItem()
                 }
 
                 is TransferStrategy.TransferResult.Skipped -> {
@@ -375,8 +369,8 @@ internal class GenericPathMove<
         log(TAG, VERBOSE) { "Creating directory: ${item.sourceLookup.lookedUp} -> $adjustedDest" }
 
         // Check for conflicts
-        if (destOps.exists(adjustedDest)) {
-            val destLookup = destOps.lookup(adjustedDest)
+        val destLookup = destOps.lookup(adjustedDest, LookupOptions.BASE.copy(fallbackToUnknown = true))
+        if (destLookup.fileType != FileType.UNKNOWN) {
             handleDirectoryConflict(item, adjustedDest, destLookup)
             return
         }
@@ -393,8 +387,9 @@ internal class GenericPathMove<
 
             when (result) {
                 is TransferStrategy.TransferResult.Success -> {
-                    // Lookup destination after successful creation
-                    val destLookup = destOps.lookup(result.destination)
+                    // Use destinationLookup from result if available, otherwise lookup
+                    val destLookup = result.destinationLookup
+                        ?: destOps.lookup(result.destination, LookupOptions.BASE)
                     moved.add(item.sourceLookup to destLookup)
                     totalBytesTransferred += result.bytesTransferred
                     progressTracker.completeItem()
@@ -425,7 +420,8 @@ internal class GenericPathMove<
 
             try {
                 // Check if directory still exists and is empty
-                if (!sourceOps.exists(dir)) {
+                val dirLookup = sourceOps.lookup(dir, LookupOptions(fallbackToUnknown = true))
+                if (dirLookup.fileType == FileType.UNKNOWN) {
                     log(TAG, VERBOSE) { "Directory already deleted: $dir" }
                     continue
                 }
@@ -520,7 +516,7 @@ internal class GenericPathMove<
 
     private suspend fun processResolveConflict(item: WorkItem.ResolveConflict<SP, SPL, DP, DPL>) {
         val canMerge = item.originalItem is WorkItem.CreateDirectory<*, *, *> &&
-                item.destLookup.fileType == FileType.DIRECTORY
+            item.destLookup.fileType == FileType.DIRECTORY
 
         conflictResolver.processResolveConflict(
             sourceLookup = item.sourceLookup,
@@ -642,7 +638,7 @@ internal class GenericPathMove<
         val snapshot = progressTracker.createSnapshot()
 
         emit(
-            MoveAction.State.Progress(
+            MoveAction.State.Active(
                 currentSource = lookup,
                 currentDestination = null,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(
@@ -665,7 +661,7 @@ internal class GenericPathMove<
         val snapshot = progressTracker.createSnapshot()
 
         emit(
-            MoveAction.State.Progress(
+            MoveAction.State.Active(
                 currentSource = lookup,
                 currentDestination = destination,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(
@@ -674,7 +670,8 @@ internal class GenericPathMove<
                     count = eu.darken.butler.common.progress.Progress.Count.Counter(
                         current = snapshot.itemsProcessed,
                         max = snapshot.totalItems
-                    )
+                    ),
+                    extra = progressTracker.performanceHistory
                 ),
                 secondaryProgress = eu.darken.butler.common.progress.Progress.Data(
                     primary = lookup.lookedUp.name.toCaString(),
@@ -705,13 +702,13 @@ internal class GenericPathMove<
  * - **Cross-type** (SP≠DP): Pass different FileSystemOps instances
  */
 fun <
-        SP : APath<SP>, SPL : APathLookup<SP>, SPLE : APathLookupExtended<SP>,  // Source types
-        DP : APath<DP>, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>   // Destination types
-        > Collection<SP>.moveGeneric(
+    SP : APath<SP>, SPL : APathLookup<SP>,  // Source types
+    DP : APath<DP>, DPL : APathLookup<DP>   // Destination types
+    > Collection<SP>.moveGeneric(
     destination: DP,
-    sourceOps: FileSystemOps<SP, SPL, SPLE>,
-    destOps: FileSystemOps<DP, DPL, DPLE>,
-    strategy: TransferStrategy<SP, SPL, SPLE, DP, DPL, DPLE>,
+    sourceOps: FileSystemOps<SP, SPL>,
+    destOps: FileSystemOps<DP, DPL>,
+    strategy: TransferStrategy<SP, SPL, DP, DPL>,
     options: TransferStrategy.Options = TransferStrategy.Options(),
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
 ): Flow<MoveAction.State<SP, SPL, DP, DPL>> = GenericPathMove(

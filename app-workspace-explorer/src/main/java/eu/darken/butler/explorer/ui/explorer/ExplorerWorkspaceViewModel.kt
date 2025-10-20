@@ -1025,14 +1025,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
             )
 
-            // Grant permission via location manager
-            safLocationManager.grantPermission(treeUri)
+            // Grant permission via location manager and get the location ID
+            val locationId = safLocationManager.grantPermission(treeUri)
 
-            // Calculate location ID to show naming dialog
-            val locationId = treeUri.toString().hashCode().toString()
+            // Show naming dialog with correct location ID
             dialogStateFlow.value = LocationStorageName(locationId, currentName = null)
 
-            log(tag, INFO) { "Successfully added SAF location: $treeUri" }
+            log(tag, INFO) { "Successfully added SAF location: $treeUri (locationId=$locationId)" }
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to handle SAF picker result: ${e.message}" }
             errorEvents.tryEmit(e)

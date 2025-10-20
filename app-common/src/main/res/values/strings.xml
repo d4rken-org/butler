@@ -170,6 +170,7 @@
     <string name="general_filename_validation_error">Name contains invalid characters: %1$s</string>
     <string name="general_type_label">Type</string>
     <string name="general_size_label">Size</string>
+    <string name="general_speed_per_second_label">%1$s/s</string>
     <string name="general_exclude_action">Exclude</string>
     <string name="general_exclude_selected_action">Exclude selected</string>
 

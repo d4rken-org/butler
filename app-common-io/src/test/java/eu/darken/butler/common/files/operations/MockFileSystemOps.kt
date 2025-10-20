@@ -2,8 +2,8 @@ package eu.darken.butler.common.files.operations
 
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
-import eu.darken.butler.common.files.APathLookupExtended
 import eu.darken.butler.common.files.FileSystemOps
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
@@ -61,19 +61,18 @@ import kotlin.time.Instant
  *
  * @param P The path type (LocalPath, SAFPath, etc.)
  * @param PL The path lookup type (LocalPathLookup, SAFPathLookup, etc.)
- * @param PLE The path lookup extended type (LocalPathLookupExtended, SAFPathLookupExtended, etc.)
  * @param lookupFactory Factory function to create path lookups from mock data
  */
-open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>>(
-    private val lookupFactory: (path: P, type: FileType, size: Long, modifiedAt: Instant?, permissions: Permissions?, ownership: Ownership?) -> PL
-) : FileSystemOps<P, PL, PLE> {
+open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
+    private val lookupFactory: (path: P, type: FileType, size: Long?, modifiedAt: Instant?, permissions: Permissions?, ownership: Ownership?, createdAt: Instant?) -> PL
+) : FileSystemOps<P, PL> {
 
     /**
      * Mock file entry in the in-memory file system.
      */
     data class MockFile(
         val type: FileType,
-        val size: Long,
+        var size: Long?,
         val content: ByteArray = ByteArray(0),
         val children: MutableList<String> = mutableListOf(),
         var modifiedAt: Instant? = null,
@@ -134,43 +133,34 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
     private var failListFilesCount = 0
     private var failListFilesException: (() -> Exception)? = null
 
-    /**
-     * Wrapper class that implements APathLookupExtended for mock testing.
-     */
-    private inner class MockPathLookupExtended(
-        private val basicLookup: PL,
-        override val permissions: Permissions?,
-        override val ownership: Ownership?,
-        override val createdAt: Instant?
-    ) : APathLookupExtended<P>, APathLookup<P> by basicLookup
+    suspend fun lookup(path: P) = lookup(path, LookupOptions.BASE)
 
-    override suspend fun lookup(path: P): PL {
+    override suspend fun lookup(path: P, options: LookupOptions): PL {
         lookupCalls.add(path.path)
 
         val mockFile = files[path.path]
-            ?: throw NoSuchFileException(path.path)
+
+        // Handle fallbackToUnknown option (matches LocalFileSystemOps behavior)
+        if (mockFile == null) {
+            if (options.fallbackToUnknown) {
+                return lookupFactory(
+                    path,
+                    FileType.UNKNOWN,
+                    null, null, null, null, null
+                )
+            }
+            throw NoSuchFileException(path.path)
+        }
 
         return lookupFactory(
             path,
             mockFile.type,
-            mockFile.size,
-            mockFile.modifiedAt,
-            mockFile.permissions,
-            mockFile.ownership
+            if (options.fetchSize) mockFile.size else null,
+            if (options.fetchModifiedAt) mockFile.modifiedAt else null,
+            if (options.fetchPermissions) mockFile.permissions else null,
+            if (options.fetchOwnership) mockFile.ownership else null,
+            if (options.fetchCreatedAt) null else null // Not tracked in MockFile currently
         )
-    }
-
-    override suspend fun lookupExtended(path: P): PLE {
-        val basicLookup = lookup(path)
-        val mockFile = files[path.path]!!
-
-        @Suppress("UNCHECKED_CAST")
-        return MockPathLookupExtended(
-            basicLookup = basicLookup,
-            permissions = mockFile.permissions,
-            ownership = mockFile.ownership,
-            createdAt = null // Not tracked in MockFile currently
-        ) as PLE
     }
 
     override suspend fun listFiles(path: P): List<P> {
@@ -196,12 +186,8 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
         }
     }
 
-    override suspend fun lookupFiles(path: P): List<PL> {
-        return listFiles(path).map { lookup(it) }
-    }
-
-    override suspend fun lookupFilesExtended(path: P): List<PLE> {
-        return listFiles(path).map { lookupExtended(it) }
+    override suspend fun lookupFiles(path: P, options: LookupOptions): List<PL> {
+        return listFiles(path).map { lookup(it, options) }
     }
 
     override suspend fun exists(path: P): Boolean {
@@ -607,7 +593,10 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
     /**
      * Configure openInputStream to fail the next N times with specified exception.
      */
-    fun setFailOpenInputStream(count: Int, exceptionFactory: () -> Exception = { java.io.IOException("Temporary failure") }) {
+    fun setFailOpenInputStream(
+        count: Int,
+        exceptionFactory: () -> Exception = { java.io.IOException("Temporary failure") }
+    ) {
         failOpenInputStreamCount = count
         failOpenInputStreamException = exceptionFactory
     }
@@ -615,7 +604,10 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
     /**
      * Configure openOutputStream to fail the next N times with specified exception.
      */
-    fun setFailOpenOutputStream(count: Int, exceptionFactory: () -> Exception = { java.io.IOException("Temporary failure") }) {
+    fun setFailOpenOutputStream(
+        count: Int,
+        exceptionFactory: () -> Exception = { java.io.IOException("Temporary failure") }
+    ) {
         failOpenOutputStreamCount = count
         failOpenOutputStreamException = exceptionFactory
     }
@@ -674,5 +666,21 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>, PLE : APathLooku
                 }
             }
         }
+    }
+
+    /**
+     * Set size to null for a specific path (simulates permission errors during stat()).
+     */
+    fun setNullSize(path: String) {
+        val mockFile = files[path] ?: error("Path not found: $path")
+        files[path] = mockFile.copy(size = null)
+    }
+
+    /**
+     * Set modifiedAt to null for a specific path (simulates permission errors during stat()).
+     */
+    fun setNullModifiedAt(path: String) {
+        val mockFile = files[path] ?: error("Path not found: $path")
+        files[path] = mockFile.copy(modifiedAt = null)
     }
 }

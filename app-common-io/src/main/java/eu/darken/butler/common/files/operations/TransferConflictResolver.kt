@@ -5,7 +5,6 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
-import eu.darken.butler.common.files.APathLookupExtended
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
@@ -53,13 +52,12 @@ import eu.darken.butler.common.files.metadata.FileType
  * @param SPL Source path lookup type
  * @param DP Destination path type
  * @param DPL Destination path lookup type
- * @param DPLE Destination path lookup extended type
  */
 class TransferConflictResolver<
     SP : APath<SP>, SPL : APathLookup<SP>,
-    DP : APath<DP>, DPL : APathLookup<DP>, DPLE : APathLookupExtended<DP>
+    DP : APath<DP>, DPL : APathLookup<DP>
 >(
-    private val destOps: FileSystemOps<DP, DPL, DPLE>,
+    private val destOps: FileSystemOps<DP, DPL>,
     private val issueResolver: PathOperationIssueResolver,
     private val progressTracker: PathOperationProgressTracker,
     private val tag: String
@@ -327,7 +325,8 @@ class TransferConflictResolver<
         path.parent?.let { parentPath ->
             namingUtils.generateUniqueName(
                 parentPath = parentPath,
-                originalName = path.name
+                originalName = path.name,
+                knownToExist = true  // We're in conflict resolution, so we know it exists
             )
         } ?: "${path.name} (1)"
 }

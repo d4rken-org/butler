@@ -8,11 +8,10 @@ import eu.darken.butler.common.sharedresource.HasSharedResource
 import kotlinx.coroutines.flow.Flow
 
 interface APathGateway<
-        P : APath<P>,
-        PL : APathLookup<P>,
-        PLE : APathLookupExtended<P>,
-        > : HasSharedResource<Any>,
-    FileSystemOps<P, PL, PLE>,
+    P : APath<P>,
+    PL : APathLookup<P>,
+    > : HasSharedResource<Any>,
+    FileSystemOps<P, PL>,
     CopyAction<P, PL, P, PL>,
     MoveAction<P, PL, P, PL>,
     DeleteAction<P, PL>,
@@ -20,7 +19,8 @@ interface APathGateway<
 
     suspend fun walk(
         path: P,
-        options: WalkOptions<P, PL> = WalkOptions()
+        lookupOptions: LookupOptions,
+        walkOptions: WalkOptions<P, PL> = WalkOptions()
     ): Flow<PL>
 
     data class WalkOptions<P : APath<P>, PLU : APathLookup<P>>(

@@ -6,8 +6,8 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
-import eu.darken.butler.common.files.APathLookupExtended
 import eu.darken.butler.common.files.FileSystemOps
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
@@ -45,13 +45,12 @@ import kotlinx.coroutines.isActive
  *
  * @param P The path type (LocalPath, SAFPath, FtpPath, etc.)
  * @param PL The path lookup type (LocalPathLookup, SAFPathLookup, etc.)
- * @param PLE The path lookup extended type (LocalPathLookupExtended, SAFPathLookupExtended, etc.)
  */
-internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>>(
+internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
     private val targets: Collection<P>,
     private val recursive: Boolean,
     private val ignoreMissing: Boolean,
-    private val fileSystemOps: FileSystemOps<P, PL, PLE>,
+    private val fileSystemOps: FileSystemOps<P, PL>,
     private val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
 ) {
 
@@ -124,7 +123,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
         }
 
         emit(
-            DeleteAction.State.Result(
+            DeleteAction.State.Completed(
                 deleted = deleted,
                 skipped = skipped,
             )
@@ -138,7 +137,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
         log(TAG, VERBOSE) { "Scanning path: ${item.path}" }
 
         val lookup = try {
-            fileSystemOps.lookup(item.path)
+            fileSystemOps.lookup(item.path, LookupOptions.BASE)
         } catch (e: Exception) {
             if (ignoreMissing) {
                 log(TAG, VERBOSE) { "Skipping missing file (ignoreMissing=true): ${item.path}" }
@@ -155,7 +154,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
             FileType.SYMBOLIC_LINK, FileType.FILE -> {
                 // Files: defer deletion until scan completes (using addFirst for post-order)
                 progressTracker.totalItems++
-                progressTracker.totalBytes += lookup.size
+                progressTracker.totalBytes += lookup.size ?: 0L
                 deferredDeletions.addFirst(WorkItem.DeletePath(lookup))
 
                 // Report scan progress with throttling
@@ -170,7 +169,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
                 if (!recursive) {
                     // Non-recursive: defer directory deletion (will fail if not empty)
                     progressTracker.totalItems++
-                    progressTracker.totalBytes += lookup.size
+                    progressTracker.totalBytes += lookup.size ?: 0L
                     deferredDeletions.addFirst(WorkItem.DeletePath(lookup))
 
                     // Report scan progress with throttling
@@ -197,7 +196,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
 
                     // After successfully scanning children, defer directory deletion (post-order)
                     progressTracker.totalItems++
-                    progressTracker.totalBytes += lookup.size
+                    progressTracker.totalBytes += lookup.size ?: 0L
                     deferredDeletions.addFirst(WorkItem.DeletePath(lookup))
 
                     // Report scan progress with throttling
@@ -223,7 +222,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
 
         // Only start tracking if not already started (handles retry case)
         if (progressTracker.currentFileSize == 0L) {
-            progressTracker.startFile(lookup.size)
+            progressTracker.startFile(lookup.size ?: 0L)
         }
 
         try {
@@ -236,19 +235,20 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
             if (!deleteResult && ignoreMissing) {
                 // File might have been deleted between scan and delete phases
                 log(TAG, VERBOSE) { "File not found during delete (ignoreMissing=true): ${item.path}" }
-                progressTracker.completeItem(lookup.size)
+                progressTracker.completeItem(lookup.size ?: 0L)
                 return
             }
 
             deleted += lookup
-            progressTracker.completeItem(lookup.size)
+            progressTracker.completeItem(lookup.size ?: 0L)
 
         } catch (e: Exception) {
             // Handle case where file was deleted between scan and delete phases
             if (ignoreMissing && (e is java.io.FileNotFoundException ||
-                e.cause is java.io.FileNotFoundException)) {
+                    e.cause is java.io.FileNotFoundException)
+            ) {
                 log(TAG, VERBOSE) { "File already deleted (ignoreMissing=true): ${item.path}" }
-                progressTracker.completeItem(lookup.size)
+                progressTracker.completeItem(lookup.size ?: 0L)
                 return
             }
             handleDeleteError(e, item)
@@ -283,7 +283,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
             onSkip = {
                 // When skipped, add to progress tracking and skipped set
                 progressTracker.totalItems++
-                progressTracker.totalBytes += lookup.size
+                progressTracker.totalBytes += lookup.size ?: 0L
                 skipped.add(it)
             },
             onRetry = {
@@ -301,7 +301,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
         val snapshot = progressTracker.createSnapshot()
 
         emit(
-            DeleteAction.State.Progress(
+            DeleteAction.State.Active(
                 target = lookup,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(
                     primary = R.string.general_scan_progress_title.toCaString(),
@@ -323,7 +323,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
         val snapshot = progressTracker.createSnapshot()
 
         emit(
-            DeleteAction.State.Progress(
+            DeleteAction.State.Active(
                 target = lookup,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(
                     primary = R.string.general_delete_progress_title.toCaString(),
@@ -331,13 +331,14 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
                     count = eu.darken.butler.common.progress.Progress.Count.Counter(
                         current = snapshot.itemsProcessed,
                         max = snapshot.totalItems
-                    )
+                    ),
+                    extra = progressTracker.performanceHistory
                 ),
                 secondaryProgress = eu.darken.butler.common.progress.Progress.Data(
                     primary = lookup.lookedUp.name.toCaString(),
                     count = eu.darken.butler.common.progress.Progress.Count.Size(
-                        current = lookup.size,
-                        max = lookup.size
+                        current = lookup.size ?: 0L,
+                        max = lookup.size ?: 0L
                     )
                 ),
                 deletedBytes = snapshot.processedBytes,
@@ -355,15 +356,15 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
 /**
  * Extension function for easy use of GenericPathDelete.
  */
-fun <P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>> P.deleteGeneric(
-    fileSystemOps: FileSystemOps<P, PL, PLE>,
+fun <P : APath<P>, PL : APathLookup<P>> P.deleteGeneric(
+    fileSystemOps: FileSystemOps<P, PL>,
     recursive: Boolean = true,
     ignoreMissing: Boolean = true,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
 ) = setOf(this).deleteGeneric(fileSystemOps, recursive, ignoreMissing, onIssue)
 
-fun <P : APath<P>, PL : APathLookup<P>, PLE : APathLookupExtended<P>> Collection<P>.deleteGeneric(
-    fileSystemOps: FileSystemOps<P, PL, PLE>,
+fun <P : APath<P>, PL : APathLookup<P>> Collection<P>.deleteGeneric(
+    fileSystemOps: FileSystemOps<P, PL>,
     recursive: Boolean = true,
     ignoreMissing: Boolean = true,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null

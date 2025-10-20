@@ -11,6 +11,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.FileSystemOps
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
@@ -40,8 +41,8 @@ class SAFGateway @Inject constructor(
     @AppScope private val appScope: CoroutineScope,
     private val fileSystemOps: SAFFileSystemOps,
     private val dispatcherProvider: DispatcherProvider,
-) : APathGateway<SAFPath, SAFPathLookup, SAFPathLookupExtended>,
-    FileSystemOps<SAFPath, SAFPathLookup, SAFPathLookupExtended> by fileSystemOps {
+) : APathGateway<SAFPath, SAFPathLookup>,
+    FileSystemOps<SAFPath, SAFPathLookup> by fileSystemOps {
 
     override val sharedResource = SharedResource.createKeepAlive(TAG, appScope + dispatcherProvider.IO)
 
@@ -51,9 +52,10 @@ class SAFGateway @Inject constructor(
 
     override suspend fun walk(
         path: SAFPath,
-        options: APathGateway.WalkOptions<SAFPath, SAFPathLookup>,
+        lookupOptions: LookupOptions,
+        walkOptions: APathGateway.WalkOptions<SAFPath, SAFPathLookup>,
     ): Flow<SAFPathLookup> = flow {
-        val start = lookup(path)
+        val start = lookup(path, lookupOptions)
         log(TAG, VERBOSE) { "walk($path) -> $start" }
 
         if (start.isFile) {
@@ -67,10 +69,10 @@ class SAFGateway @Inject constructor(
             val lookUp = queue.removeFirst()
 
             val newBatch = try {
-                lookupFiles(lookUp.lookedUp)
+                lookupFiles(lookUp.lookedUp, lookupOptions)
             } catch (e: IOException) {
                 log(TAG, ERROR) { "Failed to read $lookUp: $e" }
-                if (options.onError?.invoke(lookUp, e) != false) {
+                if (walkOptions.onError?.invoke(lookUp, e) != false) {
                     emptyList()
                 } else {
                     throw e
@@ -79,7 +81,7 @@ class SAFGateway @Inject constructor(
 
             newBatch
                 .filter {
-                    val allowed = options.onFilter?.invoke(it) ?: true
+                    val allowed = walkOptions.onFilter?.invoke(it) ?: true
                     if (Bugs.isTrace) {
                         if (!allowed) log(TAG, VERBOSE) { "Skipping (filter): $it" }
                     }
@@ -105,26 +107,26 @@ class SAFGateway @Inject constructor(
         options: APathGateway.DuOptions<SAFPath, SAFPathLookup>,
     ): Long = runIO {
         try {
-            val start = lookup(path)
+            val start = lookup(path, LookupOptions(fetchSize = true))
             log(TAG, VERBOSE) { "du($path) -> $start" }
 
-            if (start.isFile) return@runIO start.size
+            if (start.isFile) return@runIO start.size ?: 0L
 
-            var total = start.size
+            var total = start.size ?: 0L
 
             val queue = LinkedList(listOf(start))
             while (!queue.isEmpty()) {
                 val lookUp = queue.removeFirst()
 
                 val newBatch = try {
-                    lookupFiles(lookUp.lookedUp)
+                    lookupFiles(lookUp.lookedUp, LookupOptions(fetchSize = true))
                 } catch (e: IOException) {
                     log(TAG, ERROR) { "Failed to read $lookUp: $e" }
                     emptyList()
                 }
 
                 newBatch.forEach { child ->
-                    total += child.size
+                    total += child.size ?: 0L
                     if (child.isDirectory) queue.addFirst(child)
                 }
             }
@@ -181,7 +183,7 @@ class SAFGateway @Inject constructor(
             onIssue = options.onIssue
         ).collect { state ->
             emit(state)
-            if (state is DeleteAction.State.Result) {
+            if (state is DeleteAction.State.Completed) {
                 log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
             }
         }
@@ -201,7 +203,7 @@ class SAFGateway @Inject constructor(
             onIssue = onIssue,
         ).collect { state ->
             emit(state)
-            if (state is CopyAction.State.Result) {
+            if (state is CopyAction.State.Completed) {
                 log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
             }
         }
@@ -221,7 +223,7 @@ class SAFGateway @Inject constructor(
             onIssue = onIssue,
         ).collect { state ->
             emit(state)
-            if (state is MoveAction.State.Result) {
+            if (state is MoveAction.State.Completed) {
                 log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
             }
         }

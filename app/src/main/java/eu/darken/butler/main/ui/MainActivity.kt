@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.toArgb
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -99,9 +100,11 @@ class MainActivity : Activity2() {
 
     @Composable
     private fun Navigation(state: MainViewModel.State) {
-        val start = when (state.startScreen) {
-            MainViewModel.State.StartScreen.ONBOARDING -> Nav.Main.onboarding()
-            MainViewModel.State.StartScreen.HOME -> Nav.Main.workspaces()
+        val start = remember {
+            when (state.startScreen) {
+                MainViewModel.State.StartScreen.ONBOARDING -> Nav.Main.onboarding()
+                MainViewModel.State.StartScreen.HOME -> Nav.Main.workspaces()
+            }
         }
 
         val backStack = rememberNavBackStack<NavigationDestination>(start)
