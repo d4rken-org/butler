@@ -51,12 +51,7 @@ class FileOpsHost @Inject constructor(
         throw e.wrapToPropagate()
     }
 
-    override fun lookup(path: LocalPath, fetchOwnership: Boolean, fetchPermissions: Boolean, fetchCreatedAt: Boolean): LocalPathLookup = try {
-        val options = LookupOptions(
-            fetchOwnership = fetchOwnership,
-            fetchPermissions = fetchPermissions,
-            fetchCreatedAt = fetchCreatedAt
-        )
+    override fun lookup(path: LocalPath, options: LookupOptions): LocalPathLookup = try {
         if (Bugs.isTrace) log(TAG, VERBOSE) { "lookup($path, $options)..." }
         runBlocking { fileSystemOps.lookup(path, options) }
     } catch (e: Exception) {
@@ -64,12 +59,7 @@ class FileOpsHost @Inject constructor(
         throw e.wrapToPropagate()
     }
 
-    override fun lookupFilesStream(path: LocalPath, fetchOwnership: Boolean, fetchPermissions: Boolean, fetchCreatedAt: Boolean): RemoteInputStream = try {
-        val options = LookupOptions(
-            fetchOwnership = fetchOwnership,
-            fetchPermissions = fetchPermissions,
-            fetchCreatedAt = fetchCreatedAt
-        )
+    override fun lookupFilesStream(path: LocalPath, options: LookupOptions): RemoteInputStream = try {
         if (Bugs.isTrace) log(TAG, VERBOSE) { "lookupFilesStream($path, $options)..." }
         val lookups = runBlocking { fileSystemOps.lookupFiles(path, options) }
         lookups.toRemoteInputStream()

@@ -1,6 +1,7 @@
 package eu.darken.butler.common.files.local
 
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
@@ -98,7 +99,7 @@ class LocalFileSystemOpsTest : BaseTest() {
         }
         val path = LocalPath.build(testFile)
 
-        val extended = fileSystemOps.lookup(path, eu.darken.butler.common.files.LookupOptions.EXTENDED)
+        val extended = fileSystemOps.lookup(path, LookupOptions.EXTENDED)
 
         extended.lookedUp shouldBe path
         extended.fileType shouldBe FileType.FILE
@@ -161,7 +162,7 @@ class LocalFileSystemOpsTest : BaseTest() {
         File(tempDir, "file2.txt").apply { writeText("content2") }
         val path = LocalPath.build(tempDir)
 
-        val lookups = fileSystemOps.lookupFiles(path, eu.darken.butler.common.files.LookupOptions.EXTENDED)
+        val lookups = fileSystemOps.lookupFiles(path, LookupOptions.EXTENDED)
 
         lookups shouldHaveSize 2
         lookups.all { it.fileType == FileType.FILE } shouldBe true

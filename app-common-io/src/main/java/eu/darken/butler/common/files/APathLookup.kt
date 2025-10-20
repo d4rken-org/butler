@@ -8,35 +8,6 @@ import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import kotlin.time.Instant
 
-/**
- * Options for controlling which metadata is fetched during lookup operations.
- *
- * This allows granular control over performance vs completeness tradeoff:
- * - Basic metadata (fileType, size, modifiedAt) is always fetched (cheap)
- * - Extended metadata (ownership, permissions, createdAt) is optional (expensive syscalls)
- *
- * @param fetchOwnership Fetch Unix ownership (UID/GID). Requires extra syscall (lstat/fstat).
- * @param fetchPermissions Fetch Unix permissions (mode bits). Requires extra syscall (lstat/fstat).
- * @param fetchCreatedAt Fetch creation timestamp. Requires extra syscall (readAttributes).
- */
-data class LookupOptions(
-    val fetchOwnership: Boolean = false,
-    val fetchPermissions: Boolean = false,
-    val fetchCreatedAt: Boolean = false,
-) {
-    companion object {
-        /** Fast path: Only basic metadata (fileType, size, modifiedAt) */
-        val BASIC = LookupOptions()
-
-        /** Full metadata: All available fields including ownership/permissions/createdAt */
-        val EXTENDED = LookupOptions(
-            fetchOwnership = true,
-            fetchPermissions = true,
-            fetchCreatedAt = true
-        )
-    }
-}
-
 @Keep
 interface APathLookup<T : APath<T>> {
     val lookedUp: T

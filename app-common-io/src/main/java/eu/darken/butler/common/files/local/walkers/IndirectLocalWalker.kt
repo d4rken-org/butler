@@ -26,7 +26,7 @@ class IndirectLocalWalker(
     private val tag = "$TAG#${hashCode()}"
 
     override suspend fun collectSafely(collector: FlowCollector<LocalPathLookup>) {
-        val startLookUp = gateway.lookup(start, LookupOptions.BASIC, mode)
+        val startLookUp = gateway.lookup(start, LookupOptions(), mode)
 
         if (startLookUp.isFile) {
             collector.emit(startLookUp)
@@ -39,7 +39,7 @@ class IndirectLocalWalker(
             val lookUp = queue.removeFirst()
 
             val newBatch = try {
-                gateway.lookupFiles(lookUp.lookedUp, LookupOptions.BASIC, mode)
+                gateway.lookupFiles(lookUp.lookedUp, LookupOptions(), mode)
             } catch (e: Exception) {
                 log(TAG, Logging.Priority.ERROR) { "Failed to read $lookUp: $e" }
                 if (onError(lookUp, e)) {

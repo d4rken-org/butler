@@ -71,7 +71,7 @@ interface FileSystemOps<P : APath<P>, PL : APathLookup<P>> {
      * @return Path lookup with metadata
      * @throws eu.darken.butler.common.files.errors.ReadException if path cannot be read or doesn't exist
      */
-    suspend fun lookup(path: P, options: LookupOptions = LookupOptions.BASIC): PL
+    suspend fun lookup(path: P, options: LookupOptions = LookupOptions()): PL
 
     /**
      * List immediate children of a directory.
@@ -100,7 +100,7 @@ interface FileSystemOps<P : APath<P>, PL : APathLookup<P>> {
      * @return List of path lookups for all children (empty if directory is empty)
      * @throws eu.darken.butler.common.files.errors.ReadException if path cannot be read, doesn't exist, or is not a directory
      */
-    suspend fun lookupFiles(path: P, options: LookupOptions = LookupOptions.BASIC): List<PL> {
+    suspend fun lookupFiles(path: P, options: LookupOptions = LookupOptions()): List<PL> {
         return listFiles(path).map { lookup(it, options) }
     }
 

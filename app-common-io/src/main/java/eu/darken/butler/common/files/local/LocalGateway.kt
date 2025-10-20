@@ -31,7 +31,6 @@ import eu.darken.butler.common.root.canUseRootNow
 import eu.darken.butler.common.root.service.runModuleAction
 import eu.darken.butler.common.sharedresource.SharedResource
 import eu.darken.butler.common.sharedresource.keepResourcesAlive
-import eu.darken.butler.common.storage.StorageEnvironment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -233,7 +232,7 @@ class LocalGateway @Inject constructor(
 
     override suspend fun lookup(path: LocalPath, options: LookupOptions): LocalPathLookup = lookup(path, options, Mode.AUTO)
 
-    suspend fun lookup(path: LocalPath, options: LookupOptions = LookupOptions.BASIC, mode: Mode = Mode.AUTO): LocalPathLookup = executeWithModeSelection(
+    suspend fun lookup(path: LocalPath, options: LookupOptions = LookupOptions(), mode: Mode = Mode.AUTO): LocalPathLookup = executeWithModeSelection(
         mode = mode,
         operation = "lookup",
         path = path,
@@ -260,7 +259,7 @@ class LocalGateway @Inject constructor(
 
     override suspend fun lookupFiles(path: LocalPath, options: LookupOptions): List<LocalPathLookup> = lookupFiles(path, options, Mode.AUTO)
 
-    suspend fun lookupFiles(path: LocalPath, options: LookupOptions = LookupOptions.BASIC, mode: Mode = Mode.AUTO): List<LocalPathLookup> = executeWithModeSelection(
+    suspend fun lookupFiles(path: LocalPath, options: LookupOptions = LookupOptions(), mode: Mode = Mode.AUTO): List<LocalPathLookup> = executeWithModeSelection(
         mode = mode,
         operation = "lookupFiles",
         path = path,

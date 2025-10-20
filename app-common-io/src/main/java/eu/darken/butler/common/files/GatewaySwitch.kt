@@ -7,7 +7,6 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
@@ -103,7 +102,7 @@ class GatewaySwitch @Inject constructor(
         return lookup(path, options, Type.CURRENT)
     }
 
-    suspend fun lookup(path: APath<*>, options: LookupOptions = LookupOptions.BASIC, type: Type): APathLookup<APath<*>> {
+    suspend fun lookup(path: APath<*>, options: LookupOptions = LookupOptions(), type: Type): APathLookup<APath<*>> {
         val mapped = path.toTargetType(type)
         return try {
             useGateway(mapped) { lookup(path, options) }
@@ -125,7 +124,7 @@ class GatewaySwitch @Inject constructor(
         return lookupFiles(path, options, Type.CURRENT)
     }
 
-    suspend fun lookupFiles(path: APath<*>, options: LookupOptions = LookupOptions.BASIC, type: Type): List<APathLookup<APath<*>>> {
+    suspend fun lookupFiles(path: APath<*>, options: LookupOptions = LookupOptions(), type: Type): List<APathLookup<APath<*>>> {
         val mapped = path.toTargetType(type)
         return try {
             useGateway(mapped) { lookupFiles(path, options) }

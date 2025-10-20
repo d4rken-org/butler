@@ -46,7 +46,7 @@ class FileOpsClient @AssistedInject constructor(
     }
 
     override suspend fun lookup(path: LocalPath, options: LookupOptions): LocalPathLookup = try {
-        fileOpsConnection.lookup(path, options.fetchOwnership, options.fetchPermissions, options.fetchCreatedAt).also {
+        fileOpsConnection.lookup(path, options).also {
             if (Bugs.isTrace) log(TAG, VERBOSE) { "lookup($path, $options): $it" }
         }
     } catch (e: Exception) {
@@ -57,7 +57,7 @@ class FileOpsClient @AssistedInject constructor(
      * Doesn't run into IPC buffer overflows on large directories
      */
     override suspend fun lookupFiles(path: LocalPath, options: LookupOptions): List<LocalPathLookup> = try {
-        fileOpsConnection.lookupFilesStream(path, options.fetchOwnership, options.fetchPermissions, options.fetchCreatedAt).toLocalPathLookups().also {
+        fileOpsConnection.lookupFilesStream(path, options).toLocalPathLookups().also {
             if (Bugs.isTrace) log(TAG, VERBOSE) { "lookupFiles($path, $options) finished streaming, ${it.size} items" }
         }
     } catch (e: Exception) {

@@ -178,7 +178,7 @@ class SAFFileSystemOps @Inject constructor(
             val now = Clock.System.now()
 
             // Check lookup cache first (only for basic lookups to avoid caching stale extended data)
-            if (options == LookupOptions.BASIC) {
+            if (options == LookupOptions()) {
                 val cached = lookupCache[path]
                 if (cached != null) {
                     val age = now - cached.cachedAt
@@ -196,7 +196,7 @@ class SAFFileSystemOps @Inject constructor(
             val lookup = path.resolveDocFile().performLookup(path, options)
 
             // Cache only basic lookups
-            if (options == LookupOptions.BASIC) {
+            if (options == LookupOptions()) {
                 lookupCache[path] = LookupCacheEntry(lookup, now)
             }
 
@@ -396,7 +396,7 @@ class SAFFileSystemOps @Inject constructor(
         docFileCache[parentPath] = CacheEntry(newParentDocFile, now)
 
         // Also cache lookup data (basic only for newly created directory)
-        val lookup = newParentDocFile.performLookup(parentPath, LookupOptions.BASIC)
+        val lookup = newParentDocFile.performLookup(parentPath, LookupOptions())
         lookupCache[parentPath] = LookupCacheEntry(lookup, now)
     }
 

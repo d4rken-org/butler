@@ -4,6 +4,7 @@ import eu.darken.butler.common.ipc.RemoteFileHandle;
 import eu.darken.butler.common.ipc.RemoteInputStream;
 import eu.darken.butler.common.ipc.RemoteOutputStream;
 import eu.darken.butler.common.files.LocalPath;
+import eu.darken.butler.common.files.LookupOptions;
 import eu.darken.butler.common.files.local.LocalPathLookup;
 import eu.darken.butler.common.files.metadata.Ownership;
 import eu.darken.butler.common.files.metadata.Permissions;
@@ -26,8 +27,8 @@ interface FileOpsConnection {
 
     RemoteInputStream listFilesStream(in LocalPath path);
 
-    LocalPathLookup lookup(in LocalPath path, boolean fetchOwnership, boolean fetchPermissions, boolean fetchCreatedAt);
-    RemoteInputStream lookupFilesStream(in LocalPath path, boolean fetchOwnership, boolean fetchPermissions, boolean fetchCreatedAt);
+    LocalPathLookup lookup(in LocalPath path, in LookupOptions options);
+    RemoteInputStream lookupFilesStream(in LocalPath path, in LookupOptions options);
 
     RemoteInputStream walkStream(in LocalPath path, in List<String> pathDoesNotContain);
 
