@@ -1,5 +1,8 @@
 package eu.darken.butler.common.files.local.operations.core
 
+import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -33,6 +36,14 @@ class PathOperationProgressTracker(
 
     // Progress throttling
     private var lastProgressTime: Instant? = null
+
+    // Performance tracking
+    var performanceHistory = PerformanceHistory()
+        private set
+
+    private var lastSampleTime: Instant? = null
+    private var lastSampleBytes = 0L
+    private var lastSampleItems = 0
 
     /**
      * Starts tracking a new file.
@@ -100,6 +111,10 @@ class PathOperationProgressTracker(
         currentFileBytes = 0L
         currentFileStartTime = null
         lastProgressTime = null
+        performanceHistory = PerformanceHistory()
+        lastSampleTime = null
+        lastSampleBytes = 0L
+        lastSampleItems = 0
     }
 
     /**
@@ -110,7 +125,10 @@ class PathOperationProgressTracker(
      */
     fun shouldReportProgress(force: Boolean = false): Boolean {
         if (force) {
-            lastProgressTime = Clock.System.now()
+            val now = Clock.System.now()
+            recordPerformanceSample(now)
+            log(TAG, DEBUG) { "Progress report (forced). Samples: ${performanceHistory.samples.size}" }
+            lastProgressTime = now
             return true
         }
 
@@ -118,11 +136,52 @@ class PathOperationProgressTracker(
         val lastTime = lastProgressTime
 
         return if (lastTime == null || (now - lastTime) >= progressReportInterval) {
+            recordPerformanceSample(now)
+            log(TAG, DEBUG) { "Progress report. Samples: ${performanceHistory.samples.size}" }
             lastProgressTime = now
             true
         } else {
             false
         }
+    }
+
+    companion object {
+        private val TAG = logTag("ProgressTracker")
+    }
+
+    /**
+     * Records a performance sample based on progress since last sample.
+     */
+    private fun recordPerformanceSample(now: Instant) {
+        val lastTime = lastSampleTime
+        val lastBytes = lastSampleBytes
+        val lastItems = lastSampleItems
+
+        if (lastTime != null) {
+            val timeDelta = (now - lastTime).inWholeMilliseconds / 1000.0
+
+            if (timeDelta > 0) {
+                val bytesDelta = processedBytes - lastBytes
+                val itemsDelta = itemsProcessed - lastItems
+
+                val bytesPerSecond = (bytesDelta / timeDelta).toLong()
+                val itemsPerSecond = (itemsDelta / timeDelta).toFloat()
+
+                val sample = PerformanceSample(
+                    timestamp = now,
+                    bytesPerSecond = bytesPerSecond,
+                    itemsPerSecond = itemsPerSecond,
+                    totalBytesProcessed = processedBytes,
+                    totalItemsProcessed = itemsProcessed,
+                )
+
+                performanceHistory = performanceHistory.addSample(sample, totalBytes = this.totalBytes)
+            }
+        }
+
+        lastSampleTime = now
+        lastSampleBytes = processedBytes
+        lastSampleItems = itemsProcessed
     }
 
     /**

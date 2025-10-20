@@ -54,4 +54,7 @@ dependencies {
     addSerialization()
     addIO()
     addTesting()
+
+    // Performance graphs
+    implementation("com.patrykandpatrick.vico:compose-m3:2.2.0")
 }

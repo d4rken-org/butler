@@ -140,6 +140,11 @@ private fun OperationDetailsContent(
                 )
             }
 
+            // Performance Graph Section
+            OperationPerformanceGraphSection(
+                operation = operation
+            )
+
             // Error Section (for failed operations)
             if (operation.state is OperationDisplay.State.Failed) {
                 OperationErrorSection(
@@ -674,6 +679,91 @@ private fun OperationOverviewSection(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 2.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OperationPerformanceGraphSection(
+    operation: OperationDisplay,
+) {
+    // Extract performance history from the operation state
+    val performanceHistory = when (val state = operation.state) {
+        is OperationDisplay.State.Running -> {
+            state.primaryProgress.extra as? eu.darken.butler.common.files.local.operations.core.PerformanceHistory
+        }
+        is OperationDisplay.State.Completed -> {
+            // For completed operations, try to get from the report if available
+            null // TODO: Preserve performance data in completed state
+        }
+        else -> null
+    }
+
+    // Return early if no data
+    if (performanceHistory == null || performanceHistory.totalBytes <= 0L) return
+
+    // Only show if we have sufficient samples
+    if (performanceHistory.samples.size < 10) return
+
+    var isExpanded by remember { mutableStateOf(false) }
+
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Clickable section title with expand/collapse
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { isExpanded = !isExpanded }
+                    .padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.workspace_operations_performance_graph_label),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontFamily = FontFamily.Monospace,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
+                Icon(
+                    imageVector = if (isExpanded) {
+                        Icons.TwoTone.ExpandLess
+                    } else {
+                        Icons.TwoTone.ExpandMore
+                    },
+                    contentDescription = if (isExpanded) {
+                        "Collapse performance graph"
+                    } else {
+                        "Expand performance graph"
+                    },
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            HorizontalDivider(
+                thickness = 0.5.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+            )
+
+            // Graph content
+            AnimatedVisibility(visible = isExpanded) {
+                Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                    OperationPerformanceGraph(
+                        modifier = Modifier.fillMaxWidth(),
+                        performanceHistory = performanceHistory,
                     )
                 }
             }

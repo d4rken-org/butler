@@ -331,7 +331,8 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>, PLE : APathL
                     count = eu.darken.butler.common.progress.Progress.Count.Counter(
                         current = snapshot.itemsProcessed,
                         max = snapshot.totalItems
-                    )
+                    ),
+                    extra = progressTracker.performanceHistory
                 ),
                 secondaryProgress = eu.darken.butler.common.progress.Progress.Data(
                     primary = lookup.lookedUp.name.toCaString(),

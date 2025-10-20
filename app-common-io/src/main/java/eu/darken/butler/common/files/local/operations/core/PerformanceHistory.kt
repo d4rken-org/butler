@@ -1,5 +1,9 @@
 package eu.darken.butler.common.files.local.operations.core
 
+import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
+import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.serialization.InstantSerializer
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration
@@ -32,23 +36,28 @@ data class PerformanceHistory(
     val samples: List<PerformanceSample> = emptyList(),
     @Serializable(with = InstantSerializer::class)
     val startTime: Instant? = null,
+    val totalBytes: Long = 0L,
 ) {
     /**
      * Add a new sample with adaptive downsampling for old data.
      */
-    fun addSample(sample: PerformanceSample): PerformanceHistory {
+    fun addSample(sample: PerformanceSample, totalBytes: Long = 0L): PerformanceHistory {
+        log(TAG, DEBUG) { "Adding sample. Current: ${samples.size} → New: ${samples.size + 1}, Speed: ${sample.bytesPerSecond / 1_000_000f} MB/s" }
+
         val updatedSamples = (samples + sample).let { allSamples ->
             if (allSamples.size <= MAX_SAMPLES) {
                 allSamples
             } else {
                 // Apply adaptive sampling: keep recent, downsample old
+                log(TAG, DEBUG) { "Applying adaptive sampling" }
                 adaptiveSample(allSamples)
             }
         }
 
         return copy(
             samples = updatedSamples,
-            startTime = startTime ?: sample.timestamp
+            startTime = startTime ?: sample.timestamp,
+            totalBytes = if (this.totalBytes == 0L) totalBytes else this.totalBytes
         )
     }
 
@@ -91,5 +100,6 @@ data class PerformanceHistory(
 
     companion object {
         private const val MAX_SAMPLES = 1000
+        private val TAG = logTag("PerformanceHistory")
     }
 }

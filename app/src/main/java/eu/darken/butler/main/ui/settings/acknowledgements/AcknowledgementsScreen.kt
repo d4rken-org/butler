@@ -249,6 +249,15 @@ fun AcknowledgementsScreen(
                     subtitle = stringResource(R.string.acknowledgement_semver_subtitle),
                     onClick = { onOpenUrl("https://github.com/z4kn4fein/kotlin-semver") }
                 )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
+                    title = stringResource(R.string.acknowledgement_vico_title),
+                    subtitle = stringResource(R.string.acknowledgement_vico_subtitle),
+                    onClick = { onOpenUrl("https://github.com/patrykandpatrick/vico") }
+                )
             }
         }
     }
