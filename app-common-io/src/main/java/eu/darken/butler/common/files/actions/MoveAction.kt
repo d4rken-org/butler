@@ -44,7 +44,7 @@ interface MoveAction<
                 SP : APath<SP>, SPL : APathLookup<SP>, // Source types
                 DP : APath<DP>, DPL : APathLookup<DP>, // Destination types
                 >(
-            val movedFiles: Set<Pair<SPL, DPL>>,
+            val movedFiles: Set<Pair<SPL, APathLookup<DP>>>,
             val skippedFiles: Set<SPL> = emptySet(),
             val bytesMoved: Long,
         ) : State<SP, SPL, DP, DPL>

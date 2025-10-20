@@ -45,7 +45,7 @@ interface CopyAction<
                 SP : APath<SP>, SPL : APathLookup<SP>, // Source types
                 DP : APath<DP>, DPL : APathLookup<DP>, // Destination types
                 >(
-            val copied: Set<Pair<SPL, DPL>>,
+            val copied: Set<Pair<SPL, APathLookup<DP>>>,
             val skipped: Set<SPL> = emptySet(),
             val copiedBytes: Long,
         ) : State<SP, SPL, DP, DPL>

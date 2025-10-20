@@ -66,7 +66,7 @@ internal class GenericPathMove<
     private val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
 ) {
 
-    private val moved = linkedSetOf<Pair<SPL, DPL>>()
+    private val moved = linkedSetOf<Pair<SPL, APathLookup<DP>>>()
     private val skipped = linkedSetOf<SPL>()
     private var totalBytesTransferred = 0L
 
@@ -332,8 +332,7 @@ internal class GenericPathMove<
             when (result) {
                 is TransferStrategy.TransferResult.Success -> {
                     // Use destinationLookup from result if available, otherwise lookup
-                    @Suppress("UNCHECKED_CAST")
-                    val destLookup = result.destinationLookup as? DPL
+                    val destLookup = result.destinationLookup
                         ?: destOps.lookup(result.destination, LookupOptions.BASE)
                     moved.add(item.sourceLookup to destLookup)
                     totalBytesTransferred += result.bytesTransferred
@@ -389,8 +388,7 @@ internal class GenericPathMove<
             when (result) {
                 is TransferStrategy.TransferResult.Success -> {
                     // Use destinationLookup from result if available, otherwise lookup
-                    @Suppress("UNCHECKED_CAST")
-                    val destLookup = result.destinationLookup as? DPL
+                    val destLookup = result.destinationLookup
                         ?: destOps.lookup(result.destination, LookupOptions.BASE)
                     moved.add(item.sourceLookup to destLookup)
                     totalBytesTransferred += result.bytesTransferred

@@ -88,6 +88,13 @@ interface TransferStrategy<
      * Result of a transfer operation.
      *
      * Supports both same-type (SP=DP) and cross-type (SP≠DP) transfers.
+     *
+     * Note: Limited to 2 type parameters due to KAPT limitations with >2 generics.
+     * The destinationLookup uses the base APathLookup<DP> type instead of a specific
+     * lookup type parameter (DPL) to work around this limitation.
+     *
+     * @param SP Source path type
+     * @param DP Destination path type
      */
     sealed class TransferResult<SP : APath<SP>, DP : APath<DP>> {
         /**
@@ -96,14 +103,13 @@ interface TransferStrategy<
          * @param source The source path
          * @param destination The actual destination path (may differ from requested if renamed)
          * @param bytesTransferred Number of bytes transferred
-         * @param destinationLookup Optional lookup of created destination (avoids redundant stat).
-         *                          Should be of type DPL (APathLookup<DP>) when present.
+         * @param destinationLookup Optional lookup of created destination (avoids redundant stat)
          */
         data class Success<SP : APath<SP>, DP : APath<DP>>(
             val source: SP,
             val destination: DP,
             val bytesTransferred: Long,
-            val destinationLookup: Any? = null
+            val destinationLookup: APathLookup<DP>? = null
         ) : TransferResult<SP, DP>()
 
         /**
