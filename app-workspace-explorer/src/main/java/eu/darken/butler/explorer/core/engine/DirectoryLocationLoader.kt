@@ -123,7 +123,12 @@ class DirectoryLocationLoader @AssistedInject constructor(
         log(tag) { "loadPeek(): Peeked ${items.size} items" }
 
         updateState {
-            copy(items = items)
+            copy(
+                info = info?.copy(
+                    fileCount = items.size,
+                ),
+                items = items
+            )
         }
     }
 
@@ -194,12 +199,13 @@ class DirectoryLocationLoader @AssistedInject constructor(
                 fetchPermissions = true
             ),
         ).associateBy { it.path }
-        val fileClassifier = FileTypeClassifier()
 
         val items = state.items!!.map { item ->
+            if (item !is ExplorerItem.Lookup) return@map item
+
             val extendedLookup = extendedLookups[item.path.path] ?: return@map item
 
-            fileClassifier.classify(extendedLookup).withExtendedData(
+            item.withExtendedData(
                 ownership = extendedLookup.ownership,
                 permissions = extendedLookup.permissions,
                 createdAt = extendedLookup.createdAt,
