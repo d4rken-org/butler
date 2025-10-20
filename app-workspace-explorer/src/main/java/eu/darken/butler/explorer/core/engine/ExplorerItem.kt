@@ -27,12 +27,16 @@ sealed interface ExplorerItem {
     sealed interface Storage : ExplorerItem {
         val displayIcon: ImageVector
         val target: ExplorerNavigation.Target.Directory
+        val totalBytes: Long?
+        val availableBytes: Long?
 
         data class Local(
             val localId: String,
             override val displayName: CaString,
             override val displayIcon: ImageVector,
             override val target: ExplorerNavigation.Target.Directory,
+            override val totalBytes: Long? = null,
+            override val availableBytes: Long? = null,
         ) : Storage {
             override val id: String get() = "local-$localId"
         }
@@ -42,6 +46,8 @@ sealed interface ExplorerItem {
             override val displayName: CaString,
             override val displayIcon: ImageVector,
             override val target: ExplorerNavigation.Target.Directory,
+            override val totalBytes: Long? = null,
+            override val availableBytes: Long? = null,
         ) : Storage {
             override val id: String get() = "saf-${location.id}"
         }

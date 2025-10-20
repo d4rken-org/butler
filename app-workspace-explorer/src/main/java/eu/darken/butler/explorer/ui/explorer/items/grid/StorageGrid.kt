@@ -91,7 +91,19 @@ fun StorageGrid(
             )
         },
         primaryText = item.displayName.get(LocalContext.current),
-        secondaryText = null,
+        secondaryText = run {
+            val totalBytes = item.totalBytes
+            val availableBytes = item.availableBytes
+            when {
+                totalBytes != null && availableBytes != null -> {
+                    val context = LocalContext.current
+                    val total = eu.darken.butler.common.formatFileSize(context, totalBytes, shortFormat = true)
+                    val free = eu.darken.butler.common.formatFileSize(context, availableBytes, shortFormat = true)
+                    "$total • $free free"
+                }
+                else -> null
+            }
+        },
         backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
         trailingContent = if (item is ExplorerItem.Storage.SAF) {
             { PermissionIndicator(item.location) }
