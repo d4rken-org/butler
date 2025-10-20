@@ -1,15 +1,12 @@
 package eu.darken.butler.explorer.ui.explorer.items.row
 
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Folder
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -34,10 +31,9 @@ internal fun DirectoryRow(
         showSelection = showSelection,
         modifier = modifier,
         leadingContent = {
-            Icon(
-                imageVector = Icons.TwoTone.Folder,
+            AsyncImage(
+                model = item.lookup,
                 contentDescription = stringResource(R.string.explorer_file_folder_content_desc),
-                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp)
             )
         },

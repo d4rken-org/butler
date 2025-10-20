@@ -1,15 +1,12 @@
 package eu.darken.butler.explorer.ui.explorer.items.row
 
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.twotone.InsertDriveFile
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.explorer.R
@@ -35,10 +32,9 @@ internal fun RegularFileRow(
         showSelection = showSelection,
         modifier = modifier,
         leadingContent = {
-            Icon(
-                imageVector = Icons.AutoMirrored.TwoTone.InsertDriveFile,
+            AsyncImage(
+                model = item.lookup,
                 contentDescription = stringResource(R.string.explorer_file_regular_content_desc),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(32.dp)
             )
         },
