@@ -96,7 +96,8 @@ class SAFPathMoveStrategy : TransferStrategy<
             return TransferStrategy.TransferResult.Success(
                 source = sourceLookup.lookedUp,
                 destination = copyResult.destination,
-                bytesTransferred = copyResult.bytesTransferred
+                bytesTransferred = copyResult.bytesTransferred,
+                destinationLookup = copyResult.destinationLookup
             )
         } else {
             return copyResult

@@ -88,15 +88,19 @@ class GenericCrossTypeCopyStrategy<
             }
         }
 
-        // Copy attributes (best-effort, limited by what both support)
-        if (options.preserveAttributes) {
+        // Copy attributes (best-effort, limited by what both support) and capture lookup
+        val destLookup = if (options.preserveAttributes) {
             copyCompatibleAttributes(sourceLookup.lookedUp, destination, sourceOps, destOps)
+        } else {
+            // Lookup created destination to avoid redundant stat in caller
+            destOps.lookup(destination, LookupOptions.BASE)
         }
 
         return TransferStrategy.TransferResult.Success(
             source = sourceLookup.lookedUp,
             destination = destination,
-            bytesTransferred = totalBytesTransferred
+            bytesTransferred = totalBytesTransferred,
+            destinationLookup = destLookup
         )
     }
 
@@ -112,15 +116,19 @@ class GenericCrossTypeCopyStrategy<
         // Create directory at destination (parent exists from depth-first traversal)
         destOps.createDir(destination)
 
-        // Copy attributes if requested
-        if (options.preserveAttributes) {
+        // Copy attributes if requested and capture lookup
+        val destLookup = if (options.preserveAttributes) {
             copyCompatibleAttributes(sourceLookup.lookedUp, destination, sourceOps, destOps)
+        } else {
+            // Lookup created destination to avoid redundant stat in caller
+            destOps.lookup(destination, LookupOptions.BASE)
         }
 
         return TransferStrategy.TransferResult.Success(
             source = sourceLookup.lookedUp,
             destination = destination,
-            bytesTransferred = 0L
+            bytesTransferred = 0L,
+            destinationLookup = destLookup
         )
     }
 
@@ -141,13 +149,15 @@ class GenericCrossTypeCopyStrategy<
      * | Ownership | ✅ | ❌ | ✅ | ✅ |
      *
      * Modified time is the most portable and is attempted for all combinations.
+     *
+     * @return Lookup of destination with MAX options (avoids redundant stat in caller)
      */
     private suspend fun copyCompatibleAttributes(
         source: SP,
         destination: DP,
         sourceOps: FileSystemOps<SP, SPL>,
         destOps: FileSystemOps<DP, DPL>
-    ) {
+    ): APathLookup<DP> {
         try {
             val sourceExtended = sourceOps.lookup(source, LookupOptions.MAX)
 
@@ -180,6 +190,9 @@ class GenericCrossTypeCopyStrategy<
             log(TAG, WARN) { "Failed to copy attributes: $e" }
             // Don't fail the operation - attribute copying is best-effort
         }
+
+        // Lookup destination to return (and avoid redundant stat in caller)
+        return destOps.lookup(destination, LookupOptions.MAX)
     }
 
     companion object {

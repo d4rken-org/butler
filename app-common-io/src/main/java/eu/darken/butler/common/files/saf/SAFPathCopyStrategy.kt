@@ -71,16 +71,21 @@ class SAFPathCopyStrategy : TransferStrategy<
         // Create directory (FileSystemOps handles parent creation)
         destOps.createDir(destination)
 
-        // Copy attributes if requested
-        if (options.preserveAttributes) {
-            val destLookup = destOps.lookup(destination, LookupOptions.MAX)
-            copyAttributes(sourceLookup, destLookup, destOps)
+        // Copy attributes if requested and capture lookup
+        val destLookup = if (options.preserveAttributes) {
+            val lookup = destOps.lookup(destination, LookupOptions.MAX)
+            copyAttributes(sourceLookup, lookup, destOps)
+            lookup
+        } else {
+            // Lookup created destination to avoid redundant stat in caller
+            destOps.lookup(destination, LookupOptions.BASE)
         }
 
         return TransferStrategy.TransferResult.Success(
             source = sourceLookup.lookedUp,
             destination = destination,
-            bytesTransferred = 0L
+            bytesTransferred = 0L,
+            destinationLookup = destLookup
         )
     }
 
@@ -116,16 +121,21 @@ class SAFPathCopyStrategy : TransferStrategy<
             }
         }
 
-        // Copy file attributes if requested
-        if (options.preserveAttributes) {
-            val destLookup = fileSystemOps.lookup(destination, LookupOptions.MAX)
-            copyAttributes(sourceLookup, destLookup, fileSystemOps)
+        // Copy file attributes if requested and capture lookup
+        val destLookup = if (options.preserveAttributes) {
+            val lookup = fileSystemOps.lookup(destination, LookupOptions.MAX)
+            copyAttributes(sourceLookup, lookup, fileSystemOps)
+            lookup
+        } else {
+            // Lookup created destination to avoid redundant stat in caller
+            fileSystemOps.lookup(destination, LookupOptions.BASE)
         }
 
         return TransferStrategy.TransferResult.Success(
             source = sourceLookup.lookedUp,
             destination = destination,
-            bytesTransferred = totalBytesTransferred
+            bytesTransferred = totalBytesTransferred,
+            destinationLookup = destLookup
         )
     }
 

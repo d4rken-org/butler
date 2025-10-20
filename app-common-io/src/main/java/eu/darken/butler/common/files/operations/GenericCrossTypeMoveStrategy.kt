@@ -97,7 +97,8 @@ class GenericCrossTypeMoveStrategy<
             return TransferStrategy.TransferResult.Success(
                 source = sourceLookup.lookedUp,
                 destination = copyResult.destination,
-                bytesTransferred = copyResult.bytesTransferred
+                bytesTransferred = copyResult.bytesTransferred,
+                destinationLookup = copyResult.destinationLookup
             )
         } else {
             // Copy failed or was skipped - return the result without attempting delete
