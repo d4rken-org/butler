@@ -1101,6 +1101,88 @@ class GenericPathCopyTest : BaseTest() {
         }
     }
 
+    // ============ PROGRESS COUNTER TESTS ============
+
+    @Test
+    fun `copy multiple files increments items processed counter correctly`() = runTest {
+        // Given - 5 files to copy
+        mockOps.addMockFile("/source/file1.txt", "content1".toByteArray())
+        mockOps.addMockFile("/source/file2.txt", "content2".toByteArray())
+        mockOps.addMockFile("/source/file3.txt", "content3".toByteArray())
+        mockOps.addMockFile("/source/file4.txt", "content4".toByteArray())
+        mockOps.addMockFile("/source/file5.txt", "content5".toByteArray())
+        mockOps.addMockDir("/dest")
+
+        val sources = setOf(
+            LocalPath.build("/source/file1.txt"),
+            LocalPath.build("/source/file2.txt"),
+            LocalPath.build("/source/file3.txt"),
+            LocalPath.build("/source/file4.txt"),
+            LocalPath.build("/source/file5.txt")
+        )
+
+        val progressUpdates = mutableListOf<CopyAction.State.Progress<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
+
+        // When - copy files and collect progress
+        sources.copyGeneric(
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onIssue = null
+        ).onEach { state ->
+            if (state is CopyAction.State.Progress) {
+                progressUpdates.add(state)
+            }
+        }.last()
+
+        // Then - verify counter increments: 1/5 → 2/5 → 3/5 → 4/5 → 5/5
+        // (Progress is only reported after items complete, so starts at 1, not 0)
+        val counters = progressUpdates
+            .mapNotNull { it.primaryProgress.count as? eu.darken.butler.common.progress.Progress.Count.Counter }
+            .filter { it.max == 5L }
+
+        // Should see progression from 1 to 5 (all items processed)
+        counters.size shouldNotBe 0
+        val progressionSeen = counters.map { it.current }.distinct().sorted()
+        progressionSeen shouldBe listOf(1L, 2L, 3L, 4L, 5L)
+
+        // Final counter should be 5/5
+        counters.last().current shouldBe 5L
+        counters.last().max shouldBe 5L
+    }
+
+    @Test
+    fun `copy directory with files increments counter for both dirs and files`() = runTest {
+        // Given - 1 directory + 2 files = 3 items total
+        mockOps.addMockDir("/source/folder")
+        mockOps.addMockFile("/source/folder/file1.txt", "content1".toByteArray())
+        mockOps.addMockFile("/source/folder/file2.txt", "content2".toByteArray())
+        mockOps.addMockDir("/dest")
+
+        val progressUpdates = mutableListOf<CopyAction.State.Progress<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
+
+        // When
+        setOf(LocalPath.build("/source/folder")).copyGeneric(
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onIssue = null
+        ).onEach { state ->
+            if (state is CopyAction.State.Progress) progressUpdates.add(state)
+        }.last()
+
+        // Then - verify counter increments for all 3 items
+        val counters = progressUpdates
+            .mapNotNull { it.primaryProgress.count as? eu.darken.butler.common.progress.Progress.Count.Counter }
+            .filter { it.max == 3L }
+
+        counters.size shouldNotBe 0
+        counters.last().current shouldBe 3L
+        counters.last().max shouldBe 3L
+    }
+
     // ============ NULLABLE FIELDS TESTS ============
 
     @Test

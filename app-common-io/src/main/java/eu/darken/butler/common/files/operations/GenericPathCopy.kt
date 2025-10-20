@@ -374,6 +374,7 @@ internal class GenericPathCopy<
                     copied.add(item.sourceLookup to destLookup)
                     totalBytesTransferred += result.bytesTransferred
                     progressTracker.completeFile()
+                    progressTracker.completeItem()
                 }
 
                 is TransferStrategy.TransferResult.Skipped -> {
