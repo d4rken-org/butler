@@ -8,20 +8,17 @@ import eu.darken.butler.common.files.metadata.FileType
 import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.collections.shouldContain
 import kotlinx.coroutines.flow.last
-import testhelpers.firstPath
-import testhelpers.shouldBePaths
-import testhelpers.shouldContainPath
-import testhelpers.shouldNotBePaths
-import testhelpers.toPaths
-import testhelpers.toPathPairs
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import testhelpers.firstPath
+import testhelpers.shouldBePaths
+import testhelpers.shouldContainPath
+import testhelpers.toPathPairs
 
 /**
  * Tests for GenericPathCopy - the high-level copy orchestrator.
@@ -84,7 +81,7 @@ class GenericPathCopyTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - structure should be preserved WITHOUT duplication
         // Expected: /dest/topfolder/subfolder/file.txt
@@ -124,7 +121,7 @@ class GenericPathCopyTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - all levels preserved correctly
         mockOps.hasFile("/dest/level1") shouldBe true
@@ -157,7 +154,7 @@ class GenericPathCopyTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - all files in correct location
         mockOps.hasFile("/dest/folder") shouldBe true
@@ -188,7 +185,7 @@ class GenericPathCopyTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - file copied to dest root
         mockOps.hasFile("/dest/rootfile.txt") shouldBe true
@@ -218,7 +215,7 @@ class GenericPathCopyTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - entire structure preserved
         mockOps.hasFile("/dest/root") shouldBe true
@@ -253,7 +250,7 @@ class GenericPathCopyTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - destination IS the final path (rename semantics)
         mockOps.hasFile("/dest/renamed.txt") shouldBe true
@@ -285,7 +282,7 @@ class GenericPathCopyTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - file copied INTO the directory (appends source name)
         mockOps.hasFile("/dest/file.txt") shouldBe true
@@ -315,7 +312,7 @@ class GenericPathCopyTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - destination IS the final path (directory rename)
         mockOps.hasFile("/dest/renameddir") shouldBe true
@@ -349,7 +346,7 @@ class GenericPathCopyTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - both files copied INTO destination directory (names appended)
         mockOps.hasFile("/dest/file1.txt") shouldBe true
@@ -372,7 +369,8 @@ class GenericPathCopyTest : BaseTest() {
         val sourcePath = LocalPath.build("/source/folder")
         val destPath = LocalPath.build("/dest")
 
-        val progressUpdates = mutableListOf<CopyAction.State.Progress<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>>()
+        val progressUpdates =
+            mutableListOf<CopyAction.State.Active<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
 
         // When
         setOf(sourcePath).copyGeneric(
@@ -382,7 +380,7 @@ class GenericPathCopyTest : BaseTest() {
             strategy = strategy,
             onIssue = null
         ).onEach { state ->
-            if (state is CopyAction.State.Progress) progressUpdates.add(state)
+            if (state is CopyAction.State.Active) progressUpdates.add(state)
         }.last()
 
         // Then - should receive progress updates
@@ -408,7 +406,7 @@ class GenericPathCopyTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - result should contain all copied items
         result.copied.size shouldBe 2 // folder + file
@@ -454,7 +452,7 @@ class GenericPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - old file unchanged, new file created with renamed name
         mockOps.hasFile("/dest/file.txt") shouldBe true
@@ -492,7 +490,7 @@ class GenericPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - old directory unchanged, new directory created with renamed name
         mockOps.hasFile("/dest/folder/old.txt") shouldBe true
@@ -528,7 +526,7 @@ class GenericPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - destination file unchanged
         mockOps.hasFile("/dest/file.txt") shouldBe true
@@ -563,7 +561,7 @@ class GenericPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - destination file replaced with new content
         mockOps.hasFile("/dest/file.txt") shouldBe true
@@ -599,7 +597,7 @@ class GenericPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - both files exist in merged directory
         mockOps.hasFile("/dest/folder") shouldBe true
@@ -637,7 +635,7 @@ class GenericPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - file deleted and replaced with directory
         mockOps.hasFile("/dest/item") shouldBe true
@@ -668,7 +666,7 @@ class GenericPathCopyTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null  // No handler - should auto-merge
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - directories merged (both files exist)
         mockOps.hasFile("/dest/folder") shouldBe true
@@ -709,7 +707,7 @@ class GenericPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - both files exist in merged directory
         mockOps.hasFile("/dest/project") shouldBe true
@@ -748,7 +746,7 @@ class GenericPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - all children copied to renamed parent
         mockOps.hasFile("/dest/Parent/existing.txt") shouldBe true
@@ -796,7 +794,7 @@ class GenericPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - file copied successfully after retry
         mockOps.hasFile("/dest/file.txt") shouldBe true
@@ -848,7 +846,7 @@ class GenericPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - file skipped after max retries
         // Note: partial file may or may not exist depending on when failures occurred
@@ -870,7 +868,8 @@ class GenericPathCopyTest : BaseTest() {
         val sourcePath = LocalPath.build("/source/file.txt")
         val destPath = LocalPath.build("/dest")
 
-        val progressUpdates = mutableListOf<CopyAction.State.Progress<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>>()
+        val progressUpdates =
+            mutableListOf<CopyAction.State.Active<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
 
         // When - copy with progress tracking
         setOf(sourcePath).copyGeneric(
@@ -889,7 +888,7 @@ class GenericPathCopyTest : BaseTest() {
                 }
             }
         ).onEach { state ->
-            if (state is CopyAction.State.Progress) progressUpdates.add(state)
+            if (state is CopyAction.State.Active) progressUpdates.add(state)
         }.last()
 
         // Then - progress never goes backwards
@@ -929,7 +928,7 @@ class GenericPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - both directory and file copied
         mockOps.hasFile("/dest/folder") shouldBe true
@@ -968,7 +967,7 @@ class GenericPathCopyTest : BaseTest() {
                     else -> TODO("Unexpected issue type: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - directory should be ONLY in skipped, NOT in copied
         result.copied.toPathPairs().map { it.first } shouldNotBe setOf(LocalPath.build("/source/parent"))
@@ -1015,7 +1014,7 @@ class GenericPathCopyTest : BaseTest() {
                     else -> TODO("Unexpected issue type: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup,LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - directory and children successfully copied after retry
         retryInvoked shouldBe true
@@ -1040,7 +1039,8 @@ class GenericPathCopyTest : BaseTest() {
         val sourcePath = LocalPath.build("/source")
         val destPath = LocalPath.build("/dest")
 
-        val progressUpdates = mutableListOf<CopyAction.State.Progress<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
+        val progressUpdates =
+            mutableListOf<CopyAction.State.Active<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
 
         // When - copy files and collect progress updates
         val result = setOf(sourcePath).copyGeneric(
@@ -1050,10 +1050,10 @@ class GenericPathCopyTest : BaseTest() {
             strategy = strategy,
             onIssue = null
         ).onEach { state ->
-            if (state is CopyAction.State.Progress) {
+            if (state is CopyAction.State.Active) {
                 progressUpdates.add(state)
             }
-        }.last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        }.last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - operation succeeded
         result.copied.size shouldBe 4  // source dir + 3 files
@@ -1208,7 +1208,7 @@ class GenericPathCopyTest : BaseTest() {
             destination = destPath,
             strategy = strategy,
             onIssue = null
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - all files copied successfully despite null metadata
         mockOps.hasFile("/dest/source") shouldBe true

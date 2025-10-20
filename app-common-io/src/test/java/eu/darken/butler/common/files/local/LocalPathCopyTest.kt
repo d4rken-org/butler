@@ -15,16 +15,14 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.flow.last
-import testhelpers.shouldContainPath
-import testhelpers.shouldBePaths
-import testhelpers.toPaths
-import testhelpers.toPathPairs
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import testhelpers.shouldContainPath
+import testhelpers.toPathPairs
 import java.io.File
 import java.nio.file.Files
 
@@ -64,7 +62,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         val result = sourcePath.copy(ops, destPath)
-            .last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
         result.copied shouldContainPath (sourcePath to LocalPath.build(File(destFolder, "test.txt")))
@@ -84,7 +82,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         val result = sourcePath.copy(ops, destPath)
-            .last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
         result.copied shouldContainPath (sourcePath to LocalPath.build(File(destFolder, "empty")))
@@ -111,7 +109,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         val result = sourcePath.copy(ops, destPath)
-            .last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
         result.copiedBytes shouldBe expectedSize
@@ -144,7 +142,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         val result = sourcePath.copy(ops, destPath)
-            .last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
         // Should have 1 file + 10 directories = 11 items
@@ -174,7 +172,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         val result = sourcePaths.copy(ops, destPath)
-            .last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
         result.copiedBytes shouldBe expectedSize
@@ -203,7 +201,7 @@ class LocalPathCopyTest : BaseTest() {
             if (Files.isSymbolicLink(symlink.toPath())) {
                 // When
                 val result = LocalPath.build(symlink).copy(ops, LocalPath.build(destFolder))
-                    .last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+                    .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
                 // Then
                 File(destFolder, "symlink").exists() shouldBe true
@@ -224,7 +222,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         val result = LocalPath.build(file).copy(ops, LocalPath.build(destFolder))
-            .last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
         result.copiedBytes shouldBe content.length.toLong()
@@ -250,7 +248,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         val result = LocalPath.build(File(sourceFolder, "deep")).copy(ops, LocalPath.build(destFolder))
-            .last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
         result.copiedBytes shouldBe expectedSize
@@ -274,7 +272,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         val result = LocalPath.build(sourceDir).copy(ops, LocalPath.build(destFolder))
-            .last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
         val endTime = System.currentTimeMillis()
 
         // Then
@@ -289,7 +287,7 @@ class LocalPathCopyTest : BaseTest() {
     fun `empty collection should return empty result`() = runTest {
         // When
         val result = emptyList<LocalPath>().copy(ops, LocalPath.build(destFolder))
-            .last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
         result.copied.shouldBeEmpty()
@@ -314,7 +312,7 @@ class LocalPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
         File(destFolder, "duplicate.txt").exists() shouldBe true
@@ -440,7 +438,7 @@ class LocalPathCopyTest : BaseTest() {
             ops,
             LocalPath.build(destFolder),
         ).onEach { state ->
-            if (state is CopyAction.State.Progress) progressCalls.add(state.currentSource)
+            if (state is CopyAction.State.Active) progressCalls.add(state.currentSource)
         }.last()
 
         // Then - should be called for each file
@@ -465,7 +463,7 @@ class LocalPathCopyTest : BaseTest() {
             ops,
             LocalPath.build(destFolder),
         ).onEach { state ->
-            if (state is CopyAction.State.Progress) bytesSeen.add(state.copiedBytes)
+            if (state is CopyAction.State.Active) bytesSeen.add(state.copiedBytes)
         }.last()
 
         // Then - bytes should increase over time
@@ -491,7 +489,7 @@ class LocalPathCopyTest : BaseTest() {
             ops,
             LocalPath.build(destFolder),
         ).onEach { state ->
-            if (state is CopyAction.State.Progress) {
+            if (state is CopyAction.State.Active) {
                 if (state.primaryProgress != null) primarySeen = true
                 if (state.secondaryProgress != null) secondarySeen = true
             }
@@ -516,7 +514,7 @@ class LocalPathCopyTest : BaseTest() {
             ops,
             LocalPath.build(destFolder),
         ).onEach { state ->
-            if (state is CopyAction.State.Progress) {
+            if (state is CopyAction.State.Active) {
                 progressTimestamps.add(System.currentTimeMillis() - startTime)
             }
         }.last()
@@ -547,7 +545,7 @@ class LocalPathCopyTest : BaseTest() {
             ops,
             LocalPath.build(destFolder),
         ).onEach { state ->
-            if (state is CopyAction.State.Progress) progressCallbackCalled = true
+            if (state is CopyAction.State.Active) progressCallbackCalled = true
         }.last()
 
         // Then - should still get at least one callback
@@ -567,7 +565,7 @@ class LocalPathCopyTest : BaseTest() {
             ops,
             LocalPath.build(destFolder),
         ).onEach { state ->
-            if (state is CopyAction.State.Progress) {
+            if (state is CopyAction.State.Active) {
                 progressUpdates.add(state.copiedBytes to state.totalBytes)
             }
         }.last()
@@ -598,7 +596,7 @@ class LocalPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
         destFile.readText() shouldBe "new content"
@@ -623,7 +621,7 @@ class LocalPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
         destFile.readText() shouldBe "old content"
@@ -662,7 +660,7 @@ class LocalPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - only first issue should be handled due to "Apply to All"
         issuesEncountered shouldHaveSize 1
@@ -751,7 +749,7 @@ class LocalPathCopyTest : BaseTest() {
 
             // When - should succeed or handle gracefully
             val result = LocalPath.build(sourceFile).copy(ops, LocalPath.build(destFolder))
-                .last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+                .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
             // Then - should complete without crashing
             result.copiedBytes should { it >= 0 }
@@ -780,7 +778,7 @@ class LocalPathCopyTest : BaseTest() {
                         else -> throw AssertionError("Unexpected issue: $issue")
                     }
                 }
-            ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
             result.copiedBytes should { it >= 0 }
         } catch (e: Exception) {
@@ -854,7 +852,7 @@ class LocalPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Result depends on whether errors actually occurred
         result.copiedBytes should { it >= 0 }
@@ -874,7 +872,7 @@ class LocalPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         result.copiedBytes should { it >= 0 }
     }
@@ -974,7 +972,7 @@ class LocalPathCopyTest : BaseTest() {
                     else -> throw IllegalStateException("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
         issueEncountered shouldBe true
@@ -1008,7 +1006,7 @@ class LocalPathCopyTest : BaseTest() {
                     else -> throw IllegalStateException("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
         issueEncountered shouldBe true
@@ -1089,7 +1087,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         val result = LocalPath.build(sourceFile).copy(ops, LocalPath.build(destFolder))
-            .last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
         result.copiedBytes should { it > 0 }
@@ -1104,7 +1102,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When - no onIssue callback provided
         val result = LocalPath.build(sourceFile).copy(ops, LocalPath.build(destFolder), onIssue = null)
-            .last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - should complete normally
         result.copiedBytes should { it > 0 }
@@ -1124,7 +1122,7 @@ class LocalPathCopyTest : BaseTest() {
         // When
         val result = listOf(LocalPath.build(file1), LocalPath.build(file2))
             .copy(ops, LocalPath.build(destFolder))
-            .last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
         result.copied shouldContainPath (LocalPath.build(file1) to LocalPath.build(File(destFolder, "file1.txt")))
@@ -1149,7 +1147,7 @@ class LocalPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
         result.skipped shouldContainPath LocalPath.build(sourceFile)
@@ -1167,7 +1165,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When
         val result = files.map { LocalPath.build(it) }.copy(ops, LocalPath.build(destFolder))
-            .last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
         result.copiedBytes shouldBe expectedSize
@@ -1285,7 +1283,7 @@ class LocalPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Expected PathAlreadyExists but got: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - issue was raised
         issueReceived shouldNotBe null
@@ -1325,7 +1323,7 @@ class LocalPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Expected PathAlreadyExists but got: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - should raise PathAlreadyExists issue
         issueReceived shouldNotBe null
@@ -1498,7 +1496,7 @@ class LocalPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - only asked once
         issuesEncountered shouldHaveSize 1
@@ -1647,7 +1645,7 @@ class LocalPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - old file renamed, new file copied to original name
         File(destFolder, "file.txt").readText() shouldBe "new content"
@@ -1677,7 +1675,7 @@ class LocalPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - old file unchanged, new file copied with new name
         File(destFolder, "file.txt").readText() shouldBe "old content"
@@ -1709,7 +1707,7 @@ class LocalPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - old directory renamed, new directory created with original name
         File(destFolder, "Dir/new.txt").exists() shouldBe true
@@ -1743,7 +1741,7 @@ class LocalPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - old directory unchanged, new directory created with new name
         File(destFolder, "Dir/old.txt").exists() shouldBe true
@@ -1776,7 +1774,7 @@ class LocalPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - file renamed, directory created with original name
         File(destFolder, "Item").isDirectory shouldBe true
@@ -1809,7 +1807,7 @@ class LocalPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - file unchanged, directory created with new name
         File(destFolder, "Item").isFile shouldBe true
@@ -1883,7 +1881,7 @@ class LocalPathCopyTest : BaseTest() {
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - all directories and files should be in Parent-new
         File(destFolder, "Parent/existing.txt").exists() shouldBe true
@@ -1932,7 +1930,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When - copy with followSymlinks = false (default)
         val result = sourcePath.copy(ops, destPath)
-            .last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - file should be copied
         val copiedLink = File(destFolder, "link.txt")
@@ -1968,7 +1966,7 @@ class LocalPathCopyTest : BaseTest() {
             ops,
             destPath,
             options = CopyAction.Options(followSymlinks = true)
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - target file content should be copied, not the link
         val copiedFile = File(destFolder, "link.txt")
@@ -2003,7 +2001,7 @@ class LocalPathCopyTest : BaseTest() {
 
         // When - copy with followSymlinks = false (default)
         val result = sourcePath.copy(ops, destPath)
-            .last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - directory should be copied
         val copiedLink = File(destFolder, "linkDir")
@@ -2041,7 +2039,7 @@ class LocalPathCopyTest : BaseTest() {
             ops,
             destPath,
             options = CopyAction.Options(followSymlinks = true)
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - directory and its contents should be copied (not as symlink)
         val copiedDir = File(destFolder, "linkDir")
@@ -2080,7 +2078,7 @@ class LocalPathCopyTest : BaseTest() {
             ops,
             destPath,
             options = CopyAction.Options(followSymlinks = false)
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - broken symlink should be copied as-is
         val copiedLink = File(destFolder, "brokenLink")
@@ -2153,7 +2151,7 @@ class LocalPathCopyTest : BaseTest() {
             ops,
             destPath,
             options = CopyAction.Options(followSymlinks = true)
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - both symlinks should be resolved and content copied
         val copiedDir = File(destFolder, "linkToDir")
@@ -2200,7 +2198,7 @@ class LocalPathCopyTest : BaseTest() {
             ops,
             destPath,
             options = CopyAction.Options(followSymlinks = true)
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - full directory structure should be preserved under linkToDir name
         val copiedDeepFile = File(destFolder, "linkToDir/level1/level2/deep.txt")
@@ -2240,7 +2238,7 @@ class LocalPathCopyTest : BaseTest() {
 
             // Then - Directory should be ONLY in skipped, NOT in copied
             val finalResult =
-                result.last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+                result.last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
             finalResult.copied.map { it.first.lookedUp } shouldNotBe setOf(LocalPath.build(parentDir))
             finalResult.skipped.map { it.lookedUp } shouldContain LocalPath.build(parentDir)
 
@@ -2262,11 +2260,11 @@ class LocalPathCopyTest : BaseTest() {
         // Given - File that would have null size in partial lookup scenario (e.g., "/" on Android)
         val sourceFile = File(sourceFolder, "restricted.txt")
         sourceFile.writeText("content")
-        val actualSize = sourceFile.length()
+        sourceFile.length()
 
         // When - Copy operation should handle potential null sizes in metadata gracefully
         val result = LocalPath.build(sourceFile).copy(ops, LocalPath.build(destFolder))
-            .last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - file copied successfully despite potential null size metadata
         val destFile = File(destFolder, "restricted.txt")
@@ -2285,14 +2283,14 @@ class LocalPathCopyTest : BaseTest() {
         // Given - File that might have null modifiedAt in partial lookup (e.g., "/" scenario)
         val sourceFile = File(sourceFolder, "restricted.txt")
         sourceFile.writeText("content")
-        val sourceModifiedTime = sourceFile.lastModified()
+        sourceFile.lastModified()
 
         // When - Copy with preserveAttributes=true (would try to preserve timestamp)
         val result = LocalPath.build(sourceFile).copy(
             ops,
             LocalPath.build(destFolder),
             options = CopyAction.Options(preserveAttributes = true)
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - file copied successfully
         val destFile = File(destFolder, "restricted.txt")

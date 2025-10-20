@@ -12,12 +12,11 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.move
+import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
@@ -88,6 +87,7 @@ class MoveOperation @AssistedInject constructor(
         var lastSpeedUpdate = TimeSource.Monotonic.markNow()
 
         val reportBuilder = MoveOperationReport.Builder()
+        var lastPerformanceHistory: PerformanceHistory? = null
 
         val result = command.sources
             .move(
@@ -110,7 +110,7 @@ class MoveOperation @AssistedInject constructor(
                 },
             )
             .onEach { moveState ->
-                if (moveState !is MoveAction.State.Progress<*, *, *, *>) return@onEach
+                if (moveState !is MoveAction.State.Active<*, *, *, *>) return@onEach
 
                 val now = Clock.System.now()
                 val elapsed = lastSpeedUpdate.elapsedNow().inWholeMilliseconds / 1000.0
@@ -229,15 +229,20 @@ class MoveOperation @AssistedInject constructor(
                     )
                 }
 
+                // Extract performance history from low-level operation
+                val perfHistory = moveState.primaryProgress.extra as? PerformanceHistory
+                lastPerformanceHistory = perfHistory
+
                 stateActive = stateActive.copy(
                     primaryProgress = enhancedPrimary,
                     secondaryProgress = enhancedSecondary,
+                    performanceHistory = perfHistory,
                 )
                 emit(stateActive)
             }
             .last()
 
-        result as MoveAction.State.Result<*, *, *, *>
+        result as MoveAction.State.Completed<*, *, *, *>
 
         // Track filesystem changes - sources were removed
         // TODO don't we have the lookup from earlier?
@@ -252,6 +257,7 @@ class MoveOperation @AssistedInject constructor(
         reportBuilder.addMovedItems( result.movedFiles)
         reportBuilder.setSkipped(result.skippedFiles)
         reportBuilder.setBytesMoved(result.bytesMoved)
+        reportBuilder.setPerformanceHistory(lastPerformanceHistory)
 
         emit(
             State.Completed(

@@ -6,6 +6,7 @@ import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.extensions.isDirectory
+import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.explorer.R
 import eu.darken.butler.workspace.core.operations.Operation.Report.*
@@ -16,6 +17,7 @@ data class CopyOperationReport(
     val copiedFiles: Int,
     val copiedDirectories: Int,
     val copiedBytes: Long,
+    override val performanceHistory: PerformanceHistory?,
 ) : ExplorerOperation.Report {
 
     override val summary: CaString = caString {
@@ -51,7 +53,7 @@ data class CopyOperationReport(
     }
 
     override fun toString(): String {
-        return "OperationReport(affectedPaths=${affectedPaths.size}, skipped=${skipped.size}, copiedFiles=$copiedFiles, copiedDirectories=$copiedDirectories, copiedBytes=$copiedBytes)"
+        return "CopyOperationReport(affectedPaths=${affectedPaths.size}, skipped=${skipped.size}, copiedFiles=$copiedFiles, copiedDirectories=$copiedDirectories, copiedBytes=$copiedBytes, performanceHistory=${performanceHistory?.samples?.size} samples)"
     }
 
     class Builder {
@@ -60,6 +62,7 @@ data class CopyOperationReport(
         private var copiedFiles: Int = 0
         private var copiedDirectories: Int = 0
         private var copiedBytes: Long = 0
+        private var performanceHistory: PerformanceHistory? = null
 
         fun addCopiedItems(lookups: Collection<APathLookup<*>>) {
             val affected = lookups.map { lookup ->
@@ -77,12 +80,17 @@ data class CopyOperationReport(
             this.copiedBytes = bytes
         }
 
+        fun setPerformanceHistory(history: PerformanceHistory?) {
+            this.performanceHistory = history
+        }
+
         fun build(): CopyOperationReport = CopyOperationReport(
             affectedPaths = affectedPaths.distinct(),
             skipped = skipped,
             copiedFiles = copiedFiles,
             copiedDirectories = copiedDirectories,
             copiedBytes = copiedBytes,
+            performanceHistory = performanceHistory,
         )
     }
 }

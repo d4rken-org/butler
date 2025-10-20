@@ -220,7 +220,7 @@ internal class GenericPathCopy<
         // For cross-type, this won't compile - cross-type operations should use their own result type
         @Suppress("UNCHECKED_CAST")
         emit(
-            CopyAction.State.Result(
+            CopyAction.State.Completed(
                 copied = copied,
                 skipped = skipped,
                 copiedBytes = totalBytesTransferred
@@ -657,7 +657,7 @@ internal class GenericPathCopy<
         val snapshot = progressTracker.createSnapshot()
 
         emit(
-            CopyAction.State.Progress(
+            CopyAction.State.Active(
                 currentSource = lookup,
                 currentDestination = null,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(
@@ -681,7 +681,7 @@ internal class GenericPathCopy<
 
         @Suppress("UNCHECKED_CAST")
         emit(
-            CopyAction.State.Progress(
+            CopyAction.State.Active(
                 currentSource = lookup,
                 currentDestination = destLookup,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(
@@ -690,7 +690,8 @@ internal class GenericPathCopy<
                     count = eu.darken.butler.common.progress.Progress.Count.Counter(
                         current = snapshot.itemsProcessed,
                         max = snapshot.totalItems
-                    )
+                    ),
+                    extra = progressTracker.performanceHistory
                 ),
                 secondaryProgress = eu.darken.butler.common.progress.Progress.Data(
                     primary = lookup.lookedUp.name.toCaString(),

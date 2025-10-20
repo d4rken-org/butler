@@ -269,11 +269,11 @@ class GatewaySwitch @Inject constructor(
                         copy(sourcesGroup.toSet(), destination, onIssue, options)
                     }.collect { state ->
                         when (state) {
-                            is CopyAction.State.Progress -> {
+                            is CopyAction.State.Active -> {
                                 emit(state.copy(copiedBytes = totalBytesProcessed + state.copiedBytes))
                             }
 
-                            is CopyAction.State.Result -> {
+                            is CopyAction.State.Completed -> {
                                 totalBytesProcessed += state.copiedBytes
                                 allCopiedFiles.addAll(state.copied)
                                 allSkippedFiles.addAll(state.skipped)
@@ -285,12 +285,12 @@ class GatewaySwitch @Inject constructor(
                 else -> {
                     performCrossGatewayCopy(sourcesGroup, destination, onIssue, options).collect { state ->
                         when (state) {
-                            is CopyAction.State.Progress -> {
+                            is CopyAction.State.Active -> {
                                 @Suppress("UNCHECKED_CAST")
-                                emit(state.copy(copiedBytes = totalBytesProcessed + state.copiedBytes) as CopyAction.State.Progress<APath<*>, APathLookup<APath<*>>, APath<*>, APathLookup<APath<*>>>)
+                                emit(state.copy(copiedBytes = totalBytesProcessed + state.copiedBytes) as CopyAction.State.Active<APath<*>, APathLookup<APath<*>>, APath<*>, APathLookup<APath<*>>>)
                             }
 
-                            is CopyAction.State.Result -> {
+                            is CopyAction.State.Completed -> {
                                 totalBytesProcessed += state.copiedBytes
                                 @Suppress("UNCHECKED_CAST")
                                 allCopiedFiles.addAll(state.copied as Collection<Pair<APathLookup<APath<*>>, APathLookup<APath<*>>>>)
@@ -304,7 +304,7 @@ class GatewaySwitch @Inject constructor(
         }
 
         emit(
-            CopyAction.State.Result(
+            CopyAction.State.Completed(
                 copied = allCopiedFiles,
                 skipped = allSkippedFiles,
                 copiedBytes = totalBytesProcessed
@@ -334,12 +334,12 @@ class GatewaySwitch @Inject constructor(
                         move(sourcesGroup.toSet(), destination, onIssue, options)
                     }.collect { state ->
                         when (state) {
-                            is MoveAction.State.Progress<*, *, *, *> -> {
+                            is MoveAction.State.Active<*, *, *, *> -> {
                                 @Suppress("UNCHECKED_CAST")
-                                emit(state.copy(movedBytes = totalBytesMoved + state.movedBytes) as MoveAction.State.Progress<APath<*>, APathLookup<APath<*>>, APath<*>, APathLookup<APath<*>>>)
+                                emit(state.copy(movedBytes = totalBytesMoved + state.movedBytes) as MoveAction.State.Active<APath<*>, APathLookup<APath<*>>, APath<*>, APathLookup<APath<*>>>)
                             }
 
-                            is MoveAction.State.Result -> {
+                            is MoveAction.State.Completed -> {
                                 totalBytesMoved += state.bytesMoved
                                 allMovedFiles.addAll(state.movedFiles)
                                 allSkippedFiles.addAll(state.skippedFiles)
@@ -351,12 +351,12 @@ class GatewaySwitch @Inject constructor(
                 else -> {
                     performCrossGatewayMove(sourcesGroup, destination, onIssue, options).collect { state ->
                         when (state) {
-                            is MoveAction.State.Progress<*, *, *, *> -> {
+                            is MoveAction.State.Active<*, *, *, *> -> {
                                 @Suppress("UNCHECKED_CAST")
-                                emit(state.copy(movedBytes = totalBytesMoved + state.movedBytes) as MoveAction.State.Progress<APath<*>, APathLookup<APath<*>>, APath<*>, APathLookup<APath<*>>>)
+                                emit(state.copy(movedBytes = totalBytesMoved + state.movedBytes) as MoveAction.State.Active<APath<*>, APathLookup<APath<*>>, APath<*>, APathLookup<APath<*>>>)
                             }
 
-                            is MoveAction.State.Result -> {
+                            is MoveAction.State.Completed -> {
                                 totalBytesMoved += state.bytesMoved
                                 @Suppress("UNCHECKED_CAST")
                                 allMovedFiles.addAll(state.movedFiles as Collection<Pair<APathLookup<APath<*>>, APathLookup<APath<*>>>>)
@@ -370,7 +370,7 @@ class GatewaySwitch @Inject constructor(
         }
 
         emit(
-            MoveAction.State.Result(
+            MoveAction.State.Completed(
                 movedFiles = allMovedFiles,
                 skippedFiles = allSkippedFiles,
                 bytesMoved = totalBytesMoved

@@ -17,7 +17,7 @@ import eu.darken.butler.common.progress.Progress
  */
 fun DeleteAction.State<LocalPath, LocalPathLookup>.toDeleteOperationEvent(): DeleteOperationEvent {
     return when (this) {
-        is DeleteAction.State.Progress -> {
+        is DeleteAction.State.Active -> {
             // Determine phase based on secondaryProgress presence
             if (secondaryProgress == null) {
                 // Scan phase (no secondaryProgress)
@@ -37,7 +37,7 @@ fun DeleteAction.State<LocalPath, LocalPathLookup>.toDeleteOperationEvent(): Del
             }
         }
 
-        is DeleteAction.State.Result -> DeleteOperationEvent.Result(
+        is DeleteAction.State.Completed -> DeleteOperationEvent.Result(
             deletedItems = deleted.toList(),
             skippedItems = skipped.toList(),
             errorCount = 0, // Not tracked in domain Result
@@ -53,7 +53,7 @@ fun DeleteOperationEvent.toDeleteActionState(): DeleteAction.State<LocalPath, Lo
     return when (this) {
         is DeleteOperationEvent.ScanProgress -> {
             // Reconstruct scan progress state
-            DeleteAction.State.Progress(
+            DeleteAction.State.Active(
                 target = currentPath,
                 primaryProgress = Progress.Data(
                     primary = R.string.general_scan_progress_title.toCaString(),
@@ -72,7 +72,7 @@ fun DeleteOperationEvent.toDeleteActionState(): DeleteAction.State<LocalPath, Lo
 
         is DeleteOperationEvent.DeleteProgress -> {
             // Reconstruct delete progress state
-            DeleteAction.State.Progress(
+            DeleteAction.State.Active(
                 target = currentPath,
                 primaryProgress = Progress.Data(
                     primary = R.string.general_delete_progress_title.toCaString(),
@@ -97,7 +97,7 @@ fun DeleteOperationEvent.toDeleteActionState(): DeleteAction.State<LocalPath, Lo
 
         is DeleteOperationEvent.Result -> {
             // Reconstruct result state
-            DeleteAction.State.Result(
+            DeleteAction.State.Completed(
                 deleted = deletedItems.toSet(),
                 skipped = skippedItems.toSet(),
             )

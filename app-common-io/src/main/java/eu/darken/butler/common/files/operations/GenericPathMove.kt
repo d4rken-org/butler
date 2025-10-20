@@ -208,7 +208,7 @@ internal class GenericPathMove<
         cleanupSourceDirectories()
 
         emit(
-            MoveAction.State.Result(
+            MoveAction.State.Completed(
                 movedFiles = moved,
                 skippedFiles = skipped,
                 bytesMoved = progressTracker.processedBytes
@@ -638,7 +638,7 @@ internal class GenericPathMove<
         val snapshot = progressTracker.createSnapshot()
 
         emit(
-            MoveAction.State.Progress(
+            MoveAction.State.Active(
                 currentSource = lookup,
                 currentDestination = null,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(
@@ -661,7 +661,7 @@ internal class GenericPathMove<
         val snapshot = progressTracker.createSnapshot()
 
         emit(
-            MoveAction.State.Progress(
+            MoveAction.State.Active(
                 currentSource = lookup,
                 currentDestination = destination,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(
@@ -670,7 +670,8 @@ internal class GenericPathMove<
                     count = eu.darken.butler.common.progress.Progress.Count.Counter(
                         current = snapshot.itemsProcessed,
                         max = snapshot.totalItems
-                    )
+                    ),
+                    extra = progressTracker.performanceHistory
                 ),
                 secondaryProgress = eu.darken.butler.common.progress.Progress.Data(
                     primary = lookup.lookedUp.name.toCaString(),

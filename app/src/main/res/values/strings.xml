@@ -236,6 +236,8 @@
     <string name="acknowledgement_reorderable_subtitle">Drag and drop for LazyColumn in Compose. (APACHE 2.0)</string>
     <string name="acknowledgement_semver_title">SemVer</string>
     <string name="acknowledgement_semver_subtitle">Semantic versioning library for Kotlin. (MIT License)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">Charts and graphs for Jetpack Compose. (APACHE 2.0)</string>
 
     <string name="settings_sponsor_development_title">Sponsor development</string>
     <string name="settings_sponsor_development_summary">Become a patron and make continued development possible.</string>

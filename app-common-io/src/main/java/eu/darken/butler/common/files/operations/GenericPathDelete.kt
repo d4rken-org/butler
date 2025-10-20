@@ -123,7 +123,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
         }
 
         emit(
-            DeleteAction.State.Result(
+            DeleteAction.State.Completed(
                 deleted = deleted,
                 skipped = skipped,
             )
@@ -301,7 +301,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
         val snapshot = progressTracker.createSnapshot()
 
         emit(
-            DeleteAction.State.Progress(
+            DeleteAction.State.Active(
                 target = lookup,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(
                     primary = R.string.general_scan_progress_title.toCaString(),
@@ -323,7 +323,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
         val snapshot = progressTracker.createSnapshot()
 
         emit(
-            DeleteAction.State.Progress(
+            DeleteAction.State.Active(
                 target = lookup,
                 primaryProgress = eu.darken.butler.common.progress.Progress.Data(
                     primary = R.string.general_delete_progress_title.toCaString(),
@@ -331,7 +331,8 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
                     count = eu.darken.butler.common.progress.Progress.Count.Counter(
                         current = snapshot.itemsProcessed,
                         max = snapshot.totalItems
-                    )
+                    ),
+                    extra = progressTracker.performanceHistory
                 ),
                 secondaryProgress = eu.darken.butler.common.progress.Progress.Data(
                     primary = lookup.lookedUp.name.toCaString(),

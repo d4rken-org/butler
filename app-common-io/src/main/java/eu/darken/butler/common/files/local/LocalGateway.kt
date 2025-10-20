@@ -612,7 +612,7 @@ class LocalGateway @Inject constructor(
                     onIssue = options.onIssue,
                 ).collect { state ->
                     emit(state)
-                    if (state is DeleteAction.State.Result) {
+                    if (state is DeleteAction.State.Completed) {
                         log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
                     }
                 }
@@ -645,7 +645,7 @@ class LocalGateway @Inject constructor(
                             onIssue = options.onIssue,
                         ).collect { state ->
                             emit(state)
-                            if (state is DeleteAction.State.Result) {
+                            if (state is DeleteAction.State.Completed) {
                                 log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
                             }
                         }
@@ -691,7 +691,7 @@ class LocalGateway @Inject constructor(
                     onIssue = onIssue,
                 ).collect { state ->
                     emit(state)
-                    if (state is CopyAction.State.Result<*, *, *, *>) {
+                    if (state is CopyAction.State.Completed<*, *, *, *>) {
                         log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
                     }
                 }
@@ -723,7 +723,7 @@ class LocalGateway @Inject constructor(
                             onIssue = onIssue,
                         ).collect { state ->
                             emit(state)
-                            if (state is CopyAction.State.Result) {
+                            if (state is CopyAction.State.Completed) {
                                 log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
                             }
                         }
@@ -768,7 +768,7 @@ class LocalGateway @Inject constructor(
                     onIssue = onIssue,
                 ).collect { state ->
                     emit(state)
-                    if (state is MoveAction.State.Result<*, *, *, *>) {
+                    if (state is MoveAction.State.Completed<*, *, *, *>) {
                         log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
                     }
                 }
@@ -800,7 +800,7 @@ class LocalGateway @Inject constructor(
                             onIssue = onIssue,
                         ).collect { state ->
                             emit(state)
-                            if (state is MoveAction.State.Result<*, *, *, *>) {
+                            if (state is MoveAction.State.Completed<*, *, *, *>) {
                                 log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
                             }
                         }

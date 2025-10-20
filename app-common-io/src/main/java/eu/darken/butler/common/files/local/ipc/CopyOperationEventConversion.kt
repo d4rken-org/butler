@@ -17,7 +17,7 @@ import eu.darken.butler.common.progress.Progress
  */
 fun CopyAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>.toCopyOperationEvent(): CopyOperationEvent {
     return when (this) {
-        is CopyAction.State.Progress -> {
+        is CopyAction.State.Active -> {
             // Determine phase based on secondaryProgress presence
             if (secondaryProgress == null) {
                 // Scan phase (no secondaryProgress)
@@ -41,7 +41,7 @@ fun CopyAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>.toC
             }
         }
 
-        is CopyAction.State.Result -> CopyOperationEvent.Result(
+        is CopyAction.State.Completed -> CopyOperationEvent.Result(
             copiedItems = copied.map { (src, dst) -> PathPair(src.lookedUp, dst.lookedUp) },
             skippedItems = skipped.toList(),
             errorCount = 0,  // Not tracked in domain Result
@@ -58,7 +58,7 @@ fun CopyOperationEvent.toCopyActionState(): CopyAction.State<LocalPath, LocalPat
     return when (this) {
         is CopyOperationEvent.ScanProgress -> {
             // Reconstruct scan progress state
-            CopyAction.State.Progress(
+            CopyAction.State.Active(
                 currentSource = currentPath,
                 currentDestination = null,
                 primaryProgress = Progress.Data(
@@ -76,7 +76,7 @@ fun CopyOperationEvent.toCopyActionState(): CopyAction.State<LocalPath, LocalPat
 
         is CopyOperationEvent.CopyProgress -> {
             // Reconstruct copy progress state
-            CopyAction.State.Progress(
+            CopyAction.State.Active(
                 currentSource = currentSource,
                 currentDestination = currentDestination,
                 primaryProgress = Progress.Data(
@@ -106,7 +106,7 @@ fun CopyOperationEvent.toCopyActionState(): CopyAction.State<LocalPath, LocalPat
             // Note: Client side receives paths in PathPair but domain expects lookups.
             // We convert to minimal lookups using just the path information.
             // Full metadata is not available on client side post-operation.
-            CopyAction.State.Result(
+            CopyAction.State.Completed(
                 copied = copiedItems.map { pair ->
                     // Create minimal lookups from paths (client doesn't have full metadata)
                     val srcLookup = LocalPathLookup(

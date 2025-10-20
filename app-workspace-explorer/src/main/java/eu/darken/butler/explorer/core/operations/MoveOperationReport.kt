@@ -6,6 +6,7 @@ import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.extensions.isDirectory
+import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.explorer.R
 import eu.darken.butler.workspace.core.operations.Operation.Report.*
@@ -16,6 +17,7 @@ data class MoveOperationReport(
     val movedFiles: Int,
     val movedDirectories: Int,
     val bytesMoved: Long,
+    override val performanceHistory: PerformanceHistory?,
 ) : ExplorerOperation.Report {
 
     override val summary: CaString = caString {
@@ -51,7 +53,7 @@ data class MoveOperationReport(
     }
 
     override fun toString(): String {
-        return "MoveOperationReport(affectedPaths=${affectedPaths.size}, skipped=${skipped.size}, movedFiles=$movedFiles, movedDirectories=$movedDirectories, bytesMoved=$bytesMoved)"
+        return "MoveOperationReport(affectedPaths=${affectedPaths.size}, skipped=${skipped.size}, movedFiles=$movedFiles, movedDirectories=$movedDirectories, bytesMoved=$bytesMoved, performanceHistory=${performanceHistory?.samples?.size} samples)"
     }
 
     class Builder {
@@ -60,6 +62,7 @@ data class MoveOperationReport(
         private var movedFiles: Int = 0
         private var movedDirectories: Int = 0
         private var bytesMoved: Long = 0
+        private var performanceHistory: PerformanceHistory? = null
 
         fun addMovedItems(sources: Collection<Pair<APathLookup<*>, APathLookup<*>>>) {
             val affected = sources.flatMap { (source, destLookup) ->
@@ -80,12 +83,17 @@ data class MoveOperationReport(
             this.bytesMoved = bytes
         }
 
+        fun setPerformanceHistory(history: PerformanceHistory?) {
+            this.performanceHistory = history
+        }
+
         fun build(): MoveOperationReport = MoveOperationReport(
             affectedPaths = affectedPaths.distinct(),
             skipped = skipped,
             movedFiles = movedFiles,
             movedDirectories = movedDirectories,
             bytesMoved = bytesMoved,
+            performanceHistory = performanceHistory,
         )
     }
 }

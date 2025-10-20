@@ -6,6 +6,7 @@ import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.extensions.isDirectory
+import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.workspace.core.operations.Operation.Report.*
 
@@ -15,6 +16,7 @@ data class DeleteOperationReport(
     val deletedFiles: Int,
     val deletedDirectories: Int,
     val bytesFreed: Long,
+    override val performanceHistory: PerformanceHistory?,
 ) : SearcherOperation.Report {
 
     override val summary: CaString = caString {
@@ -50,7 +52,7 @@ data class DeleteOperationReport(
     }
 
     override fun toString(): String {
-        return "DeleteOperationReport(affectedPaths=${affectedPaths.size}, skipped=${skipped.size}, deletedFiles=$deletedFiles, deletedDirectories=$deletedDirectories, bytesFreed=$bytesFreed)"
+        return "DeleteOperationReport(affectedPaths=${affectedPaths.size}, skipped=${skipped.size}, deletedFiles=$deletedFiles, deletedDirectories=$deletedDirectories, bytesFreed=$bytesFreed, performanceHistory=${performanceHistory?.samples?.size} samples)"
     }
 
     class Builder {
@@ -58,6 +60,7 @@ data class DeleteOperationReport(
         private val skipped = mutableListOf<APathLookup<*>>()
         private var deletedFiles: Int = 0
         private var deletedDirectories: Int = 0
+        private var performanceHistory: PerformanceHistory? = null
 
         fun setDeletions(items: Set<APathLookup<APath<*>>>) {
             val affected = items.map {
@@ -77,12 +80,17 @@ data class DeleteOperationReport(
             this.bytesFreed = bytesFreed
         }
 
+        fun setPerformanceHistory(history: PerformanceHistory?) {
+            this.performanceHistory = history
+        }
+
         fun build(): DeleteOperationReport = DeleteOperationReport(
             affectedPaths = affectedPaths.distinct(),
             skipped = skipped,
             deletedFiles = deletedFiles,
             deletedDirectories = deletedDirectories,
             bytesFreed = bytesFreed,
+            performanceHistory = performanceHistory,
         )
     }
 }
