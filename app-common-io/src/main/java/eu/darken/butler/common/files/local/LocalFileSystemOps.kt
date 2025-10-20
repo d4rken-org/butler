@@ -344,26 +344,29 @@ class LocalFileSystemOps @Inject constructor(
         throw WriteException(path = source, cause = e)
     }
 
-    override suspend fun canRead(path: LocalPath): Boolean {
-        return try {
-            path.file.canRead()
-        } catch (e: Exception) {
-            false
+    override suspend fun canRead(path: LocalPath): Boolean = try {
+        if (path.toFile().isDirectory) {
+            path.toFile().canRead()
+        } else {
+            // canRead() may return true, while SELinux blocks open
+            // type=1400 audit(0.0:12576): avc: denied { open } for path="/data/data/alinktests/subdir/symtarget" dev="sda45" ino=2754227 scontext=u:r:untrusted_app_27:s0:c100,c257,c512,c768 tcontext=u:object_r:system_data_file:s0 tclass=file permissive=0
+            path.toFile().reader().use { it.read() }
+            true
         }
+    } catch (e: Exception) {
+        false
     }
 
-    override suspend fun canWrite(path: LocalPath): Boolean {
-        return try {
-            val file = path.file
-            if (file.exists()) {
-                file.canWrite()
-            } else {
-                // Check parent directory for write permission
-                file.parentFile?.canWrite() ?: false
-            }
-        } catch (e: Exception) {
-            false
+    override suspend fun canWrite(path: LocalPath): Boolean = try {
+        val file = path.file
+        if (file.exists()) {
+            file.canWrite()
+        } else {
+            // Check parent directory for write permission
+            file.parentFile?.canWrite() ?: false
         }
+    } catch (e: Exception) {
+        false
     }
 
     suspend fun du(path: LocalPath): Long {

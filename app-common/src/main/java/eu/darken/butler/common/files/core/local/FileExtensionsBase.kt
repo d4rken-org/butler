@@ -1,6 +1,7 @@
 package eu.darken.butler.common.files.core.local
 
 import android.system.Os
+import android.system.OsConstants
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import java.io.File
@@ -82,17 +83,20 @@ fun File.deleteAll() {
     }
 }
 
-fun File.listFiles2(): List<File> {
-    if (!exists()) throw IOException("File does not exist")
-    if (!canRead()) throw IOException("Can't read $path")
-    return this.listFiles()?.toList() ?: throw IOException("Failed to listFiles() on $path")
-}
-
 fun File.isSymbolicLink(): Boolean {
     return try {
+        // Try NIO first as it's more reliable on newer Android versions
         java.nio.file.Files.isSymbolicLink(this.toPath())
     } catch (e: Exception) {
-        false
+        log(WARN) { "File.isSymbolicLink() failed: $e" }
+        // Fallback to Os.lstat() which works even for broken symlinks and doesn't require following the link
+        try {
+            val stat = Os.lstat(this.path)
+            OsConstants.S_ISLNK(stat.st_mode)
+        } catch (e2: Exception) {
+            log(WARN) { "File.isSymbolicLink() failed: $e2" }
+            false
+        }
     }
 }
 
@@ -121,21 +125,6 @@ fun File.readLink(): String? = try {
         null
     }
 }
-
-fun File.isReadable(): Boolean = try {
-    if (isDirectory) {
-        canRead()
-    } else {
-        // canRead() may return true, while SELinux blocks open
-        // type=1400 audit(0.0:12576): avc: denied { open } for path="/data/data/alinktests/subdir/symtarget" dev="sda45" ino=2754227 scontext=u:r:untrusted_app_27:s0:c100,c257,c512,c768 tcontext=u:object_r:system_data_file:s0 tclass=file permissive=0
-        reader().use { it.read() }
-        true
-    }
-} catch (e: Exception) {
-    false
-}
-
-fun File.canReadExecute(): Boolean = canRead() && canExecute()
 
 val File.parents: Sequence<File>
     get() = sequence {
