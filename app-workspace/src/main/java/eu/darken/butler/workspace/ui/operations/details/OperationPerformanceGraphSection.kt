@@ -13,7 +13,6 @@ import androidx.compose.material.icons.twotone.ExpandLess
 import androidx.compose.material.icons.twotone.ExpandMore
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -91,11 +90,6 @@ internal fun OperationPerformanceGraphSection(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-
-            HorizontalDivider(
-                thickness = 0.5.dp,
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-            )
 
             // Graph content
             AnimatedVisibility(visible = isExpanded) {
