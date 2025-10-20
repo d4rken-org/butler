@@ -18,6 +18,7 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.copy
+import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
@@ -37,7 +38,6 @@ class CopyOperation @AssistedInject constructor(
     @Assisted private val command: ExplorerCommand.Copy,
     private val issueHandler: IssueHandler,
     private val gatewaySwitch: GatewaySwitch,
-    private val dispatcherProvider: DispatcherProvider,
     private val fileSystemHinter: FileSystemHinter,
 ) : ExplorerOperation() {
 
@@ -87,6 +87,7 @@ class CopyOperation @AssistedInject constructor(
         var lastSpeedUpdate = TimeSource.Monotonic.markNow()
 
         val reportBuilder = CopyOperationReport.Builder()
+        var lastPerformanceHistory: PerformanceHistory? = null
 
         val result = command.sources
             .copy(
@@ -223,9 +224,14 @@ class CopyOperation @AssistedInject constructor(
                     )
                 }
 
+                // Extract performance history from low-level operation
+                val perfHistory = copyState.primaryProgress.extra as? PerformanceHistory
+                lastPerformanceHistory = perfHistory
+
                 stateActive = stateActive.copy(
                     primaryProgress = enhancedPrimary,
                     secondaryProgress = enhancedSecondary,
+                    performanceHistory = perfHistory,
                 )
                 emit(stateActive)
             }
@@ -239,6 +245,7 @@ class CopyOperation @AssistedInject constructor(
         reportBuilder.addCopiedItems(copiedDestinations)
         reportBuilder.setSkipped(result.skipped)
         reportBuilder.setCopiedBytes(result.copiedBytes)
+        reportBuilder.setPerformanceHistory(lastPerformanceHistory)
 
         emit(
             State.Completed(

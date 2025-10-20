@@ -18,6 +18,7 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.delete
+import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
@@ -35,7 +36,6 @@ class DeleteOperation @AssistedInject constructor(
     @Assisted private val command: SearcherCommand.Delete,
     private val issueHandler: IssueHandler,
     private val gatewaySwitch: GatewaySwitch,
-    private val dispatcherProvider: DispatcherProvider,
 ) : SearcherOperation() {
 
     private val tag = logTag("Searcher", "Workspace", workspaceId.shortTag, "Operation", "Delete")
@@ -83,6 +83,7 @@ class DeleteOperation @AssistedInject constructor(
         var lastSpeedUpdate = TimeSource.Monotonic.markNow()
 
         val reportBuilder = DeleteOperationReport.Builder()
+        var lastPerformanceHistory: PerformanceHistory? = null
 
         command.targets
             .delete(
@@ -198,9 +199,14 @@ class DeleteOperation @AssistedInject constructor(
                             )
                         } else null
 
+                        // Extract performance history from low-level operation
+                        val perfHistory = deleteState.primaryProgress.extra as? PerformanceHistory
+                        lastPerformanceHistory = perfHistory
+
                         stateActive = stateActive.copy(
                             primaryProgress = enhancedPrimary,
                             secondaryProgress = secondaryProgress,
+                            performanceHistory = perfHistory,
                         )
                         emit(stateActive)
                     }
@@ -213,6 +219,8 @@ class DeleteOperation @AssistedInject constructor(
                 }
             }
             .last()
+
+        reportBuilder.setPerformanceHistory(lastPerformanceHistory)
 
         emit(
             State.Completed(

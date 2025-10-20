@@ -3,6 +3,7 @@ package eu.darken.butler.workspace.ui.operations
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.error.causes
+import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
@@ -24,6 +25,7 @@ data class OperationDisplay(
             val primaryProgress: Progress.Data = Progress.Data(),
             val secondaryProgress: Progress.Data? = null,
             val canPause: Boolean = false,
+            val performanceHistory: PerformanceHistory? = null,
         ) : State
 
         data class Waiting(val reason: CaString) : State
@@ -31,6 +33,7 @@ data class OperationDisplay(
             val summary: CaString,
             val completedAt: Instant,
             val report: Operation.Report,
+            val performanceHistory: PerformanceHistory? = null,
         ) : State
 
         data class Failed(
@@ -57,14 +60,26 @@ fun ManagedOperation.toDisplayModel(): OperationDisplay {
         canCancel = canCancel,
         state = when (state) {
             is Operation.State.Queued -> OperationDisplay.State.Queued
-            is Operation.State.Active -> OperationDisplay.State.Running(
-                primaryProgress = state.primaryProgress,
-                secondaryProgress = state.secondaryProgress,
-                canPause = canPause,
-            )
+            is Operation.State.Active -> {
+                // Try to extract performanceHistory using reflection
+                val performanceHistory = try {
+                    state::class.java.getMethod("getPerformanceHistory")
+                        .invoke(state) as? PerformanceHistory
+                } catch (e: Exception) {
+                    null
+                }
+                OperationDisplay.State.Running(
+                    primaryProgress = state.primaryProgress,
+                    secondaryProgress = state.secondaryProgress,
+                    canPause = canPause,
+                    performanceHistory = performanceHistory,
+                )
+            }
             is Operation.State.Waiting -> OperationDisplay.State.Waiting(reason = state.reason)
             is Operation.State.Completed -> {
                 val errorValue = state.error
+                // Extract performanceHistory from report if available
+                val performanceHistory = (state.report as? Operation.HasPerformanceHistory)?.performanceHistory
                 when {
                     errorValue?.causes?.any { it is CancellationException } == true -> {
                         OperationDisplay.State.Cancelled(
@@ -84,6 +99,7 @@ fun ManagedOperation.toDisplayModel(): OperationDisplay {
                             summary = state.summary,
                             completedAt = state.completedAt,
                             report = state.report!!,
+                            performanceHistory = performanceHistory,
                         )
                     }
                 }

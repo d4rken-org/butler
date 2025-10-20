@@ -16,6 +16,7 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.move
+import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
@@ -86,6 +87,7 @@ class MoveOperation @AssistedInject constructor(
         var lastSpeedUpdate = TimeSource.Monotonic.markNow()
 
         val reportBuilder = MoveOperationReport.Builder()
+        var lastPerformanceHistory: PerformanceHistory? = null
 
         val result = command.sources
             .move(
@@ -227,9 +229,14 @@ class MoveOperation @AssistedInject constructor(
                     )
                 }
 
+                // Extract performance history from low-level operation
+                val perfHistory = moveState.primaryProgress.extra as? PerformanceHistory
+                lastPerformanceHistory = perfHistory
+
                 stateActive = stateActive.copy(
                     primaryProgress = enhancedPrimary,
                     secondaryProgress = enhancedSecondary,
+                    performanceHistory = perfHistory,
                 )
                 emit(stateActive)
             }
@@ -250,6 +257,7 @@ class MoveOperation @AssistedInject constructor(
         reportBuilder.addMovedItems( result.movedFiles)
         reportBuilder.setSkipped(result.skippedFiles)
         reportBuilder.setBytesMoved(result.bytesMoved)
+        reportBuilder.setPerformanceHistory(lastPerformanceHistory)
 
         emit(
             State.Completed(

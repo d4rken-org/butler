@@ -127,30 +127,24 @@ private fun OperationDetailsContent(
             operation = operation,
         )
 
-        // Check if we have middle content sections
-        val hasMiddleContent = operation.state is OperationDisplay.State.Running ||
-            operation.state is OperationDisplay.State.Failed
-
-        if (hasMiddleContent) {
-            // Progress Section (for running operations)
-            if (operation.state is OperationDisplay.State.Running) {
-                OperationCombinedProgressSection(
-                    primaryProgress = operation.state.primaryProgress,
-                    secondaryProgress = operation.state.secondaryProgress,
-                )
-            }
-
-            // Performance Graph Section
-            OperationPerformanceGraphSection(
-                operation = operation
+        // Progress Section (for running operations)
+        if (operation.state is OperationDisplay.State.Running) {
+            OperationCombinedProgressSection(
+                primaryProgress = operation.state.primaryProgress,
+                secondaryProgress = operation.state.secondaryProgress,
             )
+        }
 
-            // Error Section (for failed operations)
-            if (operation.state is OperationDisplay.State.Failed) {
-                OperationErrorSection(
-                    state = operation.state,
-                )
-            }
+        // Performance Graph Section
+        OperationPerformanceGraphSection(
+            operation = operation
+        )
+
+        // Error Section (for failed operations)
+        if (operation.state is OperationDisplay.State.Failed) {
+            OperationErrorSection(
+                state = operation.state,
+            )
         }
 
         // Affected Files Section (for completed operations with affected paths)
@@ -692,13 +686,8 @@ private fun OperationPerformanceGraphSection(
 ) {
     // Extract performance history from the operation state
     val performanceHistory = when (val state = operation.state) {
-        is OperationDisplay.State.Running -> {
-            state.primaryProgress.extra as? eu.darken.butler.common.files.local.operations.core.PerformanceHistory
-        }
-        is OperationDisplay.State.Completed -> {
-            // For completed operations, try to get from the report if available
-            null // TODO: Preserve performance data in completed state
-        }
+        is OperationDisplay.State.Running -> state.performanceHistory
+        is OperationDisplay.State.Completed -> state.performanceHistory
         else -> null
     }
 

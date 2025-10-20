@@ -2,6 +2,7 @@ package eu.darken.butler.searcher.core.operations
 
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.core.operations.Operation
 import kotlinx.coroutines.flow.Flow
@@ -10,7 +11,9 @@ import kotlin.time.Instant
 
 abstract class SearcherOperation : Operation {
 
-    interface Report : Operation.Report
+    interface Report : Operation.Report, Operation.HasPerformanceHistory {
+        override val performanceHistory: PerformanceHistory? get() = null
+    }
 
     abstract override fun perform(operationContext: Operation.Context): Flow<State>
 
@@ -19,6 +22,7 @@ abstract class SearcherOperation : Operation {
             override val startedAt: Instant,
             override val primaryProgress: Progress.Data = Progress.Data(),
             override val secondaryProgress: Progress.Data? = null,
+            val performanceHistory: PerformanceHistory? = null,
         ) : State, Operation.State.Active
 
         data class Waiting(
@@ -36,6 +40,8 @@ abstract class SearcherOperation : Operation {
             override val report: Report,
         ) : State, Operation.State.Completed {
             override val summary: CaString get() = report.summary
+            val performanceHistory: PerformanceHistory?
+                get() = report.performanceHistory
         }
     }
 }
