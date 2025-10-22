@@ -70,5 +70,5 @@ fun Collection<APath<*>>.commonParent(): APath<*>? {
         result = result.parent
     }
 
-    return result
+    return if (result?.parent == null) null else result
 }
