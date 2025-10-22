@@ -28,10 +28,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
-import java.util.ArrayDeque
 import kotlin.time.Clock
-import kotlin.time.Instant
-import kotlin.time.TimeSource
 
 class MoveOperation @AssistedInject constructor(
     @Assisted workspaceId: Workspace.Id,
@@ -76,17 +73,6 @@ class MoveOperation @AssistedInject constructor(
         var stateActive = State.Active(startedAt = operationContext.startedAt)
         emit(stateActive)
 
-        data class SpeedSample(
-            val timestamp: Instant,
-            val bytesPerSecond: Long,
-            val itemsPerSecond: Long
-        )
-
-        val speedHistory = ArrayDeque<SpeedSample>(30) // 30 samples max
-        var lastMovedBytes = 0L
-        var lastProcessedItems = 0L
-        var lastSpeedUpdate = TimeSource.Monotonic.markNow()
-
         val reportBuilder = MoveOperationReport.Builder()
         var lastPerformanceHistory: PerformanceHistory? = null
 
@@ -113,34 +99,13 @@ class MoveOperation @AssistedInject constructor(
             .onEach { moveState ->
                 if (moveState !is MoveAction.State.Active<*, *, *, *>) return@onEach
 
-                val now = Clock.System.now()
-                val elapsed = lastSpeedUpdate.elapsedNow().inWholeMilliseconds / 1000.0
+                // Extract performance history from low-level operation
+                val perfHistory = moveState.primaryProgress.extra as? PerformanceHistory
+                lastPerformanceHistory = perfHistory
 
-                // Calculate instantaneous speed (every ~1 second)
-                if (elapsed >= 1.0) {
-                    val bytesDelta = moveState.movedBytes - lastMovedBytes
-                    val currentBytesSpeed = (bytesDelta / elapsed).toLong()
-
-                    val currentItems = moveState.primaryProgress.count.current
-                    val itemsDelta = currentItems - lastProcessedItems
-                    val currentItemsSpeed = (itemsDelta / elapsed).toLong()
-
-                    speedHistory.addLast(SpeedSample(now, currentBytesSpeed, currentItemsSpeed))
-                    if (speedHistory.size > 30) speedHistory.removeFirst()
-
-                    lastMovedBytes = moveState.movedBytes
-                    lastProcessedItems = currentItems
-                    lastSpeedUpdate = TimeSource.Monotonic.markNow()
-                }
-
-                // Calculate overall metrics (from speed history)
-                val avgBytesSpeed = if (speedHistory.isNotEmpty()) {
-                    speedHistory.map { it.bytesPerSecond }.average().toLong()
-                } else 0L
-
-                val avgItemsSpeed = if (speedHistory.isNotEmpty()) {
-                    speedHistory.map { it.itemsPerSecond }.average().toLong()
-                } else 0L
+                // Calculate overall metrics using PerformanceHistory
+                val avgBytesSpeed = perfHistory?.getRecentBytesPerSecond() ?: 0L
+                val avgItemsSpeed = perfHistory?.getRecentItemsPerSecond()?.toLong() ?: 0L
 
                 val overallEta = if (avgBytesSpeed > 0 && moveState.totalBytes > 0) {
                     val remaining = moveState.totalBytes - moveState.movedBytes
@@ -148,6 +113,7 @@ class MoveOperation @AssistedInject constructor(
                 } else null
 
                 // Calculate per-file metrics
+                val now = Clock.System.now()
                 val fileStartTime = moveState.currentFileStartTime
                 val (fileSpeed, fileEta) = if (fileStartTime != null && moveState.currentFileSize > 0) {
                     val fileElapsed = (now - fileStartTime).inWholeMilliseconds / 1000.0
@@ -216,16 +182,11 @@ class MoveOperation @AssistedInject constructor(
                             "overallBytesSpeed" to avgBytesSpeed,
                             "overallItemsSpeed" to avgItemsSpeed,
                             "fileSpeed" to fileSpeed,
-                            "speedHistory" to speedHistory.toList(),
                             "overallEta" to overallEta,
                             "fileEta" to fileEta
                         )
                     )
                 }
-
-                // Extract performance history from low-level operation
-                val perfHistory = moveState.primaryProgress.extra as? PerformanceHistory
-                lastPerformanceHistory = perfHistory
 
                 stateActive = stateActive.copy(
                     primaryProgress = enhancedPrimary,

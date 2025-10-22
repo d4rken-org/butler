@@ -77,6 +77,30 @@ data class PerformanceHistory(
         get() = if (samples.isEmpty()) 0f else samples.map { it.itemsPerSecond }.average().toFloat()
 
     /**
+     * Calculate average speed over the most recent samples.
+     *
+     * @param sampleCount Number of recent samples to average (default 30)
+     * @return Average bytes per second over recent samples, or 0 if no samples
+     */
+    fun getRecentBytesPerSecond(sampleCount: Int = 30): Long {
+        if (samples.isEmpty()) return 0L
+        val recentSamples = samples.takeLast(sampleCount)
+        return recentSamples.map { it.bytesPerSecond }.average().toLong()
+    }
+
+    /**
+     * Calculate average item processing speed over the most recent samples.
+     *
+     * @param sampleCount Number of recent samples to average (default 30)
+     * @return Average items per second over recent samples, or 0 if no samples
+     */
+    fun getRecentItemsPerSecond(sampleCount: Int = 30): Float {
+        if (samples.isEmpty()) return 0f
+        val recentSamples = samples.takeLast(sampleCount)
+        return recentSamples.map { it.itemsPerSecond }.average().toFloat()
+    }
+
+    /**
      * Get peak transfer speed.
      */
     val peakBytesPerSecond: Long

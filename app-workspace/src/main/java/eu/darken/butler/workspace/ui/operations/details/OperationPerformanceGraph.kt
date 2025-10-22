@@ -321,12 +321,9 @@ fun OperationPerformanceGraph(
                 ),
             )
 
-            // Average byte speed label (top-left, matches left Y-axis)
+            // Recent average byte speed label (top-left, matches left Y-axis)
             if (performanceHistory.samples.isNotEmpty()) {
-                val averageSpeed = performanceHistory.samples
-                    .map { it.bytesPerSecond }
-                    .average()
-                    .toLong()
+                val averageSpeed = performanceHistory.getRecentBytesPerSecond()
 
                 Text(
                     text = formatByteSpeed(averageSpeed),
@@ -343,12 +340,9 @@ fun OperationPerformanceGraph(
                 )
             }
 
-            // Average item speed label (top-right, matches right Y-axis)
+            // Recent average item speed label (top-right, matches right Y-axis)
             if (performanceHistory.samples.isNotEmpty()) {
-                val averageItems = performanceHistory.samples
-                    .map { it.itemsPerSecond }
-                    .average()
-                    .toInt()
+                val averageItems = performanceHistory.getRecentItemsPerSecond().toInt()
 
                 Text(
                     text = formatItemSpeed(averageItems.toDouble()),

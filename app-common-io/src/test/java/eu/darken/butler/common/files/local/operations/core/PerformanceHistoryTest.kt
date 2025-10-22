@@ -6,6 +6,7 @@ import io.kotest.matchers.doubles.shouldBeLessThan
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.longs.shouldBeGreaterThan
+import io.kotest.matchers.longs.shouldBeLessThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.junit.jupiter.api.Test
@@ -213,6 +214,211 @@ class PerformanceHistoryTest : BaseTest() {
         history.averageItemsPerSecond shouldBe 0f
         history.peakBytesPerSecond shouldBe 0L
         history.duration shouldBe null
+    }
+
+    // ============ RECENT SPEED CALCULATIONS ============
+
+    @Test
+    fun `getRecentBytesPerSecond with no samples returns 0`() {
+        val history = PerformanceHistory()
+
+        history.getRecentBytesPerSecond() shouldBe 0L
+        history.getRecentBytesPerSecond(10) shouldBe 0L
+    }
+
+    @Test
+    fun `getRecentItemsPerSecond with no samples returns 0`() {
+        val history = PerformanceHistory()
+
+        history.getRecentItemsPerSecond() shouldBe 0f
+        history.getRecentItemsPerSecond(10) shouldBe 0f
+    }
+
+    @Test
+    fun `getRecentBytesPerSecond with fewer samples than window uses all samples`() {
+        val startTime = Instant.fromEpochMilliseconds(1000)
+        var history = PerformanceHistory()
+
+        // Add only 10 samples
+        repeat(10) { i ->
+            history = history.addSample(
+                PerformanceSample(
+                    timestamp = startTime + (i * 100).milliseconds,
+                    bytesPerSecond = (i + 1) * 1_000_000L,  // 1M, 2M, 3M, ..., 10M
+                    itemsPerSecond = (i + 1) * 10f,
+                    totalBytesProcessed = (i + 1) * 100_000L,
+                    totalItemsProcessed = i + 1
+                ),
+                totalBytes = 1_000_000L,
+                totalItems = 100
+            )
+        }
+
+        // Request last 30 samples, but only 10 exist - should use all 10
+        // Average of 1M, 2M, 3M, ..., 10M = 5.5M
+        val recentSpeed = history.getRecentBytesPerSecond(30)
+        recentSpeed shouldBe 5_500_000L
+    }
+
+    @Test
+    fun `getRecentItemsPerSecond with fewer samples than window uses all samples`() {
+        val startTime = Instant.fromEpochMilliseconds(1000)
+        var history = PerformanceHistory()
+
+        // Add only 5 samples
+        repeat(5) { i ->
+            history = history.addSample(
+                PerformanceSample(
+                    timestamp = startTime + (i * 100).milliseconds,
+                    bytesPerSecond = 1_000_000L,
+                    itemsPerSecond = (i + 1) * 10f,  // 10, 20, 30, 40, 50
+                    totalBytesProcessed = (i + 1) * 100_000L,
+                    totalItemsProcessed = i + 1
+                ),
+                totalBytes = 1_000_000L,
+                totalItems = 100
+            )
+        }
+
+        // Request last 30 samples, but only 5 exist - should use all 5
+        // Average of 10, 20, 30, 40, 50 = 30
+        val recentSpeed = history.getRecentItemsPerSecond(30)
+        recentSpeed shouldBe 30f
+    }
+
+    @Test
+    fun `getRecentBytesPerSecond with more samples than window uses only recent samples`() {
+        val startTime = Instant.fromEpochMilliseconds(1000)
+        var history = PerformanceHistory()
+
+        // Add 100 samples
+        repeat(100) { i ->
+            history = history.addSample(
+                PerformanceSample(
+                    timestamp = startTime + (i * 100).milliseconds,
+                    bytesPerSecond = (i + 1) * 1_000_000L,  // 1M, 2M, ..., 100M
+                    itemsPerSecond = (i + 1) * 10f,
+                    totalBytesProcessed = (i + 1) * 100_000L,
+                    totalItemsProcessed = i + 1
+                ),
+                totalBytes = 10_000_000L,
+                totalItems = 100
+            )
+        }
+
+        // Request last 10 samples - should use samples 91-100
+        // Average of 91M, 92M, ..., 100M = 95.5M
+        val recentSpeed = history.getRecentBytesPerSecond(10)
+        recentSpeed shouldBe 95_500_000L
+    }
+
+    @Test
+    fun `getRecentItemsPerSecond with more samples than window uses only recent samples`() {
+        val startTime = Instant.fromEpochMilliseconds(1000)
+        var history = PerformanceHistory()
+
+        // Add 50 samples
+        repeat(50) { i ->
+            history = history.addSample(
+                PerformanceSample(
+                    timestamp = startTime + (i * 100).milliseconds,
+                    bytesPerSecond = 1_000_000L,
+                    itemsPerSecond = (i + 1) * 10f,  // 10, 20, ..., 500
+                    totalBytesProcessed = (i + 1) * 100_000L,
+                    totalItemsProcessed = i + 1
+                ),
+                totalBytes = 5_000_000L,
+                totalItems = 50
+            )
+        }
+
+        // Request last 5 samples - should use samples 46-50
+        // Average of 460, 470, 480, 490, 500 = 480
+        val recentSpeed = history.getRecentItemsPerSecond(5)
+        recentSpeed shouldBe 480f
+    }
+
+    @Test
+    fun `getRecentBytesPerSecond default window is 30 samples`() {
+        val startTime = Instant.fromEpochMilliseconds(1000)
+        var history = PerformanceHistory()
+
+        // Add 100 samples with constant speed
+        repeat(100) { i ->
+            history = history.addSample(
+                PerformanceSample(
+                    timestamp = startTime + (i * 100).milliseconds,
+                    bytesPerSecond = if (i < 70) 5_000_000L else 10_000_000L,  // Speed changes at sample 70
+                    itemsPerSecond = 10f,
+                    totalBytesProcessed = (i + 1) * 100_000L,
+                    totalItemsProcessed = i + 1
+                ),
+                totalBytes = 10_000_000L,
+                totalItems = 100
+            )
+        }
+
+        // Default (last 30 samples) should be 10M (samples 71-100)
+        val recentSpeed = history.getRecentBytesPerSecond()
+        recentSpeed shouldBe 10_000_000L
+
+        // Explicit window of 50 samples should be average of 5M (samples 1-50) and 10M (samples 51-100)
+        val longerWindowSpeed = history.getRecentBytesPerSecond(50)
+        // 20 samples at 5M + 30 samples at 10M = average ~8M
+        longerWindowSpeed shouldBeGreaterThan 7_000_000L
+        longerWindowSpeed shouldBeLessThan 9_000_000L
+    }
+
+    @Test
+    fun `getRecentItemsPerSecond default window is 30 samples`() {
+        val startTime = Instant.fromEpochMilliseconds(1000)
+        var history = PerformanceHistory()
+
+        // Add 100 samples with speed change
+        repeat(100) { i ->
+            history = history.addSample(
+                PerformanceSample(
+                    timestamp = startTime + (i * 100).milliseconds,
+                    bytesPerSecond = 1_000_000L,
+                    itemsPerSecond = if (i < 70) 50f else 100f,  // Speed changes at sample 70
+                    totalBytesProcessed = (i + 1) * 100_000L,
+                    totalItemsProcessed = i + 1
+                ),
+                totalBytes = 10_000_000L,
+                totalItems = 100
+            )
+        }
+
+        // Default (last 30 samples) should be 100 (samples 71-100)
+        val recentSpeed = history.getRecentItemsPerSecond()
+        recentSpeed shouldBe 100f
+    }
+
+    @Test
+    fun `getRecentBytesPerSecond matches overall average when all samples requested`() {
+        val startTime = Instant.fromEpochMilliseconds(1000)
+        var history = PerformanceHistory()
+
+        // Add 50 samples
+        repeat(50) { i ->
+            history = history.addSample(
+                PerformanceSample(
+                    timestamp = startTime + (i * 100).milliseconds,
+                    bytesPerSecond = (i + 1) * 1_000_000L,
+                    itemsPerSecond = (i + 1) * 10f,
+                    totalBytesProcessed = (i + 1) * 100_000L,
+                    totalItemsProcessed = i + 1
+                ),
+                totalBytes = 5_000_000L,
+                totalItems = 50
+            )
+        }
+
+        // When window >= total samples, should match overall average
+        val recentSpeed = history.getRecentBytesPerSecond(100)
+        val overallSpeed = history.averageBytesPerSecond
+
+        recentSpeed shouldBe overallSpeed
     }
 
     // ============ NO DOWNSAMPLING (UNDER LIMIT) ============
