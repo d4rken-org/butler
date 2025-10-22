@@ -6,7 +6,6 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.serialization.InstantSerializer
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
 /**
@@ -26,9 +25,12 @@ data class PerformanceSample(
  * Historical performance data with adaptive sampling for memory efficiency.
  *
  * Sampling Strategy:
- * - First 5 minutes: Keep all samples (250ms intervals = ~1200 samples)
- * - After 5 minutes: Downsample older data (keep every 4th sample)
- * - Maximum samples: ~1000 to prevent memory bloat on very long operations
+ * - Percentage-based bucketing: Divides 0-100% progress into 5% buckets (20 total)
+ * - Maximum 50 samples per bucket (evenly distributed within bucket)
+ * - Total maximum: 1000 samples distributed across entire operation range
+ * - Supports both byte-based (copy/move) and item-based (delete) operations
+ * - Uses totalBytes for percentage if available, otherwise uses totalItems
+ * - Ensures graph coverage across full 0-100% even with rapid sampling (many small files)
  */
 @Serializable
 data class PerformanceHistory(
@@ -36,11 +38,12 @@ data class PerformanceHistory(
     @Serializable(with = InstantSerializer::class)
     val startTime: Instant? = null,
     val totalBytes: Long = 0L,
+    val totalItems: Int = 0,
 ) {
     /**
      * Add a new sample with adaptive downsampling for old data.
      */
-    fun addSample(sample: PerformanceSample, totalBytes: Long = 0L): PerformanceHistory {
+    fun addSample(sample: PerformanceSample, totalBytes: Long = 0L, totalItems: Int = 0): PerformanceHistory {
         log(
             TAG,
             DEBUG
@@ -59,7 +62,8 @@ data class PerformanceHistory(
         return copy(
             samples = updatedSamples,
             startTime = startTime ?: sample.timestamp,
-            totalBytes = if (this.totalBytes == 0L) totalBytes else this.totalBytes
+            totalBytes = maxOf(this.totalBytes, totalBytes),
+            totalItems = maxOf(this.totalItems, totalItems)
         )
     }
 
@@ -89,19 +93,50 @@ data class PerformanceHistory(
         }
 
     private fun adaptiveSample(allSamples: List<PerformanceSample>): List<PerformanceSample> {
-        val fiveMinutesAgo = allSamples.last().timestamp - 5.minutes
+        // Determine which metric to use for percentage calculation
+        val useItems = totalBytes == 0L && totalItems > 0
 
-        val recentSamples = allSamples.filter { it.timestamp >= fiveMinutesAgo }
-        val oldSamples = allSamples.filter { it.timestamp < fiveMinutesAgo }
+        if (totalBytes == 0L && totalItems == 0) {
+            // Can't determine percentage without either metric, fallback to keeping last N
+            return allSamples.takeLast(MAX_SAMPLES)
+        }
 
-        // Keep every 4th old sample to reduce memory
-        val downsampledOld = oldSamples.filterIndexed { index, _ -> index % 4 == 0 }
+        // Percentage-based downsampling: ensure samples distributed across 0-100% range
+        // Use 5% buckets (20 total: 0-19), with dynamic samples per bucket
+        val bucketSize = 5.0
+        val numBuckets = 20
+        // Calculate samples per bucket to ensure total never exceeds MAX_SAMPLES
+        val samplesPerBucket = (MAX_SAMPLES.toDouble() / numBuckets).toInt().coerceAtLeast(1)
 
-        return (downsampledOld + recentSamples).takeLast(MAX_SAMPLES)
+        val buckets = allSamples.groupBy { sample ->
+            val percentage = if (useItems) {
+                (sample.totalItemsProcessed.toDouble() / totalItems) * 100.0
+            } else {
+                (sample.totalBytesProcessed.toDouble() / totalBytes) * 100.0
+            }
+            // Clamp percentage to [0.0, 100.0] and ensure bucket index is [0, 19]
+            val clampedPercentage = percentage.coerceIn(0.0, 100.0)
+            minOf(numBuckets - 1, (clampedPercentage / bucketSize).toInt())
+        }
+
+        // Downsample each bucket to max samplesPerBucket, keeping evenly distributed samples
+        val downsampledSamples = buckets.flatMap { (_, samplesInBucket) ->
+            if (samplesInBucket.size <= samplesPerBucket) {
+                samplesInBucket
+            } else {
+                // Keep evenly distributed samples from this bucket
+                val step = samplesInBucket.size.toDouble() / samplesPerBucket
+                (0 until samplesPerBucket).map { i ->
+                    samplesInBucket[(i * step).toInt()]
+                }
+            }
+        }.sortedBy { it.timestamp }  // Maintain chronological order
+
+        return downsampledSamples
     }
 
     override fun toString(): String {
-        return "PerformanceHistory(startTime=$startTime, total=$totalBytes, samples=${samples.size})"
+        return "PerformanceHistory(startTime=$startTime, totalBytes=$totalBytes, totalItems=$totalItems, samples=${samples.size})"
     }
 
     companion object {

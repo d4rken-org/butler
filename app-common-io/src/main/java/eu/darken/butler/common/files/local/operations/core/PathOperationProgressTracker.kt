@@ -175,7 +175,11 @@ class PathOperationProgressTracker(
                     totalItemsProcessed = itemsProcessed,
                 )
 
-                performanceHistory = performanceHistory.addSample(sample, totalBytes = this.totalBytes)
+                performanceHistory = performanceHistory.addSample(
+                    sample,
+                    totalBytes = this.totalBytes,
+                    totalItems = this.totalItems
+                )
             }
         }
 

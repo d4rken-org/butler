@@ -113,10 +113,14 @@ fun OperationPerformanceGraph(
         var lastPercentage = -1f
 
         performanceHistory.samples.forEach { sample ->
-            val percentage = if (performanceHistory.totalBytes > 0) {
-                (sample.totalBytesProcessed.toFloat() / performanceHistory.totalBytes.toFloat()) * 100f
-            } else {
-                0f
+            val percentage = when {
+                performanceHistory.totalBytes > 0 -> {
+                    (sample.totalBytesProcessed.toFloat() / performanceHistory.totalBytes.toFloat()) * 100f
+                }
+                performanceHistory.totalItems > 0 -> {
+                    (sample.totalItemsProcessed.toFloat() / performanceHistory.totalItems.toFloat()) * 100f
+                }
+                else -> 0f
             }
 
             // Always include first sample, and samples where percentage changed by >= 0.5%
@@ -136,13 +140,17 @@ fun OperationPerformanceGraph(
 
         // Map filtered samples to completion percentage (X-axis) and speed in MB/s (Y-axis)
         val completionPercentages = filteredSamples.map { sample ->
-            if (performanceHistory.totalBytes > 0) {
-                val raw = (sample.totalBytesProcessed.toFloat() / performanceHistory.totalBytes.toFloat()) * 100f
-                // Round to nearest 0.5% to ensure clean GCD calculation (prevents Vico precision errors)
-                (kotlin.math.round(raw * 2) / 2.0).toFloat()
-            } else {
-                0f
+            val raw = when {
+                performanceHistory.totalBytes > 0 -> {
+                    (sample.totalBytesProcessed.toFloat() / performanceHistory.totalBytes.toFloat()) * 100f
+                }
+                performanceHistory.totalItems > 0 -> {
+                    (sample.totalItemsProcessed.toFloat() / performanceHistory.totalItems.toFloat()) * 100f
+                }
+                else -> 0f
             }
+            // Round to nearest 0.5% to ensure clean GCD calculation (prevents Vico precision errors)
+            (kotlin.math.round(raw * 2) / 2.0).toFloat()
         }.distinct()  // Remove any duplicate values from rounding
 
         val bytesPerSecondMB = filteredSamples.map { sample ->
@@ -168,8 +176,11 @@ fun OperationPerformanceGraph(
 
         // Log filtered samples for debugging
         filteredSamples.take(3).forEachIndexed { idx, sample ->
-            val pct =
-                if (performanceHistory.totalBytes > 0) (sample.totalBytesProcessed.toFloat() / performanceHistory.totalBytes * 100f) else 0f
+            val pct = when {
+                performanceHistory.totalBytes > 0 -> (sample.totalBytesProcessed.toFloat() / performanceHistory.totalBytes * 100f)
+                performanceHistory.totalItems > 0 -> (sample.totalItemsProcessed.toFloat() / performanceHistory.totalItems * 100f)
+                else -> 0f
+            }
             log(
                 TAG,
                 DEBUG
@@ -178,8 +189,11 @@ fun OperationPerformanceGraph(
         if (filteredSamples.size > 3) {
             log(TAG, DEBUG) { "... (${filteredSamples.size - 6} filtered samples omitted) ..." }
             filteredSamples.takeLast(3).forEachIndexed { idx, sample ->
-                val pct =
-                    if (performanceHistory.totalBytes > 0) (sample.totalBytesProcessed.toFloat() / performanceHistory.totalBytes * 100f) else 0f
+                val pct = when {
+                    performanceHistory.totalBytes > 0 -> (sample.totalBytesProcessed.toFloat() / performanceHistory.totalBytes * 100f)
+                    performanceHistory.totalItems > 0 -> (sample.totalItemsProcessed.toFloat() / performanceHistory.totalItems * 100f)
+                    else -> 0f
+                }
                 val actualIdx = filteredSamples.size - 3 + idx
                 log(
                     TAG,
@@ -231,11 +245,19 @@ fun OperationPerformanceGraph(
                         rangeProvider = remember(minSpeed, maxSpeed) {
                             object : CartesianLayerRangeProvider {
                                 override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
-                                    return minSpeed * 0.8  // 20% padding below minimum
+                                    return minSpeed * 0.9  // 20% padding below minimum
                                 }
 
                                 override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
                                     return maxSpeed * 1.1  // 10% padding above maximum
+                                }
+
+                                override fun getMinX(minX: Double, maxX: Double, extraStore: ExtraStore): Double {
+                                    return 0.0 // Fixed 0 to 100% range
+                                }
+
+                                override fun getMaxX(minX: Double, maxX: Double, extraStore: ExtraStore): Double {
+                                    return 100.0 // Fixed 0 to 100% range
                                 }
                             }
                         },
@@ -257,11 +279,19 @@ fun OperationPerformanceGraph(
                         rangeProvider = remember(minItems, maxItems) {
                             object : CartesianLayerRangeProvider {
                                 override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
-                                    return minItems * 0.8  // 20% padding below minimum
+                                    return minItems * 0.9  // 20% padding below minimum
                                 }
 
                                 override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
                                     return maxItems * 1.1  // 10% padding above maximum
+                                }
+
+                                override fun getMinX(minX: Double, maxX: Double, extraStore: ExtraStore): Double {
+                                    return 0.0 // Fixed 0 to 100% range
+                                }
+
+                                override fun getMaxX(minX: Double, maxX: Double, extraStore: ExtraStore): Double {
+                                    return 100.0 // Fixed 0 to 100% range
                                 }
                             }
                         },
@@ -280,7 +310,7 @@ fun OperationPerformanceGraph(
                     bottomAxis = HorizontalAxis.rememberBottom(
                         label = null,  // Hide X-axis labels like Windows Explorer
                         guideline = null,  // Hide grid lines
-                        tick = null  // Hide tick marks
+                        tick = null,  // Hide tick marks
                     ),
                 ),
                 modelProducer = modelProducer,
@@ -291,7 +321,7 @@ fun OperationPerformanceGraph(
                 ),
             )
 
-            // Average speed label (bottom-right, Windows Explorer style)
+            // Average byte speed label (top-left, matches left Y-axis)
             if (performanceHistory.samples.isNotEmpty()) {
                 val averageSpeed = performanceHistory.samples
                     .map { it.bytesPerSecond }
@@ -303,8 +333,8 @@ fun OperationPerformanceGraph(
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
-                        .align(androidx.compose.ui.Alignment.BottomEnd)
-                        .offset(x = (-16).dp, y = (-16).dp)
+                        .align(androidx.compose.ui.Alignment.TopStart)
+                        .offset(x = 16.dp, y = 16.dp)
                         .background(
                             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
                             shape = RoundedCornerShape(4.dp)
@@ -313,7 +343,7 @@ fun OperationPerformanceGraph(
                 )
             }
 
-            // Average items/second label (top-right)
+            // Average item speed label (top-right, matches right Y-axis)
             if (performanceHistory.samples.isNotEmpty()) {
                 val averageItems = performanceHistory.samples
                     .map { it.itemsPerSecond }

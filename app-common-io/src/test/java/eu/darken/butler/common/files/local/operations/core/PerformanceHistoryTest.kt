@@ -85,11 +85,11 @@ class PerformanceHistoryTest : BaseTest() {
     }
 
     @Test
-    fun `totalBytes and totalItems remain constant after first set`() {
+    fun `totalBytes and totalItems can increase but never decrease`() {
         val startTime = Instant.fromEpochMilliseconds(1000)
         var history = PerformanceHistory()
 
-        // First sample sets totals
+        // First sample sets initial totals
         history = history.addSample(
             PerformanceSample(startTime, 1_000_000L, 10f, 100_000L, 1),
             totalBytes = 5_000_000L,
@@ -99,15 +99,15 @@ class PerformanceHistoryTest : BaseTest() {
         history.totalBytes shouldBe 5_000_000L
         history.totalItems shouldBe 50
 
-        // Subsequent samples with different totals should not change them
+        // Subsequent samples with higher totals should increase them
         history = history.addSample(
             PerformanceSample(startTime + 100.milliseconds, 1_000_000L, 10f, 200_000L, 2),
-            totalBytes = 999_999_999L,  // Different value - should be ignored
-            totalItems = 999            // Different value - should be ignored
+            totalBytes = 999_999_999L,  // Higher value - should be accepted
+            totalItems = 999            // Higher value - should be accepted
         )
 
-        history.totalBytes shouldBe 5_000_000L
-        history.totalItems shouldBe 50
+        history.totalBytes shouldBe 999_999_999L
+        history.totalItems shouldBe 999
     }
 
     // ============ CALCULATED PROPERTIES ============
@@ -772,6 +772,254 @@ class PerformanceHistoryTest : BaseTest() {
 
         history.samples shouldHaveSize 10  // All retained, under limit
         history.duration shouldBe 45.seconds
+    }
+
+    // ============ DYNAMIC TOTALS (SCANNING PHASE) ============
+
+    @Test
+    fun `totalBytes increases across samples during scanning`() {
+        val startTime = Instant.fromEpochMilliseconds(1000)
+        var history = PerformanceHistory()
+
+        // Simulate scanning phase where totals increase as files are discovered
+        // First sample: 100 files found (1MB total)
+        history = history.addSample(
+            PerformanceSample(startTime, 1_000_000L, 10f, 100_000L, 10),
+            totalBytes = 1_000_000L,
+            totalItems = 100
+        )
+        history.totalBytes shouldBe 1_000_000L
+        history.totalItems shouldBe 100
+
+        // Second sample: 500 more files found (5MB total now)
+        history = history.addSample(
+            PerformanceSample(startTime + 100.milliseconds, 1_000_000L, 10f, 500_000L, 50),
+            totalBytes = 5_000_000L,
+            totalItems = 500
+        )
+        history.totalBytes shouldBe 5_000_000L  // Should grow to 5MB
+        history.totalItems shouldBe 500
+
+        // Third sample: All 1000 files found (10MB total)
+        history = history.addSample(
+            PerformanceSample(startTime + 200.milliseconds, 1_000_000L, 10f, 1_000_000L, 100),
+            totalBytes = 10_000_000L,
+            totalItems = 1000
+        )
+        history.totalBytes shouldBe 10_000_000L  // Should grow to 10MB
+        history.totalItems shouldBe 1000
+    }
+
+    @Test
+    fun `totalItems increases across samples during scanning`() {
+        val startTime = Instant.fromEpochMilliseconds(1000)
+        var history = PerformanceHistory()
+
+        // Simulate item-only operation (delete) where items discovered incrementally
+        // First: 100 items found
+        history = history.addSample(
+            PerformanceSample(startTime, 0L, 10f, 0L, 10),
+            totalBytes = 0L,
+            totalItems = 100
+        )
+        history.totalItems shouldBe 100
+
+        // Second: 500 items total
+        history = history.addSample(
+            PerformanceSample(startTime + 100.milliseconds, 0L, 10f, 0L, 50),
+            totalBytes = 0L,
+            totalItems = 500
+        )
+        history.totalItems shouldBe 500
+
+        // Third: 1000 items total
+        history = history.addSample(
+            PerformanceSample(startTime + 200.milliseconds, 0L, 10f, 0L, 100),
+            totalBytes = 0L,
+            totalItems = 1000
+        )
+        history.totalItems shouldBe 1000
+    }
+
+    @Test
+    fun `both totals increase together during scanning`() {
+        val startTime = Instant.fromEpochMilliseconds(1000)
+        var history = PerformanceHistory()
+
+        val progressions = listOf(
+            Triple(1_000_000L, 100, 10),
+            Triple(5_000_000L, 500, 50),
+            Triple(10_000_000L, 1000, 100),
+        )
+
+        progressions.forEachIndexed { i, (totalBytes, totalItems, processed) ->
+            history = history.addSample(
+                PerformanceSample(
+                    startTime + (i * 100).milliseconds,
+                    1_000_000L,
+                    10f,
+                    processed * (totalBytes / totalItems),
+                    processed
+                ),
+                totalBytes = totalBytes,
+                totalItems = totalItems
+            )
+
+            history.totalBytes shouldBe totalBytes
+            history.totalItems shouldBe totalItems
+        }
+    }
+
+    @Test
+    fun `totals never decrease when lower values passed`() {
+        val startTime = Instant.fromEpochMilliseconds(1000)
+        var history = PerformanceHistory()
+
+        // First sample: 10MB, 1000 items
+        history = history.addSample(
+            PerformanceSample(startTime, 1_000_000L, 10f, 1_000_000L, 100),
+            totalBytes = 10_000_000L,
+            totalItems = 1000
+        )
+
+        history.totalBytes shouldBe 10_000_000L
+        history.totalItems shouldBe 1000
+
+        // Second sample: Try to pass lower totals (should be ignored)
+        history = history.addSample(
+            PerformanceSample(startTime + 100.milliseconds, 1_000_000L, 10f, 2_000_000L, 200),
+            totalBytes = 5_000_000L,  // Lower than current 10MB
+            totalItems = 500          // Lower than current 1000
+        )
+
+        // Totals should not decrease
+        history.totalBytes shouldBe 10_000_000L
+        history.totalItems shouldBe 1000
+    }
+
+    @Test
+    fun `percentage calculation uses latest totals not first totals`() {
+        val startTime = Instant.fromEpochMilliseconds(1000)
+        var history = PerformanceHistory()
+
+        // Simulate discovering files during scanning
+        // First sample: Only 1000 files discovered, processed 500
+        history = history.addSample(
+            PerformanceSample(startTime, 1_000_000L, 10f, 500_000L, 500),
+            totalBytes = 1_000_000L,
+            totalItems = 1000
+        )
+
+        // This looks like 50% complete (500/1000)
+
+        // Second sample: Now 9000 files total discovered, still only processed 500
+        history = history.addSample(
+            PerformanceSample(startTime + 100.milliseconds, 1_000_000L, 10f, 500_000L, 500),
+            totalBytes = 9_000_000L,
+            totalItems = 9000
+        )
+
+        // Now it's only ~5.5% complete (500/9000), not 50%!
+        history.totalItems shouldBe 9000
+        val percentage = (500.0 / history.totalItems) * 100.0
+        percentage shouldBeLessThan 10.0  // Should be much less than 50%
+    }
+
+    @Test
+    fun `graph reaches 100 percent only when operation complete - simulates 9000 file bug`() {
+        val startTime = Instant.fromEpochMilliseconds(1000)
+        var history = PerformanceHistory()
+        val targetFiles = 9000
+        val targetBytes = 9_000_000_000L
+
+        // Simulate real copy operation scanning phase
+        // Scan phase 1: Found 1000 files, processed 100
+        history = history.addSample(
+            PerformanceSample(startTime, 10_000_000L, 100f, 100_000_000L, 100),
+            totalBytes = 1_000_000_000L,  // 1000 files discovered
+            totalItems = 1000
+        )
+
+        // At this point, OLD bug would lock totals at 1000 files/1GB
+        // Percentage appears to be: 100/1000 = 10%
+
+        // Scan phase 2: Found 5000 files total, processed 500
+        history = history.addSample(
+            PerformanceSample(startTime + 1.seconds, 10_000_000L, 100f, 500_000_000L, 500),
+            totalBytes = 5_000_000_000L,  // 5000 files discovered
+            totalItems = 5000
+        )
+
+        // NEW fix: totals grow to 5000 files
+        // Percentage: 500/5000 = 10% (correct!)
+        // OLD bug: 500/1000 = 50% (wrong - graph halfway done but 8500 files remain!)
+        history.totalItems shouldBe 5000
+        val midPercentage = (500.0 / history.totalItems) * 100.0
+        midPercentage shouldBeLessThan 15.0
+
+        // Scan phase 3: All 9000 files discovered, processed 1000
+        history = history.addSample(
+            PerformanceSample(startTime + 2.seconds, 10_000_000L, 100f, 1_000_000_000L, 1000),
+            totalBytes = targetBytes,
+            totalItems = targetFiles
+        )
+
+        history.totalItems shouldBe 9000
+        val earlyPercentage = (1000.0 / history.totalItems) * 100.0
+        earlyPercentage shouldBeLessThan 15.0  // Only ~11% complete
+
+        // Continue processing: 4500/9000 files
+        history = history.addSample(
+            PerformanceSample(startTime + 10.seconds, 10_000_000L, 100f, 4_500_000_000L, 4500),
+            totalBytes = targetBytes,
+            totalItems = targetFiles
+        )
+
+        val halfPercentage = (4500.0 / history.totalItems) * 100.0
+        halfPercentage shouldBeGreaterThan 45.0
+        halfPercentage shouldBeLessThan 55.0  // ~50% complete
+
+        // Final: 9000/9000 files complete
+        history = history.addSample(
+            PerformanceSample(startTime + 20.seconds, 10_000_000L, 100f, targetBytes, targetFiles),
+            totalBytes = targetBytes,
+            totalItems = targetFiles
+        )
+
+        val finalPercentage = (targetFiles.toDouble() / history.totalItems) * 100.0
+        finalPercentage shouldBe 100.0  // Now 100% complete
+    }
+
+    @Test
+    fun `downsampling uses latest totals for bucketing`() {
+        val startTime = Instant.fromEpochMilliseconds(1000)
+        var history = PerformanceHistory()
+
+        // Add 1500 samples with increasing totals (simulates long scanning phase)
+        repeat(1500) { i ->
+            // Totals grow linearly as scanning progresses
+            val currentTotal = 1000 + (i * 5)  // Starts at 1000, ends at 8500
+            val processed = i + 1
+
+            history = history.addSample(
+                PerformanceSample(
+                    timestamp = startTime + (i * 10).milliseconds,
+                    bytesPerSecond = 1_000_000L,
+                    itemsPerSecond = 10f,
+                    totalBytesProcessed = processed * 1000L,
+                    totalItemsProcessed = processed
+                ),
+                totalBytes = currentTotal * 1000L,
+                totalItems = currentTotal
+            )
+        }
+
+        // Should downsample to ≤ 1000
+        history.samples.size shouldBeLessThanOrEqual 1000
+
+        // Verify it used the FINAL total (8500) not the first total (1000) for bucketing
+        history.totalItems shouldBe 8495  // Last total: 1000 + (1499 * 5)
+        history.totalBytes shouldBe 8_495_000L
     }
 
     // ============ toString() ============
