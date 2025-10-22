@@ -37,7 +37,6 @@ class PathPreviewFetcher @Inject constructor(
 ) : Fetcher {
 
     private fun isEasterEggPath(): Boolean {
-        if (!data.path.contains(context.packageName)) return false
         val segments = data.lookedUp.segments
         if (segments.size < 3) return false
 
