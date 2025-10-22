@@ -248,7 +248,9 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
         } catch (e: Exception) {
             // Handle case where file was deleted between scan and delete phases
             if (ignoreMissing && (e is java.io.FileNotFoundException ||
-                    e.cause is java.io.FileNotFoundException)
+                    e.cause is java.io.FileNotFoundException ||
+                    e is java.nio.file.NoSuchFileException ||
+                    e.cause is java.nio.file.NoSuchFileException)
             ) {
                 log(TAG, VERBOSE) { "File already deleted (ignoreMissing=true): ${item.path}" }
                 progressTracker.completeItem(lookup.size ?: 0L)
