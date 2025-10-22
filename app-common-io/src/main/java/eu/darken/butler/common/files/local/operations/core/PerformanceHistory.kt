@@ -35,11 +35,22 @@ data class PerformanceSample(
 @Serializable
 data class PerformanceHistory(
     val samples: List<PerformanceSample> = emptyList(),
-    @Serializable(with = InstantSerializer::class)
-    val startTime: Instant? = null,
+    @Serializable(with = InstantSerializer::class) val startTime: Instant? = null,
     val totalBytes: Long = 0L,
     val totalItems: Int = 0,
 ) {
+    /**
+     * Get peak transfer speed.
+     */
+    val peakBytesPerSecond: Long
+        get() = samples.maxOfOrNull { it.bytesPerSecond } ?: 0L
+
+    /**
+     * Whether this history has enough samples to display a meaningful graph.
+     */
+    val canShowGraph: Boolean
+        get() = samples.size >= 10
+
     /**
      * Add a new sample with adaptive downsampling for old data.
      */
@@ -99,12 +110,6 @@ data class PerformanceHistory(
         val recentSamples = samples.takeLast(sampleCount)
         return recentSamples.map { it.itemsPerSecond }.average().toFloat()
     }
-
-    /**
-     * Get peak transfer speed.
-     */
-    val peakBytesPerSecond: Long
-        get() = samples.maxOfOrNull { it.bytesPerSecond } ?: 0L
 
     /**
      * Total operation duration based on samples.

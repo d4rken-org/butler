@@ -59,7 +59,7 @@ fun OperationPerformanceGraph(
 ) {
     val backgroundColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
 
-    if (performanceHistory.samples.size < 10) {
+    if (!performanceHistory.canShowGraph) {
         // Not enough data - show message
         Box(
             modifier = modifier
@@ -331,7 +331,7 @@ fun OperationPerformanceGraph(
                     color = bytesLineColor,
                     modifier = Modifier
                         .align(androidx.compose.ui.Alignment.TopStart)
-                        .offset(x = 16.dp, y = 16.dp)
+                        .offset(x = 4.dp, y = 16.dp)
                         .background(
                             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
                             shape = RoundedCornerShape(4.dp)
@@ -350,7 +350,7 @@ fun OperationPerformanceGraph(
                     color = itemsLineColor,
                     modifier = Modifier
                         .align(androidx.compose.ui.Alignment.TopEnd)
-                        .offset(x = (-16).dp, y = 16.dp)
+                        .offset(x = (4).dp, y = 16.dp)
                         .background(
                             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
                             shape = RoundedCornerShape(4.dp)
