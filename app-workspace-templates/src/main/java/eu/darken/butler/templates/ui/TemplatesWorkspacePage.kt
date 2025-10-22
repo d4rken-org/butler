@@ -34,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -195,15 +194,15 @@ fun TemplatesWorkspacePage(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 16.dp)
-                        .padding(bottom = 16.dp), colors = CardDefaults.cardColors(
+                        .padding(vertical = 16.dp),
+                    colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                     )
                 ) {
                     Row(
                         modifier = Modifier
                             .clickable { onNavToSettings() }
-                            .padding(12.dp),
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
@@ -232,7 +231,7 @@ fun TemplatesWorkspacePage(
                             )
                             Text(
                                 text = state.versionDescription,
-                                style = MaterialTheme.typography.labelSmall,
+                                style = MaterialTheme.typography.labelMedium,
                                 modifier = Modifier.padding(top = 2.dp),
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             )
