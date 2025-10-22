@@ -303,6 +303,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     error = null
                 )
             }
+
+            // Clear selection state when restoring from history
+            selectionState.value = SearcherSelectionState()
         } ?: run {
             // Fallback for legacy history items without full query
             searchQuery.value = TextFieldValue(item.baseQuery)
@@ -339,6 +342,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 error = null
             )
         }
+
+        // Clear selection state when starting new search
+        selectionState.value = SearcherSelectionState()
 
         // Start the search
         activeSearchJob = vmScope.launch {
@@ -435,6 +441,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     fun updateFilter(filter: SearchQuery.Filter) {
         log(TAG) { "Updating filter: $filter" }
         currentFilter.value = filter
+        // Clear selection state when filter changes
+        selectionState.value = SearcherSelectionState()
     }
 
     fun toggleCaseSensitive() {
@@ -461,6 +469,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     fun updateSearchTargets(targets: List<SearchTarget>) {
         log(TAG) { "Updating search targets: $targets" }
         searchTargets.value = targets
+        // Clear selection state when targets change
+        selectionState.value = SearcherSelectionState()
         vmScope.launch {
             searcherSettings.defaultSearchTargets.value(targets)
         }

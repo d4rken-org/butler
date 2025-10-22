@@ -538,6 +538,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         selectedItemsFlow.value = emptySet()
     }
 
+    fun selectAll() = launch {
+        val stateSnap = state.first()
+        selectedItemsFlow.value = stateSnap.selectionState.selectableItems
+    }
+
     fun executeAction(action: ExplorerAction) = launch {
         log(tag) { "executeAction(${action::class.simpleName})" }
         val stateSnap = state.first()

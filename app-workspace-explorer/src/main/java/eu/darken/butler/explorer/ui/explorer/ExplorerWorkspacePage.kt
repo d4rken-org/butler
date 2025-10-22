@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -40,7 +41,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.activity.compose.BackHandler
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -50,8 +50,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.Slogans
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.keyboard.KeyboardShortcut
+import eu.darken.butler.common.keyboard.keyboardShortcuts
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.issues.ErrorSnackbar
 import eu.darken.butler.explorer.ui.explorer.issues.IssueBottomSheet
@@ -257,7 +260,20 @@ fun ExplorerWorkspacePage(
         label = "clipboardScale"
     )
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .keyboardShortcuts {
+                on(KeyboardShortcut.Copy) { vm?.executeAction(ExplorerAction.Directory.Copy()) }
+                on(KeyboardShortcut.Cut) { vm?.executeAction(ExplorerAction.Directory.Cut()) }
+                on(KeyboardShortcut.Paste) {
+                    clipboardState.entries.firstOrNull()?.let { clip -> vm?.pasteClipboard(clip) }
+                }
+                on(KeyboardShortcut.SelectAll) { vm?.selectAll() }
+                on(KeyboardShortcut.Delete) { vm?.executeAction(ExplorerAction.Directory.Delete()) }
+                on(KeyboardShortcut.Escape) { vm?.clearSelection() }
+            }
+    ) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -316,55 +332,55 @@ fun ExplorerWorkspacePage(
                             selectedCount = mainState.selectionState.selectedItems.size,
                         )
 
-                    mainState.error?.let { error ->
-                        NavigationErrorCard(
-                            error = error,
-                            onCopyError = { vm?.copyNavigationError() },
-                            onRetry = { vm?.retryNavigation() },
-                            onDismiss = { vm?.dismissNavigationError() },
-                        )
-                    }
+                        mainState.error?.let { error ->
+                            NavigationErrorCard(
+                                error = error,
+                                onCopyError = { vm?.copyNavigationError() },
+                                onRetry = { vm?.retryNavigation() },
+                                onDismiss = { vm?.dismissNavigationError() },
+                            )
+                        }
 
-                    val mainStateSnap = mainState
-                    when {
-                        mainStateSnap.permissionState.needsPermissions -> {
-                            // Show permission request card when permissions are missing
-                            PermissionRequestCard(
-                                permissionState = mainState.permissionState,
-                                onNavigateToSetup = {
-                                    vm?.navigateToSetup()
-                                },
-                                modifier = Modifier.fillMaxSize(),
-                            )
-                        }
-                        mainStateSnap.items == null -> {
-                            val randomSlogan = remember { Slogans.random }
-                            EmptyState(
-                                modifier = Modifier.fillMaxSize(),
-                                slogan = randomSlogan.asComposable()
-                            )
-                        }
-                        mainStateSnap.items.isEmpty() -> {
-                            BoxWithConstraints(
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .heightIn(min = maxHeight)
-                                        .fillMaxWidth()
-                                        .verticalScroll(rememberScrollState()),
-                                    contentAlignment = Alignment.Center
+                        val mainStateSnap = mainState
+                        when {
+                            mainStateSnap.permissionState.needsPermissions -> {
+                                // Show permission request card when permissions are missing
+                                PermissionRequestCard(
+                                    permissionState = mainState.permissionState,
+                                    onNavigateToSetup = {
+                                        vm?.navigateToSetup()
+                                    },
+                                    modifier = Modifier.fillMaxSize(),
+                                )
+                            }
+                            mainStateSnap.items == null -> {
+                                val randomSlogan = remember { Slogans.random }
+                                EmptyState(
+                                    modifier = Modifier.fillMaxSize(),
+                                    slogan = randomSlogan.asComposable()
+                                )
+                            }
+                            mainStateSnap.items.isEmpty() -> {
+                                BoxWithConstraints(
+                                    modifier = Modifier.fillMaxSize()
                                 ) {
-                                    EmptyDirectoryState()
+                                    Box(
+                                        modifier = Modifier
+                                            .heightIn(min = maxHeight)
+                                            .fillMaxWidth()
+                                            .verticalScroll(rememberScrollState()),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        EmptyDirectoryState()
+                                    }
                                 }
                             }
-                        }
-                        else -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                if (mainStateSnap.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
-                                    LazyColumn(
+                            else -> {
+                                Box(
+                                    modifier = Modifier.fillMaxSize()
+                                ) {
+                                    if (mainStateSnap.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
+                                        LazyColumn(
                                             state = listState,
                                             modifier = Modifier
                                                 .fillMaxSize()
@@ -393,7 +409,9 @@ fun ExplorerWorkspacePage(
                                                 when (item) {
                                                     is ExplorerItem.Lookup -> LookupItemRow(
                                                         item = item,
-                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(item),
+                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(
+                                                            item
+                                                        ),
                                                         onToggleSelection = { vm?.toggleItemSelection(item) },
                                                         onClick = { vm?.onItemClick(item) },
                                                         onLongClick = { vm?.onItemLongClick(item) },
@@ -411,7 +429,9 @@ fun ExplorerWorkspacePage(
 
                                                     is ExplorerItem.Storage -> StorageRow(
                                                         item = item,
-                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(item),
+                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(
+                                                            item
+                                                        ),
                                                         onToggleSelection = { vm?.toggleItemSelection(item) },
                                                         onClick = {
                                                             if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
@@ -427,8 +447,8 @@ fun ExplorerWorkspacePage(
                                                 }
                                             }
                                         }
-                                } else {
-                                    LazyVerticalGrid(
+                                    } else {
+                                        LazyVerticalGrid(
                                             state = gridState,
                                             columns = GridCells.Adaptive(minSize = 120.dp),
                                             modifier = Modifier
@@ -459,7 +479,9 @@ fun ExplorerWorkspacePage(
                                                 when (item) {
                                                     is ExplorerItem.Lookup -> LookupItemGrid(
                                                         item = item,
-                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(item),
+                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(
+                                                            item
+                                                        ),
                                                         onToggleSelection = { vm?.toggleItemSelection(item) },
                                                         onClick = { vm?.onItemClick(item) },
                                                         onLongClick = { vm?.onItemLongClick(item) },
@@ -472,7 +494,9 @@ fun ExplorerWorkspacePage(
 
                                                     is ExplorerItem.Storage -> StorageGrid(
                                                         item = item,
-                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(item),
+                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(
+                                                            item
+                                                        ),
                                                         onToggleSelection = { vm?.toggleItemSelection(item) },
                                                         onClick = {
                                                             if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
@@ -492,11 +516,11 @@ fun ExplorerWorkspacePage(
                                                 }
                                             }
                                         }
+                                    }
                                 }
                             }
                         }
                     }
-                }
                 }
 
                 mainState.progress?.let {

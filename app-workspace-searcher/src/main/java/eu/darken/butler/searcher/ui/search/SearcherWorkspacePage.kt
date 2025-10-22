@@ -35,12 +35,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.keyboard.KeyboardShortcut
+import eu.darken.butler.common.keyboard.keyboardShortcuts
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchHistory
@@ -118,10 +122,33 @@ fun SearcherWorkspacePage(
     val listState = rememberLazyListState()
     var searchDebounce by remember { mutableStateOf(false) }
     var showClearHistoryDialog by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
     var showCancelConfirmation by remember { mutableStateOf<Operation.Id?>(null) }
+
+    // Wrapped selection callbacks that clear focus and hide keyboard
+    val wrappedOnEnterSelectionMode: (SearchResult) -> Unit = remember(focusManager, keyboardController) {
+        { result ->
+            focusManager.clearFocus()
+            keyboardController?.hide()
+            onEnterSelectionMode(result)
+        }
+    }
+
+    val wrappedOnToggleSelection: (SearchResult) -> Unit = remember(focusManager, keyboardController) {
+        { result ->
+            // Only clear focus and hide keyboard when entering selection mode (first selection)
+            // Not when already in selection mode (subsequent toggles)
+            if (state?.selectionState?.isSelectionMode != true) {
+                focusManager.clearFocus()
+                keyboardController?.hide()
+            }
+            onToggleSelection(result)
+        }
+    }
 
     // Set the bottom bar height for scroll behavior
     bottomBarScrollBehavior.state.setHeight(64.dp)
@@ -205,7 +232,40 @@ fun SearcherWorkspacePage(
             }
         }
 
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .keyboardShortcuts {
+                    on(KeyboardShortcut.Copy) {
+                        val selectedResults = currentState.selectionState.selectedResults
+                        if (selectedResults.isNotEmpty()) {
+                            onAction(SearcherAction.Copy(selectedResults))
+                        }
+                    }
+                    on(KeyboardShortcut.Cut) {
+                        val selectedResults = currentState.selectionState.selectedResults
+                        if (selectedResults.isNotEmpty()) {
+                            onAction(SearcherAction.Cut(selectedResults))
+                        }
+                    }
+                    on(KeyboardShortcut.SelectAll) {
+                        if (currentState.selectionState.selectableResults.isNotEmpty()) {
+                            onAction(SearcherAction.SelectAll)
+                        }
+                    }
+                    on(KeyboardShortcut.Delete) {
+                        val selectedResults = currentState.selectionState.selectedResults
+                        if (selectedResults.isNotEmpty()) {
+                            onAction(SearcherAction.Delete(selectedResults))
+                        }
+                    }
+                    on(KeyboardShortcut.Escape) {
+                        if (currentState.selectionState.isSelectionMode) {
+                            onAction(SearcherAction.DeselectAll)
+                        }
+                    }
+                }
+        ) {
             // Scrollable content layer - with padding for pinned cards
             LazyColumn(
                 state = listState,
@@ -262,8 +322,8 @@ fun SearcherWorkspacePage(
                             result = result,
                             selectionState = currentState.selectionState,
                             onClick = { onResultClick(result) },
-                            onLongPress = { onEnterSelectionMode(result) },
-                            onSelectionToggle = { onToggleSelection(result) }
+                            onLongPress = { wrappedOnEnterSelectionMode(result) },
+                            onSelectionToggle = { wrappedOnToggleSelection(result) }
                         )
                     }
                 }
@@ -444,7 +504,7 @@ fun SearcherWorkspacePage(
                     onHideQuickActions()
                 },
                 onLongPress = {
-                    onEnterSelectionMode(it)
+                    wrappedOnEnterSelectionMode(it)
                     onHideQuickActions()
                 },
                 onDismiss = onHideQuickActions

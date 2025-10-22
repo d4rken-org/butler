@@ -2,12 +2,15 @@ package eu.darken.butler.common.keyboard
 
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
-import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isAltPressed
+import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.input.key.KeyEventType
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 
 /**
  * Represents a keyboard shortcut with a key and optional modifiers.
@@ -25,13 +28,19 @@ data class KeyboardShortcut(
     fun matches(event: KeyEvent): Boolean {
         if (event.type != KeyEventType.KeyDown) return false
 
-        return event.key == key &&
+        val matches = event.key == key &&
             event.isCtrlPressed == ctrl &&
             event.isAltPressed == alt &&
             event.isShiftPressed == shift
+
+        if (matches)             log(TAG, INFO) { "Shortcut matched: $this" }
+
+        return matches
     }
 
     companion object {
+        private val TAG = logTag("Keyboard", "Shortcut")
+
         // Common shortcuts
         val Copy = KeyboardShortcut(key = Key.C, ctrl = true)
         val Cut = KeyboardShortcut(key = Key.X, ctrl = true)
@@ -39,7 +48,5 @@ data class KeyboardShortcut(
         val SelectAll = KeyboardShortcut(key = Key.A, ctrl = true)
         val Delete = KeyboardShortcut(key = Key.Delete)
         val Escape = KeyboardShortcut(key = Key.Escape)
-        val Undo = KeyboardShortcut(key = Key.Z, ctrl = true)
-        val Redo = KeyboardShortcut(key = Key.Y, ctrl = true)
     }
 }
