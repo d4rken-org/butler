@@ -27,6 +27,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.error.localized
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.R
@@ -111,6 +113,9 @@ fun SearchStatusCard(
                             }
                             state.searchState.results.isNotEmpty() -> {
                                 stringResource(R.string.searcher_status_search_completed)
+                            }
+                            state.searchState.error != null -> {
+                                state.searchState.error.localized(LocalContext.current).description.asComposable()
                             }
                             else -> {
                                 // No results - provide helpful text

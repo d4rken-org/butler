@@ -1,6 +1,7 @@
-package eu.darken.butler.explorer.ui.explorer
+package eu.darken.butler.workspace.ui.error
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,23 +42,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.explorer.R
+import eu.darken.butler.workspace.R
 import java.io.IOException
 
 @Composable
-fun NavigationErrorCard(
+fun WorkspaceErrorCard(
+    modifier: Modifier = Modifier,
+    title: String,
     error: Throwable,
     onCopyError: () -> Unit,
-    onRetry: () -> Unit,
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier,
+    onRetry: (() -> Unit)? = null,
+    onDismiss: (() -> Unit)? = null,
 ) {
     var showTechnicalDetails by remember { mutableStateOf(false) }
 
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
@@ -70,7 +70,7 @@ fun NavigationErrorCard(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // Title with error icon and dismiss button
+            // Title with error icon and optional dismiss button
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -87,23 +87,25 @@ fun NavigationErrorCard(
                         modifier = Modifier.size(24.dp),
                     )
                     Text(
-                        text = stringResource(R.string.explorer_navigation_error_title),
+                        text = title,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
 
-                IconButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.Close,
-                        contentDescription = stringResource(eu.darken.butler.common.R.string.general_dismiss_action),
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                onDismiss?.let { dismissAction ->
+                    IconButton(
+                        onClick = dismissAction,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Close,
+                            contentDescription = stringResource(eu.darken.butler.common.R.string.general_dismiss_action),
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
 
@@ -123,17 +125,19 @@ fun NavigationErrorCard(
             ) {
                 Column {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showTechnicalDetails = !showTechnicalDetails }
+                            .padding(start = 8.dp, end = 0.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Text(
-                            modifier = Modifier.padding(16.dp),
                             text = stringResource(
                                 if (showTechnicalDetails) {
-                                    R.string.explorer_issue_unknown_error_hide_details
+                                    R.string.workspace_error_hide_details_action
                                 } else {
-                                    R.string.explorer_issue_unknown_error_show_details
+                                    R.string.workspace_error_show_details_action
                                 }
                             ),
                             style = MaterialTheme.typography.bodyMedium,
@@ -181,20 +185,22 @@ fun NavigationErrorCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Button(
-                    onClick = onRetry,
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                onRetry?.let { retryAction ->
+                    Button(
+                        onClick = retryAction,
+                        modifier = Modifier.weight(1f),
                     ) {
-                        Icon(
-                            imageVector = Icons.TwoTone.Refresh,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Text(stringResource(R.string.explorer_navigation_error_retry_action))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                imageVector = Icons.TwoTone.Refresh,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Text(stringResource(eu.darken.butler.common.R.string.general_retry_action))
+                        }
                     }
                 }
 
@@ -211,7 +217,7 @@ fun NavigationErrorCard(
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
                         )
-                        Text(stringResource(R.string.explorer_navigation_error_copy_action))
+                        Text(stringResource(R.string.workspace_error_copy_action))
                     }
                 }
             }
@@ -221,9 +227,10 @@ fun NavigationErrorCard(
 
 @Preview2
 @Composable
-private fun NavigationErrorCardIOErrorPreview() {
+private fun WorkspaceErrorCardWithRetryPreview() {
     PreviewWrapper {
-        NavigationErrorCard(
+        WorkspaceErrorCard(
+            title = "Navigation Failed",
             error = IOException("Failed to read directory: Permission denied"),
             onCopyError = {},
             onRetry = {},
@@ -234,13 +241,25 @@ private fun NavigationErrorCardIOErrorPreview() {
 
 @Preview2
 @Composable
-private fun NavigationErrorCardGenericErrorPreview() {
+private fun WorkspaceErrorCardNoRetryPreview() {
     PreviewWrapper {
-        NavigationErrorCard(
-            error = RuntimeException("Unexpected error occurred while loading path"),
+        WorkspaceErrorCard(
+            title = "Search Error",
+            error = RuntimeException("Unexpected error occurred while searching"),
             onCopyError = {},
-            onRetry = {},
-            onDismiss = {},
+            onDismiss = null,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun WorkspaceErrorCardMinimalPreview() {
+    PreviewWrapper {
+        WorkspaceErrorCard(
+            title = "Error",
+            error = NullPointerException("Path lookup returned null"),
+            onCopyError = {},
         )
     }
 }

@@ -38,6 +38,7 @@ import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogEvent
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
+import eu.darken.butler.searcher.ui.search.rows.FileRowData
 import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.explorer.core.arguments.ExternalExplorerArguments
 import eu.darken.butler.workspace.core.Workspace
@@ -812,6 +813,37 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
         val needsPermissions: Boolean
             get() = permissionState.needsPermissions
+
+        val listItems: List<SearchListItem>
+            get() = buildList {
+                // Add error item at the top if there's an error
+                searchState.error?.let { error ->
+                    add(
+                        SearchListItem.Error(
+                            throwable = error,
+                            timestamp = kotlin.time.Clock.System.now()
+                        )
+                    )
+                }
+
+                // Add all search results
+                searchState.results.forEach { result ->
+                    add(
+                        SearchListItem.Result(
+                            fileRowData = FileRowData(
+                                lookup = result.lookup,
+                                metadata = emptyMap(),
+                                matchContext = result.matchContext?.let { context ->
+                                    FileRowData.MatchContext(
+                                        lineNumber = context.lineNumber,
+                                        matchedLine = context.matchedLine
+                                    )
+                                }
+                            )
+                        )
+                    )
+                }
+            }
     }
 
     fun navigateToSetup() = launch {
@@ -977,6 +1009,15 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             ${operation.operation}
             ```
         """.trimIndent()
+        systemClipboardHelper.copyToClipboard(errorText)
+    }
+
+    fun copySearchError(throwable: Throwable) {
+        log(TAG) { "copySearchError(${throwable.javaClass.simpleName})" }
+        val errorText = eu.darken.butler.workspace.ui.error.ErrorFormatter.formatErrorForClipboard(
+            throwable = throwable,
+            context = "Search operation in workspace ${id.shortTag}"
+        )
         systemClipboardHelper.copyToClipboard(errorText)
     }
 

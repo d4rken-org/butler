@@ -164,4 +164,10 @@
 
     <!-- Performance Graph -->
     <string name="workspace_operation_performance_not_enough_data">Not enough data</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">Show technical details</string>
+    <string name="workspace_error_hide_details_action">Hide technical details</string>
+    <string name="workspace_error_copy_action">Copy error</string>
+    <string name="workspace_error_technical_details_label">Technical Details</string>
 </resources>

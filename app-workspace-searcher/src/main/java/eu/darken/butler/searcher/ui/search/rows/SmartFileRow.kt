@@ -4,9 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.files.metadata.FileType
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
+import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 
 @Composable
 fun SmartFileRow(
@@ -26,46 +24,33 @@ private fun SmartFileRowPreview() {
     PreviewWrapper {
         Column {
             SmartFileRow(
-                data = FileRowData.forPreview(
+                data = SearcherMockDataProvider.createMockImageFile(
                     name = "photo.jpg",
-                    path = "/storage/emulated/0/Pictures/photo.jpg",
-                    fileType = FileType.FILE,
-                    size = 1024 * 1024 * 2,
-                    modifiedAt = Clock.System.now() - 3600.seconds,
+                    sizeMB = 2,
+                    hoursAgo = 1,
                     metadata = mapOf("Resolution" to "4032x3024")
                 )
             )
 
             SmartFileRow(
-                data = FileRowData.forPreview(
+                data = SearcherMockDataProvider.createMockApkFile(
                     name = "app.apk",
-                    path = "/storage/emulated/0/Download/app.apk",
-                    fileType = FileType.FILE,
-                    size = 1024 * 1024 * 35,
-                    modifiedAt = Clock.System.now() - 1800.seconds,
-                    metadata = mapOf(
-                        "Package" to "com.example.app",
-                        "Version" to "2.1.0"
-                    )
+                    sizeMB = 35
                 )
             )
 
             SmartFileRow(
-                data = FileRowData.forPreview(
+                data = SearcherMockDataProvider.createMockTextFile(
                     name = "document.txt",
-                    path = "/storage/emulated/0/Documents/document.txt",
-                    fileType = FileType.FILE,
-                    size = 1024 * 5,
-                    modifiedAt = Clock.System.now() - 900.seconds,
+                    sizeKB = 5
                 )
             )
 
             SmartFileRow(
-                data = FileRowData.forPreview(
+                data = SearcherMockDataProvider.createMockDirectory(
                     name = "Downloads",
                     path = "/storage/emulated/0/Downloads",
-                    fileType = FileType.DIRECTORY,
-                    modifiedAt = Clock.System.now() - 7200.seconds,
+                    hoursAgo = 2
                 )
             )
         }

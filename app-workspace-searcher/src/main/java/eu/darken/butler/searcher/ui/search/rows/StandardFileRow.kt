@@ -11,9 +11,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
-import eu.darken.butler.common.files.metadata.FileType
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
+import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 
 @Composable
 fun StandardFileRow(
@@ -49,31 +47,22 @@ private fun StandardFileRowPreview() {
     PreviewWrapper {
         Column {
             StandardFileRow(
-                data = FileRowData.forPreview(
+                data = SearcherMockDataProvider.createMockPdfFile(
                     name = "document.pdf",
-                    path = "/storage/emulated/0/Downloads/document.pdf",
-                    fileType = FileType.FILE,
-                    size = 1024 * 512,
-                    modifiedAt = Clock.System.now() - 3600.seconds,
+                    sizeMB = 1
                 )
             )
 
             StandardFileRow(
-                data = FileRowData.forPreview(
+                data = SearcherMockDataProvider.createMockDirectory(
                     name = "Pictures",
-                    path = "/storage/emulated/0/Pictures",
-                    fileType = FileType.DIRECTORY,
-                    modifiedAt = Clock.System.now() - 86400.seconds
+                    hoursAgo = 24
                 )
             )
 
             StandardFileRow(
-                data = FileRowData.forPreview(
-                    name = "config.json",
-                    path = "/storage/emulated/0/Android/data/eu.darken.butler/config.json",
-                    fileType = FileType.FILE,
-                    size = 256,
-                    modifiedAt = Clock.System.now() - 300.seconds
+                data = SearcherMockDataProvider.createMockConfigFile(
+                    name = "config.json"
                 )
             )
         }

@@ -36,6 +36,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -54,6 +56,7 @@ import eu.darken.butler.searcher.core.SearchResult
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
 import eu.darken.butler.searcher.ui.search.rows.FileRowData
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.error.WorkspaceErrorCard
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
@@ -111,6 +114,7 @@ fun SearcherWorkspacePage(
     onOperationsClearCompleted: () -> Unit = {},
     onOpenSetup: () -> Unit = {},
     onOpenPathPicker: (() -> Unit)? = null,
+    onCopyError: (Throwable) -> Unit = {},
 ) {
     val state by waitForState(stateSource)
     val clipboardState by clipboardStateSource.collectAsState(initial = SearcherWorkspaceViewModel.ClipboardState())
@@ -126,6 +130,11 @@ fun SearcherWorkspacePage(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val shortcutsFocusRequester = remember { FocusRequester() }
+
+    // Track actual measured height of the toolbar card
+    val density = LocalDensity.current
+    var actualToolbarHeightPx by remember { mutableStateOf(0) }
+    val actualToolbarHeightDp = with(density) { actualToolbarHeightPx.toDp() }
 
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
@@ -288,7 +297,7 @@ fun SearcherWorkspacePage(
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp,
-                    top = 16.dp + currentToolbarHeight + 16.dp + (if (showStatusCard) statusCardHeight + 8.dp else 0.dp),
+                    top = 16.dp + actualToolbarHeightDp + 16.dp + (if (showStatusCard) statusCardHeight + 8.dp else 0.dp),
                     bottom = run {
                         val actionBarHeight = if (hasActions) 64.dp else 0.dp
                         val clipboardHeight = if (hasClipboard) 88.dp else 0.dp
@@ -323,19 +332,63 @@ fun SearcherWorkspacePage(
                     )
                 }
 
-                // Search results
-                if (currentState.searchState.results.isNotEmpty()) {
+                // Search results and errors
+                if (currentState.listItems.isNotEmpty()) {
                     items(
-                        items = currentState.searchState.results,
-                        key = { it.path.path }
-                    ) { result ->
-                        SearchResultRow(
-                            result = result,
-                            selectionState = currentState.selectionState,
-                            onClick = { onResultClick(result) },
-                            onLongPress = { wrappedOnEnterSelectionMode(result) },
-                            onSelectionToggle = { wrappedOnToggleSelection(result) }
-                        )
+                        items = currentState.listItems,
+                        key = { item ->
+                            when (item) {
+                                is SearchListItem.Result -> item.fileRowData.path
+                                is SearchListItem.Error -> "error_${item.timestamp}"
+                            }
+                        }
+                    ) { item ->
+                        when (item) {
+                            is SearchListItem.Result -> {
+                                SelectableFileRow(
+                                    data = item.fileRowData,
+                                    isSelected = currentState.selectionState.isSelected(
+                                        SearchResult(
+                                            lookup = item.fileRowData.lookup,
+                                            matchedQuery = currentState.searchQuery.text,
+                                            matchContext = item.fileRowData.matchContext?.let { context ->
+                                                SearchResult.MatchContext(
+                                                    lineNumber = context.lineNumber,
+                                                    matchedLine = context.matchedLine
+                                                )
+                                            }
+                                        )
+                                    ),
+                                    isSelectionMode = currentState.selectionState.isSelectionMode,
+                                    onClick = {
+                                        val searchResult = SearchResult(
+                                            lookup = item.fileRowData.lookup,
+                                            matchedQuery = currentState.searchQuery.text,
+                                            matchContext = item.fileRowData.matchContext?.let { context ->
+                                                SearchResult.MatchContext(
+                                                    lineNumber = context.lineNumber,
+                                                    matchedLine = context.matchedLine
+                                                )
+                                            }
+                                        )
+                                        if (currentState.selectionState.isSelectionMode) {
+                                            onToggleSelection(searchResult)
+                                        } else {
+                                            onResultClick(searchResult)
+                                        }
+                                    },
+                                    onLongPress = { wrappedOnEnterSelectionMode(result) },
+                                )
+                            }
+                            is SearchListItem.Error -> {
+                                WorkspaceErrorCard(
+                                    title = stringResource(R.string.searcher_search_error),
+                                    error = item.throwable,
+                                    onCopyError = { onCopyError(item.throwable) },
+                                    onDismiss = null,
+                                )
+                            }
+                        }
                     }
                 }
 
@@ -381,6 +434,9 @@ fun SearcherWorkspacePage(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .onGloballyPositioned { layoutCoordinates ->
+                        actualToolbarHeightPx = layoutCoordinates.size.height
+                    }
             )
 
             // Pinned status card below toolbar - always visible when needed
@@ -391,7 +447,7 @@ fun SearcherWorkspacePage(
                     onClear = onClearResults,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .offset(y = 16.dp + currentToolbarHeight + 16.dp) // Account for toolbar's vertical padding + gap
+                        .offset(y = 16.dp + actualToolbarHeightDp + 16.dp) // Account for toolbar's vertical padding + gap
                         .padding(horizontal = 16.dp)
                 )
             }
@@ -638,6 +694,7 @@ fun SearcherWorkspacePageHost(
         onOperationsClearCompleted = vm::clearCompletedOperations,
         onOpenSetup = vm::navigateToSetup,
         onOpenPathPicker = vm::openPathPicker,
+        onCopyError = vm::copySearchError,
     )
 }
 
