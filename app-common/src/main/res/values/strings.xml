@@ -216,8 +216,8 @@
 
 
     <plurals name="general_progress_items_per_second">
-        <item quantity="one">%d item/s</item>
-        <item quantity="other">%d items/s</item>
+        <item quantity="one">%s item/s</item>
+        <item quantity="other">%s items/s</item>
     </plurals>
     <plurals name="general_progress_bytes_per_second">
         <item quantity="one">%s/s</item>
