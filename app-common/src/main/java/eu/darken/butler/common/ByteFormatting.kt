@@ -57,14 +57,13 @@ fun formatByteSpeed(bytesPerSecond: Long, shortFormat: Boolean = true): String =
     shortFormat = shortFormat
 )
 
-
 fun formatItemSpeed(
     context: Context,
     itemsPerSecond: Double,
 ): String = context.resources.getQuantityString(
-    R.plurals.result_x_items,
+    R.plurals.general_progress_items_per_second,
     itemsPerSecond.toInt(),
-    itemsPerSecond
+    if (itemsPerSecond >= 1.0) itemsPerSecond.toInt() else itemsPerSecond
 )
 
 @Composable

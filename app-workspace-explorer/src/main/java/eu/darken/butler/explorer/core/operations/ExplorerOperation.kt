@@ -22,8 +22,8 @@ abstract class ExplorerOperation : Operation {
             override val startedAt: Instant,
             override val primaryProgress: Progress.Data = Progress.Data(),
             override val secondaryProgress: Progress.Data? = null,
-            val performanceHistory: PerformanceHistory? = null,
-        ) : State, Operation.State.Active
+            override val performanceHistory: PerformanceHistory? = null,
+        ) : State, Operation.State.Active, Operation.HasPerformanceHistory
 
         data class Waiting(
             override val startedAt: Instant,
@@ -38,10 +38,9 @@ abstract class ExplorerOperation : Operation {
             override val completedAt: Instant = Clock.System.now(),
             override val error: Throwable? = null,
             override val report: Report,
-        ) : State, Operation.State.Completed {
+        ) : State, Operation.State.Completed, Operation.HasPerformanceHistory {
             override val summary: CaString get() = report.summary
-            val performanceHistory: PerformanceHistory?
-                get() = report.performanceHistory
+            override val performanceHistory: PerformanceHistory? get() = report.performanceHistory
         }
     }
 

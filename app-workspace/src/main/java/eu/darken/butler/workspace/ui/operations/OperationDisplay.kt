@@ -61,13 +61,8 @@ fun ManagedOperation.toDisplayModel(): OperationDisplay {
         state = when (state) {
             is Operation.State.Queued -> OperationDisplay.State.Queued
             is Operation.State.Active -> {
-                // Try to extract performanceHistory using reflection
-                val performanceHistory = try {
-                    state::class.java.getMethod("getPerformanceHistory")
-                        .invoke(state) as? PerformanceHistory
-                } catch (e: Exception) {
-                    null
-                }
+                // Extract performanceHistory from primaryProgress.extra where it's stored
+                val performanceHistory = (state as? Operation.HasPerformanceHistory)?.performanceHistory
                 OperationDisplay.State.Running(
                     primaryProgress = state.primaryProgress,
                     secondaryProgress = state.secondaryProgress,
@@ -79,7 +74,7 @@ fun ManagedOperation.toDisplayModel(): OperationDisplay {
             is Operation.State.Completed -> {
                 val errorValue = state.error
                 // Extract performanceHistory from report if available
-                val performanceHistory = (state.report as? Operation.HasPerformanceHistory)?.performanceHistory
+                val performanceHistory = (state as? Operation.HasPerformanceHistory)?.performanceHistory
                 when {
                     errorValue?.causes?.any { it is CancellationException } == true -> {
                         OperationDisplay.State.Cancelled(

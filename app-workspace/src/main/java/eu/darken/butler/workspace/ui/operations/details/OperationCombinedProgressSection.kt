@@ -1,18 +1,31 @@
 package eu.darken.butler.workspace.ui.operations.details
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.ExpandLess
+import androidx.compose.material.icons.twotone.ExpandMore
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -29,6 +42,8 @@ internal fun OperationCombinedProgressSection(
     primaryProgress: Progress.Data,
     secondaryProgress: Progress.Data?,
 ) {
+    var isExpanded by rememberSaveable { mutableStateOf(true) }
+
     // Single unified card for all progress
     Card(
         colors = CardDefaults.cardColors(
@@ -41,39 +56,70 @@ internal fun OperationCombinedProgressSection(
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Section title
-            Text(
-                text = stringResource(R.string.operations_details_progress).uppercase(),
-                style = MaterialTheme.typography.labelMedium,
-                fontFamily = FontFamily.Monospace,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            HorizontalDivider(
-                thickness = 0.5.dp,
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-            )
-
-            // Primary Progress
-            OperationProgressDisplay(
-                progressData = primaryProgress,
-                isPrimary = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // Divider and Secondary Progress (if exists)
-            secondaryProgress?.let { secondary ->
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 4.dp),
-                    thickness = 0.5.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            // Clickable section title with expand/collapse
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { isExpanded = !isExpanded }
+                    .padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.operations_details_progress).uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontFamily = FontFamily.Monospace,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
-                OperationProgressDisplay(
-                    progressData = secondary,
-                    isPrimary = false,
-                    modifier = Modifier.fillMaxWidth()
+                Icon(
+                    imageVector = if (isExpanded) {
+                        Icons.TwoTone.ExpandLess
+                    } else {
+                        Icons.TwoTone.ExpandMore
+                    },
+                    contentDescription = if (isExpanded) {
+                        "Collapse progress"
+                    } else {
+                        "Expand progress"
+                    },
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+
+            // Content
+            AnimatedVisibility(visible = isExpanded) {
+                Column {
+                    HorizontalDivider(
+                        thickness = 0.5.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Primary Progress
+                    OperationProgressDisplay(
+                        progressData = primaryProgress,
+                        isPrimary = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    // Divider and Secondary Progress (if exists)
+                    secondaryProgress?.let { secondary ->
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            thickness = 0.5.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        )
+
+                        OperationProgressDisplay(
+                            progressData = secondary,
+                            isPrimary = false,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
             }
         }
     }

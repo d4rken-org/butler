@@ -1,6 +1,5 @@
 package eu.darken.butler.common.files.local
 
-import android.R
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.adb.AdbUnavailableException
 import eu.darken.butler.common.adb.canUseAdbNow
@@ -301,12 +300,12 @@ class LocalGateway @Inject constructor(
             },
             rootOp = {
                 if (walkOptions.isDirect) {
-                    log(TAG, VERBOSE) { "walk(${R.attr.mode}->ROOT, direct): ${R.attr.path}" }
+                    log(TAG, VERBOSE) { "walk(${mode}->ROOT, direct): ${path}" }
                     // We need to keep the resource alive until the caller is done with the Flow
                     val resource = rootManager.serviceClient.get()
                     rootOps { it.walk(path, lookupOptions, walkOptions).onCompletion { resource.close() } }
                 } else {
-                    log(TAG, VERBOSE) { "walk(${R.attr.mode}->ROOT, indirect): ${R.attr.path}" }
+                    log(TAG, VERBOSE) { "walk(${mode}->ROOT, indirect): ${path}" }
                     // Can't pass functions via IPC
                     IndirectLocalWalker(
                         gateway = this@LocalGateway,
@@ -320,12 +319,12 @@ class LocalGateway @Inject constructor(
             },
             adbOp = {
                 if (walkOptions.isDirect) {
-                    log(TAG, VERBOSE) { "walk(${R.attr.mode}->ADB, direct): ${R.attr.path}" }
+                    log(TAG, VERBOSE) { "walk(${mode}->ADB, direct): ${path}" }
                     // We need to keep the resource alive until the caller is done with the Flow
                     val resource = adbManager.serviceClient.get()
                     adbOps { it.walk(path, lookupOptions, walkOptions).onCompletion { resource.close() } }
                 } else {
-                    log(TAG, VERBOSE) { "walk(${R.attr.mode}->ADB, indirect): ${R.attr.path}" }
+                    log(TAG, VERBOSE) { "walk(${mode}->ADB, indirect): ${path}" }
                     // Can't pass functions via IPC
                     IndirectLocalWalker(
                         gateway = this@LocalGateway,

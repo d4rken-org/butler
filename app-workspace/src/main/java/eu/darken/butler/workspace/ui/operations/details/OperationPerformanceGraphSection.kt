@@ -40,11 +40,8 @@ internal fun OperationPerformanceGraphSection(
         else -> null
     }
 
-    // Return early if no data
-    if (performanceHistory == null || performanceHistory.totalBytes <= 0L) return
-
-    // Only show if we have sufficient samples
-    if (performanceHistory.samples.size < 10) return
+    // Return early if no data or insufficient samples
+    if (performanceHistory?.canShowGraph != true) return
 
     var isExpanded by remember { mutableStateOf(false) }
 

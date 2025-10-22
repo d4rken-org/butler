@@ -151,33 +151,84 @@ class PathOperationProgressTracker(
 
     /**
      * Records a performance sample based on progress since last sample.
+     * Always records samples when progress has been made, even with zero time delta.
      */
     private fun recordPerformanceSample(now: Instant) {
         val lastTime = lastSampleTime
         val lastBytes = lastSampleBytes
         val lastItems = lastSampleItems
 
+        // Calculate deltas
+        val bytesDelta = processedBytes - lastBytes
+        val itemsDelta = itemsProcessed - lastItems
+
+        // Only skip if no progress has been made
+        if (bytesDelta == 0L && itemsDelta == 0) {
+            lastSampleTime = now
+            return
+        }
+
+        // Calculate speeds
+        val bytesPerSecond: Long
+        val itemsPerSecond: Float
+
         if (lastTime != null) {
             val timeDelta = (now - lastTime).inWholeMilliseconds / 1000.0
 
             if (timeDelta > 0) {
-                val bytesDelta = processedBytes - lastBytes
-                val itemsDelta = itemsProcessed - lastItems
+                // Normal case: calculate from delta
+                bytesPerSecond = (bytesDelta / timeDelta).toLong()
+                itemsPerSecond = (itemsDelta / timeDelta).toFloat()
+            } else {
+                // Zero time delta (< 1ms) - estimate from total progress
+                val startTime = performanceHistory.startTime
+                val totalTime = if (startTime != null) {
+                    (now - startTime).inWholeMilliseconds / 1000.0
+                } else {
+                    0.0
+                }
 
-                val bytesPerSecond = (bytesDelta / timeDelta).toLong()
-                val itemsPerSecond = (itemsDelta / timeDelta).toFloat()
+                if (totalTime > 0) {
+                    bytesPerSecond = (processedBytes / totalTime).toLong()
+                    itemsPerSecond = (itemsProcessed / totalTime).toFloat()
+                } else {
+                    // Fallback: use previous sample's speed or 0
+                    bytesPerSecond = performanceHistory.samples.lastOrNull()?.bytesPerSecond ?: 0L
+                    itemsPerSecond = performanceHistory.samples.lastOrNull()?.itemsPerSecond ?: 0f
+                }
+            }
+        } else {
+            // First sample: estimate from total progress so far
+            val startTime = performanceHistory.startTime
+            val totalTime = if (startTime != null) {
+                (now - startTime).inWholeMilliseconds / 1000.0
+            } else {
+                0.0
+            }
 
-                val sample = PerformanceSample(
-                    timestamp = now,
-                    bytesPerSecond = bytesPerSecond,
-                    itemsPerSecond = itemsPerSecond,
-                    totalBytesProcessed = processedBytes,
-                    totalItemsProcessed = itemsProcessed,
-                )
-
-                performanceHistory = performanceHistory.addSample(sample, totalBytes = this.totalBytes)
+            if (totalTime > 0) {
+                bytesPerSecond = (processedBytes / totalTime).toLong()
+                itemsPerSecond = (itemsProcessed / totalTime).toFloat()
+            } else {
+                // Very first sample with no time - use 0
+                bytesPerSecond = 0L
+                itemsPerSecond = 0f
             }
         }
+
+        val sample = PerformanceSample(
+            timestamp = now,
+            bytesPerSecond = bytesPerSecond,
+            itemsPerSecond = itemsPerSecond,
+            totalBytesProcessed = processedBytes,
+            totalItemsProcessed = itemsProcessed,
+        )
+
+        performanceHistory = performanceHistory.addSample(
+            sample,
+            totalBytes = this.totalBytes,
+            totalItems = this.totalItems
+        )
 
         lastSampleTime = now
         lastSampleBytes = processedBytes
