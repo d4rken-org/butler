@@ -5,12 +5,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.files.metadata.FileType
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
@@ -35,13 +35,10 @@ fun AppFileRow(
 
 @Composable
 fun AppFileIcon(data: FileRowData) {
-    val (iconVector, tint) = getFileIconAndTint(data)
-    
-    Icon(
-        imageVector = iconVector,
+    TintedAsyncImage(
+        model = data.lookup,
         contentDescription = data.fileType.name,
-        tint = tint,
-        modifier = Modifier.size(22.dp)
+        modifier = Modifier.size(40.dp)
     )
 }
 
@@ -51,7 +48,7 @@ private fun AppFileRowPreview() {
     PreviewWrapper {
         Column {
             AppFileRow(
-                data = FileRowData(
+                data = FileRowData.forPreview(
                     name = "signal-android.apk",
                     path = "/storage/emulated/0/Download/signal-android.apk",
                     fileType = FileType.FILE,
@@ -65,9 +62,9 @@ private fun AppFileRowPreview() {
                     )
                 )
             )
-            
+
             AppFileRow(
-                data = FileRowData(
+                data = FileRowData.forPreview(
                     name = "butler-app.aab",
                     path = "/storage/emulated/0/Android/data/eu.darken.butler/butler-app.aab",
                     fileType = FileType.FILE,

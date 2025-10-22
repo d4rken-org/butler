@@ -83,7 +83,7 @@ fun ClipboardBarHeader(
         }
 
         // Clear All button on the right (when multiple entries)
-        if (entryCount > 1) {
+        if (entryCount > 0) {
             TextButton(
                 onClick = onClearAllClick,
                 modifier = Modifier

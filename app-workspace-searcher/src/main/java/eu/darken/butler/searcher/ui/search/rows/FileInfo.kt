@@ -7,10 +7,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.formatRelativeTime
@@ -21,13 +24,13 @@ import kotlin.time.Duration.Companion.seconds
 fun FileInfo(
     modifier: Modifier = Modifier,
     data: FileRowData,
-    showPath: Boolean = true,
     showMetadata: Boolean = false,
 ) {
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(2.dp)
+        verticalArrangement = Arrangement.spacedBy(1.dp)
     ) {
+        // Line 1: File name
         Text(
             text = data.name,
             style = MaterialTheme.typography.bodyMedium,
@@ -35,9 +38,25 @@ fun FileInfo(
             overflow = TextOverflow.Ellipsis
         )
 
-        if (showPath) {
+        // Line 2: Parent directory • Size • Date (combined on one line)
+        val isDirectory = data.fileType == FileType.DIRECTORY
+        val combinedDetails = buildString {
+            val size = data.size
+            if (!isDirectory && size != null) {
+                if (isNotEmpty()) append(" • ")
+                append(formatFileSize(size))
+            }
+
+            val modifiedAt = data.modifiedAt
+            if (modifiedAt != null) {
+                if (isNotEmpty()) append(" • ")
+                append(formatRelativeTime(modifiedAt))
+            }
+        }
+
+        if (combinedDetails.isNotEmpty()) {
             Text(
-                text = data.path,
+                text = combinedDetails,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
@@ -45,30 +64,45 @@ fun FileInfo(
             )
         }
 
-        val isDirectory = data.fileType == FileType.DIRECTORY
-        val details = buildString {
-            if (!isDirectory && data.size != null) {
-                append(formatFileSize(data.size))
+        Text(
+            text = data.lookup.parent?.userReadablePath?.asComposable() ?: "",
+            style = MaterialTheme.typography.bodySmall.copy(
+                fontSize = 10.sp,
+                fontFamily = FontFamily.Monospace
+            ),
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            maxLines = 1,
+            overflow = TextOverflow.MiddleEllipsis
+        )
+
+        // Line 4: Match context (if available)
+        data.matchContext?.let { context ->
+            val matchText = buildString {
+                context.lineNumber?.let { lineNum ->
+                    append("Line $lineNum")
+                }
+                context.matchedLine?.let { line ->
+                    if (isNotEmpty()) append(": ")
+                    append(line.trim())
+                }
             }
-            if (data.modifiedAt != null) {
-                if (isNotEmpty()) append(" • ")
-                append(formatRelativeTime(data.modifiedAt))
+
+            if (matchText.isNotEmpty()) {
+                Text(
+                    text = matchText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
-        }
-        
-        if (details.isNotEmpty()) {
-            Text(
-                text = details,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
 
         if (showMetadata && data.metadata.isNotEmpty()) {
             val metadataText = data.metadata.entries
                 .take(2)
                 .joinToString(" • ") { "${it.key}: ${it.value}" }
-            
+
             Text(
                 text = metadataText,
                 style = MaterialTheme.typography.bodySmall,
@@ -85,9 +119,12 @@ fun FileInfo(
 @Composable
 private fun FileInfoPreview() {
     PreviewWrapper {
-        Column {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Short path example
             FileInfo(
-                data = FileRowData(
+                data = FileRowData.forPreview(
                     name = "document.pdf",
                     path = "/storage/emulated/0/Downloads/document.pdf",
                     fileType = FileType.FILE,
@@ -96,15 +133,27 @@ private fun FileInfoPreview() {
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
-            
+
+            // Long path example (will be truncated)
             FileInfo(
-                data = FileRowData(
+                data = FileRowData.forPreview(
+                    name = "very-long-filename-with-lots-of-text.txt",
+                    path = "/storage/emulated/0/Documents/Work/Projects/2024/Q4/Important/Nested/Deeply/very-long-filename-with-lots-of-text.txt",
+                    fileType = FileType.FILE,
+                    size = 2048 * 1024,
+                    modifiedAt = Clock.System.now() - 7200.seconds,
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // Directory without path display
+            FileInfo(
+                data = FileRowData.forPreview(
                     name = "Pictures",
                     path = "/storage/emulated/0/Pictures",
                     fileType = FileType.DIRECTORY,
                     modifiedAt = Clock.System.now() - 86400.seconds
                 ),
-                showPath = false,
                 modifier = Modifier.fillMaxWidth()
             )
         }

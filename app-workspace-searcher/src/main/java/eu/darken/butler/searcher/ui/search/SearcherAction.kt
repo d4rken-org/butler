@@ -5,8 +5,6 @@ import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Deselect
-import androidx.compose.material.icons.twotone.Edit
-import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.Link
 import androidx.compose.material.icons.twotone.SelectAll
@@ -17,6 +15,8 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchResult
+import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.actions.WorkspaceAction
 
 sealed interface SearcherAction : WorkspaceAction {
@@ -63,14 +63,14 @@ sealed interface SearcherAction : WorkspaceAction {
     data class OpenInEditor(
         val result: SearchResult,
     ) : SearcherAction {
-        override val icon = Icons.TwoTone.Edit
+        override val icon = Workspace.Type.EDITOR.icon
         override val label = R.string.searcher_action_open_in_editor.toCaString()
     }
 
     data class OpenInExplorer(
         val result: SearchResult,
     ) : SearcherAction {
-        override val icon = Icons.TwoTone.Folder
+        override val icon = Workspace.Type.EXPLORER.icon
         override val label = R.string.searcher_action_open_in_explorer.toCaString()
     }
 

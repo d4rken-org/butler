@@ -1,8 +1,8 @@
 package eu.darken.butler.workspace.core
 
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.workspace.core.picker.ExplorerPickerArguments
-import eu.darken.butler.workspace.core.picker.PickerConfig
+import eu.darken.butler.explorer.core.picker.ExplorerPickerArguments
+import eu.darken.butler.explorer.core.picker.PickerConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
@@ -80,4 +80,28 @@ suspend fun WorkspaceRemote.launchPicker(
             )
         )
     ) as WorkspaceAction.Create.Result
+}
+
+/**
+ * Creates a new workspace and requests UI focus/selection for it.
+ * Convenience function for the common pattern of creating a workspace and switching to it.
+ *
+ * @param type The type of workspace to create
+ * @param arguments Optional workspace-specific arguments
+ * @return The Create action result with the new workspace ID
+ */
+suspend fun WorkspaceRemote.createAndFocus(
+    type: Workspace.Type,
+    arguments: Workspace.Arguments? = null,
+): WorkspaceAction.Create.Result {
+    val result = execute(
+        WorkspaceAction.Create(
+            type = type,
+            arguments = arguments
+        )
+    ) as WorkspaceAction.Create.Result
+
+    emitEvent(WorkspaceEvent.SelectionRequested(result.newId))
+
+    return result
 }

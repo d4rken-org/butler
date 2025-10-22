@@ -1,29 +1,30 @@
 package eu.darken.butler.workspace.ui.workspaces.adaptive.layouts
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.workspaces.WorkspacePaneInfo
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.ResizingDivider
 import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspacePaneWrapper
-import androidx.compose.foundation.layout.Box
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
+import eu.darken.butler.workspace.ui.workspaces.asPaneInfo
 
 @Composable
 internal fun DualVerticalLayout(
-    selected: Map<Int, Workspace.Info>,
+    selected: Map<Int, WorkspacePaneInfo>,
     focusedTabId: Workspace.Id?,
     dividerPositions: DividerPositions,
     containerSize: IntSize,
@@ -31,10 +32,10 @@ internal fun DualVerticalLayout(
     showPaneOverlay: Boolean,
     onTabFocus: (Workspace.Id) -> Unit,
     onDividerPositionsChange: (DividerPositions) -> Unit,
-    paneContent: @Composable (Workspace.Info?, Int) -> Unit,
+    paneContent: @Composable (WorkspacePaneInfo?, Int) -> Unit,
 ) {
     val showFocusBorder = selected.size > 1
-    
+
     val onDividerPositionChange = { newPos: Float ->
         val updated = dividerPositions.withDualVertical(newPos)
         onDividerPositionsChange(updated)
@@ -93,9 +94,9 @@ private fun DualVerticalLayoutPreview() {
             type = Workspace.Type.SEARCHER,
             title = "Search".toCaString(),
         )
-        
+
         DualVerticalLayout(
-            selected = mapOf(0 to workspace1, 1 to workspace2),
+            selected = mapOf(0 to workspace1.asPaneInfo(), 1 to workspace2.asPaneInfo()),
             focusedTabId = workspace1.id,
             dividerPositions = DividerPositions(),
             containerSize = IntSize(800, 600),
@@ -115,7 +116,7 @@ private fun DualVerticalLayoutPreview() {
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "${ws?.title?.get(LocalContext.current) ?: "Empty"} - Pane $paneIdx",
+                        text = "${ws?.type} - ${ws?.id?.shortTag ?: "Empty"} - Pane $paneIdx",
                         style = MaterialTheme.typography.headlineSmall,
                     )
                 }

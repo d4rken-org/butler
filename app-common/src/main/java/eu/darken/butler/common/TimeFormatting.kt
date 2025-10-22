@@ -2,6 +2,7 @@ package eu.darken.butler.common
 
 import android.content.Context
 import android.icu.text.RelativeDateTimeFormatter
+import android.text.format.DateUtils
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -159,4 +160,16 @@ fun formatDuration(context: Context, duration: Duration, shortStyle: Boolean = f
             }
         }
     }
+}
+
+@Composable
+fun formatDate(timestamp: Instant): String {
+    return DateUtils.formatDateTime(
+        LocalContext.current,
+        timestamp.toEpochMilliseconds(),
+        DateUtils.FORMAT_SHOW_YEAR or
+            DateUtils.FORMAT_SHOW_DATE or
+            DateUtils.FORMAT_SHOW_TIME or
+            DateUtils.FORMAT_ABBREV_ALL
+    )
 }

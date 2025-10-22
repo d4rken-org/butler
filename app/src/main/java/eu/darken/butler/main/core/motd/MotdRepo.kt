@@ -11,6 +11,7 @@ import eu.darken.butler.common.locale.LocaleManager
 import eu.darken.butler.common.locale.primary
 import eu.darken.butler.main.core.GeneralSettings
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -19,6 +20,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 
 @Singleton
@@ -47,17 +51,32 @@ class MotdRepo @Inject constructor(
             log(TAG, INFO) { "MOTD is disabled." }
             return@combine null
         }
+
+        // Check if cache is still fresh (less than 1 hour old)
+        val lastFetch = settings.lastFetchTime.value()
+        val now = Clock.System.now()
+        val cacheAge = lastFetch?.let { now - it }
+
+        if (cacheAge != null && cacheAge < 1.hours) {
+            log(TAG) { "Using cached MOTD (age: $cacheAge)" }
+            return@combine settings.lastMotd.value()
+        }
+
         try {
+            delay(3.seconds)
+            log(TAG) { "Fetching fresh MOTD (cache age: $cacheAge)" }
             val newMotd = endpoint.getMotd(locales.primary)
                 ?.takeIf { it.motd.minimumVersion == null || BuildConfigWrap.VERSION_CODE >= it.motd.minimumVersion }
                 ?.takeIf { it.motd.maximumVersion == null || BuildConfigWrap.VERSION_CODE <= it.motd.maximumVersion }
 
             settings.lastMotd.value(newMotd)
+            settings.lastFetchTime.value(now)
             log(TAG) { "New MOTD is $newMotd" }
             newMotd
         } catch (e: Exception) {
             log(TAG, ERROR) { "Failed to retrieve MOTD" }
-            null
+            // Return cached value on error
+            settings.lastMotd.value()
         }
     }
         .onStart {

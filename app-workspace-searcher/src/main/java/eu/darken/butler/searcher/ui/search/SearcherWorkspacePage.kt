@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -60,7 +61,10 @@ import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmat
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
+import eu.darken.butler.workspace.ui.scroll.rememberTopToolbarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.setHeight
+import eu.darken.butler.workspace.ui.scroll.setHeights
+import eu.darken.butler.workspace.ui.scroll.getCurrentHeightDp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 
@@ -110,6 +114,7 @@ fun SearcherWorkspacePage(
 
     // Setup and remember blocks at top level
     val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
+    val topToolbarScrollBehavior = rememberTopToolbarScrollBehavior()
     val listState = rememberLazyListState()
     var searchDebounce by remember { mutableStateOf(false) }
     var showClearHistoryDialog by remember { mutableStateOf(false) }
@@ -121,6 +126,12 @@ fun SearcherWorkspacePage(
     // Set the bottom bar height for scroll behavior
     bottomBarScrollBehavior.state.setHeight(64.dp)
 
+    // Set the top toolbar heights (expanded and collapsed)
+    topToolbarScrollBehavior.state.setHeights(
+        expandedHeightDp = 164.dp, // Full card with all options (actual measured height)
+        collapsedHeightDp = 44.dp  // Minimal compact state (actual measured height)
+    )
+
     // Derived states for stable recomposition - at top level for immediate reactivity
     val hasOperations by remember {
         derivedStateOf { operationsState.operations.isNotEmpty() }
@@ -130,6 +141,22 @@ fun SearcherWorkspacePage(
     }
     val hasActions by remember {
         derivedStateOf { state?.selectionState?.selectedResultIds?.isNotEmpty() == true }
+    }
+
+    // Get current toolbar height for layout calculations
+    val currentToolbarHeight = topToolbarScrollBehavior.state.getCurrentHeightDp()
+    val statusCardHeight = 60.dp // Fixed height for status card
+
+    // Determine if status card should be visible
+    val showStatusCard by remember {
+        derivedStateOf {
+            state?.let { currentState ->
+                currentState.searchQuery.text.isNotBlank() ||
+                        currentState.isSearching ||
+                        currentState.searchState.results.isNotEmpty() ||
+                        currentState.searchState.error != null
+            } ?: false
+        }
     }
 
     // Auto-show action bar when entering selection mode
@@ -179,45 +206,26 @@ fun SearcherWorkspacePage(
         }
 
         Box(modifier = Modifier.fillMaxSize()) {
+            // Scrollable content layer - with padding for pinned cards
             LazyColumn(
                 state = listState,
                 modifier = Modifier
                     .fillMaxSize()
+                    .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
                     .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp,
-                    top = 8.dp,
+                    top = 16.dp + currentToolbarHeight + 16.dp + (if (showStatusCard) statusCardHeight + 8.dp else 0.dp),
                     bottom = run {
-                        val actionBarHeight = if (hasActions) 64.dp else 0.dp // 48dp + 16dp padding
-                        val clipboardHeight = if (hasClipboard) 88.dp else 0.dp // ~80dp + 8dp padding
-                        val operationsHeight = if (hasOperations) 80.dp else 0.dp // Operations bar height + padding
-                        actionBarHeight + clipboardHeight + operationsHeight + 8.dp // Extra space
+                        val actionBarHeight = if (hasActions) 64.dp else 0.dp
+                        val clipboardHeight = if (hasClipboard) 88.dp else 0.dp
+                        val operationsHeight = if (hasOperations) 80.dp else 0.dp
+                        actionBarHeight + clipboardHeight + operationsHeight + 8.dp
                     }
                 )
             ) {
-                // Search toolbar - always shown
-                item {
-                    SearchToolbarCard(
-                        workspaceId = workspaceId,
-                        state = currentState,
-                        design = design,
-                        onUpdateQuery = onUpdateQuery,
-                        onRemoveSearchPath = onRemoveSearchPath,
-                        onTogglePathEnabled = onTogglePathEnabled,
-                        onPerformSearch = onPerformSearch,
-                        onExplicitSearch = onExplicitSearch,
-                        onCancelSearch = onCancelSearch,
-                        onToggleCaseSensitive = onToggleCaseSensitive,
-                        onToggleWholeWord = onToggleWholeWord,
-                        onToggleRegex = onToggleRegex,
-                        onOpenPathPicker = onOpenPathPicker,
-                        workspaceButtonState = workspaceButtonState,
-                        workspaceActionHandler = workspaceActionHandler,
-                    )
-                }
-
                 // Show permission card if needed
                 if (currentState.needsPermissions && currentState.searchTargets.isNotEmpty()) {
                     item {
@@ -244,20 +252,12 @@ fun SearcherWorkspacePage(
                     )
                 }
 
-                // Status card - always visible when there's a query or search activity
-                if (currentState.searchQuery.text.isNotBlank() || currentState.isSearching || currentState.searchState.results.isNotEmpty() || currentState.searchState.error != null) {
-                    item {
-                        SearchStatusCard(
-                            state = currentState,
-                            onCancel = onCancelSearch,
-                            onClear = onClearResults
-                        )
-                    }
-                }
-
                 // Search results
                 if (currentState.searchState.results.isNotEmpty()) {
-                    items(currentState.searchState.results) { result ->
+                    items(
+                        items = currentState.searchState.results,
+                        key = { it.path.path }
+                    ) { result ->
                         SearchResultRow(
                             result = result,
                             selectionState = currentState.selectionState,
@@ -287,6 +287,42 @@ fun SearcherWorkspacePage(
                         }
                     }
                 }
+            }
+
+            // Pinned search toolbar at top - collapses on scroll
+            SearchToolbarCard(
+                workspaceId = workspaceId,
+                state = currentState,
+                design = design,
+                collapsedFraction = topToolbarScrollBehavior.state.collapsedFraction,
+                onUpdateQuery = onUpdateQuery,
+                onRemoveSearchPath = onRemoveSearchPath,
+                onTogglePathEnabled = onTogglePathEnabled,
+                onPerformSearch = onPerformSearch,
+                onExplicitSearch = onExplicitSearch,
+                onCancelSearch = onCancelSearch,
+                onToggleCaseSensitive = onToggleCaseSensitive,
+                onToggleWholeWord = onToggleWholeWord,
+                onToggleRegex = onToggleRegex,
+                onOpenPathPicker = onOpenPathPicker,
+                workspaceButtonState = workspaceButtonState,
+                workspaceActionHandler = workspaceActionHandler,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+
+            // Pinned status card below toolbar - always visible when needed
+            if (showStatusCard) {
+                SearchStatusCard(
+                    state = currentState,
+                    onCancel = onCancelSearch,
+                    onClear = onClearResults,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .offset(y = 16.dp + currentToolbarHeight + 16.dp) // Account for toolbar's vertical padding + gap
+                        .padding(horizontal = 16.dp)
+                )
             }
 
             // Floating Operations and Clipboard Bars Container
@@ -339,8 +375,9 @@ fun SearcherWorkspacePage(
                         exit = slideOutVertically(animationSpec = tween(150)) { it },
                     ) {
                         ClipboardBar(
+                            workspaceType = Workspace.Type.SEARCHER,
                             clipboardEntries = clipboardState.entries,
-                            onPasteClick = {}, // Searcher doesn't support paste
+                            onPasteClick = { clip -> vm?.openClipboardInExplorer(clip) },
                             onRemoveClick = onClipboardEntryRemove,
                             onEntryClick = onClipboardEntryClick,
                             onClearAll = onClipboardClearAll
@@ -451,7 +488,10 @@ fun SearcherWorkspacePage(
         SearcherDialogHost(
             dialogState = currentState.dialogState,
             onDismiss = { vm?.dismissDialog() },
-            onDeleteConfirmed = { vm?.onDeleteConfirmed(it) }
+            onDeleteConfirmed = { vm?.onDeleteConfirmed(it) },
+            onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
+            onNavigateToClipboardSource = { clip -> vm?.navigateToClipboardSource(clip) },
+            onRemoveClipboardEntry = { clip -> vm?.removeClipboardEntry(clip) },
         )
 
         // Operation dialog host
@@ -510,17 +550,7 @@ fun SearcherWorkspacePageHost(
         onResultClick = vm::showQuickActions,
         onClearHistory = vm::clearSearchHistory,
         onHistoryItemRemove = vm::removeHistoryItem,
-        onHistoryItemClick = { item ->
-            item.searchQuery?.let { query ->
-                vm.updateSearchQuery(TextFieldValue(query.query))
-                vm.updateSearchTargets(query.targets)
-                vm.updateFilter(query.filter)
-                vm.performExplicitSearch()
-            } ?: run {
-                vm.updateSearchQuery(TextFieldValue(item.baseQuery))
-                vm.performExplicitSearch()
-            }
-        },
+        onHistoryItemClick = vm::restoreFromHistory,
         onToggleCaseSensitive = vm::toggleCaseSensitive,
         onToggleWholeWord = vm::toggleWholeWord,
         onToggleRegex = vm::toggleRegex,
@@ -554,12 +584,14 @@ fun SearchResultRow(
     onSelectionToggle: () -> Unit
 ) {
     val fileRowData = FileRowData(
-        name = result.name,
-        path = result.path.path,
-        fileType = result.fileType,
-        size = result.size,
-        modifiedAt = result.modifiedAt,
-        metadata = extractFileMetadata(result)
+        lookup = result.lookup,
+        metadata = extractFileMetadata(result),
+        matchContext = result.matchContext?.let { context ->
+            FileRowData.MatchContext(
+                lineNumber = context.lineNumber,
+                matchedLine = context.matchedLine
+            )
+        }
     )
 
     SelectableFileRow(

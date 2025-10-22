@@ -88,6 +88,7 @@ class MainActivity : Activity2() {
                     }
 
                     ErrorEventHandler(vm)
+
                     vmState?.let { mainState ->
                         log(TAG) { "Main state: $mainState" }
                         Navigation(mainState)

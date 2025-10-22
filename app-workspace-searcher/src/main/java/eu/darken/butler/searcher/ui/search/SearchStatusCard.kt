@@ -21,6 +21,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -49,17 +50,17 @@ fun SearchStatusCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(horizontal = 16.dp, vertical = 4.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // Icon - show circular progress when searching, static icon otherwise
                 if (state.isSearching) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(20.dp),
                         color = MaterialTheme.colorScheme.primary,
                         strokeWidth = 2.dp
                     )
@@ -74,17 +75,14 @@ fun SearchStatusCard(
                 
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                    verticalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
                     // Primary message
                     Text(
                         text = if (state.isSearching) {
                             state.searchState.progress?.let { progress ->
-                                val folderName = when (val path = progress.currentPath) {
-                                    is LocalPath -> path.parent?.name ?: path.name
-                                    else -> path.name
-                                }
-                                stringResource(R.string.searcher_progress_searching_in, folderName)
+                                val pathName = progress.currentPath.userReadablePath.get(LocalContext.current)
+                                stringResource(R.string.searcher_progress_searching_in, pathName)
                             } ?: stringResource(R.string.searcher_progress_searching)
                         } else {
                             when {
@@ -128,7 +126,7 @@ fun SearchStatusCard(
                 
                 // Fixed-width container for action area to prevent width changes
                 Box(
-                    modifier = Modifier.width(72.dp), // Fixed width for consistent layout
+                    modifier = Modifier.width(64.dp), // Fixed width for consistent layout
                     contentAlignment = Alignment.Center
                 ) {
                     // Always show an action button to maintain consistent UI

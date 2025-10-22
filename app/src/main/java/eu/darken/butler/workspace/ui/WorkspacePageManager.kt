@@ -55,6 +55,10 @@ class WorkspacePageManager @Inject constructor(
                     is WorkspaceEvent.ResultEvent -> {
                         // Handled by individual workspaces, UI manager ignores it
                     }
+                    is WorkspaceEvent.SelectionRequested -> {
+                        log(TAG) { "Selection requested for workspace: ${event.workspaceId}" }
+                        handleWorkspaceSelection(event.workspaceId)
+                    }
                     is WorkspaceEvent.Reordered -> {
                         log(TAG) { "Workspaces reordered: ${event.workspaceIds}" }
                     }

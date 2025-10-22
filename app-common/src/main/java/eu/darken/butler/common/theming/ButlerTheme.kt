@@ -8,6 +8,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
@@ -21,13 +22,13 @@ fun MyAppTheme(state: ThemeState = ThemeState(), content: @Composable () -> Unit
         ThemeStyle.MATERIAL_YOU -> hasApiLevel(31)
         else -> false
     }
-    
+
     val darkTheme = when (state.mode) {
         ThemeMode.SYSTEM -> isSystemInDarkTheme()
         ThemeMode.DARK -> true
         ThemeMode.LIGHT -> false
     }
-    
+
     val view = LocalView.current
     SideEffect {
         val window = (view.context as? Activity)?.window ?: return@SideEffect
@@ -35,15 +36,19 @@ fun MyAppTheme(state: ThemeState = ThemeState(), content: @Composable () -> Unit
         insetsController.isAppearanceLightStatusBars = !darkTheme
         insetsController.isAppearanceLightNavigationBars = !darkTheme
     }
-    
+
+    // Memoize color scheme to avoid recalculation on every recomposition
+    val context = LocalContext.current
     @SuppressLint("NewApi")
-    val colors = when {
-        dynamicColors && darkTheme -> dynamicDarkColorScheme(LocalContext.current)
-        dynamicColors && !darkTheme -> dynamicLightColorScheme(LocalContext.current)
-        darkTheme -> ThemeColorProvider.getDarkColorScheme(state.color, state.style)
-        else -> ThemeColorProvider.getLightColorScheme(state.color, state.style)
+    val colors = remember(state, darkTheme, dynamicColors) {
+        when {
+            dynamicColors && darkTheme -> dynamicDarkColorScheme(context)
+            dynamicColors && !darkTheme -> dynamicLightColorScheme(context)
+            darkTheme -> ThemeColorProvider.getDarkColorScheme(state.color, state.style)
+            else -> ThemeColorProvider.getLightColorScheme(state.color, state.style)
+        }
     }
-    
+
     MaterialTheme(colorScheme = colors, content = content, typography = ButlerTypography)
 }
 

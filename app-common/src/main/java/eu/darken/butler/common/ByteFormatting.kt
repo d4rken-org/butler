@@ -40,16 +40,35 @@ fun formatFileSize(bytes: Long, shortFormat: Boolean = true): String {
     return formatFileSize(context = LocalContext.current, bytes = bytes, shortFormat = shortFormat)
 }
 
-fun formatSpeed(
+fun formatByteSpeed(
     context: Context,
     bytesPerSecond: Long,
     shortFormat: Boolean = true,
-): String {
-    val sizeFormatted = formatFileSize(context, bytesPerSecond, shortFormat)
-    return context.getString(R.string.general_speed_per_second_label, sizeFormatted)
-}
+): String = context.resources.getQuantityString(
+    R.plurals.general_progress_bytes_per_second,
+    bytesPerSecond.toInt(),
+    formatFileSize(context, bytesPerSecond, shortFormat)
+)
 
 @Composable
-fun formatSpeed(bytesPerSecond: Long, shortFormat: Boolean = true): String {
-    return formatSpeed(context = LocalContext.current, bytesPerSecond = bytesPerSecond, shortFormat = shortFormat)
-}
+fun formatByteSpeed(bytesPerSecond: Long, shortFormat: Boolean = true): String = formatByteSpeed(
+    context = LocalContext.current,
+    bytesPerSecond = bytesPerSecond,
+    shortFormat = shortFormat
+)
+
+
+fun formatItemSpeed(
+    context: Context,
+    itemsPerSecond: Double,
+): String = context.resources.getQuantityString(
+    R.plurals.result_x_items,
+    itemsPerSecond.toInt(),
+    itemsPerSecond
+)
+
+@Composable
+fun formatItemSpeed(itemsPerSecond: Double): String = formatItemSpeed(
+    context = LocalContext.current,
+    itemsPerSecond = itemsPerSecond
+)

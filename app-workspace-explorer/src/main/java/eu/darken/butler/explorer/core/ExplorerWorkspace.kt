@@ -15,6 +15,7 @@ import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.flow.shareLatest
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.arguments.ExternalExplorerArguments
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
@@ -23,8 +24,8 @@ import eu.darken.butler.explorer.core.operations.CreateOperation
 import eu.darken.butler.explorer.core.operations.DeleteOperation
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.explorer.core.operations.MoveOperation
-import eu.darken.butler.workspace.core.picker.ExplorerPickerArguments
-import eu.darken.butler.workspace.core.picker.PickerConfig
+import eu.darken.butler.explorer.core.picker.ExplorerPickerArguments
+import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
@@ -126,6 +127,7 @@ class ExplorerWorkspace @AssistedInject constructor(
                 Bugs.isDebug -> "Explorer ${id.shortTag}".toCaString()
                 else -> R.string.explorer_title.toCaString()
             },
+            subtitle = state.currentTarget?.description,
             previewData = ExplorerPreviewData(),
             operationCount = activeOperations,
             attentionCount = attentionCount,
@@ -201,11 +203,12 @@ class ExplorerWorkspace @AssistedInject constructor(
             try {
                 val startPath = when (arguments) {
                     is ExplorerPickerArguments -> arguments.startPath
+                    is ExternalExplorerArguments -> arguments.startPath
                     is Arguments -> arguments.startPath
                     null -> null
                     else -> error(
                         "ExplorerWorkspace received unsupported arguments type: ${arguments::class.qualifiedName}. " +
-                        "Expected ExplorerWorkspace.Arguments or ExplorerPickerArguments."
+                            "Expected ExplorerWorkspace.Arguments, ExplorerPickerArguments, or ExplorerArguments."
                     )
                 }
                 if (startPath != null) {

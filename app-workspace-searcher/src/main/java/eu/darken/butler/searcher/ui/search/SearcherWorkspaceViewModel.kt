@@ -20,6 +20,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.extensions.commonParent
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine
 import kotlinx.coroutines.flow.combine as kotlinxCombine
@@ -38,14 +39,16 @@ import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogEvent
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
 import eu.darken.butler.setup.core.SetupModule
+import eu.darken.butler.explorer.core.arguments.ExternalExplorerArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.createAndFocus
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
-import eu.darken.butler.workspace.core.picker.PickerConfig
+import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.operations.Operation
@@ -58,6 +61,7 @@ import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -144,6 +148,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     private var activeSearchJob: Job? = null
     private var currentSearchId: String? = null
+    private var currentSearchParams: SearchQuery? = null
 
 
     data class SearchState(
@@ -193,6 +198,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             OperationsState(operations = ops)
         }
         .onStart { emit(OperationsState()) }
+        .distinctUntilChanged()
         .asStateFlow()
 
     val state = combine(
@@ -235,7 +241,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             quickActionsResult = quickActions,
             dialogState = dialogState,
         )
-    }.asStateFlow()
+    }
+        .distinctUntilChanged()
+        .asStateFlow()
 
     fun updateSearchQuery(query: TextFieldValue) {
         log(TAG, INFO) { "Updating search query: ${query.text}" }
@@ -244,7 +252,62 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     fun performExplicitSearch() {
         log(TAG, INFO) { "Performing explicit search with history save" }
+
+        // Check if the same search is already running
+        val query = searchQuery.value.text
+        if (query.isBlank()) return
+
+        val targets = searchTargets.value
+        val filter = currentFilter.value
+
+        // Compare with currently running search parameters
+        currentSearchParams?.let { runningParams ->
+            val isSameSearch = runningParams.query == query &&
+                    runningParams.targets == targets &&
+                    runningParams.filter == filter
+
+            if (isSameSearch && searchState.value.status == SearchState.Status.SEARCHING) {
+                log(TAG, INFO) { "Same search already running, skipping duplicate" }
+                return
+            }
+        }
+
         performSearch(saveToHistory = true)
+    }
+
+    fun restoreFromHistory(item: SearchHistory.SearchHistoryItem) {
+        log(TAG, INFO) { "Restoring search from history: ${item.baseQuery}" }
+        item.searchQuery?.let { query ->
+            // Update all parameters atomically
+            searchQuery.value = TextFieldValue(query.query)
+            searchTargets.value = query.targets
+            currentFilter.value = query.filter
+
+            // Set initial progress immediately for instant UI feedback
+            val initialProgress = (query.targets.firstOrNull() as? SearchTarget.Path)?.let { firstTarget ->
+                SearchEngine.SearchProgress(
+                    currentPath = firstTarget.path,
+                    itemsScanned = 0,
+                    resultsFound = 0
+                )
+            }
+
+            // Set SEARCHING state immediately to prevent "no results" flash
+            // LaunchedEffect in UI will trigger actual search after debounce delay (500ms)
+            // This gives gateway resources time to initialize
+            searchState.update {
+                it.copy(
+                    status = SearchState.Status.SEARCHING,
+                    results = emptyList(),
+                    progress = initialProgress,
+                    error = null
+                )
+            }
+        } ?: run {
+            // Fallback for legacy history items without full query
+            searchQuery.value = TextFieldValue(item.baseQuery)
+            // LaunchedEffect will handle the search trigger
+        }
     }
 
     fun performSearch(saveToHistory: Boolean = false) {
@@ -255,14 +318,30 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
         activeSearchJob?.cancel()
 
-        // Clear previous results and set searching state
+        // Get targets early to provide immediate progress feedback
+        val targets = searchTargets.value
+
+        // Set initial progress with first target for immediate contextual feedback
+        val initialProgress = (targets.firstOrNull() as? SearchTarget.Path)?.let { firstTarget ->
+            SearchEngine.SearchProgress(
+                currentPath = firstTarget.path,
+                itemsScanned = 0,
+                resultsFound = 0
+            )
+        }
+
+        // Clear previous results and set searching state with initial progress
         searchState.update {
-            it.copy(status = SearchState.Status.SEARCHING, results = emptyList(), error = null)
+            it.copy(
+                status = SearchState.Status.SEARCHING,
+                results = emptyList(),
+                progress = initialProgress,
+                error = null
+            )
         }
 
         // Start the search
         activeSearchJob = vmScope.launch {
-            val targets = searchTargets.value
             if (targets.isEmpty()) {
                 log(TAG, WARN) { "Cannot perform search: no search targets configured" }
                 searchState.update { it.copy(status = SearchState.Status.ERROR, error = Exception("No search targets configured")) }
@@ -277,6 +356,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 ),
                 filter = currentFilter.value
             )
+
+            // Store current search parameters for duplicate detection
+            currentSearchParams = searchRequest
 
             // Record search in history only if explicitly requested
             currentSearchId = if (saveToHistory) {
@@ -313,12 +395,18 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 selectionState.update { selection ->
                     selection.copy(selectableResults = results)
                 }
+                // Clear search params after successful completion
+                currentSearchParams = null
             } catch (e: kotlinx.coroutines.CancellationException) {
                 searchState.update { it.copy(status = SearchState.Status.CANCELLED) }
+                // Clear search params after cancellation
+                currentSearchParams = null
                 throw e
             } catch (e: Exception) {
                 log(TAG) { "Search error: $e" }
                 searchState.update { it.copy(status = SearchState.Status.ERROR, error = e) }
+                // Clear search params after error
+                currentSearchParams = null
             }
         }
     }
@@ -532,12 +620,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             }
             is SearcherAction.OpenInEditor -> {
                 launch {
-                    onWorkspaceAction(
-                        WorkspaceAction.Create(
-                            type = Workspace.Type.EDITOR,
-                            arguments = EditorArguments(
-                                filePath = action.result.path
-                            )
+                    workspaceRemote.createAndFocus(
+                        type = Workspace.Type.EDITOR,
+                        arguments = EditorArguments(
+                            filePath = action.result.path
                         )
                     )
                 }
@@ -547,12 +633,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     if (action.result.path is LocalPath) {
                         val parentPath = (action.result.path as LocalPath).parent
                         if (parentPath != null) {
-                            onWorkspaceAction(
-                                WorkspaceAction.Create(
-                                    type = Workspace.Type.EXPLORER,
-                                    arguments = ExplorerArguments(
-                                        startPath = parentPath
-                                    )
+                            workspaceRemote.createAndFocus(
+                                type = Workspace.Type.EXPLORER,
+                                arguments = ExternalExplorerArguments(
+                                    startPath = parentPath
                                 )
                             )
                         }
@@ -564,8 +648,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 systemClipboardHelper.copyToClipboard(action.result.path.path)
             }
             is SearcherAction.Properties -> {
-                // TODO: Implement file properties dialog
-                log(TAG, WARN) { "Properties action not yet implemented" }
+                showFileProperties(action.result)
             }
             is SearcherAction.SelectAll -> selectAll()
             is SearcherAction.DeselectAll -> deselectAll()
@@ -765,6 +848,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     fun removeClipboardEntry(clip: ClipboardClip) = launch {
         log(TAG) { "removeClipboardEntry($clip)" }
         clipboardRepo.remove(clip.id)
+        dismissDialog()
     }
 
     fun clearAllClipboard() = launch {
@@ -772,9 +856,65 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         clipboardRepo.clear()
     }
 
+    fun showFileProperties(result: SearchResult) {
+        log(TAG) { "showFileProperties(${result.name})" }
+        dialogStateFlow.value = SearcherDialogState.FileInfo(result)
+    }
+
     fun showClipboardInfo(clip: ClipboardClip) {
         log(TAG) { "showClipboardInfo($clip)" }
-        // TODO: Implement clipboard info dialog for searcher
+        dialogStateFlow.value = SearcherDialogState.ClipboardInfo(clip)
+    }
+
+    fun navigateToClipboardSource(clip: ClipboardClip) = launch {
+        log(TAG) { "navigateToClipboardSource($clip)" }
+        dismissDialog()
+
+        when (clip) {
+            is ClipboardClip.Paths -> {
+                if (clip.paths.isNotEmpty()) {
+                    val firstPath = clip.paths.first()
+                    val parentPath = firstPath.parent
+                    if (parentPath != null) {
+                        // Open Explorer at the source path and switch to it
+                        workspaceRemote.createAndFocus(
+                            type = Workspace.Type.EXPLORER,
+                            arguments = ExternalExplorerArguments(startPath = parentPath)
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    fun openClipboardInExplorer(clip: ClipboardClip) = launch {
+        log(TAG) { "openClipboardInExplorer($clip)" }
+
+        when (clip) {
+            is ClipboardClip.Paths -> {
+                if (clip.paths.isEmpty()) {
+                    log(TAG, WARN) { "Cannot open in Explorer - clipboard has no paths" }
+                    return@launch
+                }
+
+                val commonParent = clip.paths.commonParent()
+                if (commonParent == null) {
+                    log(TAG, WARN) { "Cannot open in Explorer - paths have no common parent" }
+                    return@launch
+                }
+
+                log(TAG) { "Opening Explorer at common parent: $commonParent" }
+                workspaceRemote.createAndFocus(
+                    type = Workspace.Type.EXPLORER,
+                    arguments = ExternalExplorerArguments(startPath = commonParent)
+                )
+            }
+        }
+    }
+
+    fun copyPathToSystemClipboard(text: String) {
+        log(TAG) { "copyPathToSystemClipboard($text)" }
+        systemClipboardHelper.copyToClipboard(text)
     }
 
     fun cancelOperation(id: Operation.Id) = launch {

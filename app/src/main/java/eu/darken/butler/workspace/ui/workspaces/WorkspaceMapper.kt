@@ -11,7 +11,7 @@ import eu.darken.butler.workspace.ui.workspaces.classic.CreatingWorkspacePlaceho
 
 @Composable
 fun WorkspaceMapper(
-    info: Workspace.Info?,
+    info: WorkspacePaneInfo?,
     design: WorkspaceDesign,
     isCreating: Boolean = false,
 ) {

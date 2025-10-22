@@ -50,6 +50,7 @@ import eu.darken.butler.common.R as CommonR
 
 @Composable
 fun ClipboardBar(
+    workspaceType: Workspace.Type,
     modifier: Modifier = Modifier,
     initialExpanded: Boolean = false,
     clipboardEntries: List<ClipboardClip>,
@@ -124,6 +125,7 @@ fun ClipboardBar(
                     key(entry.id) {
                         SwipeToDismissEntry(
                             entry = entry,
+                            workspaceType = workspaceType,
                             onPasteClick = { onPasteClick(entry) },
                             onEntryClick = { onEntryClick(entry) },
                             onRemoveClick = { onRemoveClick(entry) },
@@ -143,6 +145,7 @@ fun ClipboardBar(
                     key(entry.id) {
                         SwipeToDismissEntry(
                             entry = entry,
+                            workspaceType = workspaceType,
                             onPasteClick = { onPasteClick(entry) },
                             onEntryClick = { onEntryClick(entry) },
                             onRemoveClick = { onRemoveClick(entry) },
@@ -161,6 +164,7 @@ fun ClipboardBar(
 private fun SwipeToDismissEntry(
     modifier: Modifier = Modifier,
     entry: ClipboardClip,
+    workspaceType: Workspace.Type,
     onPasteClick: () -> Unit,
     onEntryClick: () -> Unit,
     onRemoveClick: () -> Unit,
@@ -194,6 +198,7 @@ private fun SwipeToDismissEntry(
     ) {
         ClipboardEntryRow(
             entry = entry,
+            workspaceType = workspaceType,
             onPasteClick = onPasteClick,
             onEntryClick = onEntryClick,
             showOrigin = showOrigin,
@@ -227,6 +232,7 @@ fun ClipboardBarPreview() {
 
     PreviewWrapper {
         ClipboardBar(
+            workspaceType = Workspace.Type.EXPLORER,
             clipboardEntries = mockEntries,
             onPasteClick = {},
             onRemoveClick = {},
@@ -253,6 +259,7 @@ fun ClipboardBarSingleItemPreview() {
                 .padding(16.dp)
         ) {
             ClipboardBar(
+                workspaceType = Workspace.Type.SEARCHER,
                 clipboardEntries = listOf(singleEntry),
                 onPasteClick = {},
                 onRemoveClick = {},
@@ -300,6 +307,7 @@ fun ClipboardBarExpandedPreview() {
                 .padding(16.dp)
         ) {
             ClipboardBar(
+                workspaceType = Workspace.Type.EXPLORER,
                 initialExpanded = true,
                 clipboardEntries = mockEntries,
                 onPasteClick = {},

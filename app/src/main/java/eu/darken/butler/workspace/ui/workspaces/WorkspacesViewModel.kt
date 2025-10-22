@@ -48,7 +48,7 @@ class WorkspacesViewModel @Inject constructor(
             val currentWorkspaces = workspaceRepo.state.first()
             if (currentWorkspaces.infos.isEmpty()) {
                 log(tag) { "No workspaces found, auto-creating workspace for testing" }
-                workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.EXPLORER))
+                workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.SEARCHER))
             }
         }
 
@@ -107,7 +107,8 @@ class WorkspacesViewModel @Inject constructor(
             }
             is WorkspaceScreenAction.CreateOnDemand -> {
                 log(tag) { "Creating workspace on-demand" }
-                val result = workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.TEMPLATES)) as WorkspaceAction.Create.Result
+                val result =
+                    workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.TEMPLATES)) as WorkspaceAction.Create.Result
                 log(tag) { "On-demand workspace created: ${result.newId}, focusing it" }
                 workspacePageManager.setFocusedWorkspace(result.newId)
                 workspacePageManager.setSelectedWorkspaces(mapOf(0 to result.newId))
@@ -148,10 +149,12 @@ class WorkspacesViewModel @Inject constructor(
         val current: Workspace.Info?
             get() = tabWorkspaces.firstOrNull { it.id == focused }
 
-        val selected: Map<Int, Workspace.Info>
-            get() = selectedWorkspaces.mapNotNull { (position, id) ->
-                tabWorkspaces.find { it.id == id }?.let { position to it }
-            }.toMap()
+        val selected: Map<Int, WorkspacePaneInfo>
+            get() = selectedWorkspaces
+                .mapNotNull { (position, id) ->
+                    tabWorkspaces.find { it.id == id }?.let { position to it.asPaneInfo() }
+                }
+                .toMap()
 
         val all: List<Workspace.Info>
             get() = state.infos

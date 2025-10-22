@@ -77,6 +77,7 @@ import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.setHeight
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
@@ -143,12 +144,16 @@ fun ExplorerWorkspacePage(
     val clipboardState by clipboardStateSource.collectAsState(ExplorerWorkspaceViewModel.ClipboardState())
     val workspaceButtonState by workspaceStateSource.collectAsState(null)
 
+    val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // Pull-to-refresh indicator state - shows briefly then hides to let progress banner take over
+    var showPullToRefreshIndicator by remember { mutableStateOf(false) }
 
     // Observe conflict state
     val issueState by (vm?.issueState?.collectAsState() ?: remember { mutableStateOf(null) })
@@ -212,6 +217,16 @@ fun ExplorerWorkspacePage(
         if (mainState.selectionState.isSelectionMode) {
             // Smoothly animate action bar to visible when selection is activated
             bottomBarScrollBehavior.state.animateToExpanded()
+        }
+    }
+
+    // Pull-to-refresh handler - shows indicator for 200ms then hides
+    val handleRefresh: () -> Unit = {
+        coroutineScope.launch {
+            showPullToRefreshIndicator = true
+            vm?.retryNavigation()
+            delay(200)
+            showPullToRefreshIndicator = false
         }
     }
 
@@ -290,8 +305,8 @@ fun ExplorerWorkspacePage(
                     .padding(top = paddingValues.calculateTopPadding())
             ) {
                 PullToRefreshBox(
-                    isRefreshing = mainState.progress != null,
-                    onRefresh = { vm?.retryNavigation() }
+                    isRefreshing = showPullToRefreshIndicator,
+                    onRefresh = handleRefresh
                 ) {
                     Column(
                         modifier = Modifier.fillMaxSize()
@@ -371,7 +386,10 @@ fun ExplorerWorkspacePage(
                                                 }
                                             )
                                         ) {
-                                            items(mainStateSnap.items) { item ->
+                                            items(
+                                                items = mainStateSnap.items,
+                                                key = { it.id }
+                                            ) { item ->
                                                 when (item) {
                                                     is ExplorerItem.Lookup -> LookupItemRow(
                                                         item = item,
@@ -434,7 +452,10 @@ fun ExplorerWorkspacePage(
                                                 }
                                             )
                                         ) {
-                                            items(mainStateSnap.items) { item ->
+                                            items(
+                                                items = mainStateSnap.items,
+                                                key = { it.id }
+                                            ) { item ->
                                                 when (item) {
                                                     is ExplorerItem.Lookup -> LookupItemGrid(
                                                         item = item,
@@ -541,6 +562,7 @@ fun ExplorerWorkspacePage(
                     exit = slideOutVertically(animationSpec = tween(150)) { it },
                 ) {
                     ClipboardBar(
+                        workspaceType = Workspace.Type.EXPLORER,
                         clipboardEntries = clipboardState.entries,
                         onPasteClick = { clip -> vm?.pasteClipboard(clip) },
                         onRemoveClick = { clip -> vm?.removeClipboardEntry(clip) },

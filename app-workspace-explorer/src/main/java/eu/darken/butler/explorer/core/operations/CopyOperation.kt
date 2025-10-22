@@ -1,6 +1,5 @@
 package eu.darken.butler.explorer.core.operations
 
-import android.text.format.Formatter
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.CopyAll
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -9,7 +8,6 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
@@ -19,6 +17,8 @@ import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.copy
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
+import eu.darken.butler.common.formatByteSpeed
+import eu.darken.butler.common.formatItemSpeed
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
@@ -163,15 +163,10 @@ class CopyOperation @AssistedInject constructor(
                 // Format overall metrics for primary progress
                 val overallMetrics = if (avgBytesSpeed > 0) {
                     caString { ctx ->
-                        val bytesSpeedFormatted = Formatter.formatShortFileSize(ctx, avgBytesSpeed)
-                        val bytesSpeedPart = ctx.getString(R.string.explorer_operation_progress_bytes_speed, bytesSpeedFormatted)
+                        val bytesSpeedPart = formatByteSpeed(ctx, avgBytesSpeed)
 
                         val itemsSpeedPart = if (avgItemsSpeed > 0) {
-                            " • " + ctx.getQuantityString2(
-                                eu.darken.butler.workspace.R.plurals.workspace_operation_progress_items_speed,
-                                avgItemsSpeed.toInt(),
-                                avgItemsSpeed
-                            )
+                            " • " + formatItemSpeed(ctx, avgItemsSpeed.toDouble())
                         } else ""
 
                         val etaPart = if (overallEta != null) {
@@ -180,7 +175,10 @@ class CopyOperation @AssistedInject constructor(
                                 overallEta.toInt(),
                                 overallEta
                             )
-                            " • " + ctx.getString(eu.darken.butler.workspace.R.string.workspace_operation_progress_time_remaining, duration)
+                            " • " + ctx.getString(
+                                eu.darken.butler.workspace.R.string.workspace_operation_progress_time_remaining,
+                                duration
+                            )
                         } else ""
 
                         bytesSpeedPart + itemsSpeedPart + etaPart
@@ -190,15 +188,17 @@ class CopyOperation @AssistedInject constructor(
                 // Format per-file metrics for secondary progress
                 val fileMetrics = if (fileSpeed > 0) {
                     caString { ctx ->
-                        val speedFormatted = Formatter.formatShortFileSize(ctx, fileSpeed)
-                        val speedPart = ctx.getString(R.string.explorer_operation_progress_bytes_speed, speedFormatted)
+                        val speedPart = formatByteSpeed(ctx, fileSpeed)
                         val etaPart = if (fileEta != null) {
                             val duration = ctx.getQuantityString2(
                                 eu.darken.butler.common.R.plurals.common_duration_seconds_full,
                                 fileEta.toInt(),
                                 fileEta
                             )
-                            " • " + ctx.getString(eu.darken.butler.workspace.R.string.workspace_operation_progress_time_remaining, duration)
+                            " • " + ctx.getString(
+                                eu.darken.butler.workspace.R.string.workspace_operation_progress_time_remaining,
+                                duration
+                            )
                         } else ""
                         speedPart + etaPart
                     }
@@ -240,7 +240,7 @@ class CopyOperation @AssistedInject constructor(
         result as CopyAction.State.Completed<*, *, *, *>
 
         val copiedDestinations = result.copied.map { it.second }.toSet()
-        fileSystemHinter.trackPathsAdded(operationContext.id,copiedDestinations.toSet())
+        fileSystemHinter.trackPathsAdded(operationContext.id, copiedDestinations.toSet())
 
         reportBuilder.addCopiedItems(copiedDestinations)
         reportBuilder.setSkipped(result.skipped)

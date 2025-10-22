@@ -7,6 +7,7 @@
     <string name="clipboard_show_more">More</string>
     <string name="clipboard_show_more_items">Show more (%d items)</string>
     <string name="clipboard_paste">Paste</string>
+    <string name="clipboard_open_in_explorer">Open in Explorer</string>
     <string name="clipboard_copy">Copy</string>
     <string name="clipboard_cut">Cut</string>
     <string name="clipboard_origin">Origin: %s</string>
@@ -132,16 +133,35 @@
         <item quantity="other">%1$s freed.</item>
     </plurals>
 
-    <!-- Delete Operation Progress -->
-    <plurals name="workspace_operation_progress_items_speed">
-        <item quantity="one">%1$d item/s</item>
-        <item quantity="other">%1$d items/s</item>
-    </plurals>
     <string name="workspace_operation_progress_bytes_speed_freed">%1$s/s freed.</string>
     <string name="workspace_operation_progress_bytes_freed">%1$s freed.</string>
     <string name="workspace_operation_progress_time_remaining">%1$s remaining.</string>
 
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">Information</string>
+    <string name="workspace_file_info_name_label">Name</string>
+    <string name="workspace_file_info_path_label">Path</string>
+    <string name="workspace_file_info_type_label">Type</string>
+    <string name="workspace_file_info_type_file">File</string>
+    <string name="workspace_file_info_type_directory">Directory</string>
+    <string name="workspace_file_info_type_symlink">Symbolic link</string>
+    <string name="workspace_file_info_type_unknown">Unknown</string>
+    <string name="workspace_file_info_size_label">Size</string>
+    <string name="workspace_file_info_modified_label">Modified</string>
+    <string name="workspace_file_info_created_label">Created</string>
+    <string name="workspace_file_info_permissions_label">Permissions</string>
+    <string name="workspace_file_info_owner_label">Owner</string>
+    <string name="workspace_file_info_child_count_label">Items</string>
+    <string name="workspace_file_info_symlink_target_label">Target</string>
+    <string name="workspace_file_info_unknown">Unknown</string>
+    <string name="workspace_file_info_copy_action">Copy to clipboard</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">Selected</string>
+    <string name="workspace_file_info_files_label">Files</string>
+    <string name="workspace_file_info_directories_label">Directories</string>
+    <string name="workspace_file_info_total_size_label">Total size</string>
+
     <!-- Performance Graph -->
     <string name="workspace_operation_performance_not_enough_data">Not enough data</string>
-    <string name="workspace_operation_performance_avg_speed_label">Speed Ø: %1$s</string>
 </resources>

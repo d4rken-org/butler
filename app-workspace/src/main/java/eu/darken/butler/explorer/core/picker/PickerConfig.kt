@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.core.picker
+package eu.darken.butler.explorer.core.picker
 
 import android.os.Parcelable
 import eu.darken.butler.workspace.core.Workspace

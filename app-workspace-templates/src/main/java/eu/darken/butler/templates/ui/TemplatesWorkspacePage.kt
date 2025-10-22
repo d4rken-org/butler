@@ -17,11 +17,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
-import androidx.compose.material.icons.twotone.Apps
 import androidx.compose.material.icons.twotone.Close
-import androidx.compose.material.icons.twotone.Edit
-import androidx.compose.material.icons.twotone.Folder
-import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -66,6 +62,7 @@ import eu.darken.butler.searcher.ui.search.SearcherWorkspaceTemplate
 import eu.darken.butler.templates.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
@@ -436,14 +433,6 @@ private data class TabLayout(
     val hiddenCount: Int
 )
 
-private fun getWorkspaceTypeIcon(type: Workspace.Type): ImageVector {
-    return when (type) {
-        Workspace.Type.EXPLORER -> Icons.TwoTone.Folder
-        Workspace.Type.SEARCHER -> Icons.TwoTone.Search
-        Workspace.Type.EDITOR -> Icons.TwoTone.Edit
-        Workspace.Type.TEMPLATES -> Icons.TwoTone.Apps
-    }
-}
 
 @Composable
 private fun CompactTabPill(
@@ -482,7 +471,7 @@ private fun CompactTabPill(
         ) {
             // Workspace type icon
             Icon(
-                imageVector = getWorkspaceTypeIcon(tab.type),
+                imageVector = tab.type.icon,
                 contentDescription = null,
                 modifier = Modifier.size(16.dp),
                 tint = if (isSelected) {

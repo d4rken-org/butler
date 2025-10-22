@@ -8,6 +8,7 @@ import eu.darken.butler.explorer.R
 sealed interface ExplorerNavigation {
     sealed interface Target : ExplorerNavigation {
         val label: CaString
+        val description: CaString? get() = null
 
         data object Home : Target {
             override val label: CaString = R.string.explorer_navigation_home.toCaString()
@@ -18,7 +19,8 @@ sealed interface ExplorerNavigation {
         }
 
         data class Directory(val path: APath<*>) : Target {
-            override val label: CaString = path.userReadablePath
+            override val label: CaString = path.userReadableName
+            override val description: CaString = path.userReadablePath
         }
     }
 

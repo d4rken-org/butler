@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import eu.darken.butler.workspace.core.Workspace
@@ -24,7 +25,7 @@ import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceNavigationRail
 fun AdaptiveWorkspaceLayout(
     design: WorkspaceDesign,
     workspaces: List<Workspace.Info>,
-    selected: Map<Int, Workspace.Info>,
+    selected: Map<Int, WorkspacePaneInfo>,
     focusedId: Workspace.Id?,
     dividerPositions: DividerPositions,
     onDividerPositionsChange: (DividerPositions) -> Unit,
@@ -73,12 +74,12 @@ fun AdaptiveWorkspaceLayout(
                         } else {
                             // Move workspace to empty pane
                             currentSelection.remove(existingPosition)
-                            currentSelection[paneIndex] = workspaces.find { it.id == workspaceId }!!
+                            currentSelection[paneIndex] = workspaces.find { it.id == workspaceId }!!.asPaneInfo()
                         }
                     } else if (existingPosition == null) {
                         // Workspace not currently selected - add it to the specified pane
                         workspaces.find { it.id == workspaceId }?.let { workspace ->
-                            currentSelection[paneIndex] = workspace
+                            currentSelection[paneIndex] = workspace.asPaneInfo()
                         }
                     }
 
@@ -109,10 +110,12 @@ fun AdaptiveWorkspaceLayout(
                 showPaneOverlay = showPaneOverlay,
                 paneContent = { info, paneNumber ->
                     if (info != null) {
-                        WorkspaceMapper(
-                            info = info,
-                            design = design,
-                        )
+                        key(info.id) {
+                            WorkspaceMapper(
+                                info = info,
+                                design = design,
+                            )
+                        }
                     } else {
                         EmptyAdaptiveWorkspaceContent(
                             modifier = Modifier.weight(1f),

@@ -351,8 +351,6 @@
     <string name="explorer_operation_create_title_file">File creation</string>
     <string name="explorer_operation_create_description_file">Create file \"%1$s\" at \"%2$s\"</string>
 
-    <!-- Operation Progress Metrics -->
-    <string name="explorer_operation_progress_bytes_speed">%s/s</string>
 
     <!-- Navigation Error Messages -->
     <string name="explorer_navigation_error_title">Navigation Failed</string>

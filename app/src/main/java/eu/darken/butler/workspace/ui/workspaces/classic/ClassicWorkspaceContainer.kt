@@ -22,6 +22,7 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceScreenAction
 import eu.darken.butler.workspace.ui.workspaces.WorkspacesViewModel
+import eu.darken.butler.workspace.ui.workspaces.asPaneInfo
 
 private val TAG = logTag("Workspace", "Container", "Classic")
 
@@ -125,10 +126,10 @@ internal fun ClassicWorkspaceContainer(
                     .padding(paddingValues),
                 userScrollEnabled = state.swipeGesturesEnabled,
             ) { page ->
-                val workspaceInfo = state.all.getOrNull(page)
+                val paneInfo = state.all.getOrNull(page)?.asPaneInfo()
                 val isPlaceholderPage = page >= state.all.size
                 WorkspaceMapper(
-                    info = workspaceInfo,
+                    info = paneInfo,
                     design = design,
                     isCreating = isPlaceholderPage && isCreatingWorkspace,
                 )

@@ -1,10 +1,11 @@
 package eu.darken.butler.workspace.ui.workspaces.adaptive
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.animateDp
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -22,17 +23,16 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,6 +42,14 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.common.ca.toCaString
+
+// State enum for Transition API to batch animations
+private enum class PaneState {
+    NORMAL,
+    BORDER_UNFOCUSED,
+    BORDER_FOCUSED,
+    DROP_TARGET
+}
 
 @Composable
 internal fun WorkspacePaneWrapper(
@@ -56,25 +64,36 @@ internal fun WorkspacePaneWrapper(
     val dragDropState = LocalDragDropState.current
     val isDropTarget = dragDropState.isDragging && dragDropState.hoveredPaneIndex == paneNumber?.minus(1)
 
-    val borderColor by animateColorAsState(
-        targetValue = when {
-            isDropTarget -> MaterialTheme.colorScheme.primary
-            isFocused && showFocusBorder -> MaterialTheme.colorScheme.primary
-            showFocusBorder -> MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-            else -> Color.Transparent
-        },
-        label = "borderColor"
-    )
+    // Determine current state for transition
+    val currentState = remember(isDropTarget, isFocused, showFocusBorder) {
+        when {
+            isDropTarget -> PaneState.DROP_TARGET
+            isFocused && showFocusBorder -> PaneState.BORDER_FOCUSED
+            showFocusBorder -> PaneState.BORDER_UNFOCUSED
+            else -> PaneState.NORMAL
+        }
+    }
 
-    val borderWidth by animateDpAsState(
-        targetValue = when {
-            isDropTarget -> 3.dp
-            isFocused && showFocusBorder -> 2.dp
-            showFocusBorder -> 1.dp
-            else -> 0.dp
-        },
-        label = "borderWidth"
-    )
+    // Use Transition API to batch all animations together
+    val transition = updateTransition(targetState = currentState, label = "paneTransition")
+
+    val borderColor by transition.animateColor(label = "borderColor") { state ->
+        when (state) {
+            PaneState.DROP_TARGET -> MaterialTheme.colorScheme.primary
+            PaneState.BORDER_FOCUSED -> MaterialTheme.colorScheme.primary
+            PaneState.BORDER_UNFOCUSED -> MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+            PaneState.NORMAL -> Color.Transparent
+        }
+    }
+
+    val borderWidth by transition.animateDp(label = "borderWidth") { state ->
+        when (state) {
+            PaneState.DROP_TARGET -> 3.dp
+            PaneState.BORDER_FOCUSED -> 2.dp
+            PaneState.BORDER_UNFOCUSED -> 1.dp
+            PaneState.NORMAL -> 0.dp
+        }
+    }
     Box(
         modifier = modifier
             .clickable { onFocus() }
@@ -129,36 +148,31 @@ internal fun WorkspacePaneWrapper(
                 .zIndex(10f)
         ) {
             paneNumber?.let { number ->
-                val pulseScale by animateFloatAsState(
-                    targetValue = if (showOverlay) 1f else 0.95f,
-                    animationSpec = spring(dampingRatio = 0.5f),
+                val pulseScale by transition.animateFloat(
                     label = "pulseScale",
-                )
+                    transitionSpec = { spring(dampingRatio = 0.5f) }
+                ) { _ ->
+                    if (showOverlay) 1f else 0.95f
+                }
 
+                // Use graphicsLayer for scale to skip layout phase
                 Box(
                     modifier = Modifier.Companion
                         .fillMaxSize()
-                        .scale(pulseScale),
+                        .graphicsLayer {
+                            scaleX = pulseScale
+                            scaleY = pulseScale
+                        },
                     contentAlignment = Alignment.Companion.Center,
                 ) {
-                    // Shadow/glow layer
-                    Box(
-                        modifier = Modifier.Companion
-                            .size(80.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                shape = CircleShape,
-                            )
-                    )
-
-                    // Main badge
+                    // Main badge - removed shadow/glow layer for performance
                     Surface(
                         modifier = Modifier.Companion
                             .size(72.dp),
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.primaryContainer,
-                        tonalElevation = 12.dp,
-                        shadowElevation = 8.dp,
+                        tonalElevation = 8.dp,
+                        shadowElevation = 4.dp,
                     ) {
                         Box(
                             modifier = Modifier.Companion
