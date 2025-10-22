@@ -114,6 +114,7 @@ fun ExplorerWorkspacePageHost(
     }
 
     ExplorerWorkspacePage(
+        workspaceId = id,
         design = design,
         mainStateSource = vm.state,
         clipboardStateSource = vm.clipboard,
@@ -127,6 +128,7 @@ fun ExplorerWorkspacePageHost(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExplorerWorkspacePage(
+    workspaceId: Workspace.Id,
     design: WorkspaceDesign = WorkspaceDesign(),
     mainStateSource: Flow<ExplorerWorkspaceViewModel.State>,
     operationsStateSource: Flow<ExplorerWorkspaceViewModel.OperationsState>,
@@ -284,6 +286,7 @@ fun ExplorerWorkspacePage(
                 } else {
                     // Normal mode - use full explorer top bar
                     ExplorerTopBar(
+                        workspaceId = workspaceId,
                         breadcrumbs = mainState.breadcrumbs,
                         scrollBehavior = scrollBehavior,
                         onBreadcrumbClick = { target -> vm?.navigate(target) },

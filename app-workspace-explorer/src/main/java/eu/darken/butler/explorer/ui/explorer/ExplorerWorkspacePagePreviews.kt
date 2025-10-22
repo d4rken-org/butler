@@ -11,6 +11,7 @@ import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import kotlinx.coroutines.flow.flowOf
 
@@ -62,6 +63,7 @@ fun ExplorerWorkspacePagePreview() {
     )
     PreviewWrapper {
         ExplorerWorkspacePage(
+            workspaceId = Workspace.Id(),
             mainStateSource = flowOf(mockState),
             workspaceStateSource = flowOf(null),
             clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
@@ -83,6 +85,7 @@ fun ExplorerWorkspacePageLoadingPreview() {
     )
     PreviewWrapper {
         ExplorerWorkspacePage(
+            workspaceId = Workspace.Id(),
             mainStateSource = flowOf(mockState),
             workspaceStateSource = flowOf(null),
             clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
@@ -106,6 +109,7 @@ fun ExplorerWorkspacePageEmptyPreview() {
     )
     PreviewWrapper {
         ExplorerWorkspacePage(
+            workspaceId = Workspace.Id(),
             mainStateSource = flowOf(mockState),
             workspaceStateSource = flowOf(null),
             clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
@@ -137,6 +141,7 @@ fun ExplorerWorkspacePageWithSelectionPreview() {
     )
     PreviewWrapper {
         ExplorerWorkspacePage(
+            workspaceId = Workspace.Id(),
             mainStateSource = flowOf(mockState),
             workspaceStateSource = flowOf(null),
             clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
@@ -174,6 +179,7 @@ fun ExplorerWorkspacePageGridModePreview() {
     )
     PreviewWrapper {
         ExplorerWorkspacePage(
+            workspaceId = Workspace.Id(),
             mainStateSource = flowOf(mockState),
             workspaceStateSource = flowOf(null),
             clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
@@ -232,6 +238,7 @@ fun ExplorerWorkspacePageWithAllBarsPreview() {
 
     PreviewWrapper {
         ExplorerWorkspacePage(
+            workspaceId = Workspace.Id(),
             mainStateSource = flowOf(mockState),
             clipboardStateSource = flowOf(mockClipboardEntries),
             operationsStateSource = flowOf(mockOperations),
@@ -290,6 +297,7 @@ fun ExplorerWorkspacePageWithExpandedBarsPreview() {
 
     PreviewWrapper {
         ExplorerWorkspacePage(
+            workspaceId = Workspace.Id(),
             mainStateSource = flowOf(mockState),
             clipboardStateSource = flowOf(mockClipboardEntries),
             operationsStateSource = flowOf(mockOperations),

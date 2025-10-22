@@ -71,6 +71,7 @@ import kotlinx.coroutines.flow.Flow
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearcherWorkspacePage(
+    workspaceId: Workspace.Id,
     design: WorkspaceDesign = WorkspaceDesign(),
     stateSource: Flow<SearcherWorkspaceViewModel.State>,
     clipboardStateSource: Flow<SearcherWorkspaceViewModel.ClipboardState>,
@@ -290,6 +291,7 @@ fun SearcherWorkspacePage(
 
             // Pinned search toolbar at top - collapses on scroll
             SearchToolbarCard(
+                workspaceId = workspaceId,
                 state = currentState,
                 design = design,
                 collapsedFraction = topToolbarScrollBehavior.state.collapsedFraction,
@@ -530,6 +532,7 @@ fun SearcherWorkspacePageHost(
     ErrorEventHandler(vm)
 
     SearcherWorkspacePage(
+        workspaceId = id,
         design = design,
         stateSource = vm.state,
         clipboardStateSource = vm.clipboard,

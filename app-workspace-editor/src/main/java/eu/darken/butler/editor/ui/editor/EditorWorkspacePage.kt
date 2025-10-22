@@ -80,6 +80,7 @@ fun EditorWorkspacePageHost(
 
     state?.let { state ->
         EditorWorkspacePage(
+            workspaceId = id,
             workspaceButtonState = workspaceButtonState,
             workspaceActionHandler = workspaceButtonVm,
             design = design,
@@ -110,6 +111,7 @@ fun EditorWorkspacePageHost(
 
 @Composable
 fun EditorWorkspacePage(
+    workspaceId: Workspace.Id,
     workspaceButtonState: WorkspaceButtonViewModel.State? = null,
     workspaceActionHandler: WorkspaceActionHandler? = null,
     design: WorkspaceDesign,
@@ -138,6 +140,7 @@ fun EditorWorkspacePage(
     ) {
         // Header that draws under status bar
         EditorHeader(
+            workspaceId = workspaceId,
             design = design,
             fileName = if (state.hasFile) state.fileName else stringResource(R.string.editor_file_untitled),
             isModified = state.isModified,
@@ -250,6 +253,7 @@ fun EditorWorkspacePage(
 
 @Composable
 private fun EditorHeader(
+    workspaceId: Workspace.Id,
     design: WorkspaceDesign,
     fileName: String,
     isModified: Boolean,
@@ -303,6 +307,7 @@ private fun EditorHeader(
 
                     WorkspaceButton(
                         state = workspaceButtonState,
+                        currentWorkspaceId = workspaceId,
                         workspaceActionHandler = workspaceActionHandler,
                     )
                 }
@@ -611,6 +616,7 @@ private fun SearchDialog(
 private fun EditorPagePreview() {
     PreviewWrapper {
         EditorWorkspacePage(
+            workspaceId = Workspace.Id(),
             design = WorkspaceDesign(),
             state = EditorWorkspaceViewModel.State(
                 id = Workspace.Id(),

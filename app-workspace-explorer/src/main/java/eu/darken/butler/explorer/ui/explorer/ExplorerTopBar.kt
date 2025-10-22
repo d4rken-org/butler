@@ -19,12 +19,14 @@ import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
+import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 
 @Composable
 fun ExplorerTopBar(
+    workspaceId: Workspace.Id,
     modifier: Modifier = Modifier,
     breadcrumbs: List<ExplorerBreadcrumb>,
     scrollBehavior: TopAppBarScrollBehavior? = null,
@@ -55,6 +57,7 @@ fun ExplorerTopBar(
                 WorkspaceButton(
                     modifier = Modifier.padding(end = 8.dp),
                     state = workspaceButtonState,
+                    currentWorkspaceId = workspaceId,
                     workspaceActionHandler = workspaceActionHandler,
                 )
             }
@@ -89,6 +92,7 @@ fun ExplorerTopBarPreview() {
 
     PreviewWrapper {
         ExplorerTopBar(
+            workspaceId = Workspace.Id(),
             breadcrumbs = mockBreadcrumbs,
             scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(),
             onBreadcrumbClick = {},

@@ -126,6 +126,7 @@ fun WorkspaceNavigationRail(
         ) {
             WorkspaceButton(
                 state = workspaceButtonState,
+                currentWorkspaceId = focusedId,
                 workspaceActionHandler = workspaceActionHandler,
             )
 

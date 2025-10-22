@@ -46,7 +46,8 @@
     <string name="workspace_templates_label">Templates</string>
 
     <!-- Workspace Button Menu -->
-    <string name="workspace_button_menu_manager_action">Tab Manager</string>
+    <string name="workspace_button_menu_manager_action">Tab manager</string>
+    <string name="workspace_button_menu_close_current_action">Close current tab</string>
     <string name="workspace_button_menu_settings_action">Settings</string>
 
     <!-- Operations -->

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.DropdownMenu
@@ -37,6 +38,7 @@ import eu.darken.butler.common.compose.ButlerIcon
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.R
+import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -46,6 +48,7 @@ fun WorkspaceButton(
     state: WorkspaceButtonViewModel.State?,
     containerColor: Color? = null,
     contentColor: Color? = null,
+    currentWorkspaceId: Workspace.Id? = null,
     workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -100,6 +103,21 @@ fun WorkspaceButton(
                     )
                 }
             )
+            if (currentWorkspaceId != null) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.workspace_button_menu_close_current_action)) },
+                    onClick = {
+                        expanded = false
+                        workspaceActionHandler?.executeWorkspaceAction(WorkspaceAction.Close(currentWorkspaceId))
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.TwoTone.Close,
+                            contentDescription = null
+                        )
+                    }
+                )
+            }
         }
 
         // Badge showing workspace count (top-left)
@@ -211,13 +229,14 @@ private fun WorkspaceButtonPreview() {
                 ),
             )
 
-            // Multiple workspaces with operations
+            // Multiple workspaces with operations (with focused workspace)
             WorkspaceButton(
                 state = WorkspaceButtonViewModel.State(
                     workspaceCount = 3,
                     operationsCount = 2,
                     attentionCount = 0,
                 ),
+                currentWorkspaceId = Workspace.Id(),
             )
 
             // All badges active
