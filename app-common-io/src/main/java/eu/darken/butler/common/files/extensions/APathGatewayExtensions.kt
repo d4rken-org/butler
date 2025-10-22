@@ -87,23 +87,6 @@ suspend fun <T : APath<T>> T.createDirIfNecessary(gateway: APathGateway<T, out A
     return this
 }
 
-suspend fun <P : APath<P>, PL : APathLookup<P>> P.delete(
-    gateway: APathGateway<P, PL>,
-    options: DeleteAction.Options<P>,
-) = setOf(this).delete(gateway, options)
-
-suspend fun <P : APath<P>, PL : APathLookup<P>> Collection<P>.delete(
-    gateway: APathGateway<P, PL>,
-    options: DeleteAction.Options<P>,
-): Flow<DeleteAction.State<P, PL>> {
-    val targets = this@delete.toSet()
-    return gateway
-        .delete(targets = targets, options = options)
-        .onCompletion {
-            log(VERBOSE) { "Collection<APath>.delete(options=$options): Deleted $targets" }
-        }
-}
-
 suspend fun <T : APath<T>> T.file(
     gateway: APathGateway<T, out APathLookup<T>>,
     readWrite: Boolean,
@@ -218,4 +201,20 @@ suspend fun <P : APath<P>, PL : APathLookup<P>> Set<P>.move(
     onIssue = onIssue
 ).onCompletion {
     log(VERBOSE) { "Set<T>.move(destination=$destination, options=$options, onIssue=$onIssue): Moved $this" }
+}
+
+
+suspend fun <P : APath<P>, PL : APathLookup<P>> P.delete(
+    gateway: APathGateway<P, PL>,
+    options: DeleteAction.Options<P>,
+) = setOf(this).delete(gateway, options)
+
+suspend fun <P : APath<P>, PL : APathLookup<P>> Set<P>.delete(
+    gateway: APathGateway<P, PL>,
+    options: DeleteAction.Options<P>,
+): Flow<DeleteAction.State<P, PL>> = gateway.delete(
+    targets = this,
+    options = options
+).onCompletion {
+    log(VERBOSE) { "Set<APath>.delete(options=$options): Deleted $this" }
 }

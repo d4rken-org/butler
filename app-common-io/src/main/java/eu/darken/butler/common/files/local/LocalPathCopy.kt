@@ -6,6 +6,8 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.local.operations.strategies.LocalPathCopyStrategy
+import eu.darken.butler.common.files.operations.copyGeneric
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -39,11 +41,19 @@ fun Collection<LocalPath>.copy(
         "copy(): Copying $size targets to $destination (options=$options)"
     }
 
+    // Convert CopyAction.Options to TransferStrategy.Options
+    val transferOptions = eu.darken.butler.common.files.operations.TransferStrategy.Options(
+        preserveAttributes = options.preserveAttributes,
+        followSymlinks = options.followSymlinks
+    )
+
     // Delegate to generic operation (new implementation)
-    return this.copyGenericOp(
+    return this.copyGeneric(
         destination = destination,
-        fileSystemOps = fileSystemOps,
-        options = options,
+        sourceOps = fileSystemOps,
+        destOps = fileSystemOps,
+        options = transferOptions,
+        strategy = LocalPathCopyStrategy(fileSystemOps),
         onIssue = onIssue
     )
 }
