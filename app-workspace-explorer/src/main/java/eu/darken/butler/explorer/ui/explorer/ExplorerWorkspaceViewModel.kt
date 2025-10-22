@@ -309,7 +309,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             useRegexPatterns = useRegexPatterns,
             pickerConfig = pickerConfig,
         )
-    }.asStateFlow()
+    }
+        .distinctUntilChanged()
+        .asStateFlow()
 
     private fun applyFilters(
         items: List<ExplorerItem>,
@@ -384,6 +386,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     val clipboard = clipboardRepo.state
         .map { repoState -> ClipboardState(entries = repoState.entries) }
+        .distinctUntilChanged()
         .asStateFlow()
 
     data class ClipboardState(
@@ -416,6 +419,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             OperationsState(operations = ops)
         }
         .onStart { emit(OperationsState()) }
+        .distinctUntilChanged()
         .asStateFlow()
 
     fun navigate(item: ExplorerItem) = launch {

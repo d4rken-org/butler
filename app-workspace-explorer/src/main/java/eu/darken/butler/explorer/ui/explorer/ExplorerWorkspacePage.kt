@@ -368,7 +368,10 @@ fun ExplorerWorkspacePage(
                                                 }
                                             )
                                         ) {
-                                            items(mainStateSnap.items) { item ->
+                                            items(
+                                                items = mainStateSnap.items,
+                                                key = { it.id }
+                                            ) { item ->
                                                 when (item) {
                                                     is ExplorerItem.Lookup -> LookupItemRow(
                                                         item = item,
@@ -431,7 +434,10 @@ fun ExplorerWorkspacePage(
                                                 }
                                             )
                                         ) {
-                                            items(mainStateSnap.items) { item ->
+                                            items(
+                                                items = mainStateSnap.items,
+                                                key = { it.id }
+                                            ) { item ->
                                                 when (item) {
                                                     is ExplorerItem.Lookup -> LookupItemGrid(
                                                         item = item,

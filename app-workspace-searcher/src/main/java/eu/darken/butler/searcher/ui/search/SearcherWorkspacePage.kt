@@ -147,12 +147,16 @@ fun SearcherWorkspacePage(
     val statusCardHeight = 60.dp // Fixed height for status card
 
     // Determine if status card should be visible
-    val showStatusCard = state?.let { currentState ->
-        currentState.searchQuery.text.isNotBlank() ||
-                currentState.isSearching ||
-                currentState.searchState.results.isNotEmpty() ||
-                currentState.searchState.error != null
-    } ?: false
+    val showStatusCard by remember {
+        derivedStateOf {
+            state?.let { currentState ->
+                currentState.searchQuery.text.isNotBlank() ||
+                        currentState.isSearching ||
+                        currentState.searchState.results.isNotEmpty() ||
+                        currentState.searchState.error != null
+            } ?: false
+        }
+    }
 
     // Auto-show action bar when entering selection mode
     LaunchedEffect(hasActions) {
@@ -249,7 +253,10 @@ fun SearcherWorkspacePage(
 
                 // Search results
                 if (currentState.searchState.results.isNotEmpty()) {
-                    items(currentState.searchState.results) { result ->
+                    items(
+                        items = currentState.searchState.results,
+                        key = { it.path.path }
+                    ) { result ->
                         SearchResultRow(
                             result = result,
                             selectionState = currentState.selectionState,

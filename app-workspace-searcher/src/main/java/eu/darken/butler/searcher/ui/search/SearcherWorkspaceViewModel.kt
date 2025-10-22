@@ -60,6 +60,7 @@ import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -195,6 +196,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             OperationsState(operations = ops)
         }
         .onStart { emit(OperationsState()) }
+        .distinctUntilChanged()
         .asStateFlow()
 
     val state = combine(
@@ -237,7 +239,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             quickActionsResult = quickActions,
             dialogState = dialogState,
         )
-    }.asStateFlow()
+    }
+        .distinctUntilChanged()
+        .asStateFlow()
 
     fun updateSearchQuery(query: TextFieldValue) {
         log(TAG, INFO) { "Updating search query: ${query.text}" }
