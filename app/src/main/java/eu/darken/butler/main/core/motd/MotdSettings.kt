@@ -10,6 +10,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 @Singleton
@@ -25,6 +26,7 @@ class MotdSettings @Inject constructor(
 
     val lastMotd = dataStore.createValue<MotdState?>("motd.state.cache", null, json)
     val lastDismissedMotd = dataStore.createValue<Uuid?>("motd.last.dismissed", null, json)
+    val lastFetchTime = dataStore.createValue<Instant?>("motd.last.fetch.time", null, json)
     val isMotdEnabled = dataStore.createValue("motd.enabled", true)
 
 

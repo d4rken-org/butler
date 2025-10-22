@@ -11,7 +11,6 @@ import android.os.Build
 import android.os.LocaleList
 import android.provider.Settings
 import androidx.annotation.RequiresApi
-import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.*
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.coroutine.AppScope
@@ -73,7 +72,7 @@ class LocaleManager @Inject constructor(
         }
     }
         .setupCommonEventHandlers(TAG) { "currentLocales" }
-        .shareLatest(appScope, SharingStarted.WhileSubscribed(stopTimeoutMillis = 3000))
+        .shareLatest(appScope, SharingStarted.WhileSubscribed(stopTimeoutMillis = 60_000))
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun showLanguagePicker() {
