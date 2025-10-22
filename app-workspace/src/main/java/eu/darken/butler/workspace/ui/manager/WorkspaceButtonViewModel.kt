@@ -21,6 +21,10 @@ class WorkspaceButtonViewModel @Inject constructor(
     private val workspaceRemote: WorkspaceRemote,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Button", "VM"), navCtrl), WorkspaceActionHandler {
 
+    init {
+        log(TAG) { "init(): $this" }
+    }
+
     val state = workspaceRemote.state.map {
         State(
             workspaceCount = it.workspaceCount,
@@ -54,4 +58,8 @@ class WorkspaceButtonViewModel @Inject constructor(
         val operationsCount: Int = 0,
         val attentionCount: Int = 0,
     )
+
+    companion object {
+        private val TAG = logTag("Workspace", "Button")
+    }
 }

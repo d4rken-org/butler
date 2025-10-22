@@ -67,6 +67,7 @@ import kotlinx.coroutines.flow.Flow
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearcherWorkspacePage(
+    workspaceId: Workspace.Id,
     design: WorkspaceDesign = WorkspaceDesign(),
     stateSource: Flow<SearcherWorkspaceViewModel.State>,
     clipboardStateSource: Flow<SearcherWorkspaceViewModel.ClipboardState>,
@@ -199,6 +200,7 @@ fun SearcherWorkspacePage(
                 // Search toolbar - always shown
                 item {
                     SearchToolbarCard(
+                        workspaceId = workspaceId,
                         state = currentState,
                         design = design,
                         onUpdateQuery = onUpdateQuery,
@@ -490,6 +492,7 @@ fun SearcherWorkspacePageHost(
     ErrorEventHandler(vm)
 
     SearcherWorkspacePage(
+        workspaceId = id,
         design = design,
         stateSource = vm.state,
         clipboardStateSource = vm.clipboard,

@@ -86,6 +86,7 @@ fun WorkspaceBadgeExplanationCard(
                     operationsCount = 2,
                     attentionCount = 1,
                 ),
+                currentWorkspaceId = null,  // Demo context - no actual workspace
             )
 
             // Explanations

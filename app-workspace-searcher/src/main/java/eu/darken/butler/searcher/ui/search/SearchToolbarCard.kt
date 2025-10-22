@@ -28,6 +28,7 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
 @Composable
 fun SearchToolbarCard(
+    workspaceId: Workspace.Id,
     modifier: Modifier = Modifier,
     state: SearcherWorkspaceViewModel.State,
     design: WorkspaceDesign,
@@ -77,6 +78,7 @@ fun SearchToolbarCard(
 
                     WorkspaceButton(
                         state = workspaceButtonState,
+                        currentWorkspaceId = workspaceId,
                         workspaceActionHandler = workspaceActionHandler,
                     )
                 }
@@ -108,6 +110,7 @@ fun SearchToolbarCard(
 private fun SearchToolbarCardPreview() {
     PreviewWrapper {
         SearchToolbarCard(
+            workspaceId = Workspace.Id(),
             state = SearcherWorkspaceViewModel.State(
                 id = Workspace.Id(),
                 searchTargets = listOf(

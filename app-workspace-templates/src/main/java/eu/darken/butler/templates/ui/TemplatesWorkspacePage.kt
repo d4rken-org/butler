@@ -92,6 +92,7 @@ fun TemplatesWorkspacePageHost(
 
     state?.let { state ->
         TemplatesWorkspacePage(
+            workspaceId = id,
             design = design,
             state = state,
             onNavToSettings = { vm.navTo(Nav.Main.settings()) },
@@ -103,6 +104,7 @@ fun TemplatesWorkspacePageHost(
 
 @Composable
 fun TemplatesWorkspacePage(
+    workspaceId: Workspace.Id,
     design: WorkspaceDesign = WorkspaceDesign(),
     state: TemplatesWorkspaceViewModel.State,
     onNavToSettings: () -> Unit,
@@ -142,6 +144,7 @@ fun TemplatesWorkspacePage(
 
                     WorkspaceButton(
                         state = workspaceButtonState,
+                        currentWorkspaceId = workspaceId,
                         workspaceActionHandler = workspaceActionHandler,
                     )
                 }
@@ -549,6 +552,7 @@ private fun TemplatesWorkspacePagePreview() {
     PreviewWrapper {
         val workspaceId = Workspace.Id()
         TemplatesWorkspacePage(
+            workspaceId = workspaceId,
             state = TemplatesWorkspaceViewModel.State(
                 id = workspaceId,
                 templates = listOf(
