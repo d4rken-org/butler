@@ -122,6 +122,9 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
             }
         }
 
+        // Record final 100% sample before completing
+        progressTracker.shouldReportProgress(force = true)
+
         emit(
             DeleteAction.State.Completed(
                 deleted = deleted,

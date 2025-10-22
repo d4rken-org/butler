@@ -1248,4 +1248,51 @@ class PerformanceHistoryTest : BaseTest() {
         string.contains("totalItems") shouldBe true
         string.contains("samples") shouldBe true
     }
+
+    @Test
+    fun `last bucket (95-100 percent) is populated when operation completes`() {
+        val startTime = Instant.fromEpochMilliseconds(1000)
+        var history = PerformanceHistory()
+        val totalBytes = 1_000_000L
+
+        // Add samples up to 95%
+        repeat(95) { i ->
+            history = history.addSample(
+                PerformanceSample(
+                    timestamp = startTime + (i * 100).milliseconds,
+                    bytesPerSecond = 1_000_000L,
+                    itemsPerSecond = 10f,
+                    totalBytesProcessed = ((i + 1) * 10_000L),
+                    totalItemsProcessed = i + 1
+                ),
+                totalBytes = totalBytes,
+                totalItems = 100
+            )
+        }
+
+        // Add final 100% sample
+        history = history.addSample(
+            PerformanceSample(
+                timestamp = startTime + 100.seconds,
+                bytesPerSecond = 1_000_000L,
+                itemsPerSecond = 10f,
+                totalBytesProcessed = totalBytes,
+                totalItemsProcessed = 100
+            ),
+            totalBytes = totalBytes,
+            totalItems = 100
+        )
+
+        // Find samples in 95-100% range (bucket 19)
+        val finalBucketSamples = history.samples.filter { sample ->
+            val percentage = (sample.totalBytesProcessed.toDouble() / totalBytes) * 100.0
+            percentage >= 95.0
+        }
+
+        finalBucketSamples.size shouldBeGreaterThan 0
+
+        // Verify 100% sample exists
+        val completeSample = history.samples.last()
+        completeSample.totalBytesProcessed shouldBe totalBytes
+    }
 }

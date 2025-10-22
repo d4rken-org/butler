@@ -312,4 +312,32 @@ class PathOperationProgressTrackerTest : BaseTest() {
         tracker.itemsProcessed shouldBe 3
         tracker.processedBytes shouldBe 1500L
     }
+
+    @Test
+    fun `final forced progress report creates 100 percent sample`() {
+        val tracker = PathOperationProgressTracker()
+        tracker.totalBytes = 1_000_000L
+        tracker.totalItems = 100
+
+        // Simulate operation progress to 95%
+        tracker.processedBytes = 950_000L
+        tracker.itemsProcessed = 95
+        tracker.shouldReportProgress(force = true)
+
+        val before100 = tracker.performanceHistory.samples.last()
+        before100.totalBytesProcessed shouldBe 950_000L
+
+        // Complete remaining 5%
+        tracker.processedBytes = 1_000_000L
+        tracker.itemsProcessed = 100
+        tracker.shouldReportProgress(force = true)
+
+        // Verify final sample shows 100%
+        val finalSample = tracker.performanceHistory.samples.last()
+        finalSample.totalBytesProcessed shouldBe 1_000_000L
+        finalSample.totalItemsProcessed shouldBe 100
+
+        val percentage = (finalSample.totalBytesProcessed.toDouble() / tracker.totalBytes) * 100.0
+        percentage shouldBe 100.0
+    }
 }

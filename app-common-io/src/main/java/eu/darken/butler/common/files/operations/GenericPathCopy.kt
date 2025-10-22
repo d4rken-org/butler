@@ -216,6 +216,9 @@ internal class GenericPathCopy<
             }
         }
 
+        // Record final 100% sample before completing
+        progressTracker.shouldReportProgress(force = true)
+
         // For same-type operations (SP=DP), copied is Set<Pair<SP, DP>> which equals Set<Pair<SP, SP>>
         // For cross-type, this won't compile - cross-type operations should use their own result type
         @Suppress("UNCHECKED_CAST")

@@ -207,6 +207,9 @@ internal class GenericPathMove<
         // Cleanup phase: Delete empty source directories
         cleanupSourceDirectories()
 
+        // Record final 100% sample before completing
+        progressTracker.shouldReportProgress(force = true)
+
         emit(
             MoveAction.State.Completed(
                 movedFiles = moved,

@@ -107,6 +107,9 @@ internal class LocalPathDelete(
             }
         }
 
+        // Record final 100% sample before completing
+        progressTracker.shouldReportProgress(force = true)
+
         emit(
             DeleteAction.State.Completed(
                 deleted = deleted,
