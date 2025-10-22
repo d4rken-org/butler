@@ -9,7 +9,6 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
@@ -19,6 +18,7 @@ import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.delete
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
+import eu.darken.butler.common.formatItemSpeed
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
@@ -147,13 +147,7 @@ class DeleteOperation @AssistedInject constructor(
                             caString { ctx ->
                                 val parts = mutableListOf<String>()
                                 if (avgItemsSpeed > 0) {
-                                    parts.add(
-                                        ctx.getQuantityString2(
-                                            eu.darken.butler.workspace.R.plurals.workspace_operation_progress_items_speed,
-                                            avgItemsSpeed.toInt(),
-                                            avgItemsSpeed
-                                        )
-                                    )
+                                    parts.add(formatItemSpeed(ctx, avgItemsSpeed.toDouble()))
                                 }
                                 if (avgBytesSpeed > 0) {
                                     val bytesFormatted = Formatter.formatShortFileSize(ctx, avgBytesSpeed)

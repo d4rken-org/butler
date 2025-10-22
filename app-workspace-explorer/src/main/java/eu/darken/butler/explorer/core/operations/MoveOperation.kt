@@ -1,6 +1,5 @@
 package eu.darken.butler.explorer.core.operations
 
-import android.text.format.Formatter
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.DriveFileMove
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -17,6 +16,8 @@ import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.move
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
+import eu.darken.butler.common.formatByteSpeed
+import eu.darken.butler.common.formatItemSpeed
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
@@ -161,16 +162,10 @@ class MoveOperation @AssistedInject constructor(
                 // Format overall metrics for primary progress
                 val overallMetrics = if (avgBytesSpeed > 0) {
                     caString { ctx ->
-                        val bytesSpeedFormatted = Formatter.formatShortFileSize(ctx, avgBytesSpeed)
-                        val bytesSpeedPart =
-                            ctx.getString(R.string.explorer_operation_progress_bytes_speed, bytesSpeedFormatted)
+                        val bytesSpeedPart = formatByteSpeed(ctx, avgBytesSpeed)
 
                         val itemsSpeedPart = if (avgItemsSpeed > 0) {
-                            " • " + ctx.getQuantityString2(
-                                eu.darken.butler.workspace.R.plurals.workspace_operation_progress_items_speed,
-                                avgItemsSpeed.toInt(),
-                                avgItemsSpeed
-                            )
+                            " • " + formatItemSpeed(ctx, avgItemsSpeed.toDouble())
                         } else ""
 
                         val etaPart = if (overallEta != null) {
@@ -192,8 +187,7 @@ class MoveOperation @AssistedInject constructor(
                 // Format per-file metrics for secondary progress
                 val fileMetrics = if (fileSpeed > 0) {
                     caString { ctx ->
-                        val speedFormatted = Formatter.formatShortFileSize(ctx, fileSpeed)
-                        val speedPart = ctx.getString(R.string.explorer_operation_progress_bytes_speed, speedFormatted)
+                        val speedPart = formatByteSpeed(ctx, fileSpeed)
                         val etaPart = if (fileEta != null) {
                             val duration = ctx.getQuantityString2(
                                 eu.darken.butler.common.R.plurals.common_duration_seconds_full,
@@ -254,7 +248,7 @@ class MoveOperation @AssistedInject constructor(
         fileSystemHinter.trackPathsAdded(operationContext.id, movedDestinations.toSet())
 
         // Build report
-        reportBuilder.addMovedItems( result.movedFiles)
+        reportBuilder.addMovedItems(result.movedFiles)
         reportBuilder.setSkipped(result.skippedFiles)
         reportBuilder.setBytesMoved(result.bytesMoved)
         reportBuilder.setPerformanceHistory(lastPerformanceHistory)
