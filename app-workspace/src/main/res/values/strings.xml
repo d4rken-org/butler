@@ -131,11 +131,6 @@
         <item quantity="other">%1$s freed.</item>
     </plurals>
 
-    <!-- Delete Operation Progress -->
-    <plurals name="workspace_operation_progress_items_speed">
-        <item quantity="one">%1$d item/s</item>
-        <item quantity="other">%1$d items/s</item>
-    </plurals>
     <string name="workspace_operation_progress_bytes_speed_freed">%1$s/s freed.</string>
     <string name="workspace_operation_progress_bytes_freed">%1$s freed.</string>
     <string name="workspace_operation_progress_time_remaining">%1$s remaining.</string>
@@ -167,5 +162,4 @@
 
     <!-- Performance Graph -->
     <string name="workspace_operation_performance_not_enough_data">Not enough data</string>
-    <string name="workspace_operation_performance_avg_speed_label">Speed Ø: %1$s</string>
 </resources>
