@@ -20,6 +20,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.extensions.commonParent
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine
 import kotlinx.coroutines.flow.combine as kotlinxCombine
@@ -147,6 +148,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     private var activeSearchJob: Job? = null
     private var currentSearchId: String? = null
+    private var currentSearchParams: SearchQuery? = null
 
 
     data class SearchState(
@@ -250,6 +252,26 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     fun performExplicitSearch() {
         log(TAG, INFO) { "Performing explicit search with history save" }
+
+        // Check if the same search is already running
+        val query = searchQuery.value.text
+        if (query.isBlank()) return
+
+        val targets = searchTargets.value
+        val filter = currentFilter.value
+
+        // Compare with currently running search parameters
+        currentSearchParams?.let { runningParams ->
+            val isSameSearch = runningParams.query == query &&
+                    runningParams.targets == targets &&
+                    runningParams.filter == filter
+
+            if (isSameSearch && searchState.value.status == SearchState.Status.SEARCHING) {
+                log(TAG, INFO) { "Same search already running, skipping duplicate" }
+                return
+            }
+        }
+
         performSearch(saveToHistory = true)
     }
 
@@ -335,6 +357,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 filter = currentFilter.value
             )
 
+            // Store current search parameters for duplicate detection
+            currentSearchParams = searchRequest
+
             // Record search in history only if explicitly requested
             currentSearchId = if (saveToHistory) {
                 searchHistory.addSearch(searchRequest)
@@ -370,12 +395,18 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 selectionState.update { selection ->
                     selection.copy(selectableResults = results)
                 }
+                // Clear search params after successful completion
+                currentSearchParams = null
             } catch (e: kotlinx.coroutines.CancellationException) {
                 searchState.update { it.copy(status = SearchState.Status.CANCELLED) }
+                // Clear search params after cancellation
+                currentSearchParams = null
                 throw e
             } catch (e: Exception) {
                 log(TAG) { "Search error: $e" }
                 searchState.update { it.copy(status = SearchState.Status.ERROR, error = e) }
+                // Clear search params after error
+                currentSearchParams = null
             }
         }
     }
@@ -589,12 +620,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             }
             is SearcherAction.OpenInEditor -> {
                 launch {
-                    onWorkspaceAction(
-                        WorkspaceAction.Create(
-                            type = Workspace.Type.EDITOR,
-                            arguments = EditorArguments(
-                                filePath = action.result.path
-                            )
+                    workspaceRemote.createAndFocus(
+                        type = Workspace.Type.EDITOR,
+                        arguments = EditorArguments(
+                            filePath = action.result.path
                         )
                     )
                 }
@@ -604,12 +633,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     if (action.result.path is LocalPath) {
                         val parentPath = (action.result.path as LocalPath).parent
                         if (parentPath != null) {
-                            onWorkspaceAction(
-                                WorkspaceAction.Create(
-                                    type = Workspace.Type.EXPLORER,
-                                    arguments = ExternalExplorerArguments(
-                                        startPath = parentPath
-                                    )
+                            workspaceRemote.createAndFocus(
+                                type = Workspace.Type.EXPLORER,
+                                arguments = ExternalExplorerArguments(
+                                    startPath = parentPath
                                 )
                             )
                         }
@@ -856,6 +883,31 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                         )
                     }
                 }
+            }
+        }
+    }
+
+    fun openClipboardInExplorer(clip: ClipboardClip) = launch {
+        log(TAG) { "openClipboardInExplorer($clip)" }
+
+        when (clip) {
+            is ClipboardClip.Paths -> {
+                if (clip.paths.isEmpty()) {
+                    log(TAG, WARN) { "Cannot open in Explorer - clipboard has no paths" }
+                    return@launch
+                }
+
+                val commonParent = clip.paths.commonParent()
+                if (commonParent == null) {
+                    log(TAG, WARN) { "Cannot open in Explorer - paths have no common parent" }
+                    return@launch
+                }
+
+                log(TAG) { "Opening Explorer at common parent: $commonParent" }
+                workspaceRemote.createAndFocus(
+                    type = Workspace.Type.EXPLORER,
+                    arguments = ExternalExplorerArguments(startPath = commonParent)
+                )
             }
         }
     }

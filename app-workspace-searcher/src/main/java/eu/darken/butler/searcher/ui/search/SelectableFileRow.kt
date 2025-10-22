@@ -73,7 +73,7 @@ fun SelectableFileRow(
         ) {
             // Leading content - either checkbox OR icon
             Box(
-                modifier = Modifier.size(28.dp),
+                modifier = Modifier.size(40.dp),
                 contentAlignment = Alignment.Center
             ) {
                 if (isSelectionMode) {
@@ -100,7 +100,7 @@ fun SelectableFileRow(
 @Preview2
 @Composable
 private fun SelectableFileRowPreview() {
-    val fileData = FileRowData(
+    val fileData = FileRowData.forPreview(
         name = "example.txt",
         path = "/storage/emulated/0/Documents/example.txt",
         fileType = FileType.FILE,

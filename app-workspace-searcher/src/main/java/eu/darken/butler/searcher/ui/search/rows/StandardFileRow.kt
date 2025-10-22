@@ -5,12 +5,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.files.metadata.FileType
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
@@ -35,13 +35,10 @@ fun StandardFileRow(
 
 @Composable
 fun StandardFileIcon(data: FileRowData) {
-    val (iconVector, tint) = getFileIconAndTint(data)
-
-    Icon(
-        imageVector = iconVector,
+    TintedAsyncImage(
+        model = data.lookup,
         contentDescription = data.fileType.name,
-        tint = tint,
-        modifier = Modifier.size(20.dp)
+        modifier = Modifier.size(40.dp)
     )
 }
 
@@ -52,7 +49,7 @@ private fun StandardFileRowPreview() {
     PreviewWrapper {
         Column {
             StandardFileRow(
-                data = FileRowData(
+                data = FileRowData.forPreview(
                     name = "document.pdf",
                     path = "/storage/emulated/0/Downloads/document.pdf",
                     fileType = FileType.FILE,
@@ -62,7 +59,7 @@ private fun StandardFileRowPreview() {
             )
 
             StandardFileRow(
-                data = FileRowData(
+                data = FileRowData.forPreview(
                     name = "Pictures",
                     path = "/storage/emulated/0/Pictures",
                     fileType = FileType.DIRECTORY,
@@ -71,7 +68,7 @@ private fun StandardFileRowPreview() {
             )
 
             StandardFileRow(
-                data = FileRowData(
+                data = FileRowData.forPreview(
                     name = "config.json",
                     path = "/storage/emulated/0/Android/data/eu.darken.butler/config.json",
                     fileType = FileType.FILE,

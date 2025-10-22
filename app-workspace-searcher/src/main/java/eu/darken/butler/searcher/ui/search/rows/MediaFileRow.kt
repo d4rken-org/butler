@@ -5,12 +5,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.files.metadata.FileType
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
@@ -35,13 +35,10 @@ fun MediaFileRow(
 
 @Composable
 fun MediaFileIcon(data: FileRowData) {
-    val (iconVector, tint) = getFileIconAndTint(data)
-
-    Icon(
-        imageVector = iconVector,
+    TintedAsyncImage(
+        model = data.lookup,
         contentDescription = data.fileType.name,
-        tint = tint,
-        modifier = Modifier.size(24.dp)
+        modifier = Modifier.size(40.dp)
     )
 }
 
@@ -51,7 +48,7 @@ private fun MediaFileRowPreview() {
     PreviewWrapper {
         Column {
             MediaFileRow(
-                data = FileRowData(
+                data = FileRowData.forPreview(
                     name = "vacation_photo.jpg",
                     path = "/storage/emulated/0/Pictures/vacation_photo.jpg",
                     fileType = FileType.FILE,
@@ -65,7 +62,7 @@ private fun MediaFileRowPreview() {
             )
 
             MediaFileRow(
-                data = FileRowData(
+                data = FileRowData.forPreview(
                     name = "summer_video.mp4",
                     path = "/storage/emulated/0/Movies/summer_video.mp4",
                     fileType = FileType.FILE,
@@ -79,7 +76,7 @@ private fun MediaFileRowPreview() {
             )
 
             MediaFileRow(
-                data = FileRowData(
+                data = FileRowData.forPreview(
                     name = "favorite_song.mp3",
                     path = "/storage/emulated/0/Music/favorite_song.mp3",
                     fileType = FileType.FILE,

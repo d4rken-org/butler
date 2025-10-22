@@ -373,8 +373,9 @@ fun SearcherWorkspacePage(
                         exit = slideOutVertically(animationSpec = tween(150)) { it },
                     ) {
                         ClipboardBar(
+                            workspaceType = Workspace.Type.SEARCHER,
                             clipboardEntries = clipboardState.entries,
-                            onPasteClick = {}, // Searcher doesn't support paste
+                            onPasteClick = { clip -> vm?.openClipboardInExplorer(clip) },
                             onRemoveClick = onClipboardEntryRemove,
                             onEntryClick = onClipboardEntryClick,
                             onClearAll = onClipboardClearAll
@@ -580,11 +581,7 @@ fun SearchResultRow(
     onSelectionToggle: () -> Unit
 ) {
     val fileRowData = FileRowData(
-        name = result.name,
-        path = result.path.path,
-        fileType = result.fileType,
-        size = result.size,
-        modifiedAt = result.modifiedAt,
+        lookup = result.lookup,
         metadata = extractFileMetadata(result),
         matchContext = result.matchContext?.let { context ->
             FileRowData.MatchContext(

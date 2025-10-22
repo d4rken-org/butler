@@ -20,7 +20,6 @@ import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.DriveFileRenameOutline
-import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.OpenInBrowser
 import androidx.compose.material.icons.twotone.Share
@@ -57,6 +56,8 @@ import eu.darken.butler.common.files.toCaString
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.icon
 import java.text.DateFormat
 import java.util.Date
 
@@ -234,7 +235,7 @@ private fun FileOptionsContent(
 
         if (isTextFile) {
             FileActionRow(
-                icon = Icons.TwoTone.Edit,
+                icon = Workspace.Type.EDITOR.icon,
                 title = stringResource(R.string.explorer_file_action_open_in_editor),
                 subtitle = stringResource(R.string.explorer_file_action_open_in_editor_subtitle),
                 onClick = onOpenInEditor

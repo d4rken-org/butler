@@ -189,6 +189,8 @@ fun SearchBar(
     onCancel: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+
     CustomSearchField(
         value = query,
         onValueChange = onQueryChange,
@@ -228,7 +230,10 @@ fun SearchBar(
             }
         },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-        keyboardActions = KeyboardActions(onSearch = { onSearch() }),
+        keyboardActions = KeyboardActions(onSearch = {
+            keyboardController?.hide()
+            onSearch()
+        }),
         modifier = modifier
     )
 }

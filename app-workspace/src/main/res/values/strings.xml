@@ -7,6 +7,7 @@
     <string name="clipboard_show_more">More</string>
     <string name="clipboard_show_more_items">Show more (%d items)</string>
     <string name="clipboard_paste">Paste</string>
+    <string name="clipboard_open_in_explorer">Open in Explorer</string>
     <string name="clipboard_copy">Copy</string>
     <string name="clipboard_cut">Cut</string>
     <string name="clipboard_origin">Origin: %s</string>

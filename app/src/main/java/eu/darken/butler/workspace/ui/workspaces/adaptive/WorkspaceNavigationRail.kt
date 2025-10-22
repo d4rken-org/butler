@@ -23,13 +23,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.DragIndicator
-import androidx.compose.material.icons.twotone.Edit
-import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Looks3
 import androidx.compose.material.icons.twotone.LooksOne
 import androidx.compose.material.icons.twotone.LooksTwo
-import androidx.compose.material.icons.twotone.Search
-import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
@@ -61,6 +57,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
@@ -268,12 +265,7 @@ private fun DraggableWorkspaceRailItem(
                                 )
                             }
                             Icon(
-                                imageVector = when (workspace.type) {
-                                    Workspace.Type.TEMPLATES -> Icons.TwoTone.Workspaces
-                                    Workspace.Type.EXPLORER -> Icons.TwoTone.Folder
-                                    Workspace.Type.SEARCHER -> Icons.TwoTone.Search
-                                    Workspace.Type.EDITOR -> Icons.TwoTone.Edit
-                                },
+                                imageVector = workspace.type.icon,
                                 contentDescription = workspace.title.get(LocalContext.current),
                                 modifier = if (currentPaneIndex != null) {
                                     Modifier.padding(start = 2.dp)
@@ -387,12 +379,7 @@ private fun WorkspaceRailItem(
                         )
                     }
                     Icon(
-                        imageVector = when (workspace.type) {
-                            Workspace.Type.TEMPLATES -> Icons.TwoTone.Workspaces
-                            Workspace.Type.EXPLORER -> Icons.TwoTone.Folder
-                            Workspace.Type.SEARCHER -> Icons.TwoTone.Search
-                            Workspace.Type.EDITOR -> Icons.TwoTone.Edit
-                        },
+                        imageVector = workspace.type.icon,
                         contentDescription = workspace.title.get(LocalContext.current),
                         modifier = if (currentPaneIndex != null) {
                             Modifier.padding(start = 2.dp)
