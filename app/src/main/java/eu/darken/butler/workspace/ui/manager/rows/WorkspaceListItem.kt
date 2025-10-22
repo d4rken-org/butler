@@ -62,9 +62,9 @@ fun WorkspaceListItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Box(
                 modifier = with(reorderableScope) {
@@ -104,7 +104,7 @@ fun WorkspaceListItem(
             ) {
                 Text(
                     text = workspace.title.asComposable(),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -122,7 +122,7 @@ fun WorkspaceListItem(
 
             IconButton(
                 onClick = onClose,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(44.dp)
             ) {
                 Icon(
                     imageVector = Icons.TwoTone.Close,
