@@ -2,7 +2,7 @@ package eu.darken.butler.setup.core
 
 import android.content.Intent
 import eu.darken.butler.common.coroutine.AppScope
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.setup.core.inventory.InventorySetupModule
@@ -69,13 +69,16 @@ class SetupManager @Inject constructor(
             SetupAction.REQUEST_PERMISSION -> {
                 when (type) {
                     SetupModule.Type.STORAGE -> {
-                        val storageModule = module as? StorageSetupModule
-                        val intent = storageModule?.getPermissionIntent()
+                        val storageModule = module as StorageSetupModule
+                        val intent = storageModule.getPermissionIntent()
                         if (intent != null) {
                             return PermissionResult(intent = intent)
-                        } else {
-                            log(TAG, WARN) { "No permission intent available for $type" }
                         }
+                        val runtimePerms = storageModule.getRuntimePermissions()
+                        if (runtimePerms.isNotEmpty()) {
+                            return PermissionResult(runtimePermissions = runtimePerms)
+                        }
+                        log(TAG, WARN) { "No permissions available for $type" }
                     }
                     SetupModule.Type.NOTIFICATION -> {
                         val notificationModule = module as? NotificationSetupModule
