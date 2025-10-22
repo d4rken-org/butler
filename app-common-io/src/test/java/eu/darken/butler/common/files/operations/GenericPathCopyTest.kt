@@ -5,6 +5,7 @@ import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -1121,7 +1122,8 @@ class GenericPathCopyTest : BaseTest() {
             LocalPath.build("/source/file5.txt")
         )
 
-        val progressUpdates = mutableListOf<CopyAction.State.Progress<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
+        val progressUpdates =
+            mutableListOf<CopyAction.State.Active<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
 
         // When - copy files and collect progress
         sources.copyGeneric(
@@ -1131,7 +1133,7 @@ class GenericPathCopyTest : BaseTest() {
             strategy = strategy,
             onIssue = null
         ).onEach { state ->
-            if (state is CopyAction.State.Progress) {
+            if (state is CopyAction.State.Active) {
                 progressUpdates.add(state)
             }
         }.last()
@@ -1160,7 +1162,8 @@ class GenericPathCopyTest : BaseTest() {
         mockOps.addMockFile("/source/folder/file2.txt", "content2".toByteArray())
         mockOps.addMockDir("/dest")
 
-        val progressUpdates = mutableListOf<CopyAction.State.Progress<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
+        val progressUpdates =
+            mutableListOf<CopyAction.State.Active<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
 
         // When
         setOf(LocalPath.build("/source/folder")).copyGeneric(
@@ -1170,7 +1173,7 @@ class GenericPathCopyTest : BaseTest() {
             strategy = strategy,
             onIssue = null
         ).onEach { state ->
-            if (state is CopyAction.State.Progress) progressUpdates.add(state)
+            if (state is CopyAction.State.Active) progressUpdates.add(state)
         }.last()
 
         // Then - verify counter increments for all 3 items
@@ -1359,7 +1362,7 @@ class GenericPathCopyTest : BaseTest() {
             destOps = mockOps,
             strategy = strategy,
             onIssue = null
-        ).last() as CopyAction.State.Result<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - operation succeeded (didn't throw ReadException)
         mockOps.hasFile("/dest/mydir") shouldBe true

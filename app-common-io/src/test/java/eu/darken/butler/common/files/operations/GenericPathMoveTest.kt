@@ -1296,7 +1296,8 @@ class GenericPathMoveTest : BaseTest() {
             LocalPath.build("/source/file5.txt")
         )
 
-        val progressUpdates = mutableListOf<MoveAction.State.Progress<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
+        val progressUpdates =
+            mutableListOf<MoveAction.State.Active<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
 
         // When - move files and collect progress
         sources.moveGeneric(
@@ -1306,7 +1307,7 @@ class GenericPathMoveTest : BaseTest() {
             strategy = strategy,
             onIssue = null
         ).onEach { state ->
-            if (state is MoveAction.State.Progress) {
+            if (state is MoveAction.State.Active) {
                 progressUpdates.add(state)
             }
         }.last()
@@ -1335,7 +1336,8 @@ class GenericPathMoveTest : BaseTest() {
         mockOps.addMockFile("/source/folder/file2.txt", "content2".toByteArray())
         mockOps.addMockDir("/dest")
 
-        val progressUpdates = mutableListOf<MoveAction.State.Progress<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
+        val progressUpdates =
+            mutableListOf<MoveAction.State.Active<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
 
         // When
         setOf(LocalPath.build("/source/folder")).moveGeneric(
@@ -1345,7 +1347,7 @@ class GenericPathMoveTest : BaseTest() {
             strategy = strategy,
             onIssue = null
         ).onEach { state ->
-            if (state is MoveAction.State.Progress) progressUpdates.add(state)
+            if (state is MoveAction.State.Active) progressUpdates.add(state)
         }.last()
 
         // Then - verify counter increments for all 3 items
