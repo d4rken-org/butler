@@ -10,9 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.AccountTree
-import androidx.compose.material.icons.twotone.Description
-import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.core.preview.TemplatesPreviewData
 
 @Composable
@@ -49,19 +48,19 @@ private fun TemplateIconGrid() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         TemplateItem(
-            icon = Icons.TwoTone.AccountTree,
+            icon = Workspace.Type.EXPLORER.icon,
             label = "Explorer",
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer
         )
         TemplateItem(
-            icon = Icons.TwoTone.Search,
+            icon = Workspace.Type.SEARCHER.icon,
             label = "Search",
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
         )
         TemplateItem(
-            icon = Icons.TwoTone.Description,
+            icon = Workspace.Type.EDITOR.icon,
             label = "Editor",
             containerColor = MaterialTheme.colorScheme.tertiaryContainer,
             contentColor = MaterialTheme.colorScheme.onTertiaryContainer

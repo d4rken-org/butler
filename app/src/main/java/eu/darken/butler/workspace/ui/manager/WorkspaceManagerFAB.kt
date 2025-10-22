@@ -2,12 +2,8 @@ package eu.darken.butler.workspace.ui.manager
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.AccountTree
 import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.Close
-import androidx.compose.material.icons.twotone.Edit
-import androidx.compose.material.icons.twotone.Search
-import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -26,6 +22,7 @@ import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.icon
 
 @Composable
 fun WorkspaceManagerFAB(
@@ -59,7 +56,7 @@ fun WorkspaceManagerFAB(
                     showDropdown = false
                 },
                 leadingIcon = {
-                    Icon(Icons.TwoTone.AccountTree, contentDescription = null)
+                    Icon(Workspace.Type.EXPLORER.icon, contentDescription = null)
                 }
             )
             DropdownMenuItem(
@@ -69,7 +66,7 @@ fun WorkspaceManagerFAB(
                     showDropdown = false
                 },
                 leadingIcon = {
-                    Icon(Icons.TwoTone.Search, contentDescription = null)
+                    Icon(Workspace.Type.SEARCHER.icon, contentDescription = null)
                 }
             )
             DropdownMenuItem(
@@ -79,7 +76,7 @@ fun WorkspaceManagerFAB(
                     showDropdown = false
                 },
                 leadingIcon = {
-                    Icon(Icons.TwoTone.Edit, contentDescription = null)
+                    Icon(Workspace.Type.EDITOR.icon, contentDescription = null)
                 }
             )
             DropdownMenuItem(
@@ -89,7 +86,7 @@ fun WorkspaceManagerFAB(
                     showDropdown = false
                 },
                 leadingIcon = {
-                    Icon(Icons.TwoTone.Workspaces, contentDescription = null)
+                    Icon(Workspace.Type.TEMPLATES.icon, contentDescription = null)
                 }
             )
             if (workspaceCount > 1) {
