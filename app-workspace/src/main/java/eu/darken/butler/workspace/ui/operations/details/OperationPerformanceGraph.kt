@@ -327,11 +327,11 @@ fun OperationPerformanceGraph(
 
                 Text(
                     text = formatByteSpeed(averageSpeed),
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelSmall,
                     color = bytesLineColor,
                     modifier = Modifier
                         .align(androidx.compose.ui.Alignment.TopStart)
-                        .offset(x = 4.dp, y = 16.dp)
+                        .offset(x = 48.dp, y = 16.dp)
                         .background(
                             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
                             shape = RoundedCornerShape(4.dp)
@@ -346,11 +346,11 @@ fun OperationPerformanceGraph(
 
                 Text(
                     text = formatItemSpeed(averageItems.toDouble()),
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelSmall,
                     color = itemsLineColor,
                     modifier = Modifier
                         .align(androidx.compose.ui.Alignment.TopEnd)
-                        .offset(x = (4).dp, y = 16.dp)
+                        .offset(x = (-48).dp, y = 16.dp)
                         .background(
                             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
                             shape = RoundedCornerShape(4.dp)
