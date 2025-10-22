@@ -19,25 +19,6 @@ import eu.darken.butler.common.formatRelativeTime
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 
-/**
- * Truncates a path in the middle if it exceeds the maximum length.
- * Preserves the beginning and end of the path for context.
- *
- * @param path The full path to truncate
- * @param maxLength Maximum length before truncation (default: 60)
- * @return Truncated path with ellipsis in the middle if needed
- */
-private fun truncatePathMiddle(path: String, maxLength: Int = 60): String {
-    if (path.length <= maxLength) return path
-
-    val ellipsis = "…"
-    val availableLength = maxLength - ellipsis.length
-    val startLength = (availableLength * 0.4).toInt() // 40% at start
-    val endLength = availableLength - startLength // 60% at end
-
-    return "${path.take(startLength)}$ellipsis${path.takeLast(endLength)}"
-}
-
 @Composable
 fun FileInfo(
     modifier: Modifier = Modifier,
@@ -90,17 +71,17 @@ fun FileInfo(
             )
         }
 
-        // Line 3: Full path (truncated if needed)
+        // Line 3: Full path (with middle truncation)
         if (showPath && data.path.isNotEmpty()) {
             Text(
-                text = truncatePathMiddle(data.path),
+                text = data.path,
                 style = MaterialTheme.typography.bodySmall.copy(
                     fontSize = 11.sp,
                     fontFamily = FontFamily.Monospace
                 ),
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.MiddleEllipsis
             )
         }
 
