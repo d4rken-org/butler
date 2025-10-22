@@ -154,7 +154,7 @@ fun TemplatesWorkspacePage(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 24.dp)
-                    .padding(top = 16.dp),
+                    .padding(top = 8.dp),
                 horizontalAlignment = Alignment.Start,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -162,13 +162,13 @@ fun TemplatesWorkspacePage(
                         text = stringResource(R.string.workspace_templates_choose_title),
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        modifier = Modifier.padding(bottom = 4.dp)
                     )
                     Text(
                         text = stringResource(R.string.workspace_templates_choose_subtitle),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                        modifier = Modifier.padding(bottom = 24.dp)
+                        modifier = Modifier.padding(bottom = 12.dp)
                     )
 
                     LazyColumn(
