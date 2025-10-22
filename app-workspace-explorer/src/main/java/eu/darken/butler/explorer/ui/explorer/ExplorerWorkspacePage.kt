@@ -270,6 +270,7 @@ fun ExplorerWorkspacePage(
                     clipboardState.entries.firstOrNull()?.let { clip -> vm?.pasteClipboard(clip) }
                 }
                 on(KeyboardShortcut.SelectAll) { vm?.selectAll() }
+                on(KeyboardShortcut.New) { vm?.executeAction(ExplorerAction.Directory.Create()) }
                 on(KeyboardShortcut.Delete) { vm?.executeAction(ExplorerAction.Directory.Delete()) }
                 on(KeyboardShortcut.Escape) { vm?.clearSelection() }
             }

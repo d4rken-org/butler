@@ -48,5 +48,6 @@ data class KeyboardShortcut(
         val SelectAll = KeyboardShortcut(key = Key.A, ctrl = true)
         val Delete = KeyboardShortcut(key = Key.Delete)
         val Escape = KeyboardShortcut(key = Key.Escape)
+        val New = KeyboardShortcut(key = Key.N, ctrl = true)
     }
 }
