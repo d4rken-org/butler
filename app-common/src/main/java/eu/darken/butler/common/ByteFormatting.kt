@@ -63,7 +63,7 @@ fun formatItemSpeed(
 ): String = context.resources.getQuantityString(
     R.plurals.general_progress_items_per_second,
     itemsPerSecond.toInt(),
-    itemsPerSecond
+    if (itemsPerSecond >= 1.0) itemsPerSecond.toInt() else itemsPerSecond
 )
 
 @Composable

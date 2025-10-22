@@ -214,7 +214,6 @@
         <item quantity="other">%s files</item>
     </plurals>
 
-
     <plurals name="general_progress_items_per_second">
         <item quantity="one">%s item/s</item>
         <item quantity="other">%s items/s</item>
