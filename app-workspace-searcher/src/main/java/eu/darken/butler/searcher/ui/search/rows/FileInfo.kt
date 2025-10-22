@@ -7,8 +7,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.metadata.FileType
@@ -16,6 +18,25 @@ import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.formatRelativeTime
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
+
+/**
+ * Truncates a path in the middle if it exceeds the maximum length.
+ * Preserves the beginning and end of the path for context.
+ *
+ * @param path The full path to truncate
+ * @param maxLength Maximum length before truncation (default: 60)
+ * @return Truncated path with ellipsis in the middle if needed
+ */
+private fun truncatePathMiddle(path: String, maxLength: Int = 60): String {
+    if (path.length <= maxLength) return path
+
+    val ellipsis = "…"
+    val availableLength = maxLength - ellipsis.length
+    val startLength = (availableLength * 0.4).toInt() // 40% at start
+    val endLength = availableLength - startLength // 60% at end
+
+    return "${path.take(startLength)}$ellipsis${path.takeLast(endLength)}"
+}
 
 @Composable
 fun FileInfo(
@@ -69,7 +90,21 @@ fun FileInfo(
             )
         }
 
-        // Line 3: Match context (if available)
+        // Line 3: Full path (truncated if needed)
+        if (showPath && data.path.isNotEmpty()) {
+            Text(
+                text = truncatePathMiddle(data.path),
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontSize = 11.sp,
+                    fontFamily = FontFamily.Monospace
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+
+        // Line 4: Match context (if available)
         data.matchContext?.let { context ->
             val matchText = buildString {
                 context.lineNumber?.let { lineNum ->
@@ -113,7 +148,10 @@ fun FileInfo(
 @Composable
 private fun FileInfoPreview() {
     PreviewWrapper {
-        Column {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Short path example
             FileInfo(
                 data = FileRowData(
                     name = "document.pdf",
@@ -124,7 +162,20 @@ private fun FileInfoPreview() {
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
-            
+
+            // Long path example (will be truncated)
+            FileInfo(
+                data = FileRowData(
+                    name = "very-long-filename-with-lots-of-text.txt",
+                    path = "/storage/emulated/0/Documents/Work/Projects/2024/Q4/Important/Nested/Deeply/very-long-filename-with-lots-of-text.txt",
+                    fileType = FileType.FILE,
+                    size = 2048 * 1024,
+                    modifiedAt = Clock.System.now() - 7200.seconds,
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // Directory without path display
             FileInfo(
                 data = FileRowData(
                     name = "Pictures",
