@@ -51,15 +51,15 @@ import eu.darken.butler.common.keyboard.keyboardShortcuts
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchHistory
-import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearchResult
+import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
 import eu.darken.butler.searcher.ui.search.rows.FileRowData
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.error.WorkspaceErrorCard
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
+import eu.darken.butler.workspace.ui.error.WorkspaceErrorCard
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -68,11 +68,11 @@ import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
 import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationDialog
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
+import eu.darken.butler.workspace.ui.scroll.getCurrentHeightDp
 import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.rememberTopToolbarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.setHeight
 import eu.darken.butler.workspace.ui.scroll.setHeights
-import eu.darken.butler.workspace.ui.scroll.getCurrentHeightDp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 
@@ -149,7 +149,7 @@ fun SearcherWorkspacePage(
         }
     }
 
-    val wrappedOnToggleSelection: (SearchResult) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester) {
+    remember(focusManager, keyboardController, shortcutsFocusRequester) {
         { result ->
             // Only clear focus and hide keyboard when entering selection mode (first selection)
             // Not when already in selection mode (subsequent toggles)
@@ -191,7 +191,7 @@ fun SearcherWorkspacePage(
     }
 
     // Get current toolbar height for layout calculations
-    val currentToolbarHeight = topToolbarScrollBehavior.state.getCurrentHeightDp()
+    topToolbarScrollBehavior.state.getCurrentHeightDp()
     val statusCardHeight = 60.dp // Fixed height for status card
 
     // Determine if status card should be visible
@@ -309,8 +309,7 @@ fun SearcherWorkspacePage(
                 // Show permission card if needed
                 if (currentState.needsPermissions && currentState.searchTargets.isNotEmpty()) {
                     item {
-                        val firstTarget = currentState.searchTargets.first()
-                        val searchPath = when (firstTarget) {
+                        val searchPath = when (val firstTarget = currentState.searchTargets.first()) {
                             is SearchTarget.Path -> firstTarget.path
                         }
                         PermissionSetupCard(
@@ -377,7 +376,19 @@ fun SearcherWorkspacePage(
                                             onResultClick(searchResult)
                                         }
                                     },
-                                    onLongPress = { wrappedOnEnterSelectionMode(result) },
+                                    onLongPress = {
+                                        val searchResult = SearchResult(
+                                            lookup = item.fileRowData.lookup,
+                                            matchedQuery = currentState.searchQuery.text,
+                                            matchContext = item.fileRowData.matchContext?.let { context ->
+                                                SearchResult.MatchContext(
+                                                    lineNumber = context.lineNumber,
+                                                    matchedLine = context.matchedLine
+                                                )
+                                            }
+                                        )
+                                        wrappedOnEnterSelectionMode(searchResult)
+                                    },
                                 )
                             }
                             is SearchListItem.Error -> {
@@ -551,8 +562,7 @@ fun SearcherWorkspacePage(
                         },
                     actions = actions,
                     onActionClick = { action ->
-                        val searcherAction = action as SearcherAction
-                        when (searcherAction) {
+                        when (val searcherAction = action as SearcherAction) {
                             is SearcherAction.DeselectAll -> onExitSelectionMode()
                             else -> onAction(searcherAction)
                         }

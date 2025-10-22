@@ -34,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -151,7 +150,7 @@ fun TemplatesWorkspacePage(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 24.dp)
-                    .padding(top = 16.dp),
+                    .padding(top = 8.dp),
                 horizontalAlignment = Alignment.Start,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -159,13 +158,13 @@ fun TemplatesWorkspacePage(
                         text = stringResource(R.string.workspace_templates_choose_title),
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        modifier = Modifier.padding(bottom = 4.dp)
                     )
                     Text(
                         text = stringResource(R.string.workspace_templates_choose_subtitle),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                        modifier = Modifier.padding(bottom = 24.dp)
+                        modifier = Modifier.padding(bottom = 12.dp)
                     )
 
                     LazyColumn(
@@ -195,15 +194,15 @@ fun TemplatesWorkspacePage(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 16.dp)
-                        .padding(bottom = 16.dp), colors = CardDefaults.cardColors(
+                        .padding(vertical = 16.dp),
+                    colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                     )
                 ) {
                     Row(
                         modifier = Modifier
                             .clickable { onNavToSettings() }
-                            .padding(12.dp),
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
@@ -232,7 +231,7 @@ fun TemplatesWorkspacePage(
                             )
                             Text(
                                 text = state.versionDescription,
-                                style = MaterialTheme.typography.labelSmall,
+                                style = MaterialTheme.typography.labelMedium,
                                 modifier = Modifier.padding(top = 2.dp),
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             )
