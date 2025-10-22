@@ -264,15 +264,47 @@ fun ExplorerWorkspacePage(
         modifier = Modifier
             .fillMaxSize()
             .keyboardShortcuts {
-                on(KeyboardShortcut.Copy) { vm?.executeAction(ExplorerAction.Directory.Copy()) }
-                on(KeyboardShortcut.Cut) { vm?.executeAction(ExplorerAction.Directory.Cut()) }
+                on(KeyboardShortcut.Copy) {
+                    val copyAction = mainState.availableActions
+                        .filterIsInstance<ExplorerAction.Directory.Copy>()
+                        .firstOrNull()
+                    if (copyAction != null && copyAction.isEnabled) {
+                        vm?.executeAction(copyAction)
+                    }
+                }
+                on(KeyboardShortcut.Cut) {
+                    val cutAction = mainState.availableActions
+                        .filterIsInstance<ExplorerAction.Directory.Cut>()
+                        .firstOrNull()
+                    if (cutAction != null && cutAction.isEnabled) {
+                        vm?.executeAction(cutAction)
+                    }
+                }
                 on(KeyboardShortcut.Paste) {
                     clipboardState.entries.firstOrNull()?.let { clip -> vm?.pasteClipboard(clip) }
                 }
                 on(KeyboardShortcut.SelectAll) { vm?.selectAll() }
-                on(KeyboardShortcut.New) { vm?.executeAction(ExplorerAction.Directory.Create()) }
-                on(KeyboardShortcut.Delete) { vm?.executeAction(ExplorerAction.Directory.Delete()) }
-                on(KeyboardShortcut.Escape) { vm?.clearSelection() }
+                on(KeyboardShortcut.New) {
+                    val createAction = mainState.availableActions
+                        .filterIsInstance<ExplorerAction.Directory.Create>()
+                        .firstOrNull()
+                    if (createAction != null && createAction.isEnabled) {
+                        vm?.executeAction(createAction)
+                    }
+                }
+                on(KeyboardShortcut.Delete) {
+                    val deleteAction = mainState.availableActions
+                        .filterIsInstance<ExplorerAction.Directory.Delete>()
+                        .firstOrNull()
+                    if (deleteAction != null && deleteAction.isEnabled) {
+                        vm?.executeAction(deleteAction)
+                    }
+                }
+                on(KeyboardShortcut.Escape) {
+                    if (ExplorerAction.Directory.DeselectAll in mainState.availableActions) {
+                        vm?.clearSelection()
+                    }
+                }
             }
     ) {
         Scaffold(
@@ -613,7 +645,7 @@ fun ExplorerWorkspacePage(
                         translationY = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 64.dp.toPx() else 0f
                     },
                 actions = mainState.availableActions,
-                onActionClick = { action -> vm?.executeAction(action as eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction) },
+                onActionClick = { action -> vm?.executeAction(action as ExplorerAction) },
             )
         }
 
