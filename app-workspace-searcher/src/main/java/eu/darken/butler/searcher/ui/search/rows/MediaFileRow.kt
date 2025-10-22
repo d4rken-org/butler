@@ -11,9 +11,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
-import eu.darken.butler.common.files.metadata.FileType
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
+import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 
 @Composable
 fun MediaFileRow(
@@ -48,12 +46,10 @@ private fun MediaFileRowPreview() {
     PreviewWrapper {
         Column {
             MediaFileRow(
-                data = FileRowData.forPreview(
+                data = SearcherMockDataProvider.createMockImageFile(
                     name = "vacation_photo.jpg",
-                    path = "/storage/emulated/0/Pictures/vacation_photo.jpg",
-                    fileType = FileType.FILE,
-                    size = 1024 * 1024 * 3,
-                    modifiedAt = Clock.System.now() - 7200.seconds,
+                    sizeMB = 3,
+                    hoursAgo = 2,
                     metadata = mapOf(
                         "Resolution" to "1920x1080",
                         "Camera" to "Pixel 8"
@@ -62,30 +58,16 @@ private fun MediaFileRowPreview() {
             )
 
             MediaFileRow(
-                data = FileRowData.forPreview(
+                data = SearcherMockDataProvider.createMockVideoFile(
                     name = "summer_video.mp4",
-                    path = "/storage/emulated/0/Movies/summer_video.mp4",
-                    fileType = FileType.FILE,
-                    size = 1024 * 1024 * 25,
-                    modifiedAt = Clock.System.now() - (3600 * 5).seconds,
-                    metadata = mapOf(
-                        "Duration" to "2:34",
-                        "Quality" to "1080p"
-                    )
+                    sizeMB = 25,
+                    hoursAgo = 5
                 )
             )
 
             MediaFileRow(
-                data = FileRowData.forPreview(
-                    name = "favorite_song.mp3",
-                    path = "/storage/emulated/0/Music/favorite_song.mp3",
-                    fileType = FileType.FILE,
-                    size = 1024 * 1024 * 4,
-                    modifiedAt = Clock.System.now() - (86400 * 2).seconds,
-                    metadata = mapOf(
-                        "Duration" to "3:45",
-                        "Artist" to "Unknown"
-                    )
+                data = SearcherMockDataProvider.createMockAudioFile(
+                    name = "favorite_song.mp3"
                 )
             )
         }

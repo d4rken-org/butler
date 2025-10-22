@@ -26,12 +26,10 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.searcher.ui.search.rows.FileInfo
 import eu.darken.butler.searcher.ui.search.rows.FileRowData
 import eu.darken.butler.searcher.ui.search.rows.StandardFileIcon
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -100,12 +98,10 @@ fun SelectableFileRow(
 @Preview2
 @Composable
 private fun SelectableFileRowPreview() {
-    val fileData = FileRowData.forPreview(
+    val fileData = SearcherMockDataProvider.createMockTextFile(
         name = "example.txt",
-        path = "/storage/emulated/0/Documents/example.txt",
-        fileType = FileType.FILE,
-        size = 1024L,
-        modifiedAt = Clock.System.now() - 3600.seconds
+        sizeKB = 1,
+        hoursAgo = 1
     )
 
     PreviewWrapper {

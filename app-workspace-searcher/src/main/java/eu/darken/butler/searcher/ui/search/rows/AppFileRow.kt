@@ -11,9 +11,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
-import eu.darken.butler.common.files.metadata.FileType
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
+import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 
 @Composable
 fun AppFileRow(
@@ -48,12 +46,10 @@ private fun AppFileRowPreview() {
     PreviewWrapper {
         Column {
             AppFileRow(
-                data = FileRowData.forPreview(
+                data = SearcherMockDataProvider.createMockApkFile(
                     name = "signal-android.apk",
-                    path = "/storage/emulated/0/Download/signal-android.apk",
-                    fileType = FileType.FILE,
-                    size = 1024 * 1024 * 47,
-                    modifiedAt = Clock.System.now() - 1800.seconds,
+                    sizeMB = 47,
+                    hoursAgo = 1,
                     metadata = mapOf(
                         "Package" to "org.thoughtcrime.securesms",
                         "Version" to "6.42.3",
@@ -64,12 +60,10 @@ private fun AppFileRowPreview() {
             )
 
             AppFileRow(
-                data = FileRowData.forPreview(
+                data = SearcherMockDataProvider.createMockApkFile(
                     name = "butler-app.aab",
-                    path = "/storage/emulated/0/Android/data/eu.darken.butler/butler-app.aab",
-                    fileType = FileType.FILE,
-                    size = 1024 * 1024 * 12,
-                    modifiedAt = Clock.System.now() - 3600.seconds,
+                    sizeMB = 12,
+                    hoursAgo = 1,
                     metadata = mapOf(
                         "Package" to "eu.darken.butler",
                         "Version" to "1.0.0"

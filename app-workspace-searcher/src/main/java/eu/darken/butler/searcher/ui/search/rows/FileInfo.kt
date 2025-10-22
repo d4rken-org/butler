@@ -17,8 +17,7 @@ import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.formatRelativeTime
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
+import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 
 @Composable
 fun FileInfo(
@@ -124,35 +123,29 @@ private fun FileInfoPreview() {
         ) {
             // Short path example
             FileInfo(
-                data = FileRowData.forPreview(
+                data = SearcherMockDataProvider.createMockPdfFile(
                     name = "document.pdf",
-                    path = "/storage/emulated/0/Downloads/document.pdf",
-                    fileType = FileType.FILE,
-                    size = 1024 * 512,
-                    modifiedAt = Clock.System.now() - 3600.seconds,
+                    sizeMB = 1,
+                    hoursAgo = 1
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
 
             // Long path example (will be truncated)
             FileInfo(
-                data = FileRowData.forPreview(
+                data = SearcherMockDataProvider.createMockTextFile(
                     name = "very-long-filename-with-lots-of-text.txt",
-                    path = "/storage/emulated/0/Documents/Work/Projects/2024/Q4/Important/Nested/Deeply/very-long-filename-with-lots-of-text.txt",
-                    fileType = FileType.FILE,
-                    size = 2048 * 1024,
-                    modifiedAt = Clock.System.now() - 7200.seconds,
+                    sizeKB = 2048,
+                    hoursAgo = 2
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
 
             // Directory without path display
             FileInfo(
-                data = FileRowData.forPreview(
+                data = SearcherMockDataProvider.createMockDirectory(
                     name = "Pictures",
-                    path = "/storage/emulated/0/Pictures",
-                    fileType = FileType.DIRECTORY,
-                    modifiedAt = Clock.System.now() - 86400.seconds
+                    hoursAgo = 24
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
