@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
@@ -124,13 +125,14 @@ fun SearcherWorkspacePage(
     var showClearHistoryDialog by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
+    val shortcutsFocusRequester = remember { FocusRequester() }
 
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
     var showCancelConfirmation by remember { mutableStateOf<Operation.Id?>(null) }
 
     // Wrapped selection callbacks that clear focus and hide keyboard
-    val wrappedOnEnterSelectionMode: (SearchResult) -> Unit = remember(focusManager, keyboardController) {
+    val wrappedOnEnterSelectionMode: (SearchResult) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester) {
         { result ->
             focusManager.clearFocus()
             keyboardController?.hide()
@@ -138,7 +140,7 @@ fun SearcherWorkspacePage(
         }
     }
 
-    val wrappedOnToggleSelection: (SearchResult) -> Unit = remember(focusManager, keyboardController) {
+    val wrappedOnToggleSelection: (SearchResult) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester) {
         { result ->
             // Only clear focus and hide keyboard when entering selection mode (first selection)
             // Not when already in selection mode (subsequent toggles)
@@ -147,6 +149,15 @@ fun SearcherWorkspacePage(
                 keyboardController?.hide()
             }
             onToggleSelection(result)
+        }
+    }
+
+    // Re-request focus for keyboard shortcuts after clearing focus
+    // This ensures shortcuts continue working after selecting a result
+    LaunchedEffect(state?.selectionState?.isSelectionMode) {
+        if (state?.selectionState?.isSelectionMode == true) {
+            delay(50) // Small delay to let keyboard animation complete
+            shortcutsFocusRequester.requestFocus()
         }
     }
 
@@ -235,7 +246,7 @@ fun SearcherWorkspacePage(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .keyboardShortcuts {
+                .keyboardShortcuts(focusRequester = shortcutsFocusRequester) {
                     on(KeyboardShortcut.Copy) {
                         val selectedResults = currentState.selectionState.selectedResults
                         if (selectedResults.isNotEmpty()) {

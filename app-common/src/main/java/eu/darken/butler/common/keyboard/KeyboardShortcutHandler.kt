@@ -39,22 +39,28 @@ import eu.darken.butler.common.debug.logging.logTag
  *     }
  * )
  * ```
+ *
+ * @param focusRequester Optional external FocusRequester for programmatic focus management.
+ *                       If not provided, an internal one will be created.
+ * @param builder DSL builder for registering keyboard shortcuts
  */
 @Composable
 fun Modifier.keyboardShortcuts(
+    focusRequester: FocusRequester? = null,
     builder: KeyboardShortcutScope.() -> Unit,
 ): Modifier {
     val scope = KeyboardShortcutScope().apply(builder)
-    val focusRequester = remember { FocusRequester() }
+    val internalFocusRequester = remember { FocusRequester() }
+    val actualFocusRequester = focusRequester ?: internalFocusRequester
 
     // Request focus when composable is first shown
     LaunchedEffect(Unit) {
         log(TAG, INFO) { "Requesting keyboard focus for shortcuts" }
-        focusRequester.requestFocus()
+        actualFocusRequester.requestFocus()
     }
 
     return this
-        .focusRequester(focusRequester)
+        .focusRequester(actualFocusRequester)
         .focusable()
         .onKeyEvent { event ->            scope.handle(event)        }
 }
