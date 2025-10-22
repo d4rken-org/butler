@@ -48,7 +48,7 @@ class WorkspacesViewModel @Inject constructor(
             val currentWorkspaces = workspaceRepo.state.first()
             if (currentWorkspaces.infos.isEmpty()) {
                 log(tag) { "No workspaces found, auto-creating workspace for testing" }
-                workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.EXPLORER))
+                workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.SEARCHER))
             }
         }
 
