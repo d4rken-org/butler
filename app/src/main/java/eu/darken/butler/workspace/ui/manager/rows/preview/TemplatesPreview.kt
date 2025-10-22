@@ -10,8 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.AccountTree
 import androidx.compose.material.icons.twotone.Description
-import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -49,7 +49,7 @@ private fun TemplateIconGrid() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         TemplateItem(
-            icon = Icons.TwoTone.Folder,
+            icon = Icons.TwoTone.AccountTree,
             label = "Explorer",
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer

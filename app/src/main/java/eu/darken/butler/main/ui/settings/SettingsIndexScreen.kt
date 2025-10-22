@@ -8,9 +8,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.twotone.ListAlt
+import androidx.compose.material.icons.twotone.AccountTree
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Favorite
-import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.PushPin
 import androidx.compose.material.icons.twotone.PrivacyTip
@@ -153,7 +153,7 @@ fun SettingsIndexScreen(
 
             item {
                 SettingsBaseItem(
-                    icon = Icons.TwoTone.Folder,
+                    icon = Icons.TwoTone.AccountTree,
                     title = stringResource(eu.darken.butler.explorer.R.string.explorer_settings_title),
                     subtitle = stringResource(R.string.explorer_settings_subtitle),
                     onClick = { onNavigateTo(Nav.Settings.explorer()) },

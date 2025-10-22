@@ -2,10 +2,10 @@ package eu.darken.butler.workspace.ui.manager
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.AccountTree
 import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Edit
-import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.DropdownMenu
@@ -59,7 +59,7 @@ fun WorkspaceManagerFAB(
                     showDropdown = false
                 },
                 leadingIcon = {
-                    Icon(Icons.TwoTone.Folder, contentDescription = null)
+                    Icon(Icons.TwoTone.AccountTree, contentDescription = null)
                 }
             )
             DropdownMenuItem(

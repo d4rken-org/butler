@@ -1,8 +1,8 @@
 package eu.darken.butler.workspace.core
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.AccountTree
 import androidx.compose.material.icons.twotone.Edit
-import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -13,7 +13,7 @@ import eu.darken.butler.workspace.R
 val Workspace.Type.icon: ImageVector
     get() = when (this) {
         Workspace.Type.TEMPLATES -> Icons.TwoTone.Workspaces
-        Workspace.Type.EXPLORER -> Icons.TwoTone.Folder
+        Workspace.Type.EXPLORER -> Icons.TwoTone.AccountTree
         Workspace.Type.SEARCHER -> Icons.TwoTone.Search
         Workspace.Type.EDITOR -> Icons.TwoTone.Edit
     }

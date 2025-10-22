@@ -20,11 +20,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.AccountTree
 import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.DragIndicator
 import androidx.compose.material.icons.twotone.Edit
-import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Looks3
 import androidx.compose.material.icons.twotone.LooksOne
 import androidx.compose.material.icons.twotone.LooksTwo
@@ -268,7 +268,7 @@ private fun DraggableWorkspaceRailItem(
                             Icon(
                                 imageVector = when (workspace.type) {
                                     Workspace.Type.TEMPLATES -> Icons.TwoTone.Workspaces
-                                    Workspace.Type.EXPLORER -> Icons.TwoTone.Folder
+                                    Workspace.Type.EXPLORER -> Icons.TwoTone.AccountTree
                                     Workspace.Type.SEARCHER -> Icons.TwoTone.Search
                                     Workspace.Type.EDITOR -> Icons.TwoTone.Edit
                                 },
@@ -387,7 +387,7 @@ private fun WorkspaceRailItem(
                     Icon(
                         imageVector = when (workspace.type) {
                             Workspace.Type.TEMPLATES -> Icons.TwoTone.Workspaces
-                            Workspace.Type.EXPLORER -> Icons.TwoTone.Folder
+                            Workspace.Type.EXPLORER -> Icons.TwoTone.AccountTree
                             Workspace.Type.SEARCHER -> Icons.TwoTone.Search
                             Workspace.Type.EDITOR -> Icons.TwoTone.Edit
                         },

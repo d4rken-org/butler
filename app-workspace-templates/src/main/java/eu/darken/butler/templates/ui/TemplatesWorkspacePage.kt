@@ -16,11 +16,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.AccountTree
 import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.Apps
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Edit
-import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material3.Card
@@ -435,7 +435,7 @@ private data class TabLayout(
 
 private fun getWorkspaceTypeIcon(type: Workspace.Type): ImageVector {
     return when (type) {
-        Workspace.Type.EXPLORER -> Icons.TwoTone.Folder
+        Workspace.Type.EXPLORER -> Icons.TwoTone.AccountTree
         Workspace.Type.SEARCHER -> Icons.TwoTone.Search
         Workspace.Type.EDITOR -> Icons.TwoTone.Edit
         Workspace.Type.TEMPLATES -> Icons.TwoTone.Apps
