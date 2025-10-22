@@ -574,11 +574,7 @@ fun SearchResultRow(
     onSelectionToggle: () -> Unit
 ) {
     val fileRowData = FileRowData(
-        name = result.name,
-        path = result.path.path,
-        fileType = result.fileType,
-        size = result.size,
-        modifiedAt = result.modifiedAt,
+        lookup = result.lookup,
         metadata = extractFileMetadata(result),
         matchContext = result.matchContext?.let { context ->
             FileRowData.MatchContext(

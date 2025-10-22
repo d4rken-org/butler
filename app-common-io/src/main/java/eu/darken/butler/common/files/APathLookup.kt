@@ -13,6 +13,8 @@ interface APathLookup<T : APath<T>> {
     val lookedUp: T
     val fileType: FileType
 
+    val parent: T? get() = lookedUp.parent
+
     val size: Long?
     val modifiedAt: Instant?
     val target: APath<*>?

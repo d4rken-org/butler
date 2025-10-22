@@ -24,15 +24,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.formatDate
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.searcher.core.SearchResult
-import eu.darken.butler.searcher.ui.search.rows.FileRowData
-import eu.darken.butler.searcher.ui.search.rows.getFileIconAndTint
 import kotlin.time.Clock
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,17 +58,10 @@ fun SearchResultQuickActions(
                     .padding(horizontal = 24.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Icon
-                val fileRowData = FileRowData(
-                    name = result.name,
-                    path = result.path.path,
-                    fileType = result.fileType
-                )
-                val (icon, tint) = getFileIconAndTint(fileRowData)
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = tint,
+                // Preview/Icon
+                TintedAsyncImage(
+                    model = result.lookup,
+                    contentDescription = result.fileType.name,
                     modifier = Modifier.size(40.dp)
                 )
 
@@ -101,9 +92,7 @@ fun SearchResultQuickActions(
                     Text(
                         text = result.path.path,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }

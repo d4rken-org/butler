@@ -26,7 +26,7 @@ private fun SmartFileRowPreview() {
     PreviewWrapper {
         Column {
             SmartFileRow(
-                data = FileRowData(
+                data = FileRowData.forPreview(
                     name = "photo.jpg",
                     path = "/storage/emulated/0/Pictures/photo.jpg",
                     fileType = FileType.FILE,
@@ -37,7 +37,7 @@ private fun SmartFileRowPreview() {
             )
 
             SmartFileRow(
-                data = FileRowData(
+                data = FileRowData.forPreview(
                     name = "app.apk",
                     path = "/storage/emulated/0/Download/app.apk",
                     fileType = FileType.FILE,
@@ -51,7 +51,7 @@ private fun SmartFileRowPreview() {
             )
 
             SmartFileRow(
-                data = FileRowData(
+                data = FileRowData.forPreview(
                     name = "document.txt",
                     path = "/storage/emulated/0/Documents/document.txt",
                     fileType = FileType.FILE,
@@ -61,7 +61,7 @@ private fun SmartFileRowPreview() {
             )
 
             SmartFileRow(
-                data = FileRowData(
+                data = FileRowData.forPreview(
                     name = "Downloads",
                     path = "/storage/emulated/0/Downloads",
                     fileType = FileType.DIRECTORY,
