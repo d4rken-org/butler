@@ -1,5 +1,6 @@
 package eu.darken.butler.common.files
 
+import eu.darken.butler.common.files.extensions.commonParent
 import eu.darken.butler.common.files.extensions.extension
 import eu.darken.butler.common.files.extensions.filterDistinctRoots
 import eu.darken.butler.common.files.extensions.isAncestorOf
@@ -1059,5 +1060,82 @@ class APathExtensionTest : BaseTest() {
         SAFPath.build(treeUri, "test", "file2.abc").extension shouldBe "abc"
         SAFPath.build(treeUri, "test", "file2.abc.def").extension shouldBe "def"
         SAFPath.build(treeUri, "test", "file2.abc..").extension shouldBe null
+    }
+
+    @Test fun `commonParent - empty collection`() {
+        emptyList<APath<*>>().commonParent() shouldBe null
+    }
+
+    @Test fun `commonParent - single path`() {
+        val path = LocalPath.build("parent", "child")
+        listOf(path).commonParent() shouldBe LocalPath.build("parent")
+    }
+
+    @Test fun `commonParent - LocalPath - same directory`() {
+        val file1: APath<*> = LocalPath.build("parent", "child", "file1")
+        val file2: APath<*> = LocalPath.build("parent", "child", "file2")
+        val file3: APath<*> = LocalPath.build("parent", "child", "file3")
+
+        listOf(file1, file2, file3).commonParent() shouldBe LocalPath.build("parent", "child")
+    }
+
+    @Test fun `commonParent - LocalPath - nested paths`() {
+        val file1: APath<*> = LocalPath.build("root", "dir1", "file1")
+        val file2: APath<*> = LocalPath.build("root", "dir2", "file2")
+        val file3: APath<*> = LocalPath.build("root", "dir3", "subdir", "file3")
+
+        listOf(file1, file2, file3).commonParent() shouldBe LocalPath.build("root")
+    }
+
+    @Test fun `commonParent - LocalPath - deeply nested common parent`() {
+        val file1: APath<*> = LocalPath.build("a", "b", "c", "d", "file1")
+        val file2: APath<*> = LocalPath.build("a", "b", "c", "e", "file2")
+
+        listOf(file1, file2).commonParent() shouldBe LocalPath.build("a", "b", "c")
+    }
+
+    @Test fun `commonParent - LocalPath - no common parent`() {
+        val file1: APath<*> = LocalPath.build("dir1", "file1")
+        val file2: APath<*> = LocalPath.build("dir2", "file2")
+
+        listOf(file1, file2).commonParent() shouldBe null
+    }
+
+    @Test fun `commonParent - SAFPath - same directory`() {
+        val file1: APath<*> = SAFPath.build(treeUri, "parent", "child", "file1")
+        val file2: APath<*> = SAFPath.build(treeUri, "parent", "child", "file2")
+        val file3: APath<*> = SAFPath.build(treeUri, "parent", "child", "file3")
+
+        listOf(file1, file2, file3).commonParent() shouldBe SAFPath.build(treeUri, "parent", "child")
+    }
+
+    @Test fun `commonParent - SAFPath - nested paths`() {
+        val file1: APath<*> = SAFPath.build(treeUri, "root", "dir1", "file1")
+        val file2: APath<*> = SAFPath.build(treeUri, "root", "dir2", "file2")
+        val file3: APath<*> = SAFPath.build(treeUri, "root", "dir3", "subdir", "file3")
+
+        listOf(file1, file2, file3).commonParent() shouldBe SAFPath.build(treeUri, "root")
+    }
+
+    @Test fun `commonParent - SAFPath - no common parent`() {
+        val file1: APath<*> = SAFPath.build(treeUri, "dir1", "file1")
+        val file2: APath<*> = SAFPath.build(treeUri, "dir2", "file2")
+
+        listOf(file1, file2).commonParent() shouldBe null
+    }
+
+    @Test fun `commonParent - mixed types`() {
+        val file1: APath<*> = LocalPath.build("parent", "file1")
+        val file2: APath<*> = SAFPath.build(treeUri, "parent", "file2")
+
+        listOf(file1, file2).commonParent() shouldBe null
+    }
+
+    @Test fun `commonParent - different depths`() {
+        val file1: APath<*> = LocalPath.build("root", "dir1", "subdir1", "subdir2", "file1")
+        val file2: APath<*> = LocalPath.build("root", "dir1", "file2")
+        val file3: APath<*> = LocalPath.build("root", "dir1", "subdir1", "file3")
+
+        listOf(file1, file2, file3).commonParent() shouldBe LocalPath.build("root", "dir1")
     }
 }

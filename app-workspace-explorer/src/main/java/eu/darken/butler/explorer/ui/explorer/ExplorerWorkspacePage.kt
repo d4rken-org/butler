@@ -538,6 +538,7 @@ fun ExplorerWorkspacePage(
                     exit = slideOutVertically(animationSpec = tween(150)) { it },
                 ) {
                     ClipboardBar(
+                        workspaceType = Workspace.Type.EXPLORER,
                         clipboardEntries = clipboardState.entries,
                         onPasteClick = { clip -> vm?.pasteClipboard(clip) },
                         onRemoveClick = { clip -> vm?.removeClipboardEntry(clip) },

@@ -20,6 +20,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.extensions.commonParent
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine
 import kotlinx.coroutines.flow.combine as kotlinxCombine
@@ -878,6 +879,31 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                         )
                     }
                 }
+            }
+        }
+    }
+
+    fun openClipboardInExplorer(clip: ClipboardClip) = launch {
+        log(TAG) { "openClipboardInExplorer($clip)" }
+
+        when (clip) {
+            is ClipboardClip.Paths -> {
+                if (clip.paths.isEmpty()) {
+                    log(TAG, WARN) { "Cannot open in Explorer - clipboard has no paths" }
+                    return@launch
+                }
+
+                val commonParent = clip.paths.commonParent()
+                if (commonParent == null) {
+                    log(TAG, WARN) { "Cannot open in Explorer - paths have no common parent" }
+                    return@launch
+                }
+
+                log(TAG) { "Opening Explorer at common parent: $commonParent" }
+                workspaceRemote.createAndFocus(
+                    type = Workspace.Type.EXPLORER,
+                    arguments = ExternalExplorerArguments(startPath = commonParent)
+                )
             }
         }
     }

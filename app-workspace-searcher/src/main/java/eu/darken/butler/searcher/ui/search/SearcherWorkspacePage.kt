@@ -366,8 +366,9 @@ fun SearcherWorkspacePage(
                         exit = slideOutVertically(animationSpec = tween(150)) { it },
                     ) {
                         ClipboardBar(
+                            workspaceType = Workspace.Type.SEARCHER,
                             clipboardEntries = clipboardState.entries,
-                            onPasteClick = {}, // Searcher doesn't support paste
+                            onPasteClick = { clip -> vm?.openClipboardInExplorer(clip) },
                             onRemoveClick = onClipboardEntryRemove,
                             onEntryClick = onClipboardEntryClick,
                             onClearAll = onClipboardClearAll

@@ -40,11 +40,18 @@ import kotlin.uuid.Uuid
 @Composable
 fun ClipboardEntryRow(
     entry: ClipboardClip,
+    workspaceType: Workspace.Type,
     onPasteClick: () -> Unit,
     onEntryClick: () -> Unit,
     modifier: Modifier = Modifier,
     showOrigin: Boolean = false,
 ) {
+    val (pasteIcon, pasteLabel) = when (workspaceType) {
+        Workspace.Type.SEARCHER -> Icons.TwoTone.FolderOpen to R.string.clipboard_open_in_explorer
+        Workspace.Type.EXPLORER -> Icons.TwoTone.ContentPaste to R.string.clipboard_paste
+        else -> Icons.TwoTone.ContentPaste to R.string.clipboard_paste
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -202,8 +209,8 @@ fun ClipboardEntryRow(
                     onClick = onPasteClick
                 ) {
                     Icon(
-                        imageVector = Icons.TwoTone.ContentPaste,
-                        contentDescription = stringResource(R.string.clipboard_paste),
+                        imageVector = pasteIcon,
+                        contentDescription = stringResource(pasteLabel),
                         modifier = Modifier.size(20.dp),
                         tint = MaterialTheme.colorScheme.onTertiaryContainer,
                     )
@@ -228,6 +235,7 @@ private fun ClipboardEntryRowCollapsedPreview() {
                 ),
                 clippedAt = Clock.System.now() - 5.minutes,
             ),
+            workspaceType = Workspace.Type.EXPLORER,
             onPasteClick = {},
             onEntryClick = {},
             showOrigin = false,
@@ -248,6 +256,7 @@ private fun ClipboardEntryRowExpandedPreview() {
                 ),
                 clippedAt = Clock.System.now() - 2.minutes,
             ),
+            workspaceType = Workspace.Type.SEARCHER,
             onPasteClick = {},
             onEntryClick = {},
             showOrigin = true,
