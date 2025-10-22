@@ -331,7 +331,7 @@ fun OperationPerformanceGraph(
                 Text(
                     text = formatByteSpeed(averageSpeed),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = bytesLineColor,
                     modifier = Modifier
                         .align(androidx.compose.ui.Alignment.TopStart)
                         .offset(x = 16.dp, y = 16.dp)
@@ -353,7 +353,7 @@ fun OperationPerformanceGraph(
                 Text(
                     text = formatItemSpeed(averageItems.toDouble()),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = itemsLineColor,
                     modifier = Modifier
                         .align(androidx.compose.ui.Alignment.TopEnd)
                         .offset(x = (-16).dp, y = 16.dp)
