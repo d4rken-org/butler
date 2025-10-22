@@ -14,19 +14,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntSize
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.workspaces.WorkspacePaneInfo
 import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.DualHorizontalLayout
 import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.DualVerticalLayout
 import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.SinglePaneLayout
 import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.TripleMainLeftLayout
+import eu.darken.butler.workspace.ui.workspaces.asPaneInfo
 import kotlinx.parcelize.Parcelize
-
 
 
 /**
@@ -64,14 +64,14 @@ data class DividerPositions(
 fun AdaptiveWorkspaceContainer(
     modifier: Modifier = Modifier,
     design: WorkspaceDesign = WorkspaceDesign(),
-    selected: Map<Int, Workspace.Info>,
+    selected: Map<Int, WorkspacePaneInfo>,
     focusedTabId: Workspace.Id?,
     dividerPositions: DividerPositions,
     onDividerPositionsChange: (DividerPositions) -> Unit,
     onTabFocus: (Workspace.Id) -> Unit,
     showPaneNumbers: Boolean = false,
     showPaneOverlay: Boolean = false,
-    paneContent: @Composable (Workspace.Info?, Int) -> Unit,
+    paneContent: @Composable (WorkspacePaneInfo?, Int) -> Unit,
 ) {
     var containerSize by remember { mutableStateOf(IntSize.Zero) }
 
@@ -163,7 +163,7 @@ private fun AdaptiveWorkspaceContainerPreview() {
         )
         var dividerPositions by remember { mutableStateOf(DividerPositions()) }
         AdaptiveWorkspaceContainer(
-            selected = tabs.take(2).mapIndexed { index, info -> index to info }.toMap(),
+            selected = tabs.take(2).mapIndexed { index, info -> index to info.asPaneInfo() }.toMap(),
             design = WorkspaceDesign(
                 layout = WorkspaceDesign.Layout.DUAL_VERTICAL,
             ),
@@ -172,14 +172,14 @@ private fun AdaptiveWorkspaceContainerPreview() {
             onDividerPositionsChange = { dividerPositions = it },
             onTabFocus = {},
             showPaneNumbers = true,
-            paneContent = { tab, paneNumber ->
+            paneContent = { info, paneNumber ->
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.surface),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(tab?.title?.get(LocalContext.current) ?: "Empty Pane $paneNumber")
+                    Text(info?.let { "${it.type} - ${it.id.shortTag}" } ?: "Empty Pane $paneNumber")
                 }
             }
         )

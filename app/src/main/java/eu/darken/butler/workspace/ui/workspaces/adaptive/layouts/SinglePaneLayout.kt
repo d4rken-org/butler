@@ -1,34 +1,35 @@
 package eu.darken.butler.workspace.ui.workspaces.adaptive.layouts
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.common.compose.PreviewWrapper
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
-import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspacePaneWrapper
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.workspaces.WorkspacePaneInfo
+import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspacePaneWrapper
+import eu.darken.butler.workspace.ui.workspaces.asPaneInfo
 
 @Composable
 internal fun SinglePaneLayout(
-    selected: Map<Int, Workspace.Info>,
+    selected: Map<Int, WorkspacePaneInfo>,
     focusedTabId: Workspace.Id?,
     showPaneNumbers: Boolean,
     showPaneOverlay: Boolean,
     onTabFocus: (Workspace.Id) -> Unit,
-    paneContent: @Composable (Workspace.Info?, Int) -> Unit,
+    paneContent: @Composable (WorkspacePaneInfo?, Int) -> Unit,
 ) {
     val ws1 = selected[0]
     WorkspacePaneWrapper(
         modifier = Modifier.fillMaxSize(),
-        isFocused = focusedTabId == ws1?.id,
+        isFocused = focusedTabId == ws1,
         showFocusBorder = false, // Single pane doesn't need focus border
         onFocus = { ws1?.let { onTabFocus(it.id) } },
         paneNumber = if (showPaneNumbers) 1 else null,
@@ -47,9 +48,9 @@ private fun SinglePaneLayoutPreview() {
             type = Workspace.Type.EXPLORER,
             title = "Explorer".toCaString(),
         )
-        
+
         SinglePaneLayout(
-            selected = mapOf(0 to workspace),
+            selected = mapOf(0 to workspace.asPaneInfo()),
             focusedTabId = workspace.id,
             showPaneNumbers = true,
             showPaneOverlay = false,
@@ -66,7 +67,7 @@ private fun SinglePaneLayoutPreview() {
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "${ws?.title?.get(LocalContext.current) ?: "Empty"} - Pane $paneIdx",
+                        text = "${ws?.type} - ${ws?.id?.shortTag ?: "Empty"} - Pane $paneIdx",
                         style = MaterialTheme.typography.headlineSmall,
                     )
                 }
