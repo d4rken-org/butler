@@ -45,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.Slogans
@@ -77,6 +78,7 @@ import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.setHeight
+import eu.darken.butler.workspace.ui.error.WorkspaceErrorCard
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -317,7 +319,8 @@ fun ExplorerWorkspacePage(
                         )
 
                     mainState.error?.let { error ->
-                        NavigationErrorCard(
+                        WorkspaceErrorCard(
+                            title = stringResource(eu.darken.butler.explorer.R.string.explorer_navigation_error_title),
                             error = error,
                             onCopyError = { vm?.copyNavigationError() },
                             onRetry = { vm?.retryNavigation() },

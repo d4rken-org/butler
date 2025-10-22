@@ -209,9 +209,6 @@
     <string name="explorer_issue_collision_overwrite">Replace</string>
     <string name="explorer_issue_collision_merge">Merge</string>
 
-    <string name="explorer_issue_unknown_error_show_details">Show technical details</string>
-    <string name="explorer_issue_unknown_error_hide_details">Hide technical details</string>
-
     <string name="explorer_issue_common_source_file">Source file</string>
     <string name="explorer_issue_common_destination_file">Destination</string>
     <string name="explorer_issue_common_skip">Skip</string>
@@ -354,6 +351,5 @@
 
     <!-- Navigation Error Messages -->
     <string name="explorer_navigation_error_title">Navigation Failed</string>
-    <string name="explorer_navigation_error_copy_action">Copy error</string>
     <string name="explorer_navigation_error_retry_action">Retry</string>
 </resources>

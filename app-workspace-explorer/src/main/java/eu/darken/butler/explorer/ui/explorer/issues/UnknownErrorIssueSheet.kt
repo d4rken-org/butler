@@ -124,17 +124,18 @@ fun UnknownErrorIssueSheet(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text(
-                        modifier = Modifier.padding(16.dp),
                         text = stringResource(
                             if (showTechnicalDetails) {
-                                R.string.explorer_issue_unknown_error_hide_details
+                                eu.darken.butler.workspace.R.string.workspace_error_hide_details_action
                             } else {
-                                R.string.explorer_issue_unknown_error_show_details
+                                eu.darken.butler.workspace.R.string.workspace_error_show_details_action
                             }
                         ),
                         style = MaterialTheme.typography.bodyMedium,
