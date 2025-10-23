@@ -18,6 +18,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.serialization.PolymorphicSerializer
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -26,6 +28,7 @@ class DynamicShortcutManager @Inject constructor(
     @ApplicationContext private val context: Context,
     @AppScope private val appScope: CoroutineScope,
     private val shortcutRepo: ShortcutRepo,
+    private val json: Json,
 ) {
     private val shortcutManager: ShortcutManager by lazy {
         context.getSystemService(ShortcutManager::class.java)
@@ -36,14 +39,11 @@ class DynamicShortcutManager @Inject constructor(
 
         shortcutRepo.topShortcuts
             .distinctUntilChanged()
-            .onEach { shortcuts ->
-                updateDynamicShortcuts(shortcuts)
-            }
+            .onEach { updateDynamicShortcuts(it) }
             .launchIn(appScope)
     }
 
     private fun updateDynamicShortcuts(shortcuts: List<RecentPath>) {
-
         try {
             // Always include "New Explorer" as the first shortcut
             val newExplorerShortcut = createNewExplorerShortcut()
@@ -77,21 +77,24 @@ class DynamicShortcutManager @Inject constructor(
     }
 
     private fun createPathShortcut(recentPath: RecentPath, rank: Int): ShortcutInfo {
-        val label = recentPath.path.name.ifEmpty { "/" }
+        log(TAG, VERBOSE) { "Creating shortcut for rank $rank: $recentPath" }
+
+        val label = recentPath.path.userReadablePath.get(context)
+        val serializedPath = json.encodeToString(PolymorphicSerializer(APath::class), recentPath.path)
 
         val intent = Intent(context, MainActivity::class.java).apply {
             action = EXPLORER_SHORTCUT_ACTION
-            putExtra(EXPLORER_EXTRA_PATH, recentPath.path.path)
+            putExtra(EXPLORER_EXTRA_PATH, serializedPath)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
 
-        return ShortcutInfo.Builder(context, recentPath.id.toString())
-            .setShortLabel(label)
-            .setLongLabel(recentPath.path.path)
-            .setIcon(Icon.createWithResource(context, R.drawable.ic_shortcut_folder))
-            .setIntent(intent)
-            .setRank(rank)
-            .build()
+        return ShortcutInfo.Builder(context, recentPath.id.toString()).apply {
+            setShortLabel(label)
+            setLongLabel(recentPath.path.path)
+            setIcon(Icon.createWithResource(context, R.drawable.ic_shortcut_folder))
+            setIntent(intent)
+            setRank(rank)
+        }.build()
     }
 
     private fun reportShortcutUsed(shortcutId: String) {
@@ -99,21 +102,22 @@ class DynamicShortcutManager @Inject constructor(
         log(TAG, DEBUG) { "Reported shortcut usage: $shortcutId" }
     }
 
-    fun reportPathShortcutUsed(path: String) {
-        // Try to find the shortcut by matching the path in the intent extras
+    fun reportPathShortcutUsed(serializedPath: String) {
+        // Try to find the shortcut by matching the serialized path in the intent extras
         val matchingShortcut = shortcutManager.dynamicShortcuts.find { shortcut ->
-            shortcut.intent?.getStringExtra(EXPLORER_EXTRA_PATH) == path
+            shortcut.intent?.getStringExtra(EXPLORER_EXTRA_PATH) == serializedPath
         }
 
         matchingShortcut?.let {
             reportShortcutUsed(it.id)
-            log(TAG, DEBUG) { "Found and reported path shortcut: ${it.id} for path: $path" }
+            log(TAG, DEBUG) { "Found and reported path shortcut: ${it.id}" }
         } ?: run {
-            log(TAG, WARN) { "No matching shortcut found for path: $path" }
+            log(TAG, WARN) { "No matching shortcut found for serialized path" }
         }
     }
 
     fun reportNewExplorerShortcutUsed() {
+        log(TAG, VERBOSE) { "reportNewExplorerShortcutUsed()" }
         reportShortcutUsed(NEW_EXPLORER_SHORTCUT_ID)
     }
 

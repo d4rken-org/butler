@@ -4,18 +4,26 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.common.ui.ViewModel4
+import eu.darken.butler.explorer.core.arguments.ExternalExplorerArguments
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.upgrade.UpgradeRepo
+import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.createAndFocus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onEach
+import kotlinx.serialization.PolymorphicSerializer
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 
@@ -25,7 +33,9 @@ class MainViewModel @Inject constructor(
     navCtrl: NavigationController,
     private val upgradeRepo: UpgradeRepo,
     private val generalSettings: GeneralSettings,
-) : ViewModel4(dispatcherProvider, logTag("Main","Screen","VM"), navCtrl) {
+    private val workspaceRemote: WorkspaceRemote,
+    private val json: Json,
+) : ViewModel4(dispatcherProvider, logTag("Main", "Screen", "VM"), navCtrl) {
 
     val themeState = generalSettings.themeState.asStateFlow()
 
@@ -56,8 +66,6 @@ class MainViewModel @Inject constructor(
         log(tag) { "checkUpgrades()" }
         upgradeRepo.refresh()
     }
-
-    val confirmExitEnabled = generalSettings.isConfirmExitEnabled.flow.asStateFlow()
 
     fun updateConfirmExitEnabled(enabled: Boolean) = launch {
         log(tag) { "updateConfirmExitEnabled($enabled)" }
@@ -96,17 +104,25 @@ class MainViewModel @Inject constructor(
         callback(isEnabled)
     }
 
-    fun openDirectoryFromShortcut(directoryPath: String) = launch {
-        log(tag) { "openDirectoryFromShortcut($directoryPath)" }
-        // This will be handled by the workspace UI when it's ready
-        // For now, we just log it - actual implementation would involve
-        // navigating to the workspaces screen and creating a new Explorer workspace
+    fun openDirectoryFromShortcut(serializedPath: String) = launch {
+        log(tag) { "openDirectoryFromShortcut($serializedPath)" }
+        try {
+            val path = json.decodeFromString(PolymorphicSerializer(APath::class), serializedPath)
+            workspaceRemote.createAndFocus(
+                type = Workspace.Type.EXPLORER,
+                arguments = ExternalExplorerArguments(startPath = path)
+            )
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to open directory from shortcut: ${e.asLog()}" }
+        }
     }
 
     fun createNewExplorerWorkspace() = launch {
         log(tag) { "createNewExplorerWorkspace()" }
-        // This will be handled by the workspace UI when it's ready
-        // For now, we just log it - actual implementation would involve
-        // navigating to the workspaces screen and creating a new Explorer workspace
+        try {
+            workspaceRemote.createAndFocus(type = Workspace.Type.EXPLORER)
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to create new Explorer workspace: ${e.message}" }
+        }
     }
 }

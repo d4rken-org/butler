@@ -174,11 +174,11 @@ class MainActivity : Activity2() {
     }
 
     private fun handleShortcutIntent(intent: Intent) {
-        val directoryPath = intent.getStringExtra(DynamicShortcutManager.EXPLORER_EXTRA_PATH)
-        if (directoryPath != null) {
-            log(TAG) { "Opening directory from shortcut: $directoryPath" }
-            vm.openDirectoryFromShortcut(directoryPath)
-            shortcutManager.reportPathShortcutUsed(directoryPath)
+        val serializedPath = intent.getStringExtra(DynamicShortcutManager.EXPLORER_EXTRA_PATH)
+        if (serializedPath != null) {
+            log(TAG) { "Opening directory from shortcut: $serializedPath" }
+            vm.openDirectoryFromShortcut(serializedPath)
+            shortcutManager.reportPathShortcutUsed(serializedPath)
         }
     }
 
