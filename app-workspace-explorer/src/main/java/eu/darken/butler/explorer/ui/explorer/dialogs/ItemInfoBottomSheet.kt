@@ -177,7 +177,7 @@ private fun SingleFileInfo(
         item.permissions?.let { permissions ->
             InfoRow(
                 label = stringResource(R.string.explorer_info_permissions_label),
-                value = permissions.octal
+                value = permissions.toReadableString()
             )
         }
 
@@ -258,7 +258,7 @@ private fun SingleDirectoryInfo(
         item.permissions?.let { permissions ->
             InfoRow(
                 label = stringResource(R.string.explorer_info_permissions_label),
-                value = permissions.octal
+                value = permissions.toReadableString()
             )
         }
 

@@ -47,7 +47,7 @@ internal fun DirectoryRow(
             append(item.lookup.modifiedAt?.let { formatDate(it) } ?: "?")
             item.permissions?.let { perms ->
                 append(" • ")
-                append(perms.octal)
+                append(perms.toReadableString())
             }
             item.ownership?.let { owner ->
                 append(" • ")
