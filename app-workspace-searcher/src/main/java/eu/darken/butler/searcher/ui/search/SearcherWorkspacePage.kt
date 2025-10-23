@@ -149,7 +149,7 @@ fun SearcherWorkspacePage(
         }
     }
 
-    remember(focusManager, keyboardController, shortcutsFocusRequester) {
+    val wrappedOnToggleSelection: (SearchResult) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester) {
         { result ->
             // Only clear focus and hide keyboard when entering selection mode (first selection)
             // Not when already in selection mode (subsequent toggles)
@@ -371,7 +371,7 @@ fun SearcherWorkspacePage(
                                             }
                                         )
                                         if (currentState.selectionState.isSelectionMode) {
-                                            onToggleSelection(searchResult)
+                                            wrappedOnToggleSelection(searchResult)
                                         } else {
                                             onResultClick(searchResult)
                                         }
