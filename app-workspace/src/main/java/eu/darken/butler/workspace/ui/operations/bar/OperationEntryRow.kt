@@ -2,7 +2,6 @@ package eu.darken.butler.workspace.ui.operations.bar
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -47,17 +46,24 @@ fun OperationEntryRow(
     onRowClick: () -> Unit,
     modifier: Modifier = Modifier,
     onActionClick: (() -> Unit)? = null,
-    showSecondaryText: Boolean = true,
     isBarExpanded: Boolean = true,
 ) {
+
+    val showSecondaryText = isBarExpanded || when (operation.state) {
+        is OperationDisplay.State.Completed,
+        is OperationDisplay.State.Failed,
+        is OperationDisplay.State.Cancelled -> true
+        else -> false
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.secondaryContainer)
             .clickable { onRowClick() }
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(start = 16.dp, end = 8.dp)
+            .padding(vertical = if (isBarExpanded) 8.dp else 2.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // Use small icon layout when bar is expanded
         val useSmallIconLayout = isBarExpanded
@@ -282,7 +288,11 @@ fun OperationEntryRow(
                 tint = MaterialTheme.colorScheme.onSecondaryContainer,
             )
 
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 16.dp)
+            ) {
                 Text(
                     text = when (operation.state) {
                         is OperationDisplay.State.Running -> operation.state.primaryProgress.primary.asComposable()
@@ -314,14 +324,6 @@ fun OperationEntryRow(
                 val progressData = (operation.state as? OperationDisplay.State.Running)?.primaryProgress
                 val isWaiting = operation.state is OperationDisplay.State.Waiting
 
-                if (progressData != null || isWaiting) {
-                    // Add spacing
-                    if (!showSecondaryText) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                    } else {
-                        Spacer(modifier = Modifier.height(2.dp))
-                    }
-                }
 
                 progressData?.let { progressData ->
                     when (val count = progressData.count) {
@@ -369,8 +371,8 @@ fun OperationEntryRow(
         }
 
         OperationActionIndicator(
+            modifier = Modifier,
             state = operation.state,
-            modifier = Modifier.size(24.dp),
             onAction = if (operation.state is OperationDisplay.State.Running) onActionClick else null
         )
     }
@@ -423,7 +425,7 @@ private fun OperationEntryRowPercentPreview() {
             ),
             onRowClick = {},
             onActionClick = {},
-            isBarExpanded = false,
+            isBarExpanded = true,
         )
     }
 }
@@ -475,7 +477,7 @@ private fun OperationEntryRowIndeterminatePreview() {
             ),
             onRowClick = {},
             onActionClick = {},
-            isBarExpanded = false,
+            isBarExpanded = true,
         )
     }
 }
@@ -484,27 +486,50 @@ private fun OperationEntryRowIndeterminatePreview() {
 @Composable
 private fun OperationEntryRowCompletedPreview() {
     PreviewWrapper {
-        OperationEntryRow(
-            operation = OperationDisplay(
-                id = Operation.Id(),
-                title = "Delete operation".toCaString(),
-                description = "Successfully deleted 5 files".toCaString(),
-                icon = Icons.TwoTone.Delete,
-                state = OperationDisplay.State.Completed(
-                    summary = "Deleted 5 items".toCaString(),
-                    completedAt = Clock.System.now() + 2.5.seconds,
-                    report = object : Operation.Report {
-                        override val summary = "Deleted 5 items".toCaString()
-                        override val affectedPaths = emptyList<Operation.Report.PathChange>()
-                    }
+        Column {
+            OperationEntryRow(
+                operation = OperationDisplay(
+                    id = Operation.Id(),
+                    title = "Delete operation".toCaString(),
+                    description = "Successfully deleted 5 files".toCaString(),
+                    icon = Icons.TwoTone.Delete,
+                    state = OperationDisplay.State.Completed(
+                        summary = "Deleted 5 items".toCaString(),
+                        completedAt = Clock.System.now() + 2.5.seconds,
+                        report = object : Operation.Report {
+                            override val summary = "Deleted 5 items".toCaString()
+                            override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                        }
+                    ),
+                    startedAt = Clock.System.now(),
                 ),
-                startedAt = Clock.System.now(),
-            ),
-            onRowClick = {},
-            onActionClick = {},
-            showSecondaryText = true,
-            isBarExpanded = true,
-        )
+                onRowClick = {},
+                onActionClick = {},
+                isBarExpanded = true,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            OperationEntryRow(
+                operation = OperationDisplay(
+                    id = Operation.Id(),
+                    title = "Delete operation".toCaString(),
+                    description = "Successfully deleted 5 files".toCaString(),
+                    icon = Icons.TwoTone.Delete,
+                    state = OperationDisplay.State.Completed(
+                        summary = "Deleted 5 items".toCaString(),
+                        completedAt = Clock.System.now() + 2.5.seconds,
+                        report = object : Operation.Report {
+                            override val summary = "Deleted 5 items".toCaString()
+                            override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                        }
+                    ),
+                    startedAt = Clock.System.now(),
+                ),
+                onRowClick = {},
+                onActionClick = {},
+                isBarExpanded = false,
+            )
+        }
+
     }
 }
 
@@ -527,7 +552,6 @@ private fun OperationEntryRowFailedPreview() {
             ),
             onRowClick = {},
             onActionClick = {},
-            showSecondaryText = true,
             isBarExpanded = true,
         )
     }
@@ -551,8 +575,33 @@ private fun OperationEntryRowCancelledPreview() {
             ),
             onRowClick = {},
             onActionClick = {},
-            showSecondaryText = true,
             isBarExpanded = true,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun OperationEntryRowRunningPreview() {
+    PreviewWrapper {
+        OperationEntryRow(
+            operation = OperationDisplay(
+                id = Operation.Id(),
+                title = "Moving large files".toCaString(),
+                description = "Transferring video files".toCaString(),
+                icon = Icons.TwoTone.Delete,
+                state = OperationDisplay.State.Running(
+                    primaryProgress = Progress.Data(
+                        primary = "Moving files".toCaString(),
+                        secondary = "Transferring data...".toCaString(),
+                        count = Progress.Count.Size(1024 * 1024 * 250, 1024 * 1024 * 500) // 250MB/500MB
+                    )
+                ),
+                startedAt = Clock.System.now(),
+            ),
+            onRowClick = {},
+            onActionClick = {},
+            isBarExpanded = false,
         )
     }
 }

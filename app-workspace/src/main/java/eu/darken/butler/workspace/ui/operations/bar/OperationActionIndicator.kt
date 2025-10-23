@@ -27,36 +27,35 @@ import kotlin.time.Clock
 
 @Composable
 fun OperationActionIndicator(
-    state: OperationDisplay.State,
     modifier: Modifier = Modifier,
+    state: OperationDisplay.State,
     onAction: (() -> Unit)? = null,
 ) {
     val isActionable = state is OperationDisplay.State.Running && onAction != null
 
-    if (isActionable) {
-        IconButton(
-            onClick = onAction,
-            modifier = modifier
-        ) {
-            Icon(
-                imageVector = Icons.TwoTone.Cancel,
-                contentDescription = stringResource(R.string.operations_cancel_operation),
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.error
-            )
-        }
-    } else {
+    IconButton(
+        modifier = modifier,
+        enabled = isActionable,
+        onClick = onAction ?: {},
+    ) {
         val (imageVector, contentDescriptionRes, tint) = when (state) {
             is OperationDisplay.State.Queued -> Triple(
                 Icons.TwoTone.PauseCircle,
                 R.string.operations_state_queued,
                 MaterialTheme.colorScheme.onSurfaceVariant
             )
-            is OperationDisplay.State.Running -> Triple(
-                Icons.TwoTone.PauseCircle,
-                R.string.operations_state_running,
-                MaterialTheme.colorScheme.primary
-            )
+            is OperationDisplay.State.Running -> when {
+                isActionable -> Triple(
+                    Icons.TwoTone.Cancel,
+                    R.string.operations_cancel_operation,
+                    MaterialTheme.colorScheme.error
+                )
+                else -> Triple(
+                    Icons.TwoTone.PauseCircle,
+                    R.string.operations_state_running,
+                    MaterialTheme.colorScheme.primary
+                )
+            }
             is OperationDisplay.State.Waiting -> Triple(
                 Icons.TwoTone.Pause,
                 R.string.operations_state_waiting,
@@ -86,6 +85,7 @@ fun OperationActionIndicator(
             tint = tint,
         )
     }
+
 }
 
 @Preview2

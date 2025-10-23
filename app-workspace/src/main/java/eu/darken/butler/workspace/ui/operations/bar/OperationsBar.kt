@@ -209,12 +209,6 @@ fun OperationsBar(
                                 onActionClick = if (canCancel) {
                                     { pendingCancelId = operation.id }
                                 } else null,
-                                showSecondaryText = isExpanded || when (operation.state) {
-                                    is OperationDisplay.State.Completed,
-                                    is OperationDisplay.State.Failed,
-                                    is OperationDisplay.State.Cancelled -> true
-                                    else -> false
-                                },
                                 isBarExpanded = isExpanded,
                             )
                         }
