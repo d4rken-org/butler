@@ -60,7 +60,7 @@ fun OperationsBar(
     initialExpanded: Boolean = false,
 ) {
     // Preserve expansion state across operations changes
-    var isExpanded by remember(operations.size > 1) {
+    var isExpanded by remember {
         mutableStateOf(initialExpanded)
     }
 

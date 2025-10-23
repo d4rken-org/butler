@@ -60,7 +60,7 @@ fun ClipboardBar(
     onClearAll: () -> Unit = {},
 ) {
     // Preserve expansion state across clipboard changes
-    var isExpanded by remember(clipboardEntries.size > 1) {
+    var isExpanded by remember {
         mutableStateOf(initialExpanded)
     }
 
