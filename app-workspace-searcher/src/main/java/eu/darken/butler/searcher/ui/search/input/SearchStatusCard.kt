@@ -1,4 +1,6 @@
-package eu.darken.butler.searcher.ui.search
+package eu.darken.butler.searcher.ui.search.input
+
+import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box

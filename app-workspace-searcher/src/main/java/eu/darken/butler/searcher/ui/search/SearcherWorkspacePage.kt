@@ -54,6 +54,8 @@ import eu.darken.butler.searcher.core.SearchHistory
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
+import eu.darken.butler.searcher.ui.search.input.SearchStatusCard
+import eu.darken.butler.searcher.ui.search.input.SearchToolbarCard
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.operations.Operation

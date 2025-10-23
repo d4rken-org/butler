@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.ui.search
+package eu.darken.butler.searcher.ui.search.input
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
@@ -24,7 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -32,6 +31,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.searcher.core.SearchTarget
+import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
@@ -81,14 +81,16 @@ fun SearchToolbarCard(
             if (isCollapsed) {
                 // Collapsed state - compact display
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Icon(
+                        modifier = Modifier.size(24.dp),
                         imageVector = Icons.TwoTone.Search,
                         contentDescription = null,
-                        modifier = Modifier.size(18.dp),
                         tint = MaterialTheme.colorScheme.primary
                     )
 
@@ -109,10 +111,7 @@ fun SearchToolbarCard(
                         WorkspaceButton(
                             state = workspaceButtonState,
                             workspaceActionHandler = workspaceActionHandler,
-                            modifier = Modifier.graphicsLayer {
-                                scaleX = 0.75f
-                                scaleY = 0.75f
-                            }
+                            modifier = Modifier.size(44.dp)
                         )
                     }
                 }
@@ -137,7 +136,7 @@ fun SearchToolbarCard(
 
                         WorkspaceButton(
                             state = workspaceButtonState,
-                        currentWorkspaceId = workspaceId,
+                            currentWorkspaceId = workspaceId,
                             workspaceActionHandler = workspaceActionHandler,
                         )
                     }

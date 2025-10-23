@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.ui.search
+package eu.darken.butler.searcher.ui.search.input
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -6,12 +6,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.WrapText
-import androidx.compose.material.icons.filled.FormatQuote
-import androidx.compose.material.icons.filled.TextFormat
-import androidx.compose.material.icons.filled.WrapText
 import androidx.compose.material.icons.twotone.FormatQuote
 import androidx.compose.material.icons.twotone.TextFormat
-import androidx.compose.material.icons.twotone.WrapText
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
