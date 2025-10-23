@@ -10,6 +10,11 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
 
+enum class DurationFormat {
+    FULL,
+    SHORT,
+    COMPACT,
+}
 
 @Composable
 fun formatRelativeTime(
@@ -54,12 +59,98 @@ fun formatRelativeTime(
 }
 
 @Composable
-fun formatDuration(duration: Duration, shortStyle: Boolean = false): String {
+fun formatDuration(
+    duration: Duration,
+    format: DurationFormat = DurationFormat.FULL,
+    shortStyle: Boolean = false,
+): String {
     val context = LocalContext.current
-    return remember(duration) { formatDuration(context, duration, shortStyle) }
+    val actualFormat = if (shortStyle) DurationFormat.SHORT else format
+    return remember(duration, actualFormat) { formatDuration(context, duration, actualFormat) }
 }
 
-fun formatDuration(context: Context, duration: Duration, shortStyle: Boolean = false): String {
+fun formatDuration(
+    context: Context,
+    duration: Duration,
+    format: DurationFormat = DurationFormat.FULL,
+    shortStyle: Boolean = false,
+): String {
+    val actualFormat = if (shortStyle) DurationFormat.SHORT else format
+
+    return when (actualFormat) {
+        DurationFormat.COMPACT -> formatDurationCompact(context, duration)
+        DurationFormat.SHORT -> formatDurationShort(context, duration)
+        DurationFormat.FULL -> formatDurationFull(context, duration)
+    }
+}
+
+private fun formatDurationCompact(context: Context, duration: Duration): String {
+    return when {
+        duration.inWholeSeconds < 1 -> {
+            val ms = duration.inWholeMilliseconds.toInt()
+            context.resources.getQuantityString(
+                R.plurals.common_duration_milliseconds_short,
+                ms,
+                ms
+            )
+        }
+        duration.inWholeSeconds < 60 -> {
+            val seconds = duration.inWholeSeconds.toInt()
+            context.resources.getQuantityString(
+                R.plurals.common_duration_seconds_short,
+                seconds,
+                seconds
+            )
+        }
+        else -> {
+            val minutes = duration.inWholeMinutes.toInt()
+            val seconds = (duration.inWholeSeconds % 60).toInt()
+            val minutesPart = context.resources.getQuantityString(
+                R.plurals.common_duration_minutes_short,
+                minutes,
+                minutes
+            )
+            val secondsPart = context.resources.getQuantityString(
+                R.plurals.common_duration_seconds_short,
+                seconds,
+                seconds
+            )
+            "$minutesPart $secondsPart"
+        }
+    }
+}
+
+private fun formatDurationShort(context: Context, duration: Duration): String {
+    val seconds = duration.inWholeSeconds
+    val minutes = duration.inWholeMinutes
+    val hours = duration.inWholeHours
+    val days = duration.inWholeDays
+
+    return when {
+        days > 0 -> context.resources.getQuantityString(
+            R.plurals.common_duration_days_short,
+            days.toInt(),
+            days.toInt()
+        )
+        hours > 0 -> context.resources.getQuantityString(
+            R.plurals.common_duration_hours_short,
+            hours.toInt(),
+            hours.toInt()
+        )
+        minutes > 0 -> context.resources.getQuantityString(
+            R.plurals.common_duration_minutes_short,
+            minutes.toInt(),
+            minutes.toInt()
+        )
+        else -> context.resources.getQuantityString(
+            R.plurals.common_duration_seconds_short,
+            seconds.toInt(),
+            seconds.toInt()
+        )
+    }
+}
+
+private fun formatDurationFull(context: Context, duration: Duration): String {
     val seconds = duration.inWholeSeconds
     val minutes = duration.inWholeMinutes
     val hours = duration.inWholeHours
@@ -68,97 +159,63 @@ fun formatDuration(context: Context, duration: Duration, shortStyle: Boolean = f
     return when {
         days > 0 -> {
             val remainingHours = hours % 24
-            if (shortStyle) {
-                context.resources.getQuantityString(
-                    R.plurals.common_duration_days_short,
-                    days.toInt(),
-                    days.toInt()
+            val daysPart = context.resources.getQuantityString(
+                R.plurals.common_duration_days_full,
+                days.toInt(),
+                days.toInt()
+            )
+            if (remainingHours > 0) {
+                val hoursPart = context.resources.getQuantityString(
+                    R.plurals.common_duration_hours_full,
+                    remainingHours.toInt(),
+                    remainingHours.toInt()
                 )
+                "$daysPart $hoursPart"
             } else {
-                val daysPart = context.resources.getQuantityString(
-                    R.plurals.common_duration_days_full,
-                    days.toInt(),
-                    days.toInt()
-                )
-                if (remainingHours > 0) {
-                    val hoursPart = context.resources.getQuantityString(
-                        R.plurals.common_duration_hours_full,
-                        remainingHours.toInt(),
-                        remainingHours.toInt()
-                    )
-                    "$daysPart $hoursPart"
-                } else {
-                    daysPart
-                }
+                daysPart
             }
         }
         hours > 0 -> {
             val remainingMinutes = minutes % 60
-            if (shortStyle) {
-                context.resources.getQuantityString(
-                    R.plurals.common_duration_hours_short,
-                    hours.toInt(),
-                    hours.toInt()
+            val hoursPart = context.resources.getQuantityString(
+                R.plurals.common_duration_hours_full,
+                hours.toInt(),
+                hours.toInt()
+            )
+            if (remainingMinutes > 0) {
+                val minutesPart = context.resources.getQuantityString(
+                    R.plurals.common_duration_minutes_full,
+                    remainingMinutes.toInt(),
+                    remainingMinutes.toInt()
                 )
+                "$hoursPart $minutesPart"
             } else {
-                val hoursPart = context.resources.getQuantityString(
-                    R.plurals.common_duration_hours_full,
-                    hours.toInt(),
-                    hours.toInt()
-                )
-                if (remainingMinutes > 0) {
-                    val minutesPart = context.resources.getQuantityString(
-                        R.plurals.common_duration_minutes_full,
-                        remainingMinutes.toInt(),
-                        remainingMinutes.toInt()
-                    )
-                    "$hoursPart $minutesPart"
-                } else {
-                    hoursPart
-                }
+                hoursPart
             }
         }
         minutes > 0 -> {
             val remainingSeconds = seconds % 60
-            if (shortStyle) {
-                context.resources.getQuantityString(
-                    R.plurals.common_duration_minutes_short,
-                    minutes.toInt(),
-                    minutes.toInt()
-                )
-            } else {
-                val minutesPart = context.resources.getQuantityString(
-                    R.plurals.common_duration_minutes_full,
-                    minutes.toInt(),
-                    minutes.toInt()
-                )
-                if (remainingSeconds > 0) {
-                    val secondsPart = context.resources.getQuantityString(
-                        R.plurals.common_duration_seconds_full,
-                        remainingSeconds.toInt(),
-                        remainingSeconds.toInt()
-                    )
-                    "$minutesPart $secondsPart"
-                } else {
-                    minutesPart
-                }
-            }
-        }
-        else -> {
-            if (shortStyle) {
-                context.resources.getQuantityString(
-                    R.plurals.common_duration_seconds_short,
-                    seconds.toInt(),
-                    seconds.toInt()
-                )
-            } else {
-                context.resources.getQuantityString(
+            val minutesPart = context.resources.getQuantityString(
+                R.plurals.common_duration_minutes_full,
+                minutes.toInt(),
+                minutes.toInt()
+            )
+            if (remainingSeconds > 0) {
+                val secondsPart = context.resources.getQuantityString(
                     R.plurals.common_duration_seconds_full,
-                    seconds.toInt(),
-                    seconds.toInt()
+                    remainingSeconds.toInt(),
+                    remainingSeconds.toInt()
                 )
+                "$minutesPart $secondsPart"
+            } else {
+                minutesPart
             }
         }
+        else -> context.resources.getQuantityString(
+            R.plurals.common_duration_seconds_full,
+            seconds.toInt(),
+            seconds.toInt()
+        )
     }
 }
 

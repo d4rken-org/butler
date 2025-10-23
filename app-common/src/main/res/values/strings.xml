@@ -79,6 +79,10 @@
     <string name="general_continue">Continue</string>
 
     <!-- Duration formatting -->
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="one">%dms</item>
+        <item quantity="other">%dms</item>
+    </plurals>
     <plurals name="common_duration_seconds_short">
         <item quantity="one">%ds</item>
         <item quantity="other">%ds</item>

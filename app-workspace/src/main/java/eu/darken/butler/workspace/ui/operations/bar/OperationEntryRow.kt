@@ -29,10 +29,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.DurationFormat
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.formatDuration
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.operations.Operation
@@ -168,18 +170,7 @@ fun OperationEntryRow(
 
                             val durationText = completedAt?.let {
                                 val duration = it - operation.startedAt
-                                val formatted = when {
-                                    duration.inWholeSeconds < 1 -> "${duration.inWholeMilliseconds}ms"
-                                    duration.inWholeSeconds < 60 -> String.format(
-                                        "%.1fs",
-                                        duration.inWholeMilliseconds / 1000.0
-                                    )
-                                    else -> {
-                                        val minutes = duration.inWholeMinutes
-                                        val seconds = duration.inWholeSeconds % 60
-                                        "${minutes}m ${seconds}s"
-                                    }
-                                }
+                                val formatted = formatDuration(duration, DurationFormat.COMPACT)
                                 val stateLabel = stateStringRes?.let { stringResource(it) } ?: ""
                                 "$formatted • $stateLabel"
                             } ?: ""
