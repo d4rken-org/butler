@@ -2008,7 +2008,7 @@ class LocalPathDeleteTest : BaseTest() {
             fileType = FileType.FILE,
             size = null,  // Null size due to permission error
             modifiedAt = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis()),
-            error = ReadException("Permission denied", LocalPath.build(testFile))
+            error = "Permission denied"
         )
 
         // When - operation should handle null size gracefully

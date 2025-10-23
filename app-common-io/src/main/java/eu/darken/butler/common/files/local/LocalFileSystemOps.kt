@@ -19,9 +19,9 @@ import eu.darken.butler.common.files.extensions.toFile
 import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
+import eu.darken.butler.common.files.metadata.OwnershipResolver
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.ipc.fileHandle
-import eu.darken.butler.common.pkgs.pkgops.LibcoreTool
 import okio.FileHandle
 import java.io.IOException
 import java.io.InputStream
@@ -65,7 +65,7 @@ import kotlin.time.Instant
  */
 @Singleton
 class LocalFileSystemOps @Inject constructor(
-    private val libcoreTool: LibcoreTool,
+    private val ownershipResolver: OwnershipResolver,
 ) : FileSystemOps<LocalPath, LocalPathLookup> {
 
     override suspend fun lookup(path: LocalPath, options: LookupOptions): LocalPathLookup = try {
@@ -150,17 +150,9 @@ class LocalFileSystemOps @Inject constructor(
 
         var ownership: Ownership? = null
         if (options.fetchOwnership && fstat != null) {
-            val uid = fstat!!.st_uid
-            val gid = fstat!!.st_gid
-
-            val userName: String? = libcoreTool.getNameForUid(uid)
-            val groupName: String? = libcoreTool.getNameForGid(gid)
-
-            ownership = Ownership(
-                userId = uid,
-                groupId = gid,
-                userName = userName,
-                groupName = groupName
+            ownership = ownershipResolver.resolve(
+                userId = fstat!!.st_uid,
+                groupId = fstat!!.st_gid,
             )
         }
 
@@ -190,9 +182,7 @@ class LocalFileSystemOps @Inject constructor(
             ownership = ownership,
             permissions = permissions,
             createdAt = createdAt,
-            error = errors.takeIf { it.isNotEmpty() }?.let {
-                ReadException(errors.joinToString("; "), path)
-            },
+            error = errors.takeIf { it.isNotEmpty() }?.joinToString("; "),
         )
     } catch (e: Exception) {
         throw ReadException(path = path, cause = e)

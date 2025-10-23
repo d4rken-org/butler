@@ -16,7 +16,7 @@ data class LocalPathLookup(
     override val size: Long?,
     override val modifiedAt: Instant?,
     override val target: LocalPath? = null,
-    override val error: Throwable? = null,
+    override val error: String? = null,
     override val ownership: Ownership? = null,
     override val permissions: Permissions? = null,
     override val createdAt: Instant? = null,

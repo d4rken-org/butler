@@ -16,7 +16,6 @@ import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkConstructor
@@ -563,7 +562,7 @@ class LocalFileSystemOpsTest : BaseTest() {
             fileType = FileType.DIRECTORY,
             size = null,
             modifiedAt = null,
-            error = ReadException("Permission denied", path)
+            error = "Permission denied <-> /restricted"
         )
 
         // Then - lookup object created successfully with null fields
@@ -572,7 +571,6 @@ class LocalFileSystemOpsTest : BaseTest() {
         lookup.size shouldBe null
         lookup.modifiedAt shouldBe null
         lookup.error shouldNotBe null
-        lookup.error.shouldBeInstanceOf<ReadException>()
     }
 
     @Test
@@ -584,40 +582,15 @@ class LocalFileSystemOpsTest : BaseTest() {
             fileType = FileType.FILE,
             size = null,  // Null size due to permission error
             modifiedAt = Instant.fromEpochMilliseconds(0),
-            error = ReadException("Size unavailable", path)
+            error = "Size unavailable <-> /test"
         )
 
         // Then - can safely access size with elvis operator
         val safeSize = lookup.size ?: 0L
         safeSize shouldBe 0L
 
-        // And error field is properly typed as Throwable
-        lookup.error.shouldBeInstanceOf<ReadException>()
-        lookup.error?.message shouldBe "Size unavailable <-> /test"
-    }
-
-    @Test
-    fun `LocalPathLookup error field is Throwable not String`() = runTest {
-        // Given - a lookup with an error
-        val path = LocalPath.build("/error-test")
-        val testException = ReadException("Test error", path, SecurityException("Original cause"))
-        val lookup = LocalPathLookup(
-            lookedUp = path,
-            fileType = FileType.FILE,
-            size = null,
-            modifiedAt = null,
-            error = testException
-        )
-
-        // Then - error is a Throwable with full exception details
-        lookup.error shouldNotBe null
-        lookup.error.shouldBeInstanceOf<ReadException>()
-
-        // And we can access cause chain
-        val exception = lookup.error as ReadException
-        exception.message shouldBe "Test error <-> /error-test"
-        exception.cause.shouldBeInstanceOf<SecurityException>()
-        exception.cause?.message shouldBe "Original cause"
+        // And error field contains the error message
+        lookup.error shouldBe "Size unavailable <-> /test"
     }
 
     // ============ LOOKUPOPTIONS BEHAVIOR TESTS ============
