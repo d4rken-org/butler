@@ -124,7 +124,6 @@ fun SearcherWorkspacePage(
     val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
     val topToolbarScrollBehavior = rememberTopToolbarScrollBehavior()
     val listState = rememberLazyListState()
-    var searchDebounce by remember { mutableStateOf(false) }
     var showClearHistoryDialog by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -241,16 +240,6 @@ fun SearcherWorkspacePage(
     )
 
     state?.let { currentState ->
-        // Debounce search input - needs currentState
-        LaunchedEffect(currentState.searchQuery.text) {
-            if (currentState.searchQuery.text.isNotBlank()) {
-                searchDebounce = true
-                delay(500) // Wait 500ms after user stops typing
-                searchDebounce = false
-                onPerformSearch()
-            }
-        }
-
         Box(
             modifier = Modifier
                 .fillMaxSize()

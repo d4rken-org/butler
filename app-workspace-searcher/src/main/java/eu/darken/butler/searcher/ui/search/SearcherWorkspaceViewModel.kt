@@ -61,7 +61,9 @@ import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -101,6 +103,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val selectionState = MutableStateFlow(SearcherSelectionState())
     private val quickActionsResult = MutableStateFlow<SearchItem?>(null)
     private val dialogStateFlow = MutableStateFlow<SearcherDialogState>(SearcherDialogState.None)
+    private var lastAutoExecutedQuery: String? = null
 
     val dialogEvents = SingleEventFlow<SearcherDialogEvent>()
 
@@ -142,6 +145,20 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     searchTargets.value = updatedTargets
                     searcherSettings.defaultSearchTargets.value(updatedTargets)
                 }
+            }
+            .launchIn(vmScope)
+
+        // Auto-search on query text changes with debouncing
+        searchQuery
+            .debounce(500)
+            .map { it.text }
+            .distinctUntilChanged()
+            .filter { it.isNotBlank() }
+            .filter { it != lastAutoExecutedQuery }
+            .onEach { query ->
+                log(tag, INFO) { "Auto-triggering search for query: $query" }
+                lastAutoExecutedQuery = query
+                performSearch(saveToHistory = false)
             }
             .launchIn(vmScope)
     }
