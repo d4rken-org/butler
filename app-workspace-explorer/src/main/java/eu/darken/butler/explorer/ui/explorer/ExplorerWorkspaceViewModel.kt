@@ -233,16 +233,16 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             selectedItems = selectedItems,
             selectableItems = items
                 ?.filter { item ->
-                    // Base filter: must be a Path or SAF storage
-                    val isBaseSelectable = item is ExplorerItem.Path || item is ExplorerItem.Storage.SAF
+                    // Base filter: must be a Path or Storage (includes both Local and SAF storage)
+                    val isBaseSelectable = item is ExplorerItem.Path || item is ExplorerItem.Storage
                     if (!isBaseSelectable) return@filter false
 
                     // In picker mode, filter by what can actually be selected
                     when (pickerConfig?.selection) {
                         is PickerConfig.Selection.DirectorySingle,
                         is PickerConfig.Selection.DirectoryMulti -> {
-                            // Only directories are selectable
-                            item is ExplorerItem.Directory
+                            // Directories and storage volumes are selectable
+                            item is ExplorerItem.Directory || item is ExplorerItem.Storage
                         }
                         is PickerConfig.Selection.FileSingle,
                         is PickerConfig.Selection.FileMulti -> {
@@ -487,16 +487,29 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun toggleItemSelection(item: ExplorerItem) {
         log(tag) { "toggleItemSelection($item)" }
-        if (item !is ExplorerItem.Path && item !is ExplorerItem.Storage.SAF) {
+        if (item !is ExplorerItem.Path && item !is ExplorerItem.Storage) {
             log(tag, WARN) { "toggleItemSelection($item) is not selectable" }
             return
         }
+        val pickerConfig = runBlocking { workspaceSource.first()?.pickerConfig }
         val currentSelection = selectedItemsFlow.value
-        selectedItemsFlow.value = if (currentSelection.contains(item)) {
-            currentSelection - item
+
+        // In DirectorySingle mode with Storage items, enforce single selection (radio button behavior)
+        val newSelection = if (pickerConfig?.selection is PickerConfig.Selection.DirectorySingle && item is ExplorerItem.Storage) {
+            if (currentSelection.contains(item)) {
+                emptySet() // Deselect if clicking the same item
+            } else {
+                setOf(item) // Replace selection with new item
+            }
         } else {
-            currentSelection + item
+            // Normal toggle behavior for multi-select modes
+            if (currentSelection.contains(item)) {
+                currentSelection - item
+            } else {
+                currentSelection + item
+            }
         }
+        selectedItemsFlow.value = newSelection
     }
 
     fun onItemClick(item: ExplorerItem) = launch {
@@ -528,8 +541,15 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "onItemLongClick($item)" }
         val pickerConfig = runBlocking { workspaceSource.first()?.pickerConfig }
 
-        // Disable long-press in single-select picker modes
-        if (pickerConfig == null || pickerConfig.selection.isMultiSelect) {
+        // Enable long-press selection in:
+        // - Normal mode (no picker)
+        // - Multi-select picker modes
+        // - DirectorySingle mode with Storage items (allows selecting storage volumes at Device level)
+        val allowLongPress = pickerConfig == null
+            || pickerConfig.selection.isMultiSelect
+            || (pickerConfig.selection is PickerConfig.Selection.DirectorySingle && item is ExplorerItem.Storage)
+
+        if (allowLongPress) {
             toggleItemSelection(item)
         }
     }
@@ -1197,24 +1217,38 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
 
         val stateSnap = state.first()
+
+        // Helper function to extract path from either Directory or Storage items
+        fun extractPath(item: ExplorerItem): APath<*>? = when (item) {
+            is ExplorerItem.Directory -> item.lookup.lookedUp
+            is ExplorerItem.Storage -> item.target.path
+            else -> null
+        }
+
         val selectedPaths: List<APath<*>> = when (config.selection) {
             is PickerConfig.Selection.DirectorySingle -> {
-                // Single directory: return current directory
-                val currentLocation = stateSnap.currentLocation as? ExplorerLocation.Directory
-                if (currentLocation != null) listOf(currentLocation.path) else emptyList()
+                // Single directory: return selected storage or current directory
+                if (stateSnap.selectionState.selectedItems.isNotEmpty()) {
+                    // Storage item selected at Device level
+                    stateSnap.selectionState.selectedItems
+                        .mapNotNull { extractPath(it) }
+                } else {
+                    // No items selected → return current directory
+                    val currentLocation = stateSnap.currentLocation as? ExplorerLocation.Directory
+                    if (currentLocation != null) listOf(currentLocation.path) else emptyList()
+                }
             }
             is PickerConfig.Selection.DirectoryMulti -> {
-                // Multiple directories: return selected directories, or current directory if none selected
+                // Multiple directories: return selected directories/storages, or current directory if none selected
                 if (stateSnap.selectionState.selectedItems.isEmpty()) {
                     // No items selected → return current directory
                     val currentLocation = stateSnap.currentLocation as? ExplorerLocation.Directory
                     if (currentLocation != null) listOf(currentLocation.path) else emptyList()
                 } else {
-                    // Items selected → return selected directories
+                    // Items selected → return selected directories and storage volumes
                     stateSnap.selectionState.selectedItems
-                        .filterIsInstance<ExplorerItem.Lookup>()
-                        .filter { it is ExplorerItem.Directory }
-                        .map { it.lookup.lookedUp }
+                        .filter { it is ExplorerItem.Directory || it is ExplorerItem.Storage }
+                        .mapNotNull { extractPath(it) }
                 }
             }
             is PickerConfig.Selection.FileSingle -> {
@@ -1230,16 +1264,15 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     .map { it.lookup.lookedUp }
             }
             is PickerConfig.Selection.MixedMulti -> {
-                // Mixed selection: return both files and directories, or current directory if none selected
+                // Mixed selection: return files, directories, and storages, or current directory if none selected
                 if (stateSnap.selectionState.selectedItems.isEmpty()) {
                     // No items selected → return current directory
                     val currentLocation = stateSnap.currentLocation as? ExplorerLocation.Directory
                     if (currentLocation != null) listOf(currentLocation.path) else emptyList()
                 } else {
-                    // Items selected → return selected items (both files and directories)
+                    // Items selected → return selected items (files, directories, and storage volumes)
                     stateSnap.selectionState.selectedItems
-                        .filterIsInstance<ExplorerItem.Lookup>()
-                        .map { it.lookup.lookedUp }
+                        .mapNotNull { extractPath(it) }
                 }
             }
         }
