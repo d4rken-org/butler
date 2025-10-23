@@ -62,7 +62,7 @@ fun OperationEntryRow(
             .background(MaterialTheme.colorScheme.secondaryContainer)
             .clickable { onRowClick() }
             .padding(start = 16.dp, end = 8.dp)
-            .padding(vertical = if (isBarExpanded) 8.dp else 2.dp),
+            .padding(vertical = if (isBarExpanded) 8.dp else 0.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // Use small icon layout when bar is expanded

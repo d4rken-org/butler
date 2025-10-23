@@ -57,7 +57,7 @@ fun ClipboardEntryRow(
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.tertiaryContainer)
             .clickable { onEntryClick() }
-            .padding(vertical = if (showOrigin) 8.dp else 4.dp)
+            .padding(vertical = if (showOrigin) 8.dp else 0.dp)
             .padding(start = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -68,12 +68,10 @@ fun ClipboardEntryRow(
                     Column(
                         modifier = Modifier.weight(1f),
                     ) {
-                        // First text row: Copy/Cut icon + Title + Timestamp
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            // Copy/Cut Icon (smaller)
                             Icon(
                                 imageVector = when (entry.mode) {
                                     ClipboardClip.Paths.Mode.COPY -> Icons.TwoTone.ContentCopy
@@ -86,7 +84,6 @@ fun ClipboardEntryRow(
 
                             Spacer(modifier = Modifier.width(6.dp))
 
-                            // Title text (takes most space)
                             Text(
                                 text = entry.title.asComposable(),
                                 style = MaterialTheme.typography.bodyMedium,
@@ -95,21 +92,18 @@ fun ClipboardEntryRow(
                                 modifier = Modifier.weight(1f),
                             )
 
-                            // Timestamp
                             Text(
                                 text = formatRelativeTime(entry.clippedAt),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onTertiaryContainer,
-                                modifier = Modifier.padding(start = 8.dp, end = 8.dp),
+                                modifier = Modifier.padding(start = 8.dp),
                             )
                         }
 
-                        // Second text row: Folder icon + Subtitle
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            // Source/From Icon
                             Icon(
                                 imageVector = Icons.TwoTone.FolderOpen,
                                 contentDescription = null,
@@ -129,12 +123,10 @@ fun ClipboardEntryRow(
                             )
                         }
 
-                        // Third text row: Workspace icon + Origin
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            // Workspace Icon
                             Icon(
                                 imageVector = Icons.TwoTone.Workspaces,
                                 contentDescription = null,
@@ -171,7 +163,6 @@ fun ClipboardEntryRow(
                     Column(
                         modifier = Modifier.weight(1f),
                     ) {
-                        // Title + Timestamp row
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
@@ -189,11 +180,10 @@ fun ClipboardEntryRow(
                                 text = formatRelativeTime(entry.clippedAt),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onTertiaryContainer,
-                                modifier = Modifier.padding(start = 8.dp, end = 8.dp),
+                                modifier = Modifier.padding(start = 8.dp),
                             )
                         }
 
-                        // Simple subtitle
                         Text(
                             text = entry.description.asComposable(),
                             style = MaterialTheme.typography.bodySmall,
@@ -204,7 +194,6 @@ fun ClipboardEntryRow(
                     }
                 }
 
-                // Paste button
                 IconButton(
                     onClick = onPasteClick
                 ) {
