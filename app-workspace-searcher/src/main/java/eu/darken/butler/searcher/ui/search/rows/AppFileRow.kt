@@ -11,31 +11,31 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
+import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 
 @Composable
 fun AppFileRow(
-    data: FileRowData,
+    result: SearchItem,
     onClick: () -> Unit = {}
 ) {
-    FileRowBase(data = data, onClick = onClick) { fileData ->
-        AppFileIcon(fileData)
+    FileRowBase(result = result, onClick = onClick) { fileResult ->
+        AppFileIcon(fileResult)
 
         Spacer(modifier = Modifier.width(12.dp))
 
         FileInfo(
-            data = fileData,
-            showMetadata = true,
+            result = fileResult,
             modifier = Modifier.fillMaxWidth()
         )
     }
 }
 
 @Composable
-fun AppFileIcon(data: FileRowData) {
+fun AppFileIcon(result: SearchItem) {
     TintedAsyncImage(
-        model = data.lookup,
-        contentDescription = data.fileType.name,
+        model = result.lookup,
+        contentDescription = result.fileType.name,
         modifier = Modifier.size(40.dp)
     )
 }
@@ -46,7 +46,7 @@ private fun AppFileRowPreview() {
     PreviewWrapper {
         Column {
             AppFileRow(
-                data = SearcherMockDataProvider.createMockApkFile(
+                result = SearcherMockDataProvider.createMockApkFile(
                     name = "signal-android.apk",
                     sizeMB = 47,
                     hoursAgo = 1,
@@ -60,7 +60,7 @@ private fun AppFileRowPreview() {
             )
 
             AppFileRow(
-                data = SearcherMockDataProvider.createMockApkFile(
+                result = SearcherMockDataProvider.createMockApkFile(
                     name = "butler-app.aab",
                     sizeMB = 12,
                     hoursAgo = 1,

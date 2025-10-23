@@ -12,9 +12,8 @@ import androidx.compose.material.icons.twotone.Share
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.files.APath
 import eu.darken.butler.searcher.R
-import eu.darken.butler.searcher.core.SearchResult
+import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.actions.WorkspaceAction
@@ -30,21 +29,21 @@ sealed interface SearcherAction : WorkspaceAction {
 
     // Actions that work on one or more results
     data class Copy(
-        val results: List<SearchResult>,
+        val results: List<SearchItem>,
     ) : SearcherAction {
         override val icon = Icons.TwoTone.ContentCopy
         override val label = R.string.searcher_action_copy.toCaString()
     }
 
     data class Cut(
-        val results: List<SearchResult>,
+        val results: List<SearchItem>,
     ) : SearcherAction {
         override val icon = Icons.TwoTone.ContentCut
         override val label = R.string.searcher_action_cut.toCaString()
     }
 
     data class Delete(
-        val results: List<SearchResult>,
+        val results: List<SearchItem>,
     ) : SearcherAction {
         override val icon = Icons.TwoTone.Delete
         override val label = R.string.searcher_action_delete.toCaString()
@@ -52,7 +51,7 @@ sealed interface SearcherAction : WorkspaceAction {
     }
 
     data class Share(
-        val results: List<SearchResult>,
+        val results: List<SearchItem>,
     ) : SearcherAction {
         override val icon = Icons.TwoTone.Share
         override val label = R.string.searcher_action_share.toCaString()
@@ -61,28 +60,28 @@ sealed interface SearcherAction : WorkspaceAction {
 
     // Actions that only make sense for a single result
     data class OpenInEditor(
-        val result: SearchResult,
+        val result: SearchItem,
     ) : SearcherAction {
         override val icon = Workspace.Type.EDITOR.icon
         override val label = R.string.searcher_action_open_in_editor.toCaString()
     }
 
     data class OpenInExplorer(
-        val result: SearchResult,
+        val result: SearchItem,
     ) : SearcherAction {
         override val icon = Workspace.Type.EXPLORER.icon
         override val label = R.string.searcher_action_open_in_explorer.toCaString()
     }
 
     data class CopyPath(
-        val result: SearchResult,
+        val result: SearchItem,
     ) : SearcherAction {
         override val icon = Icons.TwoTone.Link
         override val label = R.string.searcher_action_copy_path.toCaString()
     }
 
     data class Properties(
-        val result: SearchResult,
+        val result: SearchItem,
     ) : SearcherAction {
         override val icon = Icons.TwoTone.Info
         override val label = R.string.searcher_action_properties.toCaString()

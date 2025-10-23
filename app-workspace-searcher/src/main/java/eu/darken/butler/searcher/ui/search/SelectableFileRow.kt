@@ -1,9 +1,7 @@
 package eu.darken.butler.searcher.ui.search
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -21,20 +19,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.searcher.ui.search.rows.FileInfo
-import eu.darken.butler.searcher.ui.search.rows.FileRowData
 import eu.darken.butler.searcher.ui.search.rows.StandardFileIcon
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SelectableFileRow(
-    data: FileRowData,
+    result: SearchItem,
     isSelected: Boolean,
     isSelectionMode: Boolean,
     onClick: () -> Unit,
@@ -80,7 +76,7 @@ fun SelectableFileRow(
                         onCheckedChange = { onClick() }
                     )
                 } else {
-                    StandardFileIcon(data)
+                    StandardFileIcon(result)
                 }
             }
 
@@ -88,7 +84,7 @@ fun SelectableFileRow(
 
             // File info
             FileInfo(
-                data = data,
+                result = result,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -98,7 +94,7 @@ fun SelectableFileRow(
 @Preview2
 @Composable
 private fun SelectableFileRowPreview() {
-    val fileData = SearcherMockDataProvider.createMockTextFile(
+    val searchResult = SearcherMockDataProvider.createMockTextFile(
         name = "example.txt",
         sizeKB = 1,
         hoursAgo = 1
@@ -111,7 +107,7 @@ private fun SelectableFileRowPreview() {
         ) {
             // Normal mode
             SelectableFileRow(
-                data = fileData,
+                result = searchResult,
                 isSelected = false,
                 isSelectionMode = false,
                 onClick = {},
@@ -120,7 +116,7 @@ private fun SelectableFileRowPreview() {
 
             // Selection mode - unselected
             SelectableFileRow(
-                data = fileData,
+                result = searchResult,
                 isSelected = false,
                 isSelectionMode = true,
                 onClick = {},
@@ -129,7 +125,7 @@ private fun SelectableFileRowPreview() {
 
             // Selection mode - selected
             SelectableFileRow(
-                data = fileData,
+                result = searchResult,
                 isSelected = true,
                 isSelectionMode = true,
                 onClick = {},

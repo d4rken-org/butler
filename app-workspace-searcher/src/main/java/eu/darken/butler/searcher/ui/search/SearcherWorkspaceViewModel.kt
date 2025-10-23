@@ -32,13 +32,12 @@ import eu.darken.butler.searcher.core.SearchEngine
 import eu.darken.butler.searcher.core.SearchHistory
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearchQuery
-import eu.darken.butler.searcher.core.SearchResult
+import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearcherSettings
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogEvent
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
-import eu.darken.butler.searcher.ui.search.rows.FileRowData
 import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.explorer.core.arguments.ExternalExplorerArguments
 import eu.darken.butler.workspace.core.Workspace
@@ -100,7 +99,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val currentFilter = MutableStateFlow(SearchQuery.Filter())
     private val searchTargets = MutableStateFlow<List<SearchTarget>>(emptyList())
     private val selectionState = MutableStateFlow(SearcherSelectionState())
-    private val quickActionsResult = MutableStateFlow<SearchResult?>(null)
+    private val quickActionsResult = MutableStateFlow<SearchItem?>(null)
     private val dialogStateFlow = MutableStateFlow<SearcherDialogState>(SearcherDialogState.None)
 
     val dialogEvents = SingleEventFlow<SearcherDialogEvent>()
@@ -154,7 +153,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     data class SearchState(
         val status: Status = Status.IDLE,
-        val results: List<SearchResult> = emptyList(),
+        val results: List<SearchItem> = emptyList(),
         val progress: SearchEngine.SearchProgress? = null,
         val error: Exception? = null
     ) {
@@ -374,7 +373,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 null
             }
             try {
-                val results = mutableListOf<SearchResult>()
+                val results = mutableListOf<SearchItem>()
                 searchEngine.search(
                     searchQuery = searchRequest,
                     onProgress = { progress ->
@@ -532,7 +531,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun onSearchResultClick(result: SearchResult) {
+    fun onSearchResultClick(result: SearchItem) {
         log(TAG) { "Search result clicked: ${result.path}" }
 
         // Save current search to history since user found it useful
@@ -556,7 +555,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     }
 
     // Selection and action methods
-    fun showQuickActions(result: SearchResult) {
+    fun showQuickActions(result: SearchItem) {
         log(TAG) { "Showing quick actions for: ${result.path}" }
         quickActionsResult.value = result
     }
@@ -565,13 +564,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         quickActionsResult.value = null
     }
 
-    fun enterSelectionMode(result: SearchResult) {
+    fun enterSelectionMode(result: SearchItem) {
         log(TAG) { "Entering selection mode with: ${result.path}" }
         selectionState.update { it.enterSelectionMode(result) }
         hideQuickActions()
     }
 
-    fun toggleSelection(result: SearchResult) {
+    fun toggleSelection(result: SearchItem) {
         log(TAG) { "Toggling selection for: ${result.path}" }
         selectionState.update { it.toggleSelection(result) }
     }
@@ -672,7 +671,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         workspaceRemote.execute(action)
     }
 
-    private fun shareFiles(results: List<SearchResult>) {
+    private fun shareFiles(results: List<SearchItem>) {
         log(TAG, INFO) { "Sharing ${results.size} file(s)" }
 
         try {
@@ -704,7 +703,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    private fun createShareIntent(result: SearchResult): Intent? {
+    private fun createShareIntent(result: SearchItem): Intent? {
         return try {
             val path = result.path
             if (path !is LocalPath) {
@@ -738,7 +737,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    private fun createShareMultipleIntent(results: List<SearchResult>): Intent? {
+    private fun createShareMultipleIntent(results: List<SearchItem>): Intent? {
         return try {
             val uris = results.mapNotNull { result ->
                 val path = result.path
@@ -802,7 +801,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val useRegex: Boolean = false,
         val permissionState: PermissionState = PermissionState(),
         val selectionState: SearcherSelectionState = SearcherSelectionState(),
-        val quickActionsResult: SearchResult? = null,
+        val quickActionsResult: SearchItem? = null,
         val dialogState: SearcherDialogState = SearcherDialogState.None,
     ) {
         val isSearching: Boolean
@@ -830,16 +829,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 searchState.results.forEach { result ->
                     add(
                         SearchListItem.Result(
-                            fileRowData = FileRowData(
-                                lookup = result.lookup,
-                                metadata = emptyMap(),
-                                matchContext = result.matchContext?.let { context ->
-                                    FileRowData.MatchContext(
-                                        lineNumber = context.lineNumber,
-                                        matchedLine = context.matchedLine
-                                    )
-                                }
-                            )
+                            searchItem = result
                         )
                     )
                 }
@@ -898,7 +888,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         clipboardRepo.clear()
     }
 
-    fun showFileProperties(result: SearchResult) {
+    fun showFileProperties(result: SearchItem) {
         log(TAG) { "showFileProperties(${result.name})" }
         dialogStateFlow.value = SearcherDialogState.FileInfo(result)
     }

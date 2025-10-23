@@ -4,17 +4,35 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
+
+// Extension lists for file type detection
+private val mediaExtensions = setOf(
+    "jpg", "jpeg", "png", "gif", "bmp", "webp", "svg",
+    "mp4", "avi", "mkv", "mov", "wmv", "flv", "webm",
+    "mp3", "wav", "flac", "aac", "ogg", "m4a"
+)
+
+private val appExtensions = setOf("apk", "aab")
 
 @Composable
 fun SmartFileRow(
-    data: FileRowData,
+    result: SearchItem,
     onClick: () -> Unit = {}
 ) {
-    when (determineFileRowType(data.name)) {
-        FileRowType.Media -> MediaFileRow(data = data, onClick = onClick)
-        FileRowType.App -> AppFileRow(data = data, onClick = onClick)
-        else -> StandardFileRow(data = data, onClick = onClick)
+    // Type-based dispatch - directories get standard row
+    when (result) {
+        is SearchItem.Directory -> StandardFileRow(result = result, onClick = onClick)
+        is SearchItem.File -> {
+            // Extension-based dispatch for files (will become type-based when we have ApkFile, ImageFile, etc.)
+            val extension = result.name.substringAfterLast('.', "").lowercase()
+            when {
+                extension in mediaExtensions -> MediaFileRow(result = result, onClick = onClick)
+                extension in appExtensions -> AppFileRow(result = result, onClick = onClick)
+                else -> StandardFileRow(result = result, onClick = onClick)
+            }
+        }
     }
 }
 
@@ -24,7 +42,7 @@ private fun SmartFileRowPreview() {
     PreviewWrapper {
         Column {
             SmartFileRow(
-                data = SearcherMockDataProvider.createMockImageFile(
+                result = SearcherMockDataProvider.createMockImageFile(
                     name = "photo.jpg",
                     sizeMB = 2,
                     hoursAgo = 1,
@@ -33,21 +51,21 @@ private fun SmartFileRowPreview() {
             )
 
             SmartFileRow(
-                data = SearcherMockDataProvider.createMockApkFile(
+                result = SearcherMockDataProvider.createMockApkFile(
                     name = "app.apk",
                     sizeMB = 35
                 )
             )
 
             SmartFileRow(
-                data = SearcherMockDataProvider.createMockTextFile(
+                result = SearcherMockDataProvider.createMockTextFile(
                     name = "document.txt",
                     sizeKB = 5
                 )
             )
 
             SmartFileRow(
-                data = SearcherMockDataProvider.createMockDirectory(
+                result = SearcherMockDataProvider.createMockDirectory(
                     name = "Downloads",
                     path = "/storage/emulated/0/Downloads",
                     hoursAgo = 2

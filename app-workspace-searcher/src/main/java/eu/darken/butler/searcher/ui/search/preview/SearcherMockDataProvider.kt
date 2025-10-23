@@ -3,7 +3,7 @@ package eu.darken.butler.searcher.ui.search.preview
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.searcher.ui.search.rows.FileRowData
+import eu.darken.butler.searcher.core.SearchItem
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
@@ -12,7 +12,7 @@ import kotlin.time.Instant
 /**
  * Mock data provider for Searcher compose previews.
  *
- * Provides factory methods to create FileRowData instances for preview functions.
+ * Provides factory methods to create SearchResult instances for preview functions.
  * All mock data uses LocalPath/LocalPathLookup for simplicity.
  */
 object SearcherMockDataProvider {
@@ -31,17 +31,17 @@ object SearcherMockDataProvider {
     }
 
     /**
-     * Create a mock FileRowData with customizable properties.
+     * Create a mock SearchResult with customizable properties.
      */
-    fun createMockFileRowData(
+    fun createMockSearchResult(
         name: String = "example.txt",
         path: String = "/storage/emulated/0/Documents/$name",
         fileType: FileType = FileType.FILE,
         sizeKB: Long? = 1,
         hoursAgo: Long = 1,
-        metadata: Map<String, String> = emptyMap(),
-        matchContext: FileRowData.MatchContext? = null
-    ): FileRowData {
+        matchedQuery: String = "",
+        matchContext: SearchItem.MatchContext? = null
+    ): SearchItem {
         val lookup = LocalPathLookup(
             lookedUp = LocalPath.build(path),
             fileType = fileType,
@@ -50,9 +50,9 @@ object SearcherMockDataProvider {
             target = null,
         )
 
-        return FileRowData(
+        return SearchItem.fromLookup(
             lookup = lookup,
-            metadata = metadata,
+            matchedQuery = matchedQuery,
             matchContext = matchContext
         )
     }
@@ -64,7 +64,7 @@ object SearcherMockDataProvider {
         name: String = "document.txt",
         sizeKB: Long = 5,
         hoursAgo: Long = 2
-    ): FileRowData = createMockFileRowData(
+    ): SearchItem = createMockSearchResult(
         name = name,
         path = "/storage/emulated/0/Documents/$name",
         fileType = FileType.FILE,
@@ -79,7 +79,7 @@ object SearcherMockDataProvider {
         name: String = "document.pdf",
         sizeMB: Long = 1,
         hoursAgo: Long = 1
-    ): FileRowData = createMockFileRowData(
+    ): SearchItem = createMockSearchResult(
         name = name,
         path = "/storage/emulated/0/Downloads/$name",
         fileType = FileType.FILE,
@@ -95,13 +95,12 @@ object SearcherMockDataProvider {
         sizeMB: Long = 2,
         hoursAgo: Long = 1,
         metadata: Map<String, String> = mapOf("Resolution" to "1920x1080")
-    ): FileRowData = createMockFileRowData(
+    ): SearchItem = createMockSearchResult(
         name = name,
         path = "/storage/emulated/0/Pictures/$name",
         fileType = FileType.FILE,
         sizeKB = sizeMB * 1024,
-        hoursAgo = hoursAgo,
-        metadata = metadata
+        hoursAgo = hoursAgo
     )
 
     /**
@@ -112,13 +111,12 @@ object SearcherMockDataProvider {
         sizeMB: Long = 25,
         hoursAgo: Long = 3,
         metadata: Map<String, String> = mapOf("Duration" to "2:34", "Quality" to "1080p")
-    ): FileRowData = createMockFileRowData(
+    ): SearchItem = createMockSearchResult(
         name = name,
         path = "/storage/emulated/0/Movies/$name",
         fileType = FileType.FILE,
         sizeKB = sizeMB * 1024,
-        hoursAgo = hoursAgo,
-        metadata = metadata
+        hoursAgo = hoursAgo
     )
 
     /**
@@ -129,13 +127,12 @@ object SearcherMockDataProvider {
         sizeMB: Long = 4,
         hoursAgo: Long = 2,
         metadata: Map<String, String> = mapOf("Duration" to "3:45", "Artist" to "Unknown")
-    ): FileRowData = createMockFileRowData(
+    ): SearchItem = createMockSearchResult(
         name = name,
         path = "/storage/emulated/0/Music/$name",
         fileType = FileType.FILE,
         sizeKB = sizeMB * 1024,
-        hoursAgo = hoursAgo,
-        metadata = metadata
+        hoursAgo = hoursAgo
     )
 
     /**
@@ -146,13 +143,12 @@ object SearcherMockDataProvider {
         sizeMB: Long = 35,
         hoursAgo: Long = 1,
         metadata: Map<String, String> = mapOf("Package" to "com.example.app", "Version" to "2.1.0")
-    ): FileRowData = createMockFileRowData(
+    ): SearchItem = createMockSearchResult(
         name = name,
         path = "/storage/emulated/0/Download/$name",
         fileType = FileType.FILE,
         sizeKB = sizeMB * 1024,
-        hoursAgo = hoursAgo,
-        metadata = metadata
+        hoursAgo = hoursAgo
     )
 
     /**
@@ -162,7 +158,7 @@ object SearcherMockDataProvider {
         name: String = "Pictures",
         path: String = "/storage/emulated/0/$name",
         hoursAgo: Long = 24
-    ): FileRowData = createMockFileRowData(
+    ): SearchItem = createMockSearchResult(
         name = name,
         path = path,
         fileType = FileType.DIRECTORY,
@@ -177,7 +173,7 @@ object SearcherMockDataProvider {
         name: String = "config.json",
         sizeBytes: Long = 256,
         secondsAgo: Long = 300
-    ): FileRowData {
+    ): SearchItem {
         val lookup = LocalPathLookup(
             lookedUp = LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler/$name"),
             fileType = FileType.FILE,
@@ -186,9 +182,9 @@ object SearcherMockDataProvider {
             target = null,
         )
 
-        return FileRowData(
+        return SearchItem.fromLookup(
             lookup = lookup,
-            metadata = emptyMap(),
+            matchedQuery = "",
             matchContext = null
         )
     }

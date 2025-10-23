@@ -11,31 +11,32 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
+import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 
 @Composable
 fun StandardFileRow(
-    data: FileRowData,
+    result: SearchItem,
     onClick: () -> Unit = {},
-    icon: @Composable () -> Unit = { StandardFileIcon(data) }
+    icon: @Composable () -> Unit = { StandardFileIcon(result) }
 ) {
-    FileRowBase(data = data, onClick = onClick) { fileData ->
+    FileRowBase(result = result, onClick = onClick) { fileResult ->
         icon()
 
         Spacer(modifier = Modifier.width(12.dp))
 
         FileInfo(
-            data = fileData,
+            result = fileResult,
             modifier = Modifier.fillMaxWidth()
         )
     }
 }
 
 @Composable
-fun StandardFileIcon(data: FileRowData) {
+fun StandardFileIcon(result: SearchItem) {
     TintedAsyncImage(
-        model = data.lookup,
-        contentDescription = data.fileType.name,
+        model = result.lookup,
+        contentDescription = result.fileType.name,
         modifier = Modifier.size(40.dp)
     )
 }
@@ -47,21 +48,21 @@ private fun StandardFileRowPreview() {
     PreviewWrapper {
         Column {
             StandardFileRow(
-                data = SearcherMockDataProvider.createMockPdfFile(
+                result = SearcherMockDataProvider.createMockPdfFile(
                     name = "document.pdf",
                     sizeMB = 1
                 )
             )
 
             StandardFileRow(
-                data = SearcherMockDataProvider.createMockDirectory(
+                result = SearcherMockDataProvider.createMockDirectory(
                     name = "Pictures",
                     hoursAgo = 24
                 )
             )
 
             StandardFileRow(
-                data = SearcherMockDataProvider.createMockConfigFile(
+                result = SearcherMockDataProvider.createMockConfigFile(
                     name = "config.json"
                 )
             )

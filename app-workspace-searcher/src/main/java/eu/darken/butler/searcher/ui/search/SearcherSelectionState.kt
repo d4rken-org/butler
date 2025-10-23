@@ -1,21 +1,21 @@
 package eu.darken.butler.searcher.ui.search
 
-import eu.darken.butler.searcher.core.SearchResult
+import eu.darken.butler.searcher.core.SearchItem
 
 data class SearcherSelectionState(
-    val selectableResults: List<SearchResult> = emptyList(),
+    val selectableResults: List<SearchItem> = emptyList(),
     val selectedResultIds: Set<String> = emptySet(),
 ) {
     val isSelectionMode: Boolean = selectedResultIds.isNotEmpty()
     val selectionCount: Int = selectedResultIds.size
     val isAllSelected: Boolean get() = selectableResults.size == selectedResultIds.size && selectableResults.isNotEmpty()
 
-    val selectedResults: List<SearchResult>
+    val selectedResults: List<SearchItem>
         get() = selectableResults.filter { result -> selectedResultIds.contains(result.path.path) }
 
-    fun isSelected(result: SearchResult): Boolean = selectedResultIds.contains(result.path.path)
+    fun isSelected(result: SearchItem): Boolean = selectedResultIds.contains(result.path.path)
 
-    fun toggleSelection(result: SearchResult): SearcherSelectionState {
+    fun toggleSelection(result: SearchItem): SearcherSelectionState {
         val resultId = result.path.path
         val newSelectedIds = if (selectedResultIds.contains(resultId)) {
             selectedResultIds - resultId
@@ -33,7 +33,7 @@ data class SearcherSelectionState(
         return copy(selectedResultIds = emptySet())
     }
 
-    fun enterSelectionMode(result: SearchResult): SearcherSelectionState {
+    fun enterSelectionMode(result: SearchItem): SearcherSelectionState {
         return copy(selectedResultIds = setOf(result.path.path))
     }
 }
