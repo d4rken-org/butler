@@ -1,11 +1,12 @@
 package eu.darken.butler.workspace.ui.manager
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -41,7 +42,7 @@ import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 
-@OptIn(ExperimentalFoundationApi::class)
+
 @Composable
 fun WorkspaceButton(
     modifier: Modifier = Modifier,
@@ -54,10 +55,11 @@ fun WorkspaceButton(
     var expanded by remember { mutableStateOf(false) }
 
     Box(modifier = modifier) {
-        // Button background
-        Box(
-            modifier = Modifier
+        @Suppress("COMPOSE_APPLIER_CALL_MISMATCH")
+        BoxWithConstraints(
+            modifier = modifier
                 .size(40.dp)
+                .fillMaxSize()
                 .clip(RoundedCornerShape(8.dp))
                 .background(containerColor ?: MaterialTheme.colorScheme.tertiaryContainer)
                 .combinedClickable(
@@ -66,8 +68,10 @@ fun WorkspaceButton(
                 ),
             contentAlignment = Alignment.Center
         ) {
+            val iconSize = minOf(maxWidth, maxHeight) * 0.8f
+
             ButlerIcon(
-                size = 32.dp,
+                modifier = Modifier.size(iconSize),
                 contentDescription = null,
             )
         }
@@ -213,6 +217,7 @@ private fun WorkspaceButtonPreview() {
         ) {
             // No workspaces
             WorkspaceButton(
+                modifier = Modifier.size(32.dp),
                 state = WorkspaceButtonViewModel.State(
                     workspaceCount = 0,
                     operationsCount = 0,

@@ -67,7 +67,7 @@ internal fun EmptyClassicWorkspaceContent(
                 contentAlignment = Alignment.Center
             ) {
                 ButlerIcon(
-                    size = 56.dp
+                    modifier = Modifier.size(56.dp)
                 )
             }
 

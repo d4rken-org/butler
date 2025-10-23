@@ -109,9 +109,9 @@ fun SearchToolbarCard(
 
                     if (design.isSingle) {
                         WorkspaceButton(
+                            modifier = Modifier.size(32.dp),
                             state = workspaceButtonState,
                             workspaceActionHandler = workspaceActionHandler,
-                            modifier = Modifier.size(44.dp)
                         )
                     }
                 }

@@ -133,7 +133,7 @@ fun EnhancedEmptyWorkspaceState(
                     contentAlignment = Alignment.Center
                 ) {
                     ButlerIcon(
-                        size = 72.dp
+                        modifier = Modifier.size(72.dp)
                     )
                 }
 
