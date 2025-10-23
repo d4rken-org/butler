@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,8 +20,10 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -36,8 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -67,11 +66,8 @@ import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
 import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationDialog
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
-import eu.darken.butler.workspace.ui.scroll.getCurrentHeightDp
 import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
-import eu.darken.butler.workspace.ui.scroll.rememberTopToolbarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.setHeight
-import eu.darken.butler.workspace.ui.scroll.setHeights
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 
@@ -122,42 +118,39 @@ fun SearcherWorkspacePage(
 
     // Setup and remember blocks at top level
     val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
-    val topToolbarScrollBehavior = rememberTopToolbarScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val listState = rememberLazyListState()
     var showClearHistoryDialog by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val shortcutsFocusRequester = remember { FocusRequester() }
 
-    // Track actual measured height of the toolbar card
-    val density = LocalDensity.current
-    var actualToolbarHeightPx by remember { mutableStateOf(0) }
-    val actualToolbarHeightDp = with(density) { actualToolbarHeightPx.toDp() }
-
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
     var showCancelConfirmation by remember { mutableStateOf<Operation.Id?>(null) }
 
     // Wrapped selection callbacks that clear focus and hide keyboard
-    val wrappedOnEnterSelectionMode: (SearchItem) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester) {
-        { result ->
-            focusManager.clearFocus()
-            keyboardController?.hide()
-            onEnterSelectionMode(result)
-        }
-    }
-
-    val wrappedOnToggleSelection: (SearchItem) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester) {
-        { result ->
-            // Only clear focus and hide keyboard when entering selection mode (first selection)
-            // Not when already in selection mode (subsequent toggles)
-            if (state?.selectionState?.isSelectionMode != true) {
+    val wrappedOnEnterSelectionMode: (SearchItem) -> Unit =
+        remember(focusManager, keyboardController, shortcutsFocusRequester) {
+            { result ->
                 focusManager.clearFocus()
                 keyboardController?.hide()
+                onEnterSelectionMode(result)
             }
-            onToggleSelection(result)
         }
-    }
+
+    val wrappedOnToggleSelection: (SearchItem) -> Unit =
+        remember(focusManager, keyboardController, shortcutsFocusRequester) {
+            { result ->
+                // Only clear focus and hide keyboard when entering selection mode (first selection)
+                // Not when already in selection mode (subsequent toggles)
+                if (state?.selectionState?.isSelectionMode != true) {
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                }
+                onToggleSelection(result)
+            }
+        }
 
     // Re-request focus for keyboard shortcuts after clearing focus
     // This ensures shortcuts continue working after selecting a result
@@ -171,12 +164,6 @@ fun SearcherWorkspacePage(
     // Set the bottom bar height for scroll behavior
     bottomBarScrollBehavior.state.setHeight(64.dp)
 
-    // Set the top toolbar heights (expanded and collapsed)
-    topToolbarScrollBehavior.state.setHeights(
-        expandedHeightDp = 164.dp, // Full card with all options (actual measured height)
-        collapsedHeightDp = 44.dp  // Minimal compact state (actual measured height)
-    )
-
     // Derived states for stable recomposition - at top level for immediate reactivity
     val hasOperations by remember {
         derivedStateOf { operationsState.operations.isNotEmpty() }
@@ -188,18 +175,14 @@ fun SearcherWorkspacePage(
         derivedStateOf { state?.selectionState?.selectedResultIds?.isNotEmpty() == true }
     }
 
-    // Get current toolbar height for layout calculations
-    topToolbarScrollBehavior.state.getCurrentHeightDp()
-    val statusCardHeight = 60.dp // Fixed height for status card
-
     // Determine if status card should be visible
     val showStatusCard by remember {
         derivedStateOf {
             state?.let { currentState ->
                 currentState.searchQuery.text.isNotBlank() ||
-                        currentState.isSearching ||
-                        currentState.searchState.results.isNotEmpty() ||
-                        currentState.searchState.error != null
+                    currentState.isSearching ||
+                    currentState.searchState.results.isNotEmpty() ||
+                    currentState.searchState.error != null
             } ?: false
         }
     }
@@ -274,151 +257,159 @@ fun SearcherWorkspacePage(
                     }
                 }
         ) {
-            // Scrollable content layer - with padding for pinned cards
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
-                    .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = 16.dp,
-                    top = 16.dp + actualToolbarHeightDp + 16.dp + (if (showStatusCard) statusCardHeight + 8.dp else 0.dp),
-                    bottom = run {
-                        val actionBarHeight = if (hasActions) 64.dp else 0.dp
-                        val clipboardHeight = if (hasClipboard) 88.dp else 0.dp
-                        val operationsHeight = if (hasOperations) 80.dp else 0.dp
-                        actionBarHeight + clipboardHeight + operationsHeight + 8.dp
-                    }
-                )
-            ) {
-                // Show permission card if needed
-                if (currentState.needsPermissions && currentState.searchTargets.isNotEmpty()) {
-                    item {
-                        val searchPath = when (val firstTarget = currentState.searchTargets.first()) {
-                            is SearchTarget.Path -> firstTarget.path
-                        }
-                        PermissionSetupCard(
-                            searchPath = searchPath,
-                            permissionState = currentState.permissionState,
-                            onOpenSetup = onOpenSetup,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                    }
-                }
-
-                // Show search history when no search query
-                if (currentState.searchQuery.text.isBlank() && currentState.searchHistory.isNotEmpty()) {
-                    searchHistorySection(
-                        searchHistory = currentState.searchHistory,
-                        onHistoryItemClick = onHistoryItemClick,
-                        onHistoryItemRemove = onHistoryItemRemove,
-                        onShowClearHistoryDialog = { showClearHistoryDialog = true }
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                topBar = {
+                    SearchToolbarCard(
+                        workspaceId = workspaceId,
+                        state = currentState,
+                        design = design,
+                        collapsedFraction = scrollBehavior.state.collapsedFraction,
+                        onUpdateQuery = onUpdateQuery,
+                        onRemoveSearchPath = onRemoveSearchPath,
+                        onTogglePathEnabled = onTogglePathEnabled,
+                        onPerformSearch = onPerformSearch,
+                        onExplicitSearch = onExplicitSearch,
+                        onCancelSearch = onCancelSearch,
+                        onToggleCaseSensitive = onToggleCaseSensitive,
+                        onToggleWholeWord = onToggleWholeWord,
+                        onToggleRegex = onToggleRegex,
+                        onOpenPathPicker = onOpenPathPicker,
+                        workspaceButtonState = workspaceButtonState,
+                        workspaceActionHandler = workspaceActionHandler,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                     )
                 }
-
-                // Search results and errors
-                if (currentState.listItems.isNotEmpty()) {
-                    items(
-                        items = currentState.listItems,
-                        key = { item ->
-                            when (item) {
-                                is SearchListItem.Result -> item.searchItem.path.path
-                                is SearchListItem.Error -> "error_${item.timestamp}"
-                            }
-                        }
-                    ) { item ->
-                        when (item) {
-                            is SearchListItem.Result -> {
-                                SelectableFileRow(
-                                    result = item.searchItem,
-                                    isSelected = currentState.selectionState.isSelected(item.searchItem),
-                                    isSelectionMode = currentState.selectionState.isSelectionMode,
-                                    onClick = {
-                                        if (currentState.selectionState.isSelectionMode) {
-                                            wrappedOnToggleSelection(item.searchItem)
-                                        } else {
-                                            onResultClick(item.searchItem)
-                                        }
-                                    },
-                                    onLongPress = {
-                                        wrappedOnEnterSelectionMode(item.searchItem)
-                                    },
-                                )
-                            }
-                            is SearchListItem.Error -> {
-                                WorkspaceErrorCard(
-                                    title = stringResource(R.string.searcher_search_error),
-                                    error = item.throwable,
-                                    onCopyError = { onCopyError(item.throwable) },
-                                    onDismiss = null,
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // Empty state placeholder when no query and no history
-                if (currentState.searchQuery.text.isBlank() && currentState.searchHistory.isEmpty()) {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 100.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(R.string.searcher_placeholder_search),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(32.dp)
+            ) { paddingValues ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = paddingValues.calculateTopPadding())
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        // SearchStatusCard positioned above LazyColumn
+                        if (showStatusCard) {
+                            SearchStatusCard(
+                                state = currentState,
+                                onCancel = onCancelSearch,
+                                onClear = onClearResults,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                             )
                         }
-                    }
-                }
-            }
 
-            // Pinned search toolbar at top - collapses on scroll
-            SearchToolbarCard(
-                workspaceId = workspaceId,
-                state = currentState,
-                design = design,
-                collapsedFraction = topToolbarScrollBehavior.state.collapsedFraction,
-                onUpdateQuery = onUpdateQuery,
-                onRemoveSearchPath = onRemoveSearchPath,
-                onTogglePathEnabled = onTogglePathEnabled,
-                onPerformSearch = onPerformSearch,
-                onExplicitSearch = onExplicitSearch,
-                onCancelSearch = onCancelSearch,
-                onToggleCaseSensitive = onToggleCaseSensitive,
-                onToggleWholeWord = onToggleWholeWord,
-                onToggleRegex = onToggleRegex,
-                onOpenPathPicker = onOpenPathPicker,
-                workspaceButtonState = workspaceButtonState,
-                workspaceActionHandler = workspaceActionHandler,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .onGloballyPositioned { layoutCoordinates ->
-                        actualToolbarHeightPx = layoutCoordinates.size.height
-                    }
-            )
+                        // Scrollable content layer - directly in Column with weight
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                                // TODO: Re-enable when SearchToolbarCard properly consumes scrollBehavior.heightOffset
+                                // .nestedScroll(scrollBehavior.nestedScrollConnection)
+                                .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            contentPadding = PaddingValues(
+                                start = 16.dp,
+                                end = 16.dp,
+                                top = if (showStatusCard) 8.dp else 16.dp,
+                                bottom = run {
+                                    val actionBarHeight = if (hasActions) 64.dp else 0.dp
+                                    val clipboardHeight = if (hasClipboard) 88.dp else 0.dp
+                                    val operationsHeight = if (hasOperations) 80.dp else 0.dp
+                                    actionBarHeight + clipboardHeight + operationsHeight + 8.dp
+                                }
+                            )
+                        ) {
+                                // Show permission card if needed
+                                if (currentState.needsPermissions && currentState.searchTargets.isNotEmpty()) {
+                                    item {
+                                        val searchPath = when (val firstTarget = currentState.searchTargets.first()) {
+                                            is SearchTarget.Path -> firstTarget.path
+                                        }
+                                        PermissionSetupCard(
+                                            searchPath = searchPath,
+                                            permissionState = currentState.permissionState,
+                                            onOpenSetup = onOpenSetup,
+                                            modifier = Modifier.padding(top = 8.dp)
+                                        )
+                                    }
+                                }
 
-            // Pinned status card below toolbar - always visible when needed
-            if (showStatusCard) {
-                SearchStatusCard(
-                    state = currentState,
-                    onCancel = onCancelSearch,
-                    onClear = onClearResults,
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .offset(y = 16.dp + actualToolbarHeightDp + 16.dp) // Account for toolbar's vertical padding + gap
-                        .padding(horizontal = 16.dp)
-                )
-            }
+                                // Show search history when no search query
+                                if (currentState.searchQuery.text.isBlank() && currentState.searchHistory.isNotEmpty()) {
+                                    searchHistorySection(
+                                        searchHistory = currentState.searchHistory,
+                                        onHistoryItemClick = onHistoryItemClick,
+                                        onHistoryItemRemove = onHistoryItemRemove,
+                                        onShowClearHistoryDialog = { showClearHistoryDialog = true }
+                                    )
+                                }
+
+                                // Search results and errors
+                                if (currentState.listItems.isNotEmpty()) {
+                                    items(
+                                        items = currentState.listItems,
+                                        key = { item ->
+                                            when (item) {
+                                                is SearchListItem.Result -> item.searchItem.path.path
+                                                is SearchListItem.Error -> "error_${item.timestamp}"
+                                            }
+                                        }
+                                    ) { item ->
+                                        when (item) {
+                                            is SearchListItem.Result -> {
+                                                SelectableFileRow(
+                                                    result = item.searchItem,
+                                                    isSelected = currentState.selectionState.isSelected(item.searchItem),
+                                                    isSelectionMode = currentState.selectionState.isSelectionMode,
+                                                    onClick = {
+                                                        if (currentState.selectionState.isSelectionMode) {
+                                                            wrappedOnToggleSelection(item.searchItem)
+                                                        } else {
+                                                            onResultClick(item.searchItem)
+                                                        }
+                                                    },
+                                                    onLongPress = {
+                                                        wrappedOnEnterSelectionMode(item.searchItem)
+                                                    },
+                                                )
+                                            }
+                                            is SearchListItem.Error -> {
+                                                WorkspaceErrorCard(
+                                                    title = stringResource(R.string.searcher_search_error),
+                                                    error = item.throwable,
+                                                    onCopyError = { onCopyError(item.throwable) },
+                                                    onDismiss = null,
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Empty state placeholder when no query and no history
+                                if (currentState.searchQuery.text.isBlank() && currentState.searchHistory.isEmpty()) {
+                                    item {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(top = 100.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.searcher_placeholder_search),
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                textAlign = TextAlign.Center,
+                                                modifier = Modifier.padding(32.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                        }  // End LazyColumn
+                    }  // End Column
+                }  // End Box
+            }  // End Scaffold
 
             // Floating Operations and Clipboard Bars Container
             AnimatedVisibility(
