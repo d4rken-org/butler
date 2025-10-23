@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberEnd
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
@@ -237,6 +238,11 @@ fun OperationPerformanceGraph(
             val bytesLineColor = MaterialTheme.colorScheme.primary
             val itemsLineColor = MaterialTheme.colorScheme.secondary
 
+            val axisLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+            val axisLabel = rememberAxisLabelComponent(
+                color = axisLabelColor
+            )
+
             CartesianChartHost(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -317,11 +323,13 @@ fun OperationPerformanceGraph(
                         verticalAxisPosition = Axis.Position.Vertical.End,
                     ),
                     startAxis = VerticalAxis.rememberStart(
+                        label = axisLabel,
                         guideline = null,  // Hide grid lines
                         itemPlacer = remember { VerticalAxis.ItemPlacer.count(count = { 5 }) },
                         valueFormatter = { _, value, _ -> value.toInt().toString() }
                     ),
                     endAxis = VerticalAxis.rememberEnd(
+                        label = axisLabel,
                         guideline = null,  // Hide grid lines
                         itemPlacer = remember { VerticalAxis.ItemPlacer.count(count = { 5 }) },
                         valueFormatter = { _, value, _ -> value.toInt().toString() }
