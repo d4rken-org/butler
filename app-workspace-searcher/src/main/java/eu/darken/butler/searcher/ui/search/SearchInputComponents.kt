@@ -62,45 +62,6 @@ import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchTarget
 
 @Composable
-fun SearchInputCard(
-    query: TextFieldValue,
-    onQueryChange: (TextFieldValue) -> Unit,
-    onSearch: () -> Unit,
-    path: APath<*>,
-    onPathChange: (APath<*>) -> Unit,
-    isSearching: Boolean,
-    onCancel: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            SearchBar(
-                query = query,
-                onQueryChange = onQueryChange,
-                onSearch = onSearch,
-                isSearching = isSearching,
-                onCancel = onCancel
-            )
-
-            SearchPathBar(
-                path = path,
-                onPathChange = onPathChange,
-                isSearching = isSearching
-            )
-        }
-    }
-}
-
-@Composable
 fun CustomSearchField(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
@@ -475,22 +436,6 @@ fun MultiPathChipBar(
                 )
             },
             enabled = !isSearching
-        )
-    }
-}
-
-@Preview2
-@Composable
-private fun SearchInputCardPreview() {
-    PreviewWrapper {
-        SearchInputCard(
-            query = TextFieldValue("test search"),
-            onQueryChange = {},
-            onSearch = {},
-            path = LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler"),
-            onPathChange = {},
-            isSearching = false,
-            modifier = Modifier.padding(16.dp)
         )
     }
 }

@@ -205,3 +205,35 @@ private fun SearchToolbarCardPreview() {
         )
     }
 }
+
+@Preview2
+@Composable
+private fun SearchToolbarCardCollapsedPreview() {
+    PreviewWrapper {
+        SearchToolbarCard(
+            workspaceId = Workspace.Id(),
+            state = SearcherWorkspaceViewModel.State(
+                id = Workspace.Id(),
+                searchTargets = listOf(
+                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
+                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download"))
+                ),
+                searchQuery = TextFieldValue("example search"),
+                caseSensitive = false,
+                wholeWord = false,
+                useRegex = false
+            ),
+            design = WorkspaceDesign(),
+            onUpdateQuery = {},
+            onRemoveSearchPath = {},
+            onTogglePathEnabled = {},
+            onPerformSearch = {},
+            onCancelSearch = {},
+            onToggleCaseSensitive = {},
+            onToggleWholeWord = {},
+            onToggleRegex = {},
+            modifier = Modifier.padding(16.dp),
+            collapsedFraction = 1f,
+        )
+    }
+}
