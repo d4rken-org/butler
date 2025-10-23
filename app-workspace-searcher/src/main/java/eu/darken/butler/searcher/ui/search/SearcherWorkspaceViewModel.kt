@@ -122,8 +122,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
         vmScope.launch {
             val defaultTargets = searcherSettings.defaultSearchTargets.value()
-            searchTargets.value = defaultTargets.ifEmpty {
-                listOf(SearchTarget.Path.from(LocalPath.build(Environment.getExternalStorageDirectory())))
+            searchTargets.value = when {
+                defaultTargets == null -> listOf(SearchTarget.Path.from(LocalPath.build(Environment.getExternalStorageDirectory())))
+                else -> defaultTargets
             }
         }
 
