@@ -130,6 +130,10 @@
     <string name="explorer_loader_progress_directory_content_details">Loading content details</string>
     <string name="explorer_loader_progress_directory_content_extended">Loading extended content details</string>
 
+    <string name="explorer_loader_progress_device_loading">Loading device</string>
+    <string name="explorer_loader_progress_device_locations">Loading storage locations</string>
+    <string name="explorer_loader_progress_device_filesystem">Loading storage info</string>
+
     <!-- InfoBar -->
     <plurals name="explorer_infobar_selected_count">
         <item quantity="one">%d selected</item>
