@@ -57,6 +57,7 @@ import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
 import eu.darken.butler.workspace.ui.error.WorkspaceErrorCard
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
@@ -483,31 +484,7 @@ fun SearcherWorkspacePage(
 
             // Floating Bottom ActionBar - Selection mode
             if (hasActions) {
-                val actions = buildList {
-                    // Select All / Deselect All
-                    if (currentState.selectionState.isAllSelected) {
-                        add(SearcherAction.DeselectAll)
-                    } else if (currentState.selectionState.selectableResults.isNotEmpty()) {
-                        add(SearcherAction.SelectAll)
-                    }
-
-                    // Copy
-                    add(SearcherAction.Copy(currentState.selectionState.selectedResults))
-
-                    // Cut
-                    add(SearcherAction.Cut(currentState.selectionState.selectedResults))
-
-                    // Share (if reasonable number of items)
-                    val shareAction = SearcherAction.Share(currentState.selectionState.selectedResults)
-                    if (shareAction.isVisible) {
-                        add(shareAction)
-                    }
-
-                    // Delete
-                    add(SearcherAction.Delete(currentState.selectionState.selectedResults))
-                }
-
-                eu.darken.butler.workspace.ui.actions.WorkspaceActionBar(
+                WorkspaceActionBar(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(horizontal = 8.dp, vertical = 8.dp)
@@ -517,7 +494,7 @@ fun SearcherWorkspacePage(
                             translationY =
                                 if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 64.dp.toPx() else 0f
                         },
-                    actions = actions,
+                    actions = currentState.availableActions,
                     onActionClick = { action ->
                         when (val searcherAction = action as SearcherAction) {
                             is SearcherAction.DeselectAll -> onExitSelectionMode()

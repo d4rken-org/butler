@@ -244,6 +244,37 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         quickActionsResult,
         dialogStateFlow,
     ) { query, searchState, history, filter, targets, permissionState, selection, quickActions, dialogState ->
+        val updatedSelectionState = selection.copy(selectableResults = searchState.results)
+
+        // Calculate available actions based on selection state
+        val actions = if (updatedSelectionState.selectedResultIds.isNotEmpty()) {
+            buildList {
+                // Select All / Deselect All
+                if (updatedSelectionState.isAllSelected) {
+                    add(SearcherAction.DeselectAll)
+                } else if (updatedSelectionState.selectableResults.isNotEmpty()) {
+                    add(SearcherAction.SelectAll)
+                }
+
+                // Copy
+                add(SearcherAction.Copy(updatedSelectionState.selectedResults))
+
+                // Cut
+                add(SearcherAction.Cut(updatedSelectionState.selectedResults))
+
+                // Share (if reasonable number of items)
+                val shareAction = SearcherAction.Share(updatedSelectionState.selectedResults)
+                if (shareAction.isVisible) {
+                    add(shareAction)
+                }
+
+                // Delete
+                add(SearcherAction.Delete(updatedSelectionState.selectedResults))
+            }
+        } else {
+            emptyList()
+        }
+
         State(
             id = id,
             searchQuery = query,
@@ -255,9 +286,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             wholeWord = filter.wholeWord,
             useRegex = filter.useRegex,
             permissionState = permissionState,
-            selectionState = selection.copy(selectableResults = searchState.results),
+            selectionState = updatedSelectionState,
             quickActionsResult = quickActions,
             dialogState = dialogState,
+            availableActions = actions,
         )
     }
         .distinctUntilChanged()
@@ -821,6 +853,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val selectionState: SearcherSelectionState = SearcherSelectionState(),
         val quickActionsResult: SearchItem? = null,
         val dialogState: SearcherDialogState = SearcherDialogState.None,
+        val availableActions: List<SearcherAction> = emptyList(),
     ) {
         val isSearching: Boolean
             get() = searchState.status == SearchState.Status.SEARCHING
