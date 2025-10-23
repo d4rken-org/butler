@@ -22,6 +22,7 @@ import eu.darken.butler.common.storage.StorageManager2
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.workspace.core.permissions.PermissionState
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlin.coroutines.coroutineContext
@@ -173,6 +174,14 @@ class DeviceLocationLoader @Inject constructor(
         }
     }
 
+    private suspend fun fetchFilesystemInfo(item: ExplorerItem.Storage): Pair<Long?, Long?>? = try {
+        val fsInfo = item.target.path.getFileSystemInfo(gatewaySwitch)
+        fsInfo.totalSpace to fsInfo.freeSpace
+    } catch (e: Exception) {
+        log(tag, WARN) { "Failed to get filesystem info for ${item.displayName}: ${e.message}" }
+        null
+    }
+
     private suspend fun LoaderContext.loadFilesystemInfo() {
         log(tag) { "loadFilesystemInfo(): Loading filesystem info sequentially with incremental updates" }
 
@@ -181,35 +190,23 @@ class DeviceLocationLoader @Inject constructor(
         // Process each storage item sequentially with cancellation checks
         currentItems.forEachIndexed { index, item ->
             // Check if cancelled before processing next item
-            coroutineContext.ensureActive()
+            currentCoroutineContext().ensureActive()
 
             log(tag) { "loadFilesystemInfo(): Processing item ${index + 1}/${currentItems.size}: ${item.javaClass.simpleName}" }
 
             val updatedItem = when (item) {
                 is ExplorerItem.Storage.Local -> {
-                    val path = item.target.path
-                    val fsInfo = try {
-                        path.getFileSystemInfo(gatewaySwitch)
-                    } catch (e: Exception) {
-                        log(tag, WARN) { "Failed to get filesystem info for $path: ${e.message}" }
-                        null
-                    }
+                    val (totalBytes, availableBytes) = fetchFilesystemInfo(item) ?: (null to null)
                     item.copy(
-                        totalBytes = fsInfo?.totalSpace,
-                        availableBytes = fsInfo?.freeSpace,
+                        totalBytes = totalBytes,
+                        availableBytes = availableBytes,
                     )
                 }
                 is ExplorerItem.Storage.SAF -> {
-                    val path = item.target.path
-                    val fsInfo = try {
-                        path.getFileSystemInfo(gatewaySwitch)
-                    } catch (e: Exception) {
-                        log(tag, WARN) { "Failed to get filesystem info for SAF ${path}: ${e.message}" }
-                        null
-                    }
+                    val (totalBytes, availableBytes) = fetchFilesystemInfo(item) ?: (null to null)
                     item.copy(
-                        totalBytes = fsInfo?.totalSpace,
-                        availableBytes = fsInfo?.freeSpace,
+                        totalBytes = totalBytes,
+                        availableBytes = availableBytes,
                     )
                 }
                 else -> item
@@ -217,7 +214,9 @@ class DeviceLocationLoader @Inject constructor(
 
             // Update state immediately after each item completes
             updateState {
-                val updatedItems = items?.map { if (it == item) updatedItem else it }
+                val updatedItems = items?.mapIndexed { idx, it ->
+                    if (idx == index) updatedItem else it
+                }
 
                 // Recalculate device-level totals with current data
                 val totalCapacity = updatedItems
