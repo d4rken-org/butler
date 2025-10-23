@@ -5,7 +5,7 @@ import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
-import eu.darken.butler.common.pkgs.pkgops.LibcoreTool
+import eu.darken.butler.common.files.metadata.OwnershipResolver
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
@@ -13,6 +13,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.mockk
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.test.runTest
@@ -30,8 +31,9 @@ class LocalPathMoveTest : BaseTest() {
     private val testFolder = File(IO_TEST_BASEDIR, "move-test")
     private val sourceFolder = File(testFolder, "source")
     private val destFolder = File(testFolder, "dest")
+    private val mockOwnershipResolver = mockk<OwnershipResolver>(relaxed = true)
     private val ops = LocalFileSystemOps(
-        libcoreTool = LibcoreTool(),
+        ownershipResolver = mockOwnershipResolver,
     )
 
     @BeforeEach

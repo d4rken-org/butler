@@ -7,8 +7,8 @@ import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
+import eu.darken.butler.common.files.metadata.OwnershipResolver
 import eu.darken.butler.common.files.metadata.Permissions
-import eu.darken.butler.common.pkgs.pkgops.LibcoreTool
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
@@ -30,12 +30,8 @@ import kotlin.time.Instant
 
 class LocalFileSystemOpsTest : BaseTest() {
 
-    private val mockLibcoreTool = mockk<LibcoreTool> {
-        every { getNameForUid(any()) } returns null
-        every { getNameForGid(any()) } returns null
-    }
-
-    private val fileSystemOps = LocalFileSystemOps(mockLibcoreTool)
+    private val mockOwnershipResolver = mockk<OwnershipResolver>(relaxed = true)
+    private val fileSystemOps = LocalFileSystemOps(mockOwnershipResolver)
 
     @Test
     fun `lookup returns file metadata`(@TempDir tempDir: File) = runTest {

@@ -1,10 +1,15 @@
 package eu.darken.butler.common.pkgs.pkgops
 
 import dagger.Reusable
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import javax.inject.Inject
 
 @Reusable
 class LibcoreTool @Inject constructor() {
+
+    private val tag = logTag("LibcoreTool")
 
     private fun getLibCoreOS(): Any? {
         val clazz = Class.forName("libcore.io.Libcore")
@@ -31,7 +36,7 @@ class LibcoreTool @Inject constructor() {
 
             return pwName[passwd] as String
         } catch (e: Exception) {
-//            Timber.v(e, "getNameForUid failed")
+            log(tag, VERBOSE) { "getNameForUid($uid) failed: $e" }
             return null
         }
     }
@@ -52,7 +57,7 @@ class LibcoreTool @Inject constructor() {
 
             return grName[group] as String
         } catch (e: Exception) {
-//            Timber.v(e, "getNameForGid failed")
+            log(tag, VERBOSE) { "getNameForGid($gid) failed: $e" }
             return null
         }
     }

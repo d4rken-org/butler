@@ -46,7 +46,7 @@ internal fun RegularFileRow(
             append(item.lookup.modifiedAt?.let { formatDate(it) } ?: "?")
             item.permissions?.let { perms ->
                 append(" • ")
-                append(perms.mode)
+                append(perms.octal)
             }
             item.ownership?.let { owner ->
                 append(" • ")
