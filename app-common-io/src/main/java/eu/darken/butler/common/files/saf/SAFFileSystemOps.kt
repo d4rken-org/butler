@@ -218,7 +218,7 @@ class SAFFileSystemOps @Inject constructor(
                     size = null,
                     modifiedAt = null,
                     target = null,
-                    error = e,
+                    error = e.message,
                     ownership = null,
                     permissions = null,
                     createdAt = null,

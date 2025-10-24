@@ -69,7 +69,7 @@ object MockDataProvider {
             override val ownership: Ownership = mockOwnership
             override val permissions: Permissions = mockPermissions
             override val createdAt: Instant = createdAt
-            override val error: Throwable? = null // No errors in mock preview data
+            override val error: String? = null // No errors in mock preview data
         }
     }
 

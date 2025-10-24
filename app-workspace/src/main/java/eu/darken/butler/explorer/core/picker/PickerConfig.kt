@@ -41,11 +41,14 @@ data class PickerConfig(
          *
          * Interaction:
          * - Tap folder → Navigate into it
-         * - Select button → Confirms current directory
+         * - Tap storage volume → Navigate into it
+         * - Long-press storage volume (at Device level) → Select it
+         * - Select button → Confirms current directory or selected storage
          *
          * Selectability:
-         * - Only real directories (not virtual paths like "Home" or "Device Storage")
-         * - Select button always enabled if path is selectable
+         * - Real directories (not virtual locations like "Home")
+         * - Storage volumes at Device level (internal/external storage)
+         * - Select button enabled when at directory or storage selected
          *
          * Use case: Choose target directory for search, file operations, etc.
          */
@@ -58,13 +61,16 @@ data class PickerConfig(
          * Interaction:
          * - Tap folder → Navigate into it
          * - Long-press folder → Toggle selection
-         * - Select button → Confirms selected directories
+         * - Tap storage volume → Navigate into it
+         * - Long-press storage volume (at Device level) → Toggle selection
+         * - Select button → Confirms selected directories/storages
          *
          * Selectability:
-         * - Only real directories (not virtual paths)
-         * - Select button enabled when at least one directory selected
+         * - Real directories (not virtual locations like "Home")
+         * - Storage volumes at Device level (internal/external storage)
+         * - Select button enabled when items selected or at directory
          *
-         * Use case: Batch operations on multiple folders.
+         * Use case: Batch operations on multiple folders, select multiple storage volumes for search.
          */
         @Parcelize
         data object DirectoryMulti : Selection()

@@ -23,7 +23,7 @@ interface APathLookup<T : APath<T>> {
     val permissions: Permissions?
     val createdAt: Instant?
 
-    val error: Throwable?
+    val error: String?
 
     val path: String
         get() = lookedUp.path

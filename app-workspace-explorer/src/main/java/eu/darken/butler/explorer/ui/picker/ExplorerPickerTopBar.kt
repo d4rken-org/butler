@@ -69,13 +69,15 @@ fun ExplorerPickerTopBar(
                     onClick = onConfirm,
                     enabled = when (selection) {
                         is PickerConfig.Selection.DirectorySingle -> {
-                            // Only enable for real directories, not virtual locations (Home, Device)
+                            // Enable for real directories OR when storage item selected at Device level
                             currentLocation is ExplorerLocation.Directory
+                                || (currentLocation is ExplorerLocation.Device && selectionCount > 0)
                         }
 
                         is PickerConfig.Selection.DirectoryMulti,
                         is PickerConfig.Selection.MixedMulti -> {
-                            // Enable if items selected OR viewing a real directory (for "Select Current" fallback)
+                            // Enable if items selected OR at real directory (for "Select Current" fallback)
+                            // At Device level, only enable when storage items are selected
                             selectionCount > 0 || currentLocation is ExplorerLocation.Directory
                         }
 

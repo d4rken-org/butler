@@ -6,7 +6,7 @@ import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.common.pkgs.pkgops.LibcoreTool
+import eu.darken.butler.common.files.metadata.OwnershipResolver
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
@@ -17,6 +17,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.mockk
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
@@ -31,8 +32,9 @@ import java.nio.file.LinkOption
 class LocalPathDeleteTest : BaseTest() {
 
     private val testFolder = File(IO_TEST_BASEDIR, "delete-test")
+    private val mockOwnershipResolver = mockk<OwnershipResolver>(relaxed = true)
     private val ops = LocalFileSystemOps(
-        libcoreTool = LibcoreTool(),
+        ownershipResolver = mockOwnershipResolver,
     )
 
     @BeforeEach
@@ -2006,7 +2008,7 @@ class LocalPathDeleteTest : BaseTest() {
             fileType = FileType.FILE,
             size = null,  // Null size due to permission error
             modifiedAt = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis()),
-            error = ReadException("Permission denied", LocalPath.build(testFile))
+            error = "Permission denied"
         )
 
         // When - operation should handle null size gracefully

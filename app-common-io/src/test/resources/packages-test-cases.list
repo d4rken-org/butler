@@ -1,0 +1,27 @@
+# Test cases for PackagesListParser
+# This file contains various edge cases for testing
+
+# Valid app UIDs (should be included)
+com.example.app1 10000 0 /data/user/0/com.example.app1 default:targetSdkVersion=34 none 0 100 1 @null
+com.example.app2 10123 0 /data/user/0/com.example.app2 default:targetSdkVersion=35 3003,3003 0 200 1 @system
+com.test.package 15000 0 /data/user/0/com.test.package default:targetSdkVersion=36 none 0 300 1 @null
+
+# System UIDs (should be filtered out)
+com.android.systemui 1000 0 /data/user/0/com.android.systemui platform:privapp:targetSdkVersion=36 none 0 36 1 @system
+com.android.phone 1001 0 /data/user/0/com.android.phone platform:privapp:targetSdkVersion=36 none 0 36 1 @system
+com.android.bluetooth 1002 0 /data/user/0/com.android.bluetooth platform:privapp:targetSdkVersion=36 none 0 36 1 @system
+com.android.shell 2000 0 /data/user/0/com.android.shell platform:privapp:targetSdkVersion=36 none 0 36 1 @system
+com.android.networkstack 1073 0 /data/user/0/com.android.networkstack network_stack:privapp:targetSdkVersion=36 none 0 36 1 @system
+
+# Boundary cases
+com.boundary.below 9999 0 /data/user/0/com.boundary.below default:targetSdkVersion=34 none 0 100 1 @null
+
+# Blank lines (should be ignored)
+
+
+# Malformed entries (should be skipped)
+com.malformed.nouid
+com.malformed.invaliduid notanumber 0 /data/user/0/com.malformed.invaliduid default none
+
+# Entry with minimal fields (package + UID only)
+com.minimal 10500

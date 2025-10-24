@@ -14,9 +14,13 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.extensions.getFileSystemInfo
+import eu.darken.butler.common.files.extensions.isAncestorOfOrSelf
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.MetadataRepo
 import eu.darken.butler.common.progress.Progress
+import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.explorer.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.permissions.PathPermissionCheck
@@ -28,6 +32,7 @@ class DirectoryLocationLoader @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     private val gatewaySwitch: GatewaySwitch,
     private val pathPermissionCheck: PathPermissionCheck,
+    private val storageEnvironment: StorageEnvironment,
     private val metadataRepo: MetadataRepo,
 ) {
 
@@ -59,7 +64,7 @@ class DirectoryLocationLoader @AssistedInject constructor(
 
         suspend fun updateProgressMsg(@StringRes msg: Int) = updateState {
             copy(
-                progress = currentState.progress!!.copy(
+                progress = currentState.progress?.copy(
                     secondary = msg.toCaString()
                 )
             )
@@ -192,27 +197,52 @@ class DirectoryLocationLoader @AssistedInject constructor(
         log(tag) { "loadContentExtended(): Loading content extended: $targetPath" }
         updateProgressMsg(R.string.explorer_loader_progress_directory_content_extended)
 
+        val isPublicStorage =
+            targetPath is SAFPath || storageEnvironment.publicStorages.any { it.isAncestorOfOrSelf(targetPath) }
+
         val extendedLookups = gatewaySwitch.lookupFiles(
             targetPath,
             LookupOptions(
                 continueOnError = true,
                 fallbackToUnknown = true,
                 fetchCreatedAt = true,
-                fetchOwnership = true,
-                fetchPermissions = true
+                fetchOwnership = !isPublicStorage,
+                fetchPermissions = !isPublicStorage
             ),
         ).associateBy { it.path }
+
+        // Count children for directories
+        val childCounts = mutableMapOf<String, Int>()
+        extendedLookups.values.forEach { lookup ->
+            if (lookup.fileType == FileType.DIRECTORY) {
+                try {
+                    val children = gatewaySwitch.listFiles(lookup.lookedUp)
+                    childCounts[lookup.path] = children.size
+                } catch (e: Exception) {
+                    // Permission denied or other error - leave as null
+                    log(tag, WARN) { "Failed to count children for ${lookup.path}: ${e.message}" }
+                }
+            }
+        }
 
         val items = state.items!!.map { item ->
             if (item !is ExplorerItem.Lookup) return@map item
 
             val extendedLookup = extendedLookups[item.path.path] ?: return@map item
 
-            item.withExtendedData(
+            val updatedItem = item.withExtendedData(
                 ownership = extendedLookup.ownership,
                 permissions = extendedLookup.permissions,
                 createdAt = extendedLookup.createdAt,
             )
+
+            // Add child count for directories
+            if (updatedItem is ExplorerItem.RegularDirectory) {
+                val childCount = childCounts[item.path.path]
+                updatedItem.copy(childCount = childCount)
+            } else {
+                updatedItem
+            }
         }
 
         updateState { copy(items = items) }
