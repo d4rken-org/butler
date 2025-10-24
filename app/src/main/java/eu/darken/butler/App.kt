@@ -6,6 +6,8 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.Configuration
+import coil3.ImageLoader
+import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import dagger.hilt.android.HiltAndroidApp
 import eu.darken.butler.common.BuildConfigWrap
@@ -29,16 +31,18 @@ import eu.darken.butler.main.core.CurriculumVitae
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.release.ReleaseManager
 import eu.darken.butler.main.core.shortcuts.DynamicShortcutManager
+import eu.darken.butler.workspace.ui.manager.preview.WorkspacePreviewManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Provider
 import kotlin.system.exitProcess
 
 @HiltAndroidApp
-open class App : Application(), Configuration.Provider {
+open class App : Application(), Configuration.Provider, SingletonImageLoader.Factory {
 
     @Inject @AppScope lateinit var appScope: CoroutineScope
     @Inject lateinit var dispatcherProvider: DispatcherProvider
@@ -46,7 +50,6 @@ open class App : Application(), Configuration.Provider {
     @Inject lateinit var bugReporter: AutomaticBugReporter
     @Inject lateinit var generalSettings: GeneralSettings
     @Inject lateinit var recorderModule: RecorderModule
-    @Inject lateinit var imageLoaderFactory: SingletonImageLoader.Factory
     @Inject lateinit var debugSettings: DebugSettings
     @Inject lateinit var curriculumVitae: CurriculumVitae
     @Inject lateinit var updateService: UpdateService
@@ -54,6 +57,8 @@ open class App : Application(), Configuration.Provider {
     @Inject lateinit var releaseManager: ReleaseManager
     @Inject lateinit var shortcutManager: DynamicShortcutManager
     @Inject lateinit var safLocationManager: SAFLocationManager
+    @Inject lateinit var imageLoaderProvider: Provider<ImageLoader>
+    @Inject lateinit var workspacePreviewManager: WorkspacePreviewManager
 
     private val logCatLogger = LogCatLogger()
 
@@ -64,6 +69,13 @@ open class App : Application(), Configuration.Provider {
             log(TAG) { "BuildConfigWrap.DEBUG=true" }
         }
         log(TAG) { "Fingerprint: ${BuildWrap.FINGERPRINT}" }
+
+        val oldHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            log(TAG, ERROR) { "UNCAUGHT EXCEPTION: ${throwable.asLog()}" }
+            if (oldHandler != null) oldHandler.uncaughtException(thread, throwable) else exitProcess(1)
+            Thread.sleep(100)
+        }
 
         combine(
             debugSettings.isDebugMode.flow,
@@ -90,14 +102,14 @@ open class App : Application(), Configuration.Provider {
 
         theming.setup()
 
-        SingletonImageLoader.setSafe(imageLoaderFactory)
-
         appScope.launch {
             curriculumVitae.updateAppLaunch()
             releaseManager.checkEarlyAdopter()
         }
 
         shortcutManager.initialize()
+
+        workspacePreviewManager.start()
 
         // Automatically refresh SAF permissions when app comes to foreground
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
@@ -109,12 +121,6 @@ open class App : Application(), Configuration.Provider {
             }
         })
 
-        val oldHandler = Thread.getDefaultUncaughtExceptionHandler()
-        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
-            log(TAG, ERROR) { "UNCAUGHT EXCEPTION: ${throwable.asLog()}" }
-            if (oldHandler != null) oldHandler.uncaughtException(thread, throwable) else exitProcess(1)
-            Thread.sleep(100)
-        }
         log(TAG) { "onCreate() done! ${Exception().asLog()}" }
     }
 
@@ -131,6 +137,8 @@ open class App : Application(), Configuration.Provider {
             )
             .setWorkerFactory(workerFactory)
             .build()
+
+    override fun newImageLoader(context: PlatformContext): ImageLoader = imageLoaderProvider.get()
 
     companion object {
         internal val TAG = logTag("App")

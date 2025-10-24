@@ -48,7 +48,6 @@ fun WorkspacePreview(
                     modifier = Modifier.fillMaxSize(),
                     alignment = Alignment.TopCenter,
                     contentScale = ContentScale.FillWidth,
-                    // Show loading indicator while capturing
                     loading = {
                         Box(
                             modifier = Modifier
@@ -60,7 +59,6 @@ fun WorkspacePreview(
                             )
                         }
                     },
-                    // Fall back to text-based preview if capture fails
                     error = {
                         Crossfade(
                             targetState = type,

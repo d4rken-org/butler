@@ -1,13 +1,18 @@
 package eu.darken.butler.workspace.ui.manager.preview
 
-import androidx.compose.ui.geometry.Size
+import android.graphics.Bitmap
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import coil3.ImageLoader
-import coil3.asImage
+import coil3.annotation.ExperimentalCoilApi
 import coil3.decode.DataSource
+import coil3.decode.ImageSource
+import coil3.disk.DiskCache
 import coil3.fetch.FetchResult
 import coil3.fetch.Fetcher
-import coil3.fetch.ImageFetchResult
+import coil3.fetch.SourceFetchResult
 import coil3.request.Options
+import eu.darken.butler.common.coil.use
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -15,6 +20,9 @@ import eu.darken.butler.main.ui.MainActivity
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.preview.WorkspacePreviewModel
 import kotlinx.coroutines.flow.first
+import okio.Buffer
+import okio.FileSystem
+import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
 /**
@@ -24,17 +32,44 @@ import javax.inject.Inject
  * It attempts to use the Activity's ViewModelStore for exact state capture,
  * falling back to temporary ViewModels if no Activity context is available.
  *
- * The bitmap is returned directly to Coil, which handles all caching automatically.
+ * The captured bitmap is encoded to PNG format and cached to disk.
+ * Subsequent requests check the disk cache first, avoiding expensive re-renders.
  */
+@OptIn(ExperimentalCoilApi::class)
 class WorkspacePreviewFetcher @Inject constructor(
     private val workspaceRepo: WorkspaceRepo,
     private val captureService: WorkspacePreviewCaptureService,
+    private val keyer: WorkspacePreviewKeyer,
+    private val diskCache: Lazy<DiskCache?>,
     private val data: WorkspacePreviewModel,
     private val options: Options,
 ) : Fetcher {
 
     override suspend fun fetch(): FetchResult? {
         log(TAG) { "Fetching preview for workspace ${data.workspaceId.shortTag}" }
+
+        // Generate cache key using keyer
+        val cacheKey = keyer.key(data, options)
+
+        // Step 1: Check disk cache first
+        diskCache.value?.openSnapshot(cacheKey)?.use { snapshot ->
+            log(TAG) { "Disk cache HIT for ${data.workspaceId.shortTag}" }
+            val cachedBytes = diskCache.value!!.fileSystem.read(snapshot.data) {
+                readByteArray()
+            }
+            val bufferedSource = Buffer().write(cachedBytes)
+            return SourceFetchResult(
+                source = ImageSource(
+                    source = bufferedSource,
+                    fileSystem = FileSystem.SYSTEM,
+                ),
+                mimeType = "image/png",
+                dataSource = DataSource.DISK
+            )
+        }
+
+        // Step 2: Disk cache miss - generate preview
+        log(TAG) { "Disk cache MISS for ${data.workspaceId.shortTag} - generating preview" }
 
         val workspaceInfo = workspaceRepo.state.first().infos.find { it.id == data.workspaceId }
 
@@ -54,9 +89,9 @@ class WorkspacePreviewFetcher @Inject constructor(
         val bitmap = captureService.captureWorkspace(
             workspaceId = data.workspaceId,
             workspaceType = workspaceInfo.type,
-            size = Size(
-                width = 800f,
-                height = 1200f,
+            size = DpSize(
+                width = 360.dp,
+                height = 640.dp,
             ),
             captureContext = mainActivity,
             viewmodelStoreOwner = mainActivity,
@@ -64,16 +99,38 @@ class WorkspacePreviewFetcher @Inject constructor(
 
         log(TAG) { "Successfully captured preview for ${data.workspaceId.shortTag}" }
 
-        return ImageFetchResult(
-            image = bitmap.asImage(),
-            isSampled = false,
-            dataSource = DataSource.MEMORY
+        val pngBytes = ByteArrayOutputStream().use { stream ->
+            bitmap.compress(Bitmap.CompressFormat.PNG, 85, stream)
+            stream.toByteArray()
+        }
+
+        if (options.diskCachePolicy.writeEnabled) {
+            diskCache.value?.openEditor(cacheKey)?.use { editor ->
+                diskCache.value!!.fileSystem.write(editor.data) {
+                    write(pngBytes)
+                }
+                log(TAG) { "Wrote preview to disk cache for ${data.workspaceId.shortTag}" }
+            }
+        }
+
+        val bufferedSource = Buffer().write(pngBytes)
+
+        val imageSource = ImageSource(
+            source = bufferedSource,
+            fileSystem = FileSystem.SYSTEM,
+        )
+
+        return SourceFetchResult(
+            source = imageSource,
+            mimeType = "image/png",
+            dataSource = DataSource.NETWORK
         )
     }
 
     class Factory @Inject constructor(
         private val workspaceRepo: WorkspaceRepo,
         private val captureService: WorkspacePreviewCaptureService,
+        private val keyer: WorkspacePreviewKeyer,
     ) : Fetcher.Factory<WorkspacePreviewModel> {
 
         override fun create(
@@ -84,6 +141,8 @@ class WorkspacePreviewFetcher @Inject constructor(
             return WorkspacePreviewFetcher(
                 workspaceRepo = workspaceRepo,
                 captureService = captureService,
+                keyer = keyer,
+                diskCache = lazy { imageLoader.diskCache },
                 data = data,
                 options = options,
             )

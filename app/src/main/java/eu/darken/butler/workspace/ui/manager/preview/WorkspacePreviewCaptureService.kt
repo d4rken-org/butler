@@ -5,7 +5,7 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.unit.DpSize
 import androidx.lifecycle.ViewModelStoreOwner
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -34,7 +34,7 @@ class WorkspacePreviewCaptureService @Inject constructor(
     suspend fun captureWorkspace(
         workspaceId: Workspace.Id,
         workspaceType: Workspace.Type,
-        size: Size,
+        size: DpSize,
         captureContext: Context,
         viewmodelStoreOwner: ViewModelStoreOwner? = null,
     ): Bitmap? = try {

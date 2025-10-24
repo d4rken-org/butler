@@ -24,7 +24,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -61,21 +60,25 @@ class ComposableBitmapRenderer @Inject constructor(private val appContext: Conte
     }
 
     suspend fun renderToBitmap(
-        canvasSize: Size,
+        canvasSize: DpSize,
         captureDelay: Duration = 500.milliseconds,
         captureContext: Context? = appContext,
         viewModelStoreOwner: ViewModelStoreOwner? = TemporaryViewModelStoreOwner(),
         composableContent: @Composable () -> Unit,
     ): Bitmap? {
         log(TAG) { "renderToBitmap($canvasSize, $captureDelay, $captureContext, $viewModelStoreOwner)" }
+        val context = captureContext ?: appContext
+        val deviceDensity = Density(
+            density = context.resources.displayMetrics.density,
+            fontScale = context.resources.configuration.fontScale
+        )
+        log(TAG) { "Using device density: ${deviceDensity.density}" }
+
         return useVirtualDisplay { display ->
             captureComposable(
-                captureContext = captureContext ?: appContext,
-                size = DpSize(
-                    width = canvasSize.width.dp,
-                    height = canvasSize.height.dp
-                ),
-                density = Density(1f),
+                captureContext = context,
+                size = canvasSize,
+                density = deviceDensity,
                 display = display,
                 viewModelStoreOwner = viewModelStoreOwner,
             ) {
@@ -173,9 +176,9 @@ class ComposableBitmapRenderer @Inject constructor(private val appContext: Conte
         val composeView = ComposeView(captureContext).apply {
             val intSize = with(density) { size.toSize().roundedToIntSize() }
             require(intSize.width > 0 && intSize.height > 0) { "pixel size must not have zero dimension" }
+            log(TAG) { "Rendering composable to ${intSize.width}x${intSize.height}" }
             layoutParams = ViewGroup.LayoutParams(intSize.width, intSize.height)
         }
-
         presentation.setContentView(composeView, composeView.layoutParams)
         presentation.show()
 

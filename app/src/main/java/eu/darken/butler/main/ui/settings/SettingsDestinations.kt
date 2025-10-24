@@ -37,3 +37,11 @@ data object DestinationUpgradeStatus : NavigationDestination {
 @Suppress("UnusedReceiverParameter")
 fun Nav.Settings.upgradeStatus(): NavigationDestination = DestinationUpgradeStatus
 
+@Serializable
+data object DestinationSettingsStorage : NavigationDestination {
+    private fun readResolve(): Any = DestinationSettingsStorage
+}
+
+@Suppress("UnusedReceiverParameter")
+fun Nav.Settings.storage(): NavigationDestination = DestinationSettingsStorage
+

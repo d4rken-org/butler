@@ -2,8 +2,8 @@ package eu.darken.butler.common.coil
 
 import android.content.Context
 import coil3.ImageLoader
-import coil3.SingletonImageLoader
 import coil3.disk.DiskCache
+import coil3.disk.directory
 import coil3.util.Logger
 import coil3.video.VideoFrameDecoder
 import dagger.Module
@@ -18,8 +18,8 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.main.core.GeneralSettings
-import okio.Path.Companion.toPath
-import javax.inject.Provider
+import eu.darken.butler.workspace.ui.manager.preview.WorkspacePreviewFetcher
+import eu.darken.butler.workspace.ui.manager.preview.WorkspacePreviewKeyer
 import javax.inject.Singleton
 
 
@@ -27,6 +27,7 @@ import javax.inject.Singleton
 @Module
 class CoilModule {
 
+    @Singleton
     @Provides
     fun imageLoader(
         @ApplicationContext context: Context,
@@ -34,8 +35,8 @@ class CoilModule {
         appIconFetcherFactory: AppIconFetcher.Factory,
         pathPreviewFetcher: PathPreviewFetcher.Factory,
         bitmapFetcher: BitmapFetcher.Factory,
-        workspacePreviewFetcher: eu.darken.butler.workspace.ui.manager.preview.WorkspacePreviewFetcher.Factory,
-        workspacePreviewKeyer: eu.darken.butler.workspace.ui.manager.preview.WorkspacePreviewKeyer,
+        workspacePreviewFetcher: WorkspacePreviewFetcher.Factory,
+        workspacePreviewKeyer: WorkspacePreviewKeyer,
         dispatcherProvider: DispatcherProvider,
     ): ImageLoader = ImageLoader.Builder(context).apply {
         if (BuildConfigWrap.DEBUG) {
@@ -47,14 +48,17 @@ class CoilModule {
             }
             logger(logger)
         }
+
         diskCache {
-            val cacheDir = context.cacheDir.resolve("coil_image_cache")
-            log(TAG) { "Configuring disk cache: dir=$cacheDir, maxSize=250MB" }
-            DiskCache.Builder()
-                .directory(cacheDir.absolutePath.toPath())
-                .maxSizeBytes(250L * 1024 * 1024) // 250 MB
-                .build()
+            val cacheDir = context.cacheDir.resolve("preview_cache")
+            log(TAG) { "Configuring disk cache: dir=$cacheDir" }
+
+            DiskCache.Builder().apply {
+                directory(cacheDir)
+                maxSizeBytes(128 * 1024 * 1024L)
+            }.build()
         }
+
         components {
             // Keyers - determine cache keys before lookup
             add(workspacePreviewKeyer)
@@ -74,15 +78,6 @@ class CoilModule {
             )
         )
     }.build()
-
-    @Singleton
-    @Provides
-    fun imageLoaderFactory(
-        imageLoaderSource: Provider<ImageLoader>
-    ): SingletonImageLoader.Factory = SingletonImageLoader.Factory {
-        log(TAG) { "Preparing imageloader factory" }
-        imageLoaderSource.get()
-    }
 
     companion object {
         private val TAG = logTag("Coil", "Module")
