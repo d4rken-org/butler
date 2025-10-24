@@ -61,7 +61,7 @@ class DirectoryLocationLoader @AssistedInject constructor(
 
         suspend fun updateProgressMsg(@StringRes msg: Int) = updateState {
             copy(
-                progress = currentState.progress!!.copy(
+                progress = currentState.progress?.copy(
                     secondary = msg.toCaString()
                 )
             )
