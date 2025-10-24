@@ -288,7 +288,7 @@ fun SearcherWorkspacePage(
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp,
-                    top = 16.dp + actualToolbarHeightDp + 16.dp + (if (showStatusCard) statusCardHeight + 8.dp else 0.dp),
+                    top = 16.dp + actualToolbarHeightDp + (if (showStatusCard) statusCardHeight + 8.dp else 0.dp),
                     bottom = run {
                         val actionBarHeight = if (hasActions) 64.dp else 0.dp
                         val clipboardHeight = if (hasClipboard) 88.dp else 0.dp
@@ -418,7 +418,7 @@ fun SearcherWorkspacePage(
                     onClear = onClearResults,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .offset(y = 16.dp + actualToolbarHeightDp + 16.dp) // Account for toolbar's vertical padding + gap
+                        .offset(y = 16.dp + actualToolbarHeightDp) // Account for toolbar's vertical padding + gap
                         .padding(horizontal = 16.dp)
                 )
             }
