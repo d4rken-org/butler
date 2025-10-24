@@ -14,8 +14,11 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.extensions.getFileSystemInfo
+import eu.darken.butler.common.files.extensions.isAncestorOfOrSelf
 import eu.darken.butler.common.progress.Progress
+import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.explorer.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.permissions.PathPermissionCheck
@@ -27,6 +30,7 @@ class DirectoryLocationLoader @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     private val gatewaySwitch: GatewaySwitch,
     private val pathPermissionCheck: PathPermissionCheck,
+    private val storageEnvironment: StorageEnvironment,
 ) {
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "DirectoryLoader")
@@ -189,14 +193,17 @@ class DirectoryLocationLoader @AssistedInject constructor(
         log(tag) { "loadContentExtended(): Loading content extended: $targetPath" }
         updateProgressMsg(R.string.explorer_loader_progress_directory_content_extended)
 
+        val isPublicStorage =
+            targetPath is SAFPath || storageEnvironment.publicStorages.any { it.isAncestorOfOrSelf(targetPath) }
+
         val extendedLookups = gatewaySwitch.lookupFiles(
             targetPath,
             LookupOptions(
                 continueOnError = true,
                 fallbackToUnknown = true,
                 fetchCreatedAt = true,
-                fetchOwnership = true,
-                fetchPermissions = true
+                fetchOwnership = !isPublicStorage,
+                fetchPermissions = !isPublicStorage
             ),
         ).associateBy { it.path }
 
