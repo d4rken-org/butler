@@ -3,10 +3,11 @@ package eu.darken.butler.common.files.metadata
 /**
  * Android system UID and GID constants.
  *
- * Based on AOSP bionic/libc/kernel/uapi/linux/android_filesystem_config.h
+ * Based on AOSP platform/system/core/libcutils/include/private/android_filesystem_config.h
  * These are hardcoded system identifiers used by Android (UIDs/GIDs 0-9999).
  *
  * UIDs 10000+ are dynamically assigned to apps and should be resolved via PackageManager.
+ * Last updated: 2025-01 from AOSP master branch.
  */
 object AndroidSystemIds {
 
@@ -15,6 +16,9 @@ object AndroidSystemIds {
      */
     val SYSTEM_UIDS = mapOf(
         0 to "root",
+        1 to "daemon",
+        2 to "bin",
+        3 to "sys",
         1000 to "system",
         1001 to "radio",
         1002 to "bluetooth",
@@ -99,6 +103,18 @@ object AndroidSystemIds {
         1081 to "virtualizationservice",
         1082 to "artd",
         1083 to "uwb",
+        1084 to "thread_network",
+        1085 to "diced",
+        1086 to "dmesgd",
+        1087 to "jc_weaver",
+        1088 to "jc_strongbox",
+        1089 to "jc_identitycred",
+        1090 to "sdk_sandbox",
+        1091 to "security_log_writer",
+        1092 to "prng_seeder",
+        1093 to "uprobestats",
+        1094 to "cros_ec",
+        1095 to "mmd",
         2000 to "shell",
         2001 to "cache",
         2002 to "diag",
@@ -112,6 +128,9 @@ object AndroidSystemIds {
         3008 to "readproc",
         3009 to "wakelock",
         3010 to "uhid",
+        3011 to "sensors",
+        3012 to "rfs",
+        3013 to "ddr",
         5000 to "oem_reserved_start",
         9997 to "everybody",
         9998 to "misc",
@@ -124,6 +143,9 @@ object AndroidSystemIds {
      */
     val SYSTEM_GIDS = mapOf(
         0 to "root",
+        1 to "daemon",
+        2 to "bin",
+        3 to "sys",
         1000 to "system",
         1001 to "radio",
         1002 to "bluetooth",
@@ -208,6 +230,18 @@ object AndroidSystemIds {
         1081 to "virtualizationservice",
         1082 to "artd",
         1083 to "uwb",
+        1084 to "thread_network",
+        1085 to "diced",
+        1086 to "dmesgd",
+        1087 to "jc_weaver",
+        1088 to "jc_strongbox",
+        1089 to "jc_identitycred",
+        1090 to "sdk_sandbox",
+        1091 to "security_log_writer",
+        1092 to "prng_seeder",
+        1093 to "uprobestats",
+        1094 to "cros_ec",
+        1095 to "mmd",
         2000 to "shell",
         2001 to "cache",
         2002 to "diag",
@@ -221,6 +255,9 @@ object AndroidSystemIds {
         3008 to "readproc",
         3009 to "wakelock",
         3010 to "uhid",
+        3011 to "sensors",
+        3012 to "rfs",
+        3013 to "ddr",
         5000 to "oem_reserved_start",
         9997 to "everybody",
         9998 to "misc",
@@ -244,6 +281,21 @@ object AndroidSystemIds {
     const val AID_ISOLATED_START = 99000
 
     /**
+     * The ending UID for isolated processes.
+     */
+    const val AID_ISOLATED_END = 99999
+
+    /**
+     * The starting UID for SDK sandbox processes.
+     */
+    const val AID_SDK_SANDBOX_PROCESS_START = 20000
+
+    /**
+     * The ending UID for SDK sandbox processes.
+     */
+    const val AID_SDK_SANDBOX_PROCESS_END = 29999
+
+    /**
      * Checks if a UID is a system UID (0-9999).
      */
     fun isSystemUid(uid: Int): Boolean = uid in 0..9999
@@ -254,7 +306,12 @@ object AndroidSystemIds {
     fun isAppUid(uid: Int): Boolean = uid in AID_APP_START..AID_APP_END
 
     /**
-     * Checks if a UID is an isolated process UID (99000+).
+     * Checks if a UID is an isolated process UID (99000-99999).
      */
-    fun isIsolatedUid(uid: Int): Boolean = uid >= AID_ISOLATED_START
+    fun isIsolatedUid(uid: Int): Boolean = uid in AID_ISOLATED_START..AID_ISOLATED_END
+
+    /**
+     * Checks if a UID is an SDK sandbox process UID (20000-29999).
+     */
+    fun isSdkSandboxUid(uid: Int): Boolean = uid in AID_SDK_SANDBOX_PROCESS_START..AID_SDK_SANDBOX_PROCESS_END
 }
