@@ -2,6 +2,7 @@ package eu.darken.butler.common
 
 import android.content.Context
 import android.icu.text.RelativeDateTimeFormatter
+import android.text.format.DateFormat
 import android.text.format.DateUtils
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -164,12 +165,18 @@ fun formatDuration(context: Context, duration: Duration, shortStyle: Boolean = f
 
 @Composable
 fun formatDate(timestamp: Instant): String {
-    return DateUtils.formatDateTime(
-        LocalContext.current,
-        timestamp.toEpochMilliseconds(),
-        DateUtils.FORMAT_SHOW_YEAR or
-            DateUtils.FORMAT_SHOW_DATE or
-            DateUtils.FORMAT_SHOW_TIME or
-            DateUtils.FORMAT_ABBREV_ALL
-    )
+    val context = LocalContext.current
+    val dateFormat = remember {
+        // Use Android's DateFormat to respect user's 12/24 hour preference
+        val timeFormat = if (DateFormat.is24HourFormat(context)) {
+            "HH:mm:ss"
+        } else {
+            "h:mm:ss a"
+        }
+        // Full format: abbreviated month, day, year, time with seconds
+        java.text.SimpleDateFormat("MMM d, yyyy, $timeFormat", context.resources.configuration.locales[0])
+    }
+    return remember(timestamp) {
+        dateFormat.format(java.util.Date(timestamp.toEpochMilliseconds()))
+    }
 }
