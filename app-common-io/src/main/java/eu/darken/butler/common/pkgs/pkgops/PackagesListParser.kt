@@ -18,13 +18,19 @@ import javax.inject.Singleton
  *
  * This file is world-readable on most Android devices and provides accurate
  * UID → package name mappings for all installed apps (UIDs 10000+).
- *
- * @param filePath Path to the packages.list file. Defaults to the standard Android location.
  */
 @Singleton
-class PackagesListParser @Inject constructor(
-    private val filePath: String = PACKAGES_LIST_PATH,
-) {
+class PackagesListParser @Inject constructor() {
+
+    private var filePath: String = PACKAGES_LIST_PATH
+
+    /**
+     * Constructor for testing with custom file path.
+     */
+    constructor(filePath: String) : this() {
+        this.filePath = filePath
+    }
+
     /**
      * Parses the packages.list file and returns a map of UID → package name.
      *
