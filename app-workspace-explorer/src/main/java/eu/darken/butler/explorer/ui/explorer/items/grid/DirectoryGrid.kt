@@ -39,8 +39,10 @@ internal fun DirectoryGrid(
             )
         },
         primaryText = item.displayName.get(LocalContext.current),
-        secondaryText = item.childCount?.let { count ->
-            stringResource(R.string.explorer_file_items_count, count)
+        secondaryText = when (val count = item.childCount) {
+            0 -> stringResource(R.string.explorer_file_empty)
+            null -> null
+            else -> stringResource(R.string.explorer_file_items_count, count)
         },
         backgroundColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
     )

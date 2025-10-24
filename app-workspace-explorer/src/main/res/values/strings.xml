@@ -30,6 +30,7 @@
     <string name="explorer_file_storage_size_format">%1$s • %2$s total • %3$s free</string>
     <string name="explorer_file_broken_link_label">Broken link</string>
     <string name="explorer_file_items_count">%1$d items</string>
+    <string name="explorer_file_empty">Empty</string>
     <string name="explorer_file_pages_count">%1$d pages</string>
 
     <!-- Picker Mode -->

@@ -17,6 +17,7 @@ import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.extensions.getFileSystemInfo
 import eu.darken.butler.common.files.extensions.isAncestorOfOrSelf
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.explorer.R
@@ -207,16 +208,38 @@ class DirectoryLocationLoader @AssistedInject constructor(
             ),
         ).associateBy { it.path }
 
+        // Count children for directories
+        val childCounts = mutableMapOf<String, Int>()
+        extendedLookups.values.forEach { lookup ->
+            if (lookup.fileType == FileType.DIRECTORY) {
+                try {
+                    val children = gatewaySwitch.listFiles(lookup.lookedUp)
+                    childCounts[lookup.path] = children.size
+                } catch (e: Exception) {
+                    // Permission denied or other error - leave as null
+                    log(tag, WARN) { "Failed to count children for ${lookup.path}: ${e.message}" }
+                }
+            }
+        }
+
         val items = state.items!!.map { item ->
             if (item !is ExplorerItem.Lookup) return@map item
 
             val extendedLookup = extendedLookups[item.path.path] ?: return@map item
 
-            item.withExtendedData(
+            val updatedItem = item.withExtendedData(
                 ownership = extendedLookup.ownership,
                 permissions = extendedLookup.permissions,
                 createdAt = extendedLookup.createdAt,
             )
+
+            // Add child count for directories
+            if (updatedItem is ExplorerItem.RegularDirectory) {
+                val childCount = childCounts[item.path.path]
+                updatedItem.copy(childCount = childCount)
+            } else {
+                updatedItem
+            }
         }
 
         updateState { copy(items = items) }

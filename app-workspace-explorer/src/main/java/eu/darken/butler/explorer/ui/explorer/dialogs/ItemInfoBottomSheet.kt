@@ -240,8 +240,13 @@ private fun SingleDirectoryInfo(
             value = stringResource(R.string.explorer_info_type_directory)
         )
 
-        item.childCount?.let { count ->
-            InfoRow(
+        when (val count = item.childCount) {
+            0 -> InfoRow(
+                label = stringResource(R.string.explorer_info_child_count_label),
+                value = stringResource(R.string.explorer_file_empty)
+            )
+            null -> {}
+            else -> InfoRow(
                 label = stringResource(R.string.explorer_info_child_count_label),
                 value = count.toString()
             )

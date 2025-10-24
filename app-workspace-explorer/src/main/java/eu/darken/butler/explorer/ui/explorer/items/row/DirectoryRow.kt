@@ -40,9 +40,16 @@ internal fun DirectoryRow(
         },
         primaryText = item.displayName.get(LocalContext.current),
         secondaryText = buildString {
-            item.childCount?.let { count ->
-                append(stringResource(R.string.explorer_file_items_count, count))
-                append(" • ")
+            when (val count = item.childCount) {
+                0 -> {
+                    append(stringResource(R.string.explorer_file_empty))
+                    append(" • ")
+                }
+                null -> {}
+                else -> {
+                    append(stringResource(R.string.explorer_file_items_count, count))
+                    append(" • ")
+                }
             }
             append(item.lookup.modifiedAt?.let { formatDate(it) } ?: "?")
             item.permissions?.let { perms ->
