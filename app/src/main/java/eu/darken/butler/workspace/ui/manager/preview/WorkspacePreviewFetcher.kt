@@ -5,11 +5,13 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import coil3.ImageLoader
 import coil3.annotation.ExperimentalCoilApi
+import coil3.asImage
 import coil3.decode.DataSource
 import coil3.decode.ImageSource
 import coil3.disk.DiskCache
 import coil3.fetch.FetchResult
 import coil3.fetch.Fetcher
+import coil3.fetch.ImageFetchResult
 import coil3.fetch.SourceFetchResult
 import coil3.request.Options
 import eu.darken.butler.common.coil.use
@@ -99,12 +101,11 @@ class WorkspacePreviewFetcher @Inject constructor(
 
         log(TAG) { "Successfully captured preview for ${data.workspaceId.shortTag}" }
 
-        val pngBytes = ByteArrayOutputStream().use { stream ->
-            bitmap.compress(Bitmap.CompressFormat.PNG, 85, stream)
-            stream.toByteArray()
-        }
-
         if (options.diskCachePolicy.writeEnabled) {
+            val pngBytes = ByteArrayOutputStream().use { stream ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, 85, stream)
+                stream.toByteArray()
+            }
             diskCache.value?.openEditor(cacheKey)?.use { editor ->
                 diskCache.value!!.fileSystem.write(editor.data) {
                     write(pngBytes)
@@ -113,16 +114,9 @@ class WorkspacePreviewFetcher @Inject constructor(
             }
         }
 
-        val bufferedSource = Buffer().write(pngBytes)
-
-        val imageSource = ImageSource(
-            source = bufferedSource,
-            fileSystem = FileSystem.SYSTEM,
-        )
-
-        return SourceFetchResult(
-            source = imageSource,
-            mimeType = "image/png",
+        return ImageFetchResult(
+            image = bitmap.asImage(),
+            isSampled = false,
             dataSource = DataSource.NETWORK
         )
     }
