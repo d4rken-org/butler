@@ -33,6 +33,7 @@ class CoilModule {
         pathPreviewFetcher: PathPreviewFetcher.Factory,
         bitmapFetcher: BitmapFetcher.Factory,
         workspacePreviewFetcher: eu.darken.butler.workspace.ui.manager.preview.WorkspacePreviewFetcher.Factory,
+        workspacePreviewCacheInterceptor: eu.darken.butler.workspace.ui.manager.preview.WorkspacePreviewCacheInterceptor,
         dispatcherProvider: DispatcherProvider,
     ): ImageLoader = ImageLoader.Builder(context).apply {
         if (BuildConfigWrap.DEBUG) {
@@ -50,6 +51,7 @@ class CoilModule {
             add(bitmapFetcher)
             add(workspacePreviewFetcher)
             add(VideoFrameDecoder.Factory())
+            add(workspacePreviewCacheInterceptor)
         }
         coroutineContext(
             dispatcherProvider.Default.limitedParallelism(

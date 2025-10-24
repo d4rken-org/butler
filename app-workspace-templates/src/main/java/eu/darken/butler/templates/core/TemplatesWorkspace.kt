@@ -15,7 +15,6 @@ import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
 import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
-import eu.darken.butler.workspace.core.preview.TemplatesPreviewData
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -47,7 +46,6 @@ class TemplatesWorkspace @AssistedInject constructor(
                 if (Bugs.isDebug) base.append(" " + id.shortTag)
                 base.toString()
             },
-            previewData = TemplatesPreviewData(),
         )
     )
 

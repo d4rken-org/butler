@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,12 +23,14 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
-import eu.darken.butler.workspace.core.preview.TemplatesPreviewData
+
+data class TemplatesPreviewData(
+    val templateCount: Int = 0,
+)
 
 @Composable
-fun TemplatesPreview(
+fun TemplatesMockPreview(
     modifier: Modifier = Modifier,
-    data: TemplatesPreviewData?,
 ) {
     Box(
         modifier = modifier
@@ -103,10 +104,8 @@ private fun TemplateItem(
 
 @Preview2
 @Composable
-private fun TemplatesPreviewPreview() {
+private fun TemplatesMockPreviewPreview() {
     PreviewWrapper {
-        TemplatesPreview(
-            data = TemplatesPreviewData(templateCount = 5)
-        )
+        TemplatesMockPreview()
     }
 }

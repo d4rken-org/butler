@@ -1,30 +1,35 @@
 package eu.darken.butler.workspace.ui.manager.preview
 
+import androidx.compose.ui.geometry.Size
 import coil3.ImageLoader
+import coil3.asImage
 import coil3.decode.DataSource
-import coil3.decode.ImageSource
 import coil3.fetch.FetchResult
 import coil3.fetch.Fetcher
-import coil3.fetch.SourceFetchResult
+import coil3.fetch.ImageFetchResult
 import coil3.request.Options
+import coil3.size.pxOrElse
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.main.ui.MainActivity
+import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.preview.WorkspacePreviewModel
-import eu.darken.butler.workspace.core.preview.WorkspacePreviewRepo
-import okio.FileSystem
-import okio.Path.Companion.toOkioPath
-import okio.buffer
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 /**
- * Coil Fetcher for loading workspace preview images from cache.
+ * Coil Fetcher for capturing workspace preview images on-demand.
  *
- * This fetcher resolves [WorkspacePreviewModel] to the cached PNG file
- * managed by [WorkspacePreviewRepo]. If no cached preview exists, the
- * fetch fails gracefully allowing Coil placeholder/error handling.
+ * This fetcher captures workspace UI in real-time when requested by Coil.
+ * It attempts to use the Activity's ViewModelStore for exact state capture,
+ * falling back to temporary ViewModels if no Activity context is available.
+ *
+ * The bitmap is returned directly to Coil, which handles all caching automatically.
  */
 class WorkspacePreviewFetcher @Inject constructor(
-    private val previewRepo: WorkspacePreviewRepo,
+    private val workspaceRepo: WorkspaceRepo,
+    private val captureService: WorkspacePreviewCaptureService,
     private val data: WorkspacePreviewModel,
     private val options: Options,
 ) : Fetcher {
@@ -32,28 +37,44 @@ class WorkspacePreviewFetcher @Inject constructor(
     override suspend fun fetch(): FetchResult? {
         log(TAG) { "Fetching preview for workspace ${data.workspaceId.shortTag}" }
 
-        val cachedFile = previewRepo.getCachedPreview(data.workspaceId)
+        val workspaceInfo = workspaceRepo.state.first().infos.find { it.id == data.workspaceId }
 
-        return if (cachedFile != null && cachedFile.exists()) {
-            log(TAG) { "Found cached preview for ${data.workspaceId.shortTag}: ${cachedFile.length()} bytes" }
-            val path = cachedFile.toOkioPath()
-            val source = FileSystem.SYSTEM.source(path).buffer()
-            SourceFetchResult(
-                source = ImageSource(
-                    source = source,
-                    fileSystem = FileSystem.SYSTEM,
-                ),
-                mimeType = "image/png",
-                dataSource = DataSource.DISK
-            )
-        } else {
-            log(TAG) { "No cached preview for ${data.workspaceId.shortTag}, returning null" }
-            null // Let Coil show placeholder/error
+        if (workspaceInfo == null) {
+            log(TAG, WARN) { "Workspace ${data.workspaceId.shortTag} not found in repo" }
+            return null
         }
+
+        // Try to extract ViewModelStoreOwner from Coil's context
+        val mainActivity = (options.context as? MainActivity)
+
+        if (mainActivity == null) {
+            log(TAG, WARN) { "No MainActivity available via context" }
+            return null
+        }
+
+        val bitmap = captureService.captureWorkspace(
+            workspaceId = data.workspaceId,
+            workspaceType = workspaceInfo.type,
+            size = Size(
+                width = options.size.width.pxOrElse { 400 }.toFloat() * 2,
+                height = options.size.height.pxOrElse { 200 }.toFloat() * 2,
+            ),
+            captureContext = mainActivity,
+            viewmodelStoreOwner = mainActivity,
+        ) ?: return null
+
+        log(TAG) { "Successfully captured preview for ${data.workspaceId.shortTag}" }
+
+        return ImageFetchResult(
+            image = bitmap.asImage(),
+            isSampled = false,
+            dataSource = DataSource.MEMORY
+        )
     }
 
     class Factory @Inject constructor(
-        private val previewRepo: WorkspacePreviewRepo,
+        private val workspaceRepo: WorkspaceRepo,
+        private val captureService: WorkspacePreviewCaptureService,
     ) : Fetcher.Factory<WorkspacePreviewModel> {
 
         override fun create(
@@ -62,7 +83,8 @@ class WorkspacePreviewFetcher @Inject constructor(
             imageLoader: ImageLoader
         ): Fetcher {
             return WorkspacePreviewFetcher(
-                previewRepo = previewRepo,
+                workspaceRepo = workspaceRepo,
+                captureService = captureService,
                 data = data,
                 options = options,
             )

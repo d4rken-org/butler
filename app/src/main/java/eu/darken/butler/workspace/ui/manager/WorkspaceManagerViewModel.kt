@@ -11,7 +11,6 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
-import eu.darken.butler.workspace.core.preview.PreviewData
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
@@ -28,7 +27,8 @@ class WorkspaceManagerViewModel @Inject constructor(
     val state = combine(
         workspaceRepo.state,
         workspaceSettings.showBadgeExplanation.flow,
-    ) { repoState, showBadge ->
+        workspaceSettings.livePreview.flow,
+    ) { repoState, showBadge, livePreview ->
         State(
             workspaces = repoState.infos.map { info ->
                 WorkspaceItem(
@@ -36,9 +36,9 @@ class WorkspaceManagerViewModel @Inject constructor(
                     type = info.type,
                     title = info.title,
                     subtitle = info.subtitle,
-                    previewData = info.previewData,
                 )
             },
+            useLivePreview = livePreview,
             showBadgeExplanation = showBadge,
             operationsCount = repoState.operationCount,
             attentionCount = repoState.attentionCount,
@@ -82,6 +82,7 @@ class WorkspaceManagerViewModel @Inject constructor(
     data class State(
         val workspaces: List<WorkspaceItem> = emptyList(),
         val showBadgeExplanation: Boolean = true,
+        val useLivePreview: Boolean = true,
         val operationsCount: Int = 0,
         val attentionCount: Int = 0,
     ) {
@@ -93,6 +94,5 @@ class WorkspaceManagerViewModel @Inject constructor(
         val type: Workspace.Type,
         val title: CaString,
         val subtitle: CaString?,
-        val previewData: PreviewData? = null,
     )
 }

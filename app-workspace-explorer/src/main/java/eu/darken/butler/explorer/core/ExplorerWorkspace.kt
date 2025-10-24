@@ -34,7 +34,6 @@ import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
 import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
 import eu.darken.butler.workspace.core.operations.withStateUpdates
-import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
 import eu.darken.butler.workspace.core.tracker.PathAccessTracker
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
@@ -128,7 +127,6 @@ class ExplorerWorkspace @AssistedInject constructor(
                 else -> R.string.explorer_title.toCaString()
             },
             subtitle = state.currentTarget?.description,
-            previewData = ExplorerPreviewData(),
             operationCount = activeOperations,
             attentionCount = attentionCount,
             callerWorkspaceId = pickerConfig?.callerWorkspaceId,

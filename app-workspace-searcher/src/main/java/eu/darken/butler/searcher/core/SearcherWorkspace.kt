@@ -8,7 +8,6 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.searcher.core.operations.DeleteOperation
 import eu.darken.butler.searcher.core.operations.SearcherCommand
@@ -19,12 +18,11 @@ import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
 import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
 import eu.darken.butler.workspace.core.operations.withStateUpdates
-import eu.darken.butler.workspace.core.preview.SearcherPreviewData
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -51,7 +49,6 @@ class SearcherWorkspace @AssistedInject constructor(
             id = id,
             type = type,
             title = "Searcher ${id.shortTag}".toCaString(),
-            previewData = SearcherPreviewData(),
         )
     )
 

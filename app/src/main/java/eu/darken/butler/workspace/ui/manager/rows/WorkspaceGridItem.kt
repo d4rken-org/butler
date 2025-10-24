@@ -33,9 +33,6 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
-import eu.darken.butler.workspace.core.preview.EditorPreviewData
-import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
-import eu.darken.butler.workspace.core.preview.SearcherPreviewData
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
 import eu.darken.butler.workspace.ui.manager.rows.preview.WorkspacePreview
 
@@ -46,7 +43,7 @@ fun WorkspaceGridItem(
     workspace: WorkspaceManagerViewModel.WorkspaceItem,
     onClose: () -> Unit,
     onSelect: () -> Unit,
-    showPreview: Boolean = true,
+    livePreview: Boolean = true,
     isDragging: Boolean = false,
     onDragStarted: () -> Unit = {},
     onDragStopped: () -> Unit = {},
@@ -163,15 +160,12 @@ fun WorkspaceGridItem(
                     }
                 }
 
-                // Preview section
-                if (showPreview) {
                     WorkspacePreview(
                         modifier = Modifier.fillMaxWidth(),
                         workspaceId = workspace.id,
                         type = workspace.type,
-                        previewData = workspace.previewData
+                        livePreview = livePreview,
                     )
-                }
             }
         }
     }
@@ -206,7 +200,6 @@ private fun WorkspaceGridItemPreview() {
                 type = Workspace.Type.EXPLORER,
                 title = "Explorer".toCaString(),
                 subtitle = "File explorer for browsing and managing files".toCaString(),
-                previewData = ExplorerPreviewData(),
             ),
             onClose = {},
             onSelect = {},
@@ -227,7 +220,6 @@ private fun WorkspaceGridItemSearcherPreview() {
                 type = Workspace.Type.SEARCHER,
                 title = "Search".toCaString(),
                 subtitle = "Search for files and folders".toCaString(),
-                previewData = SearcherPreviewData(),
             ),
             onClose = {},
             onSelect = {},
@@ -248,7 +240,6 @@ private fun WorkspaceGridItemEditorPreview() {
                 type = Workspace.Type.EDITOR,
                 title = "Editor".toCaString(),
                 subtitle = "Text editor".toCaString(),
-                previewData = EditorPreviewData(),
             ),
             onClose = {},
             onSelect = {},
@@ -269,7 +260,6 @@ private fun WorkspaceGridItemDraggingPreview() {
                 type = Workspace.Type.SEARCHER,
                 title = "Search".toCaString(),
                 subtitle = "Search for files and folders".toCaString(),
-                previewData = SearcherPreviewData(),
             ),
             onClose = {},
             onSelect = {},

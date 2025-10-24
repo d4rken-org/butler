@@ -23,9 +23,6 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.preview.EditorPreviewData
-import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
-import eu.darken.butler.workspace.core.preview.SearcherPreviewData
 import eu.darken.butler.workspace.ui.manager.rows.WorkspaceBadgeExplanationCard
 import eu.darken.butler.workspace.ui.manager.rows.WorkspaceGridItem
 import eu.darken.butler.workspace.ui.manager.rows.WorkspaceStatusCard
@@ -136,6 +133,7 @@ fun WorkspaceManagerGridLayout(
                         onClose = { onCloseWorkspace(workspace.id) },
                         onSelect = { onSelectWorkspace(workspace.id) },
                         isDragging = itemIsDragging,
+                        livePreview = state.useLivePreview,
                         onDragStarted = { isDragging = true },
                         onDragStopped = {
                             isDragging = false
@@ -179,7 +177,6 @@ private fun WorkspaceManagerGridLayoutPreview() {
                             type = Workspace.Type.EXPLORER,
                             title = "Explorer".toCaString(),
                             subtitle = "File explorer".toCaString(),
-                            previewData = ExplorerPreviewData()
                         )
                     ),
                     operationsCount = 2,
@@ -215,21 +212,18 @@ private fun WorkspaceManagerGridLayoutTabletPreview() {
                             type = Workspace.Type.EXPLORER,
                             title = "Explorer".toCaString(),
                             subtitle = "File explorer for browsing".toCaString(),
-                            previewData = ExplorerPreviewData()
                         ),
                         WorkspaceManagerViewModel.WorkspaceItem(
                             id = Workspace.Id(),
                             type = Workspace.Type.SEARCHER,
                             title = "Search".toCaString(),
                             subtitle = "Search for files and folders".toCaString(),
-                            previewData = SearcherPreviewData()
                         ),
                         WorkspaceManagerViewModel.WorkspaceItem(
                             id = Workspace.Id(),
                             type = Workspace.Type.EDITOR,
                             title = "Editor".toCaString(),
                             subtitle = "Text editor".toCaString(),
-                            previewData = EditorPreviewData()
                         )
                     ),
                     operationsCount = 2,
@@ -281,14 +275,12 @@ private fun WorkspaceManagerGridLayoutWithExplanationsPreview() {
                             type = Workspace.Type.EXPLORER,
                             title = "Explorer".toCaString(),
                             subtitle = "File explorer".toCaString(),
-                            previewData = ExplorerPreviewData()
                         ),
                         WorkspaceManagerViewModel.WorkspaceItem(
                             id = Workspace.Id(),
                             type = Workspace.Type.SEARCHER,
                             title = "Search".toCaString(),
                             subtitle = "File search".toCaString(),
-                            previewData = SearcherPreviewData()
                         )
                     ),
                     operationsCount = 2,

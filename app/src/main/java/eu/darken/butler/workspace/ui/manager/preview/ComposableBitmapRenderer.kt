@@ -1,9 +1,7 @@
 package eu.darken.butler.workspace.ui.manager.preview
 
-import android.app.Application
 import android.app.Presentation
 import android.content.Context
-import android.content.Context.*
 import android.graphics.Bitmap
 import android.graphics.SurfaceTexture
 import android.hardware.display.DisplayManager
@@ -31,11 +29,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -52,16 +54,44 @@ import kotlin.time.Duration.Companion.milliseconds
  * https://gist.github.com/riggaroo/0e0072b3e85aa91443659031925fa47c
  */
 @Singleton
-class ComposableBitmapRenderer @Inject constructor(private val application: Application) {
+class ComposableBitmapRenderer @Inject constructor(private val appContext: Context) {
 
     private val displayService by lazy {
-        application.getSystemService(DisplayManager::class.java)
+        appContext.getSystemService(DisplayManager::class.java)
+    }
+
+    suspend fun renderToBitmap(
+        canvasSize: Size,
+        captureDelay: Duration = 500.milliseconds,
+        captureContext: Context? = appContext,
+        viewModelStoreOwner: ViewModelStoreOwner? = TemporaryViewModelStoreOwner(),
+        composableContent: @Composable () -> Unit,
+    ): Bitmap? {
+        log(TAG) { "renderToBitmap($canvasSize, $captureDelay, $captureContext, $viewModelStoreOwner)" }
+        return useVirtualDisplay { display ->
+            captureComposable(
+                captureContext = captureContext ?: appContext,
+                size = DpSize(
+                    width = canvasSize.width.dp,
+                    height = canvasSize.height.dp
+                ),
+                density = Density(1f),
+                display = display,
+                viewModelStoreOwner = viewModelStoreOwner,
+            ) {
+                LaunchedEffect(Unit) {
+                    delay(captureDelay)
+                    capture()
+                }
+                composableContent()
+            }
+        }
     }
 
     private suspend fun <T> useVirtualDisplay(callback: suspend (display: Display) -> T): T? {
         val texture = SurfaceTexture(false)
         val surface = Surface(texture)
-        val outerContext = application.resources.displayMetrics
+        val outerContext = appContext.resources.displayMetrics
         val virtualDisplay: VirtualDisplay? = displayService.createVirtualDisplay(
             "virtualDisplay",
             outerContext.widthPixels,
@@ -78,28 +108,6 @@ class ComposableBitmapRenderer @Inject constructor(private val application: Appl
             virtualDisplay.release()
             surface.release()
             texture.release()
-        }
-    }
-
-    suspend fun renderToBitmap(
-        canvasSize: Size,
-        captureDelay: Duration = 500.milliseconds,
-        composableContent: @Composable () -> Unit,
-    ): Bitmap? = useVirtualDisplay { display ->
-        captureComposable(
-            context = application,
-            size = DpSize(
-                width = canvasSize.width.dp,
-                height = canvasSize.height.dp
-            ),
-            density = Density(1f),
-            display = display,
-        ) {
-            LaunchedEffect(Unit) {
-                delay(captureDelay)
-                capture()
-            }
-            composableContent()
         }
     }
 
@@ -133,26 +141,36 @@ class ComposableBitmapRenderer @Inject constructor(private val application: Appl
             get() = controller.savedStateRegistry
     }
 
+    private class TemporaryViewModelStoreOwner : ViewModelStoreOwner {
+        private val store = ViewModelStore()
+        override val viewModelStore: ViewModelStore get() = store
+    }
+
     /** Captures composable content, by default using a hidden window on the default display.
      *
      *  Be sure to invoke capture() within the composable content (e.g. in a LaunchedEffect) to perform the capture.
      *  This gives some level of control over when the capture occurs, so it's possible to wait for async resources */
     private suspend fun captureComposable(
-        context: Context,
         size: DpSize,
         density: Density = Density(density = 1f),
-        display: Display = (context.getSystemService(DISPLAY_SERVICE) as DisplayManager).getDisplay(Display.DEFAULT_DISPLAY),
+        display: Display,
+        captureContext: Context,
+        viewModelStoreOwner: ViewModelStoreOwner?,
         content: @Composable CaptureComposableScope.() -> Unit,
     ): Bitmap {
-        val presentation = Presentation(context.applicationContext, display).apply {
-            window?.decorView?.let { view ->
-                view.setViewTreeLifecycleOwner(ProcessLifecycleOwner.get())
-                view.setViewTreeSavedStateRegistryOwner(EmptySavedStateRegistryOwner())
-                view.alpha = 0f // If using default display, to ensure this does not appear on top of content.
+        val presentation = Presentation(
+            captureContext,
+            display
+        ).apply {
+            window?.decorView?.apply {
+                setViewTreeLifecycleOwner(ProcessLifecycleOwner.get())
+                setViewTreeSavedStateRegistryOwner(EmptySavedStateRegistryOwner())
+                setViewTreeViewModelStoreOwner(viewModelStoreOwner)
+                alpha = 0f // If using default display, to ensure this does not appear on top of content.
             }
         }
 
-        val composeView = ComposeView(presentation.context).apply {
+        val composeView = ComposeView(captureContext).apply {
             val intSize = with(density) { size.toSize().roundedToIntSize() }
             require(intSize.width > 0 && intSize.height > 0) { "pixel size must not have zero dimension" }
             layoutParams = ViewGroup.LayoutParams(intSize.width, intSize.height)

@@ -32,6 +32,8 @@ class WorkspaceSettings @Inject constructor(
 
     val onDemandWorkspaceCreation = dataStore.createValue("workspace.swipe.ondemand.enabled", true)
 
+    val livePreview = dataStore.createValue("workspace.preview.live.enabled", true)
+
     val paneMode = dataStore.createValue("workspace.pane.mode", "AUTO")
 
     override val mapper = PreferenceStoreMapper(
