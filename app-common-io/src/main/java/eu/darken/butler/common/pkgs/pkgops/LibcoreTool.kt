@@ -4,61 +4,81 @@ import dagger.Reusable
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import java.lang.reflect.Field
+import java.lang.reflect.Method
 import javax.inject.Inject
 
 @Reusable
 class LibcoreTool @Inject constructor() {
 
-    private val tag = logTag("LibcoreTool")
+    private data class ReflectionCache(
+        val osField: Field,
+        val getpwuidMethod: Method,
+        val getgrgidMethod: Method,
+        val pwNameField: Field,
+        val grNameField: Field,
+    )
 
-    private fun getLibCoreOS(): Any? {
-        val clazz = Class.forName("libcore.io.Libcore")
-        val field = clazz.getDeclaredField("os")
-        if (!field.isAccessible) field.isAccessible = true
+    private val reflectionCache by lazy {
+        runCatching {
+            val clazz = Class.forName("libcore.io.Libcore")
+            val osField = clazz.getDeclaredField("os").apply { isAccessible = true }
+            val os = osField[null] ?: return@runCatching null
 
-        val os = field[null]
-        return os
+            val getpwuidMethod = os.javaClass.getMethod("getpwuid", Int::class.javaPrimitiveType).apply {
+                isAccessible = true
+            }
+            val getgrgidMethod = os.javaClass.getMethod("getgrgid", Int::class.javaPrimitiveType).apply {
+                isAccessible = true
+            }
+
+            val dummyPasswd = getpwuidMethod.invoke(os, 0)
+            val pwNameField = dummyPasswd?.javaClass?.getDeclaredField("pw_name")?.apply {
+                isAccessible = true
+            } ?: return@runCatching null
+
+            val dummyGroup = getgrgidMethod.invoke(os, 0)
+            val grNameField = dummyGroup?.javaClass?.getDeclaredField("gr_name")?.apply {
+                isAccessible = true
+            } ?: return@runCatching null
+
+            ReflectionCache(
+                osField = osField,
+                getpwuidMethod = getpwuidMethod,
+                getgrgidMethod = getgrgidMethod,
+                pwNameField = pwNameField,
+                grNameField = grNameField,
+            )
+        }.getOrNull()
     }
 
     fun getNameForUid(uid: Int): String? {
         try {
-            val os = getLibCoreOS()
-            if (os == null) return null
+            val cache = reflectionCache ?: return null
+            val os = cache.osField[null] ?: return null
 
-            val getpwuid = os.javaClass.getMethod("getpwuid", Int::class.javaPrimitiveType)
-            if (!getpwuid.isAccessible) getpwuid.isAccessible = true
-
-            val passwd = getpwuid.invoke(os, uid)
-            if (passwd == null) return null
-
-            val pwName = passwd.javaClass.getDeclaredField("pw_name")
-            if (!pwName.isAccessible) pwName.isAccessible = true
-
-            return pwName[passwd] as String
+            val passwd = cache.getpwuidMethod.invoke(os, uid) ?: return null
+            return cache.pwNameField[passwd] as String
         } catch (e: Exception) {
-            log(tag, VERBOSE) { "getNameForUid($uid) failed: $e" }
+            log(TAG, VERBOSE) { "getNameForUid($uid) failed: $e" }
             return null
         }
     }
 
     fun getNameForGid(gid: Int): String? {
         try {
-            val os = getLibCoreOS()
-            if (os == null) return null
+            val cache = reflectionCache ?: return null
+            val os = cache.osField[null] ?: return null
 
-            val getgrgid = os.javaClass.getMethod("getgrgid", Int::class.javaPrimitiveType)
-            if (!getgrgid.isAccessible) getgrgid.isAccessible = true
-
-            val group = getgrgid.invoke(os, gid)
-            if (group == null) return null
-
-            val grName = group.javaClass.getDeclaredField("gr_name")
-            if (!grName.isAccessible) grName.isAccessible = true
-
-            return grName[group] as String
+            val group = cache.getgrgidMethod.invoke(os, gid) ?: return null
+            return cache.grNameField[group] as String
         } catch (e: Exception) {
-            log(tag, VERBOSE) { "getNameForGid($gid) failed: $e" }
+            log(TAG, VERBOSE) { "getNameForGid($gid) failed: $e" }
             return null
         }
+    }
+
+    companion object {
+        private val TAG = logTag("Gateway", "Local", "FileSystemOps", "LibcoreTool")
     }
 }

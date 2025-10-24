@@ -3,11 +3,18 @@ package eu.darken.butler.common.files.metadata
 import android.content.Context
 import android.content.pm.PackageManager
 import eu.darken.butler.common.pkgs.pkgops.LibcoreTool
+import eu.darken.butler.common.pkgs.pkgops.PackagesListParser
+import eu.darken.butler.common.shell.ShellOps
+import eu.darken.butler.common.shell.ipc.ShellOpsCmd
+import eu.darken.butler.common.shell.ipc.ShellOpsResult
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
@@ -17,10 +24,14 @@ class OwnershipResolverTest : BaseTest() {
     private val mockContext = mockk<Context>()
     private val mockPackageManager = mockk<PackageManager>()
     private val mockLibcoreTool = mockk<LibcoreTool>()
+    private val mockPackagesListParser = mockk<PackagesListParser>()
+    private val mockShellOps = mockk<ShellOps>()
 
     private val resolver = run {
         every { mockContext.packageManager } returns mockPackageManager
-        OwnershipResolver(mockContext, mockLibcoreTool)
+        // Mock packages.list parser to return empty map by default
+        every { mockPackagesListParser.parse() } returns emptyMap()
+        OwnershipResolver(mockContext, mockLibcoreTool, mockPackagesListParser, mockShellOps)
     }
 
     @AfterEach
@@ -29,7 +40,7 @@ class OwnershipResolverTest : BaseTest() {
     }
 
     @Test
-    fun `resolve returns ownership with LibcoreTool success`() {
+    fun `resolve returns ownership with LibcoreTool success`() = runTest {
         // Given
         every { mockLibcoreTool.getNameForUid(1000) } returns "system"
         every { mockLibcoreTool.getNameForGid(1000) } returns "system"
@@ -45,7 +56,7 @@ class OwnershipResolverTest : BaseTest() {
     }
 
     @Test
-    fun `resolve uses system UID mapping when LibcoreTool fails`() {
+    fun `resolve uses system UID mapping when LibcoreTool fails`() = runTest {
         // Given - LibcoreTool returns null
         every { mockLibcoreTool.getNameForUid(1001) } returns null
         every { mockLibcoreTool.getNameForGid(1001) } returns null
@@ -61,7 +72,7 @@ class OwnershipResolverTest : BaseTest() {
     }
 
     @Test
-    fun `resolve uses PackageManager for app UIDs`() {
+    fun `resolve uses PackageManager for app UIDs`() = runTest {
         // Given - LibcoreTool fails for app UID
         every { mockLibcoreTool.getNameForUid(10123) } returns null
         every { mockLibcoreTool.getNameForGid(10123) } returns null
@@ -85,10 +96,15 @@ class OwnershipResolverTest : BaseTest() {
     }
 
     @Test
-    fun `resolve returns null when all strategies fail`() {
+    fun `resolve returns null when all strategies fail`() = runTest {
         // Given - all strategies return null
         every { mockLibcoreTool.getNameForUid(5555) } returns null
         every { mockLibcoreTool.getNameForGid(5555) } returns null
+        coEvery { mockShellOps.execute(any(), any()) } returns ShellOpsResult(
+            exitCode = 1,
+            output = listOf("id: unknown uid 5555"),
+            errors = emptyList()
+        )
         // 5555 is not in system UID range (0-9999 but not in the map)
         // 5555 is not in app UID range (10000+)
 
@@ -103,7 +119,7 @@ class OwnershipResolverTest : BaseTest() {
     }
 
     @Test
-    fun `cache is used for subsequent lookups`() {
+    fun `cache is used for subsequent lookups`() = runTest {
         // Given
         every { mockLibcoreTool.getNameForUid(1000) } returns "system"
         every { mockLibcoreTool.getNameForGid(1000) } returns "system"
@@ -122,7 +138,7 @@ class OwnershipResolverTest : BaseTest() {
     }
 
     @Test
-    fun `clearCache invalidates cached entries`() {
+    fun `clearCache invalidates cached entries`() = runTest {
         // Given
         every { mockLibcoreTool.getNameForUid(1000) } returns "system"
         every { mockLibcoreTool.getNameForGid(1000) } returns "system"
@@ -138,7 +154,7 @@ class OwnershipResolverTest : BaseTest() {
     }
 
     @Test
-    fun `different UIDs and GIDs are cached separately`() {
+    fun `different UIDs and GIDs are cached separately`() = runTest {
         // Given
         every { mockLibcoreTool.getNameForUid(1000) } returns "system"
         every { mockLibcoreTool.getNameForUid(1001) } returns "radio"
@@ -162,10 +178,15 @@ class OwnershipResolverTest : BaseTest() {
     }
 
     @Test
-    fun `ownership object is always returned even when resolution fails`() {
+    fun `ownership object is always returned even when resolution fails`() = runTest {
         // Given
         every { mockLibcoreTool.getNameForUid(any()) } returns null
         every { mockLibcoreTool.getNameForGid(any()) } returns null
+        coEvery { mockShellOps.execute(any(), any()) } returns ShellOpsResult(
+            exitCode = 1,
+            output = listOf("id: unknown"),
+            errors = emptyList()
+        )
 
         // When
         val result = resolver.resolve(userId = 5678, groupId = 8765)
@@ -179,7 +200,7 @@ class OwnershipResolverTest : BaseTest() {
     }
 
     @Test
-    fun `PackageManager exception is handled gracefully`() {
+    fun `PackageManager exception is handled gracefully`() = runTest {
         // Given - LibcoreTool fails
         every { mockLibcoreTool.getNameForUid(10456) } returns null
         every { mockLibcoreTool.getNameForGid(10456) } returns null
@@ -198,7 +219,7 @@ class OwnershipResolverTest : BaseTest() {
     }
 
     @Test
-    fun `system UID cache persists across multiple lookups`() {
+    fun `system UID cache persists across multiple lookups`() = runTest {
         // Given - LibcoreTool fails
         every { mockLibcoreTool.getNameForUid(1002) } returns null
         every { mockLibcoreTool.getNameForGid(1002) } returns null
@@ -216,5 +237,134 @@ class OwnershipResolverTest : BaseTest() {
         // LibcoreTool should only be called once (subsequent lookups use cache)
         verify(exactly = 1) { mockLibcoreTool.getNameForUid(1002) }
         verify(exactly = 1) { mockLibcoreTool.getNameForGid(1002) }
+    }
+
+    @Test
+    fun `resolve uses packages list cache for app UIDs`() = runTest {
+        // Given - Create new resolver with packages.list data
+        every { mockPackagesListParser.parse() } returns mapOf(
+            10123 to "com.example.app",
+            10456 to "com.test.app"
+        )
+        val resolverWithPackages = OwnershipResolver(mockContext, mockLibcoreTool, mockPackagesListParser, mockShellOps)
+
+        // LibcoreTool fails
+        every { mockLibcoreTool.getNameForUid(10123) } returns null
+        every { mockLibcoreTool.getNameForGid(10123) } returns null
+
+        // When - lookup app UID
+        val result = resolverWithPackages.resolve(userId = 10123, groupId = 10123)
+
+        // Then - should resolve from packages.list
+        result.userId shouldBe 10123L
+        result.groupId shouldBe 10123L
+        result.userName shouldBe "com.example.app"
+        result.groupName shouldBe "com.example.app"
+
+        // PackageManager should NOT be called (packages.list has the data)
+        verify(exactly = 0) { mockPackageManager.getPackagesForUid(any()) }
+    }
+
+    @Test
+    fun `resolve falls back to PackageManager when not in packages list`() = runTest {
+        // Given - packages.list is empty (default)
+        every { mockLibcoreTool.getNameForUid(10789) } returns null
+        every { mockLibcoreTool.getNameForGid(10789) } returns null
+
+        // PackageManager has the data
+        every { mockPackageManager.getPackagesForUid(10789) } returns arrayOf("com.newapp.test")
+
+        // When - lookup app UID not in packages.list
+        val result = resolver.resolve(userId = 10789, groupId = 10789)
+
+        // Then - should fall back to PackageManager
+        result.userId shouldBe 10789L
+        result.groupId shouldBe 10789L
+        result.userName shouldBe "com.newapp.test"
+        result.groupName shouldBe "com.newapp.test"
+
+        // PackageManager should be called as fallback
+        verify(exactly = 1) { mockPackageManager.getPackagesForUid(10789) }
+    }
+
+    @Test
+    fun `shell command resolves system UID when other strategies fail`() = runTest {
+        // Given - LibcoreTool fails and UID 100 is NOT in AndroidSystemIds map
+        every { mockLibcoreTool.getNameForUid(100) } returns null
+        every { mockLibcoreTool.getNameForGid(100) } returns null
+
+        // Shell command succeeds
+        coEvery {
+            mockShellOps.execute(
+                ShellOpsCmd("id", "-un", "100"),
+                ShellOps.Mode.NORMAL
+            )
+        } returns ShellOpsResult(exitCode = 0, output = listOf("custom_user"), errors = emptyList())
+
+        coEvery {
+            mockShellOps.execute(
+                ShellOpsCmd("id", "-gn", "100"),
+                ShellOps.Mode.NORMAL
+            )
+        } returns ShellOpsResult(exitCode = 0, output = listOf("custom_group"), errors = emptyList())
+
+        // When
+        val result = resolver.resolve(userId = 100, groupId = 100)
+
+        // Then - should resolve via shell
+        result.userId shouldBe 100L
+        result.groupId shouldBe 100L
+        result.userName shouldBe "custom_user"
+        result.groupName shouldBe "custom_group"
+
+        coVerify(exactly = 1) { mockShellOps.execute(ShellOpsCmd("id", "-un", "100"), ShellOps.Mode.NORMAL) }
+        coVerify(exactly = 1) { mockShellOps.execute(ShellOpsCmd("id", "-gn", "100"), ShellOps.Mode.NORMAL) }
+    }
+
+    @Test
+    fun `shell command failure caches null for system UIDs`() = runTest {
+        // Given - All strategies fail including shell, UID 150 is NOT in AndroidSystemIds map
+        every { mockLibcoreTool.getNameForUid(150) } returns null
+        every { mockLibcoreTool.getNameForGid(150) } returns null
+
+        coEvery { mockShellOps.execute(any(), any()) } returns ShellOpsResult(
+            exitCode = 1,
+            output = listOf("id: unknown uid 150"),
+            errors = emptyList()
+        )
+
+        // When - first lookup
+        val result1 = resolver.resolve(userId = 150, groupId = 150)
+
+        // Then - returns null names
+        result1.userName shouldBe null
+        result1.groupName shouldBe null
+
+        // When - second lookup (should use cached null)
+        val result2 = resolver.resolve(userId = 150, groupId = 150)
+
+        // Then - shell should only be called once (cached null on second call)
+        result2.userName shouldBe null
+        result2.groupName shouldBe null
+
+        coVerify(exactly = 1) { mockShellOps.execute(ShellOpsCmd("id", "-un", "150"), ShellOps.Mode.NORMAL) }
+        coVerify(exactly = 1) { mockShellOps.execute(ShellOpsCmd("id", "-gn", "150"), ShellOps.Mode.NORMAL) }
+    }
+
+    @Test
+    fun `shell command not used for app UIDs`() = runTest {
+        // Given - App UID (10000+) with all strategies failing
+        every { mockLibcoreTool.getNameForUid(10500) } returns null
+        every { mockLibcoreTool.getNameForGid(10500) } returns null
+        every { mockPackageManager.getPackagesForUid(10500) } returns null
+
+        // When
+        val result = resolver.resolve(userId = 10500, groupId = 10500)
+
+        // Then - shell should NOT be called for app UIDs
+        result.userName shouldBe null
+        result.groupName shouldBe null
+
+        coVerify(exactly = 0) { mockShellOps.execute(any(), any()) }
     }
 }
