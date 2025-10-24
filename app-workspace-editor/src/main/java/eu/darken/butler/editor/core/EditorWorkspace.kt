@@ -14,7 +14,6 @@ import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
 import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
-import eu.darken.butler.workspace.core.preview.EditorPreviewData
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -47,7 +46,6 @@ class EditorWorkspace @AssistedInject constructor(
             id = id,
             type = type,
             title = generateTitle(),
-            previewData = EditorPreviewData(fileName = filePath?.name),
         )
     )
     override val info: MutableStateFlow<Workspace.Info> = _info

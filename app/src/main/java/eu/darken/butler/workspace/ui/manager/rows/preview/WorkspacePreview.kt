@@ -1,50 +1,85 @@
 package eu.darken.butler.workspace.ui.manager.rows.preview
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import coil3.compose.SubcomposeAsyncImage
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.preview.EditorPreviewData
-import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
-import eu.darken.butler.workspace.core.preview.ExplorerPreviewItem
-import eu.darken.butler.workspace.core.preview.PreviewData
-import eu.darken.butler.workspace.core.preview.SearcherPreviewData
-import eu.darken.butler.workspace.core.preview.TemplatesPreviewData
+import eu.darken.butler.workspace.core.preview.WorkspacePreviewModel
 
 @Composable
 fun WorkspacePreview(
     modifier: Modifier = Modifier,
+    workspaceId: Workspace.Id,
     type: Workspace.Type,
-    previewData: PreviewData? = null,
+    livePreview: Boolean = true,
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(120.dp),
-        shape = RoundedCornerShape(8.dp),
+            .height(160.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Crossfade(
-            targetState = type,
-            label = "WorkspacePreview"
-        ) { workspaceType ->
-            when (workspaceType) {
-                Workspace.Type.EXPLORER -> ExplorerPreview(data = previewData as? ExplorerPreviewData)
-                Workspace.Type.SEARCHER -> SearcherPreview(data = previewData as? SearcherPreviewData)
-                Workspace.Type.EDITOR -> EditorPreview(data = previewData as? EditorPreviewData)
-                Workspace.Type.TEMPLATES -> TemplatesPreview(data = previewData as? TemplatesPreviewData)
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (livePreview) {
+
+                SubcomposeAsyncImage(
+                    model = WorkspacePreviewModel(workspaceId),
+                    contentDescription = "Workspace preview",
+                    modifier = Modifier.fillMaxSize(),
+                    alignment = Alignment.TopCenter,
+                    contentScale = ContentScale.FillWidth,
+                    loading = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.align(Alignment.Center)
+                            )
+                        }
+                    },
+                    error = {
+                        Crossfade(
+                            targetState = type,
+                            label = "WorkspacePreview"
+                        ) { workspaceType ->
+                            when (workspaceType) {
+                                Workspace.Type.EXPLORER -> ExplorerMockPreview()
+                                Workspace.Type.SEARCHER -> SearcherMockPreview()
+                                Workspace.Type.EDITOR -> EditorMockPreview()
+                                Workspace.Type.TEMPLATES -> TemplatesMockPreview()
+                            }
+                        }
+                    }
+                )
+            } else {
+                when (type) {
+                    Workspace.Type.EXPLORER -> ExplorerMockPreview()
+                    Workspace.Type.SEARCHER -> SearcherMockPreview()
+                    Workspace.Type.EDITOR -> EditorMockPreview()
+                    Workspace.Type.TEMPLATES -> TemplatesMockPreview()
+                }
             }
         }
     }
@@ -55,16 +90,8 @@ fun WorkspacePreview(
 private fun WorkspacePreviewExplorerPreview() {
     PreviewWrapper {
         WorkspacePreview(
+            workspaceId = Workspace.Id(),
             type = Workspace.Type.EXPLORER,
-            previewData = ExplorerPreviewData(
-                currentPath = "/storage/emulated/0",
-                items = listOf(
-                    ExplorerPreviewItem("Android", true),
-                    ExplorerPreviewItem("DCIM", true),
-                    ExplorerPreviewItem("Download", true),
-                    ExplorerPreviewItem("readme.txt", false),
-                )
-            )
         )
     }
 }
@@ -74,16 +101,8 @@ private fun WorkspacePreviewExplorerPreview() {
 private fun WorkspacePreviewSearcherPreview() {
     PreviewWrapper {
         WorkspacePreview(
+            workspaceId = Workspace.Id(),
             type = Workspace.Type.SEARCHER,
-            previewData = SearcherPreviewData(
-                query = "*.pdf",
-                results = listOf(
-                    "document.pdf",
-                    "report_2024.pdf",
-                    "invoice.pdf"
-                ),
-                resultCount = 42
-            )
         )
     }
 }
@@ -93,19 +112,8 @@ private fun WorkspacePreviewSearcherPreview() {
 private fun WorkspacePreviewEditorPreview() {
     PreviewWrapper {
         WorkspacePreview(
+            workspaceId = Workspace.Id(),
             type = Workspace.Type.EDITOR,
-            previewData = EditorPreviewData(
-                fileName = "MainActivity.kt",
-                contentSnippet = """
-                    package com.example.app
-                    
-                    import android.os.Bundle
-                    import androidx.activity.ComponentActivity
-                    
-                    class MainActivity : ComponentActivity() {
-                        override fun onCreate(savedInstanceState: Bundle?) {
-                """.trimIndent()
-            )
         )
     }
 }
@@ -115,8 +123,8 @@ private fun WorkspacePreviewEditorPreview() {
 private fun WorkspacePreviewTemplatesPreview() {
     PreviewWrapper {
         WorkspacePreview(
+            workspaceId = Workspace.Id(),
             type = Workspace.Type.TEMPLATES,
-            previewData = TemplatesPreviewData(templateCount = 5)
         )
     }
 }

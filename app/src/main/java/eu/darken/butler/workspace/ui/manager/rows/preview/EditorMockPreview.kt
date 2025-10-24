@@ -21,24 +21,34 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.workspace.core.preview.EditorPreviewData
+
+private data class EditorPreviewData(
+    val fileName: String? = "MainActivity.kt",
+    val contentSnippet: String? = """
+        package com.example.app
+        
+        import android.os.Bundle
+        import androidx.activity.ComponentActivity
+        
+        class MainActivity : ComponentActivity() {
+            override fun onCreate(savedInstanceState: Bundle?) {
+    """.trimIndent(),
+)
 
 @Composable
-fun EditorPreview(
+fun EditorMockPreview(
     modifier: Modifier = Modifier,
-    data: EditorPreviewData?,
 ) {
+    val data = EditorPreviewData()
+
     Box(
         modifier = modifier
             .fillMaxSize()
             .padding(8.dp)
     ) {
-        val actualData = data ?: EditorPreviewData()
-        CodeSnippet(
-            lines = actualData.contentSnippet?.lines() ?: emptyList()
-        )
-        
-        actualData.fileName?.let { fileName ->
+        CodeSnippet(lines = data.contentSnippet?.lines() ?: emptyList())
+
+        data.fileName?.let { fileName ->
             FileNameBadge(
                 fileName = fileName,
                 modifier = Modifier.align(Alignment.TopEnd)
@@ -113,21 +123,8 @@ private fun FileNameBadge(
 
 @Preview2
 @Composable
-private fun EditorPreviewPreview() {
+private fun EditorMockPreviewPreview() {
     PreviewWrapper {
-        EditorPreview(
-            data = EditorPreviewData(
-                fileName = "MainActivity.kt",
-                contentSnippet = """
-                    package com.example.app
-                    
-                    import android.os.Bundle
-                    import androidx.activity.ComponentActivity
-                    
-                    class MainActivity : ComponentActivity() {
-                        override fun onCreate(savedInstanceState: Bundle?) {
-                """.trimIndent()
-            )
-        )
+        EditorMockPreview()
     }
 }

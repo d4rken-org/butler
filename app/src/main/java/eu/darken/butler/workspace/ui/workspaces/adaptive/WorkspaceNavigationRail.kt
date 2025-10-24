@@ -315,7 +315,7 @@ private fun DraggableWorkspaceRailItem(
                     },
                 )
             }
-            HorizontalDivider()
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.workspace_pane_close_action)) },
                 leadingIcon = {
@@ -427,7 +427,7 @@ private fun WorkspaceRailItem(
                     },
                 )
             }
-            HorizontalDivider()
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.workspace_pane_close_action)) },
                 leadingIcon = {
@@ -538,7 +538,7 @@ private fun PaneMenuPreview() {
                     },
                     onClick = {},
                 )
-                HorizontalDivider()
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.workspace_pane_close_action)) },
                     leadingIcon = {

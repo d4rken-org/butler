@@ -140,7 +140,7 @@ adb devices -l
 
 # 2. Push and execute script (use -s <SERIAL> for specific device)
 adb push tooling/test-files/create-test-files.sh /sdcard/
-adb shell "sh /sdcard/create-test-files.sh /sdcard/ButlerTests"
+adb shell "sh /sdcard/create-test-files.sh /sdcard/aButlerTests"
 ```
 
 **What it creates:**

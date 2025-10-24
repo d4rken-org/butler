@@ -2,7 +2,6 @@ package eu.darken.butler.workspace.ui.manager.rows
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
-import androidx.compose.material.icons.twotone.DragIndicator
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -33,21 +31,17 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
-import eu.darken.butler.workspace.core.preview.EditorPreviewData
-import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
-import eu.darken.butler.workspace.core.preview.ExplorerPreviewItem
-import eu.darken.butler.workspace.core.preview.SearcherPreviewData
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
 import eu.darken.butler.workspace.ui.manager.rows.preview.WorkspacePreview
 
 @Composable
 fun WorkspaceGridItem(
     modifier: Modifier = Modifier,
-    reorderableScope: sh.calvin.reorderable.ReorderableCollectionItemScope? = null,
+    reorderableScope: sh.calvin.reorderable.ReorderableCollectionItemScope,
     workspace: WorkspaceManagerViewModel.WorkspaceItem,
     onClose: () -> Unit,
     onSelect: () -> Unit,
-    showPreview: Boolean = true,
+    livePreview: Boolean = true,
     isDragging: Boolean = false,
     onDragStarted: () -> Unit = {},
     onDragStopped: () -> Unit = {},
@@ -62,118 +56,72 @@ fun WorkspaceGridItem(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isDragging) 8.dp else 2.dp,
-            pressedElevation = 4.dp
+            defaultElevation = if (isDragging) 16.dp else 2.dp,
+            pressedElevation = 8.dp
         )
     ) {
-        Box(
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            // Drag handle in top left corner
-            if (reorderableScope != null) {
-                Box(
-                    modifier = with(reorderableScope) {
-                        Modifier
-                            .align(Alignment.TopStart)
-                            .padding(4.dp)
-                            .size(32.dp)
-                            .draggableHandle(
-                                onDragStarted = {
-                                    onDragStarted()
-                                    haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
-                                },
-                                onDragStopped = {
-                                    onDragStopped()
-                                    haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
-                                },
-                            )
-                    },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.DragIndicator,
-                        contentDescription = stringResource(R.string.workspace_row_reorder_content_desc),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            }
-
-            // Close button in top right corner
-            IconButton(
-                onClick = onClose,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(4.dp)
-                    .size(32.dp)
+            Row(
+                modifier = with(reorderableScope) {
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(start = 4.dp)
+                        .draggableHandle(
+                            onDragStarted = {
+                                onDragStarted()
+                                haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
+                            },
+                            onDragStopped = {
+                                onDragStopped()
+                                haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                            },
+                        )
+                },
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = Icons.TwoTone.Close,
-                    contentDescription = stringResource(R.string.workspace_row_close_content_desc),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(16.dp),
+                    imageVector = workspace.type.icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
                 )
-            }
 
-            // Main content
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Header section with icon, title and subtitle
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            start = if (reorderableScope != null) 28.dp else 0.dp, // Avoid drag handle overlap
-                            end = 28.dp // Avoid close button overlap
-                        ),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Text(
+                    modifier = Modifier.weight(1f),
+                    text = workspace.title.asComposable(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+                IconButton(
+                    modifier = Modifier.size(24.dp),
+                    onClick = onClose,
                 ) {
                     Icon(
-                        imageVector = workspace.type.icon,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        Text(
-                            text = workspace.title.asComposable(),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        if (workspace.subtitle != null) {
-
-                            Text(
-                                text = workspace.subtitle.asComposable(),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-                }
-
-                // Preview section
-                if (showPreview) {
-                    WorkspacePreview(
-                        modifier = Modifier.fillMaxWidth(),
-                        type = workspace.type,
-                        previewData = workspace.previewData
+                        modifier = Modifier.size(18.dp),
+                        imageVector = Icons.TwoTone.Close,
+                        contentDescription = stringResource(R.string.workspace_row_close_content_desc),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     )
                 }
             }
+
+            WorkspacePreview(
+                modifier = Modifier.fillMaxWidth(),
+                workspaceId = workspace.id,
+                type = workspace.type,
+                livePreview = livePreview,
+            )
         }
+
     }
 }
 
@@ -204,9 +152,8 @@ private fun WorkspaceGridItemPreview() {
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
                 id = Workspace.Id(),
                 type = Workspace.Type.EXPLORER,
-                title = "Explorer".toCaString(),
+                title = "/storage/emulated/0/Download/MyFile/Somepath/that/is/very/long/tooLong".toCaString(),
                 subtitle = "File explorer for browsing and managing files".toCaString(),
-                previewData = ExplorerPreviewData(),
             ),
             onClose = {},
             onSelect = {},
@@ -227,7 +174,6 @@ private fun WorkspaceGridItemSearcherPreview() {
                 type = Workspace.Type.SEARCHER,
                 title = "Search".toCaString(),
                 subtitle = "Search for files and folders".toCaString(),
-                previewData = SearcherPreviewData(),
             ),
             onClose = {},
             onSelect = {},
@@ -248,7 +194,6 @@ private fun WorkspaceGridItemEditorPreview() {
                 type = Workspace.Type.EDITOR,
                 title = "Editor".toCaString(),
                 subtitle = "Text editor".toCaString(),
-                previewData = EditorPreviewData(),
             ),
             onClose = {},
             onSelect = {},
@@ -269,10 +214,10 @@ private fun WorkspaceGridItemDraggingPreview() {
                 type = Workspace.Type.SEARCHER,
                 title = "Search".toCaString(),
                 subtitle = "Search for files and folders".toCaString(),
-                previewData = SearcherPreviewData(),
             ),
             onClose = {},
             onSelect = {},
+            livePreview = false,
             isDragging = true
         )
     }

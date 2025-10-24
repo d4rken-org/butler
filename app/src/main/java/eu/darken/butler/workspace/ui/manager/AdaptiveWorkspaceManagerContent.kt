@@ -10,19 +10,11 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import eu.darken.butler.R
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.workspace.core.Workspace
-
-enum class LayoutMode {
-    LIST,
-    GRID
-}
 
 @Composable
 fun AdaptiveWorkspaceManagerContent(
@@ -37,13 +29,6 @@ fun AdaptiveWorkspaceManagerContent(
         modifier = Modifier.fillMaxSize()
     ) {
         val screenWidth = maxWidth
-        val density = LocalDensity.current
-        
-        // Determine layout mode based on screen width
-        val layoutMode = when {
-            screenWidth < 600.dp -> LayoutMode.LIST
-            else -> LayoutMode.GRID
-        }
         
         // Maximum content width for large screens
         val maxContentWidth = 840.dp
@@ -54,32 +39,17 @@ fun AdaptiveWorkspaceManagerContent(
         } else {
             Modifier.fillMaxWidth()
         }
-        
-        when (layoutMode) {
-            LayoutMode.LIST -> {
-                WorkspaceManagerListLayout(
-                    modifier = contentModifier,
-                    state = state,
-                    paddingValues = paddingValues,
-                    onCloseWorkspace = onCloseWorkspace,
-                    onReorderWorkspaces = onReorderWorkspaces,
-                    onSelectWorkspace = onSelectWorkspace,
-                    onDismissBadgeExplanation = onDismissBadgeExplanation,
-                )
-            }
-            LayoutMode.GRID -> {
-                WorkspaceManagerGridLayout(
-                    modifier = contentModifier,
-                    state = state,
-                    paddingValues = paddingValues,
-                    screenWidth = screenWidth,
-                    onCloseWorkspace = onCloseWorkspace,
-                    onReorderWorkspaces = onReorderWorkspaces,
-                    onSelectWorkspace = onSelectWorkspace,
-                    onDismissBadgeExplanation = onDismissBadgeExplanation,
-                )
-            }
-        }
+
+        WorkspaceManagerGridLayout(
+            modifier = contentModifier,
+            state = state,
+            paddingValues = paddingValues,
+            screenWidth = screenWidth,
+            onCloseWorkspace = onCloseWorkspace,
+            onReorderWorkspaces = onReorderWorkspaces,
+            onSelectWorkspace = onSelectWorkspace,
+            onDismissBadgeExplanation = onDismissBadgeExplanation,
+        )
     }
 }
 

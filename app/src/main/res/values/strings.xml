@@ -85,7 +85,7 @@
     <string name="setup_manage_storage_card_title">Manage external storage</string>
     <string name="setup_inventory_card_title">App inventory</string>
 
-    <string name="setup_title">App Setup</string>
+    <string name="setup_title">Permission setup</string>
     <string name="setup_settings_description">Configure app permissions and features.</string>
     <string name="setup_help_description">Help</string>
     <string name="setup_refresh_label">Refresh</string>
@@ -154,6 +154,28 @@
     <string name="ui_theme_color_value_system">System colors</string>
     <string name="ui_language_override_label">App language</string>
     <string name="ui_language_override_desc">Select a different language for Butler, independent of your system\'s default language.</string>
+
+    <string name="storage_settings_title">Storage</string>
+    <string name="storage_settings_subtitle">Manage app Butler\'s caches and storage</string>
+    <string name="storage_category_previews_label">Previews</string>
+    <string name="storage_previews_disk_cache_title">Disk cache</string>
+    <string name="storage_disk_cache_subtitle">%1$s / %2$s • %3$d items</string>
+    <string name="storage_previews_memory_cache_title">Memory cache</string>
+    <string name="storage_previews_max_size_title">Maximum cache size</string>
+    <string name="storage_clear_disk_confirm_title">Clear disk cache?</string>
+    <string name="storage_clear_disk_confirm_message">This will remove all cached preview images. They will be regenerated as needed.</string>
+    <string name="storage_clear_memory_confirm_title">Clear memory cache?</string>
+    <string name="storage_clear_memory_confirm_message">This will remove cached preview images from memory. They will be regenerated as needed.</string>
+    <string name="storage_clear_all_confirm_title">Clear all caches?</string>
+    <string name="storage_clear_all_confirm_message">This will clear both disk and memory caches for preview images.</string>
+    <string name="storage_clear_all_previews_action">Clear all preview caches</string>
+    <string name="storage_clear_all_subtitle">Remove all preview caches</string>
+    <string name="storage_cache_cleared_message">Cache cleared</string>
+    <string name="storage_settings_restart_notice">App restart required</string>
+    <string name="storage_size_50mb">50 MB</string>
+    <string name="storage_size_250mb">250 MB</string>
+    <string name="storage_size_512mb">512 MB</string>
+    <string name="storage_size_1gb">1 GB</string>
 
     <string name="updater_check_enabled_setting_title">Check for updates</string>
     <string name="updater_check_enabled_setting_description">Allow Butler to check online if a new version is available.</string>
@@ -306,6 +328,8 @@
     <string name="workspace_settings_swipe_gestures_desc">Swipe left or right to switch between tabs.</string>
     <string name="workspace_settings_ondemand_creation_title">Auto-Create Tabs</string>
     <string name="workspace_settings_ondemand_creation_desc">Automatically create new tab when swiping past the last tab.</string>
+    <string name="workspace_settings_live_preview_title">Live Previews</string>
+    <string name="workspace_settings_live_preview_desc">Show live workspace content in tab manager.</string>
 
     <string name="workspace_badge_tip_title">Tip: Tab Button Indicators</string>
     <string name="workspace_badge_open_workspaces">Number of open tabs</string>

@@ -21,31 +21,42 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
-import eu.darken.butler.workspace.core.preview.ExplorerPreviewItem
+
+
+private data class ExplorerPreviewData(
+    val currentPath: String? = "/storage/emulated/0",
+    val items: List<Item> = listOf(
+        Item("Android", true),
+        Item("DCIM", true),
+        Item("Download", true),
+        Item("readme.txt", false),
+    ),
+) {
+    data class Item(
+        val name: String,
+        val isDirectory: Boolean,
+    )
+
+}
 
 @Composable
-fun ExplorerPreview(
+fun ExplorerMockPreview(
     modifier: Modifier = Modifier,
-    data: ExplorerPreviewData?,
 ) {
+    val data = ExplorerPreviewData()
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        val actualData = data ?: ExplorerPreviewData()
-        
-        actualData.items.take(4).forEach { item ->
-            FileItemRow(item = item)
-        }
+        data.items.forEach { item -> FileItemRow(item = item) }
     }
 }
 
 @Composable
 private fun FileItemRow(
-    item: ExplorerPreviewItem,
+    item: ExplorerPreviewData.Item,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -78,18 +89,8 @@ private fun FileItemRow(
 
 @Preview2
 @Composable
-private fun ExplorerPreviewPreview() {
+private fun ExplorerMockPreviewPreview() {
     PreviewWrapper {
-        ExplorerPreview(
-            data = ExplorerPreviewData(
-                currentPath = "/storage/emulated/0",
-                items = listOf(
-                    ExplorerPreviewItem("Android", true),
-                    ExplorerPreviewItem("DCIM", true),
-                    ExplorerPreviewItem("Download", true),
-                    ExplorerPreviewItem("readme.txt", false),
-                )
-            )
-        )
+        ExplorerMockPreview()
     }
 }

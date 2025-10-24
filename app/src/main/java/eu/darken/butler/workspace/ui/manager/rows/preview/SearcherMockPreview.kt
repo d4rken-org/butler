@@ -25,26 +25,32 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.workspace.core.preview.SearcherPreviewData
+
+private data class SearcherPreviewData(
+    val query: String? = "*.pdf",
+    val results: List<String> = listOf(
+        "document.pdf",
+        "report_2024.pdf",
+        "invoice.pdf"
+    ),
+    val resultCount: Int = 42,
+)
 
 @Composable
-fun SearcherPreview(
+fun SearcherMockPreview(
     modifier: Modifier = Modifier,
-    data: SearcherPreviewData?,
 ) {
+    val data = SearcherPreviewData()
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        val actualData = data ?: SearcherPreviewData()
-        
-        SearchBar(query = actualData.query)
-        
-        actualData.results.take(3).forEach { result ->
-            SearchResultRow(result = result)
-        }
+
+        SearchBar(query = data.query)
+
+        data.results.forEach { result -> SearchResultRow(result = result) }
     }
 }
 
@@ -103,18 +109,8 @@ private fun SearchResultRow(
 
 @Preview2
 @Composable
-private fun SearcherPreviewPreview() {
+private fun SearcherMockPreviewPreview() {
     PreviewWrapper {
-        SearcherPreview(
-            data = SearcherPreviewData(
-                query = "*.pdf",
-                results = listOf(
-                    "document.pdf",
-                    "report_2024.pdf",
-                    "invoice.pdf"
-                ),
-                resultCount = 42
-            )
-        )
+        SearcherMockPreview()
     }
 }
