@@ -11,31 +11,31 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
+import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 
 @Composable
 fun MediaFileRow(
-    data: FileRowData,
+    result: SearchItem,
     onClick: () -> Unit = {}
 ) {
-    FileRowBase(data = data, onClick = onClick) { fileData ->
-        MediaFileIcon(fileData)
+    FileRowBase(result = result, onClick = onClick) { fileResult ->
+        MediaFileIcon(fileResult)
 
         Spacer(modifier = Modifier.width(12.dp))
 
         FileInfo(
-            data = fileData,
-            showMetadata = true,
+            result = fileResult,
             modifier = Modifier.fillMaxWidth()
         )
     }
 }
 
 @Composable
-fun MediaFileIcon(data: FileRowData) {
+fun MediaFileIcon(result: SearchItem) {
     TintedAsyncImage(
-        model = data.lookup,
-        contentDescription = data.fileType.name,
+        model = result.lookup,
+        contentDescription = result.fileType.name,
         modifier = Modifier.size(40.dp)
     )
 }
@@ -46,7 +46,7 @@ private fun MediaFileRowPreview() {
     PreviewWrapper {
         Column {
             MediaFileRow(
-                data = SearcherMockDataProvider.createMockImageFile(
+                result = SearcherMockDataProvider.createMockImageFile(
                     name = "vacation_photo.jpg",
                     sizeMB = 3,
                     hoursAgo = 2,
@@ -58,7 +58,7 @@ private fun MediaFileRowPreview() {
             )
 
             MediaFileRow(
-                data = SearcherMockDataProvider.createMockVideoFile(
+                result = SearcherMockDataProvider.createMockVideoFile(
                     name = "summer_video.mp4",
                     sizeMB = 25,
                     hoursAgo = 5
@@ -66,7 +66,7 @@ private fun MediaFileRowPreview() {
             )
 
             MediaFileRow(
-                data = SearcherMockDataProvider.createMockAudioFile(
+                result = SearcherMockDataProvider.createMockAudioFile(
                     name = "favorite_song.mp3"
                 )
             )

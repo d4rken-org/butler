@@ -19,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
@@ -30,15 +29,14 @@ import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.searcher.core.SearchResult
-import kotlin.time.Clock
+import eu.darken.butler.searcher.core.SearchItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchResultQuickActions(
-    result: SearchResult,
+    result: SearchItem,
     onAction: (SearcherAction) -> Unit,
-    onLongPress: (SearchResult) -> Unit,
+    onLongPress: (SearchItem) -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -216,7 +214,7 @@ private fun QuickActionItem(
     }
 }
 
-private fun isTextFile(result: SearchResult): Boolean {
+private fun isTextFile(result: SearchItem): Boolean {
     // Simple heuristic - in a real implementation, this could be more sophisticated
     val extension = result.path.name.substringAfterLast('.', "").lowercase()
     return extension in setOf(
@@ -240,7 +238,7 @@ private fun SearchResultQuickActionsPreview() {
 
     PreviewWrapper {
         SearchResultQuickActions(
-            result = SearchResult(
+            result = SearchItem.fromLookup(
                 lookup = mockLookup,
                 matchedQuery = "example"
             ),

@@ -207,7 +207,7 @@ fun TemplatesWorkspacePage(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         ButlerIcon(
-                            size = 40.dp
+                            modifier = Modifier.size(40.dp)
                         )
 
                         Column(modifier = Modifier.weight(1f)) {

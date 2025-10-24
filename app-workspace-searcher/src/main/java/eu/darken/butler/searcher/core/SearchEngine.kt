@@ -9,6 +9,7 @@ import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.metadata.MetadataRepo
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
@@ -25,7 +26,8 @@ import javax.inject.Singleton
 @Singleton
 class SearchEngine @Inject constructor(
     private val gatewaySwitch: GatewaySwitch,
-    private val dispatcherProvider: DispatcherProvider
+    private val dispatcherProvider: DispatcherProvider,
+    private val metadataRepo: MetadataRepo,
 ) {
 
 
@@ -38,7 +40,7 @@ class SearchEngine @Inject constructor(
     suspend fun search(
         searchQuery: SearchQuery,
         onProgress: ((SearchProgress) -> Unit)? = null
-    ): Flow<SearchResult> = flow {
+    ): Flow<SearchItem> = flow {
         // Filter to only enabled path targets
         val enabledTargets = searchQuery.targets.filterIsInstance<SearchTarget.Path>().filter { it.enabled }
         log(TAG) { "Starting search with query: ${searchQuery.query} across ${enabledTargets.size} enabled path target(s) (${searchQuery.targets.size} total)" }
@@ -91,7 +93,8 @@ class SearchEngine @Inject constructor(
                             .mapNotNull { lookup ->
                                 if (matchesSearch(lookup, searchQuery)) {
                                     resultsFound++
-                                    SearchResult.fromLookup(lookup, searchQuery.query)
+                                    val metadata = metadataRepo.extract(lookup)
+                                    SearchItem.fromLookup(lookup, searchQuery.query, metadata = metadata)
                                 } else {
                                     null
                                 }

@@ -1,11 +1,11 @@
 package eu.darken.butler.searcher.ui.search
 
-import eu.darken.butler.searcher.ui.search.rows.FileRowData
+import eu.darken.butler.searcher.core.SearchItem
 import kotlin.time.Instant
 
 sealed interface SearchListItem {
     data class Result(
-        val fileRowData: FileRowData,
+        val searchItem: SearchItem,
     ) : SearchListItem
 
     data class Error(

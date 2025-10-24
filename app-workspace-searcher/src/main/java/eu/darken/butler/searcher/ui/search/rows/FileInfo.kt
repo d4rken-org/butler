@@ -17,13 +17,13 @@ import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.formatRelativeTime
+import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 
 @Composable
 fun FileInfo(
     modifier: Modifier = Modifier,
-    data: FileRowData,
-    showMetadata: Boolean = false,
+    result: SearchItem,
 ) {
     Column(
         modifier = modifier,
@@ -31,22 +31,22 @@ fun FileInfo(
     ) {
         // Line 1: File name
         Text(
-            text = data.name,
+            text = result.name,
             style = MaterialTheme.typography.bodyMedium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
 
         // Line 2: Parent directory • Size • Date (combined on one line)
-        val isDirectory = data.fileType == FileType.DIRECTORY
+        val isDirectory = result.fileType == FileType.DIRECTORY
         val combinedDetails = buildString {
-            val size = data.size
+            val size = result.size
             if (!isDirectory && size != null) {
                 if (isNotEmpty()) append(" • ")
                 append(formatFileSize(size))
             }
 
-            val modifiedAt = data.modifiedAt
+            val modifiedAt = result.modifiedAt
             if (modifiedAt != null) {
                 if (isNotEmpty()) append(" • ")
                 append(formatRelativeTime(modifiedAt))
@@ -64,7 +64,7 @@ fun FileInfo(
         }
 
         Text(
-            text = data.lookup.parent?.userReadablePath?.asComposable() ?: "",
+            text = result.lookup.parent?.userReadablePath?.asComposable() ?: "",
             style = MaterialTheme.typography.bodySmall.copy(
                 fontSize = 10.sp,
                 fontFamily = FontFamily.Monospace
@@ -75,7 +75,7 @@ fun FileInfo(
         )
 
         // Line 4: Match context (if available)
-        data.matchContext?.let { context ->
+        result.matchContext?.let { context ->
             val matchText = buildString {
                 context.lineNumber?.let { lineNum ->
                     append("Line $lineNum")
@@ -96,20 +96,6 @@ fun FileInfo(
                 )
             }
         }
-
-        if (showMetadata && data.metadata.isNotEmpty()) {
-            val metadataText = data.metadata.entries
-                .take(2)
-                .joinToString(" • ") { "${it.key}: ${it.value}" }
-
-            Text(
-                text = metadataText,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.outline,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
     }
 }
 
@@ -123,7 +109,7 @@ private fun FileInfoPreview() {
         ) {
             // Short path example
             FileInfo(
-                data = SearcherMockDataProvider.createMockPdfFile(
+                result = SearcherMockDataProvider.createMockPdfFile(
                     name = "document.pdf",
                     sizeMB = 1,
                     hoursAgo = 1
@@ -133,7 +119,7 @@ private fun FileInfoPreview() {
 
             // Long path example (will be truncated)
             FileInfo(
-                data = SearcherMockDataProvider.createMockTextFile(
+                result = SearcherMockDataProvider.createMockTextFile(
                     name = "very-long-filename-with-lots-of-text.txt",
                     sizeKB = 2048,
                     hoursAgo = 2
@@ -143,7 +129,7 @@ private fun FileInfoPreview() {
 
             // Directory without path display
             FileInfo(
-                data = SearcherMockDataProvider.createMockDirectory(
+                result = SearcherMockDataProvider.createMockDirectory(
                     name = "Pictures",
                     hoursAgo = 24
                 ),

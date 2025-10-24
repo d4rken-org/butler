@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer
 
+import android.R.attr.text
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -84,8 +86,8 @@ fun EmptyState(
                 verticalArrangement = Arrangement.Center
             ) {
                 ButlerIcon(
-                    size = 120.dp,
                     modifier = Modifier
+                        .size(120.dp)
                         .scale(scale)
                         .alpha(alpha)
                 )

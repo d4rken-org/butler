@@ -14,31 +14,48 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.searcher.core.SearchItem
 
 @Composable
-fun getFileIconAndTint(data: FileRowData): Pair<ImageVector, Color> {
-    val rowType = determineFileRowType(data.name)
-    
-    return when {
-        data.fileType == FileType.DIRECTORY -> Icons.TwoTone.Folder to MaterialTheme.colorScheme.primary
-        data.fileType == FileType.SYMBOLIC_LINK -> Icons.TwoTone.FolderOpen to MaterialTheme.colorScheme.primary
-        
-        rowType == FileRowType.Media -> {
-            val extension = data.name.substringAfterLast('.', "").lowercase()
-            when {
-                extension in listOf("jpg", "jpeg", "png", "gif", "bmp", "webp", "svg") -> 
+fun getFileIconAndTint(result: SearchItem): Pair<ImageVector, Color> {
+    // Type-based dispatch for directories
+    when (result) {
+        is SearchItem.Directory ->
+            return Icons.TwoTone.Folder to MaterialTheme.colorScheme.primary
+        is SearchItem.File -> {
+            // Check for symbolic links
+            if (result.fileType == FileType.SYMBOLIC_LINK) {
+                return Icons.TwoTone.FolderOpen to MaterialTheme.colorScheme.primary
+            }
+
+            // Extension-based dispatch for files (will become type-based with ApkFile, ImageFile, etc.)
+            val extension = result.name.substringAfterLast('.', "").lowercase()
+
+            return when (extension) {
+                // Images
+                in listOf("jpg", "jpeg", "png", "gif", "bmp", "webp", "svg") ->
                     Icons.TwoTone.Image to MaterialTheme.colorScheme.tertiary
-                extension in listOf("mp4", "avi", "mkv", "mov", "wmv", "flv", "webm") -> 
+
+                // Videos
+                in listOf("mp4", "avi", "mkv", "mov", "wmv", "flv", "webm") ->
                     Icons.TwoTone.Movie to MaterialTheme.colorScheme.tertiary
-                extension in listOf("mp3", "wav", "flac", "aac", "ogg", "m4a") -> 
+
+                // Audio
+                in listOf("mp3", "wav", "flac", "aac", "ogg", "m4a") ->
                     Icons.TwoTone.Audiotrack to MaterialTheme.colorScheme.tertiary
+
+                // Documents
+                in listOf("pdf", "doc", "docx", "txt", "rtf", "xls", "xlsx", "ppt", "pptx") ->
+                    Icons.TwoTone.PictureAsPdf to MaterialTheme.colorScheme.error
+
+                // Code files
+                in listOf("kt", "java", "py", "js", "ts", "html", "css", "xml", "json",
+                         "cpp", "c", "h", "swift", "go", "rs", "php", "rb") ->
+                    Icons.TwoTone.Code to MaterialTheme.colorScheme.surfaceTint
+
+                // Default
                 else -> Icons.AutoMirrored.Filled.InsertDriveFile to MaterialTheme.colorScheme.secondary
             }
         }
-        
-        rowType == FileRowType.Document -> Icons.TwoTone.PictureAsPdf to MaterialTheme.colorScheme.error
-        rowType == FileRowType.Code -> Icons.TwoTone.Code to MaterialTheme.colorScheme.surfaceTint
-        
-        else -> Icons.AutoMirrored.Filled.InsertDriveFile to MaterialTheme.colorScheme.secondary
     }
 }

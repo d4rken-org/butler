@@ -9,12 +9,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.searcher.core.SearchItem
 
 @Composable
 fun FileRowBase(
-    data: FileRowData,
+    result: SearchItem,
     onClick: () -> Unit = {},
-    content: @Composable (FileRowData) -> Unit
+    content: @Composable (SearchItem) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -27,7 +28,7 @@ fun FileRowBase(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            content(data)
+            content(result)
         }
     }
 }

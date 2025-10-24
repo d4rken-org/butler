@@ -15,6 +15,7 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.extensions.getFileSystemInfo
+import eu.darken.butler.common.files.metadata.MetadataRepo
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.R
 import eu.darken.butler.workspace.core.Workspace
@@ -27,6 +28,7 @@ class DirectoryLocationLoader @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     private val gatewaySwitch: GatewaySwitch,
     private val pathPermissionCheck: PathPermissionCheck,
+    private val metadataRepo: MetadataRepo,
 ) {
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "DirectoryLoader")
@@ -150,7 +152,8 @@ class DirectoryLocationLoader @AssistedInject constructor(
         val fileClassifier = FileTypeClassifier()
 
         val items = basicLookups.map { lookup ->
-            fileClassifier.classify(lookup).also {
+            val metadata = metadataRepo.extract(lookup)
+            fileClassifier.classify(lookup, metadata).also {
                 if (Bugs.isDebug) log(tag, VERBOSE) { "${lookup.path} -> $it" }
             }
         }
@@ -215,9 +218,12 @@ class DirectoryLocationLoader @AssistedInject constructor(
         updateState { copy(items = items) }
     }
 
-    fun classifyLookups(lookups: Collection<APathLookup<*>>): List<ExplorerItem.Lookup> {
+    suspend fun classifyLookups(lookups: Collection<APathLookup<*>>): List<ExplorerItem.Lookup> {
         val fileClassifier = FileTypeClassifier()
-        return lookups.map { fileClassifier.classify(it) }
+        return lookups.map { lookup ->
+            val metadata = metadataRepo.extract(lookup)
+            fileClassifier.classify(lookup, metadata)
+        }
     }
 
     @AssistedFactory

@@ -51,13 +51,15 @@ import eu.darken.butler.common.keyboard.keyboardShortcuts
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchHistory
-import eu.darken.butler.searcher.core.SearchResult
+import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
-import eu.darken.butler.searcher.ui.search.rows.FileRowData
+import eu.darken.butler.searcher.ui.search.input.SearchStatusCard
+import eu.darken.butler.searcher.ui.search.input.SearchToolbarCard
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
 import eu.darken.butler.workspace.ui.error.WorkspaceErrorCard
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
@@ -94,7 +96,7 @@ fun SearcherWorkspacePage(
     onExplicitSearch: () -> Unit = {},
     onCancelSearch: () -> Unit = {},
     onClearResults: () -> Unit = {},
-    onResultClick: (SearchResult) -> Unit = {},
+    onResultClick: (SearchItem) -> Unit = {},
     onClearHistory: () -> Unit = {},
     onHistoryItemRemove: (SearchHistory.SearchHistoryItem) -> Unit = {},
     onHistoryItemClick: (SearchHistory.SearchHistoryItem) -> Unit = {},
@@ -102,8 +104,8 @@ fun SearcherWorkspacePage(
     onToggleWholeWord: () -> Unit = {},
     onToggleRegex: () -> Unit = {},
     onAction: (SearcherAction) -> Unit = {},
-    onEnterSelectionMode: (SearchResult) -> Unit = {},
-    onToggleSelection: (SearchResult) -> Unit = {},
+    onEnterSelectionMode: (SearchItem) -> Unit = {},
+    onToggleSelection: (SearchItem) -> Unit = {},
     onExitSelectionMode: () -> Unit = {},
     onHideQuickActions: () -> Unit = {},
     onClipboardEntryClick: (ClipboardClip) -> Unit = {},
@@ -125,7 +127,6 @@ fun SearcherWorkspacePage(
     val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
     val topToolbarScrollBehavior = rememberTopToolbarScrollBehavior()
     val listState = rememberLazyListState()
-    var searchDebounce by remember { mutableStateOf(false) }
     var showClearHistoryDialog by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -141,7 +142,7 @@ fun SearcherWorkspacePage(
     var showCancelConfirmation by remember { mutableStateOf<Operation.Id?>(null) }
 
     // Wrapped selection callbacks that clear focus and hide keyboard
-    val wrappedOnEnterSelectionMode: (SearchResult) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester) {
+    val wrappedOnEnterSelectionMode: (SearchItem) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester) {
         { result ->
             focusManager.clearFocus()
             keyboardController?.hide()
@@ -149,7 +150,7 @@ fun SearcherWorkspacePage(
         }
     }
 
-    val wrappedOnToggleSelection: (SearchResult) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester) {
+    val wrappedOnToggleSelection: (SearchItem) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester) {
         { result ->
             // Only clear focus and hide keyboard when entering selection mode (first selection)
             // Not when already in selection mode (subsequent toggles)
@@ -242,16 +243,6 @@ fun SearcherWorkspacePage(
     )
 
     state?.let { currentState ->
-        // Debounce search input - needs currentState
-        LaunchedEffect(currentState.searchQuery.text) {
-            if (currentState.searchQuery.text.isNotBlank()) {
-                searchDebounce = true
-                delay(500) // Wait 500ms after user stops typing
-                searchDebounce = false
-                onPerformSearch()
-            }
-        }
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -297,7 +288,7 @@ fun SearcherWorkspacePage(
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp,
-                    top = 16.dp + actualToolbarHeightDp + 16.dp + (if (showStatusCard) statusCardHeight + 8.dp else 0.dp),
+                    top = 16.dp + actualToolbarHeightDp + (if (showStatusCard) statusCardHeight + 8.dp else 0.dp),
                     bottom = run {
                         val actionBarHeight = if (hasActions) 64.dp else 0.dp
                         val clipboardHeight = if (hasClipboard) 88.dp else 0.dp
@@ -337,7 +328,7 @@ fun SearcherWorkspacePage(
                         items = currentState.listItems,
                         key = { item ->
                             when (item) {
-                                is SearchListItem.Result -> item.fileRowData.path
+                                is SearchListItem.Result -> item.searchItem.path.path
                                 is SearchListItem.Error -> "error_${item.timestamp}"
                             }
                         }
@@ -345,49 +336,18 @@ fun SearcherWorkspacePage(
                         when (item) {
                             is SearchListItem.Result -> {
                                 SelectableFileRow(
-                                    data = item.fileRowData,
-                                    isSelected = currentState.selectionState.isSelected(
-                                        SearchResult(
-                                            lookup = item.fileRowData.lookup,
-                                            matchedQuery = currentState.searchQuery.text,
-                                            matchContext = item.fileRowData.matchContext?.let { context ->
-                                                SearchResult.MatchContext(
-                                                    lineNumber = context.lineNumber,
-                                                    matchedLine = context.matchedLine
-                                                )
-                                            }
-                                        )
-                                    ),
+                                    result = item.searchItem,
+                                    isSelected = currentState.selectionState.isSelected(item.searchItem),
                                     isSelectionMode = currentState.selectionState.isSelectionMode,
                                     onClick = {
-                                        val searchResult = SearchResult(
-                                            lookup = item.fileRowData.lookup,
-                                            matchedQuery = currentState.searchQuery.text,
-                                            matchContext = item.fileRowData.matchContext?.let { context ->
-                                                SearchResult.MatchContext(
-                                                    lineNumber = context.lineNumber,
-                                                    matchedLine = context.matchedLine
-                                                )
-                                            }
-                                        )
                                         if (currentState.selectionState.isSelectionMode) {
-                                            wrappedOnToggleSelection(searchResult)
+                                            wrappedOnToggleSelection(item.searchItem)
                                         } else {
-                                            onResultClick(searchResult)
+                                            onResultClick(item.searchItem)
                                         }
                                     },
                                     onLongPress = {
-                                        val searchResult = SearchResult(
-                                            lookup = item.fileRowData.lookup,
-                                            matchedQuery = currentState.searchQuery.text,
-                                            matchContext = item.fileRowData.matchContext?.let { context ->
-                                                SearchResult.MatchContext(
-                                                    lineNumber = context.lineNumber,
-                                                    matchedLine = context.matchedLine
-                                                )
-                                            }
-                                        )
-                                        wrappedOnEnterSelectionMode(searchResult)
+                                        wrappedOnEnterSelectionMode(item.searchItem)
                                     },
                                 )
                             }
@@ -458,7 +418,7 @@ fun SearcherWorkspacePage(
                     onClear = onClearResults,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .offset(y = 16.dp + actualToolbarHeightDp + 16.dp) // Account for toolbar's vertical padding + gap
+                        .offset(y = 16.dp + actualToolbarHeightDp) // Account for toolbar's vertical padding + gap
                         .padding(horizontal = 16.dp)
                 )
             }
@@ -526,31 +486,7 @@ fun SearcherWorkspacePage(
 
             // Floating Bottom ActionBar - Selection mode
             if (hasActions) {
-                val actions = buildList {
-                    // Select All / Deselect All
-                    if (currentState.selectionState.isAllSelected) {
-                        add(SearcherAction.DeselectAll)
-                    } else if (currentState.selectionState.selectableResults.isNotEmpty()) {
-                        add(SearcherAction.SelectAll)
-                    }
-
-                    // Copy
-                    add(SearcherAction.Copy(currentState.selectionState.selectedResults))
-
-                    // Cut
-                    add(SearcherAction.Cut(currentState.selectionState.selectedResults))
-
-                    // Share (if reasonable number of items)
-                    val shareAction = SearcherAction.Share(currentState.selectionState.selectedResults)
-                    if (shareAction.isVisible) {
-                        add(shareAction)
-                    }
-
-                    // Delete
-                    add(SearcherAction.Delete(currentState.selectionState.selectedResults))
-                }
-
-                eu.darken.butler.workspace.ui.actions.WorkspaceActionBar(
+                WorkspaceActionBar(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(horizontal = 8.dp, vertical = 8.dp)
@@ -560,7 +496,7 @@ fun SearcherWorkspacePage(
                             translationY =
                                 if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 64.dp.toPx() else 0f
                         },
-                    actions = actions,
+                    actions = currentState.availableActions,
                     onActionClick = { action ->
                         when (val searcherAction = action as SearcherAction) {
                             is SearcherAction.DeselectAll -> onExitSelectionMode()

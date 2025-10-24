@@ -32,13 +32,12 @@ import eu.darken.butler.searcher.core.SearchEngine
 import eu.darken.butler.searcher.core.SearchHistory
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearchQuery
-import eu.darken.butler.searcher.core.SearchResult
+import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearcherSettings
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogEvent
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
-import eu.darken.butler.searcher.ui.search.rows.FileRowData
 import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.explorer.core.arguments.ExternalExplorerArguments
 import eu.darken.butler.workspace.core.Workspace
@@ -62,7 +61,9 @@ import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -100,8 +101,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val currentFilter = MutableStateFlow(SearchQuery.Filter())
     private val searchTargets = MutableStateFlow<List<SearchTarget>>(emptyList())
     private val selectionState = MutableStateFlow(SearcherSelectionState())
-    private val quickActionsResult = MutableStateFlow<SearchResult?>(null)
+    private val quickActionsResult = MutableStateFlow<SearchItem?>(null)
     private val dialogStateFlow = MutableStateFlow<SearcherDialogState>(SearcherDialogState.None)
+    private var lastAutoExecutedQuery: String? = null
 
     val dialogEvents = SingleEventFlow<SearcherDialogEvent>()
 
@@ -120,8 +122,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
         vmScope.launch {
             val defaultTargets = searcherSettings.defaultSearchTargets.value()
-            searchTargets.value = defaultTargets.ifEmpty {
-                listOf(SearchTarget.Path.from(LocalPath.build(Environment.getExternalStorageDirectory())))
+            searchTargets.value = when {
+                defaultTargets == null -> listOf(SearchTarget.Path.from(LocalPath.build(Environment.getExternalStorageDirectory())))
+                else -> defaultTargets
             }
         }
 
@@ -145,6 +148,20 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 }
             }
             .launchIn(vmScope)
+
+        // Auto-search on query text changes with debouncing
+        searchQuery
+            .debounce(500)
+            .map { it.text }
+            .distinctUntilChanged()
+            .filter { it.isNotBlank() }
+            .filter { it != lastAutoExecutedQuery }
+            .onEach { query ->
+                log(tag, INFO) { "Auto-triggering search for query: $query" }
+                lastAutoExecutedQuery = query
+                performSearch(saveToHistory = false)
+            }
+            .launchIn(vmScope)
     }
 
     private var activeSearchJob: Job? = null
@@ -154,7 +171,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     data class SearchState(
         val status: Status = Status.IDLE,
-        val results: List<SearchResult> = emptyList(),
+        val results: List<SearchItem> = emptyList(),
         val progress: SearchEngine.SearchProgress? = null,
         val error: Exception? = null
     ) {
@@ -227,6 +244,37 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         quickActionsResult,
         dialogStateFlow,
     ) { query, searchState, history, filter, targets, permissionState, selection, quickActions, dialogState ->
+        val updatedSelectionState = selection.copy(selectableResults = searchState.results)
+
+        // Calculate available actions based on selection state
+        val actions = if (updatedSelectionState.selectedResultIds.isNotEmpty()) {
+            buildList {
+                // Select All / Deselect All
+                if (updatedSelectionState.isAllSelected) {
+                    add(SearcherAction.DeselectAll)
+                } else if (updatedSelectionState.selectableResults.isNotEmpty()) {
+                    add(SearcherAction.SelectAll)
+                }
+
+                // Copy
+                add(SearcherAction.Copy(updatedSelectionState.selectedResults))
+
+                // Cut
+                add(SearcherAction.Cut(updatedSelectionState.selectedResults))
+
+                // Share (if reasonable number of items)
+                val shareAction = SearcherAction.Share(updatedSelectionState.selectedResults)
+                if (shareAction.isVisible) {
+                    add(shareAction)
+                }
+
+                // Delete
+                add(SearcherAction.Delete(updatedSelectionState.selectedResults))
+            }
+        } else {
+            emptyList()
+        }
+
         State(
             id = id,
             searchQuery = query,
@@ -238,9 +286,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             wholeWord = filter.wholeWord,
             useRegex = filter.useRegex,
             permissionState = permissionState,
-            selectionState = selection.copy(selectableResults = searchState.results),
+            selectionState = updatedSelectionState,
             quickActionsResult = quickActions,
             dialogState = dialogState,
+            availableActions = actions,
         )
     }
         .distinctUntilChanged()
@@ -374,7 +423,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 null
             }
             try {
-                val results = mutableListOf<SearchResult>()
+                val results = mutableListOf<SearchItem>()
                 searchEngine.search(
                     searchQuery = searchRequest,
                     onProgress = { progress ->
@@ -532,7 +581,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun onSearchResultClick(result: SearchResult) {
+    fun onSearchResultClick(result: SearchItem) {
         log(TAG) { "Search result clicked: ${result.path}" }
 
         // Save current search to history since user found it useful
@@ -556,7 +605,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     }
 
     // Selection and action methods
-    fun showQuickActions(result: SearchResult) {
+    fun showQuickActions(result: SearchItem) {
         log(TAG) { "Showing quick actions for: ${result.path}" }
         quickActionsResult.value = result
     }
@@ -565,13 +614,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         quickActionsResult.value = null
     }
 
-    fun enterSelectionMode(result: SearchResult) {
+    fun enterSelectionMode(result: SearchItem) {
         log(TAG) { "Entering selection mode with: ${result.path}" }
         selectionState.update { it.enterSelectionMode(result) }
         hideQuickActions()
     }
 
-    fun toggleSelection(result: SearchResult) {
+    fun toggleSelection(result: SearchItem) {
         log(TAG) { "Toggling selection for: ${result.path}" }
         selectionState.update { it.toggleSelection(result) }
     }
@@ -672,7 +721,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         workspaceRemote.execute(action)
     }
 
-    private fun shareFiles(results: List<SearchResult>) {
+    private fun shareFiles(results: List<SearchItem>) {
         log(TAG, INFO) { "Sharing ${results.size} file(s)" }
 
         try {
@@ -704,7 +753,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    private fun createShareIntent(result: SearchResult): Intent? {
+    private fun createShareIntent(result: SearchItem): Intent? {
         return try {
             val path = result.path
             if (path !is LocalPath) {
@@ -738,7 +787,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    private fun createShareMultipleIntent(results: List<SearchResult>): Intent? {
+    private fun createShareMultipleIntent(results: List<SearchItem>): Intent? {
         return try {
             val uris = results.mapNotNull { result ->
                 val path = result.path
@@ -802,8 +851,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val useRegex: Boolean = false,
         val permissionState: PermissionState = PermissionState(),
         val selectionState: SearcherSelectionState = SearcherSelectionState(),
-        val quickActionsResult: SearchResult? = null,
+        val quickActionsResult: SearchItem? = null,
         val dialogState: SearcherDialogState = SearcherDialogState.None,
+        val availableActions: List<SearcherAction> = emptyList(),
     ) {
         val isSearching: Boolean
             get() = searchState.status == SearchState.Status.SEARCHING
@@ -830,16 +880,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 searchState.results.forEach { result ->
                     add(
                         SearchListItem.Result(
-                            fileRowData = FileRowData(
-                                lookup = result.lookup,
-                                metadata = emptyMap(),
-                                matchContext = result.matchContext?.let { context ->
-                                    FileRowData.MatchContext(
-                                        lineNumber = context.lineNumber,
-                                        matchedLine = context.matchedLine
-                                    )
-                                }
-                            )
+                            searchItem = result
                         )
                     )
                 }
@@ -898,7 +939,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         clipboardRepo.clear()
     }
 
-    fun showFileProperties(result: SearchResult) {
+    fun showFileProperties(result: SearchItem) {
         log(TAG) { "showFileProperties(${result.name})" }
         dialogStateFlow.value = SearcherDialogState.FileInfo(result)
     }
