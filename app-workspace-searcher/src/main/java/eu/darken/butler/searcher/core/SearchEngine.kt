@@ -9,6 +9,7 @@ import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.metadata.MetadataRepo
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
@@ -25,7 +26,8 @@ import javax.inject.Singleton
 @Singleton
 class SearchEngine @Inject constructor(
     private val gatewaySwitch: GatewaySwitch,
-    private val dispatcherProvider: DispatcherProvider
+    private val dispatcherProvider: DispatcherProvider,
+    private val metadataRepo: MetadataRepo,
 ) {
 
 
@@ -91,7 +93,8 @@ class SearchEngine @Inject constructor(
                             .mapNotNull { lookup ->
                                 if (matchesSearch(lookup, searchQuery)) {
                                     resultsFound++
-                                    SearchItem.fromLookup(lookup, searchQuery.query)
+                                    val metadata = metadataRepo.extract(lookup)
+                                    SearchItem.fromLookup(lookup, searchQuery.query, metadata = metadata)
                                 } else {
                                     null
                                 }

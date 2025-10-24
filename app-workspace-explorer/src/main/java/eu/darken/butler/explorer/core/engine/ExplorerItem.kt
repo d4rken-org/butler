@@ -5,6 +5,7 @@ import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.metadata.FileMetadata
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.saf.location.SAFLocation
@@ -65,12 +66,13 @@ sealed interface ExplorerItem {
         val ownership: Ownership?
         val permissions: Permissions?
         val createdAt: Instant?
+        val metadata: FileMetadata?
 
         override val path: APath<*> get() = lookup.lookedUp
         override val id: String get() = lookup.path
         override val displayName: CaString get() = lookup.userReadableName
 
-        fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?): Path
+        fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?, metadata: FileMetadata? = null): Path
     }
 
     sealed interface Directory : Lookup {
@@ -90,12 +92,14 @@ sealed interface ExplorerItem {
         override val ownership: Ownership? = null,
         override val permissions: Permissions? = null,
         override val createdAt: Instant? = null,
-        override val childCount: Int? = null
+        override val childCount: Int? = null,
+        override val metadata: FileMetadata? = null,
     ) : Directory {
-        override fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?) = copy(
+        override fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?, metadata: FileMetadata?) = copy(
             ownership = ownership ?: this.ownership,
             permissions = permissions ?: this.permissions,
             createdAt = createdAt ?: this.createdAt,
+            metadata = metadata ?: this.metadata,
         )
     }
 
@@ -105,11 +109,13 @@ sealed interface ExplorerItem {
         override val ownership: Ownership? = null,
         override val permissions: Permissions? = null,
         override val createdAt: Instant? = null,
+        override val metadata: FileMetadata? = null,
     ) : File {
-        override fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?) = copy(
+        override fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?, metadata: FileMetadata?) = copy(
             ownership = ownership ?: this.ownership,
             permissions = permissions ?: this.permissions,
             createdAt = createdAt ?: this.createdAt,
+            metadata = metadata ?: this.metadata,
         )
     }
 
@@ -120,12 +126,14 @@ sealed interface ExplorerItem {
         override val permissions: Permissions? = null,
         override val createdAt: Instant? = null,
         val targetPath: String? = null,
-        val isBroken: Boolean = false
+        val isBroken: Boolean = false,
+        override val metadata: FileMetadata? = null,
     ) : File {
-        override fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?) = copy(
+        override fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?, metadata: FileMetadata?) = copy(
             ownership = ownership ?: this.ownership,
             permissions = permissions ?: this.permissions,
             createdAt = createdAt ?: this.createdAt,
+            metadata = metadata ?: this.metadata,
         )
     }
 }

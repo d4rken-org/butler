@@ -2,35 +2,40 @@ package eu.darken.butler.explorer.core.engine
 
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.metadata.FileMetadata
 import eu.darken.butler.common.files.metadata.FileType
 import java.util.Locale
 
 class FileTypeClassifier {
 
-    fun classify(lookup: APathLookup<*>): ExplorerItem.Lookup = when (lookup.fileType) {
+    fun classify(lookup: APathLookup<*>, metadata: FileMetadata? = null): ExplorerItem.Lookup = when (lookup.fileType) {
         FileType.DIRECTORY -> ExplorerItem.RegularDirectory(
             lookup = lookup,
+            metadata = metadata,
         )
         FileType.SYMBOLIC_LINK -> ExplorerItem.SymbolicLink(
             lookup = lookup,
             mimeType = getMimeType(lookup.name),
             targetPath = lookup.target?.path,
-            isBroken = lookup.target == null
+            isBroken = lookup.target == null,
+            metadata = metadata,
         )
-        FileType.FILE -> classifyFile(lookup)
+        FileType.FILE -> classifyFile(lookup, metadata)
         else -> ExplorerItem.RegularFile(
             lookup = lookup,
-            mimeType = getMimeType(lookup.name)
+            mimeType = getMimeType(lookup.name),
+            metadata = metadata,
         )
     }
 
-    private fun classifyFile(lookup: APathLookup<*>): ExplorerItem.Lookup {
+    private fun classifyFile(lookup: APathLookup<*>, metadata: FileMetadata?): ExplorerItem.Lookup {
         val mimeType = getMimeType(lookup.name)
 
         return when {
             else -> ExplorerItem.RegularFile(
                 lookup = lookup,
-                mimeType = mimeType
+                mimeType = mimeType,
+                metadata = metadata,
             )
         }
     }
