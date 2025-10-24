@@ -8,7 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.twotone.AutoAwesome
 import androidx.compose.material.icons.twotone.SwipeLeft
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.twotone.Visibility
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -33,6 +33,7 @@ fun WorkspaceSettingsScreen(
     onNavigateUp: () -> Unit,
     onToggleSwipeGestures: () -> Unit,
     onToggleOnDemandWorkspaceCreation: () -> Unit,
+    onToggleLivePreview: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -81,6 +82,16 @@ fun WorkspaceSettingsScreen(
                     enabled = state.swipeGesturesEnabled,
                 )
             }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.Visibility,
+                    title = stringResource(R.string.workspace_settings_live_preview_title),
+                    subtitle = stringResource(R.string.workspace_settings_live_preview_desc),
+                    checked = state.livePreview,
+                    onCheckedChange = { onToggleLivePreview() }
+                )
+            }
         }
     }
 }
@@ -93,10 +104,12 @@ private fun WorkspaceSettingsScreenPreview() {
             state = WorkspaceSettingsViewModel.State(
                 swipeGesturesEnabled = true,
                 onDemandWorkspaceCreation = true,
+                livePreview = true,
             ),
             onNavigateUp = {},
             onToggleSwipeGestures = {},
             onToggleOnDemandWorkspaceCreation = {},
+            onToggleLivePreview = {},
         )
     }
 }
@@ -113,6 +126,7 @@ fun WorkspaceSettingsScreenHost(vm: WorkspaceSettingsViewModel = hiltViewModel()
             onNavigateUp = { vm.navUp() },
             onToggleSwipeGestures = { vm.toggleSwipeGestures() },
             onToggleOnDemandWorkspaceCreation = { vm.toggleOnDemandWorkspaceCreation() },
+            onToggleLivePreview = { vm.toggleLivePreview() },
         )
     }
 }

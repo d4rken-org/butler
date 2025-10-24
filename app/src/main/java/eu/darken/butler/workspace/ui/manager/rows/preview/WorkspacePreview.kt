@@ -33,7 +33,7 @@ fun WorkspacePreview(
         modifier = modifier
             .fillMaxWidth()
             .height(160.dp),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
@@ -46,7 +46,8 @@ fun WorkspacePreview(
                     model = WorkspacePreviewModel(workspaceId),
                     contentDescription = "Workspace preview",
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.TopCenter,
+                    contentScale = ContentScale.FillWidth,
                     // Show loading indicator while capturing
                     loading = {
                         Box(

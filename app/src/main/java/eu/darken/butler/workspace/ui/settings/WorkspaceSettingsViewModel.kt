@@ -22,10 +22,12 @@ constructor(
     val state = combine(
         workspaceSettings.swipeGesturesEnabled.flow,
         workspaceSettings.onDemandWorkspaceCreation.flow,
-    ) { swipeGesturesEnabled, onDemandWorkspaceCreation ->
+        workspaceSettings.livePreview.flow,
+    ) { swipeGesturesEnabled, onDemandWorkspaceCreation, livePreview ->
         State(
             swipeGesturesEnabled = swipeGesturesEnabled,
             onDemandWorkspaceCreation = onDemandWorkspaceCreation,
+            livePreview = livePreview,
         )
     }.asStateFlow()
 
@@ -39,8 +41,14 @@ constructor(
         workspaceSettings.onDemandWorkspaceCreation.value(!current)
     }
 
+    fun toggleLivePreview() = launch {
+        val current = workspaceSettings.livePreview.value()
+        workspaceSettings.livePreview.value(!current)
+    }
+
     data class State(
         val swipeGesturesEnabled: Boolean,
         val onDemandWorkspaceCreation: Boolean,
+        val livePreview: Boolean,
     )
 }

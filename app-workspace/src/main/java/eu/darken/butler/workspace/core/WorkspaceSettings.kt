@@ -41,6 +41,7 @@ class WorkspaceSettings @Inject constructor(
         showBadgeExplanation,
         swipeGesturesEnabled,
         onDemandWorkspaceCreation,
+        livePreview,
         paneMode,
     )
 

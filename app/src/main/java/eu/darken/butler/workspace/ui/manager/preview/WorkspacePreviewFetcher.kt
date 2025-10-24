@@ -8,7 +8,6 @@ import coil3.fetch.FetchResult
 import coil3.fetch.Fetcher
 import coil3.fetch.ImageFetchResult
 import coil3.request.Options
-import coil3.size.pxOrElse
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -56,8 +55,8 @@ class WorkspacePreviewFetcher @Inject constructor(
             workspaceId = data.workspaceId,
             workspaceType = workspaceInfo.type,
             size = Size(
-                width = options.size.width.pxOrElse { 400 }.toFloat() * 2,
-                height = options.size.height.pxOrElse { 200 }.toFloat() * 2,
+                width = 800f,
+                height = 1200f,
             ),
             captureContext = mainActivity,
             viewmodelStoreOwner = mainActivity,
