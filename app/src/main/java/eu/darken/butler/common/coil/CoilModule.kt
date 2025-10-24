@@ -32,6 +32,7 @@ class CoilModule {
         appIconFetcherFactory: AppIconFetcher.Factory,
         pathPreviewFetcher: PathPreviewFetcher.Factory,
         bitmapFetcher: BitmapFetcher.Factory,
+        workspacePreviewFetcher: eu.darken.butler.workspace.ui.manager.preview.WorkspacePreviewFetcher.Factory,
         dispatcherProvider: DispatcherProvider,
     ): ImageLoader = ImageLoader.Builder(context).apply {
         if (BuildConfigWrap.DEBUG) {
@@ -47,6 +48,7 @@ class CoilModule {
             add(appIconFetcherFactory)
             add(pathPreviewFetcher)
             add(bitmapFetcher)
+            add(workspacePreviewFetcher)
             add(VideoFrameDecoder.Factory())
         }
         coroutineContext(

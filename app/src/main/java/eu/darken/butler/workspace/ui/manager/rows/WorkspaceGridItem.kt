@@ -35,7 +35,6 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.core.preview.EditorPreviewData
 import eu.darken.butler.workspace.core.preview.ExplorerPreviewData
-import eu.darken.butler.workspace.core.preview.ExplorerPreviewItem
 import eu.darken.butler.workspace.core.preview.SearcherPreviewData
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
 import eu.darken.butler.workspace.ui.manager.rows.preview.WorkspacePreview
@@ -168,6 +167,7 @@ fun WorkspaceGridItem(
                 if (showPreview) {
                     WorkspacePreview(
                         modifier = Modifier.fillMaxWidth(),
+                        workspaceId = workspace.id,
                         type = workspace.type,
                         previewData = workspace.previewData
                     )
