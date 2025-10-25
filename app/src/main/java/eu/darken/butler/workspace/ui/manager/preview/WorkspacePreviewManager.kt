@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.take
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -57,6 +58,19 @@ class WorkspacePreviewManager @Inject constructor(
 
     fun start() {
         log(TAG, INFO) { "WorkspacePreviewRefreshManager started" }
+
+        // Check for orphaned previews on initialization
+        workspaceRepo.state
+            .map { it.infos.isEmpty() }
+            .take(1)
+            .onEach { isEmpty ->
+                if (isEmpty) {
+                    log(TAG, INFO) { "No workspaces on initialization - clearing orphaned preview caches" }
+                    clearAllPreviewCaches()
+                }
+            }
+            .catch { log(TAG, ERROR) { "Failed to check for orphaned previews: ${it.asLog()}" } }
+            .launchIn(appScope)
 
         // Invalidate preview cache when workspace gains focus (for live preview)
         combine(
