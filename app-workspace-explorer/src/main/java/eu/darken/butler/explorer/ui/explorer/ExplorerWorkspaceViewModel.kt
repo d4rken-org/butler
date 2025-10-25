@@ -41,7 +41,6 @@ import eu.darken.butler.explorer.core.FilterState
 import eu.darken.butler.explorer.core.PatternMatcher
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.explorer.core.engine.locationId
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.explorer.core.sorting.ExplorerItemSorter

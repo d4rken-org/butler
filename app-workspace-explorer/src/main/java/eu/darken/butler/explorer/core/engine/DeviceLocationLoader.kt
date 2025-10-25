@@ -38,36 +38,6 @@ class DeviceLocationLoader @Inject constructor(
 
     private val tag = logTag("Explorer", "DeviceLocationLoader")
 
-    private class LoaderContext(
-        private val permissionState: PermissionState,
-        private val emit: suspend (ExplorerLocation.Device) -> Unit,
-    ) {
-        private var currentState = ExplorerLocation.Device(
-            permissionState = permissionState,
-            progress = Progress.Data(
-                primary = R.string.explorer_loader_progress_device_loading.toCaString(),
-            ),
-        )
-        val state: ExplorerLocation.Device get() = currentState
-
-        suspend fun updateState(transform: ExplorerLocation.Device.() -> ExplorerLocation.Device) {
-            currentState = currentState.transform()
-            emit(currentState)
-        }
-
-        suspend fun updateProgressMsg(@StringRes msg: Int) = updateState {
-            copy(
-                progress = currentState.progress!!.copy(
-                    secondary = msg.toCaString(),
-                ),
-            )
-        }
-
-        suspend fun emitState() {
-            emit(currentState)
-        }
-    }
-
     private suspend fun checkLocationPermissions(): PermissionState {
         log(tag) { "checkLocationPermissions(): Checking permissions for Device" }
 
@@ -82,7 +52,15 @@ class DeviceLocationLoader @Inject constructor(
         log(tag, INFO) { "loadDevice(): Loading device location with multi-stage loading" }
 
         val permissionState = checkLocationPermissions()
-        val context = LoaderContext(permissionState, ::emit)
+        val context = LocationLoaderContext(
+            initialState = ExplorerLocation.Device(
+                permissionState = permissionState,
+                progress = Progress.Data(
+                    primary = R.string.explorer_loader_progress_device_loading.toCaString(),
+                ),
+            ),
+            emit = ::emit
+        )
         context.emitState()
 
         gatewaySwitch.useRes {
@@ -96,7 +74,7 @@ class DeviceLocationLoader @Inject constructor(
         log(tag, INFO) { "loadDevice(): Stage 2 complete with filesystem info" }
     }
 
-    private suspend fun LoaderContext.loadQuickList() {
+    private suspend fun LocationLoaderContext<ExplorerLocation.Device>.loadQuickList() {
         log(tag) { "loadQuickList(): Loading storage list without filesystem info" }
         updateProgressMsg(R.string.explorer_loader_progress_device_locations)
 
@@ -178,7 +156,7 @@ class DeviceLocationLoader @Inject constructor(
         null
     }
 
-    private suspend fun LoaderContext.loadFilesystemInfo() {
+    private suspend fun LocationLoaderContext<ExplorerLocation.Device>.loadFilesystemInfo() {
         log(tag) { "loadFilesystemInfo(): Loading filesystem info sequentially with incremental updates" }
 
         val currentItems = state.items ?: return

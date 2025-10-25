@@ -24,6 +24,8 @@ import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.explorer.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.permissions.PathPermissionCheck
+import kotlin.coroutines.coroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -38,50 +40,28 @@ class DirectoryLocationLoader @AssistedInject constructor(
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "DirectoryLoader")
 
-    private class LoaderContext(
-        private val path: APath<*>,
-        private val permissionState: eu.darken.butler.workspace.core.permissions.PermissionState,
-        private val emit: suspend (ExplorerLocation.Directory) -> Unit,
-    ) {
-        private var currentState = ExplorerLocation.Directory(
-            path = path,
-            permissionState = permissionState,
-            progress = Progress.Data(
-                primary = caString {
-                    it.getString(
-                        R.string.explorer_loader_progress_directory_loading,
-                        path.userReadablePath.get(it)
-                    )
-                },
-            )
-        )
-        val state: ExplorerLocation.Directory get() = currentState
-
-        suspend fun updateState(transform: ExplorerLocation.Directory.() -> ExplorerLocation.Directory) {
-            currentState = currentState.transform()
-            emit(currentState)
-        }
-
-        suspend fun updateProgressMsg(@StringRes msg: Int) = updateState {
-            copy(
-                progress = currentState.progress?.copy(
-                    secondary = msg.toCaString()
-                )
-            )
-        }
-
-        suspend fun emitState() {
-            emit(currentState)
-        }
-
-        val targetPath: APath<*> get() = currentState.path
-    }
+    private val LocationLoaderContext<ExplorerLocation.Directory>.targetPath: APath<*>
+        get() = state.path
 
     fun loadDirectory(path: APath<*>): Flow<ExplorerLocation> {
         return pathPermissionCheck.monitor(path).flatMapLatest { permissionState ->
             flow {
                 log(tag, INFO) { "loadDirectory(): Loading directory with permission state: $permissionState" }
-                val context = LoaderContext(path, permissionState, ::emit)
+                val context = LocationLoaderContext(
+                    initialState = ExplorerLocation.Directory(
+                        path = path,
+                        permissionState = permissionState,
+                        progress = Progress.Data(
+                            primary = caString {
+                                it.getString(
+                                    R.string.explorer_loader_progress_directory_loading,
+                                    path.userReadablePath.get(it)
+                                )
+                            },
+                        )
+                    ),
+                    emit = ::emit
+                )
                 context.emitState()
 
                 context.updateProgressMsg(R.string.explorer_loader_progress_directory_permissions)
@@ -103,7 +83,7 @@ class DirectoryLocationLoader @AssistedInject constructor(
         }
     }
 
-    private suspend fun LoaderContext.loadFileSystemInfo() {
+    private suspend fun LocationLoaderContext<ExplorerLocation.Directory>.loadFileSystemInfo() {
         log(tag) { "loadFileSystemInfo(): Loading file system info for $targetPath" }
 
         updateProgressMsg(R.string.explorer_loader_progress_directory_filesystem)
@@ -119,7 +99,7 @@ class DirectoryLocationLoader @AssistedInject constructor(
         }
     }
 
-    private suspend fun LoaderContext.loadPeek() {
+    private suspend fun LocationLoaderContext<ExplorerLocation.Directory>.loadPeek() {
         log(tag) { "loadPeek(): Loading peek for $targetPath" }
         updateProgressMsg(R.string.explorer_loader_progress_directory_content)
 
@@ -138,7 +118,7 @@ class DirectoryLocationLoader @AssistedInject constructor(
         }
     }
 
-    private suspend fun LoaderContext.loadContent() {
+    private suspend fun LocationLoaderContext<ExplorerLocation.Directory>.loadContent() {
         log(tag) { "loadContent(): Loading content: $targetPath" }
         updateProgressMsg(R.string.explorer_loader_progress_directory_content_details)
 
@@ -192,7 +172,7 @@ class DirectoryLocationLoader @AssistedInject constructor(
         }
     }
 
-    private suspend fun LoaderContext.loadContentExtended() {
+    private suspend fun LocationLoaderContext<ExplorerLocation.Directory>.loadContentExtended() {
         log(tag) { "loadContentExtended(): Loading content extended: $targetPath" }
         updateProgressMsg(R.string.explorer_loader_progress_directory_content_extended)
 
@@ -213,6 +193,9 @@ class DirectoryLocationLoader @AssistedInject constructor(
         // Count children for directories
         val childCounts = mutableMapOf<String, Int>()
         extendedLookups.values.forEach { lookup ->
+            // Check if cancelled before processing next item
+            coroutineContext.ensureActive()
+
             if (lookup.fileType == FileType.DIRECTORY) {
                 try {
                     val children = gatewaySwitch.listFiles(lookup.lookedUp)

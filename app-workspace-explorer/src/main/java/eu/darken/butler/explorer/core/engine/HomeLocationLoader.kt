@@ -7,8 +7,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.PhoneAndroid
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.workspace.core.permissions.PermissionState
@@ -35,10 +37,19 @@ class HomeLocationLoader @Inject constructor(
     }
 
     fun loadHome(): Flow<ExplorerLocation> = flow {
-        log(tag) { "loadHome(): Loading home location" }
+        log(tag, INFO) { "loadHome(): Loading home location" }
 
-        var result = ExplorerLocation.Home()
-        emit(result)
+        val permissionState = checkLocationPermissions()
+        val context = LocationLoaderContext(
+            initialState = ExplorerLocation.Home(
+                permissionState = permissionState,
+                progress = Progress.Data(
+                    primary = R.string.explorer_loader_progress_home_loading.toCaString(),
+                ),
+            ),
+            emit = ::emit
+        )
+        context.emitState()
 
         val shortcuts = listOf(
             ExplorerItem.Shortcut(
@@ -53,7 +64,7 @@ class HomeLocationLoader @Inject constructor(
         val stat = try {
             StatFs(Environment.getDataDirectory().path)
         } catch (e: Exception) {
-            log(tag) { "loadHome(): Failed to get storage info: ${e.message}" }
+            log(tag, WARN) { "loadHome(): Failed to get storage info: ${e.message}" }
             null
         }
 
@@ -63,15 +74,14 @@ class HomeLocationLoader @Inject constructor(
             usedStorage = stat?.let { it.totalBytes - it.availableBytes },
         )
 
-        log(tag) { "loadHome(): Created home with ${shortcuts.size} shortcuts" }
+        log(tag, INFO) { "loadHome(): Created home with ${shortcuts.size} shortcuts" }
 
-        result = ExplorerLocation.Home(
-            items = shortcuts,
-            info = info,
-            permissionState = checkLocationPermissions(),
-            progress = null,
-        )
-        emit(result)
-
+        context.updateState {
+            copy(
+                items = shortcuts,
+                info = info,
+                progress = null,
+            )
+        }
     }
 }
