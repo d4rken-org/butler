@@ -135,6 +135,8 @@
     <string name="explorer_loader_progress_device_locations">Loading storage locations</string>
     <string name="explorer_loader_progress_device_filesystem">Loading storage info</string>
 
+    <string name="explorer_loader_progress_home_loading">Loading home</string>
+
     <!-- InfoBar -->
     <plurals name="explorer_infobar_selected_count">
         <item quantity="one">%d selected</item>

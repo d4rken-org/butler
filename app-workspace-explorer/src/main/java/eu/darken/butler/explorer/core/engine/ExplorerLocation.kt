@@ -6,6 +6,7 @@ import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.workspace.core.permissions.PermissionState
 
 sealed interface ExplorerLocation {
+    val locationId: String
     val items: List<ExplorerItem>?
     val info: LocationInfo?
     val permissionState: PermissionState
@@ -21,6 +22,9 @@ sealed interface ExplorerLocation {
         override val permissionState: PermissionState = PermissionState(),
         override val progress: Progress.Data? = Progress.Data(),
     ) : ExplorerLocation {
+
+        override val locationId: String get() = "location://home"
+
         data class Info(
             val shortcutCount: Int,
             val totalDeviceStorage: Long? = null,
@@ -34,6 +38,9 @@ sealed interface ExplorerLocation {
         override val permissionState: PermissionState = PermissionState(),
         override val progress: Progress.Data? = Progress.Data(),
     ) : ExplorerLocation {
+
+        override val locationId: String get() = "location://device"
+
         data class Info(
             val locationCount: Int,
             val totalCapacity: Long? = null,
@@ -49,6 +56,9 @@ sealed interface ExplorerLocation {
         val path: APath<*>,
         val parent: ExplorerNavigation.Target? = null,
     ) : ExplorerLocation {
+
+        override val locationId: String get() = "location://directory/${path.path}"
+
         data class Info(
             val fileCount: Int? = null,
             val directoryCount: Int? = null,

@@ -6,12 +6,10 @@ import androidx.compose.material.icons.twotone.Code
 import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material.icons.twotone.SdCard
 import androidx.compose.material.icons.twotone.Storage
-import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.extensions.getFileSystemInfo
@@ -25,7 +23,6 @@ import eu.darken.butler.workspace.core.permissions.PermissionState
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
-import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -41,36 +38,6 @@ class DeviceLocationLoader @Inject constructor(
 
     private val tag = logTag("Explorer", "DeviceLocationLoader")
 
-    private class LoaderContext(
-        private val permissionState: PermissionState,
-        private val emit: suspend (ExplorerLocation.Device) -> Unit,
-    ) {
-        private var currentState = ExplorerLocation.Device(
-            permissionState = permissionState,
-            progress = Progress.Data(
-                primary = R.string.explorer_loader_progress_device_loading.toCaString(),
-            ),
-        )
-        val state: ExplorerLocation.Device get() = currentState
-
-        suspend fun updateState(transform: ExplorerLocation.Device.() -> ExplorerLocation.Device) {
-            currentState = currentState.transform()
-            emit(currentState)
-        }
-
-        suspend fun updateProgressMsg(@StringRes msg: Int) = updateState {
-            copy(
-                progress = currentState.progress!!.copy(
-                    secondary = msg.toCaString(),
-                ),
-            )
-        }
-
-        suspend fun emitState() {
-            emit(currentState)
-        }
-    }
-
     private suspend fun checkLocationPermissions(): PermissionState {
         log(tag) { "checkLocationPermissions(): Checking permissions for Device" }
 
@@ -85,22 +52,29 @@ class DeviceLocationLoader @Inject constructor(
         log(tag, INFO) { "loadDevice(): Loading device location with multi-stage loading" }
 
         val permissionState = checkLocationPermissions()
-        val context = LoaderContext(permissionState, ::emit)
+        val context = LocationLoaderContext(
+            initialState = ExplorerLocation.Device(
+                permissionState = permissionState,
+                progress = Progress.Data(
+                    primary = R.string.explorer_loader_progress_device_loading.toCaString(),
+                ),
+            ),
+            emit = ::emit
+        )
         context.emitState()
 
-        context.loadQuickList()
+        gatewaySwitch.useRes {
+            context.loadQuickList()
+            context.updateState { copy(progress = null) }
+            log(tag, INFO) { "loadDevice(): Stage 1 complete with ${context.state.items?.size} storage locations" }
 
-        // Clear progress after Stage 1 - flow can complete, navigation can proceed
-        context.updateState { copy(progress = null) }
-        log(tag, INFO) { "loadDevice(): Stage 1 complete with ${context.state.items?.size} storage locations" }
-
-        // Stage 2: Load filesystem info (can be cancelled without blocking)
-        context.loadFilesystemInfo()
+            context.loadFilesystemInfo()
+        }
 
         log(tag, INFO) { "loadDevice(): Stage 2 complete with filesystem info" }
     }
 
-    private suspend fun LoaderContext.loadQuickList() {
+    private suspend fun LocationLoaderContext<ExplorerLocation.Device>.loadQuickList() {
         log(tag) { "loadQuickList(): Loading storage list without filesystem info" }
         updateProgressMsg(R.string.explorer_loader_progress_device_locations)
 
@@ -182,7 +156,7 @@ class DeviceLocationLoader @Inject constructor(
         null
     }
 
-    private suspend fun LoaderContext.loadFilesystemInfo() {
+    private suspend fun LocationLoaderContext<ExplorerLocation.Device>.loadFilesystemInfo() {
         log(tag) { "loadFilesystemInfo(): Loading filesystem info sequentially with incremental updates" }
 
         val currentItems = state.items ?: return
