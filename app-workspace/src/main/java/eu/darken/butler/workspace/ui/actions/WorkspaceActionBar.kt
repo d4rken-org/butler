@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,7 +15,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.ContentCopy
+import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.MoreVert
+import androidx.compose.material.icons.twotone.Refresh
+import androidx.compose.material.icons.twotone.Share
+import androidx.compose.material.icons.twotone.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -31,12 +38,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.R
+import eu.darken.butler.common.R as CommonR
 
 /**
  * Shared action bar for workspace modules
@@ -239,6 +252,103 @@ fun WorkspaceActionBar(
                     }
                 }
             }
+        }
+    }
+}
+
+@Preview2
+@Composable
+private fun WorkspaceActionBarPreview() {
+    PreviewWrapper {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(16.dp)
+        ) {
+            // Sample action implementation for preview
+            data class SampleAction(
+                override val icon: ImageVector,
+                override val label: CaString,
+                override val isVisible: Boolean = true,
+                override val isEnabled: Boolean = true,
+                override val isDestructive: Boolean = false,
+                override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
+                override val badge: Boolean = false,
+            ) : WorkspaceAction
+
+            // Basic action bar with a few actions
+            WorkspaceActionBar(
+                actions = listOf(
+                    SampleAction(Icons.TwoTone.Share, CommonR.string.general_share_action.toCaString()),
+                    SampleAction(Icons.TwoTone.Edit, CommonR.string.general_edit_action.toCaString()),
+                    SampleAction(
+                        Icons.TwoTone.Delete,
+                        CommonR.string.general_delete_action.toCaString(),
+                        isDestructive = true
+                    ),
+                ),
+                onActionClick = {},
+            )
+
+            // With selection count (selection mode)
+            WorkspaceActionBar(
+                actions = listOf(
+                    SampleAction(Icons.TwoTone.ContentCopy, CommonR.string.general_copy_action.toCaString()),
+                    SampleAction(
+                        Icons.TwoTone.Delete,
+                        CommonR.string.general_delete_action.toCaString(),
+                        isDestructive = true
+                    ),
+                ),
+                onActionClick = {},
+                selectionCount = 5,
+            )
+
+            // With overflow menu (more actions than fit)
+            WorkspaceActionBar(
+                actions = listOf(
+                    SampleAction(Icons.TwoTone.Share, CommonR.string.general_share_action.toCaString()),
+                    SampleAction(Icons.TwoTone.Edit, CommonR.string.general_edit_action.toCaString()),
+                    SampleAction(Icons.TwoTone.ContentCopy, CommonR.string.general_copy_action.toCaString()),
+                    SampleAction(
+                        Icons.TwoTone.Star,
+                        CommonR.string.general_view_action.toCaString(),
+                        group = WorkspaceAction.Group.SECONDARY
+                    ),
+                    SampleAction(
+                        Icons.TwoTone.Refresh,
+                        CommonR.string.general_refresh_action.toCaString(),
+                        group = WorkspaceAction.Group.SECONDARY
+                    ),
+                    SampleAction(
+                        Icons.TwoTone.Delete,
+                        CommonR.string.general_delete_action.toCaString(),
+                        isDestructive = true
+                    ),
+                ),
+                onActionClick = {},
+            )
+
+            // With badges and disabled action
+            WorkspaceActionBar(
+                actions = listOf(
+                    SampleAction(
+                        Icons.TwoTone.Refresh,
+                        CommonR.string.general_refresh_action.toCaString(),
+                        badge = true
+                    ),
+                    SampleAction(
+                        Icons.TwoTone.Edit,
+                        CommonR.string.general_edit_action.toCaString(),
+                        isEnabled = false
+                    ),
+                    SampleAction(
+                        Icons.TwoTone.Delete,
+                        CommonR.string.general_delete_action.toCaString(),
+                        isDestructive = true
+                    ),
+                ),
+                onActionClick = {},
+            )
         }
     }
 }
