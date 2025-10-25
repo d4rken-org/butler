@@ -149,6 +149,16 @@ fun SettingsIndexScreen(
                 SettingsDivider()
             }
 
+            item {
+                SettingsBaseItem(
+                    icon = Icons.TwoTone.Storage,
+                    title = stringResource(R.string.storage_settings_title),
+                    subtitle = stringResource(R.string.storage_settings_subtitle),
+                    onClick = { onNavigateTo(Nav.Settings.storage()) },
+                )
+                SettingsDivider()
+            }
+            
             item { SettingsCategoryHeader(stringResource(R.string.settings_category_tools_label)) }
 
             item {
@@ -189,16 +199,6 @@ fun SettingsIndexScreen(
                     title = stringResource(R.string.settings_upgrade_status_label),
                     subtitle = stringResource(R.string.settings_upgrade_status_description),
                     onClick = { onNavigateTo(Nav.Settings.upgradeStatus()) },
-                )
-                SettingsDivider()
-            }
-
-            item {
-                SettingsBaseItem(
-                    icon = Icons.TwoTone.Storage,
-                    title = stringResource(R.string.storage_settings_title),
-                    subtitle = stringResource(R.string.storage_settings_subtitle),
-                    onClick = { onNavigateTo(Nav.Settings.storage()) },
                 )
                 SettingsDivider()
             }
