@@ -156,7 +156,7 @@
     <string name="ui_language_override_desc">Select a different language for Butler, independent of your system\'s default language.</string>
 
     <string name="storage_settings_title">Storage</string>
-    <string name="storage_settings_subtitle">Manage app Butler\'s caches and storage</string>
+    <string name="storage_settings_subtitle">Manage Butler\'s caches, storage and recycle bin.</string>
     <string name="storage_category_previews_label">Previews</string>
     <string name="storage_previews_disk_cache_title">Disk cache</string>
     <string name="storage_disk_cache_subtitle">%1$s / %2$s • %3$d items</string>
