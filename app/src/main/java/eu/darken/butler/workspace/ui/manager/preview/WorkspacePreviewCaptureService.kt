@@ -2,13 +2,9 @@ package eu.darken.butler.workspace.ui.manager.preview
 
 import android.content.Context
 import android.graphics.Bitmap
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpSize
 import androidx.lifecycle.ViewModelStoreOwner
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -55,7 +51,6 @@ class WorkspacePreviewCaptureService @Inject constructor(
                 viewModelStoreOwner = viewmodelStoreOwner,
             ) {
                 MyAppTheme(state = themeState) {
-                    Box(modifier = Modifier.fillMaxSize()) {
                         WorkspaceMapper(
                             info = WorkspacePaneInfo(
                                 id = workspaceId,
@@ -65,7 +60,6 @@ class WorkspacePreviewCaptureService @Inject constructor(
                                 layout = WorkspaceDesign.Layout.SINGLE
                             ),
                         )
-                    }
                 }
             }
         }
