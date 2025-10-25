@@ -18,6 +18,7 @@ import eu.darken.butler.common.coil.use
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.main.ui.MainActivity
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.preview.WorkspacePreviewModel
@@ -65,7 +66,7 @@ class WorkspacePreviewFetcher @Inject constructor(
                     source = bufferedSource,
                     fileSystem = FileSystem.SYSTEM,
                 ),
-                mimeType = "image/png",
+                mimeType = "image/webp",
                 dataSource = DataSource.DISK
             )
         }
@@ -102,13 +103,18 @@ class WorkspacePreviewFetcher @Inject constructor(
         log(TAG) { "Successfully captured preview for ${data.workspaceId.shortTag}" }
 
         if (options.diskCachePolicy.writeEnabled) {
-            val pngBytes = ByteArrayOutputStream().use { stream ->
-                bitmap.compress(Bitmap.CompressFormat.PNG, 80, stream)
+            val webpBytes = ByteArrayOutputStream().use { stream ->
+                bitmap.compress(
+                    @Suppress("NewApi")
+                    if (hasApiLevel(30)) Bitmap.CompressFormat.WEBP_LOSSY else Bitmap.CompressFormat.JPEG,
+                    25,
+                    stream
+                )
                 stream.toByteArray()
             }
             diskCache.value?.openEditor(cacheKey)?.use { editor ->
                 diskCache.value!!.fileSystem.write(editor.data) {
-                    write(pngBytes)
+                    write(webpBytes)
                 }
                 log(TAG) { "Wrote preview to disk cache for ${data.workspaceId.shortTag}" }
             }
