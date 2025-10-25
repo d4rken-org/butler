@@ -6,12 +6,10 @@ import androidx.compose.material.icons.twotone.Code
 import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material.icons.twotone.SdCard
 import androidx.compose.material.icons.twotone.Storage
-import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.extensions.getFileSystemInfo
@@ -25,7 +23,6 @@ import eu.darken.butler.workspace.core.permissions.PermissionState
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
-import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -88,14 +85,13 @@ class DeviceLocationLoader @Inject constructor(
         val context = LoaderContext(permissionState, ::emit)
         context.emitState()
 
-        context.loadQuickList()
+        gatewaySwitch.useRes {
+            context.loadQuickList()
+            context.updateState { copy(progress = null) }
+            log(tag, INFO) { "loadDevice(): Stage 1 complete with ${context.state.items?.size} storage locations" }
 
-        // Clear progress after Stage 1 - flow can complete, navigation can proceed
-        context.updateState { copy(progress = null) }
-        log(tag, INFO) { "loadDevice(): Stage 1 complete with ${context.state.items?.size} storage locations" }
-
-        // Stage 2: Load filesystem info (can be cancelled without blocking)
-        context.loadFilesystemInfo()
+            context.loadFilesystemInfo()
+        }
 
         log(tag, INFO) { "loadDevice(): Stage 2 complete with filesystem info" }
     }
