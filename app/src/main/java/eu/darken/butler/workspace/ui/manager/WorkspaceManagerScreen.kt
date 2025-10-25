@@ -1,6 +1,5 @@
 package eu.darken.butler.workspace.ui.manager
 
-import android.os.Parcelable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -22,6 +21,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +49,11 @@ import eu.darken.butler.workspace.core.Workspace
 fun WorkspaceManagerScreenHost(
     vm: WorkspaceManagerViewModel = hiltViewModel()
 ) {
+    // Invalidate preview cache every time the screen appears
+    LaunchedEffect(Unit) {
+        vm.onScreenAppeared()
+    }
+
     ErrorEventHandler(vm)
 
     val state by waitForState(vm.state)

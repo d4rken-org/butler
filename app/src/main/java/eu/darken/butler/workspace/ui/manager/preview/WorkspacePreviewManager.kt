@@ -48,6 +48,8 @@ class WorkspacePreviewManager @Inject constructor(
 
     fun start() {
         log(TAG, INFO) { "WorkspacePreviewRefreshManager started" }
+
+        // Invalidate preview cache when workspace gains focus (for live preview)
         combine(
             workspacePageManager.state
                 .map { it.focusedWorkspaceId }
@@ -62,6 +64,24 @@ class WorkspacePreviewManager @Inject constructor(
         }
             .catch { log(TAG, ERROR) { "Failed to invalidate preview cache: ${it.asLog()}" } }
             .launchIn(appScope)
+    }
+
+    /**
+     * Invalidates the preview cache for the currently focused workspace.
+     *
+     * This should be called when the workspace manager is opened to ensure
+     * that previews reflect the current state, even if the workspace hasn't
+     * lost/regained focus since the last manager open.
+     */
+    suspend fun invalidateFocusedWorkspacePreview() {
+        val focusedId = workspacePageManager.state.value.focusedWorkspaceId
+        val livePreviewEnabled = workspaceSettings.livePreview.value()
+
+        log(TAG) { "Manual invalidation requested: workspaceId=$focusedId, livePreviewEnabled=$livePreviewEnabled" }
+
+        if (livePreviewEnabled && focusedId != null) {
+            invalidatePreviewCache(focusedId)
+        }
     }
 
     private fun invalidatePreviewCache(workspaceId: Workspace.Id) {

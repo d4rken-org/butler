@@ -12,6 +12,7 @@ import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.ui.WorkspacePageManager
+import eu.darken.butler.workspace.ui.manager.preview.WorkspacePreviewManager
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 
@@ -22,6 +23,7 @@ class WorkspaceManagerViewModel @Inject constructor(
     private val workspaceRepo: WorkspaceRepo,
     private val workspaceSettings: WorkspaceSettings,
     private val workspacePageManager: WorkspacePageManager,
+    private val workspacePreviewManager: WorkspacePreviewManager,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Manager", "VM"), navCtrl) {
 
     val state = combine(
@@ -77,6 +79,11 @@ class WorkspaceManagerViewModel @Inject constructor(
     fun closeAllWorkspaces() = launch {
         log(tag) { "closeAllWorkspaces()" }
         workspaceRepo.execute(WorkspaceAction.CloseAll)
+    }
+
+    fun onScreenAppeared() = launch {
+        log(tag) { "onScreenAppeared() - invalidating focused workspace preview" }
+        workspacePreviewManager.invalidateFocusedWorkspacePreview()
     }
 
     data class State(
