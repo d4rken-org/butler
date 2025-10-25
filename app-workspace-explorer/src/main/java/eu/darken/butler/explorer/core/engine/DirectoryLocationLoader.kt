@@ -91,13 +91,12 @@ class DirectoryLocationLoader @AssistedInject constructor(
                     return@flow
                 }
 
-                context.loadFileSystemInfo()
-
-                context.loadPeek()
-
-                context.loadContent()
-
-                context.loadContentExtended()
+                gatewaySwitch.useRes {
+                    context.loadFileSystemInfo()
+                    context.loadPeek()
+                    context.loadContent()
+                    context.loadContentExtended()
+                }
 
                 context.updateState { copy(progress = null) }
             }
