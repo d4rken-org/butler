@@ -64,15 +64,16 @@ import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.cancelResult
-import eu.darken.butler.workspace.core.returnResult
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
 import eu.darken.butler.workspace.core.permissions.PermissionState
+import eu.darken.butler.workspace.core.returnResult
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -86,6 +87,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.runBlocking
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel(assistedFactory = ExplorerWorkspaceViewModel.Factory::class)
 class ExplorerWorkspaceViewModel @AssistedInject constructor(
@@ -495,20 +497,21 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val currentSelection = selectedItemsFlow.value
 
         // In DirectorySingle mode with Storage items, enforce single selection (radio button behavior)
-        val newSelection = if (pickerConfig?.selection is PickerConfig.Selection.DirectorySingle && item is ExplorerItem.Storage) {
-            if (currentSelection.contains(item)) {
-                emptySet() // Deselect if clicking the same item
+        val newSelection =
+            if (pickerConfig?.selection is PickerConfig.Selection.DirectorySingle && item is ExplorerItem.Storage) {
+                if (currentSelection.contains(item)) {
+                    emptySet() // Deselect if clicking the same item
+                } else {
+                    setOf(item) // Replace selection with new item
+                }
             } else {
-                setOf(item) // Replace selection with new item
+                // Normal toggle behavior for multi-select modes
+                if (currentSelection.contains(item)) {
+                    currentSelection - item
+                } else {
+                    currentSelection + item
+                }
             }
-        } else {
-            // Normal toggle behavior for multi-select modes
-            if (currentSelection.contains(item)) {
-                currentSelection - item
-            } else {
-                currentSelection + item
-            }
-        }
         selectedItemsFlow.value = newSelection
     }
 
@@ -899,6 +902,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             safLocationManager.revokePermission(item.location.id)
         }
         clearSelection()
+
+        getWorkspace().navigate(ExplorerNavigation.Refresh)
     }
 
     fun onLocationStorageName(name: String?) = launch {
@@ -912,6 +917,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         safLocationManager.setLocationLabel(dialogState.locationId, trimmedName)
 
         clearSelection()
+        delay(500.milliseconds)
+        getWorkspace().navigate(ExplorerNavigation.Refresh)
     }
 
     fun onRename(result: RenameResult) = launch {
@@ -1054,11 +1061,16 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
             )
 
-            // Grant permission via location manager and get the location ID
             val locationId = safLocationManager.grantPermission(treeUri)
 
-            // Show naming dialog with correct location ID
             dialogStateFlow.value = LocationStorageName(locationId, currentName = null)
+
+            // Auto-refresh if currently viewing Device location to show new SAF storage immediately
+            val currentLocation = state.first().currentLocation
+            if (currentLocation is ExplorerLocation.Device) {
+                log(tag) { "Auto-refreshing Device location to show new SAF storage" }
+                getWorkspace().navigate(ExplorerNavigation.Refresh)
+            }
 
             log(tag, INFO) { "Successfully added SAF location: $treeUri (locationId=$locationId)" }
         } catch (e: Exception) {
