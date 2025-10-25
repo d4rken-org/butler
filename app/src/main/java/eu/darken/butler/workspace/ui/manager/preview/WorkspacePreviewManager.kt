@@ -6,11 +6,14 @@ import coil3.memory.MemoryCache
 import coil3.request.Options
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.coroutine.AppScope
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceEvent
+import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.preview.WorkspacePreviewModel
 import eu.darken.butler.workspace.ui.WorkspacePageManager
@@ -20,17 +23,22 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Service that automatically invalidates workspace preview caches when workspaces gain focus.
+ * Service that manages workspace preview caches.
  *
- * When a workspace is focused (opened/switched to), its preview cache is invalidated.
- * This ensures that the next time the workspace manager is opened, Coil will fetch
- * a fresh preview showing the current state of the workspace.
+ * Responsibilities:
+ * - Invalidates preview cache when workspaces gain focus (for live preview updates)
+ * - Deletes preview cache when workspaces are closed (cleanup)
  *
- * Only operates when live preview is enabled in settings.
+ * When a workspace is focused (opened/switched to), its preview cache is invalidated
+ * if live preview is enabled. This ensures that the workspace manager shows fresh
+ * previews reflecting the current state of each workspace.
+ *
+ * When a workspace is closed, its preview cache is deleted to free up memory and disk space.
  */
 @Singleton
 class WorkspacePreviewManager @Inject constructor(
@@ -38,6 +46,7 @@ class WorkspacePreviewManager @Inject constructor(
     @AppScope private val appScope: CoroutineScope,
     private val workspacePageManager: WorkspacePageManager,
     private val workspaceSettings: WorkspaceSettings,
+    private val workspaceRepo: WorkspaceRepo,
     private val imageLoader: ImageLoader,
     private val workspacePreviewKeyer: WorkspacePreviewKeyer,
 ) {
@@ -63,6 +72,26 @@ class WorkspacePreviewManager @Inject constructor(
             }
         }
             .catch { log(TAG, ERROR) { "Failed to invalidate preview cache: ${it.asLog()}" } }
+            .launchIn(appScope)
+
+        // Delete preview cache when workspace is closed
+        workspaceRepo.events
+            .onEach { event ->
+                when (event) {
+                    is WorkspaceEvent.Closed -> {
+                        log(TAG, INFO) { "Deleting preview for closed workspace ${event.workspaceId.shortTag}" }
+                        invalidatePreviewCache(event.workspaceId)
+                    }
+                    is WorkspaceEvent.AllClosed -> {
+                        log(TAG, INFO) { "All workspaces closed - clearing all preview caches" }
+                        clearAllPreviewCaches()
+                    }
+                    else -> {
+                        // Ignore other events
+                    }
+                }
+            }
+            .catch { log(TAG, ERROR) { "Failed to process workspace event: ${it.asLog()}" } }
             .launchIn(appScope)
     }
 
@@ -101,6 +130,20 @@ class WorkspacePreviewManager @Inject constructor(
             log(TAG, VERBOSE) { "Removed from diskCache=$success $cacheKey" }
         } ?: log(TAG, VERBOSE) { "DiskCache is not available." }
 
+    }
+
+    private fun clearAllPreviewCaches() {
+        log(TAG, INFO) { "Clearing all workspace preview caches" }
+
+        imageLoader.memoryCache?.run {
+            clear()
+            log(TAG, VERBOSE) { "Cleared all memoryCache entries" }
+        } ?: log(TAG, VERBOSE) { "Memorycache is not available." }
+
+        imageLoader.diskCache?.run {
+            clear()
+            log(TAG, VERBOSE) { "Cleared all diskCache entries" }
+        } ?: log(TAG, VERBOSE) { "DiskCache is not available." }
     }
 
     companion object {

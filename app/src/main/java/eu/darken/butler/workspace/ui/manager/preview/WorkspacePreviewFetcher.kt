@@ -103,7 +103,7 @@ class WorkspacePreviewFetcher @Inject constructor(
 
         if (options.diskCachePolicy.writeEnabled) {
             val pngBytes = ByteArrayOutputStream().use { stream ->
-                bitmap.compress(Bitmap.CompressFormat.PNG, 85, stream)
+                bitmap.compress(Bitmap.CompressFormat.PNG, 80, stream)
                 stream.toByteArray()
             }
             diskCache.value?.openEditor(cacheKey)?.use { editor ->
@@ -112,6 +112,8 @@ class WorkspacePreviewFetcher @Inject constructor(
                 }
                 log(TAG) { "Wrote preview to disk cache for ${data.workspaceId.shortTag}" }
             }
+        } else {
+            log(TAG, WARN) { "Disk cache write is disabled for ${data.workspaceId.shortTag}" }
         }
 
         return ImageFetchResult(
@@ -144,6 +146,6 @@ class WorkspacePreviewFetcher @Inject constructor(
     }
 
     companion object {
-        private val TAG = logTag("Workspace", "PreviewFetcher")
+        private val TAG = logTag("Workspace", "Preview", "Fetcher")
     }
 }
