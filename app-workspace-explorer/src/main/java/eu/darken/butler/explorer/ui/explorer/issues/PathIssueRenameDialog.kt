@@ -27,6 +27,7 @@ fun PathIssueRenameDialog(
     var newName by remember { mutableStateOf(initialValue ?: currentName) }
     val validation = remember(newName) { onValidate(newName) }
     val isError = validation is FilenameValidator.ValidationResult.Invalid
+    val trimmedName = remember(newName) { newName.trim() }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -49,11 +50,11 @@ fun PathIssueRenameDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    if (newName.isNotBlank() && !isError) {
-                        onConfirm(newName)
+                    if (trimmedName.isNotBlank() && !isError) {
+                        onConfirm(trimmedName)
                     }
                 },
-                enabled = newName.isNotBlank() && newName != currentName && !isError,
+                enabled = trimmedName.isNotBlank() && trimmedName != currentName && !isError,
             ) {
                 Text(stringResource(eu.darken.butler.common.R.string.general_rename_action))
             }
