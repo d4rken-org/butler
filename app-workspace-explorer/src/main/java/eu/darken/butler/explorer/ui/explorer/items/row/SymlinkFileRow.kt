@@ -12,6 +12,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.formatDate
+import eu.darken.butler.common.isProblematicInvisible
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
@@ -26,6 +27,9 @@ internal fun SymlinkFileRow(
     onLongClick: () -> Unit = {},
     showSelection: Boolean,
 ) {
+    val primaryText = item.displayName.get(LocalContext.current)
+    val hasProblematicChars = primaryText.trim { it.isProblematicInvisible() } != primaryText
+
     FileRowBase(
         item = item,
         isSelected = isSelected,
@@ -46,7 +50,8 @@ internal fun SymlinkFileRow(
                 modifier = Modifier.size(32.dp)
             )
         },
-        primaryText = item.displayName.get(LocalContext.current),
+        primaryText = primaryText,
+        hasProblematicChars = hasProblematicChars,
         secondaryText = buildString {
             item.targetPath?.let {
                 append("→ $it")
@@ -78,6 +83,30 @@ private fun SymlinkFileRowPreview() {
 private fun SymlinkFileRowBrokenPreview() {
     SymlinkFileRow(
         item = MockDataProvider.createMockSymbolicLink("broken_link", "/path/to/missing/file", true),
+        isSelected = true,
+        onToggleSelection = {},
+        onClick = {},
+        showSelection = true
+    )
+}
+
+@Preview2
+@Composable
+private fun SymlinkFileRowLeadingWhitespacePreview() {
+    SymlinkFileRow(
+        item = MockDataProvider.createMockSymbolicLink(" link_to_docs", "/home/user/documents"),
+        isSelected = false,
+        onToggleSelection = {},
+        onClick = {},
+        showSelection = false
+    )
+}
+
+@Preview2
+@Composable
+private fun SymlinkFileRowWhitespaceSelectedPreview() {
+    SymlinkFileRow(
+        item = MockDataProvider.createMockSymbolicLink("my_link ", "/opt/data/shared"),
         isSelected = true,
         onToggleSelection = {},
         onClick = {},

@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.formatDate
+import eu.darken.butler.common.isProblematicInvisible
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
@@ -23,6 +24,9 @@ internal fun DirectoryRow(
     onLongClick: () -> Unit = {},
     showSelection: Boolean,
 ) {
+    val primaryText = item.displayName.get(LocalContext.current)
+    val hasProblematicChars = primaryText.trim { it.isProblematicInvisible() } != primaryText
+
     FileRowBase(
         item = item,
         isSelected = isSelected,
@@ -38,7 +42,8 @@ internal fun DirectoryRow(
                 modifier = Modifier.size(32.dp)
             )
         },
-        primaryText = item.displayName.get(LocalContext.current),
+        primaryText = primaryText,
+        hasProblematicChars = hasProblematicChars,
         secondaryText = buildString {
             when (val count = item.childCount) {
                 0 -> {
@@ -81,6 +86,30 @@ private fun DirectoryRowPreview() {
 private fun DirectoryRowSelectedPreview() {
     DirectoryRow(
         item = MockDataProvider.createMockDirectory("Downloads", 12),
+        isSelected = true,
+        onToggleSelection = {},
+        onClick = {},
+        showSelection = true
+    )
+}
+
+@Preview2
+@Composable
+private fun DirectoryRowTrailingWhitespacePreview() {
+    DirectoryRow(
+        item = MockDataProvider.createMockDirectory("My Folder ", 24),
+        isSelected = false,
+        onToggleSelection = {},
+        onClick = {},
+        showSelection = false
+    )
+}
+
+@Preview2
+@Composable
+private fun DirectoryRowWhitespaceSelectedPreview() {
+    DirectoryRow(
+        item = MockDataProvider.createMockDirectory(" Important ", 8),
         isSelected = true,
         onToggleSelection = {},
         onClick = {},
