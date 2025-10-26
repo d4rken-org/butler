@@ -18,6 +18,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.files.validation.FilenameValidator
@@ -470,12 +471,16 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val normalizedPath = pathString.trim()
 
         when {
-            normalizedPath.isNotBlank() -> {
+            normalizedPath.isBlank() -> {
                 getWorkspace().navigate(Home)
             }
             else -> {
-                // Invalid path - could show error
-                log(tag, WARN) { "Invalid path: $pathString" }
+                try {
+                    val localPath = LocalPath.build(java.io.File(normalizedPath))
+                    getWorkspace().navigate(Directory(localPath))
+                } catch (e: IllegalArgumentException) {
+                    log(tag, WARN) { "Invalid path: $pathString - ${e.message}" }
+                }
             }
         }
     }
