@@ -466,23 +466,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun navigateToPathString(pathString: String) = launch {
-        log(tag) { "navigateToPathString($pathString)" }
-        val normalizedPath = pathString.trim()
-
-        when {
-            normalizedPath.isBlank() -> {
-                getWorkspace().navigate(Home)
-            }
-            else -> {
-                try {
-                    val localPath = LocalPath.build(java.io.File(normalizedPath))
-                    getWorkspace().navigate(Directory(localPath))
-                } catch (e: IllegalArgumentException) {
-                    log(tag, WARN) { "Invalid path: $pathString - ${e.message}" }
-                }
-            }
-        }
+    fun navigateToPath(path: APath<*>) = launch {
+        log(tag) { "navigateToPath($path)" }
+        getWorkspace().navigate(Directory(path))
+        clearSelection()
     }
 
     fun navigate(target: ExplorerNavigation) = launch {

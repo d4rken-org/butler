@@ -341,7 +341,7 @@ fun ExplorerWorkspacePage(
                         breadcrumbs = mainState.breadcrumbs,
                         scrollBehavior = scrollBehavior,
                         onBreadcrumbClick = { target -> vm?.navigate(target) },
-                        onNavigateToPath = { path -> vm?.navigateToPathString(path) },
+                        onNavigateToPath = { path -> vm?.navigateToPath(path) },
                         workspaceButtonState = workspaceButtonState,
                         showWorkspaceButton = design.isSingle,
                         workspaceActionHandler = workspaceActionHandler,

@@ -70,7 +70,7 @@ fun BreadcrumbBar(
     modifier: Modifier = Modifier,
     breadcrumbs: List<ExplorerBreadcrumb>,
     onBreadcrumbClick: (ExplorerNavigation) -> Unit,
-    onNavigateToPath: ((String) -> Unit)? = null,
+    onNavigateToPath: ((APath<*>) -> Unit)? = null,
     safLocationManager: SAFLocationManager? = null,
     showBackground: Boolean = true,
 ) {
@@ -130,7 +130,6 @@ fun BreadcrumbBar(
                             prefixLabel = rootBreadcrumb?.label?.get(context),
                         )
                     }
-                    else -> PathInfo(displayPath = "", path = null)
                 }
             }
             else -> PathInfo(displayPath = "", path = null)
@@ -267,12 +266,13 @@ fun BreadcrumbBar(
                                             editedPath.split("/").filter { it.isNotEmpty() }.toTypedArray()
                                         }
                                         val newSafPath = SAFPath.build(path.treeRootUri, *segments)
-                                        onBreadcrumbClick(ExplorerNavigation.Target.Directory(newSafPath))
+                                        onNavigateToPath(newSafPath)
                                     }
                                     is LocalPath -> {
-                                        // Reconstruct full path with leading "/"
+                                        // Reconstruct LocalPath from edited path
                                         val fullPath = "/$editedPath"
-                                        onNavigateToPath(fullPath)
+                                        val newLocalPath = LocalPath.build(File(fullPath))
+                                        onNavigateToPath(newLocalPath)
                                     }
                                     else -> {
                                         // Fallback for other path types or null
