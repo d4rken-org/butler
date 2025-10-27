@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.twotone.Save
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +41,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -57,6 +63,10 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
+import eu.darken.butler.workspace.ui.scroll.rememberTopToolbarScrollBehavior
+import eu.darken.butler.workspace.ui.scroll.setHeight
+import eu.darken.butler.workspace.ui.scroll.setHeights
 
 
 @Composable
@@ -85,30 +95,12 @@ fun EditorWorkspacePageHost(
             workspaceActionHandler = workspaceButtonVm,
             design = design,
             state = state,
-            onOpenFile = vm::launchFilePicker,
-            onSaveFile = vm::saveFile,
-            onCloseFile = vm::closeFile,
-            onTextChange = vm::insertText,
-            onCursorPositionChange = vm::setCursorPosition,
-            onSelectionChange = { selection ->
-                if (selection != null) {
-                    vm.setSelection(selection.first, selection.second)
-                } else {
-                    vm.setCursorPosition(state.cursorPosition)
-                }
-            },
-            onVisibleRangeChange = { range ->
-                vm.updateVisibleRange(range.first, range.last)
-            },
-            onSearch = vm::search,
-            onGoToLine = vm::goToLine,
-            onUndo = vm::undo,
-            onRedo = vm::redo,
-            onClearError = vm::clearError,
+            onPageAction = vm::onPageAction,
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditorWorkspacePage(
     workspaceId: Workspace.Id,
@@ -116,114 +108,154 @@ fun EditorWorkspacePage(
     workspaceActionHandler: WorkspaceActionHandler? = null,
     design: WorkspaceDesign,
     state: EditorWorkspaceViewModel.State,
-    onOpenFile: () -> Unit,
-    onSaveFile: () -> Unit,
-    onCloseFile: () -> Unit,
-    onTextChange: (String) -> Unit,
-    onCursorPositionChange: (TextPosition) -> Unit,
-    onSelectionChange: (Pair<TextPosition, TextPosition>?) -> Unit,
-    onVisibleRangeChange: (IntRange) -> Unit,
-    onSearch: (String) -> Unit,
-    onGoToLine: (Int) -> Unit,
-    onUndo: () -> Unit,
-    onRedo: () -> Unit,
-    onClearError: () -> Unit,
+    onPageAction: (EditorPageAction) -> Unit,
 ) {
     rememberCoroutineScope()
     var showGoToLineDialog by remember { mutableStateOf(false) }
     var showSearchDialog by remember { mutableStateOf(false) }
-    var showMemoryStats by remember { mutableStateOf(false) }
 
-    Column(
+    // Setup scroll behavior for collapsing header
+    val topToolbarScrollBehavior = rememberTopToolbarScrollBehavior()
+    val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
+    val density = LocalDensity.current
+    var actualToolbarHeightPx by remember { mutableStateOf(0) }
+    val actualToolbarHeightDp = with(density) { actualToolbarHeightPx.toDp() }
+
+    // Set the top toolbar heights (expanded and collapsed)
+    topToolbarScrollBehavior.state.setHeights(
+        expandedHeightDp = 104.dp,  // Full card with title + actions
+        collapsedHeightDp = 48.dp   // Compact single row
+    )
+
+    // Memory info card height
+    val memoryCardHeight = 36.dp
+
+    // Set the bottom bar height for scroll behavior
+    bottomBarScrollBehavior.state.setHeight(memoryCardHeight)
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        // Header that draws under status bar
-        EditorHeader(
+        // Main content with padding for floating header and memory card
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    top = 16.dp + actualToolbarHeightDp,
+                    bottom = if (state.showMemoryStats) memoryCardHeight + 8.dp else 0.dp
+                )
+                .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
+                .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection)
+        ) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                // Error display
+                state.error?.let { error ->
+                    ErrorBanner(
+                        error = error,
+                        onDismiss = { onPageAction(EditorPageAction.Error.Clear) }
+                    )
+                }
+
+                // Main editor content - now using fixed LazyTextEditor
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                ) {
+                    if (state.hasWorkspace) {
+                        LazyTextEditor(
+                            content = state.currentContent,
+                            cursorPosition = state.cursorPosition,
+                            selection = state.selectionRange,
+                            visibleRange = state.visibleRange,
+                            showLineNumbers = state.showLineNumbers,
+                            wordWrap = state.wordWrap,
+                            fontSize = 14,
+                            tabSize = 4,
+                            onTextChange = { text -> onPageAction(EditorPageAction.Edit.InsertText(text)) },
+                            onCursorPositionChange = { position -> onPageAction(EditorPageAction.Navigation.SetCursor(position)) },
+                            onSelectionChange = { selection ->
+                                if (selection != null) {
+                                    onPageAction(EditorPageAction.Navigation.SetSelection(selection.first, selection.second))
+                                } else {
+                                    onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition))
+                                }
+                            },
+                            onVisibleRangeChange = { range ->
+                                onPageAction(EditorPageAction.Navigation.UpdateVisibleRange(range.first, range.last))
+                            },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        // Show loading or error state when workspace is not available
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                }
+
+                // Search results
+                if (state.hasSearchResults) {
+                    SearchResultsBar(
+                        searchResults = state.searchResults,
+                        currentIndex = 0,
+                        onNavigateToResult = { result ->
+                            onPageAction(EditorPageAction.Navigation.SetCursor(result.position))
+                        },
+                        onClose = { onPageAction(EditorPageAction.Navigation.Search("")) }
+                    )
+                }
+            }
+        }
+
+        // Floating toolbar card at top
+        EditorToolbarCard(
             workspaceId = workspaceId,
             design = design,
             fileName = if (state.hasFile) state.fileName else stringResource(R.string.editor_file_untitled),
             isModified = state.isModified,
             hasFile = state.hasFile || state.currentContent.isNotEmpty(),
             isLoading = state.isLoading,
-            onOpenFile = onOpenFile,
-            onSaveFile = onSaveFile,
-            onCloseFile = onCloseFile,
-            onUndo = onUndo,
-            onRedo = onRedo,
             canUndo = state.isModified,
             canRedo = false,
-            onSearch = { showSearchDialog = true },
-            onGoToLine = { showGoToLineDialog = true },
-            onToggleMemoryStats = { showMemoryStats = !showMemoryStats },
             workspaceButtonState = workspaceButtonState,
             workspaceActionHandler = workspaceActionHandler,
+            onAction = { action ->
+                when (action) {
+                    is EditorPageAction.Navigation.Search -> showSearchDialog = true
+                    is EditorPageAction.Navigation.GoToLine -> showGoToLineDialog = true
+                    else -> onPageAction(action)
+                }
+            },
+            collapsedFraction = topToolbarScrollBehavior.state.collapsedFraction,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .onGloballyPositioned { layoutCoordinates ->
+                    actualToolbarHeightPx = layoutCoordinates.size.height
+                }
         )
 
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            // Error display
-            state.error?.let { error ->
-                ErrorBanner(
-                    error = error,
-                    onDismiss = onClearError
-                )
-            }
-
-
-            // Main editor content - now using fixed LazyTextEditor
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-            ) {
-                if (state.hasWorkspace) {
-                    LazyTextEditor(
-                        content = state.currentContent,
-                        cursorPosition = state.cursorPosition,
-                        selection = state.selectionRange,
-                        visibleRange = state.visibleRange,
-                        showLineNumbers = state.showLineNumbers,
-                        wordWrap = state.wordWrap,
-                        fontSize = 14,
-                        tabSize = 4,
-                        onTextChange = onTextChange,
-                        onCursorPositionChange = onCursorPositionChange,
-                        onSelectionChange = onSelectionChange,
-                        onVisibleRangeChange = onVisibleRangeChange,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    // Show loading or error state when workspace is not available
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-            }
-
-            // Search results
-            if (state.hasSearchResults) {
-                SearchResultsBar(
-                    searchResults = state.searchResults,
-                    currentIndex = 0,
-                    onNavigateToResult = { result ->
-                        onCursorPositionChange(result.position)
-                    },
-                    onClose = { onSearch("") }
-                )
-            }
-        }
-
-        // Bottom status bar
-        if (showMemoryStats) {
-            EditorStatusBar(
-                totalLines = state.totalLines,
+        // Floating memory info card at bottom with scroll behavior
+        if (state.showMemoryStats) {
+            EditorMemoryInfoCard(
+                memoryStats = state.memoryStats,
                 cursorPosition = state.cursorPosition,
-                memoryStats = state.memoryStats
+                totalLines = state.totalLines,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .graphicsLayer {
+                        // Immediate snap behavior: fully visible or fully hidden
+                        alpha = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 0f else 1f
+                        translationY = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) memoryCardHeight.toPx() else 0f
+                    }
             )
         }
     }
@@ -233,7 +265,7 @@ fun EditorWorkspacePage(
         GoToLineDialog(
             totalLines = state.totalLines,
             onGoToLine = { line ->
-                onGoToLine(line)
+                onPageAction(EditorPageAction.Navigation.GoToLine(line))
                 showGoToLineDialog = false
             },
             onDismiss = { showGoToLineDialog = false }
@@ -243,194 +275,13 @@ fun EditorWorkspacePage(
     if (showSearchDialog) {
         SearchDialog(
             onSearch = { query ->
-                onSearch(query)
+                onPageAction(EditorPageAction.Navigation.Search(query))
                 showSearchDialog = false
             },
             onDismiss = { showSearchDialog = false }
         )
     }
 }
-
-@Composable
-private fun EditorHeader(
-    workspaceId: Workspace.Id,
-    design: WorkspaceDesign,
-    fileName: String,
-    isModified: Boolean,
-    hasFile: Boolean,
-    isLoading: Boolean,
-    onOpenFile: () -> Unit,
-    onSaveFile: () -> Unit,
-    onCloseFile: () -> Unit,
-    onUndo: () -> Unit,
-    onRedo: () -> Unit,
-    canUndo: Boolean,
-    canRedo: Boolean,
-    onSearch: () -> Unit,
-    onGoToLine: () -> Unit,
-    onToggleMemoryStats: () -> Unit,
-    workspaceButtonState: WorkspaceButtonViewModel.State?,
-    workspaceActionHandler: WorkspaceActionHandler? = null,
-) {
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        shadowElevation = 4.dp,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            // Title section on top
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = fileName,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f)
-                )
-                if (isModified) {
-                    Text(
-                        text = stringResource(R.string.editor_modified_indicator),
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                }
-
-                if (design.isSingle) {
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    WorkspaceButton(
-                        state = workspaceButtonState,
-                        currentWorkspaceId = workspaceId,
-                        workspaceActionHandler = workspaceActionHandler,
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            // Actions section below
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .padding(horizontal = 8.dp)
-                    )
-                }
-
-                IconButton(onClick = onOpenFile) {
-                    Icon(Icons.TwoTone.FolderOpen, contentDescription = stringResource(R.string.editor_action_open))
-                }
-
-                // Show save/edit actions when there's content or a file
-                if (hasFile) {
-                    IconButton(
-                        onClick = onSaveFile,
-                        enabled = isModified
-                    ) {
-                        Icon(Icons.TwoTone.Save, contentDescription = stringResource(R.string.editor_action_save))
-                    }
-
-                    IconButton(onClick = onCloseFile) {
-                        Icon(Icons.TwoTone.Close, contentDescription = stringResource(R.string.editor_action_close))
-                    }
-
-                    IconButton(
-                        onClick = onUndo,
-                        enabled = canUndo
-                    ) {
-                        Icon(
-                            Icons.TwoTone.KeyboardArrowUp,
-                            contentDescription = stringResource(R.string.editor_action_undo)
-                        )
-                    }
-
-                    IconButton(
-                        onClick = onRedo,
-                        enabled = canRedo
-                    ) {
-                        Icon(
-                            Icons.TwoTone.KeyboardArrowDown,
-                            contentDescription = stringResource(R.string.editor_action_redo)
-                        )
-                    }
-
-                    IconButton(onClick = onSearch) {
-                        Icon(Icons.TwoTone.Search, contentDescription = stringResource(R.string.editor_action_search))
-                    }
-
-                    IconButton(onClick = onGoToLine) {
-                        Icon(
-                            Icons.TwoTone.FormatListNumbered,
-                            contentDescription = stringResource(R.string.editor_action_go_to_line)
-                        )
-                    }
-                }
-
-                IconButton(onClick = onToggleMemoryStats) {
-                    Icon(Icons.TwoTone.Info, contentDescription = stringResource(R.string.editor_action_toggle_stats))
-                }
-
-                Spacer(modifier = Modifier.weight(1f))
-            }
-        }
-    }
-}
-
-@Composable
-private fun EditorStatusBar(
-    totalLines: Int,
-    cursorPosition: TextPosition,
-    memoryStats: MemoryStats
-) {
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = stringResource(
-                    R.string.editor_status_line_format,
-                    cursorPosition.line + 1,
-                    cursorPosition.column + 1
-                ),
-                style = MaterialTheme.typography.bodySmall
-            )
-
-            Text(
-                text = stringResource(R.string.editor_status_total_lines, totalLines),
-                style = MaterialTheme.typography.bodySmall
-            )
-
-            Text(
-                text = stringResource(
-                    R.string.editor_status_memory,
-                    memoryStats.currentUsage / (1024 * 1024),
-                    memoryStats.maxMemory / (1024 * 1024),
-                    memoryStats.totalChunks
-                ),
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-    }
-}
-
 
 @Composable
 private fun ErrorBanner(
@@ -631,18 +482,7 @@ private fun EditorPagePreview() {
                     usagePercentage = 10
                 )
             ),
-            onOpenFile = {},
-            onSaveFile = {},
-            onCloseFile = {},
-            onTextChange = {},
-            onCursorPositionChange = {},
-            onSelectionChange = {},
-            onVisibleRangeChange = {},
-            onSearch = {},
-            onGoToLine = {},
-            onUndo = {},
-            onRedo = {},
-            onClearError = {}
+            onPageAction = {}
         )
     }
 }

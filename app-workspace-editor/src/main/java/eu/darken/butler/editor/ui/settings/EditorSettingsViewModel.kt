@@ -24,10 +24,12 @@ constructor(
     val state = combine(
         editorSettings.showLineNumbers.flow,
         editorSettings.wordWrap.flow,
-    ) { showLineNumbers, wordWrap ->
+        editorSettings.showMemoryStats.flow,
+    ) { showLineNumbers, wordWrap, showMemoryStats ->
         State(
             showLineNumbers = showLineNumbers,
             wordWrap = wordWrap,
+            showMemoryStats = showMemoryStats,
         )
     }.asStateFlow()
 
@@ -36,14 +38,20 @@ constructor(
         log(tag) { "updateShowLineNumbers($enabled)" }
         editorSettings.showLineNumbers.value(enabled)
     }
-    
+
     fun updateWordWrap(enabled: Boolean) = launch {
         log(tag) { "updateWordWrap($enabled)" }
         editorSettings.wordWrap.value(enabled)
     }
 
+    fun updateShowMemoryStats(enabled: Boolean) = launch {
+        log(tag) { "updateShowMemoryStats($enabled)" }
+        editorSettings.showMemoryStats.value(enabled)
+    }
+
     data class State(
         val showLineNumbers: Boolean = true,
         val wordWrap: Boolean = false,
+        val showMemoryStats: Boolean = false,
     )
 }
