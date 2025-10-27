@@ -12,6 +12,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import eu.darken.butler.common.BuildConfigWrap
+import eu.darken.butler.common.coil.fetchers.AppIconFetcher
+import eu.darken.butler.common.coil.fetchers.BitmapFetcher
+import eu.darken.butler.common.coil.fetchers.PathPreviewFetcher
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.asLog
