@@ -1,8 +1,14 @@
 package eu.darken.butler.explorer.ui.explorer.items.grid
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Description
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -32,14 +38,25 @@ internal fun RegularFileGrid(
         onLongClick = onLongClick,
         showSelection = showSelection,
         icon = {
-            TintedAsyncImage(
-                model = item.lookup,
+            Icon(
+                imageVector = Icons.TwoTone.Description,
                 contentDescription = stringResource(R.string.explorer_file_regular_content_desc),
+                tint = Color.White,
                 modifier = Modifier.size(20.dp)
             )
         },
         primaryText = item.displayName.get(LocalContext.current),
-        secondaryText = item.lookup.size?.let { formatFileSize(it) } ?: "?"
+        secondaryText = item.lookup.size?.let { formatFileSize(it) } ?: "?",
+        previewContent = if (item.mimeType.rawType.startsWith("image/") || item.mimeType.rawType.startsWith("video/")) {
+            {
+                TintedAsyncImage(
+                    model = item.lookup,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+        } else null
     )
 }
 
