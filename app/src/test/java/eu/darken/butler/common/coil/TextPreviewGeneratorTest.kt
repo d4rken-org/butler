@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.coil.fetchers.TextPreviewGenerator
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
@@ -54,7 +55,7 @@ class TextPreviewGeneratorTest : BaseTest() {
 
         // Assert
         bitmap shouldNotBe null
-        bitmap.width shouldBe 512
+        bitmap!!.width shouldBe 512
         bitmap.height shouldBe 512
         bitmap.config shouldBe Bitmap.Config.ARGB_8888
     }
@@ -74,7 +75,7 @@ class TextPreviewGeneratorTest : BaseTest() {
 
         // Assert
         bitmap shouldNotBe null
-        bitmap.width shouldBe 512
+        bitmap!!.width shouldBe 512
         bitmap.height shouldBe 512
         // Should generate successfully even with truncated content
     }
@@ -94,7 +95,7 @@ class TextPreviewGeneratorTest : BaseTest() {
 
         // Assert
         bitmap shouldNotBe null
-        bitmap.width shouldBe 512
+        bitmap!!.width shouldBe 512
         bitmap.height shouldBe 512
     }
 
@@ -131,7 +132,7 @@ class TextPreviewGeneratorTest : BaseTest() {
 
         // Assert
         bitmap shouldNotBe null
-        bitmap.width shouldBe 256
+        bitmap!!.width shouldBe 256
         bitmap.height shouldBe 256
     }
 
@@ -174,7 +175,7 @@ class TextPreviewGeneratorTest : BaseTest() {
 
         // Assert
         bitmap shouldNotBe null
-        bitmap.width shouldBe 512
+        bitmap!!.width shouldBe 512
         bitmap.height shouldBe 512
     }
 
@@ -191,8 +192,8 @@ class TextPreviewGeneratorTest : BaseTest() {
         val bitmap = textPreviewGenerator.generate(lookup)
 
         // Assert
-        bitmap shouldNotBe null
-        // Should return bitmap with error message rendered
+        bitmap shouldBe null
+        // Should return null on error
     }
 
     @Test
@@ -236,7 +237,7 @@ class TextPreviewGeneratorTest : BaseTest() {
 
         // Assert
         bitmap shouldNotBe null
-        bitmap.width shouldBe 512
+        bitmap!!.width shouldBe 512
         bitmap.height shouldBe 512
     }
 
