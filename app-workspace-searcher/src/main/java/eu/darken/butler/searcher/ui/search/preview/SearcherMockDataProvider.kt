@@ -1,9 +1,15 @@
 package eu.darken.butler.searcher.ui.search.preview
 
+import androidx.compose.ui.text.input.TextFieldValue
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.searcher.core.SearchHistory
 import eu.darken.butler.searcher.core.SearchItem
+import eu.darken.butler.searcher.core.SearchQuery
+import eu.darken.butler.searcher.core.SearchTarget
+import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
+import eu.darken.butler.workspace.core.Workspace
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
@@ -188,4 +194,115 @@ object SearcherMockDataProvider {
             matchContext = null
         )
     }
+
+    /**
+     * Create mock search history items for previews.
+     */
+    fun createMockSearchHistory(): List<SearchHistory.SearchHistoryItem> = listOf(
+        SearchHistory.SearchHistoryItem(
+            id = "history-1",
+            baseQuery = "config.json",
+            searchQuery = SearchQuery.create(
+                query = "config.json",
+                paths = listOf(LocalPath.build("/storage/emulated/0/Android")),
+                caseSensitive = false,
+                wholeWord = false,
+                useRegex = false
+            ),
+            searchedAt = Clock.System.now() - 1.hours,
+            resultCount = 5
+        ),
+        SearchHistory.SearchHistoryItem(
+            id = "history-2",
+            baseQuery = "photos",
+            searchQuery = SearchQuery.create(
+                query = "photos",
+                paths = listOf(LocalPath.build("/storage/emulated/0/DCIM")),
+                caseSensitive = false,
+                wholeWord = true,
+                useRegex = false
+            ),
+            searchedAt = Clock.System.now() - 3.hours,
+            resultCount = 0
+        ),
+        SearchHistory.SearchHistoryItem(
+            id = "history-3",
+            baseQuery = "readme",
+            searchQuery = SearchQuery.create(
+                query = "readme",
+                paths = listOf(LocalPath.build("/storage/emulated/0/Documents")),
+                caseSensitive = true,
+                wholeWord = false,
+                useRegex = false
+            ),
+            searchedAt = Clock.System.now() - 5.hours,
+            resultCount = 12
+        )
+    )
+
+    /**
+     * Create a list of mock search results for previews.
+     */
+    fun createMockSearchResults(): List<SearchItem> = listOf(
+        createMockTextFile(name = "notes.txt", sizeKB = 15, hoursAgo = 1),
+        createMockConfigFile(name = "config.json", sizeBytes = 2048),
+        createMockPdfFile(name = "document.pdf", sizeMB = 2, hoursAgo = 2),
+        createMockImageFile(name = "screenshot.png", sizeMB = 1, hoursAgo = 1),
+        createMockTextFile(name = "readme.md", sizeKB = 8, hoursAgo = 3)
+    )
+
+    /**
+     * Create mock empty state for SearcherWorkspacePage previews.
+     */
+    fun createMockEmptyState(workspaceId: Workspace.Id): SearcherWorkspaceViewModel.State =
+        SearcherWorkspaceViewModel.State(
+            id = workspaceId,
+            searchTargets = listOf(
+                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))
+            )
+        )
+
+    /**
+     * Create mock state with search history for SearcherWorkspacePage previews.
+     */
+    fun createMockHistoryState(workspaceId: Workspace.Id): SearcherWorkspaceViewModel.State =
+        SearcherWorkspaceViewModel.State(
+            id = workspaceId,
+            searchTargets = listOf(
+                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))
+            ),
+            searchHistory = createMockSearchHistory()
+        )
+
+    /**
+     * Create mock state with search results for SearcherWorkspacePage previews.
+     */
+    fun createMockResultsState(workspaceId: Workspace.Id): SearcherWorkspaceViewModel.State =
+        SearcherWorkspaceViewModel.State(
+            id = workspaceId,
+            searchQuery = TextFieldValue("config"),
+            searchTargets = listOf(
+                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))
+            ),
+            searchState = SearcherWorkspaceViewModel.SearchState(
+                status = SearcherWorkspaceViewModel.SearchState.Status.COMPLETED,
+                results = createMockSearchResults()
+            )
+        )
+
+    /**
+     * Create mock searching state for SearcherWorkspacePage previews.
+     */
+    fun createMockSearchingState(workspaceId: Workspace.Id): SearcherWorkspaceViewModel.State =
+        SearcherWorkspaceViewModel.State(
+            id = workspaceId,
+            searchQuery = TextFieldValue("photos"),
+            searchTargets = listOf(
+                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/DCIM"))
+            ),
+            searchState = SearcherWorkspaceViewModel.SearchState(
+                status = SearcherWorkspaceViewModel.SearchState.Status.SEARCHING,
+                results = emptyList()
+            )
+        )
 }

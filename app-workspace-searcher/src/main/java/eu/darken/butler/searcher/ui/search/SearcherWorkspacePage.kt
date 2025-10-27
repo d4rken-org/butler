@@ -48,17 +48,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
-import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.keyboard.KeyboardShortcut
 import eu.darken.butler.common.keyboard.keyboardShortcuts
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchHistory
 import eu.darken.butler.searcher.core.SearchItem
-import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
-import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
 import eu.darken.butler.searcher.ui.search.input.SearchStatusCard
 import eu.darken.butler.searcher.ui.search.input.SearchToolbarCard
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
@@ -82,9 +79,6 @@ import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.rememberTopToolbarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.setHeight
 import eu.darken.butler.workspace.ui.scroll.setHeights
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -660,16 +654,9 @@ fun SearcherWorkspacePageHost(
 private fun SearcherWorkspacePageEmptyPreview() {
     PreviewWrapper {
         val workspaceId = Workspace.Id()
-        val state = SearcherWorkspaceViewModel.State(
-            id = workspaceId,
-            searchTargets = listOf(
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))
-            )
-        )
-
         SearcherWorkspacePage(
             workspaceId = workspaceId,
-            stateSource = flowOf(state),
+            stateSource = flowOf(SearcherMockDataProvider.createMockEmptyState(workspaceId)),
             clipboardStateSource = flowOf(SearcherWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(SearcherWorkspaceViewModel.OperationsState()),
             workspaceStateSource = flowOf(null),
@@ -682,57 +669,9 @@ private fun SearcherWorkspacePageEmptyPreview() {
 private fun SearcherWorkspacePageWithHistoryPreview() {
     PreviewWrapper {
         val workspaceId = Workspace.Id()
-        val state = SearcherWorkspaceViewModel.State(
-            id = workspaceId,
-            searchTargets = listOf(
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))
-            ),
-            searchHistory = listOf(
-                SearchHistory.SearchHistoryItem(
-                    id = "history-1",
-                    baseQuery = "config.json",
-                    searchQuery = SearchQuery.create(
-                        query = "config.json",
-                        paths = listOf(LocalPath.build("/storage/emulated/0/Android")),
-                        caseSensitive = false,
-                        wholeWord = false,
-                        useRegex = false
-                    ),
-                    searchedAt = Clock.System.now() - 1.hours,
-                    resultCount = 5
-                ),
-                SearchHistory.SearchHistoryItem(
-                    id = "history-2",
-                    baseQuery = "photos",
-                    searchQuery = SearchQuery.create(
-                        query = "photos",
-                        paths = listOf(LocalPath.build("/storage/emulated/0/DCIM")),
-                        caseSensitive = false,
-                        wholeWord = true,
-                        useRegex = false
-                    ),
-                    searchedAt = Clock.System.now() - 3.hours,
-                    resultCount = 0
-                ),
-                SearchHistory.SearchHistoryItem(
-                    id = "history-3",
-                    baseQuery = "readme",
-                    searchQuery = SearchQuery.create(
-                        query = "readme",
-                        paths = listOf(LocalPath.build("/storage/emulated/0/Documents")),
-                        caseSensitive = true,
-                        wholeWord = false,
-                        useRegex = false
-                    ),
-                    searchedAt = Clock.System.now() - 5.hours,
-                    resultCount = 12
-                )
-            )
-        )
-
         SearcherWorkspacePage(
             workspaceId = workspaceId,
-            stateSource = flowOf(state),
+            stateSource = flowOf(SearcherMockDataProvider.createMockHistoryState(workspaceId)),
             clipboardStateSource = flowOf(SearcherWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(SearcherWorkspaceViewModel.OperationsState()),
             workspaceStateSource = flowOf(null),
@@ -745,48 +684,9 @@ private fun SearcherWorkspacePageWithHistoryPreview() {
 private fun SearcherWorkspacePageWithResultsPreview() {
     PreviewWrapper {
         val workspaceId = Workspace.Id()
-        val searchResults = listOf(
-            SearcherMockDataProvider.createMockTextFile(
-                name = "notes.txt",
-                sizeKB = 15,
-                hoursAgo = 1
-            ),
-            SearcherMockDataProvider.createMockConfigFile(
-                name = "config.json",
-                sizeBytes = 2048
-            ),
-            SearcherMockDataProvider.createMockPdfFile(
-                name = "document.pdf",
-                sizeMB = 2,
-                hoursAgo = 2
-            ),
-            SearcherMockDataProvider.createMockImageFile(
-                name = "screenshot.png",
-                sizeMB = 1,
-                hoursAgo = 1
-            ),
-            SearcherMockDataProvider.createMockTextFile(
-                name = "readme.md",
-                sizeKB = 8,
-                hoursAgo = 3
-            )
-        )
-
-        val state = SearcherWorkspaceViewModel.State(
-            id = workspaceId,
-            searchQuery = TextFieldValue("config"),
-            searchTargets = listOf(
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))
-            ),
-            searchState = SearcherWorkspaceViewModel.SearchState(
-                status = SearcherWorkspaceViewModel.SearchState.Status.COMPLETED,
-                results = searchResults
-            )
-        )
-
         SearcherWorkspacePage(
             workspaceId = workspaceId,
-            stateSource = flowOf(state),
+            stateSource = flowOf(SearcherMockDataProvider.createMockResultsState(workspaceId)),
             clipboardStateSource = flowOf(SearcherWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(SearcherWorkspaceViewModel.OperationsState()),
             workspaceStateSource = flowOf(null),
@@ -799,21 +699,9 @@ private fun SearcherWorkspacePageWithResultsPreview() {
 private fun SearcherWorkspacePageSearchingPreview() {
     PreviewWrapper {
         val workspaceId = Workspace.Id()
-        val state = SearcherWorkspaceViewModel.State(
-            id = workspaceId,
-            searchQuery = TextFieldValue("photos"),
-            searchTargets = listOf(
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/DCIM"))
-            ),
-            searchState = SearcherWorkspaceViewModel.SearchState(
-                status = SearcherWorkspaceViewModel.SearchState.Status.SEARCHING,
-                results = emptyList()
-            )
-        )
-
         SearcherWorkspacePage(
             workspaceId = workspaceId,
-            stateSource = flowOf(state),
+            stateSource = flowOf(SearcherMockDataProvider.createMockSearchingState(workspaceId)),
             clipboardStateSource = flowOf(SearcherWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(SearcherWorkspaceViewModel.OperationsState()),
             workspaceStateSource = flowOf(null),
