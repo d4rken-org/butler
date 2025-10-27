@@ -41,7 +41,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -52,7 +51,6 @@ import eu.darken.butler.common.keyboard.KeyboardShortcut
 import eu.darken.butler.common.keyboard.keyboardShortcuts
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.searcher.R
-import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
@@ -60,9 +58,6 @@ import eu.darken.butler.searcher.ui.search.input.SearchStatusCard
 import eu.darken.butler.searcher.ui.search.input.SearchToolbarCard
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.clipboard.ClipboardClip
-import eu.darken.butler.workspace.core.operations.Operation
-import eu.darken.butler.workspace.core.permissions.PermissionState
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
 import eu.darken.butler.workspace.ui.error.WorkspaceErrorCard
