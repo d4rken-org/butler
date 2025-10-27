@@ -28,8 +28,8 @@ import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.searcher.core.SearchEngine
-import eu.darken.butler.searcher.core.SearchHistory
+import eu.darken.butler.searcher.core.engine.SearchEngine
+import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchItem

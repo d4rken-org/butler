@@ -52,7 +52,7 @@ import eu.darken.butler.common.keyboard.KeyboardShortcut
 import eu.darken.butler.common.keyboard.keyboardShortcuts
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.searcher.R
-import eu.darken.butler.searcher.core.SearchHistory
+import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost

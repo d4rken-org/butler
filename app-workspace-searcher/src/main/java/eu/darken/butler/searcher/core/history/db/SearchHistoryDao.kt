@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.core.db
+package eu.darken.butler.searcher.core.history.db
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
+import kotlin.time.Instant
 
 @Dao
 interface SearchHistoryDao {
@@ -47,5 +48,5 @@ interface SearchHistoryDao {
     suspend fun getLatestByQuery(query: String): SearchHistoryEntity?
 
     @Query("UPDATE search_history SET searchedAt = :timestamp WHERE id = :id")
-    suspend fun updateTimestamp(id: String, timestamp: kotlin.time.Instant)
+    suspend fun updateTimestamp(id: String, timestamp: Instant)
 }

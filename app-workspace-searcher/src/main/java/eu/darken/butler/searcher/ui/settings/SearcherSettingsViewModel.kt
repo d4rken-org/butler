@@ -7,7 +7,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.searcher.core.SearchHistory
+import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.core.SearcherSettings
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow

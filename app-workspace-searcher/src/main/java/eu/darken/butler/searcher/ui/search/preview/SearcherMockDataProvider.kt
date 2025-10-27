@@ -4,7 +4,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.searcher.core.SearchHistory
+import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchTarget

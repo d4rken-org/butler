@@ -37,7 +37,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.common.ui.SwipeToDismissItem
 import eu.darken.butler.searcher.R
-import eu.darken.butler.searcher.core.SearchHistory
+import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchTarget
 import kotlin.time.Clock
