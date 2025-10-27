@@ -3,6 +3,7 @@ package eu.darken.butler.setup.core
 import android.content.Intent
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.setup.core.inventory.InventorySetupModule
@@ -15,6 +16,7 @@ import eu.darken.butler.setup.core.usagestats.UsageStatsSetupModule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onEach
@@ -35,6 +37,10 @@ class SetupManager @Inject constructor(
             state.type to state
         }
     }
+        .catch { e ->
+            log(TAG, ERROR) { "Setup module state collection failed: ${e.asLog()}" }
+            emit(emptyMap())
+        }
         .distinctUntilChanged()
         .onEach { states ->
             log(TAG) { "Setup states updated: ${states.mapValues { "${it.key}=${it.value}" }}" }

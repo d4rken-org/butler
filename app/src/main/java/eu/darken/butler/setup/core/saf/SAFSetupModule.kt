@@ -15,9 +15,8 @@ import eu.darken.butler.R
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.AppScope
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.device.DeviceDetective
@@ -42,6 +41,7 @@ import eu.darken.butler.setup.core.SetupModule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onStart
 import javax.inject.Inject
@@ -69,6 +69,10 @@ class SAFSetupModule @Inject constructor(
             Result(
                 paths = getAccessObjects(),
             ) as SetupModule.State
+        }
+        .catch { e ->
+            log(TAG, WARN) { "Failed to get SAF access objects: ${e.asLog()}" }
+            emit(Result(paths = emptyList()))
         }
         .onStart { emit(Loading()) }
         .replayingShare(appScope)
@@ -184,7 +188,14 @@ class SAFSetupModule @Inject constructor(
                     viableTargets
                 }
                 .flatten()
-                .filter { it.exists(gatewaySwitch) }
+                .filter {
+                    try {
+                        it.exists(gatewaySwitch)
+                    } catch (e: Exception) {
+                        log(TAG, WARN) { "Can't check $it due to ${e.asLog()}" }
+                        false
+                    }
+                }
                 .mapNotNull { targetPath ->
                     val safPath = pathMapper.toSAFPath(targetPath)
                     if (safPath == null) {
