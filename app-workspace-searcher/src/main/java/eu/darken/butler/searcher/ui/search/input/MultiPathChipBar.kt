@@ -119,7 +119,6 @@ private fun MultiPathChipBarMultiplePreview() {
             onPathRemove = {},
             onPathToggle = {},
             onAddPathClick = {},
-            modifier = Modifier.padding(16.dp)
         )
     }
 }
@@ -133,7 +132,6 @@ private fun MultiPathChipBarEmptyPreview() {
             onPathRemove = {},
             onPathToggle = {},
             onAddPathClick = {},
-            modifier = Modifier.padding(16.dp)
         )
     }
 }
@@ -148,7 +146,6 @@ private fun MultiPathChipBarSinglePreview() {
             onPathRemove = {},
             onPathToggle = {},
             onAddPathClick = {},
-            modifier = Modifier.padding(16.dp)
         )
     }
 }

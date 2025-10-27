@@ -179,8 +179,8 @@ fun SearcherWorkspacePage(
             state?.let { currentState ->
                 currentState.searchQuery.text.isNotBlank() ||
                         currentState.isSearching ||
-                        currentState.searchState.results.isNotEmpty() ||
-                        currentState.searchState.error != null
+                        currentState.workspaceState.results.isNotEmpty() ||
+                        currentState.workspaceState.error != null
             } ?: false
         }
     }

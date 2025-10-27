@@ -8,6 +8,7 @@ import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchTarget
+import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
 import eu.darken.butler.workspace.core.Workspace
 import kotlin.time.Clock
@@ -284,8 +285,8 @@ object SearcherMockDataProvider {
             searchTargets = listOf(
                 SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))
             ),
-            searchState = SearcherWorkspaceViewModel.SearchState(
-                status = SearcherWorkspaceViewModel.SearchState.Status.COMPLETED,
+            workspaceState = SearcherWorkspace.State(
+                searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
                 results = createMockSearchResults()
             )
         )
@@ -300,8 +301,8 @@ object SearcherMockDataProvider {
             searchTargets = listOf(
                 SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/DCIM"))
             ),
-            searchState = SearcherWorkspaceViewModel.SearchState(
-                status = SearcherWorkspaceViewModel.SearchState.Status.SEARCHING,
+            workspaceState = SearcherWorkspace.State(
+                searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
                 results = emptyList()
             )
         )
