@@ -53,7 +53,9 @@ fun LazyListScope.searchHistorySection(
     // Header with title and clear all button
     item {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -94,7 +96,9 @@ fun SearchHistoryItem(
     modifier: Modifier = Modifier,
 ) {
     SwipeToDismissItem(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
         onDismiss = onItemRemove,
         dismissThreshold = 0.5f,
         backgroundShape = RoundedCornerShape(12.dp),
@@ -194,7 +198,13 @@ fun SearchHistoryItem(
                         )
                         historyItem.resultCount?.let { count ->
                             Text(
-                                text = "• ${pluralStringResource(R.plurals.searcher_history_result_count, count, count)}",
+                                text = "• ${
+                                    pluralStringResource(
+                                        R.plurals.searcher_history_result_count,
+                                        count,
+                                        count
+                                    )
+                                }",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -258,7 +268,9 @@ private fun SearchHistoryItemNoResultsPreview() {
 @Composable
 private fun SearchHistorySectionPreview() {
     PreviewWrapper {
-        LazyColumn {
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             searchHistorySection(
                 searchHistory = listOf(
                     SearchHistory.SearchHistoryItem(
