@@ -284,7 +284,7 @@ fun SearcherWorkspacePage(
                     .fillMaxSize()
                     .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
                     .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp,
