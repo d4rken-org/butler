@@ -19,7 +19,9 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import okio.FileHandle
 import java.io.IOException
 import java.io.InputStream
@@ -239,7 +241,9 @@ class SAFFileSystemOps @Inject constructor(
         val filesWithMetadata = docFile.listFilesWithLookupData()
 
         // Map to SAFPath and populate lookup cache
-        filesWithMetadata.map { (file, lookupData) ->
+        filesWithMetadata.mapIndexed { index, (file, lookupData) ->
+            if (index % 50 == 0) currentCoroutineContext().ensureActive()
+
             val name = file.name ?: file.uri.pathSegments.last().split('/').last()
             val childPath = path.child(name)
 

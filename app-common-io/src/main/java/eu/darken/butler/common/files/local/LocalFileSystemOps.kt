@@ -22,6 +22,8 @@ import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.OwnershipResolver
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.ipc.fileHandle
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import okio.FileHandle
 import java.io.IOException
 import java.io.InputStream
@@ -190,7 +192,11 @@ class LocalFileSystemOps @Inject constructor(
 
     override suspend fun listFiles(path: LocalPath): List<LocalPath> = try {
         Files.newDirectoryStream(path.toNioPath()).use { ds ->
-            ds.map { LocalPath.build(it.toFile()) }.toList()
+            // Check for cancellation periodically to avoid blocking on large directories
+            ds.mapIndexed { index, nioPath ->
+                if (index % 50 == 0) currentCoroutineContext().ensureActive()
+                LocalPath.build(nioPath.toFile())
+            }.toList()
         }
     } catch (e: NoSuchFileException) {
         throw ReadException("Directory does not exist", path, e)
