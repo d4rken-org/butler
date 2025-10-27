@@ -33,7 +33,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import eu.darken.butler.R
-import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -101,12 +100,6 @@ fun SetupScreen(
             }
         }
     }
-}
-
-@Preview2
-@Composable
-private fun SetupScreenPreview() {
-    // Preview moved to items package
 }
 
 @Composable

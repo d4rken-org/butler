@@ -49,12 +49,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.Slogans
+import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.keyboard.KeyboardShortcut
 import eu.darken.butler.common.keyboard.keyboardShortcuts
+import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.issues.ErrorSnackbar
@@ -68,6 +76,7 @@ import eu.darken.butler.explorer.ui.explorer.items.row.PeekRow
 import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
 import eu.darken.butler.explorer.ui.explorer.items.row.StorageRow
 import eu.darken.butler.explorer.ui.explorer.permissions.PermissionRequestCard
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
@@ -84,6 +93,7 @@ import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.setHeight
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 @Composable
@@ -368,8 +378,9 @@ fun ExplorerWorkspacePage(
                         )
 
                         mainState.error?.let { error ->
-                        WorkspaceErrorCard(
-                            title = stringResource(eu.darken.butler.explorer.R.string.explorer_navigation_error_title),
+                            WorkspaceErrorCard(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+                                title = stringResource(R.string.explorer_navigation_error_title),
                                 error = error,
                                 onCopyError = { vm?.copyNavigationError() },
                                 onRetry = { vm?.retryNavigation() },
@@ -700,5 +711,171 @@ fun ExplorerWorkspacePage(
 }
 
 
+@Preview2
+@Composable
+fun ExplorerWorkspacePagePreview() {
+    val mockState = ExplorerWorkspaceViewModel.State(
+        currentLocation = ExplorerLocation.Directory(
+            path = LocalPath.build("/storage/emulated/0"),
+            items = MockDataProvider.createAllFileTypes(),
+            info = ExplorerLocation.Directory.Info(
+                fileCount = 15,
+                directoryCount = 5,
+                totalSize = 1024L * 1024L * 250L,
+                volumeFreeSpace = 1024L * 1024L * 1024L * 50L,
+                volumeTotalSpace = 1024L * 1024L * 1024L * 128L,
+                isWritable = true,
+            ),
+            progress = null,
+        ),
+        breadcrumbs = listOf(
+            ExplorerBreadcrumb(
+                label = R.string.explorer_navigation_home.toCaString(),
+                target = ExplorerNavigation.Target.Home
+            ),
+            ExplorerBreadcrumb(
+                label = R.string.explorer_navigation_device.toCaString(),
+                target = ExplorerNavigation.Target.Device
+            ),
+            ExplorerBreadcrumb(
+                label = "storage".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage"))
+            ),
+            ExplorerBreadcrumb(
+                label = "emulated".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated"))
+            ),
+            ExplorerBreadcrumb(
+                label = "0".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0"))
+            )
+        ),
+        items = MockDataProvider.createAllFileTypes(),
+        availableActions = listOf(
+            ExplorerAction.Directory.Create(isEnabled = false),
+            ExplorerAction.Common.Sort(),
+            ExplorerAction.Common.Filter(isEnabled = false),
+        ),
+    )
+    PreviewWrapper {
+        ExplorerWorkspacePage(
+            workspaceId = Workspace.Id(),
+            mainStateSource = flowOf(mockState),
+            workspaceStateSource = flowOf(null),
+            clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
+            operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
+            vm = null,
+        )
+    }
+}
+
+@Preview2
+@Composable
+fun ExplorerWorkspacePageEmptyPreview() {
+    val mockState = ExplorerWorkspaceViewModel.State(
+        currentLocation = ExplorerLocation.Directory(
+            path = LocalPath.build("/empty/folder"),
+            items = emptyList(),
+            progress = null,
+        ),
+        breadcrumbs = emptyList(),
+        items = emptyList(),
+    )
+    PreviewWrapper {
+        ExplorerWorkspacePage(
+            workspaceId = Workspace.Id(),
+            mainStateSource = flowOf(mockState),
+            workspaceStateSource = flowOf(null),
+            clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
+            operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
+            vm = null,
+        )
+    }
+}
 
 
+@Preview2
+@Composable
+fun ExplorerWorkspacePageErrorPreview() {
+    val mockState = ExplorerWorkspaceViewModel.State(
+        currentLocation = ExplorerLocation.Directory(
+            path = LocalPath.build("/empty/folder"),
+            items = emptyList(),
+            progress = null,
+        ),
+        breadcrumbs = emptyList(),
+        items = emptyList(),
+        error = ReadException(
+            path = LocalPath.build("/empty/folder")
+        )
+    )
+    PreviewWrapper {
+        ExplorerWorkspacePage(
+            workspaceId = Workspace.Id(),
+            mainStateSource = flowOf(mockState),
+            workspaceStateSource = flowOf(null),
+            clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
+            operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
+            vm = null,
+        )
+    }
+}
+
+@Preview2
+@Composable
+fun ExplorerWorkspacePageWithAllBarsPreview() {
+    val mockFileItems = MockDataProvider.createAllFileTypes()
+    val mockOperations = MockDataProvider.createMockOperationsState(runningCount = 2, completedCount = 1)
+    val mockClipboardEntries = MockDataProvider.createMockClipboardState(copyCount = 2, cutCount = 1)
+
+    val mockState = ExplorerWorkspaceViewModel.State(
+        currentLocation = ExplorerLocation.Directory(
+            path = LocalPath.build("/storage/emulated/0"),
+            items = MockDataProvider.createAllFileTypes(),
+            info = ExplorerLocation.Directory.Info(
+                fileCount = 25,
+                directoryCount = 8,
+                totalSize = 1024L * 1024L * 512L,
+                volumeFreeSpace = 1024L * 1024L * 1024L * 32L,
+                volumeTotalSpace = 1024L * 1024L * 1024L * 128L,
+                isWritable = true,
+            ),
+            progress = null,
+        ),
+        breadcrumbs = listOf(
+            ExplorerBreadcrumb(
+                label = R.string.explorer_navigation_home.toCaString(),
+                target = ExplorerNavigation.Target.Home
+            ),
+            ExplorerBreadcrumb(
+                label = R.string.explorer_navigation_device.toCaString(),
+                target = ExplorerNavigation.Target.Device
+            ),
+            ExplorerBreadcrumb(
+                label = "0".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0"))
+            )
+        ),
+        items = mockFileItems,
+        availableActions = listOf(
+            ExplorerAction.Directory.Create(isEnabled = true),
+            ExplorerAction.Common.Sort(),
+            ExplorerAction.Common.Filter(isEnabled = true),
+        ),
+        selectionState = ExplorerSelectionState(
+            selectedItems = setOf(mockFileItems[0], mockFileItems[2]),
+            selectableItems = setOf(mockFileItems[0], mockFileItems[2]),
+        ),
+    )
+
+    PreviewWrapper {
+        ExplorerWorkspacePage(
+            workspaceId = Workspace.Id(),
+            mainStateSource = flowOf(mockState),
+            clipboardStateSource = flowOf(mockClipboardEntries),
+            operationsStateSource = flowOf(mockOperations),
+            workspaceStateSource = flowOf(null),
+            vm = null,
+        )
+    }
+}
