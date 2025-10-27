@@ -24,6 +24,7 @@ import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.explorer.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.permissions.PathPermissionCheck
+import kotlinx.coroutines.currentCoroutineContext
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
@@ -72,12 +73,20 @@ class DirectoryLocationLoader @AssistedInject constructor(
                 }
 
                 gatewaySwitch.useRes {
+                    coroutineContext.ensureActive()
                     context.loadFileSystemInfo()
+
+                    coroutineContext.ensureActive()
                     context.loadPeek()
+
+                    coroutineContext.ensureActive()
                     context.loadContent()
+
+                    coroutineContext.ensureActive()
                     context.loadContentExtended()
                 }
 
+                coroutineContext.ensureActive()
                 context.updateState { copy(progress = null) }
             }
         }
@@ -173,6 +182,8 @@ class DirectoryLocationLoader @AssistedInject constructor(
     }
 
     private suspend fun LocationLoaderContext<ExplorerLocation.Directory>.loadContentExtended() {
+        currentCoroutineContext().ensureActive()
+
         log(tag) { "loadContentExtended(): Loading content extended: $targetPath" }
         updateProgressMsg(R.string.explorer_loader_progress_directory_content_extended)
 
@@ -190,11 +201,12 @@ class DirectoryLocationLoader @AssistedInject constructor(
             ),
         ).associateBy { it.path }
 
+        currentCoroutineContext().ensureActive()
+
         // Count children for directories
         val childCounts = mutableMapOf<String, Int>()
         extendedLookups.values.forEach { lookup ->
-            // Check if cancelled before processing next item
-            coroutineContext.ensureActive()
+            currentCoroutineContext().ensureActive()
 
             if (lookup.fileType == FileType.DIRECTORY) {
                 try {
@@ -206,6 +218,9 @@ class DirectoryLocationLoader @AssistedInject constructor(
                 }
             }
         }
+
+        // Check for cancellation before final item processing
+        currentCoroutineContext().ensureActive()
 
         val items = state.items!!.map { item ->
             if (item !is ExplorerItem.Lookup) return@map item

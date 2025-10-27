@@ -56,6 +56,7 @@ fun CreateItemDialog(
     val focusRequester = remember { FocusRequester() }
     val validation = remember(name) { onValidate(name) }
     val isError = validation is FilenameValidator.ValidationResult.Invalid
+    val trimmedName = remember(name) { name.trim() }
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
@@ -92,8 +93,8 @@ fun CreateItemDialog(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(
                         onDone = {
-                            if (name.isNotBlank() && !isError) {
-                                onConfirm(CreateItemResult(name, selectedType))
+                            if (trimmedName.isNotBlank() && !isError) {
+                                onConfirm(CreateItemResult(trimmedName, selectedType))
                             }
                         }
                     ),
@@ -158,11 +159,11 @@ fun CreateItemDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    if (name.isNotBlank() && !isError) {
-                        onConfirm(CreateItemResult(name, selectedType))
+                    if (trimmedName.isNotBlank() && !isError) {
+                        onConfirm(CreateItemResult(trimmedName, selectedType))
                     }
                 },
-                enabled = name.isNotBlank() && !isError
+                enabled = trimmedName.isNotBlank() && !isError
             ) {
                 Text(stringResource(CommonR.string.general_create_action))
             }

@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.explorer.R
@@ -31,7 +32,7 @@ fun ExplorerTopBar(
     breadcrumbs: List<ExplorerBreadcrumb>,
     scrollBehavior: TopAppBarScrollBehavior? = null,
     onBreadcrumbClick: (ExplorerNavigation) -> Unit,
-    onNavigateToPath: (String) -> Unit,
+    onNavigateToPath: (APath<*>) -> Unit,
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     showWorkspaceButton: Boolean,
     workspaceActionHandler: WorkspaceActionHandler? = null,

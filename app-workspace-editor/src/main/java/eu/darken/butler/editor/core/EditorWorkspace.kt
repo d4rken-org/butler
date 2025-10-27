@@ -6,6 +6,7 @@ import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
@@ -15,6 +16,7 @@ import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
 import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -37,7 +39,13 @@ class EditorWorkspace @AssistedInject constructor(
 ) : Workspace {
 
     private val tag = logTag("Editor","Workspace",  id.shortTag)
-    private val workspaceScope = CoroutineScope(SupervisorJob())
+    private val workspaceScope = CoroutineScope(
+        SupervisorJob() +
+            CoroutineExceptionHandler { _, throwable ->
+                log(tag, ERROR) { "Uncaught exception in workspace scope: ${throwable.asLog()}" }
+                // Error handled by editorEngine.error StateFlow
+            }
+    )
 
     override val type: Workspace.Type = Workspace.Type.EDITOR
 

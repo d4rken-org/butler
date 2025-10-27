@@ -7,6 +7,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
@@ -36,6 +37,7 @@ import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
 import eu.darken.butler.workspace.core.operations.withStateUpdates
 import eu.darken.butler.workspace.core.tracker.PathAccessTracker
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -66,7 +68,19 @@ class ExplorerWorkspace @AssistedInject constructor(
 
     private val tag = logTag("Explorer", "Workspace", id.shortTag)
 
-    private val scope = CoroutineScope(dispatcherProvider.IO + CoroutineName(tag))
+    override val type: Workspace.Type = Workspace.Type.EXPLORER
+
+    private val scope = CoroutineScope(
+        dispatcherProvider.IO +
+            CoroutineName(tag) +
+            CoroutineExceptionHandler { _, throwable ->
+                log(tag, ERROR) { "Uncaught exception in workspace scope: ${throwable.asLog()}" }
+                _state.updateAsync { copy(error = throwable) }
+            }
+    )
+
+    private val _state: DynamicStateFlow<State> = DynamicStateFlow<State>(parentScope = scope) { State() }
+    val state: Flow<State> = _state.flow
 
     private val browsingEngine = browsingEngineFactory.create(id, scope)
 

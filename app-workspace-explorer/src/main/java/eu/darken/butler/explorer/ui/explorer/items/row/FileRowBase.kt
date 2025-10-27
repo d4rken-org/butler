@@ -19,10 +19,51 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.isProblematicInvisible
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+
+private fun String.withProblematicCharsUnderlined(color: Color): AnnotatedString {
+    if (this.trim { it.isProblematicInvisible() } == this) return AnnotatedString(this)
+
+    return buildAnnotatedString {
+        append(this@withProblematicCharsUnderlined)
+
+        // Underline leading problematic characters
+        val leadingCount = this@withProblematicCharsUnderlined.takeWhile { it.isProblematicInvisible() }.length
+        if (leadingCount > 0) {
+            addStyle(
+                style = SpanStyle(
+                    textDecoration = TextDecoration.Underline,
+                    color = color,
+                ),
+                start = 0,
+                end = leadingCount,
+            )
+        }
+
+        // Underline trailing problematic characters
+        val trailingStart = this@withProblematicCharsUnderlined.length -
+            this@withProblematicCharsUnderlined.takeLastWhile { it.isProblematicInvisible() }.length
+        if (trailingStart < this@withProblematicCharsUnderlined.length) {
+            addStyle(
+                style = SpanStyle(
+                    textDecoration = TextDecoration.Underline,
+                    color = color,
+                ),
+                start = trailingStart,
+                end = this@withProblematicCharsUnderlined.length,
+            )
+        }
+    }
+}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -38,6 +79,7 @@ internal fun FileRowBase(
     primaryText: String,
     secondaryText: String? = null,
     trailingContent: (@Composable () -> Unit)? = null,
+    hasProblematicChars: Boolean = false,
 ) {
     Row(
         modifier = modifier
@@ -80,7 +122,11 @@ internal fun FileRowBase(
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             Text(
-                text = primaryText,
+                text = if (hasProblematicChars) {
+                    primaryText.withProblematicCharsUnderlined(MaterialTheme.colorScheme.error)
+                } else {
+                    AnnotatedString(primaryText)
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,

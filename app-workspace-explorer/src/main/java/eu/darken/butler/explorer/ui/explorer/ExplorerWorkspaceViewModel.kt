@@ -18,6 +18,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.files.validation.FilenameValidator
@@ -465,19 +466,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun navigateToPathString(pathString: String) = launch {
-        log(tag) { "navigateToPathString($pathString)" }
-        val normalizedPath = pathString.trim()
-
-        when {
-            normalizedPath.isNotBlank() -> {
-                getWorkspace().navigate(Home)
-            }
-            else -> {
-                // Invalid path - could show error
-                log(tag, WARN) { "Invalid path: $pathString" }
-            }
-        }
+    fun navigateToPath(path: APath<*>) = launch {
+        log(tag) { "navigateToPath($path)" }
+        getWorkspace().navigate(Directory(path))
+        clearSelection()
     }
 
     fun navigate(target: ExplorerNavigation) = launch {

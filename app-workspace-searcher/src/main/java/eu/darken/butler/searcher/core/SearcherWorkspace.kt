@@ -6,6 +6,7 @@ import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.issue.Issue
@@ -19,6 +20,7 @@ import eu.darken.butler.workspace.core.operations.operationsForWorkspace
 import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
 import eu.darken.butler.workspace.core.operations.withStateUpdates
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -40,7 +42,14 @@ class SearcherWorkspace @AssistedInject constructor(
 ) : Workspace {
 
     private val tag = logTag( "Searcher","Workspace", id.shortTag)
-    private val scope = CoroutineScope(dispatcherProvider.IO + CoroutineName(tag))
+    private val scope = CoroutineScope(
+        dispatcherProvider.IO +
+            CoroutineName(tag) +
+            CoroutineExceptionHandler { _, throwable ->
+                log(tag, ERROR) { "Uncaught exception in workspace scope: ${throwable.asLog()}" }
+                // TODO: Add error state to workspace if needed
+            }
+    )
 
     override val type: Workspace.Type = Workspace.Type.SEARCHER
 

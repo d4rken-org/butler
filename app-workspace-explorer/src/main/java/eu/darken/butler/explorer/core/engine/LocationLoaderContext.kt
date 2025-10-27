@@ -2,6 +2,8 @@ package eu.darken.butler.explorer.core.engine
 
 import androidx.annotation.StringRes
 import eu.darken.butler.common.ca.toCaString
+import kotlinx.coroutines.ensureActive
+import kotlin.coroutines.coroutineContext
 
 /**
  * Shared context for location loaders that manages incremental state updates and emissions.
@@ -20,6 +22,8 @@ internal class LocationLoaderContext<T : ExplorerLocation>(
     val state: T get() = currentState
 
     suspend fun updateState(transform: T.() -> T) {
+        // Check for cancellation before updating state to ensure timely cancellation
+        coroutineContext.ensureActive()
         currentState = currentState.transform()
         emit(currentState)
     }

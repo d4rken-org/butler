@@ -32,6 +32,7 @@ class PathPreviewFetcher @Inject constructor(
     @ApplicationContext private val context: Context,
     private val gatewaySwitch: GatewaySwitch,
     private val mimeTypeTool: MimeTypeTool,
+    private val textPreviewGenerator: TextPreviewGenerator,
     private val data: APathLookup<*>,
     private val options: Options,
 ) : Fetcher {
@@ -67,6 +68,16 @@ class PathPreviewFetcher @Inject constructor(
 
     private val pacMan: PackageManager
         get() = context.packageManager
+
+    private fun isTextPreviewable(mimeType: String): Boolean {
+        return mimeType.startsWith("text/") ||
+            mimeType in setOf(
+            "application/json",
+            "application/xml",
+            "application/x-sh",
+            "application/x-shellscript"
+        )
+    }
 
     override suspend fun fetch(): FetchResult {
         if (isEasterEggPath()) return easterEggIcon
@@ -109,6 +120,16 @@ class PathPreviewFetcher @Inject constructor(
                 } ?: fallbackIcon
             }
 
+            isTextPreviewable(mimeType) -> {
+                log(TAG) { "Generating text preview for: ${data.path}" }
+                val bitmap = textPreviewGenerator.generate(data)
+                ImageFetchResult(
+                    image = bitmap.asImage(),
+                    isSampled = false,
+                    dataSource = DataSource.DISK
+                )
+            }
+
             else -> fallbackIcon
         }
     }
@@ -117,6 +138,7 @@ class PathPreviewFetcher @Inject constructor(
         @ApplicationContext private val context: Context,
         private val gatewaySwitch: GatewaySwitch,
         private val mimeTypeTool: MimeTypeTool,
+        private val textPreviewGenerator: TextPreviewGenerator,
     ) : Fetcher.Factory<APathLookup<*>> {
 
         override fun create(
@@ -127,6 +149,7 @@ class PathPreviewFetcher @Inject constructor(
             context,
             gatewaySwitch,
             mimeTypeTool,
+            textPreviewGenerator,
             data,
             options,
         )
