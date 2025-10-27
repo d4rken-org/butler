@@ -93,10 +93,6 @@ class ExplorerWorkspace @AssistedInject constructor(
         )
     }
 
-    override val type: Workspace.Type = Workspace.Type.EXPLORER
-
-    private val _state = DynamicStateFlow<State>(parentScope = scope) { State() }
-    val state: Flow<State> = _state.flow
 
     data class OperationsState(
         val operations: Collection<ManagedOperation> = emptySet(),
