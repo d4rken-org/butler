@@ -94,34 +94,7 @@ fun SearcherWorkspacePage(
     workspaceStateSource: Flow<WorkspaceButtonViewModel.State?>,
     vm: SearcherWorkspaceViewModel? = null,
     workspaceActionHandler: WorkspaceActionHandler? = null,
-    onUpdateQuery: (TextFieldValue) -> Unit = {},
-    onRemoveSearchPath: (SearchTarget) -> Unit = {},
-    onTogglePathEnabled: (SearchTarget) -> Unit = {},
-    onPerformSearch: () -> Unit = {},
-    onExplicitSearch: () -> Unit = {},
-    onCancelSearch: () -> Unit = {},
-    onClearResults: () -> Unit = {},
-    onResultClick: (SearchItem) -> Unit = {},
-    onClearHistory: () -> Unit = {},
-    onHistoryItemRemove: (SearchHistory.SearchHistoryItem) -> Unit = {},
-    onHistoryItemClick: (SearchHistory.SearchHistoryItem) -> Unit = {},
-    onToggleCaseSensitive: () -> Unit = {},
-    onToggleWholeWord: () -> Unit = {},
-    onToggleRegex: () -> Unit = {},
-    onAction: (SearcherAction) -> Unit = {},
-    onEnterSelectionMode: (SearchItem) -> Unit = {},
-    onToggleSelection: (SearchItem) -> Unit = {},
-    onExitSelectionMode: () -> Unit = {},
-    onHideQuickActions: () -> Unit = {},
-    onClipboardEntryClick: (ClipboardClip) -> Unit = {},
-    onClipboardEntryRemove: (ClipboardClip) -> Unit = {},
-    onClipboardClearAll: () -> Unit = {},
-    onOperationCancel: (Operation.Id) -> Unit = {},
-    onOperationDismiss: (Operation.Id) -> Unit = {},
-    onOperationsClearCompleted: () -> Unit = {},
-    onOpenSetup: () -> Unit = {},
-    onOpenPathPicker: (() -> Unit)? = null,
-    onCopyError: (Throwable) -> Unit = {},
+    onPageAction: (SearcherPageAction) -> Unit = {},
 ) {
     val state by waitForState(stateSource)
     val clipboardState by clipboardStateSource.collectAsState(initial = SearcherWorkspaceViewModel.ClipboardState())
@@ -147,15 +120,15 @@ fun SearcherWorkspacePage(
     var showCancelConfirmation by remember { mutableStateOf<Operation.Id?>(null) }
 
     // Wrapped selection callbacks that clear focus and hide keyboard
-    val wrappedOnEnterSelectionMode: (SearchItem) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester) {
+    val wrappedOnEnterSelectionMode: (SearchItem) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester, onPageAction) {
         { result ->
             focusManager.clearFocus()
             keyboardController?.hide()
-            onEnterSelectionMode(result)
+            onPageAction(SearcherPageAction.Results.EnterSelectionMode(result))
         }
     }
 
-    val wrappedOnToggleSelection: (SearchItem) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester) {
+    val wrappedOnToggleSelection: (SearchItem) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester, onPageAction) {
         { result ->
             // Only clear focus and hide keyboard when entering selection mode (first selection)
             // Not when already in selection mode (subsequent toggles)
@@ -163,7 +136,7 @@ fun SearcherWorkspacePage(
                 focusManager.clearFocus()
                 keyboardController?.hide()
             }
-            onToggleSelection(result)
+            onPageAction(SearcherPageAction.Results.ToggleSelection(result))
         }
     }
 
@@ -255,29 +228,29 @@ fun SearcherWorkspacePage(
                     on(KeyboardShortcut.Copy) {
                         val selectedResults = currentState.selectionState.selectedResults
                         if (selectedResults.isNotEmpty()) {
-                            onAction(SearcherAction.Copy(selectedResults))
+                            onPageAction(SearcherPageAction.WorkspaceAction(SearcherAction.Copy(selectedResults)))
                         }
                     }
                     on(KeyboardShortcut.Cut) {
                         val selectedResults = currentState.selectionState.selectedResults
                         if (selectedResults.isNotEmpty()) {
-                            onAction(SearcherAction.Cut(selectedResults))
+                            onPageAction(SearcherPageAction.WorkspaceAction(SearcherAction.Cut(selectedResults)))
                         }
                     }
                     on(KeyboardShortcut.SelectAll) {
                         if (currentState.selectionState.selectableResults.isNotEmpty()) {
-                            onAction(SearcherAction.SelectAll)
+                            onPageAction(SearcherPageAction.WorkspaceAction(SearcherAction.SelectAll))
                         }
                     }
                     on(KeyboardShortcut.Delete) {
                         val selectedResults = currentState.selectionState.selectedResults
                         if (selectedResults.isNotEmpty()) {
-                            onAction(SearcherAction.Delete(selectedResults))
+                            onPageAction(SearcherPageAction.WorkspaceAction(SearcherAction.Delete(selectedResults)))
                         }
                     }
                     on(KeyboardShortcut.Escape) {
                         if (currentState.selectionState.isSelectionMode) {
-                            onAction(SearcherAction.DeselectAll)
+                            onPageAction(SearcherPageAction.WorkspaceAction(SearcherAction.DeselectAll))
                         }
                     }
                 }
@@ -311,7 +284,7 @@ fun SearcherWorkspacePage(
                         PermissionSetupCard(
                             searchPath = searchPath,
                             permissionState = currentState.permissionState,
-                            onOpenSetup = onOpenSetup,
+                            onOpenSetup = { onPageAction(SearcherPageAction.Setup.Open) },
                             modifier = Modifier.padding(top = 8.dp)
                         )
                     }
@@ -321,8 +294,8 @@ fun SearcherWorkspacePage(
                 if (currentState.searchQuery.text.isBlank() && currentState.searchHistory.isNotEmpty()) {
                     searchHistorySection(
                         searchHistory = currentState.searchHistory,
-                        onHistoryItemClick = onHistoryItemClick,
-                        onHistoryItemRemove = onHistoryItemRemove,
+                        onHistoryItemClick = { onPageAction(SearcherPageAction.History.Click(it)) },
+                        onHistoryItemRemove = { onPageAction(SearcherPageAction.History.Remove(it)) },
                         onShowClearHistoryDialog = { showClearHistoryDialog = true }
                     )
                 }
@@ -348,7 +321,7 @@ fun SearcherWorkspacePage(
                                         if (currentState.selectionState.isSelectionMode) {
                                             wrappedOnToggleSelection(item.searchItem)
                                         } else {
-                                            onResultClick(item.searchItem)
+                                            onPageAction(SearcherPageAction.Results.Click(item.searchItem))
                                         }
                                     },
                                     onLongPress = {
@@ -360,7 +333,7 @@ fun SearcherWorkspacePage(
                                 WorkspaceErrorCard(
                                     title = stringResource(R.string.searcher_search_error),
                                     error = item.throwable,
-                                    onCopyError = { onCopyError(item.throwable) },
+                                    onCopyError = { onPageAction(SearcherPageAction.Error.Copy(item.throwable)) },
                                     onDismiss = null,
                                 )
                             }
@@ -395,16 +368,16 @@ fun SearcherWorkspacePage(
                 state = currentState,
                 design = design,
                 collapsedFraction = topToolbarScrollBehavior.state.collapsedFraction,
-                onUpdateQuery = onUpdateQuery,
-                onRemoveSearchPath = onRemoveSearchPath,
-                onTogglePathEnabled = onTogglePathEnabled,
-                onPerformSearch = onPerformSearch,
-                onExplicitSearch = onExplicitSearch,
-                onCancelSearch = onCancelSearch,
-                onToggleCaseSensitive = onToggleCaseSensitive,
-                onToggleWholeWord = onToggleWholeWord,
-                onToggleRegex = onToggleRegex,
-                onOpenPathPicker = onOpenPathPicker,
+                onUpdateQuery = { onPageAction(SearcherPageAction.Search.UpdateQuery(it)) },
+                onRemoveSearchPath = { onPageAction(SearcherPageAction.Targets.Remove(it)) },
+                onTogglePathEnabled = { onPageAction(SearcherPageAction.Targets.ToggleEnabled(it)) },
+                onPerformSearch = { onPageAction(SearcherPageAction.Search.Perform) },
+                onExplicitSearch = { onPageAction(SearcherPageAction.Search.Explicit) },
+                onCancelSearch = { onPageAction(SearcherPageAction.Search.Cancel) },
+                onToggleCaseSensitive = { onPageAction(SearcherPageAction.Options.ToggleCaseSensitive) },
+                onToggleWholeWord = { onPageAction(SearcherPageAction.Options.ToggleWholeWord) },
+                onToggleRegex = { onPageAction(SearcherPageAction.Options.ToggleRegex) },
+                onOpenPathPicker = { onPageAction(SearcherPageAction.Targets.OpenPicker) },
                 workspaceButtonState = workspaceButtonState,
                 workspaceActionHandler = workspaceActionHandler,
                 modifier = Modifier
@@ -419,8 +392,8 @@ fun SearcherWorkspacePage(
             if (showStatusCard) {
                 SearchStatusCard(
                     state = currentState,
-                    onCancel = onCancelSearch,
-                    onClear = onClearResults,
+                    onCancel = { onPageAction(SearcherPageAction.Search.Cancel) },
+                    onClear = { onPageAction(SearcherPageAction.Search.ClearResults) },
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .offset(y = 16.dp + actualToolbarHeightDp) // Account for toolbar's vertical padding + gap
@@ -455,8 +428,8 @@ fun SearcherWorkspacePage(
                     ) {
                         OperationsBar(
                             operations = operationsState.operations,
-                            onCancelOperation = onOperationCancel,
-                            onDismissOperation = onOperationDismiss,
+                            onCancelOperation = { onPageAction(SearcherPageAction.Operations.Cancel(it)) },
+                            onDismissOperation = { onPageAction(SearcherPageAction.Operations.Dismiss(it)) },
                             onOperationClick = { operation ->
                                 when (operation.state) {
                                     is OperationDisplay.State.Waiting -> {
@@ -467,7 +440,7 @@ fun SearcherWorkspacePage(
                                     }
                                 }
                             },
-                            onClearCompleted = onOperationsClearCompleted,
+                            onClearCompleted = { onPageAction(SearcherPageAction.Operations.ClearCompleted) },
                         )
                     }
 
@@ -481,9 +454,9 @@ fun SearcherWorkspacePage(
                             workspaceType = Workspace.Type.SEARCHER,
                             clipboardEntries = clipboardState.entries,
                             onPasteClick = { clip -> vm?.openClipboardInExplorer(clip) },
-                            onRemoveClick = onClipboardEntryRemove,
-                            onEntryClick = onClipboardEntryClick,
-                            onClearAll = onClipboardClearAll
+                            onRemoveClick = { onPageAction(SearcherPageAction.Clipboard.RemoveEntry(it)) },
+                            onEntryClick = { onPageAction(SearcherPageAction.Clipboard.ClickEntry(it)) },
+                            onClearAll = { onPageAction(SearcherPageAction.Clipboard.ClearAll) }
                         )
                     }
                 }
@@ -504,8 +477,8 @@ fun SearcherWorkspacePage(
                     actions = currentState.availableActions,
                     onActionClick = { action ->
                         when (val searcherAction = action as SearcherAction) {
-                            is SearcherAction.DeselectAll -> onExitSelectionMode()
-                            else -> onAction(searcherAction)
+                            is SearcherAction.DeselectAll -> onPageAction(SearcherPageAction.Results.ExitSelectionMode)
+                            else -> onPageAction(SearcherPageAction.WorkspaceAction(searcherAction))
                         }
                     },
                     selectionCount = currentState.selectionState.selectionCount
@@ -518,14 +491,14 @@ fun SearcherWorkspacePage(
             SearchResultQuickActions(
                 result = result,
                 onAction = { action ->
-                    onAction(action)
-                    onHideQuickActions()
+                    onPageAction(SearcherPageAction.WorkspaceAction(action))
+                    onPageAction(SearcherPageAction.Results.HideQuickActions)
                 },
                 onLongPress = {
                     wrappedOnEnterSelectionMode(it)
-                    onHideQuickActions()
+                    onPageAction(SearcherPageAction.Results.HideQuickActions)
                 },
-                onDismiss = onHideQuickActions
+                onDismiss = { onPageAction(SearcherPageAction.Results.HideQuickActions) }
             )
         }
 
@@ -542,7 +515,7 @@ fun SearcherWorkspacePage(
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            onClearHistory()
+                            onPageAction(SearcherPageAction.History.Clear)
                             showClearHistoryDialog = false
                         }
                     ) {
@@ -618,34 +591,7 @@ fun SearcherWorkspacePageHost(
         workspaceStateSource = workspaceButtonVm.state,
         vm = vm,
         workspaceActionHandler = workspaceButtonVm,
-        onUpdateQuery = vm::updateSearchQuery,
-        onRemoveSearchPath = vm::removeSearchTarget,
-        onTogglePathEnabled = vm::toggleTargetEnabled,
-        onPerformSearch = vm::performSearch,
-        onExplicitSearch = vm::performExplicitSearch,
-        onCancelSearch = vm::cancelSearch,
-        onClearResults = vm::clearResults,
-        onResultClick = vm::showQuickActions,
-        onClearHistory = vm::clearSearchHistory,
-        onHistoryItemRemove = vm::removeHistoryItem,
-        onHistoryItemClick = vm::restoreFromHistory,
-        onToggleCaseSensitive = vm::toggleCaseSensitive,
-        onToggleWholeWord = vm::toggleWholeWord,
-        onToggleRegex = vm::toggleRegex,
-        onAction = vm::onAction,
-        onEnterSelectionMode = vm::enterSelectionMode,
-        onToggleSelection = vm::toggleSelection,
-        onExitSelectionMode = vm::deselectAll,
-        onHideQuickActions = vm::hideQuickActions,
-        onClipboardEntryClick = vm::showClipboardInfo,
-        onClipboardEntryRemove = vm::removeClipboardEntry,
-        onClipboardClearAll = vm::clearAllClipboard,
-        onOperationCancel = vm::cancelOperation,
-        onOperationDismiss = vm::dismissOperation,
-        onOperationsClearCompleted = vm::clearCompletedOperations,
-        onOpenSetup = vm::navigateToSetup,
-        onOpenPathPicker = vm::openPathPicker,
-        onCopyError = vm::copySearchError,
+        onPageAction = vm::onPageAction,
     )
 }
 
@@ -660,6 +606,7 @@ private fun SearcherWorkspacePageEmptyPreview() {
             clipboardStateSource = flowOf(SearcherWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(SearcherWorkspaceViewModel.OperationsState()),
             workspaceStateSource = flowOf(null),
+            onPageAction = {},
         )
     }
 }
@@ -675,6 +622,7 @@ private fun SearcherWorkspacePageWithHistoryPreview() {
             clipboardStateSource = flowOf(SearcherWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(SearcherWorkspaceViewModel.OperationsState()),
             workspaceStateSource = flowOf(null),
+            onPageAction = {},
         )
     }
 }
@@ -690,6 +638,7 @@ private fun SearcherWorkspacePageWithResultsPreview() {
             clipboardStateSource = flowOf(SearcherWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(SearcherWorkspaceViewModel.OperationsState()),
             workspaceStateSource = flowOf(null),
+            onPageAction = {},
         )
     }
 }
@@ -705,6 +654,7 @@ private fun SearcherWorkspacePageSearchingPreview() {
             clipboardStateSource = flowOf(SearcherWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(SearcherWorkspaceViewModel.OperationsState()),
             workspaceStateSource = flowOf(null),
+            onPageAction = {},
         )
     }
 }
