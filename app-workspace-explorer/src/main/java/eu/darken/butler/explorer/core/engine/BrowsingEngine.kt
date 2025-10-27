@@ -8,8 +8,6 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.explorer.core.BreadcrumbGenerator
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -39,7 +37,6 @@ class BrowsingEngine @AssistedInject constructor(
     private val deviceLocationLoader: DeviceLocationLoader,
     directoryLoaderFactory: DirectoryLocationLoader.Factory,
     private val breadcrumbGenerator: BreadcrumbGenerator,
-    private val gatewaySwitch: GatewaySwitch,
 ) {
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "BrowsingEngine")

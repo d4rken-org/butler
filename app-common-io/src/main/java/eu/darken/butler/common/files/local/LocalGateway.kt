@@ -129,7 +129,7 @@ class LocalGateway @Inject constructor(
                         log(TAG, VERBOSE) { "$operation(AUTO:ADB) -> $path" }
                         adbOps { adbOp(it) }
                     }
-                    else -> throw IllegalStateException("No matching mode available.")
+                    else -> throw IllegalStateException("No matching mode available for $operation")
                 }
                 if (accessibilityChecker.shouldTryNormalAccess(path, forWriting)) {
                     try {
