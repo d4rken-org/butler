@@ -18,7 +18,6 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.files.validation.FilenameValidator
@@ -55,7 +54,6 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.*
 import eu.darken.butler.explorer.ui.explorer.dialogs.FilterOptionsResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortOptionsResult
-import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.upgrade.isPro
 import eu.darken.butler.workspace.core.Workspace
@@ -69,7 +67,7 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
-import eu.darken.butler.workspace.core.permissions.PermissionState
+import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
 import eu.darken.butler.workspace.core.returnResult
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
@@ -185,7 +183,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val canGoForward: Boolean = false,
         val availableActions: List<ExplorerAction> = emptyList(),
         val dialogState: ExplorerDialogState = None,
-        val permissionState: PermissionState = PermissionState(),
+        val setupRequirements: WorkspaceRequirements = WorkspaceRequirements(),
         val isPro: Boolean = false,
         val filterState: FilterState = FilterState(),
         val useRegexPatterns: Boolean = false,
@@ -305,7 +303,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             canGoForward = wsState.canGoForward,
             availableActions = availableActions,
             dialogState = dialogState,
-            permissionState = wsState.currentLocation?.permissionState ?: PermissionState(),
+            setupRequirements = wsState.currentLocation?.setupRequirements ?: WorkspaceRequirements(),
             isPro = upgradeInfo.isUpgraded,
             filterState = filterState,
             useRegexPatterns = useRegexPatterns,
@@ -817,8 +815,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         dismissDialog()
 
         // Show file info dialog
-        val infoContext = ExplorerDialogState.ItemInfo.InfoContext.SingleFile(item)
-        dialogStateFlow.value = ExplorerDialogState.ItemInfo(infoContext)
+        val infoContext = ItemInfo.InfoContext.SingleFile(item)
+        dialogStateFlow.value = ItemInfo(infoContext)
     }
 
     private suspend fun handleDialogEvent(event: ExplorerDialogEvent) {
@@ -1017,12 +1015,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun navigateToSetup() = launch {
-        log(tag) { "navigateToSetup(): Opening setup for storage permissions" }
+    fun navigateToSetup(requirements: WorkspaceRequirements) = launch {
+        log(tag) { "navigateToSetup(): Opening setup for $requirements" }
         navTo(
             Nav.Main.destSetup(
-                typeFilter = setOf(SetupModule.Type.STORAGE),
-                requiredTypes = setOf(SetupModule.Type.STORAGE),
+                typeFilter = requirements.relevantTypes,
+                satisfyingCombos = requirements.combos,
                 autoCloseWhenComplete = true,
             )
         )

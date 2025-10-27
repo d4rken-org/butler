@@ -9,9 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.FolderOff
-import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -26,14 +24,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.permissions.Permission
 import eu.darken.butler.explorer.R
-import eu.darken.butler.workspace.core.permissions.PermissionState
-import eu.darken.butler.workspace.core.permissions.SetupRequirement
+import eu.darken.butler.setup.core.SetupModule
+import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
 
 @Composable
 fun PermissionRequestCard(
-    permissionState: PermissionState,
+    setupRequirements: WorkspaceRequirements,
     onNavigateToSetup: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -52,17 +49,7 @@ fun PermissionRequestCard(
         ) {
             // Icon - Use storage/folder icon instead of lock
             Icon(
-                imageVector = when {
-                    permissionState.missingCritical.any { it is Permission.MANAGE_EXTERNAL_STORAGE } -> {
-                        Icons.TwoTone.Storage
-                    }
-                    permissionState.missingCritical.isNotEmpty() -> {
-                        Icons.TwoTone.Folder
-                    }
-                    else -> {
-                        Icons.TwoTone.FolderOff
-                    }
-                },
+                imageVector = Icons.TwoTone.FolderOff,
                 contentDescription = null,
                 modifier = Modifier.size(72.dp),
                 tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
@@ -70,7 +57,6 @@ fun PermissionRequestCard(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Title
             Text(
                 text = stringResource(R.string.explorer_permission_required_title),
                 style = MaterialTheme.typography.headlineSmall,
@@ -79,22 +65,8 @@ fun PermissionRequestCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Description
-            val primaryPermission = permissionState.requirements.firstOrNull()
-            val description = when (primaryPermission?.permission) {
-                is Permission.MANAGE_EXTERNAL_STORAGE -> {
-                    stringResource(R.string.explorer_permission_storage_manage_description)
-                }
-                is Permission.WRITE_EXTERNAL_STORAGE -> {
-                    stringResource(R.string.explorer_permission_storage_write_description)
-                }
-                else -> {
-                    stringResource(R.string.explorer_permission_generic_description)
-                }
-            }
-
             Text(
-                text = description,
+                text = stringResource(R.string.explorer_permission_generic_description),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
@@ -103,8 +75,7 @@ fun PermissionRequestCard(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Setup Button
-            if (permissionState.missingCritical.isNotEmpty()) {
+            if (setupRequirements.needsSetup) {
                 Button(
                     onClick = onNavigateToSetup,
                     modifier = Modifier.fillMaxWidth(0.8f),
@@ -124,15 +95,11 @@ fun PermissionRequestCard(
 private fun PermissionRequestCardPreview() {
     PreviewWrapper {
         PermissionRequestCard(
-            permissionState = PermissionState(
-                requirements = listOf(
-                    SetupRequirement(
-                        permission = Permission.MANAGE_EXTERNAL_STORAGE,
-                        isRequired = true,
-                    )
+            setupRequirements = WorkspaceRequirements(
+                combos = setOf(
+                    setOf(SetupModule.Type.STORAGE, SetupModule.Type.SAF),
+                    setOf(SetupModule.Type.STORAGE, SetupModule.Type.ROOT),
                 ),
-                hasSufficientPermissions = false,
-                missingCritical = listOf(Permission.MANAGE_EXTERNAL_STORAGE),
             ),
             onNavigateToSetup = {},
         )

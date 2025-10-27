@@ -71,6 +71,7 @@ import eu.darken.butler.explorer.ui.explorer.permissions.PermissionRequestCard
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
+import eu.darken.butler.workspace.ui.error.WorkspaceErrorCard
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -81,7 +82,6 @@ import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.setHeight
-import eu.darken.butler.workspace.ui.error.WorkspaceErrorCard
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -379,12 +379,12 @@ fun ExplorerWorkspacePage(
 
                         val mainStateSnap = mainState
                         when {
-                            mainStateSnap.permissionState.needsPermissions -> {
-                                // Show permission request card when permissions are missing
+                            mainStateSnap.setupRequirements.needsSetup -> {
+                                // Show setup request card when setup is incomplete
                                 PermissionRequestCard(
-                                    permissionState = mainState.permissionState,
+                                    setupRequirements = mainState.setupRequirements,
                                     onNavigateToSetup = {
-                                        vm?.navigateToSetup()
+                                        vm?.navigateToSetup(mainState.setupRequirements)
                                     },
                                     modifier = Modifier.fillMaxSize(),
                                 )

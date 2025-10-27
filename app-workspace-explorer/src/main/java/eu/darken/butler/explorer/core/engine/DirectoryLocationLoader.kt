@@ -1,11 +1,9 @@
 package eu.darken.butler.explorer.core.engine
 
-import androidx.annotation.StringRes
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.caString
-import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
@@ -25,7 +23,6 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.permissions.PathPermissionCheck
 import kotlinx.coroutines.currentCoroutineContext
-import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -45,13 +42,13 @@ class DirectoryLocationLoader @AssistedInject constructor(
         get() = state.path
 
     fun loadDirectory(path: APath<*>): Flow<ExplorerLocation> {
-        return pathPermissionCheck.monitor(path).flatMapLatest { permissionState ->
+        return pathPermissionCheck.monitor(path).flatMapLatest { setupRequirements ->
             flow {
-                log(tag, INFO) { "loadDirectory(): Loading directory with permission state: $permissionState" }
+                log(tag, INFO) { "loadDirectory(): Loading directory with setup requirements: $setupRequirements" }
                 val context = LocationLoaderContext(
                     initialState = ExplorerLocation.Directory(
                         path = path,
-                        permissionState = permissionState,
+                        setupRequirements = setupRequirements,
                         progress = Progress.Data(
                             primary = caString {
                                 it.getString(
@@ -66,27 +63,33 @@ class DirectoryLocationLoader @AssistedInject constructor(
                 context.emitState()
 
                 context.updateProgressMsg(R.string.explorer_loader_progress_directory_permissions)
-                if (!permissionState.hasSufficientPermissions) {
-                    log(tag, WARN) { "Insufficient permission for $path" }
-                    emit(ExplorerLocation.Directory(path = path, permissionState = permissionState, progress = null))
+                if (setupRequirements.needsSetup) {
+                    log(tag, WARN) { "Insufficient setup for $path" }
+                    emit(
+                        ExplorerLocation.Directory(
+                            path = path,
+                            setupRequirements = setupRequirements,
+                            progress = null
+                        )
+                    )
                     return@flow
                 }
 
                 gatewaySwitch.useRes {
-                    coroutineContext.ensureActive()
+                    currentCoroutineContext().ensureActive()
                     context.loadFileSystemInfo()
 
-                    coroutineContext.ensureActive()
+                    currentCoroutineContext().ensureActive()
                     context.loadPeek()
 
-                    coroutineContext.ensureActive()
+                    currentCoroutineContext().ensureActive()
                     context.loadContent()
 
-                    coroutineContext.ensureActive()
+                    currentCoroutineContext().ensureActive()
                     context.loadContentExtended()
                 }
 
-                coroutineContext.ensureActive()
+                currentCoroutineContext().ensureActive()
                 context.updateState { copy(progress = null) }
             }
         }

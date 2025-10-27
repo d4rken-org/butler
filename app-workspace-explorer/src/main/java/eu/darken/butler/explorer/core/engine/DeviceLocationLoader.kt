@@ -1,6 +1,5 @@
 package eu.darken.butler.explorer.core.engine
 
-import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Code
 import androidx.compose.material.icons.twotone.FolderShared
@@ -15,11 +14,10 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.extensions.getFileSystemInfo
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.progress.Progress
-import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.common.storage.StorageManager2
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
-import eu.darken.butler.workspace.core.permissions.PermissionState
+import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
@@ -31,30 +29,24 @@ import javax.inject.Singleton
 @Singleton
 class DeviceLocationLoader @Inject constructor(
     private val gatewaySwitch: GatewaySwitch,
-    private val storageEnvironment: StorageEnvironment,
     private val storageManager2: StorageManager2,
     private val safLocationManager: SAFLocationManager,
 ) {
 
     private val tag = logTag("Explorer", "DeviceLocationLoader")
 
-    private suspend fun checkLocationPermissions(): PermissionState {
-        log(tag) { "checkLocationPermissions(): Checking permissions for Device" }
-
-        return PermissionState(
-            requirements = emptyList(),
-            hasSufficientPermissions = true,
-            missingCritical = emptyList(),
-        )
+    private suspend fun checkLocationRequirements(): WorkspaceRequirements {
+        log(tag) { "checkLocationRequirements(): Checking requirements for Device" }
+        return WorkspaceRequirements()
     }
 
     fun loadDevice(): Flow<ExplorerLocation> = flow {
         log(tag, INFO) { "loadDevice(): Loading device location with multi-stage loading" }
 
-        val permissionState = checkLocationPermissions()
+        val setupRequirements = checkLocationRequirements()
         val context = LocationLoaderContext(
             initialState = ExplorerLocation.Device(
-                permissionState = permissionState,
+                setupRequirements = setupRequirements,
                 progress = Progress.Data(
                     primary = R.string.explorer_loader_progress_device_loading.toCaString(),
                 ),
