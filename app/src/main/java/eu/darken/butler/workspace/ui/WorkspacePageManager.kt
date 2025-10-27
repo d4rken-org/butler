@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.parcel.InstantParceler
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
@@ -19,8 +20,11 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.parcelize.Parcelize
+import kotlinx.parcelize.TypeParceler
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 @Singleton
 class WorkspacePageManager @Inject constructor(
@@ -28,10 +32,12 @@ class WorkspacePageManager @Inject constructor(
     private val workspaceRemote: WorkspaceRemote,
 ) {
     @Parcelize
+    @TypeParceler<Instant, InstantParceler>
     data class State(
         val focusedWorkspaceId: Workspace.Id? = null,
         val selectedWorkspaces: Map<Int, Workspace.Id> = emptyMap(),
         val currentPaneCount: Int = 1,
+        val workspaceAccessTimes: Map<Workspace.Id, Instant> = emptyMap(),
     ) : Parcelable
 
     private val _state = MutableStateFlow(State())
@@ -118,10 +124,16 @@ class WorkspacePageManager @Inject constructor(
         _state.update { currentState ->
             val existingPosition = currentState.selectedWorkspaces.entries.find { it.value == workspaceId }?.key
 
+            // Update MRU timestamp
+            val updatedAccessTimes = currentState.workspaceAccessTimes + (workspaceId to Clock.System.now())
+
             if (existingPosition != null) {
                 // Workspace already selected, just focus it
                 log(TAG) { "Workspace $workspaceId already selected in pane $existingPosition, focusing it" }
-                currentState.copy(focusedWorkspaceId = workspaceId)
+                currentState.copy(
+                    focusedWorkspaceId = workspaceId,
+                    workspaceAccessTimes = updatedAccessTimes,
+                )
             } else {
                 // Workspace not selected, assign it to an empty pane or replace current selection
                 val paneCount = currentState.currentPaneCount
@@ -148,7 +160,8 @@ class WorkspacePageManager @Inject constructor(
 
                 currentState.copy(
                     focusedWorkspaceId = workspaceId,
-                    selectedWorkspaces = newSelections
+                    selectedWorkspaces = newSelections,
+                    workspaceAccessTimes = updatedAccessTimes,
                 )
             }
         }
@@ -157,16 +170,89 @@ class WorkspacePageManager @Inject constructor(
     fun setFocusedWorkspace(workspaceId: Workspace.Id?) {
         _state.update { currentState ->
             if (workspaceId == null || currentState.selectedWorkspaces.values.contains(workspaceId)) {
-                currentState.copy(focusedWorkspaceId = workspaceId)
+                // Update MRU timestamp when focusing a workspace
+                val updatedAccessTimes = if (workspaceId != null) {
+                    currentState.workspaceAccessTimes + (workspaceId to Clock.System.now())
+                } else {
+                    currentState.workspaceAccessTimes
+                }
+                currentState.copy(
+                    focusedWorkspaceId = workspaceId,
+                    workspaceAccessTimes = updatedAccessTimes,
+                )
             } else {
                 currentState
             }
         }
     }
 
-    fun setPaneCount(count: Int) {
+    suspend fun setPaneCount(count: Int) {
         log(TAG) { "Setting pane count to $count" }
+
+        val currentState = _state.value
+        val oldPaneCount = currentState.currentPaneCount
+
+        // Update pane count first
         _state.update { it.copy(currentPaneCount = count) }
+
+        // Auto-fill empty panes if pane count increased
+        if (count > oldPaneCount) {
+            log(TAG) { "Pane count increased from $oldPaneCount to $count, checking for empty panes to fill" }
+
+            val currentSelections = currentState.selectedWorkspaces
+            val emptyPaneIndices = (0 until count).filter { paneIndex ->
+                !currentSelections.containsKey(paneIndex)
+            }
+
+            if (emptyPaneIndices.isNotEmpty()) {
+                log(TAG) { "Found ${emptyPaneIndices.size} empty pane(s): $emptyPaneIndices" }
+
+                // Get all available workspaces
+                val allWorkspaces = workspaceRemote.state.first().infos
+
+                // Filter: exclude currently selected workspaces and modal workspaces
+                val selectedIds = currentSelections.values.toSet()
+                val availableWorkspaces = allWorkspaces.filter { workspace ->
+                    !selectedIds.contains(workspace.id) && !workspace.isSubWorkspace
+                }
+
+                if (availableWorkspaces.isNotEmpty()) {
+                    log(TAG) { "Found ${availableWorkspaces.size} available workspace(s)" }
+
+                    // Sort by MRU (most recent first)
+                    val sortedByMru = availableWorkspaces.sortedByDescending { workspace ->
+                        currentState.workspaceAccessTimes[workspace.id] ?: Instant.DISTANT_PAST
+                    }
+
+                    // Assign MRU workspaces to empty panes
+                    val newSelections = currentSelections.toMutableMap()
+                    var autoFocusId: Workspace.Id? = null
+
+                    emptyPaneIndices.zip(sortedByMru).forEach { (paneIndex, workspace) ->
+                        log(TAG) { "Auto-filling pane $paneIndex with MRU workspace ${workspace.id}" }
+                        newSelections[paneIndex] = workspace.id
+                        if (autoFocusId == null) {
+                            autoFocusId = workspace.id
+                        }
+                    }
+
+                    // Update state with new selections
+                    _state.update { state ->
+                        state.copy(
+                            selectedWorkspaces = newSelections,
+                            // Auto-focus first auto-filled workspace if nothing is focused
+                            focusedWorkspaceId = state.focusedWorkspaceId ?: autoFocusId,
+                        )
+                    }
+
+                    log(TAG) { "Auto-filled ${emptyPaneIndices.size} pane(s)" }
+                } else {
+                    log(TAG) { "No available workspaces to auto-fill empty panes" }
+                }
+            } else {
+                log(TAG) { "No empty panes to fill" }
+            }
+        }
     }
 
     fun toggleWorkspaceSelection(workspaceId: Workspace.Id, position: Int? = null) {
@@ -218,6 +304,9 @@ class WorkspacePageManager @Inject constructor(
         log(TAG) { "handleWorkspaceCreated: workspaceId=$workspaceId, replacedId=$replacedId" }
 
         _state.update { currentState ->
+            // Update MRU timestamp for newly created workspace
+            val updatedAccessTimes = currentState.workspaceAccessTimes + (workspaceId to Clock.System.now())
+
             if (replacedId != null) {
                 // This is a replacement
                 val replacedPaneIndex = currentState.selectedWorkspaces.entries.find { it.value == replacedId }?.key
@@ -236,17 +325,20 @@ class WorkspacePageManager @Inject constructor(
 
                     currentState.copy(
                         selectedWorkspaces = newSelections,
-                        focusedWorkspaceId = newFocus
+                        focusedWorkspaceId = newFocus,
+                        workspaceAccessTimes = updatedAccessTimes,
                     )
                 } else {
                     log(TAG) { "Replaced workspace $replacedId was not in any pane, treating as new workspace" }
                     assignToEmptyPaneInternal(currentState, workspaceId)
+                        .copy(workspaceAccessTimes = updatedAccessTimes)
                 }
             } else {
                 // New workspace, not a replacement
                 if (!currentState.selectedWorkspaces.containsValue(workspaceId)) {
                     log(TAG) { "New workspace $workspaceId, assigning to empty pane" }
                     val newState = assignToEmptyPaneInternal(currentState, workspaceId)
+                        .copy(workspaceAccessTimes = updatedAccessTimes)
 
                     // Auto-focus if no workspace is focused
                     if (newState.focusedWorkspaceId == null) {
@@ -257,7 +349,7 @@ class WorkspacePageManager @Inject constructor(
                     }
                 } else {
                     log(TAG) { "Workspace $workspaceId already assigned to a pane" }
-                    currentState
+                    currentState.copy(workspaceAccessTimes = updatedAccessTimes)
                 }
             }
         }
