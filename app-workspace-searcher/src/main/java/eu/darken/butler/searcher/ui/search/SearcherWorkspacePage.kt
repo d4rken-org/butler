@@ -71,7 +71,6 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
-import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationDialog
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import eu.darken.butler.workspace.ui.scroll.getCurrentHeightDp
@@ -117,7 +116,6 @@ fun SearcherWorkspacePage(
 
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
-    var showCancelConfirmation by remember { mutableStateOf<Operation.Id?>(null) }
 
     // Wrapped selection callbacks that clear focus and hide keyboard
     val wrappedOnEnterSelectionMode: (SearchItem) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester, onPageAction) {
@@ -552,21 +550,10 @@ fun SearcherWorkspacePage(
             onDismissDialog = { operationDialogState = OperationDialogState.None },
             onCancelOperation = { operationId ->
                 operationDialogState = OperationDialogState.None
-                showCancelConfirmation = operationId
+                vm?.cancelOperation(operationId)
             },
             onCopyError = { vm?.copyError(it) }
         )
-
-        // Cancel operation confirmation dialog
-        showCancelConfirmation?.let { operationId ->
-            CancelOperationConfirmationDialog(
-                onDismiss = { showCancelConfirmation = null },
-                onConfirm = {
-                    vm?.cancelOperation(operationId)
-                    showCancelConfirmation = null
-                }
-            )
-        }
     }  // End of state?.let
 }
 
