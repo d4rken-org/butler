@@ -1083,6 +1083,62 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         workspaceRemote.launchPicker(id, startPath = null, PickerConfig.Selection.DirectoryMulti)
     }
 
+    /**
+     * Unified handler for all page-level actions.
+     * Dispatches to appropriate ViewModel methods based on action type.
+     */
+    fun onPageAction(action: SearcherPageAction) {
+        when (action) {
+            // Search actions
+            is SearcherPageAction.Search.UpdateQuery -> updateSearchQuery(action.query)
+            is SearcherPageAction.Search.Perform -> performSearch()
+            is SearcherPageAction.Search.Explicit -> performExplicitSearch()
+            is SearcherPageAction.Search.Cancel -> cancelSearch()
+            is SearcherPageAction.Search.ClearResults -> clearResults()
+
+            // Options
+            is SearcherPageAction.Options.ToggleCaseSensitive -> toggleCaseSensitive()
+            is SearcherPageAction.Options.ToggleWholeWord -> toggleWholeWord()
+            is SearcherPageAction.Options.ToggleRegex -> toggleRegex()
+
+            // Targets
+            is SearcherPageAction.Targets.Remove -> removeSearchTarget(action.target)
+            is SearcherPageAction.Targets.ToggleEnabled -> toggleTargetEnabled(action.target)
+            is SearcherPageAction.Targets.OpenPicker -> openPathPicker()
+
+            // History
+            is SearcherPageAction.History.Clear -> clearSearchHistory()
+            is SearcherPageAction.History.Remove -> removeHistoryItem(action.item)
+            is SearcherPageAction.History.Click -> restoreFromHistory(action.item)
+
+            // Results
+            is SearcherPageAction.Results.Click -> showQuickActions(action.item)
+            is SearcherPageAction.Results.EnterSelectionMode -> enterSelectionMode(action.item)
+            is SearcherPageAction.Results.ToggleSelection -> toggleSelection(action.item)
+            is SearcherPageAction.Results.ExitSelectionMode -> deselectAll()
+            is SearcherPageAction.Results.HideQuickActions -> hideQuickActions()
+
+            // Clipboard
+            is SearcherPageAction.Clipboard.ClickEntry -> showClipboardInfo(action.clip)
+            is SearcherPageAction.Clipboard.RemoveEntry -> removeClipboardEntry(action.clip)
+            is SearcherPageAction.Clipboard.ClearAll -> clearAllClipboard()
+
+            // Operations
+            is SearcherPageAction.Operations.Cancel -> cancelOperation(action.id)
+            is SearcherPageAction.Operations.Dismiss -> dismissOperation(action.id)
+            is SearcherPageAction.Operations.ClearCompleted -> clearCompletedOperations()
+
+            // Setup
+            is SearcherPageAction.Setup.Open -> navigateToSetup()
+
+            // Error
+            is SearcherPageAction.Error.Copy -> copySearchError(action.error)
+
+            // Workspace actions (delegate to existing handler)
+            is SearcherPageAction.WorkspaceAction -> onAction(action.action)
+        }
+    }
+
     @AssistedFactory
     interface Factory {
         fun create(id: Workspace.Id): SearcherWorkspaceViewModel

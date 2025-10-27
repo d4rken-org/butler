@@ -375,7 +375,12 @@ val childWorkspaces = _workspaces.value.filter { ws ->
   - Reusable composables should be in their own files (e.g., `ButlerIcon.kt`, `ColoredTitleText.kt`)
   - Screen-specific composables can remain in the screen file unless the file grows too large
   - Extract screen-specific composables to separate files when the main file exceeds ~200 lines
-  - Always add `@Preview2` functions for standalone composables
+  - **Always add `@Preview2` functions for ALL composables** (including screen-level pages):
+    - For simple composables: Create standard previews with representative data
+    - For complex screens with Flow/ViewModel dependencies:
+      - Use mock state objects with `flowOf()` for Flow parameters
+      - Create multiple preview scenarios where applicable (empty state, loading, with data, error states)
+      - Example: `SearcherWorkspacePage` should have previews showing different UI states
   - Place compose previews below the composable being previewed
   - Preview function naming: `ComponentNamePreview()` and mark as `private`
 - Write tests for web APIs and serialized data.

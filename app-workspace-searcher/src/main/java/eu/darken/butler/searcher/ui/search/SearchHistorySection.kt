@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -51,7 +53,9 @@ fun LazyListScope.searchHistorySection(
     // Header with title and clear all button
     item {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -92,7 +96,7 @@ fun SearchHistoryItem(
     modifier: Modifier = Modifier,
 ) {
     SwipeToDismissItem(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier            .fillMaxWidth(),
         onDismiss = onItemRemove,
         dismissThreshold = 0.5f,
         backgroundShape = RoundedCornerShape(12.dp),
@@ -119,8 +123,8 @@ fun SearchHistoryItem(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 // Line 1: Search query with icon
                 Row(
@@ -192,7 +196,13 @@ fun SearchHistoryItem(
                         )
                         historyItem.resultCount?.let { count ->
                             Text(
-                                text = "• ${if (count == 0) "No results" else "$count results"}",
+                                text = "• ${
+                                    pluralStringResource(
+                                        R.plurals.searcher_history_result_count,
+                                        count,
+                                        count
+                                    )
+                                }",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -249,5 +259,62 @@ private fun SearchHistoryItemNoResultsPreview() {
             onItemClick = {},
             onItemRemove = {}
         )
+    }
+}
+
+@Preview2
+@Composable
+private fun SearchHistorySectionPreview() {
+    PreviewWrapper {
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            searchHistorySection(
+                searchHistory = listOf(
+                    SearchHistory.SearchHistoryItem(
+                        id = "preview-1",
+                        baseQuery = "gradle build",
+                        searchQuery = SearchQuery.create(
+                            query = "gradle build",
+                            paths = listOf(LocalPath.build("/home/user/projects")),
+                            caseSensitive = false,
+                            wholeWord = false,
+                            useRegex = false
+                        ),
+                        searchedAt = Clock.System.now() - 30.minutes,
+                        resultCount = 42
+                    ),
+                    SearchHistory.SearchHistoryItem(
+                        id = "preview-2",
+                        baseQuery = "nonexistent",
+                        searchQuery = SearchQuery.create(
+                            query = "nonexistent",
+                            paths = listOf(LocalPath.build("/storage/emulated/0")),
+                            caseSensitive = true,
+                            wholeWord = true,
+                            useRegex = false
+                        ),
+                        searchedAt = Clock.System.now() - 2.hours,
+                        resultCount = 0
+                    ),
+                    SearchHistory.SearchHistoryItem(
+                        id = "preview-3",
+                        baseQuery = "import android",
+                        searchQuery = SearchQuery.create(
+                            query = "import android",
+                            paths = listOf(LocalPath.build("/home/user/android-project/src")),
+                            caseSensitive = false,
+                            wholeWord = false,
+                            useRegex = false
+                        ),
+                        searchedAt = Clock.System.now() - 5.hours,
+                        resultCount = 127
+                    )
+                ),
+                onHistoryItemClick = {},
+                onHistoryItemRemove = {},
+                onShowClearHistoryDialog = {}
+            )
+        }
     }
 }

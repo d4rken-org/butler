@@ -815,7 +815,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun showFileProperties(item: ExplorerItem.File) = launch {
         log(tag) { "showFileProperties(${item.lookup.name})" }
         dismissDialog()
-        // TODO: Implement file properties dialog
+
+        // Show file info dialog
+        val infoContext = ExplorerDialogState.ItemInfo.InfoContext.SingleFile(item)
+        dialogStateFlow.value = ExplorerDialogState.ItemInfo(infoContext)
     }
 
     private suspend fun handleDialogEvent(event: ExplorerDialogEvent) {
