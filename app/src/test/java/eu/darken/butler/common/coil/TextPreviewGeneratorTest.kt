@@ -3,17 +3,25 @@ package eu.darken.butler.common.coil
 import android.content.Context
 import android.graphics.Bitmap
 import androidx.test.core.app.ApplicationProvider
+import coil3.request.Options
+import coil3.size.Dimension
+import coil3.size.Size
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coil.fetchers.TextPreviewGenerator
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.theming.ThemeColor
+import eu.darken.butler.common.theming.ThemeMode
+import eu.darken.butler.common.theming.ThemeStyle
+import eu.darken.butler.main.core.GeneralSettings
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import okio.Buffer
 import okio.FileHandle
@@ -31,13 +39,28 @@ class TextPreviewGeneratorTest : BaseTest() {
 
     private lateinit var context: Context
     private lateinit var gatewaySwitch: GatewaySwitch
+    private lateinit var generalSettings: GeneralSettings
     private lateinit var textPreviewGenerator: TextPreviewGenerator
 
     @Before
     fun setup() {
         context = ApplicationProvider.getApplicationContext()
         gatewaySwitch = mockk()
-        textPreviewGenerator = TextPreviewGenerator(context, gatewaySwitch)
+
+        // Mock GeneralSettings with default theme
+        generalSettings = mockk {
+            every { themeMode } returns mockk {
+                every { flow } returns flowOf(ThemeMode.SYSTEM)
+            }
+            every { themeStyle } returns mockk {
+                every { flow } returns flowOf(ThemeStyle.DEFAULT)
+            }
+            every { themeColor } returns mockk {
+                every { flow } returns flowOf(ThemeColor.TEAL)
+            }
+        }
+
+        textPreviewGenerator = TextPreviewGenerator(context, gatewaySwitch, generalSettings)
     }
 
     @Test
@@ -71,7 +94,7 @@ class TextPreviewGeneratorTest : BaseTest() {
         mockFileRead(lookup, largeText)
 
         // Act
-        val bitmap = textPreviewGenerator.generate(lookup, maxBytes = 4096)
+        val bitmap = textPreviewGenerator.generate(lookup)
 
         // Assert
         bitmap shouldNotBe null
@@ -100,17 +123,17 @@ class TextPreviewGeneratorTest : BaseTest() {
     }
 
     @Test
-    fun `generate preview respects maxBytes parameter`() = runTest {
+    fun `generate preview handles large text files`() = runTest {
         // Arrange
         val longText = "A".repeat(10000) // 10KB of text
         val lookup = createMockLookup(
             path = "/test/long.txt",
             size = longText.toByteArray().size.toLong()
         )
-        mockFileRead(lookup, longText.take(2048)) // Mock will only return first 2KB
+        mockFileRead(lookup, longText.take(4096)) // Mock will only return first 4KB
 
         // Act
-        val bitmap = textPreviewGenerator.generate(lookup, maxBytes = 2048)
+        val bitmap = textPreviewGenerator.generate(lookup)
 
         // Assert
         bitmap shouldNotBe null
@@ -118,7 +141,7 @@ class TextPreviewGeneratorTest : BaseTest() {
     }
 
     @Test
-    fun `generate preview with custom dimensions`() = runTest {
+    fun `generate preview with custom dimensions from Coil options`() = runTest {
         // Arrange
         val textContent = "Custom size test"
         val lookup = createMockLookup(
@@ -127,8 +150,15 @@ class TextPreviewGeneratorTest : BaseTest() {
         )
         mockFileRead(lookup, textContent)
 
+        val options = mockk<Options> {
+            every { size } returns Size(
+                width = Dimension.Pixels(256),
+                height = Dimension.Pixels(256)
+            )
+        }
+
         // Act
-        val bitmap = textPreviewGenerator.generate(lookup, width = 256, height = 256)
+        val bitmap = textPreviewGenerator.generate(lookup, options)
 
         // Assert
         bitmap shouldNotBe null

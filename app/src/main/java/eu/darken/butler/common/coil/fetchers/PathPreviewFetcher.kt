@@ -1,8 +1,6 @@
-package eu.darken.butler.common.coil
+package eu.darken.butler.common.coil.fetchers
 
 import android.content.Context
-import android.content.pm.ApplicationInfo
-import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import coil3.ImageLoader
 import coil3.asImage
@@ -15,13 +13,13 @@ import coil3.request.Options
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.R
 import eu.darken.butler.common.MimeTypeTool
+import eu.darken.butler.common.coil.toImageSource
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.extensions.extension
-import eu.darken.butler.common.files.extensions.toFile
 import eu.darken.butler.common.files.iconRes
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.hashing.Hasher
@@ -33,6 +31,7 @@ class PathPreviewFetcher @Inject constructor(
     private val gatewaySwitch: GatewaySwitch,
     private val mimeTypeTool: MimeTypeTool,
     private val textPreviewGenerator: TextPreviewGenerator,
+    private val apkPreviewGenerator: ApkPreviewGenerator,
     private val data: APathLookup<*>,
     private val options: Options,
 ) : Fetcher {
@@ -66,18 +65,7 @@ class PathPreviewFetcher @Inject constructor(
         )
     }
 
-    private val pacMan: PackageManager
-        get() = context.packageManager
 
-    private fun isTextPreviewable(mimeType: String): Boolean {
-        return mimeType.startsWith("text/") ||
-            mimeType in setOf(
-            "application/json",
-            "application/xml",
-            "application/x-sh",
-            "application/x-shellscript"
-        )
-    }
 
     override suspend fun fetch(): FetchResult {
         if (isEasterEggPath()) return easterEggIcon
@@ -98,20 +86,8 @@ class PathPreviewFetcher @Inject constructor(
             }
 
             mimeType == "application/octet-stream" && data.lookedUp.extension == "apk" && data.lookedUp is LocalPath -> {
-                val file = data.lookedUp.toFile()
-
-                val iconDrawable = file
-                    .takeIf { it.canRead() }
-                    ?.let { pacMan.getPackageArchiveInfo(it.path, PackageManager.GET_META_DATA) }
-                    ?.let {
-                        (it.applicationInfo ?: ApplicationInfo()).apply {
-                            sourceDir = file.path
-                            publicSourceDir = file.path
-                        }
-                    }
-                    ?.let { pacMan.getApplicationIcon(it) }
-
-                iconDrawable?.let {
+                val bitmap = apkPreviewGenerator.generate(data.lookedUp as LocalPath)
+                bitmap?.let {
                     ImageFetchResult(
                         image = it.asImage(),
                         isSampled = false,
@@ -120,14 +96,15 @@ class PathPreviewFetcher @Inject constructor(
                 } ?: fallbackIcon
             }
 
-            isTextPreviewable(mimeType) -> {
-                log(TAG) { "Generating text preview for: ${data.path}" }
-                val bitmap = textPreviewGenerator.generate(data)
-                ImageFetchResult(
-                    image = bitmap.asImage(),
-                    isSampled = false,
-                    dataSource = DataSource.DISK
-                )
+            textPreviewGenerator.isTextPreviewable(mimeType) -> {
+                val bitmap = textPreviewGenerator.generate(data, options)
+                bitmap?.let {
+                    ImageFetchResult(
+                        image = bitmap.asImage(),
+                        isSampled = false,
+                        dataSource = DataSource.DISK
+                    )
+                } ?: fallbackIcon
             }
 
             else -> fallbackIcon
@@ -139,6 +116,7 @@ class PathPreviewFetcher @Inject constructor(
         private val gatewaySwitch: GatewaySwitch,
         private val mimeTypeTool: MimeTypeTool,
         private val textPreviewGenerator: TextPreviewGenerator,
+        private val apkPreviewGenerator: ApkPreviewGenerator,
     ) : Fetcher.Factory<APathLookup<*>> {
 
         override fun create(
@@ -150,13 +128,14 @@ class PathPreviewFetcher @Inject constructor(
             gatewaySwitch,
             mimeTypeTool,
             textPreviewGenerator,
+            apkPreviewGenerator,
             data,
             options,
         )
     }
 
     companion object {
-        private val TAG = logTag("Coil", "PathPreviewFetcher")
+        private val TAG = logTag("Coil", "Fetcher", "Path")
     }
 }
 

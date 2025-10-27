@@ -1,4 +1,4 @@
-package eu.darken.butler.common.coil
+package eu.darken.butler.common.coil.fetchers
 
 import coil3.ImageLoader
 import coil3.decode.DataSource
@@ -7,6 +7,7 @@ import coil3.fetch.Fetcher
 import coil3.fetch.SourceFetchResult
 import coil3.request.Options
 import eu.darken.butler.common.MimeTypeTool
+import eu.darken.butler.common.coil.toImageSource
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.metadata.FileType

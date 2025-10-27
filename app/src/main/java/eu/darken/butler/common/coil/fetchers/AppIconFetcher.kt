@@ -1,4 +1,4 @@
-package eu.darken.butler.common.coil
+package eu.darken.butler.common.coil.fetchers
 
 import androidx.core.content.ContextCompat
 import coil3.ImageLoader
@@ -9,7 +9,9 @@ import coil3.fetch.Fetcher
 import coil3.fetch.ImageFetchResult
 import coil3.request.Options
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.funnel.IPCFunnel
+import eu.darken.butler.common.io.R
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.getIcon2
 import javax.inject.Inject
@@ -21,10 +23,10 @@ class AppIconFetcher @Inject constructor(
 ) : Fetcher {
 
     override suspend fun fetch(): FetchResult {
-        log { "Fetching $data" }
+        log(TAG) { "Fetching $data" }
         val baseIcon = ipcFunnel.use {
             data.icon?.get(options.context) ?: packageManager.getIcon2(data.id)
-        } ?: ContextCompat.getDrawable(options.context, eu.darken.butler.common.io.R.drawable.ic_default_app_icon_24)!!
+        } ?: ContextCompat.getDrawable(options.context, R.drawable.ic_default_app_icon_24)!!
 
         return ImageFetchResult(
             image = baseIcon.asImage(),
@@ -42,6 +44,10 @@ class AppIconFetcher @Inject constructor(
             options: Options,
             imageLoader: ImageLoader
         ): Fetcher = AppIconFetcher(ipcFunnel, data, options)
+    }
+
+    companion object {
+        private val TAG = logTag("Coil", "Fetcher", "Pkg")
     }
 }
 

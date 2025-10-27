@@ -1,33 +1,45 @@
 package eu.darken.butler.common.coil.fetchers
 
 import android.content.Context
-import android.graphics.Bitmap
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.APathLookup
-import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.extensions.toFile
 import javax.inject.Inject
 
 
-class AppPreviewGenerator @Inject constructor(
+class ApkPreviewGenerator @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val gatewaySwitch: GatewaySwitch,
 ) {
 
-    suspend fun generate(
-        lookup: APathLookup<*>,
-        maxBytes: Long = MAX_BYTES_TO_READ,
-        width: Int = PREVIEW_WIDTH,
-        height: Int = PREVIEW_HEIGHT
-    ): Bitmap {
-        log(TAG) { "Generating text preview for: ${lookup.path}" }
+    private val pacMan: PackageManager
+        get() = context.packageManager
 
-        val textContent = readTextContent(lookup, maxBytes)
-        return renderTextToBitmap(textContent, width, height)
+    suspend fun generate(
+        lookup: LocalPath,
+    ): Drawable? {
+        log(TAG) { "Generating preview for: ${lookup.path}" }
+        val file = lookup.toFile()
+
+        val iconDrawable = file
+            .takeIf { it.canRead() }
+            ?.let { pacMan.getPackageArchiveInfo(it.path, PackageManager.GET_META_DATA) }
+            ?.let {
+                (it.applicationInfo ?: ApplicationInfo()).apply {
+                    sourceDir = file.path
+                    publicSourceDir = file.path
+                }
+            }
+            ?.let { pacMan.getApplicationIcon(it) }
+
+        return iconDrawable
     }
 
     companion object {
-        private val TAG = logTag("Coil", "Fetcher", "App", "Generator")
+        private val TAG = logTag("Coil", "Fetcher", "Path", "Apk", "Generator")
     }
 }
