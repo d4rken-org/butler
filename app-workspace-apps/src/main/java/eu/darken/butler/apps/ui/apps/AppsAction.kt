@@ -2,6 +2,7 @@ package eu.darken.butler.apps.ui.apps
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Launch
+import androidx.compose.material.icons.automirrored.twotone.Sort
 import androidx.compose.material.icons.twotone.Block
 import androidx.compose.material.icons.twotone.CheckCircle
 import androidx.compose.material.icons.twotone.CleaningServices
@@ -9,6 +10,7 @@ import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.DeleteSweep
 import androidx.compose.material.icons.twotone.Deselect
 import androidx.compose.material.icons.twotone.FileOpen
+import androidx.compose.material.icons.twotone.FilterAlt
 import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.GetApp
 import androidx.compose.material.icons.twotone.Info
@@ -45,6 +47,18 @@ sealed interface AppsAction : WorkspaceAction {
     data object Refresh : AppsAction {
         override val icon = Icons.TwoTone.Refresh
         override val label = R.string.apps_action_refresh.toCaString()
+    }
+
+    data object Sort : AppsAction {
+        override val icon = Icons.AutoMirrored.TwoTone.Sort
+        override val label = R.string.apps_action_sort.toCaString()
+        override val group = WorkspaceAction.Group.SECONDARY
+    }
+
+    data object Filter : AppsAction {
+        override val icon = Icons.TwoTone.FilterAlt
+        override val label = R.string.apps_action_filter.toCaString()
+        override val group = WorkspaceAction.Group.SECONDARY
     }
 
     // Batch actions (work on multiple apps)

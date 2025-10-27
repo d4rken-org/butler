@@ -10,7 +10,7 @@ fun AppsDialogHost(
     onDismiss: () -> Unit,
     onAction: (AppsAction) -> Unit,
     onFilterApply: (eu.darken.butler.apps.core.engine.AppsState.FilterConfig) -> Unit,
-    onSortApply: (eu.darken.butler.apps.core.engine.SortMode) -> Unit,
+    onSortApply: (eu.darken.butler.apps.core.engine.SortSettings) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     when (dialogState) {
@@ -38,7 +38,7 @@ fun AppsDialogHost(
 
         is AppsDialogState.SortOptions -> {
             SortOptionsDialog(
-                currentSortMode = dialogState.currentSortMode,
+                currentSortSettings = dialogState.currentSortSettings,
                 onDismiss = onDismiss,
                 onApply = onSortApply,
                 modifier = modifier,

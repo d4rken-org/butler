@@ -3,16 +3,15 @@ package eu.darken.butler.apps.ui.apps.items
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Android
-import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -36,8 +35,8 @@ fun AppListItem(
     isSelected: Boolean,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
-    onInfoClick: () -> Unit,
     modifier: Modifier = Modifier,
+    showSelection: Boolean = false,
 ) {
     val context = LocalContext.current
 
@@ -49,28 +48,29 @@ fun AppListItem(
                 onLongClick = onLongClick,
             ),
         leadingContent = {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
+            Box(
+                modifier = Modifier.size(40.dp),
+                contentAlignment = Alignment.Center
             ) {
-                if (isSelected) {
+                if (showSelection) {
                     Checkbox(
-                        checked = true,
+                        checked = isSelected,
                         onCheckedChange = null,
                     )
-                }
-                if (item.icon != null) {
-                    AsyncImage(
-                        model = item.icon.get(context),
-                        contentDescription = null,
-                        modifier = Modifier.size(40.dp),
-                    )
                 } else {
-                    Icon(
-                        imageVector = Icons.TwoTone.Android,
-                        contentDescription = null,
-                        modifier = Modifier.size(40.dp),
-                    )
+                    if (item.icon != null) {
+                        AsyncImage(
+                            model = item.icon.get(context),
+                            contentDescription = null,
+                            modifier = Modifier.size(40.dp),
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.TwoTone.Android,
+                            contentDescription = null,
+                            modifier = Modifier.size(40.dp),
+                        )
+                    }
                 }
             }
         },
@@ -108,14 +108,6 @@ fun AppListItem(
                         )
                     }
                 }
-            }
-        },
-        trailingContent = {
-            IconButton(onClick = onInfoClick) {
-                Icon(
-                    imageVector = Icons.TwoTone.Info,
-                    contentDescription = "App info",
-                )
             }
         },
     )

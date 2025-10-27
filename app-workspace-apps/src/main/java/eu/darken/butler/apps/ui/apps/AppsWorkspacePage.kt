@@ -8,41 +8,52 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.twotone.Sort
-import androidx.compose.material.icons.twotone.FilterAlt
-import androidx.compose.material.icons.twotone.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.apps.R
+import eu.darken.butler.apps.core.engine.AppItem
+import eu.darken.butler.apps.core.engine.AppsState
 import eu.darken.butler.apps.ui.apps.dialogs.AppsDialogHost
 import eu.darken.butler.apps.ui.apps.items.AppListItem
+import eu.darken.butler.common.ca.CaDrawable
+import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.pkgs.Pkg
+import eu.darken.butler.common.pkgs.features.Installed
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
+import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
+import eu.darken.butler.workspace.ui.scroll.rememberTopToolbarScrollBehavior
+import eu.darken.butler.workspace.ui.scroll.setHeight
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 @Composable
 fun AppsWorkspacePageHost(
@@ -57,71 +68,74 @@ fun AppsWorkspacePageHost(
     ErrorEventHandler(vm)
 
     AppsWorkspacePage(
+        workspaceId = id,
         design = design,
+        stateSource = vm.state,
+        workspaceButtonStateSource = workspaceButtonVm.state,
         vm = vm,
+        workspaceActionHandler = workspaceButtonVm,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AppsWorkspacePage(
+    workspaceId: Workspace.Id,
     design: WorkspaceDesign,
-    vm: AppsWorkspaceViewModel,
+    stateSource: Flow<AppsWorkspaceViewModel.State>,
+    workspaceButtonStateSource: Flow<WorkspaceButtonViewModel.State?>,
+    vm: AppsWorkspaceViewModel? = null,
+    workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
-    val state by vm.state.collectAsState(
+    val state by stateSource.collectAsState(
         initial = AppsWorkspaceViewModel.State()
     )
-
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val workspaceButtonState by workspaceButtonStateSource.collectAsState(null)
 
     val hasActions by remember {
         derivedStateOf { state.availableActions.isNotEmpty() }
     }
 
-    Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.apps_title)) },
-                actions = {
-                    IconButton(onClick = { vm.showFilterDialog() }) {
-                        Icon(
-                            imageVector = Icons.TwoTone.FilterAlt,
-                            contentDescription = "Filter apps"
-                        )
-                    }
-                    IconButton(onClick = { vm.showSortDialog() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.TwoTone.Sort,
-                            contentDescription = "Sort apps"
-                        )
-                    }
-                    IconButton(onClick = { vm.onRefresh() }) {
-                        Icon(
-                            imageVector = Icons.TwoTone.Refresh,
-                            contentDescription = stringResource(R.string.apps_action_refresh)
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
-        },
-    ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            PullToRefreshBox(
-                isRefreshing = state.isLoading,
-                onRefresh = { vm.onRefresh() },
-                modifier = Modifier.padding(paddingValues),
+    // Scroll behavior for toolbar and action bar
+    val topToolbarScrollBehavior = rememberTopToolbarScrollBehavior()
+    val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
+    val density = LocalDensity.current
+    var toolbarInfoBarHeightPx by remember { mutableStateOf(0) }
+    val toolbarInfoBarHeightDp = with(density) { toolbarInfoBarHeightPx.toDp() }
+
+    // Set the bottom bar height for scroll behavior
+    bottomBarScrollBehavior.state.setHeight(64.dp)
+
+    // Auto-show action bar when entering selection mode
+    LaunchedEffect(hasActions) {
+        if (hasActions) {
+            bottomBarScrollBehavior.state.animateToExpanded()
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        PullToRefreshBox(
+            isRefreshing = state.isLoading,
+            onRefresh = { vm?.onRefresh() },
+        ) {
+            // Scrollable content layer - with padding for pinned toolbar/infobar
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
+                    .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
+                contentPadding = PaddingValues(
+                    top = toolbarInfoBarHeightDp,
+                    bottom = if (hasActions) 72.dp else 8.dp,
+                ),
             ) {
                 when {
                     state.isLoading && state.apps.isEmpty() -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
+                        item {
                             Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 100.dp, bottom = 32.dp, start = 32.dp, end = 32.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
@@ -132,11 +146,11 @@ private fun AppsWorkspacePage(
                     }
 
                     state.apps.isEmpty() -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
+                        item {
                             Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 100.dp, bottom = 32.dp, start = 32.dp, end = 32.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
@@ -147,38 +161,55 @@ private fun AppsWorkspacePage(
                     }
 
                     else -> {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(
-                                top = 8.dp,
-                                bottom = if (hasActions) 72.dp else 8.dp, // Extra padding for action bar
-                            ),
-                        ) {
-                            items(
-                                items = state.apps,
-                                key = { it.packageName }
-                            ) { appItem ->
-                                AppListItem(
-                                    item = appItem,
-                                    isSelected = appItem.packageName in state.selectedAppIds,
-                                    onClick = {
-                                        if (state.isMultiSelectMode) {
-                                            vm.onAppLongClick(appItem)
-                                        } else {
-                                            vm.showAppDetails(appItem)
-                                        }
-                                    },
-                                    onLongClick = { vm.onAppLongClick(appItem) },
-                                    onInfoClick = { vm.openAppInfo(appItem.id) },
-                                )
-                            }
+                        items(
+                            items = state.apps,
+                            key = { it.packageName }
+                        ) { appItem ->
+                            AppListItem(
+                                item = appItem,
+                                isSelected = appItem.packageName in state.selectedAppIds,
+                                onClick = {
+                                    if (state.isMultiSelectMode) {
+                                        vm?.onAppLongClick(appItem)
+                                    } else {
+                                        vm?.showAppDetails(appItem)
+                                    }
+                                },
+                                onLongClick = { vm?.onAppLongClick(appItem) },
+                                showSelection = state.isMultiSelectMode,
+                            )
                         }
                     }
                 }
             }
+        }
 
-            // Floating Bottom ActionBar - Selection mode
-            AnimatedVisibility(
+        // Pinned toolbar and info bar at top
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .onGloballyPositioned { layoutCoordinates ->
+                    toolbarInfoBarHeightPx = layoutCoordinates.size.height
+                }
+        ) {
+            AppsToolbarCard(
+                workspaceId = workspaceId,
+                searchQuery = state.searchQuery,
+                design = design,
+                workspaceButtonState = workspaceButtonState,
+                workspaceActionHandler = workspaceActionHandler,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+
+            AppsInfoBar(
+                userAppsCount = state.userAppsCount,
+                systemAppsCount = state.systemAppsCount,
+                selectedCount = state.selectionCount,
+            )
+        }
+
+        // Floating Bottom ActionBar - Selection mode
+        AnimatedVisibility(
                 visible = hasActions,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -190,22 +221,172 @@ private fun AppsWorkspacePage(
                     actions = state.availableActions,
                     onActionClick = { action ->
                         when (val appsAction = action as AppsAction) {
-                            is AppsAction.DeselectAll -> vm.onClearSelection()
-                            else -> vm.onAction(appsAction)
+                            is AppsAction.DeselectAll -> vm?.onClearSelection()
+                            else -> vm?.onAction(appsAction)
                         }
                     },
-                    selectionCount = if (state.isMultiSelectMode) state.selectionCount else null,
                 )
             }
-        }
+    }
 
-        // Dialog Host
-        AppsDialogHost(
-            dialogState = state.dialogState,
-            onDismiss = { vm.dismissDialog() },
-            onAction = { action -> vm.onAction(action) },
-            onFilterApply = { filter -> vm.onFilterChanged(filter) },
-            onSortApply = { sortMode -> vm.onSortModeChanged(sortMode) },
+    // Dialog Host
+    AppsDialogHost(
+        dialogState = state.dialogState,
+        onDismiss = { vm?.dismissDialog() },
+        onAction = { action -> vm?.onAction(action) },
+        onFilterApply = { filter -> vm?.onFilterChanged(filter) },
+        onSortApply = { sortSettings -> vm?.onSortSettingsChanged(sortSettings) },
+    )
+}
+
+@Preview2
+@Composable
+private fun AppsWorkspacePagePreview() {
+    val mockApps = listOf(
+        createMockAppItem("com.android.chrome", "Chrome", isSystem = false, isEnabled = true),
+        createMockAppItem("com.android.settings", "Settings", isSystem = true, isEnabled = true),
+        createMockAppItem("com.example.notes", "Notes", isSystem = false, isEnabled = true),
+        createMockAppItem("com.android.systemui", "System UI", isSystem = true, isEnabled = true),
+        createMockAppItem("com.spotify.music", "Spotify", isSystem = false, isEnabled = false),
+    )
+
+    val mockState = AppsWorkspaceViewModel.State(
+        appsState = createMockAppsState(apps = mockApps),
+        availableActions = listOf(
+            AppsAction.Refresh,
+            AppsAction.Sort,
+            AppsAction.Filter,
+        ),
+        isLoading = false,
+    )
+
+    PreviewWrapper {
+        AppsWorkspacePage(
+            workspaceId = Workspace.Id(),
+            design = WorkspaceDesign(),
+            stateSource = flowOf(mockState),
+            workspaceButtonStateSource = flowOf(null),
         )
     }
+}
+
+@Preview2
+@Composable
+private fun AppsWorkspacePageLoadingPreview() {
+    val mockState = AppsWorkspaceViewModel.State(
+        isLoading = true,
+    )
+
+    PreviewWrapper {
+        AppsWorkspacePage(
+            workspaceId = Workspace.Id(),
+            design = WorkspaceDesign(),
+            stateSource = flowOf(mockState),
+            workspaceButtonStateSource = flowOf(null),
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun AppsWorkspacePageEmptyPreview() {
+    val mockState = AppsWorkspaceViewModel.State(
+        appsState = createMockAppsState(apps = emptyList()),
+        availableActions = listOf(
+            AppsAction.Refresh,
+            AppsAction.Sort,
+            AppsAction.Filter,
+        ),
+        isLoading = false,
+    )
+
+    PreviewWrapper {
+        AppsWorkspacePage(
+            workspaceId = Workspace.Id(),
+            design = WorkspaceDesign(),
+            stateSource = flowOf(mockState),
+            workspaceButtonStateSource = flowOf(null),
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun AppsWorkspacePageWithSelectionPreview() {
+    val mockApps = listOf(
+        createMockAppItem("com.android.chrome", "Chrome", isSystem = false, isEnabled = true),
+        createMockAppItem("com.android.settings", "Settings", isSystem = true, isEnabled = true),
+        createMockAppItem("com.example.notes", "Notes", isSystem = false, isEnabled = true),
+        createMockAppItem("com.spotify.music", "Spotify", isSystem = false, isEnabled = false),
+    )
+
+    val mockState = AppsWorkspaceViewModel.State(
+        appsState = createMockAppsState(
+            apps = mockApps,
+            selectedIds = setOf("com.android.chrome", "com.example.notes"),
+        ),
+        availableActions = listOf(
+            AppsAction.DeselectAll,
+            AppsAction.SelectAll,
+            AppsAction.Disable(mockApps.take(2)),
+            AppsAction.Uninstall(mockApps.take(2)),
+            AppsAction.ClearCache(mockApps.take(2)),
+        ),
+        isLoading = false,
+    )
+
+    PreviewWrapper {
+        AppsWorkspacePage(
+            workspaceId = Workspace.Id(),
+            design = WorkspaceDesign(),
+            stateSource = flowOf(mockState),
+            workspaceButtonStateSource = flowOf(null),
+        )
+    }
+}
+
+// Mock data helpers
+private fun createMockAppItem(
+    packageName: String,
+    label: String,
+    isSystem: Boolean,
+    isEnabled: Boolean,
+): AppItem {
+    val mockPkg = object : Installed {
+        override val id = Pkg.Id(packageName)
+        override val packageInfo = android.content.pm.PackageInfo()
+        override val label = label.toCaString()
+        override val icon: CaDrawable? = null
+        override val userHandle = eu.darken.butler.common.user.UserHandle2(0)
+    }
+
+    return AppItem(
+        pkg = mockPkg,
+        label = label.toCaString(),
+        icon = null,
+        packageName = packageName,
+        versionName = "1.0.0",
+        versionCode = 1,
+        appSize = 1024L * 1024L * 50L,
+        isSystemApp = isSystem,
+        isEnabled = isEnabled,
+        isUpdatedSystemApp = false,
+        installedAt = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000),
+        updatedAt = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis()),
+        installerInfo = null,
+    )
+}
+
+private fun createMockAppsState(
+    apps: List<AppItem> = emptyList(),
+    selectedIds: Set<String> = emptySet(),
+): AppsState {
+    return AppsState(
+        apps = apps,
+        filteredApps = apps,
+        selectedAppIds = selectedIds,
+        isLoading = false,
+        filterConfig = AppsState.FilterConfig(),
+        sortSettings = eu.darken.butler.apps.core.engine.SortSettings(),
+    )
 }

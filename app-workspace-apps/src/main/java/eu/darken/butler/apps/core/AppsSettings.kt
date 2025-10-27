@@ -6,7 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.apps.core.engine.AppsState
-import eu.darken.butler.apps.core.engine.SortMode
+import eu.darken.butler.apps.core.engine.SortSettings
 import eu.darken.butler.common.datastore.PreferenceScreenData
 import eu.darken.butler.common.datastore.PreferenceStoreMapper
 import eu.darken.butler.common.datastore.createValue
@@ -33,9 +33,9 @@ class AppsSettings @Inject constructor(
         json,
     )
 
-    val defaultSortMode = dataStore.createValue(
+    val defaultSortSettings = dataStore.createValue(
         "apps.sort.default",
-        SortMode.NAME_ASC,
+        SortSettings(),
         json,
     )
 
@@ -47,7 +47,7 @@ class AppsSettings @Inject constructor(
 
     override val mapper = PreferenceStoreMapper(
         defaultFilterConfig,
-        defaultSortMode,
+        defaultSortSettings,
         viewMode,
     )
 

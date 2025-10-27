@@ -2,7 +2,7 @@ package eu.darken.butler.apps.ui.apps.dialogs
 
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.core.engine.AppsState
-import eu.darken.butler.apps.core.engine.SortMode
+import eu.darken.butler.apps.core.engine.SortSettings
 
 sealed interface AppsDialogState {
 
@@ -15,7 +15,7 @@ sealed interface AppsDialogState {
     ) : AppsDialogState
 
     data class SortOptions(
-        val currentSortMode: SortMode,
+        val currentSortSettings: SortSettings,
     ) : AppsDialogState
 
     data class ConfirmDisable(

@@ -70,12 +70,12 @@ class AppsWorkspace @AssistedInject constructor(
         scope.launch {
             try {
                 val filterConfig = appsSettings.defaultFilterConfig.value()
-                val sortMode = appsSettings.defaultSortMode.value()
+                val sortSettings = appsSettings.defaultSortSettings.value()
 
-                log(tag) { "Loaded settings: filterConfig=$filterConfig, sortMode=$sortMode" }
+                log(tag) { "Loaded settings: filterConfig=$filterConfig, sortSettings=$sortSettings" }
 
                 appsEngine.updateFilterConfig(filterConfig)
-                appsEngine.updateSortMode(sortMode)
+                appsEngine.updateSortSettings(sortSettings)
             } catch (e: Exception) {
                 log(tag, ERROR) { "Failed to load settings: $e" }
             }

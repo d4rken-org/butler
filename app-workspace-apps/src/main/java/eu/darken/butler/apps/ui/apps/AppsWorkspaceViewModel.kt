@@ -12,7 +12,7 @@ import eu.darken.butler.apps.core.AppsSettings
 import eu.darken.butler.apps.core.AppsWorkspace
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.core.engine.AppsState
-import eu.darken.butler.apps.core.engine.SortMode
+import eu.darken.butler.apps.core.engine.SortSettings
 import eu.darken.butler.apps.ui.apps.dialogs.AppsDialogState
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
@@ -65,8 +65,8 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         val filterConfig: AppsState.FilterConfig
             get() = appsState.filterConfig
 
-        val sortMode: SortMode
-            get() = appsState.sortMode
+        val sortSettings: SortSettings
+            get() = appsState.sortSettings
 
         val selectedAppIds: Set<String>
             get() = appsState.selectedAppIds
@@ -79,6 +79,12 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
 
         val selectionCount: Int
             get() = selectedAppIds.size
+
+        val userAppsCount: Int
+            get() = apps.count { !it.isSystemApp }
+
+        val systemAppsCount: Int
+            get() = apps.count { it.isSystemApp }
     }
 
     val state: Flow<State> = combine(
@@ -129,7 +135,11 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                 }
             }
         } else {
-            emptyList()
+            buildList {
+                add(AppsAction.Refresh)
+                add(AppsAction.Sort)
+                add(AppsAction.Filter)
+            }
         }
 
         State(
@@ -180,10 +190,10 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         appsSettings.defaultFilterConfig.value(filterConfig)
     }
 
-    fun onSortModeChanged(sortMode: SortMode) = launch {
-        log(tag) { "Sort mode changed: $sortMode" }
-        getWorkspace().appsEngine.updateSortMode(sortMode)
-        appsSettings.defaultSortMode.value(sortMode)
+    fun onSortSettingsChanged(sortSettings: SortSettings) = launch {
+        log(tag) { "Sort settings changed: $sortSettings" }
+        getWorkspace().appsEngine.updateSortSettings(sortSettings)
+        appsSettings.defaultSortSettings.value(sortSettings)
     }
 
     fun onClearSelection() = launch {
@@ -243,7 +253,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
     fun showSortDialog() = launch {
         log(tag) { "Showing sort dialog" }
         val currentState = state.first()
-        dialogStateFlow.value = AppsDialogState.SortOptions(currentState.sortMode)
+        dialogStateFlow.value = AppsDialogState.SortOptions(currentState.sortSettings)
     }
 
     fun dismissDialog() = launch {
@@ -258,6 +268,8 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
             is AppsAction.SelectAll -> onSelectAll()
             is AppsAction.DeselectAll -> onClearSelection()
             is AppsAction.Refresh -> onRefresh()
+            is AppsAction.Sort -> showSortDialog()
+            is AppsAction.Filter -> showFilterDialog()
 
             is AppsAction.Launch -> launch {
                 launchApp(action.app.pkg.id)

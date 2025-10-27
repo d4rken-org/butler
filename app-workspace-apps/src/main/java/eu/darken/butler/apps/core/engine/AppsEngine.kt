@@ -44,9 +44,9 @@ class AppsEngine @AssistedInject constructor(
         combine(
             pkgRepo.pkgs(),
             _state.map { it.filterConfig },
-            _state.map { it.sortMode },
+            _state.map { it.sortSettings },
             _state.map { it.searchQuery },
-        ) { packages, filterConfig, sortMode, searchQuery ->
+        ) { packages, filterConfig, sortSettings, searchQuery ->
             log(tag, DEBUG) { "Processing ${packages.size} packages" }
 
             val appItems = packages.map { pkg ->
@@ -61,13 +61,13 @@ class AppsEngine @AssistedInject constructor(
             val filtered = appItems
                 .filter { filterConfig.matches(it) }
                 .filter { it.matchesSearch(context, searchQuery) }
-                .sortedBy(context, sortMode)
+                .sortedBy(context, sortSettings)
 
             AppsState(
                 apps = appItems,
                 filteredApps = filtered,
                 filterConfig = filterConfig,
-                sortMode = sortMode,
+                sortSettings = sortSettings,
                 searchQuery = searchQuery,
                 selectedAppIds = _state.value.selectedAppIds,
                 isLoading = false,
@@ -95,9 +95,9 @@ class AppsEngine @AssistedInject constructor(
         _state.value = _state.value.copy(filterConfig = config)
     }
 
-    suspend fun updateSortMode(sortMode: SortMode) = withContext(dispatcherProvider.Default) {
-        log(tag) { "Updating sort mode: $sortMode" }
-        _state.value = _state.value.copy(sortMode = sortMode)
+    suspend fun updateSortSettings(sortSettings: SortSettings) = withContext(dispatcherProvider.Default) {
+        log(tag) { "Updating sort settings: $sortSettings" }
+        _state.value = _state.value.copy(sortSettings = sortSettings)
     }
 
     suspend fun updateSearchQuery(query: String) = withContext(dispatcherProvider.Default) {

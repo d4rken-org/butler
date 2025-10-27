@@ -61,12 +61,13 @@ fun AppItem.matchesSearch(context: Context, query: String): Boolean {
         packageName.lowercase().contains(normalizedQuery)
 }
 
-fun Collection<AppItem>.sortedBy(context: Context, mode: SortMode): List<AppItem> = when (mode) {
-    SortMode.NAME_ASC -> sortedBy { it.label.get(context).lowercase() }
-    SortMode.NAME_DESC -> sortedByDescending { it.label.get(context).lowercase() }
-    SortMode.SIZE_ASC -> sortedBy { it.appSize ?: 0L }
-    SortMode.SIZE_DESC -> sortedByDescending { it.appSize ?: 0L }
-    SortMode.INSTALL_DATE -> sortedByDescending { it.installedAt }
-    SortMode.UPDATE_DATE -> sortedByDescending { it.updatedAt }
-    SortMode.PACKAGE_NAME -> sortedBy { it.packageName }
+fun Collection<AppItem>.sortedBy(context: Context, settings: SortSettings): List<AppItem> {
+    val sorted = when (settings.mode) {
+        SortSettings.Mode.NAME -> sortedBy { it.label.get(context).lowercase() }
+        SortSettings.Mode.SIZE -> sortedBy { it.appSize ?: 0L }
+        SortSettings.Mode.INSTALL_DATE -> sortedBy { it.installedAt }
+        SortSettings.Mode.UPDATE_DATE -> sortedBy { it.updatedAt }
+        SortSettings.Mode.PACKAGE_NAME -> sortedBy { it.packageName }
+    }
+    return if (settings.reversed) sorted.reversed() else sorted
 }
