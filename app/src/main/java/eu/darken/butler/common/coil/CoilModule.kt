@@ -39,6 +39,7 @@ class CoilModule {
         pathPreviewFetcher: PathPreviewFetcher.Factory,
         bitmapFetcher: BitmapFetcher.Factory,
         workspacePreviewFetcher: WorkspacePreviewFetcher.Factory,
+        pathPreviewKeyer: PathPreviewKeyer,
         workspacePreviewKeyer: WorkspacePreviewKeyer,
         dispatcherProvider: DispatcherProvider,
     ): ImageLoader = ImageLoader.Builder(context).apply {
@@ -64,6 +65,7 @@ class CoilModule {
 
         components {
             // Keyers - determine cache keys before lookup
+            add(pathPreviewKeyer)
             add(workspacePreviewKeyer)
 
             // Fetchers - load images from various sources

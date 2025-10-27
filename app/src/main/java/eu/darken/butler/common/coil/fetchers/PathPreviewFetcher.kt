@@ -1,10 +1,14 @@
 package eu.darken.butler.common.coil.fetchers
 
 import android.content.Context
+import android.graphics.Bitmap
 import androidx.core.content.ContextCompat
 import coil3.ImageLoader
+import coil3.annotation.ExperimentalCoilApi
 import coil3.asImage
 import coil3.decode.DataSource
+import coil3.decode.ImageSource
+import coil3.disk.DiskCache
 import coil3.fetch.FetchResult
 import coil3.fetch.Fetcher
 import coil3.fetch.ImageFetchResult
@@ -13,7 +17,9 @@ import coil3.request.Options
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.R
 import eu.darken.butler.common.MimeTypeTool
+import eu.darken.butler.common.coil.PathPreviewKeyer
 import eu.darken.butler.common.coil.toImageSource
+import eu.darken.butler.common.coil.use
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathLookup
@@ -24,14 +30,20 @@ import eu.darken.butler.common.files.iconRes
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.hashing.Hasher
 import eu.darken.butler.common.hashing.hash
+import okio.Buffer
+import okio.FileSystem
+import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoilApi::class)
 class PathPreviewFetcher @Inject constructor(
     @ApplicationContext private val context: Context,
     private val gatewaySwitch: GatewaySwitch,
     private val mimeTypeTool: MimeTypeTool,
     private val textPreviewGenerator: TextPreviewGenerator,
     private val apkPreviewGenerator: ApkPreviewGenerator,
+    private val keyer: PathPreviewKeyer,
+    private val diskCache: Lazy<DiskCache?>,
     private val data: APathLookup<*>,
     private val options: Options,
 ) : Fetcher {
@@ -97,14 +109,49 @@ class PathPreviewFetcher @Inject constructor(
             }
 
             textPreviewGenerator.isTextPreviewable(mimeType) -> {
-                val bitmap = textPreviewGenerator.generate(data, options)
-                bitmap?.let {
-                    ImageFetchResult(
-                        image = bitmap.asImage(),
-                        isSampled = false,
+                // Generate cache key
+                val cacheKey = keyer.key(data, options)
+
+                // Check disk cache first
+                diskCache.value?.openSnapshot(cacheKey)?.use { snapshot ->
+                    log(TAG) { "Text preview disk cache HIT: ${data.path}" }
+                    val cachedBytes = diskCache.value!!.fileSystem.read(snapshot.data) {
+                        readByteArray()
+                    }
+                    val bufferedSource = Buffer().write(cachedBytes)
+                    return SourceFetchResult(
+                        source = ImageSource(
+                            source = bufferedSource,
+                            fileSystem = FileSystem.SYSTEM,
+                        ),
+                        mimeType = "image/png",
                         dataSource = DataSource.DISK
                     )
-                } ?: fallbackIcon
+                }
+
+                // Cache miss - generate preview
+                log(TAG) { "Text preview disk cache MISS: ${data.path}" }
+                val bitmap = textPreviewGenerator.generate(data, options) ?: return fallbackIcon
+
+                // Write to disk cache if enabled
+                if (options.diskCachePolicy.writeEnabled) {
+                    val pngBytes = ByteArrayOutputStream().use { stream ->
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                        stream.toByteArray()
+                    }
+                    diskCache.value?.openEditor(cacheKey)?.use { editor ->
+                        diskCache.value!!.fileSystem.write(editor.data) {
+                            write(pngBytes)
+                        }
+                        log(TAG) { "Wrote text preview to disk cache: ${data.path}" }
+                    }
+                }
+
+                ImageFetchResult(
+                    image = bitmap.asImage(),
+                    isSampled = false,
+                    dataSource = DataSource.NETWORK
+                )
             }
 
             else -> fallbackIcon
@@ -117,6 +164,7 @@ class PathPreviewFetcher @Inject constructor(
         private val mimeTypeTool: MimeTypeTool,
         private val textPreviewGenerator: TextPreviewGenerator,
         private val apkPreviewGenerator: ApkPreviewGenerator,
+        private val keyer: PathPreviewKeyer,
     ) : Fetcher.Factory<APathLookup<*>> {
 
         override fun create(
@@ -129,6 +177,8 @@ class PathPreviewFetcher @Inject constructor(
             mimeTypeTool,
             textPreviewGenerator,
             apkPreviewGenerator,
+            keyer,
+            lazy { imageLoader.diskCache },
             data,
             options,
         )
