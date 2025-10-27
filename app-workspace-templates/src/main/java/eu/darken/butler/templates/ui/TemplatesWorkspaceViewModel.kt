@@ -4,6 +4,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import eu.darken.butler.apps.ui.AppsWorkspaceTemplate
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.logTag
@@ -35,6 +36,7 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
             ExplorerWorkspaceTemplate(),
             SearcherWorkspaceTemplate(),
             EditorWorkspaceTemplate(),
+            AppsWorkspaceTemplate(),
         )
     )
 

@@ -13,7 +13,7 @@ plugins {
 apply(plugin = "dagger.hilt.android.plugin")
 
 android {
-    namespace = "${projectConfig.packageName}.templates"
+    namespace = "${projectConfig.packageName}.apps"
 
     setupLibraryDefaults(projectConfig)
 
@@ -24,6 +24,7 @@ android {
     setupKotlinOptions()
 
     buildFeatures {
+        buildConfig = true
         compose = true
     }
 
@@ -44,11 +45,9 @@ dependencies {
     testImplementation(project(":app-common-test"))
 
     implementation(project(":app-common"))
+    implementation(project(":app-common-io"))
+    implementation(project(":app-common-pkgs"))
     implementation(project(":app-workspace"))
-    implementation(project(":app-workspace-explorer"))
-    implementation(project(":app-workspace-searcher"))
-    implementation(project(":app-workspace-editor"))
-    implementation(project(":app-workspace-apps"))
 
     addAndroidCore()
     addAndroidUI()
@@ -58,7 +57,5 @@ dependencies {
     addSerialization()
     addIO()
     addTesting()
-
-    addNavigation3()
     addCoil()
 }

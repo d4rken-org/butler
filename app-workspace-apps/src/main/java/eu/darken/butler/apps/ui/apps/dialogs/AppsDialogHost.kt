@@ -1,0 +1,123 @@
+package eu.darken.butler.apps.ui.apps.dialogs
+
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import eu.darken.butler.apps.ui.apps.AppsAction
+
+@Composable
+fun AppsDialogHost(
+    dialogState: AppsDialogState,
+    onDismiss: () -> Unit,
+    onAction: (AppsAction) -> Unit,
+    onFilterApply: (eu.darken.butler.apps.core.engine.AppsState.FilterConfig) -> Unit,
+    onSortApply: (eu.darken.butler.apps.core.engine.SortMode) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    when (dialogState) {
+        is AppsDialogState.None -> {
+            // No dialog to show
+        }
+
+        is AppsDialogState.AppDetails -> {
+            AppDetailsDialog(
+                app = dialogState.app,
+                onDismiss = onDismiss,
+                onAction = onAction,
+                modifier = modifier,
+            )
+        }
+
+        is AppsDialogState.FilterOptions -> {
+            FilterOptionsDialog(
+                currentFilter = dialogState.currentFilter,
+                onDismiss = onDismiss,
+                onApply = onFilterApply,
+                modifier = modifier,
+            )
+        }
+
+        is AppsDialogState.SortOptions -> {
+            SortOptionsDialog(
+                currentSortMode = dialogState.currentSortMode,
+                onDismiss = onDismiss,
+                onApply = onSortApply,
+                modifier = modifier,
+            )
+        }
+
+        is AppsDialogState.ConfirmDisable -> {
+            ConfirmationDialog(
+                title = "Disable apps?",
+                message = "The following apps will be disabled:",
+                apps = dialogState.apps,
+                confirmButtonText = "Disable",
+                isDestructive = false,
+                onConfirm = {
+                    // TODO: Implement actual disable operation
+                },
+                onDismiss = onDismiss,
+                modifier = modifier,
+            )
+        }
+
+        is AppsDialogState.ConfirmEnable -> {
+            ConfirmationDialog(
+                title = "Enable apps?",
+                message = "The following apps will be enabled:",
+                apps = dialogState.apps,
+                confirmButtonText = "Enable",
+                isDestructive = false,
+                onConfirm = {
+                    // TODO: Implement actual enable operation
+                },
+                onDismiss = onDismiss,
+                modifier = modifier,
+            )
+        }
+
+        is AppsDialogState.ConfirmUninstall -> {
+            ConfirmationDialog(
+                title = "Uninstall apps?",
+                message = "The following apps will be permanently uninstalled. This action cannot be undone.",
+                apps = dialogState.apps,
+                confirmButtonText = "Uninstall",
+                isDestructive = true,
+                onConfirm = {
+                    // TODO: Implement actual uninstall operation
+                },
+                onDismiss = onDismiss,
+                modifier = modifier,
+            )
+        }
+
+        is AppsDialogState.ConfirmClearCache -> {
+            ConfirmationDialog(
+                title = "Clear cache?",
+                message = "Cache will be cleared for the following apps:",
+                apps = dialogState.apps,
+                confirmButtonText = "Clear cache",
+                isDestructive = false,
+                onConfirm = {
+                    // TODO: Implement actual clear cache operation
+                },
+                onDismiss = onDismiss,
+                modifier = modifier,
+            )
+        }
+
+        is AppsDialogState.ConfirmClearData -> {
+            ConfirmationDialog(
+                title = "Clear data?",
+                message = "All data will be cleared for the following apps. This action cannot be undone.",
+                apps = dialogState.apps,
+                confirmButtonText = "Clear data",
+                isDestructive = true,
+                onConfirm = {
+                    // TODO: Implement actual clear data operation
+                },
+                onDismiss = onDismiss,
+                modifier = modifier,
+            )
+        }
+    }
+}

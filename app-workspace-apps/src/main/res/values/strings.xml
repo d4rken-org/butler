@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Apps Workspace -->
+    <string name="apps_title">Apps</string>
+    <string name="apps_subtitle">Manage installed applications</string>
+    <string name="apps_settings_title">Apps Settings</string>
+
+    <!-- Filter Labels -->
+    <string name="apps_filter_user_apps">User apps</string>
+    <string name="apps_filter_system_apps">System apps</string>
+    <string name="apps_filter_enabled">Enabled</string>
+    <string name="apps_filter_disabled">Disabled</string>
+    <string name="apps_filter_all">All apps</string>
+
+    <!-- Sort Options -->
+    <string name="apps_sort_name_asc">Name (A-Z)</string>
+    <string name="apps_sort_name_desc">Name (Z-A)</string>
+    <string name="apps_sort_size_asc">Size (smallest)</string>
+    <string name="apps_sort_size_desc">Size (largest)</string>
+    <string name="apps_sort_install_date">Install date</string>
+    <string name="apps_sort_update_date">Update date</string>
+    <string name="apps_sort_package_name">Package name</string>
+
+    <!-- Actions -->
+    <string name="apps_action_launch">Launch</string>
+    <string name="apps_action_open_info">App info</string>
+    <string name="apps_action_disable">Disable</string>
+    <string name="apps_action_enable">Enable</string>
+    <string name="apps_action_uninstall">Uninstall</string>
+    <string name="apps_action_clear_cache">Clear cache</string>
+    <string name="apps_action_clear_data">Clear data</string>
+    <string name="apps_action_export_apk">Export APK</string>
+    <string name="apps_action_browse_data">Browse data</string>
+    <string name="apps_action_browse_external">Browse external storage</string>
+    <string name="apps_action_share">Share APK</string>
+    <string name="apps_action_refresh">Refresh</string>
+    <string name="apps_action_select_all">Select all</string>
+    <string name="apps_action_deselect_all">Deselect all</string>
+
+    <!-- App Info Labels -->
+    <string name="apps_package_name_label">Package</string>
+    <string name="apps_version_label">Version</string>
+    <string name="apps_size_label">Size</string>
+    <string name="apps_install_date_label">Installed</string>
+    <string name="apps_update_date_label">Updated</string>
+    <string name="apps_installer_label">Installed by</string>
+    <string name="apps_target_sdk_label">Target SDK</string>
+
+    <!-- Badges -->
+    <string name="apps_badge_system">System</string>
+    <string name="apps_badge_disabled">Disabled</string>
+    <string name="apps_badge_debuggable">Debug</string>
+    <string name="apps_badge_updated_system">Updated system app</string>
+
+    <!-- Empty States -->
+    <string name="apps_empty_no_apps">No apps found</string>
+    <string name="apps_empty_no_apps_desc">Try adjusting your filters</string>
+    <string name="apps_empty_loading">Loading apps…</string>
+
+    <!-- Search -->
+    <string name="apps_search_hint">Search apps</string>
+    <string name="apps_search_clear">Clear search</string>
+
+    <!-- Multi-select -->
+    <plurals name="apps_selected_count">
+        <item quantity="zero">Select apps</item>
+        <item quantity="one">%d selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
+    <string name="apps_select_all_action">Select all</string>
+    <string name="apps_deselect_all_action">Deselect all</string>
+
+    <!-- Operation Messages -->
+    <string name="apps_launching">Launching %s…</string>
+    <string name="apps_disabling">Disabling %s…</string>
+    <string name="apps_enabling">Enabling %s…</string>
+    <string name="apps_uninstalling">Uninstalling %s…</string>
+    <string name="apps_clearing_cache">Clearing cache for %s…</string>
+    <string name="apps_clearing_data">Clearing data for %s…</string>
+    <string name="apps_exporting_apk">Exporting %s…</string>
+
+    <plurals name="apps_batch_operation_progress">
+        <item quantity="one">Processing %1$d of %2$d app…</item>
+        <item quantity="other">Processing %1$d of %2$d apps…</item>
+    </plurals>
+
+    <!-- Errors -->
+    <string name="apps_error_launch_failed">Failed to launch app</string>
+    <string name="apps_error_operation_failed">Operation failed: %s</string>
+    <string name="apps_error_no_root_access">Root access required</string>
+    <string name="apps_error_no_adb_access">ADB access required</string>
+    <string name="apps_error_no_data_access">Cannot access app data</string>
+
+    <!-- Settings -->
+    <string name="apps_settings_default_filter_title">Default filter</string>
+    <string name="apps_settings_default_filter_desc">Filter applied when opening Apps workspace</string>
+    <string name="apps_settings_default_sort_title">Default sort</string>
+    <string name="apps_settings_default_sort_desc">Sorting applied by default</string>
+    <string name="apps_settings_view_mode_title">View mode</string>
+    <string name="apps_settings_view_mode_list">List</string>
+    <string name="apps_settings_view_mode_grid">Grid</string>
+</resources>
