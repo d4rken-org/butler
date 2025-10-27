@@ -286,6 +286,8 @@ fun SearcherWorkspacePage(
                     .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
                     top = 16.dp + actualToolbarHeightDp + (if (showStatusCard) statusCardHeight + 8.dp else 0.dp),
                     bottom = run {
                         val actionBarHeight = if (hasActions) 64.dp else 0.dp
