@@ -51,6 +51,12 @@
     <string name="searcher_history_clear_confirm_action">Clear</string>
     <string name="searcher_history_cleared_success">Search history cleared</string>
 
+    <plurals name="searcher_history_result_count">
+        <item quantity="zero">No results</item>
+        <item quantity="one">%d result</item>
+        <item quantity="other">%d results</item>
+    </plurals>
+
     <!-- Search progress -->
     <string name="searcher_progress_searching_in">Searching in %1$s</string>
     <string name="searcher_progress_searching">Searching…</string>
