@@ -47,16 +47,14 @@ internal fun RegularFileGrid(
         },
         primaryText = item.displayName.get(LocalContext.current),
         secondaryText = item.lookup.size?.let { formatFileSize(it) } ?: "?",
-        previewContent = if (item.mimeType.rawType.startsWith("image/") || item.mimeType.rawType.startsWith("video/")) {
-            {
-                TintedAsyncImage(
-                    model = item.lookup,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            }
-        } else null
+        previewContent = {
+            TintedAsyncImage(
+                model = item.lookup,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        }
     )
 }
 
