@@ -830,6 +830,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerDialogEvent.ShowRename -> {
                 dialogStateFlow.value = Rename(event.item)
+                clearSelection()
             }
             is ExplorerDialogEvent.ShowFilterOptions -> {
                 val filterState = filterStateFlow.value
