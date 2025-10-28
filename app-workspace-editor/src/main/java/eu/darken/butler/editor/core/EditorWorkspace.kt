@@ -10,7 +10,6 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.core.engine.FileInfo
 import eu.darken.butler.editor.core.engine.SearchResult
@@ -27,7 +26,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -69,30 +67,18 @@ class EditorWorkspace @AssistedInject constructor(
 
     private val editorEngine = editorEngineFactory.create(id)
 
-    // Expose editor state flows
-    val currentContent: StateFlow<String> = editorEngine.currentContent
-    val cursorPosition: StateFlow<TextPosition> = editorEngine.cursorPosition
-    val selectionRange: StateFlow<Pair<TextPosition, TextPosition>?> = editorEngine.selectionRange
-    val searchQuery: StateFlow<String> = editorEngine.searchQuery
-    val searchResults: StateFlow<List<SearchResult>> = editorEngine.searchResults
-    val visibleRange: StateFlow<IntRange> = editorEngine.visibleRange
-    val totalLines: StateFlow<Int> = editorEngine.totalLines
-    val error: StateFlow<Throwable?> = editorEngine.error
-    val fileInfo: Flow<FileInfo?> = editorEngine.fileInfo
-    val isModified: Flow<Boolean> = editorEngine.isModified
-
     // Combined editor state for UI
     val editorState: Flow<EditorState> = combine(
-        fileInfo,
-        totalLines,
-        isModified,
-        currentContent,
-        cursorPosition,
-        selectionRange,
-        searchQuery,
-        searchResults,
-        visibleRange,
-        error,
+        editorEngine.fileInfo,
+        editorEngine.totalLines,
+        editorEngine.isModified,
+        editorEngine.currentContent,
+        editorEngine.cursorPosition,
+        editorEngine.selectionRange,
+        editorEngine.searchQuery,
+        editorEngine.searchResults,
+        editorEngine.visibleRange,
+        editorEngine.error,
         editorSettings.showLineNumbers.flow,
         editorSettings.wordWrap.flow
     ) { values ->
@@ -146,15 +132,22 @@ class EditorWorkspace @AssistedInject constructor(
             }
             .launchIn(workspaceScope)
 
-        // Initialize editor engine
+        // Initialize editor engine with file from arguments or scratch buffer
         workspaceScope.launch {
-            // FIXME for testing
-            editorEngine.initialize(LocalPath.build("/sdcard/core.log"), isReadOnly)
+            val filePathToOpen = arguments?.filePath
+            if (filePathToOpen != null) {
+                log(tag, INFO) { "Opening file from arguments: ${filePathToOpen.name}" }
+                editorEngine.openFile(filePathToOpen)
+            } else {
+                log(tag, INFO) { "Starting with scratch buffer" }
+                // Always start with scratch buffer for immediate usability
+                editorEngine.openFile(null)
+            }
         }
 
         // Update title based on file info
         workspaceScope.launch {
-            fileInfo.collect { info ->
+            editorEngine.fileInfo.collect { info ->
                 updateFileInfo(info)
             }
         }
@@ -188,6 +181,7 @@ class EditorWorkspace @AssistedInject constructor(
     suspend fun openFile(filePath: APath<*>) = editorEngine.openFile(filePath)
     suspend fun closeFile() = editorEngine.closeFile()
     suspend fun saveFile() = editorEngine.saveFile()
+    suspend fun saveFileAs(newFilePath: APath<*>) = editorEngine.saveFileAs(newFilePath)
     suspend fun search(query: String) = editorEngine.search(query)
     suspend fun goToLine(lineNumber: Int) = editorEngine.goToLine(lineNumber)
     suspend fun undo() = editorEngine.undo()
@@ -202,11 +196,16 @@ class EditorWorkspace @AssistedInject constructor(
     fun canUndo() = editorEngine.canUndo()
     fun canRedo() = editorEngine.canRedo()
 
-    // Cleanup when workspace is destroyed
-    fun cleanup() {
-        workspaceScope.launch {
-            editorEngine.cleanup()
+    override suspend fun release() {
+        log(tag, INFO) { "release()" }
+
+        // Close any open file before releasing workspace
+        try {
+            editorEngine.closeFile()
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to close file during release: ${e.asLog()}" }
         }
+
         workspaceScope.cancel()
     }
 
@@ -215,7 +214,6 @@ class EditorWorkspace @AssistedInject constructor(
         val filePath: APath<*>? = null,
         val isReadOnly: Boolean = false,
         val goToLine: Int? = null,
-        val searchQuery: String? = null
     ) : Workspace.Arguments {
         override val type: Workspace.Type
             get() = Workspace.Type.EDITOR

@@ -15,6 +15,7 @@ import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import okio.Source
 import okio.buffer
 import okio.use
 
@@ -66,52 +67,42 @@ class FileDataSource @AssistedInject constructor(
         }
     }
 
-    override suspend fun readChunk(startOffset: Long, size: Long): Result<String> {
-        return try {
-            val endOffset = (startOffset + size).coerceAtMost(fileContent.length.toLong())
-            val chunk = fileContent.substring(
-                startOffset.toInt().coerceIn(0, fileContent.length),
-                endOffset.toInt().coerceIn(0, fileContent.length)
-            )
-            Result.success(chunk)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    override suspend fun readChunk(startOffset: Long, size: Long): String {
+        val endOffset = (startOffset + size).coerceAtMost(fileContent.length.toLong())
+        return fileContent.substring(
+            startOffset.toInt().coerceIn(0, fileContent.length),
+            endOffset.toInt().coerceIn(0, fileContent.length)
+        )
     }
 
-    override suspend fun writeChunk(startOffset: Long, content: String): Result<Unit> {
-        return try {
-            val before = fileContent.substring(0, startOffset.toInt().coerceIn(0, fileContent.length))
-            val after = fileContent.substring(startOffset.toInt().coerceIn(0, fileContent.length))
-            fileContent = before + content + after
-            _isModified.value = true
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    override suspend fun writeChunk(startOffset: Long, content: String): Unit {
+        val before = fileContent.substring(0, startOffset.toInt().coerceIn(0, fileContent.length))
+        val after = fileContent.substring(startOffset.toInt().coerceIn(0, fileContent.length))
+        fileContent = before + content + after
+        _isModified.value = true
     }
 
     override suspend fun getSize(): Long = fileContent.length.toLong()
 
-    override suspend fun save(): Result<Unit> {
-        return try {
-            gatewaySwitch.file(filePath, readWrite = true).use { handle ->
-                handle.sink().buffer().use { sink ->
-                    sink.write(fileContent.toByteArray())
-                }
+    override suspend fun save() {
+        gatewaySwitch.file(filePath, readWrite = true).use { handle ->
+            handle.sink().buffer().use { sink ->
+                sink.write(fileContent.toByteArray())
             }
-            _isModified.value = false
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
         }
+        _isModified.value = false
     }
 
-    override suspend fun close(): Result<Unit> {
+    override suspend fun close() {
         fileContent = ""
         _fileInfo.value = null
         _isModified.value = false
-        return Result.success(Unit)
+    }
+
+    override suspend fun openSource(): Source {
+        log(tag) { "Opening source for file: $filePath" }
+        val handle = gatewaySwitch.file(filePath, readWrite = false)
+        return handle.source()
     }
 
     @AssistedFactory

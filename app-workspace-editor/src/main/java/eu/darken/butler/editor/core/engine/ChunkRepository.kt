@@ -35,12 +35,8 @@ class ChunkRepository @AssistedInject constructor(
         val endOffset = minOf(startOffset + chunkSize, fileSize)
         val chunkSizeToRead = endOffset - startOffset
 
-        val contentResult = dataSource.readChunk(startOffset, chunkSizeToRead)
-        if (contentResult.isFailure) {
-            throw contentResult.exceptionOrNull() ?: Exception("Failed to read chunk")
-        }
+        val content = dataSource.readChunk(startOffset, chunkSizeToRead)
 
-        val content = contentResult.getOrThrow()
         val lineCount = content.count { it == '\n' } + if (content.isNotEmpty() && !content.endsWith('\n')) 1 else 0
 
         val chunk = TextChunk(
@@ -60,16 +56,13 @@ class ChunkRepository @AssistedInject constructor(
     suspend fun saveChunk(chunk: TextChunk): Unit = withContext(Dispatchers.IO) {
         log(tag) { "Saving chunk: ${chunk.id}" }
 
-        val result = dataSource.writeChunk(chunk.startOffset, chunk.content)
-        if (result.isFailure) {
-            throw result.exceptionOrNull() ?: Exception("Failed to save chunk")
-        }
+        dataSource.writeChunk(chunk.startOffset, chunk.content)
 
         log(tag) { "Saved chunk: ${chunk.id}" }
     }
 
-    suspend fun saveFile(): Result<Unit> {
-        return dataSource.save()
+    suspend fun saveFile() {
+        dataSource.save()
     }
 
     suspend fun searchInChunk(

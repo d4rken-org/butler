@@ -5,6 +5,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.debug.logging.Logging
+import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -20,6 +21,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import okio.buffer
+import okio.use
 
 class EditorEngine @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
@@ -32,15 +38,9 @@ class EditorEngine @AssistedInject constructor(
 ) {
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine")
 
-    private data class EditorResources(
-        val dataSource: EditorDataSource,
-        val chunkRepository: ChunkRepository,
-        val chunkManager: ChunkManager,
-        val textBuffer: ChunkedTextBuffer
-    )
-
-    private val _resources = MutableStateFlow<EditorResources?>(null)
-    private val resources: StateFlow<EditorResources?> = _resources.asStateFlow()
+    private val stateMutex = Mutex()
+    private val _state = MutableStateFlow<EditorState>(EditorState.Empty)
+    val state: StateFlow<EditorState> = _state.asStateFlow()
 
     private val _currentContent = MutableStateFlow("")
     val currentContent: StateFlow<String> = _currentContent.asStateFlow()
@@ -68,25 +68,31 @@ class EditorEngine @AssistedInject constructor(
 
     private var isInitializing = true
 
-    val fileInfo: Flow<FileInfo?> = resources.flatMapLatest { res ->
-        res?.textBuffer?.fileInfo ?: flowOf(null)
+    val fileInfo: Flow<FileInfo?> = state.map { s ->
+        when (s) {
+            is EditorState.Loaded -> s.fileInfo
+            else -> null
+        }
     }
 
-    val isModified: Flow<Boolean> = resources.flatMapLatest { res ->
-        res?.textBuffer?.isModified ?: flowOf(false)
+    val isModified: Flow<Boolean> = state.map { s ->
+        when (s) {
+            is EditorState.Loaded -> s.isModified
+            else -> false
+        }
     }
 
     val textBuffer: ChunkedTextBuffer?
-        get() = _resources.value?.textBuffer
+        get() = (state.value as? EditorState.Loaded)?.resources?.textBuffer
 
-    suspend fun initialize(filePath: APath<*>?, isReadOnly: Boolean = false) {
-        try {
-            log(tag) { "Initializing editor engine with file: ${filePath?.name ?: "No file"}" }
+    private suspend fun createResourcesForFile(filePath: APath<*>?): EditorResources {
+        log(tag) { "Creating resources for file: ${filePath?.name ?: "in-memory"}" }
 
-            // Create data source
-            val dataSource = filePath?.let { path ->
-                fileDataSourceFactory.create(workspaceId, path, gatewaySwitch)
-            } ?: inMemoryDataSourceFactory.create(
+        // Create data source
+        val dataSource = if (filePath != null) {
+            fileDataSourceFactory.create(workspaceId, filePath, gatewaySwitch)
+        } else {
+            inMemoryDataSourceFactory.create(
                 workspaceId,
                 if (BuildConfigWrap.BUILD_TYPE == BuildConfigWrap.BuildType.DEV) {
                     generateDebugContent()
@@ -94,241 +100,313 @@ class EditorEngine @AssistedInject constructor(
                     ""
                 }
             )
-
-            // Create dependent resources
-            val chunkRepository = chunkRepositoryFactory.create(workspaceId, dataSource)
-            val chunkManager = chunkManagerFactory.create(workspaceId, chunkRepository)
-            val textBuffer = chunkedTextBufferFactory.create(workspaceId, chunkManager, chunkRepository)
-
-            // Store resources
-            val resources = EditorResources(
-                dataSource = dataSource,
-                chunkRepository = chunkRepository,
-                chunkManager = chunkManager,
-                textBuffer = textBuffer
-            )
-            _resources.value = resources
-
-            // Initialize based on data source type
-            when (dataSource) {
-                is FileDataSource -> {
-                    log(tag) { "Initializing file data source: $filePath" }
-
-                    // First initialize the data source to load file metadata
-                    val dataSourceInitResult = dataSource.initialize()
-                    if (dataSourceInitResult.isFailure) {
-                        _error.value = dataSourceInitResult.exceptionOrNull()
-                        return
-                    }
-
-                    // Then initialize the text buffer
-                    val bufferInitResult = textBuffer.initialize()
-                    if (bufferInitResult.isFailure) {
-                        _error.value = bufferInitResult.exceptionOrNull()
-                        return
-                    }
-
-                    // Update engine state from initialized buffer
-                    _totalLines.value = textBuffer.totalLines.value
-
-                    // Load initial visible range content
-                    val endLine = minOf(50, textBuffer.totalLines.value - 1)
-                    if (endLine >= 0) {
-                        _visibleRange.value = 0..endLine
-                        val contentResult = textBuffer.getTextForRange(0, endLine)
-                        if (contentResult.isSuccess) {
-                            _currentContent.value = contentResult.getOrNull() ?: ""
-                        }
-                    } else {
-                        _visibleRange.value = 0..0
-                        _currentContent.value = ""
-                    }
-
-                    log(tag) { "Successfully initialized with file: $filePath" }
-                }
-                is InMemoryDataSource -> {
-                    log(tag) { "Initializing in-memory data source" }
-
-                    // Initialize the text buffer
-                    val bufferInitResult = textBuffer.initialize()
-                    if (bufferInitResult.isFailure) {
-                        _error.value = bufferInitResult.exceptionOrNull()
-                        return
-                    }
-
-                    // Load initial content for DEV mode
-                    if (BuildConfigWrap.BUILD_TYPE == BuildConfigWrap.BuildType.DEV) {
-                        val content = dataSource.getContent()
-                        _currentContent.value = content
-                        val lines = content.split('\n')
-                        _totalLines.value = lines.size
-                        _visibleRange.value = 0..minOf(50, lines.size - 1)
-                        log(tag) { "Initialized with debug content: ${lines.size} lines" }
-                    } else {
-                        _currentContent.value = ""
-                        _totalLines.value = 1
-                        _visibleRange.value = 0..0
-                    }
-
-                    log(tag) { "Successfully initialized in-memory editor" }
-                }
-            }
-
-            // Initialization complete - allow visible range updates from UI
-            isInitializing = false
-
-        } catch (e: Exception) {
-            log(tag, Logging.Priority.ERROR) { "Failed to initialize editor engine - ${e.asLog()}" }
-            _error.value = e
-        }
-    }
-
-    suspend fun cleanup() {
-        log(tag) { "Cleaning up editor engine" }
-
-        val resources = _resources.value
-        resources?.let {
-            try {
-                it.textBuffer.release()
-                it.dataSource.close()
-            } catch (e: Exception) {
-                log(tag, Logging.Priority.ERROR) { "Error during cleanup - ${e.asLog()}" }
-            }
         }
 
-        _resources.value = null
-        clearState()
-    }
+        // Create dependent resources
+        val chunkRepository = chunkRepositoryFactory.create(workspaceId, dataSource)
+        val chunkManager = chunkManagerFactory.create(workspaceId, chunkRepository)
+        val textBuffer = chunkedTextBufferFactory.create(workspaceId, chunkManager, chunkRepository)
 
-    suspend fun openFile(filePath: APath<*>): Result<Unit> {
-        val resources = _resources.value ?: return Result.failure(
-            IllegalStateException("Editor engine not initialized")
+        return EditorResources(
+            dataSource = dataSource,
+            chunkRepository = chunkRepository,
+            chunkManager = chunkManager,
+            textBuffer = textBuffer,
         )
+    }
 
+    private suspend fun disposeResources(resources: EditorResources) {
+        log(tag) { "Disposing resources" }
+
+        // Clean up in reverse order, don't abort on failures
+        try {
+            resources.textBuffer.release()
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to release text buffer - ${e.asLog()}" }
+        }
+
+        try {
+            resources.dataSource.close()
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to close data source - ${e.asLog()}" }
+        }
+    }
+
+    suspend fun openFile(filePath: APath<*>?): Result<Unit> = stateMutex.withLock {
         return try {
-            log(tag) { "Opening file: $filePath" }
+            log(tag) { "Opening file: ${filePath?.name ?: "in-memory editor"}" }
 
-            // If the data source is FileDataSource, initialize it first
+            // Dispose existing resources if in Loaded state
+            val currentState = _state.value
+            if (currentState is EditorState.Loaded) {
+                log(tag) { "Disposing existing resources before opening new file" }
+                disposeResources(currentState.resources)
+            }
+
+            // Transition to Loading state
+            _state.value = if (filePath != null) {
+                EditorState.Loading(filePath)
+            } else {
+                EditorState.Empty
+            }
+
+            // Create new resources
+            val resources = createResourcesForFile(filePath)
+
+            // Initialize data source if it's FileDataSource
             val dataSource = resources.dataSource
             if (dataSource is FileDataSource) {
                 val dataSourceInitResult = dataSource.initialize()
                 if (dataSourceInitResult.isFailure) {
-                    _error.value = dataSourceInitResult.exceptionOrNull()
+                    val error = dataSourceInitResult.exceptionOrNull() ?: Exception("Unknown error")
+                    _state.value = EditorState.Error(error, currentState)
+                    _error.value = error
                     return dataSourceInitResult
                 }
             }
 
-            // Then initialize the text buffer (works for both file and in-memory)
-            val result = resources.textBuffer.initialize()
-            if (result.isFailure) {
-                _error.value = result.exceptionOrNull()
-                result
-            } else {
-                log(tag) { "Successfully opened file: $filePath" }
-                Result.success(Unit)
+            // Initialize text buffer
+            val bufferInitResult = resources.textBuffer.initialize()
+            if (bufferInitResult.isFailure) {
+                val error = bufferInitResult.exceptionOrNull() ?: Exception("Unknown error")
+                _state.value = EditorState.Error(error, currentState)
+                _error.value = error
+                return bufferInitResult
             }
+
+            // Update engine state from initialized buffer
+            _totalLines.value = resources.textBuffer.totalLines.value
+
+            // Load initial visible range content
+            val endLine = minOf(50, resources.textBuffer.totalLines.value - 1)
+            if (endLine >= 0) {
+                _visibleRange.value = 0..endLine
+                val contentResult = resources.textBuffer.getTextForRange(0, endLine)
+                if (contentResult.isSuccess) {
+                    _currentContent.value = contentResult.getOrNull() ?: ""
+                }
+            } else {
+                _visibleRange.value = 0..0
+                _currentContent.value = ""
+            }
+
+            // Transition to Loaded state
+            val fileInfoValue = resources.textBuffer.fileInfo.value
+            val isModifiedValue = resources.textBuffer.isModified.value
+            _state.value = EditorState.Loaded(
+                filePath = filePath,
+                resources = resources,
+                fileInfo = fileInfoValue,
+                isModified = isModifiedValue,
+            )
+
+            log(tag) { "Successfully opened file: ${filePath?.name ?: "in-memory editor"}" }
+            isInitializing = false
+            Result.success(Unit)
+
         } catch (e: Exception) {
-            log(tag, Logging.Priority.ERROR) { "Failed to open file: $filePath - ${e.asLog()}" }
+            log(tag, ERROR) { "Failed to open file: ${filePath?.name} - ${e.asLog()}" }
+            _state.value = EditorState.Error(e, _state.value)
             _error.value = e
             Result.failure(e)
         }
     }
 
-    suspend fun closeFile(): Result<Unit> {
-        val resources = _resources.value ?: return Result.failure(
-            IllegalStateException("Editor engine not initialized")
-        )
+    suspend fun closeFile(): Result<Unit> = stateMutex.withLock {
+        val currentState = _state.value
 
         return try {
-            resources.textBuffer.release()
-            clearState()
-            log(tag) { "File closed" }
-            Result.success(Unit)
+            when (currentState) {
+                is EditorState.Loaded -> {
+                    if (currentState.filePath != null) {
+                        // File-backed editor → return to fresh scratch buffer
+                        log(tag) { "Closing file: ${currentState.filePath.name}, returning to scratch buffer" }
+
+                        // Dispose file resources
+                        disposeResources(currentState.resources)
+
+                        // Open fresh scratch buffer
+                        openFile(null)
+                    } else {
+                        // Already in scratch buffer → clear content
+                        log(tag) { "Clearing scratch buffer content" }
+
+                        val dataSource = currentState.resources.dataSource as? InMemoryDataSource
+                        dataSource?.setContent("")
+
+                        // Clear UI state
+                        clearState()
+
+                        Result.success(Unit)
+                    }
+                }
+                is EditorState.Empty -> {
+                    log(tag) { "No file to close - already in Empty state" }
+                    Result.success(Unit)
+                }
+                else -> {
+                    val error = IllegalStateException("Cannot close file in state: ${currentState::class.simpleName}")
+                    log(tag, Logging.Priority.WARN) { error.message ?: "Unknown error" }
+                    Result.failure(error)
+                }
+            }
         } catch (e: Exception) {
-            log(tag, Logging.Priority.ERROR) { "Failed to close file - ${e.asLog()}" }
+            log(tag, ERROR) { "Failed to close file - ${e.asLog()}" }
+            _state.value = EditorState.Error(e, currentState)
             _error.value = e
             Result.failure(e)
         }
     }
 
     suspend fun saveFile(): Result<Unit> {
-        val resources = _resources.value ?: return Result.failure(
-            IllegalStateException("Editor engine not initialized")
-        )
+        val currentState = _state.value
 
-        return try {
-            val result = resources.textBuffer.saveFile()
-            if (result.isFailure) {
-                _error.value = result.exceptionOrNull()
+        return when (currentState) {
+            is EditorState.Loaded -> {
+                try {
+                    log(tag) { "Saving file: ${currentState.filePath?.name ?: "in-memory"}" }
+                    val result = currentState.resources.textBuffer.saveFile()
+                    if (result.isFailure) {
+                        _error.value = result.exceptionOrNull()
+                    } else {
+                        // Update state with new isModified value
+                        _state.value = currentState.copy(isModified = false)
+                    }
+                    result
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "Failed to save file - ${e.asLog()}" }
+                    _error.value = e
+                    Result.failure(e)
+                }
             }
-            result
-        } catch (e: Exception) {
-            log(tag, Logging.Priority.ERROR) { "Failed to save file - ${e.asLog()}" }
-            _error.value = e
-            Result.failure(e)
+            else -> {
+                val error = IllegalStateException("Cannot save file - no file open")
+                log(tag, Logging.Priority.WARN) { error.message ?: "Unknown error" }
+                Result.failure(error)
+            }
+        }
+    }
+
+    suspend fun saveFileAs(newFilePath: APath<*>): Result<Unit> = stateMutex.withLock {
+        val currentState = _state.value
+
+        return when (currentState) {
+            is EditorState.Loaded -> {
+                try {
+                    log(tag) { "Saving as: ${newFilePath.name}" }
+
+                    // Open source from current data source for streaming
+                    val currentDataSource = currentState.resources.dataSource
+                    val source = currentDataSource.openSource()
+
+                    // Stream to new file using gateway
+                    try {
+                        gatewaySwitch.file(newFilePath, readWrite = true).use { handle ->
+                            handle.sink().buffer().use { sink ->
+                                sink.writeAll(source)
+                            }
+                        }
+                    } finally {
+                        source.close()
+                    }
+
+                    log(tag) { "Content streamed to: ${newFilePath.name}" }
+
+                    // Dispose old resources
+                    disposeResources(currentState.resources)
+
+                    // Reopen with new file path
+                    openFile(newFilePath)
+
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "Failed to save as: ${newFilePath.name} - ${e.asLog()}" }
+                    _state.value = EditorState.Error(e, currentState)
+                    _error.value = e
+                    Result.failure(e)
+                }
+            }
+            else -> {
+                val error = IllegalStateException("Cannot save - no content available")
+                log(tag, Logging.Priority.WARN) { error.message ?: "Unknown error" }
+                Result.failure(error)
+            }
         }
     }
 
     fun insertText(text: String) {
-        val resources = _resources.value
-        if (resources == null) {
-            log(tag, Logging.Priority.WARN) { "Cannot insert text - no resources available" }
-            return
-        }
+        val currentState = _state.value
 
-        // TEMPORARY FIX: Bypass complex text buffer and directly update content
-        val currentContent = _currentContent.value
-        val currentPos = _cursorPosition.value
+        when (currentState) {
+            is EditorState.Loaded -> {
+                // TEMPORARY FIX: Bypass complex text buffer and directly update content
+                val currentContent = _currentContent.value
+                val currentPos = _cursorPosition.value
 
-        val beforeCursor = currentContent.substring(0, currentPos.offset.toInt().coerceIn(0, currentContent.length))
-        val afterCursor = currentContent.substring(currentPos.offset.toInt().coerceIn(0, currentContent.length))
-        val newContent = beforeCursor + text + afterCursor
+                val beforeCursor = currentContent.substring(0, currentPos.offset.toInt().coerceIn(0, currentContent.length))
+                val afterCursor = currentContent.substring(currentPos.offset.toInt().coerceIn(0, currentContent.length))
+                val newContent = beforeCursor + text + afterCursor
 
-        _currentContent.value = newContent
+                _currentContent.value = newContent
 
-        val lines = if (newContent.isEmpty()) 1 else newContent.split('\n').size
-        _totalLines.value = lines
+                val lines = if (newContent.isEmpty()) 1 else newContent.split('\n').size
+                _totalLines.value = lines
 
-        val currentRange = _visibleRange.value
-        if (currentRange.last < lines - 1) {
-            _visibleRange.value = currentRange.first..minOf(currentRange.first + 50, lines - 1)
-        }
+                val currentRange = _visibleRange.value
+                if (currentRange.last < lines - 1) {
+                    _visibleRange.value = currentRange.first..minOf(currentRange.first + 50, lines - 1)
+                }
 
-        val newOffset = currentPos.offset + text.length
-        val newPosition = TextPosition(
-            offset = newOffset,
-            line = currentPos.line + text.count { it == '\n' },
-            column = if (text.contains('\n')) {
-                text.length - text.lastIndexOf('\n') - 1
-            } else {
-                currentPos.column + text.length
+                val newOffset = currentPos.offset + text.length
+                val newPosition = TextPosition(
+                    offset = newOffset,
+                    line = currentPos.line + text.count { it == '\n' },
+                    column = if (text.contains('\n')) {
+                        text.length - text.lastIndexOf('\n') - 1
+                    } else {
+                        currentPos.column + text.length
+                    }
+                )
+                _cursorPosition.value = newPosition
+
+                // Update state to mark as modified
+                _state.value = currentState.copy(isModified = true)
             }
-        )
-        _cursorPosition.value = newPosition
+            else -> {
+                log(tag, Logging.Priority.WARN) { "Cannot insert text - no file open" }
+            }
+        }
     }
 
     suspend fun deleteSelection(): Result<String> {
-        val resources = _resources.value ?: return Result.failure(
-            IllegalStateException("Editor engine not initialized")
-        )
+        val currentState = _state.value
 
-        val selection = _selectionRange.value ?: return Result.failure(
-            IllegalStateException("No selection to delete")
-        )
+        return when (currentState) {
+            is EditorState.Loaded -> {
+                val selection = _selectionRange.value ?: return Result.failure(
+                    IllegalStateException("No selection to delete")
+                )
 
-        return try {
-            val result = resources.textBuffer.deleteText(selection.first, selection.second)
-            if (result.isSuccess) {
-                _selectionRange.value = null
-                _cursorPosition.value = selection.first
-            } else {
-                _error.value = result.exceptionOrNull()
+                try {
+                    val result = currentState.resources.textBuffer.deleteText(selection.first, selection.second)
+                    if (result.isSuccess) {
+                        _selectionRange.value = null
+                        _cursorPosition.value = selection.first
+                        _state.value = currentState.copy(isModified = true)
+                    } else {
+                        _error.value = result.exceptionOrNull()
+                    }
+                    result
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "Failed to delete selection - ${e.asLog()}" }
+                    _error.value = e
+                    Result.failure(e)
+                }
             }
-            result
-        } catch (e: Exception) {
-            log(tag, Logging.Priority.ERROR) { "Failed to delete selection - ${e.asLog()}" }
-            _error.value = e
-            Result.failure(e)
+            else -> {
+                val error = IllegalStateException("Cannot delete selection - no file open")
+                log(tag, Logging.Priority.WARN) { error.message ?: "Unknown error" }
+                Result.failure(error)
+            }
         }
     }
 
@@ -349,18 +427,25 @@ class EditorEngine @AssistedInject constructor(
             return Result.success(emptyList())
         }
 
-        val resources = _resources.value ?: return Result.failure(
-            IllegalStateException("Editor engine not initialized")
-        )
+        val currentState = _state.value
 
-        return try {
-            val results = resources.textBuffer.search(query, _cursorPosition.value, ignoreCase = true)
-            _searchResults.value = results
-            Result.success(results)
-        } catch (e: Exception) {
-            log(tag, Logging.Priority.ERROR) { "Failed to search - ${e.asLog()}" }
-            _error.value = e
-            Result.failure(e)
+        return when (currentState) {
+            is EditorState.Loaded -> {
+                try {
+                    val results = currentState.resources.textBuffer.search(query, _cursorPosition.value, ignoreCase = true)
+                    _searchResults.value = results
+                    Result.success(results)
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "Failed to search - ${e.asLog()}" }
+                    _error.value = e
+                    Result.failure(e)
+                }
+            }
+            else -> {
+                val error = IllegalStateException("Cannot search - no file open")
+                log(tag, Logging.Priority.WARN) { error.message ?: "Unknown error" }
+                Result.failure(error)
+            }
         }
     }
 
@@ -391,7 +476,7 @@ class EditorEngine @AssistedInject constructor(
 
             Result.success(Unit)
         } catch (e: Exception) {
-            log(tag, Logging.Priority.ERROR) { "Failed to go to line: $lineNumber - ${e.asLog()}" }
+            log(tag, ERROR) { "Failed to go to line: $lineNumber - ${e.asLog()}" }
             _error.value = e
             Result.failure(e)
         }
@@ -400,6 +485,12 @@ class EditorEngine @AssistedInject constructor(
     suspend fun updateVisibleRange(startLine: Int, endLine: Int) {
         if (isInitializing) {
             log(tag) { "Ignoring visible range update during initialization: $startLine..$endLine" }
+            return
+        }
+
+        val currentState = _state.value
+        if (currentState !is EditorState.Loaded) {
+            log(tag) { "Ignoring visible range update - no file loaded" }
             return
         }
 
@@ -414,54 +505,71 @@ class EditorEngine @AssistedInject constructor(
             _visibleRange.value = newRange
 
             // Load content for the new visible range
-            val resources = _resources.value
-            if (resources != null) {
-                try {
-                    val contentResult = resources.textBuffer.getTextForRange(constrainedStart, constrainedEnd)
-                    if (contentResult.isSuccess) {
-                        _currentContent.value = contentResult.getOrNull() ?: ""
-                        log(tag) { "Loaded content for range: $constrainedStart..$constrainedEnd" }
-                    } else {
-                        log(tag, Logging.Priority.WARN) { "Failed to load content for range: ${contentResult.exceptionOrNull()?.asLog()}" }
-                    }
-                } catch (e: Exception) {
-                    log(tag, Logging.Priority.ERROR) { "Error loading content for visible range - ${e.asLog()}" }
+            try {
+                val contentResult = currentState.resources.textBuffer.getTextForRange(constrainedStart, constrainedEnd)
+                if (contentResult.isSuccess) {
+                    _currentContent.value = contentResult.getOrNull() ?: ""
+                    log(tag) { "Loaded content for range: $constrainedStart..$constrainedEnd" }
+                } else {
+                    log(tag, Logging.Priority.WARN) { "Failed to load content for range: ${contentResult.exceptionOrNull()?.asLog()}" }
                 }
+            } catch (e: Exception) {
+                log(tag, ERROR) { "Error loading content for visible range - ${e.asLog()}" }
             }
         }
     }
 
     suspend fun undo(): Result<EditOperation?> {
-        val resources = _resources.value ?: return Result.failure(
-            IllegalStateException("Editor engine not initialized")
-        )
+        val currentState = _state.value
 
-        return try {
-            resources.textBuffer.undo()
-        } catch (e: Exception) {
-            log(tag, Logging.Priority.ERROR) { "Failed to undo - ${e.asLog()}" }
-            _error.value = e
-            Result.failure(e)
+        return when (currentState) {
+            is EditorState.Loaded -> {
+                try {
+                    currentState.resources.textBuffer.undo()
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "Failed to undo - ${e.asLog()}" }
+                    _error.value = e
+                    Result.failure(e)
+                }
+            }
+            else -> {
+                val error = IllegalStateException("Cannot undo - no file open")
+                log(tag, Logging.Priority.WARN) { error.message ?: "Unknown error" }
+                Result.failure(error)
+            }
         }
     }
 
     suspend fun redo(): Result<EditOperation?> {
-        val resources = _resources.value ?: return Result.failure(
-            IllegalStateException("Editor engine not initialized")
-        )
+        val currentState = _state.value
 
-        return try {
-            resources.textBuffer.redo()
-        } catch (e: Exception) {
-            log(tag, Logging.Priority.ERROR) { "Failed to redo - ${e.asLog()}" }
-            _error.value = e
-            Result.failure(e)
+        return when (currentState) {
+            is EditorState.Loaded -> {
+                try {
+                    currentState.resources.textBuffer.redo()
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "Failed to redo - ${e.asLog()}" }
+                    _error.value = e
+                    Result.failure(e)
+                }
+            }
+            else -> {
+                val error = IllegalStateException("Cannot redo - no file open")
+                log(tag, Logging.Priority.WARN) { error.message ?: "Unknown error" }
+                Result.failure(error)
+            }
         }
     }
 
-    fun canUndo(): Boolean = _resources.value?.textBuffer?.canUndo() ?: false
+    fun canUndo(): Boolean {
+        val currentState = _state.value
+        return (currentState as? EditorState.Loaded)?.resources?.textBuffer?.canUndo() ?: false
+    }
 
-    fun canRedo(): Boolean = _resources.value?.textBuffer?.canRedo() ?: false
+    fun canRedo(): Boolean {
+        val currentState = _state.value
+        return (currentState as? EditorState.Loaded)?.resources?.textBuffer?.canRedo() ?: false
+    }
 
     fun clearError() {
         _error.value = null
