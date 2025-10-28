@@ -1,8 +1,5 @@
 package eu.darken.butler.apps.ui.apps
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -49,9 +47,11 @@ import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.scroll.getCurrentHeightDp
 import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.rememberTopToolbarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.setHeight
+import eu.darken.butler.workspace.ui.scroll.setHeights
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
@@ -106,6 +106,12 @@ private fun AppsWorkspacePage(
     // Set the bottom bar height for scroll behavior
     bottomBarScrollBehavior.state.setHeight(64.dp)
 
+    // Configure top toolbar scroll heights after measurement
+    topToolbarScrollBehavior.state.setHeights(
+        expandedHeightDp = toolbarInfoBarHeightDp,
+        collapsedHeightDp = 0.dp
+    )
+
     // Auto-show action bar when entering selection mode
     LaunchedEffect(hasActions) {
         if (hasActions) {
@@ -125,7 +131,7 @@ private fun AppsWorkspacePage(
                     .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
                     .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
                 contentPadding = PaddingValues(
-                    top = toolbarInfoBarHeightDp,
+                    top = topToolbarScrollBehavior.state.getCurrentHeightDp(),
                     bottom = if (hasActions) 72.dp else 8.dp,
                 ),
             ) {
@@ -188,6 +194,10 @@ private fun AppsWorkspacePage(
         Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)
+                .graphicsLayer {
+                    translationY = topToolbarScrollBehavior.state.heightOffset
+                    alpha = 1f - topToolbarScrollBehavior.state.collapsedFraction
+                }
                 .onGloballyPositioned { layoutCoordinates ->
                     toolbarInfoBarHeightPx = layoutCoordinates.size.height
                 }
@@ -209,24 +219,25 @@ private fun AppsWorkspacePage(
         }
 
         // Floating Bottom ActionBar - Selection mode
-        AnimatedVisibility(
-                visible = hasActions,
+        if (hasActions) {
+            WorkspaceActionBar(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(horizontal = 8.dp, vertical = 8.dp),
-                enter = slideInVertically(initialOffsetY = { it }),
-                exit = slideOutVertically(targetOffsetY = { it }),
-            ) {
-                WorkspaceActionBar(
-                    actions = state.availableActions,
-                    onActionClick = { action ->
-                        when (val appsAction = action as AppsAction) {
-                            is AppsAction.DeselectAll -> vm?.onClearSelection()
-                            else -> vm?.onAction(appsAction)
-                        }
+                    .padding(horizontal = 8.dp, vertical = 8.dp)
+                    .graphicsLayer {
+                        // Immediate snap behavior: fully visible or fully hidden
+                        alpha = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 0f else 1f
+                        translationY = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 64.dp.toPx() else 0f
                     },
-                )
-            }
+                actions = state.availableActions,
+                onActionClick = { action ->
+                    when (val appsAction = action as AppsAction) {
+                        is AppsAction.DeselectAll -> vm?.onClearSelection()
+                        else -> vm?.onAction(appsAction)
+                    }
+                },
+            )
+        }
     }
 
     // Dialog Host
