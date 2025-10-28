@@ -11,6 +11,8 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.flow.DynamicStateFlow
+import eu.darken.butler.common.flow.combine
 import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.core.engine.FileInfo
 import eu.darken.butler.editor.core.engine.SearchResult
@@ -27,16 +29,11 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.runBlocking
 import kotlinx.parcelize.Parcelize
 
 
@@ -71,45 +68,62 @@ class EditorWorkspace @AssistedInject constructor(
 
     val filePath: APath<*>? get() = arguments?.filePath
 
-    private val engineMutex = Mutex()
-    private val _engineFlow = MutableStateFlow<EditorEngine?>(null)
-    private val engineFlow: StateFlow<EditorEngine?> = _engineFlow.asStateFlow()
-
-    // Combined editor state for UI
-    val editorState: Flow<EditorState> = engineFlow
-        .filterNotNull()
-        .flatMapLatest { engine ->
-            combine(
-                engine.fileInfo,
-                engine.totalLines,
-                engine.isModified,
-                engine.currentContent,
-                engine.cursorPosition,
-                engine.selectionRange,
-                engine.searchQuery,
-                engine.searchResults,
-                engine.visibleRange,
-                engine.error,
-                editorSettings.showLineNumbers.flow,
-                editorSettings.wordWrap.flow
-            ) { values ->
-                @Suppress("UNCHECKED_CAST")
-                EditorState(
-                    fileInfo = values[0] as FileInfo?,
-                    totalLines = values[1] as Int,
-                    isModified = values[2] as Boolean,
-                    currentContent = values[3] as String,
-                    cursorPosition = values[4] as TextPosition,
-                    selectionRange = values[5] as Pair<TextPosition, TextPosition>?,
-                    searchQuery = values[6] as String,
-                    searchResults = values[7] as List<SearchResult>,
-                    visibleRange = values[8] as IntRange,
-                    error = values[9] as Throwable?,
-                    showLineNumbers = values[10] as Boolean,
-                    wordWrap = values[11] as Boolean
-                )
+    private val engineHolder = DynamicStateFlow<EditorEngine>(
+        loggingTag = tag,
+        parentScope = workspaceScope,
+        startValueProvider = {
+            val initialPath = arguments?.filePath ?: LocalPath.build("/sdcard/core.log")
+            log(tag, INFO) { "Creating initial engine with: ${initialPath?.name ?: "scratch buffer"}" }
+            editorEngineFactory.create(id, initialPath).apply {
+                initialize().getOrThrow()
+            }
+        },
+        onRelease = { engine ->
+            launch {
+                try {
+                    log(tag, VERBOSE) { "DynamicStateFlow releasing engine" }
+                    engine.release()
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "Failed to release engine in onRelease: ${e.asLog()}" }
+                }
             }
         }
+    )
+
+    // Combined editor state for UI
+    val editorState: Flow<EditorState> = engineHolder.flow.flatMapLatest { engine ->
+        combine(
+            engine.fileInfo,
+            engine.totalLines,
+            engine.isModified,
+            engine.currentContent,
+            engine.cursorPosition,
+            engine.selectionRange,
+            engine.searchQuery,
+            engine.searchResults,
+            engine.visibleRange,
+            engine.error,
+            editorSettings.showLineNumbers.flow,
+            editorSettings.wordWrap.flow,
+        ) { fileInfo, totalLines, isModified, currentContent, cursorPosition,
+            selectionRange, searchQuery, searchResults, visibleRange, error,
+            showLineNumbers, wordWrap ->
+            EditorState(
+                fileInfo = fileInfo,
+                totalLines = totalLines,
+                isModified = isModified,
+                currentContent = currentContent,
+                cursorPosition = cursorPosition,
+                selectionRange = selectionRange,
+                searchQuery = searchQuery,
+                searchResults = searchResults,
+                visibleRange = visibleRange,
+                error = error,
+                showLineNumbers = showLineNumbers,
+                wordWrap = wordWrap
+            )
+        }
+    }
 
     init {
         log(tag, INFO) { "Initialized with file: ${filePath?.name ?: "No file"}" }
@@ -144,16 +158,9 @@ class EditorWorkspace @AssistedInject constructor(
             }
             .launchIn(workspaceScope)
 
-        // Initialize editor engine with file from arguments or scratch buffer
-        workspaceScope.launch {
-            // FIXME just while developing
-            val filePathToOpen = arguments?.filePath ?: LocalPath.build("/sdcard/core.log")
-            switchEngine(filePathToOpen)
-        }
-
         // Update title based on file info
         workspaceScope.launch {
-            engineFlow.filterNotNull().flatMapLatest { engine ->
+            engineHolder.flow.flatMapLatest { engine ->
                 engine.fileInfo
             }.collect { info ->
                 updateFileInfo(info)
@@ -185,43 +192,34 @@ class EditorWorkspace @AssistedInject constructor(
         }
     }
 
-    private suspend fun switchEngine(newFilePath: APath<*>?) = engineMutex.withLock {
-        val oldEngine = _engineFlow.value
-
+    private suspend fun switchEngine(newFilePath: APath<*>?) {
         log(tag, INFO) { "Switching engine to: ${newFilePath?.name ?: "scratch buffer"}" }
 
-        // Create and initialize new engine
-        val newEngine = editorEngineFactory.create(id, newFilePath)
-        val initResult = newEngine.initialize()
+        engineHolder.updateBlocking {
+            // 'this' is the old engine (receiver of extension function)
+            // Create and initialize new engine
+            val newEngine = editorEngineFactory.create(id, newFilePath)
+            val initResult = newEngine.initialize()
 
-        if (initResult.isFailure) {
-            newEngine.release()
-            val error = initResult.exceptionOrNull() ?: Exception("Failed to initialize engine")
-            log(tag, ERROR) { "Failed to switch engine: ${error.asLog()}" }
-            throw error
-        }
-
-        // Atomic switch
-        _engineFlow.value = newEngine
-        log(tag, DEBUG) { "Engine switched successfully" }
-
-        // Cleanup old engine
-        if (oldEngine != null) {
-            try {
-                oldEngine.release()
-                log(tag, DEBUG) { "Old engine released" }
-            } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to release old engine: ${e.asLog()}" }
+            if (initResult.isFailure) {
+                newEngine.release()
+                val error = initResult.exceptionOrNull() ?: Exception("Failed to initialize engine")
+                log(tag, ERROR) { "Failed to switch engine: ${error.asLog()}" }
+                throw error
             }
+
+            log(tag, DEBUG) { "Engine switched successfully" }
+            // Old engine (this) cleanup happens automatically via onRelease callback
+            newEngine
         }
     }
 
     // Editor operations
     suspend fun openFile(filePath: APath<*>) = switchEngine(filePath)
     suspend fun closeFile() = switchEngine(null)
-    suspend fun saveFile() = _engineFlow.value?.saveFile() ?: Result.failure(IllegalStateException("No engine available"))
+    suspend fun saveFile() = engineHolder.value().saveFile()
     suspend fun saveFileAs(newFilePath: APath<*>): Result<Unit> {
-        val engine = _engineFlow.value ?: return Result.failure(IllegalStateException("No engine available"))
+        val engine = engineHolder.value()
 
         // Save content to new file
         val saveResult = engine.saveFileAs(newFilePath)
@@ -237,32 +235,24 @@ class EditorWorkspace @AssistedInject constructor(
             Result.failure(e)
         }
     }
-    suspend fun search(query: String) = _engineFlow.value?.search(query) ?: Result.failure(IllegalStateException("No engine available"))
-    suspend fun goToLine(lineNumber: Int) = _engineFlow.value?.goToLine(lineNumber) ?: Result.failure(IllegalStateException("No engine available"))
-    suspend fun undo() = _engineFlow.value?.undo() ?: Result.failure(IllegalStateException("No engine available"))
-    suspend fun redo() = _engineFlow.value?.redo() ?: Result.failure(IllegalStateException("No engine available"))
-    suspend fun deleteSelection() = _engineFlow.value?.deleteSelection() ?: Result.failure(IllegalStateException("No engine available"))
+    suspend fun search(query: String) = engineHolder.value().search(query)
+    suspend fun goToLine(lineNumber: Int) = engineHolder.value().goToLine(lineNumber)
+    suspend fun undo() = engineHolder.value().undo()
+    suspend fun redo() = engineHolder.value().redo()
+    suspend fun deleteSelection() = engineHolder.value().deleteSelection()
 
-    fun insertText(text: String) = _engineFlow.value?.insertText(text) ?: Unit
-    fun setCursorPosition(position: TextPosition) = _engineFlow.value?.setCursorPosition(position) ?: Unit
-    fun setSelection(start: TextPosition, end: TextPosition) = _engineFlow.value?.setSelection(start, end) ?: Unit
-    suspend fun updateVisibleRange(startLine: Int, endLine: Int) = _engineFlow.value?.updateVisibleRange(startLine, endLine) ?: Unit
-    fun clearError() = _engineFlow.value?.clearError() ?: Unit
-    fun canUndo() = _engineFlow.value?.canUndo() ?: false
-    fun canRedo() = _engineFlow.value?.canRedo() ?: false
+    fun insertText(text: String) = runBlocking { engineHolder.value().insertText(text) }
+    fun setCursorPosition(position: TextPosition) = runBlocking { engineHolder.value().setCursorPosition(position) }
+    fun setSelection(start: TextPosition, end: TextPosition) = runBlocking { engineHolder.value().setSelection(start, end) }
+    suspend fun updateVisibleRange(startLine: Int, endLine: Int) = engineHolder.value().updateVisibleRange(startLine, endLine)
+    fun clearError() = runBlocking { engineHolder.value().clearError() }
+    fun canUndo() = runBlocking { engineHolder.value().canUndo() }
+    fun canRedo() = runBlocking { engineHolder.value().canRedo() }
 
-    override suspend fun release() = engineMutex.withLock {
+    override suspend fun release() {
         log(tag, INFO) { "release()" }
-
-        // Release current engine
-        try {
-            _engineFlow.value?.release()
-            _engineFlow.value = null
-        } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to release engine: ${e.asLog()}" }
-        }
-
         workspaceScope.cancel()
+        // DynamicStateFlow's onRelease callback handles engine cleanup automatically
     }
 
     @Parcelize
