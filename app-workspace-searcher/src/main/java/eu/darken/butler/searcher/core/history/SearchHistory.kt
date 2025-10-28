@@ -42,7 +42,8 @@ class SearchHistory @Inject constructor(
         val now = Clock.System.now()
 
         // Check if we have a recent identical search (within last 5 minutes)
-        val existingEntry = searchHistoryDao.getLatestByQuery(query.query)
+        val serializedQuery = converter.fromSearchQuery(query)
+        val existingEntry = searchHistoryDao.getLatestByFullQuery(serializedQuery)
 
         val entityId = if (existingEntry != null) {
             val timeDiff = now - existingEntry.searchedAt

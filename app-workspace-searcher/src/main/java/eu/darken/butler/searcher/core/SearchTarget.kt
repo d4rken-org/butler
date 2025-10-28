@@ -1,6 +1,8 @@
 package eu.darken.butler.searcher.core
 
 import android.os.Parcelable
+import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
@@ -18,7 +20,7 @@ sealed class SearchTarget : Parcelable {
         val label: String? = null,
     ) : SearchTarget() {
 
-        fun displayText(): String = label ?: abbreviate(path)
+        val displayText: CaString = label?.toCaString() ?: path.userReadablePath
 
         companion object {
             fun from(path: APath<*>) = Path(
@@ -26,20 +28,6 @@ sealed class SearchTarget : Parcelable {
                 enabled = true,
                 label = null
             )
-
-            private fun abbreviate(path: APath<*>): String {
-                val fullPath = path.path
-
-                val segments = fullPath.split("/")
-                val lastSegment = segments.lastOrNull { it.isNotEmpty() }
-
-                return when {
-                    fullPath.length <= 20 -> fullPath
-                    lastSegment != null && lastSegment.length > 1 -> lastSegment
-                    fullPath == "/" || fullPath == "/storage/emulated/0" -> fullPath
-                    else -> "…${fullPath.takeLast(17)}"
-                }
-            }
         }
     }
 }

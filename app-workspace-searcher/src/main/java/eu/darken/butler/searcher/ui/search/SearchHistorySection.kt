@@ -33,13 +33,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.common.ui.SwipeToDismissItem
 import eu.darken.butler.searcher.R
-import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchTarget
+import eu.darken.butler.searcher.core.history.SearchHistory
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -96,7 +97,7 @@ fun SearchHistoryItem(
     modifier: Modifier = Modifier,
 ) {
     SwipeToDismissItem(
-        modifier = modifier            .fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         onDismiss = onItemRemove,
         dismissThreshold = 0.5f,
         backgroundShape = RoundedCornerShape(12.dp),
@@ -147,14 +148,11 @@ fun SearchHistoryItem(
                     )
                 }
 
-                // Line 2: Path with icon (show first path if multiple)
-                historyItem.searchQuery?.targets?.firstOrNull()?.let { target ->
-                    val pathString = when (target) {
-                        is SearchTarget.Path -> target.path.path
-                    }
+                // Line 2: Paths with icon
+                historyItem.searchQuery?.targets?.takeIf { it.isNotEmpty() }?.let { targets ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.Top
                     ) {
                         Icon(
                             imageVector = Icons.TwoTone.Folder,
@@ -163,14 +161,24 @@ fun SearchHistoryItem(
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = pathString,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.StartEllipsis,
-                            modifier = Modifier.weight(1f)
-                        )
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            targets.forEach { target ->
+                                when (target) {
+                                    is SearchTarget.Path -> {
+                                        Text(
+                                            text = target.displayText.asComposable(),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -224,7 +232,11 @@ private fun SearchHistoryItemPreview() {
                 baseQuery = "gradle build",
                 searchQuery = SearchQuery.create(
                     query = "gradle build",
-                    paths = listOf(LocalPath.build("/home/user/projects")),
+                    paths = listOf(
+                        LocalPath.build("/storage/emulated/0/Documents"),
+                        LocalPath.build("/storage/emulated/0/Download"),
+                        LocalPath.build("/storage/emulated/0/Music"),
+                    ),
                     caseSensitive = false,
                     wholeWord = false,
                     useRegex = false

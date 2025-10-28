@@ -47,6 +47,9 @@ interface SearchHistoryDao {
     @Query("SELECT * FROM search_history WHERE baseQuery = :query ORDER BY searchedAt DESC LIMIT 1")
     suspend fun getLatestByQuery(query: String): SearchHistoryEntity?
 
+    @Query("SELECT * FROM search_history WHERE rawQuery = :serializedQuery ORDER BY searchedAt DESC LIMIT 1")
+    suspend fun getLatestByFullQuery(serializedQuery: String): SearchHistoryEntity?
+
     @Query("UPDATE search_history SET searchedAt = :timestamp WHERE id = :id")
     suspend fun updateTimestamp(id: String, timestamp: Instant)
 }
