@@ -10,6 +10,14 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.editor.core.engine.ChunkManager
+import eu.darken.butler.editor.core.engine.EditorEngine
+import eu.darken.butler.editor.core.engine.FileInfo
+import eu.darken.butler.editor.core.engine.MemoryManager
+import eu.darken.butler.editor.core.engine.MemoryStats
+import eu.darken.butler.editor.core.engine.SearchResult
+import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
@@ -145,7 +153,8 @@ class EditorWorkspace @AssistedInject constructor(
 
         // Initialize editor engine
         workspaceScope.launch {
-            editorEngine.initialize(filePath, isReadOnly)
+            // FIXME for testing
+            editorEngine.initialize(LocalPath.build("/sdcard/core.log"), isReadOnly)
         }
 
         // Update title based on file info

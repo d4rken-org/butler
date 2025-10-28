@@ -1,4 +1,4 @@
-package eu.darken.butler.editor.core
+package eu.darken.butler.editor.core.engine
 
 import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
 import eu.darken.butler.common.debug.logging.asLog
@@ -12,6 +12,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.LinkedList
 import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 
 class ChunkedTextBuffer @AssistedInject constructor(
@@ -405,8 +406,12 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 insertText(operation.position, operation.deletedText)
             }
             is EditOperation.Replace -> {
-                replaceText(operation.position, 
-                    TextPosition(operation.position.offset + operation.newText.length, operation.position.line, operation.position.column),
+                replaceText(operation.position,
+                    TextPosition(
+                        operation.position.offset + operation.newText.length,
+                        operation.position.line,
+                        operation.position.column
+                    ),
                     operation.oldText)
             }
         }
@@ -437,7 +442,11 @@ class ChunkedTextBuffer @AssistedInject constructor(
             }
             is EditOperation.Replace -> {
                 replaceText(operation.position,
-                    TextPosition(operation.position.offset + operation.oldText.length, operation.position.line, operation.position.column),
+                    TextPosition(
+                        operation.position.offset + operation.oldText.length,
+                        operation.position.line,
+                        operation.position.column
+                    ),
                     operation.newText)
             }
         }
@@ -508,7 +517,12 @@ class ChunkedTextBuffer @AssistedInject constructor(
         // Rebuild line index - in a real implementation, this would be more efficient
         buildLineIndex()
     }
-    
+
+    @AssistedFactory
+    interface Factory {
+        fun create(chunkManager: ChunkManager, chunkRepository: ChunkRepository): ChunkedTextBuffer
+    }
+
     companion object {
         private const val TAG = "ChunkedTextBuffer"
     }

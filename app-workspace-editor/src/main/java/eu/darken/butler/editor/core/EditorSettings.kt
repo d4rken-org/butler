@@ -9,6 +9,8 @@ import eu.darken.butler.common.datastore.PreferenceScreenData
 import eu.darken.butler.common.datastore.PreferenceStoreMapper
 import eu.darken.butler.common.datastore.createValue
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.editor.core.engine.ChunkManager
+import eu.darken.butler.editor.core.engine.MemoryManager
 import javax.inject.Inject
 import javax.inject.Singleton
 

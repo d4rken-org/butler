@@ -14,10 +14,10 @@ import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.EditorSettings
 import eu.darken.butler.editor.core.EditorWorkspace
-import eu.darken.butler.editor.core.FileInfo
-import eu.darken.butler.editor.core.MemoryStats
-import eu.darken.butler.editor.core.SearchResult
-import eu.darken.butler.editor.core.TextPosition
+import eu.darken.butler.editor.core.engine.FileInfo
+import eu.darken.butler.editor.core.engine.MemoryStats
+import eu.darken.butler.editor.core.engine.SearchResult
+import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider

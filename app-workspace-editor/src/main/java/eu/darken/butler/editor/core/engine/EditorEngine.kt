@@ -1,12 +1,15 @@
-package eu.darken.butler.editor.core
+package eu.darken.butler.editor.core.engine
 
 import eu.darken.butler.common.BuildConfigWrap
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.editor.core.sources.EditorDataSource
+import eu.darken.butler.editor.core.sources.FileDataSource
+import eu.darken.butler.editor.core.sources.InMemoryDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,69 +21,69 @@ import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
 class EditorEngine @Inject constructor(
-    private val fileDataSourceFactory: EditorModule.FileDataSourceFactory,
-    private val inMemoryDataSourceFactory: EditorModule.InMemoryDataSourceFactory,
-    private val chunkRepositoryFactory: EditorModule.ChunkRepositoryFactory,
-    private val chunkManagerFactory: EditorModule.ChunkManagerFactory,
-    private val chunkedTextBufferFactory: EditorModule.ChunkedTextBufferFactory,
+    private val fileDataSourceFactory: FileDataSource.Factory,
+    private val inMemoryDataSourceFactory: InMemoryDataSource.Factory,
+    private val chunkRepositoryFactory: ChunkRepository.Factory,
+    private val chunkManagerFactory: ChunkManager.Factory,
+    private val chunkedTextBufferFactory: ChunkedTextBuffer.Factory,
     private val memoryManager: MemoryManager,
     private val gatewaySwitch: GatewaySwitch,
 ) {
     private val tag = logTag("Editor", "Engine")
-    
+
     private data class EditorResources(
         val dataSource: EditorDataSource,
         val chunkRepository: ChunkRepository,
         val chunkManager: ChunkManager,
         val textBuffer: VirtualTextBuffer
     )
-    
+
     private val _resources = MutableStateFlow<EditorResources?>(null)
     private val resources: StateFlow<EditorResources?> = _resources.asStateFlow()
-    
+
     private val _currentContent = MutableStateFlow("")
     val currentContent: StateFlow<String> = _currentContent.asStateFlow()
-    
-    private val _cursorPosition = MutableStateFlow(TextPosition.ZERO)
+
+    private val _cursorPosition = MutableStateFlow(TextPosition.Companion.ZERO)
     val cursorPosition: StateFlow<TextPosition> = _cursorPosition.asStateFlow()
-    
+
     private val _selectionRange = MutableStateFlow<Pair<TextPosition, TextPosition>?>(null)
     val selectionRange: StateFlow<Pair<TextPosition, TextPosition>?> = _selectionRange.asStateFlow()
-    
+
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
-    
+
     private val _searchResults = MutableStateFlow<List<SearchResult>>(emptyList())
     val searchResults: StateFlow<List<SearchResult>> = _searchResults.asStateFlow()
-    
+
     private val _visibleRange = MutableStateFlow<IntRange>(0..50)
     val visibleRange: StateFlow<IntRange> = _visibleRange.asStateFlow()
-    
+
     private val _totalLines = MutableStateFlow(1)
     val totalLines: StateFlow<Int> = _totalLines.asStateFlow()
-    
+
     private val _error = MutableStateFlow<Throwable?>(null)
     val error: StateFlow<Throwable?> = _error.asStateFlow()
-    
+
     val fileInfo: Flow<FileInfo?> = resources.flatMapLatest { res ->
         res?.textBuffer?.fileInfo ?: flowOf(null)
     }
-    
+
     val isModified: Flow<Boolean> = resources.flatMapLatest { res ->
         res?.textBuffer?.isModified ?: flowOf(false)
     }
-    
+
     val memoryStats: Flow<MemoryStats> = flow {
         emit(memoryManager.getMemoryStats())
     }.catch { emit(MemoryStats(0, 0, 0, 0, 0)) }
-    
+
     val textBuffer: VirtualTextBuffer?
         get() = _resources.value?.textBuffer
-    
+
     suspend fun initialize(filePath: APath<*>?, isReadOnly: Boolean = false) {
         try {
             log(tag) { "Initializing editor engine with file: ${filePath?.name ?: "No file"}" }
-            
+
             // Create data source
             val dataSource = filePath?.let { path ->
                 fileDataSourceFactory.create(path, gatewaySwitch)
@@ -91,12 +94,12 @@ class EditorEngine @Inject constructor(
                     ""
                 }
             )
-            
+
             // Create dependent resources
             val chunkRepository = chunkRepositoryFactory.create(dataSource)
             val chunkManager = chunkManagerFactory.create(chunkRepository)
             val textBuffer = chunkedTextBufferFactory.create(chunkManager, chunkRepository)
-            
+
             // Store resources
             val resources = EditorResources(
                 dataSource = dataSource,
@@ -105,35 +108,35 @@ class EditorEngine @Inject constructor(
                 textBuffer = textBuffer
             )
             _resources.value = resources
-            
+
             // Initialize based on data source type
             when (dataSource) {
                 is FileDataSource -> {
                     log(tag) { "Initializing file data source: $filePath" }
-                    
+
                     val initResult = dataSource.initialize()
                     if (initResult.isFailure) {
                         _error.value = initResult.exceptionOrNull()
                         return
                     }
-                    
+
                     val openResult = textBuffer.openFile(filePath!!)
                     if (openResult.isFailure) {
                         _error.value = openResult.exceptionOrNull()
                         return
                     }
-                    
+
                     log(tag) { "Successfully initialized with file: $filePath" }
                 }
                 is InMemoryDataSource -> {
                     log(tag) { "Initializing in-memory data source" }
-                    
+
                     val initResult = textBuffer.initialize()
                     if (initResult.isFailure) {
                         _error.value = initResult.exceptionOrNull()
                         return
                     }
-                    
+
                     // Load initial content for DEV mode
                     if (BuildConfigWrap.BUILD_TYPE == BuildConfigWrap.BuildType.DEV) {
                         val content = dataSource.getContent()
@@ -147,42 +150,42 @@ class EditorEngine @Inject constructor(
                         _totalLines.value = 1
                         _visibleRange.value = 0..0
                     }
-                    
+
                     log(tag) { "Successfully initialized in-memory editor" }
                 }
             }
-            
+
         } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to initialize editor engine - ${e.asLog()}" }
+            log(tag, Logging.Priority.ERROR) { "Failed to initialize editor engine - ${e.asLog()}" }
             _error.value = e
         }
     }
-    
+
     suspend fun cleanup() {
         log(tag) { "Cleaning up editor engine" }
-        
+
         val resources = _resources.value
         resources?.let {
             try {
                 it.textBuffer.closeFile()
                 it.dataSource.close()
             } catch (e: Exception) {
-                log(tag, ERROR) { "Error during cleanup - ${e.asLog()}" }
+                log(tag, Logging.Priority.ERROR) { "Error during cleanup - ${e.asLog()}" }
             }
         }
-        
+
         _resources.value = null
         clearState()
     }
-    
+
     suspend fun openFile(filePath: APath<*>): Result<Unit> {
         val resources = _resources.value ?: return Result.failure(
             IllegalStateException("Editor engine not initialized")
         )
-        
+
         return try {
             log(tag) { "Opening file: $filePath" }
-            
+
             val result = resources.textBuffer.openFile(filePath)
             if (result.isFailure) {
                 _error.value = result.exceptionOrNull()
@@ -192,34 +195,34 @@ class EditorEngine @Inject constructor(
                 Result.success(Unit)
             }
         } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to open file: $filePath - ${e.asLog()}" }
+            log(tag, Logging.Priority.ERROR) { "Failed to open file: $filePath - ${e.asLog()}" }
             _error.value = e
             Result.failure(e)
         }
     }
-    
+
     suspend fun closeFile(): Result<Unit> {
         val resources = _resources.value ?: return Result.failure(
             IllegalStateException("Editor engine not initialized")
         )
-        
+
         return try {
             resources.textBuffer.closeFile()
             clearState()
             log(tag) { "File closed" }
             Result.success(Unit)
         } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to close file - ${e.asLog()}" }
+            log(tag, Logging.Priority.ERROR) { "Failed to close file - ${e.asLog()}" }
             _error.value = e
             Result.failure(e)
         }
     }
-    
+
     suspend fun saveFile(): Result<Unit> {
         val resources = _resources.value ?: return Result.failure(
             IllegalStateException("Editor engine not initialized")
         )
-        
+
         return try {
             val result = resources.textBuffer.saveFile()
             if (result.isFailure) {
@@ -227,37 +230,37 @@ class EditorEngine @Inject constructor(
             }
             result
         } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to save file - ${e.asLog()}" }
+            log(tag, Logging.Priority.ERROR) { "Failed to save file - ${e.asLog()}" }
             _error.value = e
             Result.failure(e)
         }
     }
-    
+
     fun insertText(text: String) {
         val resources = _resources.value
         if (resources == null) {
-            log(tag, WARN) { "Cannot insert text - no resources available" }
+            log(tag, Logging.Priority.WARN) { "Cannot insert text - no resources available" }
             return
         }
-        
+
         // TEMPORARY FIX: Bypass complex text buffer and directly update content
         val currentContent = _currentContent.value
         val currentPos = _cursorPosition.value
-        
+
         val beforeCursor = currentContent.substring(0, currentPos.offset.toInt().coerceIn(0, currentContent.length))
         val afterCursor = currentContent.substring(currentPos.offset.toInt().coerceIn(0, currentContent.length))
         val newContent = beforeCursor + text + afterCursor
-        
+
         _currentContent.value = newContent
-        
+
         val lines = if (newContent.isEmpty()) 1 else newContent.split('\n').size
         _totalLines.value = lines
-        
+
         val currentRange = _visibleRange.value
         if (currentRange.last < lines - 1) {
             _visibleRange.value = currentRange.first..minOf(currentRange.first + 50, lines - 1)
         }
-        
+
         val newOffset = currentPos.offset + text.length
         val newPosition = TextPosition(
             offset = newOffset,
@@ -270,16 +273,16 @@ class EditorEngine @Inject constructor(
         )
         _cursorPosition.value = newPosition
     }
-    
+
     suspend fun deleteSelection(): Result<String> {
         val resources = _resources.value ?: return Result.failure(
             IllegalStateException("Editor engine not initialized")
         )
-        
+
         val selection = _selectionRange.value ?: return Result.failure(
             IllegalStateException("No selection to delete")
         )
-        
+
         return try {
             val result = resources.textBuffer.deleteText(selection.first, selection.second)
             if (result.isSuccess) {
@@ -290,129 +293,129 @@ class EditorEngine @Inject constructor(
             }
             result
         } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to delete selection - ${e.asLog()}" }
+            log(tag, Logging.Priority.ERROR) { "Failed to delete selection - ${e.asLog()}" }
             _error.value = e
             Result.failure(e)
         }
     }
-    
+
     fun setCursorPosition(position: TextPosition) {
         _cursorPosition.value = position
         _selectionRange.value = null
     }
-    
+
     fun setSelection(start: TextPosition, end: TextPosition) {
         _selectionRange.value = start to end
     }
-    
+
     suspend fun search(query: String): Result<List<SearchResult>> {
         _searchQuery.value = query
-        
+
         if (query.isEmpty()) {
             _searchResults.value = emptyList()
             return Result.success(emptyList())
         }
-        
+
         val resources = _resources.value ?: return Result.failure(
             IllegalStateException("Editor engine not initialized")
         )
-        
+
         return try {
             val results = resources.textBuffer.search(query, _cursorPosition.value, ignoreCase = true)
             _searchResults.value = results
             Result.success(results)
         } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to search - ${e.asLog()}" }
+            log(tag, Logging.Priority.ERROR) { "Failed to search - ${e.asLog()}" }
             _error.value = e
             Result.failure(e)
         }
     }
-    
+
     suspend fun goToLine(lineNumber: Int): Result<Unit> {
         return try {
             val totalLines = _totalLines.value
             if (lineNumber < 0 || lineNumber >= totalLines) {
                 return Result.failure(IllegalArgumentException("Line number out of range"))
             }
-            
+
             val lines = _currentContent.value.split('\n')
             var offset = 0
             for (i in 0 until lineNumber) {
                 offset += lines[i].length + 1 // +1 for newline
             }
-            
+
             val position = TextPosition(
                 offset = offset.toLong(),
                 line = lineNumber,
                 column = 0
             )
             _cursorPosition.value = position
-            
+
             // Update visible range to include this line
             val visibleStart = (lineNumber - 25).coerceAtLeast(0)
             val visibleEnd = (lineNumber + 25).coerceAtMost(totalLines - 1)
             updateVisibleRange(visibleStart, visibleEnd)
-            
+
             Result.success(Unit)
         } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to go to line: $lineNumber - ${e.asLog()}" }
+            log(tag, Logging.Priority.ERROR) { "Failed to go to line: $lineNumber - ${e.asLog()}" }
             _error.value = e
             Result.failure(e)
         }
     }
-    
+
     fun updateVisibleRange(startLine: Int, endLine: Int) {
         val totalLines = _totalLines.value
         if (totalLines <= 0) return
-        
+
         val constrainedStart = startLine.coerceIn(0, totalLines - 1)
         val constrainedEnd = endLine.coerceIn(constrainedStart, totalLines - 1)
         val newRange = constrainedStart..constrainedEnd
-        
+
         if (_visibleRange.value != newRange) {
             _visibleRange.value = newRange
         }
     }
-    
+
     suspend fun undo(): Result<EditOperation?> {
         val resources = _resources.value ?: return Result.failure(
             IllegalStateException("Editor engine not initialized")
         )
-        
+
         return try {
             resources.textBuffer.undo()
         } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to undo - ${e.asLog()}" }
+            log(tag, Logging.Priority.ERROR) { "Failed to undo - ${e.asLog()}" }
             _error.value = e
             Result.failure(e)
         }
     }
-    
+
     suspend fun redo(): Result<EditOperation?> {
         val resources = _resources.value ?: return Result.failure(
             IllegalStateException("Editor engine not initialized")
         )
-        
+
         return try {
             resources.textBuffer.redo()
         } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to redo - ${e.asLog()}" }
+            log(tag, Logging.Priority.ERROR) { "Failed to redo - ${e.asLog()}" }
             _error.value = e
             Result.failure(e)
         }
     }
-    
+
     fun canUndo(): Boolean = _resources.value?.textBuffer?.canUndo() ?: false
-    
+
     fun canRedo(): Boolean = _resources.value?.textBuffer?.canRedo() ?: false
-    
+
     fun clearError() {
         _error.value = null
     }
-    
+
     private fun clearState() {
         _currentContent.value = ""
-        _cursorPosition.value = TextPosition.ZERO
+        _cursorPosition.value = TextPosition.Companion.ZERO
         _selectionRange.value = null
         _error.value = null
         _searchQuery.value = ""
@@ -420,7 +423,7 @@ class EditorEngine @Inject constructor(
         _visibleRange.value = 0..50
         _totalLines.value = 1
     }
-    
+
     companion object {
         private fun generateDebugContent(): String {
             return """

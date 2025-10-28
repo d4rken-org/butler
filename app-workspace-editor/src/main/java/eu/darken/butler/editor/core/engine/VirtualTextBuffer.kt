@@ -1,4 +1,4 @@
-package eu.darken.butler.editor.core
+package eu.darken.butler.editor.core.engine
 
 import eu.darken.butler.common.files.APath
 import kotlinx.coroutines.flow.StateFlow

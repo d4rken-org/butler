@@ -1,7 +1,7 @@
 package eu.darken.butler.editor.ui.editor
 
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.editor.core.TextPosition
+import eu.darken.butler.editor.core.engine.TextPosition
 
 /**
  * Sealed interface representing all page-level actions in the Editor workspace.

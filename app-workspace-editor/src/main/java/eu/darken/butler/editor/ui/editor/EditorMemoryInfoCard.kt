@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Storage
@@ -23,8 +22,8 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.editor.R
-import eu.darken.butler.editor.core.MemoryStats
-import eu.darken.butler.editor.core.TextPosition
+import eu.darken.butler.editor.core.engine.MemoryStats
+import eu.darken.butler.editor.core.engine.TextPosition
 
 @Composable
 fun EditorMemoryInfoCard(

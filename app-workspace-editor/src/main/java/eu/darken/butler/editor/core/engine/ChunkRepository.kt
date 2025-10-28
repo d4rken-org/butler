@@ -1,12 +1,14 @@
-package eu.darken.butler.editor.core
+package eu.darken.butler.editor.core.engine
 
 import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.editor.core.sources.EditorDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.time.Instant
@@ -118,7 +120,12 @@ class ChunkRepository @AssistedInject constructor(
     private fun extractOffsetFromChunkId(chunkId: TextChunk.ChunkId): Long {
         return chunkId.value.removePrefix("chunk_").toLongOrNull() ?: 0L
     }
-    
+
+    @AssistedFactory
+    interface Factory {
+        fun create(dataSource: EditorDataSource): ChunkRepository
+    }
+
     companion object {
         private const val TAG = "ChunkRepository"
     }
