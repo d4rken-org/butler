@@ -36,7 +36,7 @@ class EditorEngine @AssistedInject constructor(
         val dataSource: EditorDataSource,
         val chunkRepository: ChunkRepository,
         val chunkManager: ChunkManager,
-        val textBuffer: VirtualTextBuffer
+        val textBuffer: ChunkedTextBuffer
     )
 
     private val _resources = MutableStateFlow<EditorResources?>(null)
@@ -74,7 +74,7 @@ class EditorEngine @AssistedInject constructor(
         res?.textBuffer?.isModified ?: flowOf(false)
     }
 
-    val textBuffer: VirtualTextBuffer?
+    val textBuffer: ChunkedTextBuffer?
         get() = _resources.value?.textBuffer
 
     suspend fun initialize(filePath: APath<*>?, isReadOnly: Boolean = false) {

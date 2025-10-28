@@ -20,22 +20,22 @@ class ChunkedTextBuffer @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     @Assisted private val chunkManager: ChunkManager,
     @Assisted private val chunkRepository: ChunkRepository
-) : VirtualTextBuffer {
+) {
 
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "ChunkedTextBuffer")
 
 
     private val _fileInfo = MutableStateFlow<FileInfo?>(null)
-    override val fileInfo: StateFlow<FileInfo?> = _fileInfo.asStateFlow()
+    val fileInfo: StateFlow<FileInfo?> = _fileInfo.asStateFlow()
 
     private val _totalLines = MutableStateFlow(0)
-    override val totalLines: StateFlow<Int> = _totalLines.asStateFlow()
+    val totalLines: StateFlow<Int> = _totalLines.asStateFlow()
 
     private val _totalLength = MutableStateFlow(0L)
-    override val totalLength: StateFlow<Long> = _totalLength.asStateFlow()
+    val totalLength: StateFlow<Long> = _totalLength.asStateFlow()
 
     private val _isModified = MutableStateFlow(false)
-    override val isModified: StateFlow<Boolean> = _isModified.asStateFlow()
+    val isModified: StateFlow<Boolean> = _isModified.asStateFlow()
 
     private val bufferMutex = Mutex()
     private val lineIndex = mutableListOf<LineInfo>()
@@ -44,7 +44,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
     private var chunkIds: List<TextChunk.ChunkId> = emptyList()
 
-    override suspend fun initialize(): Result<Unit> = bufferMutex.withLock {
+    suspend fun initialize(): Result<Unit> = bufferMutex.withLock {
         try {
             // Close any existing content
             closeFileInternal()
@@ -100,7 +100,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         }
     }
 
-    override suspend fun release(): Result<Unit> = bufferMutex.withLock {
+    suspend fun release(): Result<Unit> = bufferMutex.withLock {
         try {
             closeFileInternal()
             Result.success(Unit)
@@ -130,7 +130,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         _isModified.value = false
     }
 
-    override suspend fun getText(startOffset: Long, endOffset: Long): Result<String> {
+    suspend fun getText(startOffset: Long, endOffset: Long): Result<String> {
         try {
             val chunks = chunkManager.getChunksInRange(startOffset, endOffset)
             val stringBuilder = StringBuilder()
@@ -161,7 +161,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         }
     }
 
-    override suspend fun getTextForLine(lineNumber: Int): Result<String> {
+    suspend fun getTextForLine(lineNumber: Int): Result<String> {
         if (lineNumber < 0 || lineNumber >= lineIndex.size) {
             return Result.failure(IndexOutOfBoundsException("Line number $lineNumber is out of bounds"))
         }
@@ -170,7 +170,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         return getText(lineInfo.startOffset, lineInfo.endOffset)
     }
 
-    override suspend fun getTextForRange(startLine: Int, endLine: Int): Result<String> {
+    suspend fun getTextForRange(startLine: Int, endLine: Int): Result<String> {
         if (startLine < 0 || endLine >= lineIndex.size || startLine > endLine) {
             return Result.failure(IndexOutOfBoundsException("Invalid line range: $startLine-$endLine"))
         }
@@ -181,7 +181,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         return getText(startOffset, endOffset)
     }
 
-    override suspend fun insertText(position: TextPosition, text: String): Result<TextPosition> = bufferMutex.withLock {
+    suspend fun insertText(position: TextPosition, text: String): Result<TextPosition> = bufferMutex.withLock {
         try {
             // Find the chunk containing this position
             val chunk = findChunkForOffset(position.offset)
@@ -239,7 +239,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         }
     }
 
-    override suspend fun deleteText(startPosition: TextPosition, endPosition: TextPosition): Result<String> =
+    suspend fun deleteText(startPosition: TextPosition, endPosition: TextPosition): Result<String> =
         bufferMutex.withLock {
             try {
                 // Get the text being deleted first
@@ -290,7 +290,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
             }
         }
 
-    override suspend fun replaceText(
+    suspend fun replaceText(
         startPosition: TextPosition,
         endPosition: TextPosition,
         newText: String
@@ -303,7 +303,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         }
     }
 
-    override suspend fun findPosition(offset: Long): TextPosition {
+    suspend fun findPosition(offset: Long): TextPosition {
         // Binary search through line index
         var left = 0
         var right = lineIndex.size - 1
@@ -326,7 +326,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         return TextPosition(offset, lineIndex.size - 1, 0)
     }
 
-    override suspend fun findOffset(line: Int, column: Int): Long {
+    suspend fun findOffset(line: Int, column: Int): Long {
         if (line < 0 || line >= lineIndex.size) {
             return _totalLength.value
         }
@@ -338,7 +338,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         return lineInfo.startOffset + clampedColumn
     }
 
-    override suspend fun search(query: String, startFrom: TextPosition?, ignoreCase: Boolean): List<SearchResult> {
+    suspend fun search(query: String, startFrom: TextPosition?, ignoreCase: Boolean): List<SearchResult> {
         val results = mutableListOf<SearchResult>()
 
         for (chunkId in chunkIds) {
@@ -349,7 +349,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         return results.sortedBy { it.position.offset }
     }
 
-    override suspend fun saveFile(): Result<Unit> {
+    suspend fun saveFile(): Result<Unit> {
         return try {
             chunkManager.saveAllDirtyChunks()
             chunkRepository.saveFile()
@@ -360,12 +360,12 @@ class ChunkedTextBuffer @AssistedInject constructor(
         }
     }
 
-    override suspend fun saveFileAs(filePath: APath<*>): Result<Unit> {
+    suspend fun saveFileAs(filePath: APath<*>): Result<Unit> {
         // This would require implementing file copying with chunks
         return Result.failure(UnsupportedOperationException("Save As not implemented yet"))
     }
 
-    override suspend fun undo(): Result<EditOperation?> = bufferMutex.withLock {
+    suspend fun undo(): Result<EditOperation?> = bufferMutex.withLock {
         if (undoStack.isEmpty()) {
             return@withLock Result.success(null)
         }
@@ -402,7 +402,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         Result.success(operation)
     }
 
-    override suspend fun redo(): Result<EditOperation?> = bufferMutex.withLock {
+    suspend fun redo(): Result<EditOperation?> = bufferMutex.withLock {
         if (redoStack.isEmpty()) {
             return@withLock Result.success(null)
         }
@@ -439,9 +439,9 @@ class ChunkedTextBuffer @AssistedInject constructor(
         Result.success(operation)
     }
 
-    override fun canUndo(): Boolean = undoStack.isNotEmpty()
+    fun canUndo(): Boolean = undoStack.isNotEmpty()
 
-    override fun canRedo(): Boolean = redoStack.isNotEmpty()
+    fun canRedo(): Boolean = redoStack.isNotEmpty()
 
     private suspend fun buildLineIndex() {
         lineIndex.clear()
