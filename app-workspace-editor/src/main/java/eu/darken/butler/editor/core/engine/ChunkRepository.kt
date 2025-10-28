@@ -21,7 +21,6 @@ class ChunkRepository @AssistedInject constructor(
 
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "ChunkRepository")
 
-
     private var chunkSize: Long = ChunkManager.DEFAULT_CHUNK_SIZE
 
     suspend fun getFileInfo(): FileInfo? {

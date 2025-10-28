@@ -12,13 +12,7 @@ interface VirtualTextBuffer {
 
     suspend fun initialize(): Result<Unit>
 
-    @Deprecated(
-        message = "Use initialize() instead. This method now delegates to initialize().",
-        replaceWith = ReplaceWith("initialize()")
-    )
-    suspend fun openFile(filePath: APath<*>): Result<Unit>
-
-    suspend fun closeFile(): Result<Unit>
+    suspend fun release(): Result<Unit>
 
     suspend fun getText(startOffset: Long, endOffset: Long): Result<String>
 
@@ -54,10 +48,3 @@ interface VirtualTextBuffer {
 
     fun canRedo(): Boolean
 }
-
-data class BufferState(
-    val isLoading: Boolean = false,
-    val error: Throwable? = null,
-    val loadedChunks: Set<TextChunk.ChunkId> = emptySet(),
-    val visibleRange: LongRange? = null
-)

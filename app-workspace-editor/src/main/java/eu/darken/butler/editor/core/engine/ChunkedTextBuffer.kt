@@ -100,17 +100,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         }
     }
 
-    @Deprecated(
-        message = "Use initialize() instead. This method now delegates to initialize().",
-        replaceWith = ReplaceWith("initialize()")
-    )
-    override suspend fun openFile(filePath: APath<*>): Result<Unit> {
-        // This method delegates to initialize() for backward compatibility
-        log(tag, WARN) { "openFile() is deprecated, use initialize() instead" }
-        return initialize()
-    }
-
-    override suspend fun closeFile(): Result<Unit> = bufferMutex.withLock {
+    override suspend fun release(): Result<Unit> = bufferMutex.withLock {
         try {
             closeFileInternal()
             Result.success(Unit)

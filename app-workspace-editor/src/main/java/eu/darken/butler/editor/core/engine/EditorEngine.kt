@@ -18,9 +18,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 
 class EditorEngine @AssistedInject constructor(
@@ -170,7 +168,7 @@ class EditorEngine @AssistedInject constructor(
         val resources = _resources.value
         resources?.let {
             try {
-                it.textBuffer.closeFile()
+                it.textBuffer.release()
                 it.dataSource.close()
             } catch (e: Exception) {
                 log(tag, Logging.Priority.ERROR) { "Error during cleanup - ${e.asLog()}" }
@@ -221,7 +219,7 @@ class EditorEngine @AssistedInject constructor(
         )
 
         return try {
-            resources.textBuffer.closeFile()
+            resources.textBuffer.release()
             clearState()
             log(tag) { "File closed" }
             Result.success(Unit)
