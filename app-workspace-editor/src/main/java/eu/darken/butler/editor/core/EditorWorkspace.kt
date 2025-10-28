@@ -41,12 +41,12 @@ import kotlinx.parcelize.Parcelize
 class EditorWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
     @Assisted private val arguments: Arguments?,
-    private val editorEngine: EditorEngine,
+    private val editorEngineFactory: EditorEngine.Factory,
     private val editorSettings: EditorSettings,
     private val operationsManager: OperationsManager,
 ) : Workspace {
 
-    private val tag = logTag("Editor","Workspace",  id.shortTag)
+    private val tag = logTag("Editor", "Workspace", id.shortTag)
     private val workspaceScope = CoroutineScope(
         SupervisorJob() +
             CoroutineExceptionHandler { _, throwable ->
@@ -70,7 +70,9 @@ class EditorWorkspace @AssistedInject constructor(
     val chunkSize: Long get() = arguments?.chunkSize ?: ChunkManager.DEFAULT_CHUNK_SIZE
     val memoryLimit: Long get() = arguments?.memoryLimit ?: MemoryManager.DEFAULT_MAX_MEMORY_BYTES
     val isReadOnly: Boolean get() = arguments?.isReadOnly ?: false
-    
+
+    private val editorEngine = editorEngineFactory.create(id)
+
     // Expose editor state flows
     val currentContent: StateFlow<String> = editorEngine.currentContent
     val cursorPosition: StateFlow<TextPosition> = editorEngine.cursorPosition
@@ -83,7 +85,7 @@ class EditorWorkspace @AssistedInject constructor(
     val fileInfo: Flow<FileInfo?> = editorEngine.fileInfo
     val isModified: Flow<Boolean> = editorEngine.isModified
     val memoryStats: Flow<MemoryStats> = editorEngine.memoryStats
-    
+
     // Combined editor state for UI
     val editorState: Flow<EditorState> = combine(
         fileInfo,
@@ -171,7 +173,7 @@ class EditorWorkspace @AssistedInject constructor(
             filePath != null -> filePath!!.name
             else -> "Editor ${id.shortTag}"
         }
-        
+
         _info.value = _info.value.copy(title = newTitle.toCaString())
         log(tag, DEBUG) { "Updated title to: $newTitle" }
     }
@@ -188,7 +190,7 @@ class EditorWorkspace @AssistedInject constructor(
             else -> "Editor ${id.shortTag}".toCaString()
         }
     }
-    
+
     // Editor operations
     suspend fun openFile(filePath: APath<*>) = editorEngine.openFile(filePath)
     suspend fun closeFile() = editorEngine.closeFile()
@@ -198,7 +200,7 @@ class EditorWorkspace @AssistedInject constructor(
     suspend fun undo() = editorEngine.undo()
     suspend fun redo() = editorEngine.redo()
     suspend fun deleteSelection() = editorEngine.deleteSelection()
-    
+
     fun insertText(text: String) = editorEngine.insertText(text)
     fun setCursorPosition(position: TextPosition) = editorEngine.setCursorPosition(position)
     fun setSelection(start: TextPosition, end: TextPosition) = editorEngine.setSelection(start, end)
@@ -206,7 +208,7 @@ class EditorWorkspace @AssistedInject constructor(
     fun clearError() = editorEngine.clearError()
     fun canUndo() = editorEngine.canUndo()
     fun canRedo() = editorEngine.canRedo()
-    
+
     // Cleanup when workspace is destroyed
     fun cleanup() {
         workspaceScope.launch {
@@ -269,7 +271,7 @@ class EditorWorkspace @AssistedInject constructor(
     interface Factory {
         fun create(id: Workspace.Id, arguments: Arguments?): EditorWorkspace
     }
-    
+
     data class EditorState(
         val fileInfo: FileInfo? = null,
         val totalLines: Int = 0,

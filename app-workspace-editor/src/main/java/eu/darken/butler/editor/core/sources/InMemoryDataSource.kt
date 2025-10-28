@@ -3,7 +3,10 @@ package eu.darken.butler.editor.core.sources
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.editor.core.engine.FileInfo
+import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,8 +15,15 @@ import kotlinx.coroutines.flow.asStateFlow
  * In-memory data source implementation for new/unsaved documents.
  */
 class InMemoryDataSource @AssistedInject constructor(
+    @Assisted private val workspaceId: Workspace.Id,
     @Assisted private val initialContent: String
 ) : EditorDataSource {
+
+    private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "DataSource", "InMemory")
+
+    init {
+        log(tag) { "Initialized in-memory data source with initial content: ${initialContent.length} bytes" }
+    }
 
     override val fileInfo: StateFlow<FileInfo?> = MutableStateFlow(null)
 
@@ -69,6 +79,9 @@ class InMemoryDataSource @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(initialContent: String): InMemoryDataSource
+        fun create(
+            workspaceId: Workspace.Id,
+            initialContent: String,
+        ): InMemoryDataSource
     }
 }

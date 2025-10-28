@@ -7,6 +7,7 @@ import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,11 +15,12 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class ChunkManager @AssistedInject constructor(
+    @Assisted private val workspaceId: Workspace.Id,
     @Assisted private val chunkRepository: ChunkRepository,
     private val memoryManager: MemoryManager
 ) {
 
-    private val tag = logTag("ChunkManager")
+    private val tag = logTag("Editor","Workspace", workspaceId.shortTag, "Engine", "ChunkManager")
 
     private val _chunks = MutableStateFlow<Map<TextChunk.ChunkId, TextChunk>>(emptyMap())
     val chunks: StateFlow<Map<TextChunk.ChunkId, TextChunk>> = _chunks.asStateFlow()
@@ -208,7 +210,10 @@ class ChunkManager @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(chunkRepository: ChunkRepository): ChunkManager
+        fun create(
+            workspaceId: Workspace.Id,
+            chunkRepository: ChunkRepository
+        ): ChunkManager
     }
 
     companion object {

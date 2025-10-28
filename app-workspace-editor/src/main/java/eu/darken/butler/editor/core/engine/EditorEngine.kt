@@ -1,5 +1,8 @@
 package eu.darken.butler.editor.core.engine
 
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.asLog
@@ -10,6 +13,7 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.editor.core.sources.EditorDataSource
 import eu.darken.butler.editor.core.sources.FileDataSource
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
+import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,18 +22,18 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import javax.inject.Inject
 
-class EditorEngine @Inject constructor(
+class EditorEngine @AssistedInject constructor(
+    @Assisted private val workspaceId: Workspace.Id,
+    private val gatewaySwitch: GatewaySwitch,
     private val fileDataSourceFactory: FileDataSource.Factory,
     private val inMemoryDataSourceFactory: InMemoryDataSource.Factory,
     private val chunkRepositoryFactory: ChunkRepository.Factory,
     private val chunkManagerFactory: ChunkManager.Factory,
     private val chunkedTextBufferFactory: ChunkedTextBuffer.Factory,
     private val memoryManager: MemoryManager,
-    private val gatewaySwitch: GatewaySwitch,
 ) {
-    private val tag = logTag("Editor", "Engine")
+    private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine")
 
     private data class EditorResources(
         val dataSource: EditorDataSource,
@@ -86,8 +90,9 @@ class EditorEngine @Inject constructor(
 
             // Create data source
             val dataSource = filePath?.let { path ->
-                fileDataSourceFactory.create(path, gatewaySwitch)
+                fileDataSourceFactory.create(workspaceId, path, gatewaySwitch)
             } ?: inMemoryDataSourceFactory.create(
+                workspaceId,
                 if (BuildConfigWrap.BUILD_TYPE == BuildConfigWrap.BuildType.DEV) {
                     generateDebugContent()
                 } else {
@@ -96,9 +101,9 @@ class EditorEngine @Inject constructor(
             )
 
             // Create dependent resources
-            val chunkRepository = chunkRepositoryFactory.create(dataSource)
-            val chunkManager = chunkManagerFactory.create(chunkRepository)
-            val textBuffer = chunkedTextBufferFactory.create(chunkManager, chunkRepository)
+            val chunkRepository = chunkRepositoryFactory.create(workspaceId, dataSource)
+            val chunkManager = chunkManagerFactory.create(workspaceId, chunkRepository)
+            val textBuffer = chunkedTextBufferFactory.create(workspaceId, chunkManager, chunkRepository)
 
             // Store resources
             val resources = EditorResources(
@@ -422,6 +427,11 @@ class EditorEngine @Inject constructor(
         _searchResults.value = emptyList()
         _visibleRange.value = 0..50
         _totalLines.value = 1
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(workspaceId: Workspace.Id): EditorEngine
     }
 
     companion object {
