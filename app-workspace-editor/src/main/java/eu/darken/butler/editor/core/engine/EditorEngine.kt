@@ -6,6 +6,7 @@ import dagger.assisted.AssistedInject
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -29,6 +30,7 @@ import okio.use
 
 class EditorEngine @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
+    @Assisted private val filePath: APath<*>?,
     private val gatewaySwitch: GatewaySwitch,
     private val fileDataSourceFactory: FileDataSource.Factory,
     private val inMemoryDataSourceFactory: InMemoryDataSource.Factory,
@@ -132,16 +134,9 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    suspend fun openFile(filePath: APath<*>?): Result<Unit> = stateMutex.withLock {
+    suspend fun initialize(): Result<Unit> = stateMutex.withLock {
         return try {
-            log(tag) { "Opening file: ${filePath?.name ?: "in-memory editor"}" }
-
-            // Dispose existing resources if in Loaded state
-            val currentState = _state.value
-            if (currentState is EditorState.Loaded) {
-                log(tag) { "Disposing existing resources before opening new file" }
-                disposeResources(currentState.resources)
-            }
+            log(tag) { "Initializing engine with: ${filePath?.name ?: "in-memory editor"}" }
 
             // Transition to Loading state
             _state.value = if (filePath != null) {
@@ -159,7 +154,7 @@ class EditorEngine @AssistedInject constructor(
                 val dataSourceInitResult = dataSource.initialize()
                 if (dataSourceInitResult.isFailure) {
                     val error = dataSourceInitResult.exceptionOrNull() ?: Exception("Unknown error")
-                    _state.value = EditorState.Error(error, currentState)
+                    _state.value = EditorState.Error(error, _state.value)
                     _error.value = error
                     return dataSourceInitResult
                 }
@@ -169,7 +164,7 @@ class EditorEngine @AssistedInject constructor(
             val bufferInitResult = resources.textBuffer.initialize()
             if (bufferInitResult.isFailure) {
                 val error = bufferInitResult.exceptionOrNull() ?: Exception("Unknown error")
-                _state.value = EditorState.Error(error, currentState)
+                _state.value = EditorState.Error(error, _state.value)
                 _error.value = error
                 return bufferInitResult
             }
@@ -200,59 +195,13 @@ class EditorEngine @AssistedInject constructor(
                 isModified = isModifiedValue,
             )
 
-            log(tag) { "Successfully opened file: ${filePath?.name ?: "in-memory editor"}" }
+            log(tag) { "Successfully initialized engine with: ${filePath?.name ?: "in-memory editor"}" }
             isInitializing = false
             Result.success(Unit)
 
         } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to open file: ${filePath?.name} - ${e.asLog()}" }
+            log(tag, ERROR) { "Failed to initialize engine: ${filePath?.name} - ${e.asLog()}" }
             _state.value = EditorState.Error(e, _state.value)
-            _error.value = e
-            Result.failure(e)
-        }
-    }
-
-    suspend fun closeFile(): Result<Unit> = stateMutex.withLock {
-        val currentState = _state.value
-
-        return try {
-            when (currentState) {
-                is EditorState.Loaded -> {
-                    if (currentState.filePath != null) {
-                        // File-backed editor → return to fresh scratch buffer
-                        log(tag) { "Closing file: ${currentState.filePath.name}, returning to scratch buffer" }
-
-                        // Dispose file resources
-                        disposeResources(currentState.resources)
-
-                        // Open fresh scratch buffer
-                        openFile(null)
-                    } else {
-                        // Already in scratch buffer → clear content
-                        log(tag) { "Clearing scratch buffer content" }
-
-                        val dataSource = currentState.resources.dataSource as? InMemoryDataSource
-                        dataSource?.setContent("")
-
-                        // Clear UI state
-                        clearState()
-
-                        Result.success(Unit)
-                    }
-                }
-                is EditorState.Empty -> {
-                    log(tag) { "No file to close - already in Empty state" }
-                    Result.success(Unit)
-                }
-                else -> {
-                    val error = IllegalStateException("Cannot close file in state: ${currentState::class.simpleName}")
-                    log(tag, Logging.Priority.WARN) { error.message ?: "Unknown error" }
-                    Result.failure(error)
-                }
-            }
-        } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to close file - ${e.asLog()}" }
-            _state.value = EditorState.Error(e, currentState)
             _error.value = e
             Result.failure(e)
         }
@@ -312,11 +261,8 @@ class EditorEngine @AssistedInject constructor(
 
                     log(tag) { "Content streamed to: ${newFilePath.name}" }
 
-                    // Dispose old resources
-                    disposeResources(currentState.resources)
-
-                    // Reopen with new file path
-                    openFile(newFilePath)
+                    // Note: Engine remains with old source. Workspace should handle engine switch if needed.
+                    Result.success(Unit)
 
                 } catch (e: Exception) {
                     log(tag, ERROR) { "Failed to save as: ${newFilePath.name} - ${e.asLog()}" }
@@ -575,20 +521,21 @@ class EditorEngine @AssistedInject constructor(
         _error.value = null
     }
 
-    private fun clearState() {
-        _currentContent.value = ""
-        _cursorPosition.value = TextPosition.Companion.ZERO
-        _selectionRange.value = null
-        _error.value = null
-        _searchQuery.value = ""
-        _searchResults.value = emptyList()
-        _visibleRange.value = 0..50
-        _totalLines.value = 1
+    suspend fun release() {
+        log(tag, INFO) { "release()" }
+        val currentState = _state.value
+        if (currentState is EditorState.Loaded) {
+            try {
+                disposeResources(currentState.resources)
+            } catch (e: Exception) {
+                log(tag, ERROR) { "Failed to dispose resources: ${e.asLog()}" }
+            }
+        }
     }
 
     @AssistedFactory
     interface Factory {
-        fun create(workspaceId: Workspace.Id): EditorEngine
+        fun create(workspaceId: Workspace.Id, filePath: APath<*>?): EditorEngine
     }
 
     companion object {
