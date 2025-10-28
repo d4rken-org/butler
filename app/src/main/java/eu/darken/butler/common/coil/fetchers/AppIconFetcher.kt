@@ -1,6 +1,6 @@
 package eu.darken.butler.common.coil.fetchers
 
-import androidx.core.content.ContextCompat
+import androidx.appcompat.content.res.AppCompatResources
 import coil3.ImageLoader
 import coil3.asImage
 import coil3.decode.DataSource
@@ -26,7 +26,11 @@ class AppIconFetcher @Inject constructor(
         log(TAG) { "Fetching $data" }
         val baseIcon = ipcFunnel.use {
             data.icon?.get(options.context) ?: packageManager.getIcon2(data.id)
-        } ?: ContextCompat.getDrawable(options.context, R.drawable.ic_default_app_icon_24)!!
+        } ?: run {
+            val drawable = AppCompatResources.getDrawable(options.context, R.drawable.ic_default_app_icon_24)!!
+            drawable.setTintList(null) // Strip XML tint, let TintedAsyncImage apply theme-aware tint
+            drawable
+        }
 
         return ImageFetchResult(
             image = baseIcon.asImage(),
