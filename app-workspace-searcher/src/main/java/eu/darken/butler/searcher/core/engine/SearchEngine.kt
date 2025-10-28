@@ -1,7 +1,7 @@
-package eu.darken.butler.searcher.core
+package eu.darken.butler.searcher.core.engine
 
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
@@ -10,6 +10,9 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.metadata.MetadataRepo
+import eu.darken.butler.searcher.core.SearchItem
+import eu.darken.butler.searcher.core.SearchQuery
+import eu.darken.butler.searcher.core.SearchTarget
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
@@ -56,7 +59,7 @@ class SearchEngine @Inject constructor(
                 throw CancellationException("Search cancelled")
             }
 
-            log(TAG, INFO) { "Searching path: $searchPath" }
+            log(TAG, Logging.Priority.INFO) { "Searching path: $searchPath" }
 
             try {
                 when (val gateway = gatewaySwitch.getGateway(searchPath)) {
@@ -83,42 +86,42 @@ class SearchEngine @Inject constructor(
                                 filterLookup(lookup, searchQuery.filter)
                             },
                             onError = { lookup, error ->
-                                log(TAG, VERBOSE) { "Error accessing ${lookup.lookedUp}: $error" }
+                                log(TAG, Logging.Priority.VERBOSE) { "Error accessing ${lookup.lookedUp}: $error" }
                                 true // Continue walking
                             }
                         )
 
-                        typedGateway.walk(searchPath, LookupOptions.MAX, walkOptions)
+                        typedGateway.walk(searchPath, LookupOptions.Companion.MAX, walkOptions)
                             .cancellable()
                             .mapNotNull { lookup ->
                                 if (matchesSearch(lookup, searchQuery)) {
                                     resultsFound++
                                     val metadata = metadataRepo.extract(lookup)
-                                    SearchItem.fromLookup(lookup, searchQuery.query, metadata = metadata)
+                                    SearchItem.Companion.fromLookup(lookup, searchQuery.query, metadata = metadata)
                                 } else {
                                     null
                                 }
                             }
                             .onEach { result ->
                                 if (searchQuery.options.maxResults != null && resultsFound >= searchQuery.options.maxResults) {
-                                    log(TAG, INFO) { "Max results reached ($resultsFound)" }
+                                    log(TAG, Logging.Priority.INFO) { "Max results reached ($resultsFound)" }
                                     throw CancellationException("Max results reached")
                                 }
                             }
                             .collect { emit(it) }
                     }
                 }
-                log(TAG, INFO) { "Completed search for path: $searchPath" }
+                log(TAG, Logging.Priority.INFO) { "Completed search for path: $searchPath" }
             } catch (e: CancellationException) {
                 // Re-throw cancellation to stop entire search
                 throw e
             } catch (e: Exception) {
                 // Log error but continue with next path
-                log(TAG, WARN) { "Failed to search path $searchPath: ${e.message}" }
+                log(TAG, Logging.Priority.WARN) { "Failed to search path $searchPath: ${e.message}" }
             }
         }
 
-        log(TAG, INFO) { "Search completed. Scanned: $itemsScanned, Found: $resultsFound" }
+        log(TAG, Logging.Priority.INFO) { "Search completed. Scanned: $itemsScanned, Found: $resultsFound" }
     }.flowOn(dispatcherProvider.IO)
 
     private fun filterLookup(lookup: APathLookup<*>, filter: SearchQuery.Filter): Boolean {
@@ -175,7 +178,7 @@ class SearchEngine @Inject constructor(
                     }
                     regex.containsMatchIn(name)
                 } catch (e: Exception) {
-                    log(TAG, VERBOSE) { "Invalid regex: $query" }
+                    log(TAG, Logging.Priority.VERBOSE) { "Invalid regex: $query" }
                     false
                 }
             }

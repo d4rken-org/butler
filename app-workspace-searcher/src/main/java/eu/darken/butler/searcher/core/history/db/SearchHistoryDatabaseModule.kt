@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.core.db
+package eu.darken.butler.searcher.core.history.db
 
 import android.content.Context
 import androidx.room.Room

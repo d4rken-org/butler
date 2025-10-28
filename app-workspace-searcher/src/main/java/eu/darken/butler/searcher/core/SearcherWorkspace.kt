@@ -9,7 +9,9 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.issue.Issue
+import eu.darken.butler.searcher.core.engine.SearchEngine
 import eu.darken.butler.searcher.core.operations.DeleteOperation
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.workspace.core.Workspace
@@ -23,12 +25,15 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
@@ -39,6 +44,7 @@ class SearcherWorkspace @AssistedInject constructor(
     dispatcherProvider: DispatcherProvider,
     private val operationsManager: OperationsManager,
     private val deleteOperationFactory: DeleteOperation.Factory,
+    private val searchEngine: SearchEngine,
 ) : Workspace {
 
     private val tag = logTag( "Searcher","Workspace", id.shortTag)
@@ -60,6 +66,37 @@ class SearcherWorkspace @AssistedInject constructor(
             title = "Searcher ${id.shortTag}".toCaString(),
         )
     )
+
+    data class State(
+        val currentSearchQuery: SearchQuery? = null,
+        val searchStatus: SearchStatus = SearchStatus.IDLE,
+        val results: List<SearchItem> = emptyList(),
+        val progress: SearchProgress? = null,
+        val error: Exception? = null,
+    ) {
+        enum class SearchStatus {
+            IDLE, SEARCHING, COMPLETED, ERROR, CANCELLED
+        }
+
+        data class SearchProgress(
+            val currentPath: APath<*>,
+            val itemsScanned: Int,
+            val resultsFound: Int,
+        )
+    }
+
+    private val _state = MutableStateFlow(State())
+    val state: Flow<State> = _state
+
+    private val searchRequests = MutableSharedFlow<SearcherCommand.Search>(replay = 1)
+    private var activeSearchJob: Job? = null
+
+    fun search(command: SearcherCommand.Search) {
+        log(tag) { "search(): $command" }
+        scope.launch {
+            searchRequests.emit(command)
+        }
+    }
 
     data class OperationsState(
         val operations: Collection<ManagedOperation> = emptySet(),
@@ -102,18 +139,138 @@ class SearcherWorkspace @AssistedInject constructor(
                 log(tag, VERBOSE) { "Updated operation counts: active=$operationCount, attention=$attentionCount" }
             }
             .launchIn(scope)
+
+        // Process search requests
+        searchRequests
+            .onEach { command ->
+                log(tag, INFO) { "Processing search request: ${command.query}" }
+                processSearchRequest(command)
+            }
+            .launchIn(scope)
+    }
+
+    private fun processSearchRequest(command: SearcherCommand.Search) {
+        log(tag) { "processSearchRequest(): ${command.query}" }
+
+        // Cancel any active search
+        activeSearchJob?.cancel()
+
+        // Validate query
+        if (command.query.isBlank()) {
+            log(tag, WARN) { "Skipping search with blank query" }
+            return
+        }
+
+        // Validate targets
+        if (command.targets.isEmpty()) {
+            log(tag, ERROR) { "Cannot start search: No search targets" }
+            _state.update {
+                it.copy(
+                    searchStatus = State.SearchStatus.ERROR,
+                    error = IllegalArgumentException("No search targets specified"),
+                )
+            }
+            return
+        }
+
+        // Build search query
+        val searchQuery = SearchQuery(
+            query = command.query,
+            targets = command.targets,
+            filter = command.filter,
+            options = command.options,
+        )
+
+        // Set initial progress with first target
+        val initialProgress = (command.targets.firstOrNull() as? SearchTarget.Path)?.let { firstTarget ->
+            State.SearchProgress(
+                currentPath = firstTarget.path,
+                itemsScanned = 0,
+                resultsFound = 0,
+            )
+        }
+
+        // Clear previous results and enter SEARCHING state
+        _state.update {
+            it.copy(
+                currentSearchQuery = searchQuery,
+                searchStatus = State.SearchStatus.SEARCHING,
+                results = emptyList(),
+                progress = initialProgress,
+                error = null,
+            )
+        }
+
+        // Execute search
+        activeSearchJob = scope.launch {
+            try {
+                val results = mutableListOf<SearchItem>()
+                searchEngine.search(
+                    searchQuery = searchQuery,
+                    onProgress = { engineProgress ->
+                        _state.update { state ->
+                            state.copy(
+                                progress = State.SearchProgress(
+                                    currentPath = engineProgress.currentPath,
+                                    itemsScanned = engineProgress.itemsScanned,
+                                    resultsFound = engineProgress.resultsFound,
+                                )
+                            )
+                        }
+                    }
+                ).collect { result ->
+                    results.add(result)
+                    _state.update { state ->
+                        state.copy(results = state.results + result)
+                    }
+                }
+
+                log(tag, INFO) { "Search completed: ${results.size} results" }
+                _state.update { it.copy(searchStatus = State.SearchStatus.COMPLETED) }
+            } catch (e: CancellationException) {
+                log(tag, INFO) { "Search cancelled" }
+                _state.update { it.copy(searchStatus = State.SearchStatus.CANCELLED) }
+                throw e
+            } catch (e: Exception) {
+                log(tag, ERROR) { "Search failed: ${e.asLog()}" }
+                _state.update {
+                    it.copy(
+                        searchStatus = State.SearchStatus.ERROR,
+                        error = e,
+                    )
+                }
+            }
+        }
     }
 
     fun execute(command: SearcherCommand) {
         log(tag) { "execute(): $command" }
-        scope.launch {
-            val executable = when (command) {
-                is SearcherCommand.Delete -> deleteOperationFactory.create(
-                    workspaceId = id,
-                    command = command,
-                )
+        when (command) {
+            is SearcherCommand.Search -> {
+                search(command)
             }
-            operationsManager.submit(executable)
+            is SearcherCommand.Cancel -> {
+                log(tag, INFO) { "Cancelling active search" }
+                // Cancel the active search job
+                // The job's catch block will update state to CANCELLED
+                activeSearchJob?.cancel()
+            }
+            is SearcherCommand.Clear -> {
+                log(tag, INFO) { "Clearing search state" }
+                // Cancel any active search
+                activeSearchJob?.cancel()
+                // Reset state to initial empty state
+                _state.value = State()
+            }
+            is SearcherCommand.Delete -> {
+                scope.launch {
+                    val executable = deleteOperationFactory.create(
+                        workspaceId = id,
+                        command = command,
+                    )
+                    operationsManager.submit(executable)
+                }
+            }
         }
     }
 

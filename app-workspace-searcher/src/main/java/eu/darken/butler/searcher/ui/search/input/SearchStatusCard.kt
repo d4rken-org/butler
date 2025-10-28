@@ -1,7 +1,5 @@
 package eu.darken.butler.searcher.ui.search.input
 
-import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +31,8 @@ import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.error.localized
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.searcher.core.SearchTarget
+import eu.darken.butler.searcher.core.SearcherWorkspace
+import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
 import eu.darken.butler.searcher.R
 import eu.darken.butler.workspace.core.Workspace
 
@@ -84,14 +84,14 @@ fun SearchStatusCard(
                     // Primary message
                     Text(
                         text = if (state.isSearching) {
-                            state.searchState.progress?.let { progress ->
+                            state.workspaceState.progress?.let { progress ->
                                 val pathName = progress.currentPath.userReadablePath.get(LocalContext.current)
                                 stringResource(R.string.searcher_progress_searching_in, pathName)
                             } ?: stringResource(R.string.searcher_progress_searching)
                         } else {
                             when {
-                                state.searchState.error != null -> stringResource(R.string.searcher_search_error)
-                                state.searchState.results.isNotEmpty() -> stringResource(R.string.searcher_status_results_found, state.searchState.results.size)
+                                state.workspaceState.error != null -> stringResource(R.string.searcher_search_error)
+                                state.workspaceState.results.isNotEmpty() -> stringResource(R.string.searcher_status_results_found, state.workspaceState.results.size)
                                 else -> stringResource(R.string.searcher_status_no_results)
                             }
                         },
@@ -100,12 +100,12 @@ fun SearchStatusCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    
+
                     // Secondary message - always present to maintain card height
                     Text(
                         text = when {
                             state.isSearching -> {
-                                state.searchState.progress?.let { progress ->
+                                state.workspaceState.progress?.let { progress ->
                                     stringResource(
                                         R.string.searcher_progress_stats,
                                         progress.itemsScanned,
@@ -113,11 +113,11 @@ fun SearchStatusCard(
                                     )
                                 } ?: stringResource(R.string.searcher_progress_searching)
                             }
-                            state.searchState.results.isNotEmpty() -> {
+                            state.workspaceState.results.isNotEmpty() -> {
                                 stringResource(R.string.searcher_status_search_completed)
                             }
-                            state.searchState.error != null -> {
-                                state.searchState.error.localized(LocalContext.current).description.asComposable()
+                            state.workspaceState.error != null -> {
+                                state.workspaceState.error.localized(LocalContext.current).description.asComposable()
                             }
                             else -> {
                                 // No results - provide helpful text
@@ -178,9 +178,9 @@ private fun SearchStatusCardPreview() {
             state = SearcherWorkspaceViewModel.State(
                 id = Workspace.Id(),
                 searchTargets = listOf(SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents"))),
-                searchState = SearcherWorkspaceViewModel.SearchState(
-                    status = SearcherWorkspaceViewModel.SearchState.Status.COMPLETED,
-                    results = listOf(), // Empty for "no results" state
+                workspaceState = SearcherWorkspace.State(
+                    searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
+                    results = emptyList(), // Empty for "no results" state
                     progress = null
                 )
             ),

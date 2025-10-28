@@ -75,7 +75,12 @@ fun SearchToolbarCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(cardPadding),
+                .padding(
+                    start = cardPadding,
+                    end = cardPadding,
+                    top = cardPadding,
+                    bottom = if (isCollapsed) cardPadding else 8.dp // to deal with FlowRow too much build in padding
+                ),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             if (isCollapsed) {
@@ -148,7 +153,7 @@ fun SearchToolbarCard(
                     exit = shrinkVertically()
                 ) {
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                        verticalArrangement = Arrangement.spacedBy((-4).dp)
                     ) {
                         SearchOptionsRow(
                             caseSensitive = state.caseSensitive,
