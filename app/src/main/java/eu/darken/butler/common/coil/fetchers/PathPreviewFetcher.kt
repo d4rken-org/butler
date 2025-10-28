@@ -2,7 +2,7 @@ package eu.darken.butler.common.coil.fetchers
 
 import android.content.Context
 import android.graphics.Bitmap
-import androidx.core.content.ContextCompat
+import androidx.appcompat.content.res.AppCompatResources
 import coil3.ImageLoader
 import coil3.annotation.ExperimentalCoilApi
 import coil3.asImage
@@ -62,16 +62,20 @@ class PathPreviewFetcher @Inject constructor(
     }
 
     private val easterEggIcon: FetchResult by lazy {
+        val drawable = AppCompatResources.getDrawable(options.context, R.drawable.ic_heart_24)!!
+        drawable.setTintList(null) // Strip XML tint, let TintedAsyncImage apply theme-aware tint
         ImageFetchResult(
-            image = ContextCompat.getDrawable(options.context, R.drawable.ic_heart_24)!!.asImage(),
+            image = drawable.asImage(),
             isSampled = false,
             dataSource = DataSource.MEMORY
         )
     }
 
     private val fallbackIcon: FetchResult by lazy {
+        val drawable = AppCompatResources.getDrawable(options.context, data.fileType.iconRes)!!
+        drawable.setTintList(null) // Strip XML tint, let TintedAsyncImage apply theme-aware tint
         ImageFetchResult(
-            image = ContextCompat.getDrawable(options.context, data.fileType.iconRes)!!.asImage(),
+            image = drawable.asImage(),
             isSampled = false,
             dataSource = DataSource.MEMORY
         )

@@ -31,22 +31,22 @@ fun Nav.Main.upgrade(): NavigationDestination = DestinationUpgrade
 @Serializable
 data class DestinationSetup(
     val typeFilter: Set<SetupModule.Type>? = null,
-    val requiredTypes: Set<SetupModule.Type>? = null,
+    val satisfyingCombos: Set<Set<SetupModule.Type>>? = null,
     val isOnboarding: Boolean = false,
     val showCompleted: Boolean = false,
-    val autoCloseWhenComplete: Boolean = true,
+    val autoCloseWhenComplete: Boolean = false,
 ) : NavigationDestination
 
 @Suppress("UnusedReceiverParameter")
 fun Nav.Main.destSetup(
     typeFilter: Set<SetupModule.Type>? = null,
-    requiredTypes: Set<SetupModule.Type>? = null,
+    satisfyingCombos: Set<Set<SetupModule.Type>>? = null,
     isOnboarding: Boolean = false,
-    showCompleted: Boolean = false,
-    autoCloseWhenComplete: Boolean = true,
+    showCompleted: Boolean = true,
+    autoCloseWhenComplete: Boolean = false,
 ): NavigationDestination = DestinationSetup(
     typeFilter = typeFilter,
-    requiredTypes = requiredTypes,
+    satisfyingCombos = satisfyingCombos,
     isOnboarding = isOnboarding,
     showCompleted = showCompleted,
     autoCloseWhenComplete = autoCloseWhenComplete,

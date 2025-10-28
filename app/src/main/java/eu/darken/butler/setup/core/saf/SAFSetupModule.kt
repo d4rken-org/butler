@@ -22,10 +22,9 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.device.DeviceDetective
 import eu.darken.butler.common.device.RomType
 import eu.darken.butler.common.dropLastColon
-import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
-import eu.darken.butler.common.files.extensions.exists
+import eu.darken.butler.common.files.extensions.toFile
 import eu.darken.butler.common.files.local.toLocalPath
 import eu.darken.butler.common.files.saf.findPermission
 import eu.darken.butler.common.flow.replayingShare
@@ -57,7 +56,6 @@ class SAFSetupModule @Inject constructor(
     private val storageManager2: StorageManager2,
     private val storageEnvironment: StorageEnvironment,
     private val pathMapper: PathMapper,
-    private val gatewaySwitch: GatewaySwitch,
     private val deviceDetective: DeviceDetective,
     private val pkgOps: PkgOps,
 ) : SetupModule {
@@ -190,7 +188,7 @@ class SAFSetupModule @Inject constructor(
                 .flatten()
                 .filter {
                     try {
-                        it.exists(gatewaySwitch)
+                        it.toFile().exists()
                     } catch (e: Exception) {
                         log(TAG, WARN) { "Can't check $it due to ${e.asLog()}" }
                         false

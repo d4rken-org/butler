@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.core.db
+package eu.darken.butler.searcher.core.history.db
 
 import androidx.room.TypeConverter
 import eu.darken.butler.searcher.core.SearchQuery

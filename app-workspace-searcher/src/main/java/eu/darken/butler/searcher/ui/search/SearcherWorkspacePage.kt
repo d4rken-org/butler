@@ -41,7 +41,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -52,7 +51,6 @@ import eu.darken.butler.common.keyboard.KeyboardShortcut
 import eu.darken.butler.common.keyboard.keyboardShortcuts
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.searcher.R
-import eu.darken.butler.searcher.core.SearchHistory
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
@@ -60,9 +58,6 @@ import eu.darken.butler.searcher.ui.search.input.SearchStatusCard
 import eu.darken.butler.searcher.ui.search.input.SearchToolbarCard
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.clipboard.ClipboardClip
-import eu.darken.butler.workspace.core.operations.Operation
-import eu.darken.butler.workspace.core.permissions.PermissionState
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
 import eu.darken.butler.workspace.ui.error.WorkspaceErrorCard
@@ -71,7 +66,6 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
-import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationDialog
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import eu.darken.butler.workspace.ui.scroll.getCurrentHeightDp
@@ -117,7 +111,6 @@ fun SearcherWorkspacePage(
 
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
-    var showCancelConfirmation by remember { mutableStateOf<Operation.Id?>(null) }
 
     // Wrapped selection callbacks that clear focus and hide keyboard
     val wrappedOnEnterSelectionMode: (SearchItem) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester, onPageAction) {
@@ -179,8 +172,8 @@ fun SearcherWorkspacePage(
             state?.let { currentState ->
                 currentState.searchQuery.text.isNotBlank() ||
                         currentState.isSearching ||
-                        currentState.searchState.results.isNotEmpty() ||
-                        currentState.searchState.error != null
+                        currentState.workspaceState.results.isNotEmpty() ||
+                        currentState.workspaceState.error != null
             } ?: false
         }
     }
@@ -275,16 +268,16 @@ fun SearcherWorkspacePage(
                     }
                 )
             ) {
-                // Show permission card if needed
-                if (currentState.needsPermissions && currentState.searchTargets.isNotEmpty()) {
+                // Show setup card if needed
+                if (currentState.needsSetup && currentState.searchTargets.isNotEmpty()) {
                     item {
                         val searchPath = when (val firstTarget = currentState.searchTargets.first()) {
                             is SearchTarget.Path -> firstTarget.path
                         }
                         PermissionSetupCard(
                             searchPath = searchPath,
-                            permissionState = currentState.permissionState,
-                            onOpenSetup = { onPageAction(SearcherPageAction.Setup.Open) },
+                            setupRequirements = currentState.setupRequirements,
+                            onOpenSetup = { onPageAction(SearcherPageAction.Setup.Open(currentState.setupRequirements)) },
                             modifier = Modifier.padding(top = 8.dp)
                         )
                     }
@@ -552,21 +545,10 @@ fun SearcherWorkspacePage(
             onDismissDialog = { operationDialogState = OperationDialogState.None },
             onCancelOperation = { operationId ->
                 operationDialogState = OperationDialogState.None
-                showCancelConfirmation = operationId
+                vm?.cancelOperation(operationId)
             },
             onCopyError = { vm?.copyError(it) }
         )
-
-        // Cancel operation confirmation dialog
-        showCancelConfirmation?.let { operationId ->
-            CancelOperationConfirmationDialog(
-                onDismiss = { showCancelConfirmation = null },
-                onConfirm = {
-                    vm?.cancelOperation(operationId)
-                    showCancelConfirmation = null
-                }
-            )
-        }
     }  // End of state?.let
 }
 

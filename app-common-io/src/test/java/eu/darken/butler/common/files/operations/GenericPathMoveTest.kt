@@ -79,6 +79,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When
         val result = setOf(sourcePath).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = destPath,
             sourceOps = mockOps,
             destOps = mockOps,
@@ -116,6 +117,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When
         val result = setOf(sourcePath).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = destPath,
             sourceOps = mockOps,
             destOps = mockOps,
@@ -154,6 +156,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When
         val result = setOf(sourcePath).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = destPath,
             sourceOps = mockOps,
             destOps = mockOps,
@@ -195,6 +198,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When
         val result = setOf(source1, source2).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = destPath,
             sourceOps = mockOps,
             destOps = mockOps,
@@ -235,6 +239,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When
         val result = setOf(sourcePath).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = destPath,
             sourceOps = mockOps,
             destOps = mockOps,
@@ -269,6 +274,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When
         val result = setOf(sourcePath).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = destPath,
             sourceOps = mockOps,
             destOps = mockOps,
@@ -301,6 +307,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When
         val result = setOf(file1, file2, file3).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = LocalPath.build("/dest"),
             sourceOps = mockOps,
             destOps = mockOps,
@@ -332,6 +339,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When
         val result = setOf(sourcePath).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = destPath,
             sourceOps = mockOps,
             destOps = mockOps,
@@ -362,6 +370,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When
         val result = setOf(sourcePath).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = destPath,
             sourceOps = mockOps,
             destOps = mockOps,
@@ -424,6 +433,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When
         setOf(sourcePath).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = destPath,
             sourceOps = spyOps,
             destOps = spyOps,
@@ -452,6 +462,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When
         setOf(sourcePath).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = destPath,
             sourceOps = mockOps,
             destOps = mockOps,
@@ -483,6 +494,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When
         val result = setOf(sourceFolder).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = LocalPath.build("/dest"),
             sourceOps = mockOps,
             destOps = mockOps,
@@ -508,6 +520,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When
         setOf(LocalPath.build("/source/folder")).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = LocalPath.build("/dest"),
             sourceOps = mockOps,
             destOps = mockOps,
@@ -537,6 +550,7 @@ class GenericPathMoveTest : BaseTest() {
             LocalPath.build("/source/file1.txt"),
             LocalPath.build("/source/file2.txt")
         ).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = LocalPath.build("/dest"),
             sourceOps = mockOps,
             destOps = mockOps,
@@ -566,6 +580,7 @@ class GenericPathMoveTest : BaseTest() {
             LocalPath.build("/source/file1.txt"),
             LocalPath.build("/source/file2.txt")
         ).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = LocalPath.build("/dest"),
             sourceOps = mockOps,
             destOps = mockOps,
@@ -605,6 +620,7 @@ class GenericPathMoveTest : BaseTest() {
             LocalPath.build("/source/file1.txt"),
             LocalPath.build("/source/file2.txt")
         ).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = LocalPath.build("/dest"),
             sourceOps = mockOps,
             destOps = mockOps,
@@ -644,6 +660,7 @@ class GenericPathMoveTest : BaseTest() {
             LocalPath.build("/source/file.txt"),
             LocalPath.build("/source/document.txt")
         ).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = LocalPath.build("/dest"),
             sourceOps = mockOps,
             destOps = mockOps,
@@ -700,6 +717,7 @@ class GenericPathMoveTest : BaseTest() {
             LocalPath.build("/source/dir1"),
             LocalPath.build("/source/dir2")
         ).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = LocalPath.build("/dest"),
             sourceOps = mockOps,
             destOps = mockOps,
@@ -745,6 +763,7 @@ class GenericPathMoveTest : BaseTest() {
             LocalPath.build("/source/dir1"),
             LocalPath.build("/source/dir2")
         ).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = LocalPath.build("/dest"),
             sourceOps = mockOps,
             destOps = mockOps,
@@ -790,6 +809,7 @@ class GenericPathMoveTest : BaseTest() {
             LocalPath.build("/source/dir1"),
             LocalPath.build("/source/dir2")
         ).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = LocalPath.build("/dest"),
             sourceOps = mockOps,
             destOps = mockOps,
@@ -831,6 +851,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When - move with Overwrite (apply to all)
         val result = setOf(sourcePath).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = destPath,
             sourceOps = mockOps,
             destOps = mockOps,
@@ -872,6 +893,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When - move with NO issue handler (backward compatibility)
         val result = setOf(sourcePath).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = destPath,
             sourceOps = mockOps,
             destOps = mockOps,
@@ -909,6 +931,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When - move with Merge resolution
         val result = setOf(sourcePath).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = destPath,
             sourceOps = mockOps,
             destOps = mockOps,
@@ -949,6 +972,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When - rename source to Parent-new
         val result = setOf(LocalPath.build("/source/Parent")).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = LocalPath.build("/dest"),
             sourceOps = mockOps,
             destOps = mockOps,
@@ -986,6 +1010,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When - move with retry on UnknownError
         val result = setOf(LocalPath.build("/source/file.txt")).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = LocalPath.build("/dest"),
             sourceOps = mockOps,
             destOps = mockOps,
@@ -1023,6 +1048,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When - retry 3 times, then skip
         val result = setOf(LocalPath.build("/source/file.txt")).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = LocalPath.build("/dest"),
             sourceOps = mockOps,
             destOps = mockOps,
@@ -1073,6 +1099,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When - move with progress tracking
         setOf(LocalPath.build("/source/file.txt")).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = LocalPath.build("/dest"),
             sourceOps = mockOps,
             destOps = mockOps,
@@ -1121,6 +1148,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When
         val result = setOf(sourcePath).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = destPath,
             sourceOps = mockOps,
             destOps = mockOps,
@@ -1166,6 +1194,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When
         val result = setOf(sourcePath).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = destPath,
             sourceOps = mockOps,
             destOps = mockOps,
@@ -1219,6 +1248,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When - move files and collect progress updates
         val result = setOf(sourcePath).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = destPath,
             sourceOps = mockOps,
             destOps = mockOps,
@@ -1301,6 +1331,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When - move files and collect progress
         sources.moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = LocalPath.build("/dest"),
             sourceOps = mockOps,
             destOps = mockOps,
@@ -1341,6 +1372,7 @@ class GenericPathMoveTest : BaseTest() {
 
         // When
         setOf(LocalPath.build("/source/folder")).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             destination = LocalPath.build("/dest"),
             sourceOps = mockOps,
             destOps = mockOps,

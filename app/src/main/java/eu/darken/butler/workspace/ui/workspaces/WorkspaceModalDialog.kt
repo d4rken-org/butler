@@ -77,6 +77,12 @@ fun WorkspaceModalContent(
                 design = design,
             )
         }
+        Workspace.Type.APPS -> {
+            eu.darken.butler.apps.ui.apps.AppsWorkspacePageHost(
+                id = workspace.id,
+                design = design,
+            )
+        }
     }
 }
 

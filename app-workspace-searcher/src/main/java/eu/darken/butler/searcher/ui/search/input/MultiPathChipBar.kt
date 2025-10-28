@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchTarget
@@ -59,7 +60,7 @@ fun MultiPathChipBar(
                         onClick = { if (!isSearching) onPathToggle(target) },
                         label = {
                             Text(
-                                text = target.displayText(),
+                                text = target.displayText.asComposable(),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (target.enabled) {
                                     MaterialTheme.colorScheme.onSecondaryContainer
@@ -119,7 +120,6 @@ private fun MultiPathChipBarMultiplePreview() {
             onPathRemove = {},
             onPathToggle = {},
             onAddPathClick = {},
-            modifier = Modifier.padding(16.dp)
         )
     }
 }
@@ -133,7 +133,6 @@ private fun MultiPathChipBarEmptyPreview() {
             onPathRemove = {},
             onPathToggle = {},
             onAddPathClick = {},
-            modifier = Modifier.padding(16.dp)
         )
     }
 }
@@ -148,7 +147,6 @@ private fun MultiPathChipBarSinglePreview() {
             onPathRemove = {},
             onPathToggle = {},
             onAddPathClick = {},
-            modifier = Modifier.padding(16.dp)
         )
     }
 }

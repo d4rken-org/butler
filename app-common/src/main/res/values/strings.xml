@@ -22,6 +22,7 @@
     <string name="general_cut_action">Cut</string>
     <string name="general_paste_action">Paste</string>
     <string name="general_wipe_action">Wipe</string>
+    <string name="general_apply_action">Apply</string>
     <string name="general_cancel_action">Cancel</string>
     <string name="general_confirm_action">Confirm</string>
     <string name="general_discard_action">Discard</string>

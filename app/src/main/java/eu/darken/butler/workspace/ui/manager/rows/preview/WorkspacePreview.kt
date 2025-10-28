@@ -69,6 +69,7 @@ fun WorkspacePreview(
                                 Workspace.Type.SEARCHER -> SearcherMockPreview()
                                 Workspace.Type.EDITOR -> EditorMockPreview()
                                 Workspace.Type.TEMPLATES -> TemplatesMockPreview()
+                                Workspace.Type.APPS -> AppsMockPreview()
                             }
                         }
                     }
@@ -79,6 +80,7 @@ fun WorkspacePreview(
                     Workspace.Type.SEARCHER -> SearcherMockPreview()
                     Workspace.Type.EDITOR -> EditorMockPreview()
                     Workspace.Type.TEMPLATES -> TemplatesMockPreview()
+                    Workspace.Type.APPS -> AppsMockPreview()
                 }
             }
         }

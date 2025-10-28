@@ -1,22 +1,23 @@
-package eu.darken.butler.searcher.core
+package eu.darken.butler.searcher.core.history
 
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.datastore.value
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.searcher.core.db.SearchHistoryDao
-import eu.darken.butler.searcher.core.db.SearchHistoryEntity
-import eu.darken.butler.searcher.core.db.SearchQueryConverter
+import eu.darken.butler.searcher.core.SearchQuery
+import eu.darken.butler.searcher.core.SearcherSettings
+import eu.darken.butler.searcher.core.history.db.SearchHistoryDao
+import eu.darken.butler.searcher.core.history.db.SearchHistoryEntity
+import eu.darken.butler.searcher.core.history.db.SearchQueryConverter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlin.time.Clock
-import kotlin.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 @Singleton
 class SearchHistory @Inject constructor(
@@ -24,7 +25,7 @@ class SearchHistory @Inject constructor(
     private val searchHistoryDao: SearchHistoryDao,
     private val searcherSettings: SearcherSettings
 ) {
-    
+
     data class SearchHistoryItem(
         val id: String,
         val baseQuery: String,
@@ -32,16 +33,17 @@ class SearchHistory @Inject constructor(
         val searchedAt: Instant,
         val resultCount: Int? = null
     )
-    
+
     private val converter = SearchQueryConverter()
-    
+
     suspend fun addSearch(query: SearchQuery): String {
-        log(TAG, INFO) { "Adding search to history: ${query.query}" }
+        log(TAG, Logging.Priority.INFO) { "Adding search to history: ${query.query}" }
 
         val now = Clock.System.now()
 
         // Check if we have a recent identical search (within last 5 minutes)
-        val existingEntry = searchHistoryDao.getLatestByQuery(query.query)
+        val serializedQuery = converter.fromSearchQuery(query)
+        val existingEntry = searchHistoryDao.getLatestByFullQuery(serializedQuery)
 
         val entityId = if (existingEntry != null) {
             val timeDiff = now - existingEntry.searchedAt
@@ -71,7 +73,7 @@ class SearchHistory @Inject constructor(
         return entityId
     }
 
-    private suspend fun createNewSearchEntry(query: SearchQuery, timestamp: kotlin.time.Instant): String {
+    private suspend fun createNewSearchEntry(query: SearchQuery, timestamp: Instant): String {
         val entity = SearchHistoryEntity(
             baseQuery = query.query,
             rawQuery = converter.fromSearchQuery(query),
@@ -80,12 +82,12 @@ class SearchHistory @Inject constructor(
         searchHistoryDao.insert(entity)
         return entity.id
     }
-    
+
     suspend fun updateResultCount(id: String, resultCount: Int) {
         log(TAG) { "Updating result count for $id: $resultCount" }
         searchHistoryDao.updateResultCount(id, resultCount)
     }
-    
+
     fun getSearches(limit: Int? = 50): Flow<List<SearchHistoryItem>> {
         val searches = if(limit != null) {
             searchHistoryDao.getRecentSearches(limit)
@@ -104,12 +106,12 @@ class SearchHistory @Inject constructor(
             }
         }
     }
-    
+
     suspend fun removeItem(id: String) {
         log(TAG) { "Removing history item: $id" }
         searchHistoryDao.deleteById(id)
     }
-    
+
     suspend fun clearHistory() {
         log(TAG) { "Clearing all search history" }
         searchHistoryDao.deleteAll()
@@ -118,7 +120,7 @@ class SearchHistory @Inject constructor(
     suspend fun getHistoryCount(): Int {
         return searchHistoryDao.getCount()
     }
-    
+
     companion object {
         private val TAG = logTag("Searcher", "History")
     }

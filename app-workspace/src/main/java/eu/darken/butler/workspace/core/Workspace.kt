@@ -22,6 +22,7 @@ interface Workspace {
         EXPLORER,
         SEARCHER,
         EDITOR,
+        APPS,
         ;
     }
 

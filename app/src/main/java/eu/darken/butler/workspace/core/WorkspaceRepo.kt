@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.core
 
+import eu.darken.butler.apps.core.AppsWorkspace
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -33,6 +34,7 @@ class WorkspaceRepo @Inject constructor(
     private val explorerWorkspaceFactory: ExplorerWorkspace.Factory,
     private val searcherWorkspaceFactory: SearcherWorkspace.Factory,
     private val editorWorkspaceFactory: EditorWorkspace.Factory,
+    private val appsWorkspaceFactory: AppsWorkspace.Factory,
     workspaceSettings: WorkspaceSettings,
     private val operationsManager: OperationsManager,
 ) : WorkspaceProvider, WorkspaceRemote {
@@ -91,6 +93,10 @@ class WorkspaceRepo @Inject constructor(
             Workspace.Type.EDITOR -> editorWorkspaceFactory.create(
                 id = Workspace.Id(),
                 arguments = arguments as EditorWorkspace.Arguments?
+            )
+            Workspace.Type.APPS -> appsWorkspaceFactory.create(
+                id = Workspace.Id(),
+                arguments = arguments as AppsWorkspace.Arguments?
             )
         }
         if (idToReplace != null) {

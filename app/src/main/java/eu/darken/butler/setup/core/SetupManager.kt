@@ -71,8 +71,8 @@ class SetupManager @Inject constructor(
         }
 
         when (action) {
-            SetupAction.REFRESH -> module.refresh()
-            SetupAction.REQUEST_PERMISSION -> {
+            SetupAction.Refresh -> module.refresh()
+            SetupAction.RequestPermission -> {
                 when (type) {
                     SetupModule.Type.STORAGE -> {
                         val storageModule = module as StorageSetupModule
@@ -87,8 +87,8 @@ class SetupManager @Inject constructor(
                         log(TAG, WARN) { "No permissions available for $type" }
                     }
                     SetupModule.Type.NOTIFICATION -> {
-                        val notificationModule = module as? NotificationSetupModule
-                        val runtimePerms = notificationModule?.getRuntimePermissions() ?: emptySet()
+                        val notificationModule = module as NotificationSetupModule
+                        val runtimePerms = notificationModule.getRuntimePermissions()
                         if (runtimePerms.isNotEmpty()) {
                             return PermissionResult(runtimePermissions = runtimePerms)
                         } else {
@@ -96,25 +96,28 @@ class SetupManager @Inject constructor(
                         }
                     }
                     SetupModule.Type.USAGE_STATS -> {
-                        val usageStatsModule = module as? UsageStatsSetupModule
-                        val intent = usageStatsModule?.getPermissionIntent()
+                        val usageStatsModule = module as UsageStatsSetupModule
+                        val intent = usageStatsModule.getPermissionIntent()
                         if (intent != null) {
                             return PermissionResult(intent = intent)
                         } else {
                             log(TAG, WARN) { "No permission intent available for $type" }
                         }
                     }
-                    else -> {
-                        log(TAG, WARN) { "REQUEST_PERMISSION not implemented for $type" }
+                    SetupModule.Type.SAF -> {
+                        // TODO
                     }
+                    SetupModule.Type.SHIZUKU -> throw IllegalStateException("Not handled here $action")
+                    SetupModule.Type.ROOT -> throw IllegalStateException("Not handled here $action")
+                    SetupModule.Type.INVENTORY -> throw IllegalStateException("Not handled here $action")
                 }
             }
-            is SetupAction.TOGGLE_ROOT -> {
+            is SetupAction.ToggleRoot -> {
                 val rootModule = module as? RootSetupModule
                 rootModule?.toggleUseRoot(action.useRoot)
                     ?: log(TAG, WARN) { "Module for $type is not a RootSetupModule" }
             }
-            is SetupAction.TOGGLE_SHIZUKU -> {
+            is SetupAction.ToggleShizuku -> {
                 val shizukuModule = module as? ShizukuSetupModule
                 shizukuModule?.toggleUseShizuku(action.useShizuku)
                     ?: log(TAG, WARN) { "Module for $type is not a ShizukuSetupModule" }
@@ -143,10 +146,10 @@ class SetupManager @Inject constructor(
 }
 
 sealed interface SetupAction {
-    object REFRESH : SetupAction
-    object REQUEST_PERMISSION : SetupAction
-    data class TOGGLE_ROOT(val useRoot: Boolean?) : SetupAction
-    data class TOGGLE_SHIZUKU(val useShizuku: Boolean?) : SetupAction
+    data object Refresh : SetupAction
+    data object RequestPermission : SetupAction
+    data class ToggleRoot(val useRoot: Boolean?) : SetupAction
+    data class ToggleShizuku(val useShizuku: Boolean?) : SetupAction
 }
 
 data class PermissionResult(

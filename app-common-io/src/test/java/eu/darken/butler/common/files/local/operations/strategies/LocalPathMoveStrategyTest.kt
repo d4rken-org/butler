@@ -514,6 +514,118 @@ class LocalPathMoveStrategyTest : BaseTest() {
         mockOps.hasFile("/dest/dir") shouldBe true
         mockOps.getFileType("/dest/dir") shouldBe FileType.DIRECTORY
     }
+
+    // ============ DIRECTORY ATOMIC MOVE TESTS ============
+
+    @Test
+    fun `directory atomic move IS attempted in createDirectory - BUG FIXED`() = runTest {
+        // This test verifies the FIX: createDirectory() now attempts atomic move first
+        // Before fix: Just created empty directory, never attempted atomic move
+        // After fix: Attempts atomic move first
+        // Fixed: Use same device for atomic move to succeed
+
+        mockOps.addMockDir("/data/source/folder")
+        mockOps.addMockDir("/data/dest")
+
+        val sourcePath = LocalPath.build("/data/source/folder")
+        val destPath = LocalPath.build("/data/dest/folder")
+        val sourceLookup = mockOps.lookup(sourcePath)
+
+        val spyOps = spyk(mockOps)
+        val spyStrategy = LocalPathMoveStrategy(spyOps)
+
+        // When
+        spyStrategy.createDirectory(
+            sourceLookup = sourceLookup,
+            destination = destPath,
+            sourceOps = spyOps,
+            destOps = spyOps,
+            options = TransferStrategy.Options()
+        )
+
+        // Then - FIX VERIFIED: move() IS called!
+        coVerify(exactly = 1) { spyOps.move(sourcePath, destPath) }
+
+        // Atomic move succeeded
+        spyOps.hasFile("/data/dest/folder") shouldBe true
+        spyOps.hasFile("/data/source/folder") shouldBe false
+    }
+
+    @Test
+    fun `directory atomic rename should be attempted first`() = runTest {
+        // This test verifies that atomic move is attempted for directory renames
+        // Fixed: Use same device for atomic move to succeed
+
+        mockOps.addMockDir("/data/source/AAAA")
+        mockOps.addMockDir("/data/dest")
+
+        val sourcePath = LocalPath.build("/data/source/AAAA")
+        val destPath = LocalPath.build("/data/dest/BBB")
+        val sourceLookup = mockOps.lookup(sourcePath)
+
+        val spyOps = spyk(mockOps)
+        val spyStrategy = LocalPathMoveStrategy(spyOps)
+
+        // When
+        val result = spyStrategy.createDirectory(
+            sourceLookup = sourceLookup,
+            destination = destPath,
+            sourceOps = spyOps,
+            destOps = spyOps,
+            options = TransferStrategy.Options()
+        )
+
+        // Then - SHOULD attempt atomic move first
+        coVerify(exactly = 1) { spyOps.move(sourcePath, destPath) }
+
+        // Result should be success
+        result.shouldBeInstanceOf<TransferStrategy.TransferResult.Success<*, *>>()
+
+        // Directory atomically renamed
+        spyOps.hasFile("/data/dest/BBB") shouldBe true
+        spyOps.hasFile("/data/source/AAAA") shouldBe false
+    }
+
+    @Test
+    fun `directory atomic move fails falls back to create only`() = runTest {
+        // This test verifies fallback when atomic move is not supported
+
+        mockOps.addMockDir("/source/folder")
+        mockOps.addMockDir("/otherdevice")  // Fixed: Create parent directory
+
+        val sourcePath = LocalPath.build("/source/folder")
+        val destPath = LocalPath.build("/otherdevice/folder")
+        val sourceLookup = mockOps.lookup(sourcePath)
+
+        val spyOps = spyk(mockOps)
+        // Mock atomic move failure (cross-device)
+        coEvery {
+            spyOps.move(sourcePath, destPath)
+        } throws AtomicMoveNotSupportedException(
+            sourcePath.path,
+            destPath.path,
+            "Cross-device"
+        )
+
+        val spyStrategy = LocalPathMoveStrategy(spyOps)
+
+        // When
+        val result = spyStrategy.createDirectory(
+            sourceLookup = sourceLookup,
+            destination = destPath,
+            sourceOps = spyOps,
+            destOps = spyOps,
+            options = TransferStrategy.Options()
+        )
+
+        // Then - should attempt atomic first
+        coVerify(exactly = 1) { spyOps.move(sourcePath, destPath) }
+
+        // Then fall back to createDir
+        coVerify(exactly = 1) { spyOps.createDir(destPath) }
+
+        result.shouldBeInstanceOf<TransferStrategy.TransferResult.Success<*, *>>()
+    }
 }
 
 /**
@@ -556,12 +668,7 @@ private class MockLocalFileSystemOps : MockFileSystemOps<LocalPath, LocalPathLoo
             )
         }
 
-        // Same device: perform atomic move (simulate Files.move with ATOMIC_MOVE)
-        val fileData = files[source.path] ?: throw WriteException("Source does not exist", source)
-
-        files[destination.path] = fileData
-        files.remove(source.path)
-
-        return true
+        // Same device: call parent implementation (handles all bookkeeping + children)
+        return super.move(source, destination)
     }
 }

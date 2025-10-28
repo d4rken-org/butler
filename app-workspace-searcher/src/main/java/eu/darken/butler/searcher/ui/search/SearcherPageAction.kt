@@ -1,11 +1,12 @@
 package eu.darken.butler.searcher.ui.search
 
 import androidx.compose.ui.text.input.TextFieldValue
-import eu.darken.butler.searcher.core.SearchHistory
+import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
 
 /**
  * Sealed interface representing all page-level actions in the Searcher workspace.
@@ -184,7 +185,7 @@ sealed interface SearcherPageAction {
         /**
          * Open setup screen for permissions
          */
-        data object Open : Setup
+        data class Open(val requirements: WorkspaceRequirements) : Setup
     }
 
     /**

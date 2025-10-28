@@ -60,7 +60,7 @@ class SetupViewModel @AssistedInject constructor(
                     SetupItem(
                         type = type,
                         state = state,
-                        isRequired = isRequired(type),
+                        isRequired = options.satisfyingCombos?.all { combo -> combo.contains(type) } ?: false,
                         priority = type.priority,
                     )
                 } else {
@@ -76,10 +76,12 @@ class SetupViewModel @AssistedInject constructor(
                 )
             )
 
-            val allRequiredComplete = options.requiredTypes?.let { requiredTypes ->
-                requiredTypes.isNotEmpty() && requiredTypes.all { type ->
-                    val moduleState = moduleStates[type]
-                    (moduleState as? SetupModule.State.Current)?.isComplete == true
+            val allRequiredComplete = options.satisfyingCombos?.let { combos ->
+                combos.isNotEmpty() && combos.any { combo ->
+                    combo.all { type ->
+                        val moduleState = moduleStates[type]
+                        (moduleState as? SetupModule.State.Current)?.isComplete == true
+                    }
                 }
             } ?: false
 
@@ -91,7 +93,7 @@ class SetupViewModel @AssistedInject constructor(
         .asStateFlow()
 
     init {
-        log(tag) { "init with options: $options" }
+        log(tag) { "init($this) with options: $options" }
     }
 
     fun refresh() = launch {
@@ -118,10 +120,6 @@ class SetupViewModel @AssistedInject constructor(
         log(tag) { "openHelp(type=$type)" }
         val helpUrl = getHelpUrl(type)
         webpageTool.open(helpUrl)
-    }
-
-    private fun isRequired(type: SetupModule.Type): Boolean {
-        return options.requiredTypes?.contains(type) ?: false
     }
 
     private fun getHelpUrl(type: SetupModule.Type): String {

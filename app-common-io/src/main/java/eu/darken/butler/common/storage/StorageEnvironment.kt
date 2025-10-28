@@ -68,6 +68,11 @@ class StorageEnvironment @Inject constructor(
                 root?.let { LocalPath.build(it) }
             }
 
+    val publicObbDirs: List<LocalPath>
+        get() = publicDataDirs
+            .mapNotNull { it.parent }
+            .map { it.child("obb") }
+
     suspend fun getPublicPrimaryStorage(userHandle: UserHandle2): LocalPath? {
         val userPath = Environment.getExternalStorageDirectory().let { path ->
             if (path.name.toIntOrNull() == userManager.currentUser().handle.handleId) {

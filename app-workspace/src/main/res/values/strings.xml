@@ -44,6 +44,7 @@
     <string name="workspace_searcher_label">Searcher</string>
     <string name="workspace_editor_label">Editor</string>
     <string name="workspace_templates_label">Templates</string>
+    <string name="workspace_apps_label">Apps</string>
 
     <!-- Workspace Button Menu -->
     <string name="workspace_button_menu_manager_action">Tab manager</string>
