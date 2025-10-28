@@ -20,7 +20,7 @@ class ChunkManager @AssistedInject constructor(
     private val memoryManager: MemoryManager
 ) {
 
-    private val tag = logTag("Editor","Workspace", workspaceId.shortTag, "Engine", "ChunkManager")
+    private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "ChunkManager")
 
     private val _chunks = MutableStateFlow<Map<TextChunk.ChunkId, TextChunk>>(emptyMap())
     val chunks: StateFlow<Map<TextChunk.ChunkId, TextChunk>> = _chunks.asStateFlow()
@@ -103,19 +103,20 @@ class ChunkManager @AssistedInject constructor(
         }
     }
 
-    suspend fun updateChunk(chunkId: TextChunk.ChunkId, updater: (TextChunk) -> TextChunk): TextChunk? = chunkMutex.withLock {
-        val currentChunk = _chunks.value[chunkId] ?: return@withLock null
-        val updatedChunk = updater(currentChunk)
+    suspend fun updateChunk(chunkId: TextChunk.ChunkId, updater: (TextChunk) -> TextChunk): TextChunk? =
+        chunkMutex.withLock {
+            val currentChunk = _chunks.value[chunkId] ?: return@withLock null
+            val updatedChunk = updater(currentChunk)
 
-        _chunks.value = _chunks.value + (chunkId to updatedChunk)
+            _chunks.value = _chunks.value + (chunkId to updatedChunk)
 
-        // Notify memory manager of changes
-        if (updatedChunk.isDirty && !currentChunk.isDirty) {
-            memoryManager.markChunkDirty(chunkId)
+            // Notify memory manager of changes
+            if (updatedChunk.isDirty && !currentChunk.isDirty) {
+                memoryManager.markChunkDirty(chunkId)
+            }
+
+            updatedChunk
         }
-
-        updatedChunk
-    }
 
     suspend fun evictChunk(chunkId: TextChunk.ChunkId): Boolean = chunkMutex.withLock {
         val chunk = _chunks.value[chunkId] ?: return@withLock false
@@ -203,11 +204,6 @@ class ChunkManager @AssistedInject constructor(
         memoryManager.clear()
     }
 
-    fun updateChunkSize(newChunkSize: Long) {
-        chunkSize = newChunkSize.coerceAtLeast(MIN_CHUNK_SIZE).coerceAtMost(MAX_CHUNK_SIZE)
-        log(tag) { "Updated chunk size to: $chunkSize bytes" }
-    }
-
     @AssistedFactory
     interface Factory {
         fun create(
@@ -217,10 +213,6 @@ class ChunkManager @AssistedInject constructor(
     }
 
     companion object {
-        private const val TAG = "ChunkManager"
-
         const val DEFAULT_CHUNK_SIZE = 1024 * 1024L // 1MB
-        const val MIN_CHUNK_SIZE = 64 * 1024L // 64KB
-        const val MAX_CHUNK_SIZE = 10 * 1024 * 1024L // 10MB
     }
 }

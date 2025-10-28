@@ -46,18 +46,18 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
     override suspend fun initialize(): Result<Unit> = bufferMutex.withLock {
         try {
-            log(tag) { "Initializing text buffer" }
-
             // Close any existing content
             closeFileInternal()
 
-            // Get info from data source
+            // Get info from data source (may be null for in-memory sources)
             val info = chunkRepository.getFileInfo()
             val size = if (info != null) {
+                log(tag) { "Initializing text buffer with file: ${info.path}" }
                 _fileInfo.value = info
                 info.size
             } else {
-                // In-memory content
+                // In-memory content or uninitialized source
+                log(tag) { "Initializing text buffer with in-memory content" }
                 val contentSize = chunkRepository.dataSource.getSize()
                 _totalLength.value = contentSize
                 contentSize
@@ -100,35 +100,14 @@ class ChunkedTextBuffer @AssistedInject constructor(
         }
     }
 
-    override suspend fun openFile(filePath: APath<*>): Result<Unit> = bufferMutex.withLock {
-        try {
-            log(tag) { "Opening file: $filePath" }
-
-            // Close any existing file
-            closeFileInternal()
-
-            // Get file info from repository (data source should already be initialized)
-            val info = chunkRepository.getFileInfo()
-            if (info == null) {
-                return@withLock Result.failure(IllegalStateException("Data source not initialized"))
-            }
-
-            _fileInfo.value = info
-            _totalLength.value = info.size
-
-            // Generate chunk IDs
-            chunkIds = chunkManager.generateChunkIds(info.size)
-
-            // Build line index by loading chunks as needed
-            buildLineIndex()
-
-            log(tag) { "Successfully opened file: $filePath (${info.size} bytes, ${_totalLines.value} lines)" }
-            Result.success(Unit)
-
-        } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to open file: $filePath - ${e.asLog()}" }
-            Result.failure(e)
-        }
+    @Deprecated(
+        message = "Use initialize() instead. This method now delegates to initialize().",
+        replaceWith = ReplaceWith("initialize()")
+    )
+    override suspend fun openFile(filePath: APath<*>): Result<Unit> {
+        // This method delegates to initialize() for backward compatibility
+        log(tag, WARN) { "openFile() is deprecated, use initialize() instead" }
+        return initialize()
     }
 
     override suspend fun closeFile(): Result<Unit> = bufferMutex.withLock {

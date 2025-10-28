@@ -12,6 +12,10 @@ interface VirtualTextBuffer {
 
     suspend fun initialize(): Result<Unit>
 
+    @Deprecated(
+        message = "Use initialize() instead. This method now delegates to initialize().",
+        replaceWith = ReplaceWith("initialize()")
+    )
     suspend fun openFile(filePath: APath<*>): Result<Unit>
 
     suspend fun closeFile(): Result<Unit>

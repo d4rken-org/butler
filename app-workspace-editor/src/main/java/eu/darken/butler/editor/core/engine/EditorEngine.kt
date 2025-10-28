@@ -119,15 +119,17 @@ class EditorEngine @AssistedInject constructor(
                 is FileDataSource -> {
                     log(tag) { "Initializing file data source: $filePath" }
 
-                    val initResult = dataSource.initialize()
-                    if (initResult.isFailure) {
-                        _error.value = initResult.exceptionOrNull()
+                    // First initialize the data source to load file metadata
+                    val dataSourceInitResult = dataSource.initialize()
+                    if (dataSourceInitResult.isFailure) {
+                        _error.value = dataSourceInitResult.exceptionOrNull()
                         return
                     }
 
-                    val openResult = textBuffer.openFile(filePath!!)
-                    if (openResult.isFailure) {
-                        _error.value = openResult.exceptionOrNull()
+                    // Then initialize the text buffer
+                    val bufferInitResult = textBuffer.initialize()
+                    if (bufferInitResult.isFailure) {
+                        _error.value = bufferInitResult.exceptionOrNull()
                         return
                     }
 
@@ -136,9 +138,10 @@ class EditorEngine @AssistedInject constructor(
                 is InMemoryDataSource -> {
                     log(tag) { "Initializing in-memory data source" }
 
-                    val initResult = textBuffer.initialize()
-                    if (initResult.isFailure) {
-                        _error.value = initResult.exceptionOrNull()
+                    // Initialize the text buffer
+                    val bufferInitResult = textBuffer.initialize()
+                    if (bufferInitResult.isFailure) {
+                        _error.value = bufferInitResult.exceptionOrNull()
                         return
                     }
 
@@ -191,7 +194,18 @@ class EditorEngine @AssistedInject constructor(
         return try {
             log(tag) { "Opening file: $filePath" }
 
-            val result = resources.textBuffer.openFile(filePath)
+            // If the data source is FileDataSource, initialize it first
+            val dataSource = resources.dataSource
+            if (dataSource is FileDataSource) {
+                val dataSourceInitResult = dataSource.initialize()
+                if (dataSourceInitResult.isFailure) {
+                    _error.value = dataSourceInitResult.exceptionOrNull()
+                    return dataSourceInitResult
+                }
+            }
+
+            // Then initialize the text buffer (works for both file and in-memory)
+            val result = resources.textBuffer.initialize()
             if (result.isFailure) {
                 _error.value = result.exceptionOrNull()
                 result

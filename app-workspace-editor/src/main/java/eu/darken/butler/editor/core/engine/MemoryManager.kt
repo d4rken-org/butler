@@ -122,11 +122,6 @@ class MemoryManager @Inject constructor() {
         currentMemoryUsage = 0L
     }
     
-    fun updateMaxMemory(newMaxMemoryBytes: Long) {
-        maxMemoryBytes = newMaxMemoryBytes.coerceAtLeast(MIN_MEMORY_BYTES)
-        log(tag) { "Updated max memory to: $maxMemoryBytes bytes" }
-    }
-    
     suspend fun getMemoryStats(): MemoryStats = accessMutex.withLock {
         MemoryStats(
             currentUsage = currentMemoryUsage,
@@ -172,7 +167,6 @@ class MemoryManager @Inject constructor() {
         private const val TAG = "MemoryManager"
         
         const val DEFAULT_MAX_MEMORY_BYTES = 50 * 1024 * 1024L // 50MB
-        const val MIN_MEMORY_BYTES = 10 * 1024 * 1024L // 10MB
     }
 }
 
