@@ -416,7 +416,8 @@ class GatewaySwitch @Inject constructor(
 
         val transferOptions = TransferStrategy.Options(
             preserveAttributes = options.preserveAttributes,
-            followSymlinks = false  // MoveAction doesn't have followSymlinks option
+            followSymlinks = false,  // MoveAction doesn't have followSymlinks option
+            attemptAtomicMove = options.attemptAtomicMove
         )
 
         when (sources.first()) {

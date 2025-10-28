@@ -54,7 +54,7 @@ fun DefaultActions(
         Button(
             onClick = {
                 onExecuteAction(
-                    if (isCompleted) SetupAction.REFRESH else SetupAction.REQUEST_PERMISSION
+                    if (isCompleted) SetupAction.Refresh else SetupAction.RequestPermission
                 )
             },
             modifier = Modifier.fillMaxWidth(),

@@ -159,6 +159,62 @@ internal class GenericPathMove<
         ) : WorkItem()
     }
 
+    private sealed class AtomicMoveResult<DP : APath<DP>, DPL : APathLookup<DP>> {
+        data class Success<DP : APath<DP>, DPL : APathLookup<DP>>(
+            val destLookup: DPL
+        ) : AtomicMoveResult<DP, DPL>()
+
+        data class NotSupported<DP : APath<DP>, DPL : APathLookup<DP>>(
+            val reason: String
+        ) : AtomicMoveResult<DP, DPL>()
+    }
+
+    /**
+     * Attempt atomic directory move before scanning children.
+     *
+     * This optimization moves entire directory trees in a single operation when supported,
+     * avoiding the need to scan and move children individually.
+     *
+     * @return AtomicMoveResult.Success if atomic move succeeded, NotSupported if fallback needed
+     */
+    private suspend fun tryAtomicMove(
+        sourceLookup: SPL,
+        destination: DP
+    ): AtomicMoveResult<DP, DPL> {
+        // Only attempt atomic move if source and dest are same type (required for atomic)
+        if (sourceOps != destOps) {
+            return AtomicMoveResult.NotSupported("Cross-gateway move")
+        }
+
+        try {
+            // Attempt atomic move via FileSystemOps
+            @Suppress("UNCHECKED_CAST")
+            val success = (sourceOps as FileSystemOps<DP, DPL>).move(
+                sourceLookup.lookedUp as DP,
+                destination
+            )
+
+            if (success) {
+                // Lookup moved directory to get metadata
+                val destLookup = destOps.lookup(destination, LookupOptions.BASE)
+
+                log(TAG, INFO) {
+                    "Atomic directory move succeeded: ${sourceLookup.lookedUp} -> $destination"
+                }
+
+                return AtomicMoveResult.Success(destLookup)
+            } else {
+                return AtomicMoveResult.NotSupported("Move returned false")
+            }
+        } catch (e: java.nio.file.AtomicMoveNotSupportedException) {
+            return AtomicMoveResult.NotSupported("AtomicMoveNotSupportedException: ${e.message}")
+        } catch (e: UnsupportedOperationException) {
+            return AtomicMoveResult.NotSupported("UnsupportedOperationException: ${e.message}")
+        } catch (e: Exception) {
+            throw e  // Other errors should propagate (permissions, etc.)
+        }
+    }
+
     fun execute(): Flow<MoveAction.State<SP, SPL, DP, DPL>> = flow {
         log(TAG, DEBUG) { "execute(): Moving ${sources.size} sources to $destination" }
 
@@ -256,13 +312,54 @@ internal class GenericPathMove<
                 progressTracker.totalItems++
                 progressTracker.totalBytes += lookup.size ?: 0L
 
-                // Add directory to cleanup queue (post-order)
-                sourceDirectories.addFirst(item.source)
-
                 // Report scan progress with throttling
                 if (progressTracker.shouldReportProgress()) {
                     reportScanProgress(lookup, emit)
                 }
+
+                // Try atomic directory move FIRST if enabled (optimization)
+                if (options.attemptAtomicMove) {
+                    // Check for destination conflicts BEFORE attempting atomic move
+                    val destLookup = destOps.lookup(destPath, LookupOptions.BASE.copy(fallbackToUnknown = true))
+                    if (destLookup.fileType != FileType.UNKNOWN) {
+                        // Destination exists - can't do atomic move, fall through to recursive pattern
+                        log(TAG, DEBUG) {
+                            "Destination exists, skipping atomic move: $destPath (will handle via normal conflict resolution)"
+                        }
+                    } else {
+                        // Destination doesn't exist - try atomic move
+                        when (val atomicMoveResult = tryAtomicMove(lookup, destPath)) {
+                            is AtomicMoveResult.Success -> {
+                                // Atomic move succeeded - moved in one operation
+                                moved.add(lookup to atomicMoveResult.destLookup)
+                                progressTracker.completeItem()
+
+                                // Report progress
+                                if (progressTracker.shouldReportProgress()) {
+                                    reportProgress(lookup, destPath, emit)
+                                }
+
+                                log(TAG, DEBUG) {
+                                    "Atomic move complete: ${item.source} -> $destPath (skipped child scan)"
+                                }
+
+                                return 0  // No children to process
+                            }
+
+                            is AtomicMoveResult.NotSupported -> {
+                                // Atomic move not supported - fall back to recursive strategy
+                                log(TAG, DEBUG) {
+                                    "Atomic move not supported: ${atomicMoveResult.reason}, using recursive pattern"
+                                }
+                                // Fall through to recursive pattern below
+                            }
+                        }
+                    }
+                }
+
+                // Recursive pattern: scan children, queue directory creation
+                // Add directory to cleanup queue (post-order)
+                sourceDirectories.addFirst(item.source)
 
                 // List and queue children
                 var childrenFound = 0

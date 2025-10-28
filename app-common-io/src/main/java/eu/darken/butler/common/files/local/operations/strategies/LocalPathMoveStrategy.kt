@@ -8,6 +8,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.operations.TransferStrategy
 import okio.buffer
 import okio.sink
 import okio.source
@@ -31,7 +32,7 @@ import okio.source
  */
 class LocalPathMoveStrategy(
     private val fileSystemOps: FileSystemOps<LocalPath, LocalPathLookup>
-) : eu.darken.butler.common.files.operations.TransferStrategy<
+) : TransferStrategy<
     LocalPath, LocalPathLookup,  // Source types
     LocalPath, LocalPathLookup   // Destination types
     > {
@@ -41,9 +42,9 @@ class LocalPathMoveStrategy(
         destination: LocalPath,
         sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
         destOps: FileSystemOps<LocalPath, LocalPathLookup>,
-        options: eu.darken.butler.common.files.operations.TransferStrategy.Options,
+        options: TransferStrategy.Options,
         onProgress: suspend (bytesTransferred: Long) -> Unit
-    ): eu.darken.butler.common.files.operations.TransferStrategy.TransferResult<LocalPath, LocalPath> {
+    ): TransferStrategy.TransferResult<LocalPath, LocalPath> {
         log(TAG, DEBUG) { "Moving file: ${sourceLookup.lookedUp} -> $destination" }
 
         // Handle symlinks specially - atomic move doesn't adjust relative targets
@@ -61,7 +62,7 @@ class LocalPathMoveStrategy(
             // Lookup moved destination to avoid redundant stat in caller
             val destLookup = destOps.lookup(destination, LookupOptions.BASE)
 
-            return eu.darken.butler.common.files.operations.TransferStrategy.TransferResult.Success(
+            return TransferStrategy.TransferResult.Success(
                 source = sourceLookup.lookedUp,
                 destination = destination,
                 bytesTransferred = sourceLookup.size ?: 0L,
@@ -81,17 +82,42 @@ class LocalPathMoveStrategy(
         destination: LocalPath,
         sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
         destOps: FileSystemOps<LocalPath, LocalPathLookup>,
-        options: eu.darken.butler.common.files.operations.TransferStrategy.Options
-    ): eu.darken.butler.common.files.operations.TransferStrategy.TransferResult<LocalPath, LocalPath> {
+        options: TransferStrategy.Options
+    ): TransferStrategy.TransferResult<LocalPath, LocalPath> {
         log(TAG, DEBUG) { "Creating directory: $destination" }
 
+        // Try atomic directory move first if enabled (moves entire tree in one operation)
+        if (options.attemptAtomicMove) {
+            try {
+                sourceOps.move(sourceLookup.lookedUp, destination)
+                log(TAG, DEBUG) { "Atomic directory move succeeded: ${sourceLookup.lookedUp} -> $destination" }
+
+                // Lookup moved destination to avoid redundant stat in caller
+                val destLookup = destOps.lookup(destination, LookupOptions.BASE)
+
+                return TransferStrategy.TransferResult.Success(
+                    source = sourceLookup.lookedUp,
+                    destination = destination,
+                    bytesTransferred = 0L,
+                    destinationLookup = destLookup
+                )
+            } catch (e: java.nio.file.AtomicMoveNotSupportedException) {
+                log(TAG, DEBUG) { "Atomic directory move not supported, creating empty directory" }
+                // Fall through to create empty directory (children will be moved separately)
+            } catch (e: java.nio.file.DirectoryNotEmptyException) {
+                log(TAG, VERBOSE) { "Directory not empty, creating empty directory" }
+                // Fall through (shouldn't happen but handle it)
+            }
+        }
+
+        // Fallback: Create empty directory (children moved separately by GenericPathMove)
         // Parent exists due to GenericPathMove's depth-first traversal
         destOps.createDir(destination)
 
         // Lookup created destination to avoid redundant stat in caller
         val destLookup = destOps.lookup(destination, LookupOptions.BASE)
 
-        return eu.darken.butler.common.files.operations.TransferStrategy.TransferResult.Success(
+        return TransferStrategy.TransferResult.Success(
             source = sourceLookup.lookedUp,
             destination = destination,
             bytesTransferred = 0L,
@@ -105,7 +131,7 @@ class LocalPathMoveStrategy(
         onProgress: suspend (bytesTransferred: Long) -> Unit,
         sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
         destOps: FileSystemOps<LocalPath, LocalPathLookup>
-    ): eu.darken.butler.common.files.operations.TransferStrategy.TransferResult<LocalPath, LocalPath> {
+    ): TransferStrategy.TransferResult<LocalPath, LocalPath> {
         log(TAG, DEBUG) { "Moving symlink: ${sourceLookup.lookedUp} -> $destination" }
 
         val linkTarget = sourceOps.readSymbolicLink(sourceLookup.lookedUp)
@@ -144,7 +170,7 @@ class LocalPathMoveStrategy(
         // Lookup moved destination to avoid redundant stat in caller
         val destLookup = destOps.lookup(destination, LookupOptions.BASE)
 
-        return eu.darken.butler.common.files.operations.TransferStrategy.TransferResult.Success(
+        return TransferStrategy.TransferResult.Success(
             source = sourceLookup.lookedUp,
             destination = destination,
             bytesTransferred = sourceLookup.size ?: 0L,
@@ -155,11 +181,11 @@ class LocalPathMoveStrategy(
     private suspend fun copyAndDeleteFile(
         sourceLookup: LocalPathLookup,
         destination: LocalPath,
-        options: eu.darken.butler.common.files.operations.TransferStrategy.Options,
+        options: TransferStrategy.Options,
         onProgress: suspend (bytesTransferred: Long) -> Unit,
         sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
         destOps: FileSystemOps<LocalPath, LocalPathLookup>
-    ): eu.darken.butler.common.files.operations.TransferStrategy.TransferResult<LocalPath, LocalPath> {
+    ): TransferStrategy.TransferResult<LocalPath, LocalPath> {
         var totalBytesTransferred = 0L
 
         if (sourceLookup.fileType == FileType.SYMBOLIC_LINK) {
@@ -206,7 +232,7 @@ class LocalPathMoveStrategy(
         // Lookup moved destination to avoid redundant stat in caller
         val destLookup = destOps.lookup(destination, LookupOptions.BASE)
 
-        return eu.darken.butler.common.files.operations.TransferStrategy.TransferResult.Success(
+        return TransferStrategy.TransferResult.Success(
             source = sourceLookup.lookedUp,
             destination = destination,
             bytesTransferred = totalBytesTransferred,

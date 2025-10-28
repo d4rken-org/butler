@@ -1,11 +1,9 @@
 package eu.darken.butler.explorer.core.engine
 
-import android.content.Context
 import android.os.Environment
 import android.os.StatFs
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.PhoneAndroid
-import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
@@ -13,36 +11,29 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
-import eu.darken.butler.workspace.core.permissions.PermissionState
+import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class HomeLocationLoader @Inject constructor(
-    @ApplicationContext private val context: Context,
-) {
+class HomeLocationLoader @Inject constructor() {
 
     private val tag = logTag("Explorer", "HomeLocationLoader")
 
-    private suspend fun checkLocationPermissions(): PermissionState {
-        log(tag) { "checkLocationPermissions(): Checking permissions for Home" }
-
-        return PermissionState(
-            requirements = emptyList(),
-            hasSufficientPermissions = true,
-            missingCritical = emptyList(),
-        )
+    private suspend fun checkLocationRequirements(): WorkspaceRequirements {
+        log(tag) { "checkLocationRequirements(): Checking requirements for Home" }
+        return WorkspaceRequirements()
     }
 
     fun loadHome(): Flow<ExplorerLocation> = flow {
         log(tag, INFO) { "loadHome(): Loading home location" }
 
-        val permissionState = checkLocationPermissions()
+        val setupRequirements = checkLocationRequirements()
         val context = LocationLoaderContext(
             initialState = ExplorerLocation.Home(
-                permissionState = permissionState,
+                setupRequirements = setupRequirements,
                 progress = Progress.Data(
                     primary = R.string.explorer_loader_progress_home_loading.toCaString(),
                 ),

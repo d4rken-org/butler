@@ -25,7 +25,7 @@ class DebugSettings @Inject constructor(
     )
     val isTraceMode = dataStore.createValue(
         "debug.trace.enabled",
-        BuildConfigWrap.BUILD_TYPE == BuildConfigWrap.BuildType.DEV
+        false,
     )
     val recorderPath = dataStore.createValue<String?>(
         "recorder.log.path",

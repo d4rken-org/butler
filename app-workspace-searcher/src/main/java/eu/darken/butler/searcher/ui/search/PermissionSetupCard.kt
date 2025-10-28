@@ -21,7 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -30,14 +29,13 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.permissions.Permission
-import eu.darken.butler.workspace.core.permissions.PermissionState
-import eu.darken.butler.workspace.core.permissions.SetupRequirement
+import eu.darken.butler.setup.core.SetupModule
+import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
 
 @Composable
 fun PermissionSetupCard(
     searchPath: APath<*>,
-    permissionState: PermissionState,
+    setupRequirements: WorkspaceRequirements,
     onOpenSetup: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -57,13 +55,8 @@ fun PermissionSetupCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                val primaryPermission = permissionState.requirements.firstOrNull()?.permission
                 Icon(
-                    imageVector = when (primaryPermission) {
-                        is Permission.MANAGE_EXTERNAL_STORAGE -> Icons.TwoTone.Storage
-                        is Permission.WRITE_EXTERNAL_STORAGE -> Icons.TwoTone.Storage
-                        else -> Icons.TwoTone.Storage
-                    },
+                    imageVector = Icons.TwoTone.Storage,
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
                     tint = MaterialTheme.colorScheme.error
@@ -96,19 +89,6 @@ fun PermissionSetupCard(
                     .padding(top = 8.dp)
             )
 
-            // Setup requirement description if available
-            val primaryRequirement = permissionState.requirements.firstOrNull()
-            primaryRequirement?.let { requirement ->
-                Text(
-                    text = requirement.description.get(LocalContext.current),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp)
-                )
-            }
-
             Button(
                 onClick = onOpenSetup,
                 modifier = Modifier
@@ -139,15 +119,10 @@ private fun PermissionSetupCardPreview() {
     PreviewWrapper {
         PermissionSetupCard(
             searchPath = LocalPath.build("/storage/emulated/0/Documents"),
-            permissionState = PermissionState(
-                requirements = listOf(
-                    SetupRequirement(
-                        permission = Permission.MANAGE_EXTERNAL_STORAGE,
-                        isRequired = true,
-                    )
-                ),
-                hasSufficientPermissions = false,
-                missingCritical = listOf(Permission.MANAGE_EXTERNAL_STORAGE),
+            setupRequirements = WorkspaceRequirements(
+                combos = setOf(
+                    setOf(SetupModule.Type.STORAGE, SetupModule.Type.ROOT),
+                )
             ),
             onOpenSetup = {},
         )

@@ -23,39 +23,37 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.extensions.commonParent
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine
-import kotlinx.coroutines.flow.combine as kotlinxCombine
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.ui.ViewModel4
+import eu.darken.butler.explorer.core.arguments.ExternalExplorerArguments
+import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.searcher.core.SearchEngine
 import eu.darken.butler.searcher.core.SearchHistory
-import eu.darken.butler.searcher.core.SearchTarget
-import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchItem
+import eu.darken.butler.searcher.core.SearchQuery
+import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearcherSettings
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogEvent
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
-import eu.darken.butler.setup.core.SetupModule
-import eu.darken.butler.explorer.core.arguments.ExternalExplorerArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.createAndFocus
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
-import eu.darken.butler.explorer.core.picker.PickerConfig
-import eu.darken.butler.workspace.core.clipboard.ClipboardClip
-import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
 import eu.darken.butler.workspace.core.permissions.PathPermissionCheck
-import eu.darken.butler.workspace.core.permissions.PermissionState
+import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlinx.coroutines.Job
@@ -75,6 +73,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
+import kotlinx.coroutines.flow.combine as kotlinxCombine
 
 @HiltViewModel(assistedFactory = SearcherWorkspaceViewModel.Factory::class)
 class SearcherWorkspaceViewModel @AssistedInject constructor(
@@ -95,6 +94,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     private val workspaceSource: Flow<SearcherWorkspace?> =
         workspaceProvider.retrieve(id).map { workspace: Workspace? -> workspace as? SearcherWorkspace }
+
     private suspend fun getWorkspace(): SearcherWorkspace = workspaceSource.filterNotNull().first()
 
     private val searchQuery = MutableStateFlow(TextFieldValue(""))
@@ -140,7 +140,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 if (result.selectedPaths.isNotEmpty()) {
                     // Append new paths to existing targets, removing duplicates by path
                     val newTargets = result.selectedPaths.map { SearchTarget.Path.from(it) }
-                    val existingPaths = searchTargets.value.filterIsInstance<SearchTarget.Path>().map { it.path }.toSet()
+                    val existingPaths =
+                        searchTargets.value.filterIsInstance<SearchTarget.Path>().map { it.path }.toSet()
                     val uniqueNewTargets = newTargets.filter { it.path !in existingPaths }
                     val updatedTargets = searchTargets.value + uniqueNewTargets
                     searchTargets.value = updatedTargets
@@ -228,14 +229,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         searchTargets.flatMapLatest { targets ->
             val enabledPaths = targets.filterIsInstance<SearchTarget.Path>().filter { it.enabled }.map { it.path }
             if (enabledPaths.isEmpty()) {
-                flowOf(PermissionState())
+                flowOf(WorkspaceRequirements())
             } else {
                 kotlinxCombine(enabledPaths.map { pathPermissionCheck.monitor(it) }) { states ->
-                    // Combine all permission states - if any path needs permissions, show the card
-                    PermissionState(
-                        requirements = states.flatMap { it.requirements }.distinct(),
-                        hasSufficientPermissions = states.all { it.hasSufficientPermissions },
-                        missingCritical = states.flatMap { it.missingCritical }.distinct(),
+                    // Combine all setup requirements - if any path needs setup, show the card
+                    WorkspaceRequirements(
+                        combos = states.flatMap { it.combos }.distinct().toSet(),
+                        complete = states.flatMap { it.complete }.distinct().toSet(),
                     )
                 }
             }
@@ -243,7 +243,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         selectionState,
         quickActionsResult,
         dialogStateFlow,
-    ) { query, searchState, history, filter, targets, permissionState, selection, quickActions, dialogState ->
+    ) { query, searchState, history, filter, targets, setupRequirements, selection, quickActions, dialogState ->
         val updatedSelectionState = selection.copy(selectableResults = searchState.results)
 
         // Calculate available actions based on selection state
@@ -285,7 +285,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             caseSensitive = filter.caseSensitive,
             wholeWord = filter.wholeWord,
             useRegex = filter.useRegex,
-            permissionState = permissionState,
+            setupRequirements = setupRequirements,
             selectionState = updatedSelectionState,
             quickActionsResult = quickActions,
             dialogState = dialogState,
@@ -313,8 +313,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         // Compare with currently running search parameters
         currentSearchParams?.let { runningParams ->
             val isSameSearch = runningParams.query == query &&
-                    runningParams.targets == targets &&
-                    runningParams.filter == filter
+                runningParams.targets == targets &&
+                runningParams.filter == filter
 
             if (isSameSearch && searchState.value.status == SearchState.Status.SEARCHING) {
                 log(TAG, INFO) { "Same search already running, skipping duplicate" }
@@ -400,7 +400,12 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         activeSearchJob = vmScope.launch {
             if (targets.isEmpty()) {
                 log(TAG, WARN) { "Cannot perform search: no search targets configured" }
-                searchState.update { it.copy(status = SearchState.Status.ERROR, error = Exception("No search targets configured")) }
+                searchState.update {
+                    it.copy(
+                        status = SearchState.Status.ERROR,
+                        error = Exception("No search targets configured")
+                    )
+                }
                 return@launch
             }
 
@@ -849,7 +854,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val caseSensitive: Boolean = false,
         val wholeWord: Boolean = false,
         val useRegex: Boolean = false,
-        val permissionState: PermissionState = PermissionState(),
+        val setupRequirements: WorkspaceRequirements = WorkspaceRequirements(),
         val selectionState: SearcherSelectionState = SearcherSelectionState(),
         val quickActionsResult: SearchItem? = null,
         val dialogState: SearcherDialogState = SearcherDialogState.None,
@@ -861,8 +866,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val hasResults: Boolean
             get() = searchState.results.isNotEmpty()
 
-        val needsPermissions: Boolean
-            get() = permissionState.needsPermissions
+        val needsSetup: Boolean
+            get() = setupRequirements.needsSetup
 
         val listItems: List<SearchListItem>
             get() = buildList {
@@ -887,17 +892,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             }
     }
 
-    fun navigateToSetup() = launch {
-        log(tag) { "navigateToSetup(): Opening setup for storage permissions" }
-        navTo(
-            Nav.Main.destSetup(
-                typeFilter = setOf(SetupModule.Type.STORAGE),
-                requiredTypes = setOf(SetupModule.Type.STORAGE),
-                autoCloseWhenComplete = true,
-            )
-        )
-    }
-
     private suspend fun handleDialogEvent(event: SearcherDialogEvent) {
         log(TAG) { "handleDialogEvent($event)" }
         when (event) {
@@ -914,7 +908,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         dialogStateFlow.value = SearcherDialogState.None
     }
 
-    fun onDeleteConfirmed(items: Set<APath<*>>,) = launch {
+    fun onDeleteConfirmed(items: Set<APath<*>>) = launch {
         log(TAG, INFO) { "onDeleteConfirmed(${items.size} items)" }
         dialogStateFlow.value = SearcherDialogState.None
 
@@ -1088,6 +1082,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
      * Dispatches to appropriate ViewModel methods based on action type.
      */
     fun onPageAction(action: SearcherPageAction) {
+        log(TAG, INFO) { "onPageAction(): $action" }
         when (action) {
             // Search actions
             is SearcherPageAction.Search.UpdateQuery -> updateSearchQuery(action.query)
@@ -1129,7 +1124,14 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             is SearcherPageAction.Operations.ClearCompleted -> clearCompletedOperations()
 
             // Setup
-            is SearcherPageAction.Setup.Open -> navigateToSetup()
+            is SearcherPageAction.Setup.Open -> navTo(
+                Nav.Main.destSetup(
+                    typeFilter = action.requirements.relevantTypes,
+                    satisfyingCombos = action.requirements.combos,
+                    showCompleted = false,
+                    autoCloseWhenComplete = true,
+                )
+            )
 
             // Error
             is SearcherPageAction.Error.Copy -> copySearchError(action.error)

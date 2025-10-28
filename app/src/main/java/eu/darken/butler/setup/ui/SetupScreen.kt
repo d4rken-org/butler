@@ -20,9 +20,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlin.time.Duration.Companion.seconds
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,7 +33,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import eu.darken.butler.R
-import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -106,16 +102,11 @@ fun SetupScreen(
     }
 }
 
-@Preview2
-@Composable
-private fun SetupScreenPreview() {
-    // Preview moved to items package
-}
-
 @Composable
 fun SetupScreenHost(
     options: SetupScreenOptions = SetupScreenOptions(),
     vm: SetupViewModel = hiltViewModel(
+        key = options.hashCode().toString(),
         creationCallback = { factory: SetupViewModel.Factory ->
             factory.create(options = options)
         }
@@ -179,14 +170,6 @@ fun SetupScreenHost(
                 log(TAG) { "All required permissions granted, auto-closing setup screen" }
                 vm.navUp()
             }
-        }
-    }
-
-    // Auto-refresh setup states while screen is visible
-    LaunchedEffect(vm) {
-        while (isActive) {
-            vm.refresh()
-            delay(5.seconds)
         }
     }
 

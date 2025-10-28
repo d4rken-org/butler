@@ -112,10 +112,10 @@ fun RootShizukuActions(
                 onCheckedChange = { enabled ->
                     when (item.type) {
                         SetupModule.Type.ROOT -> {
-                            onExecuteAction(SetupAction.TOGGLE_ROOT(if (enabled) true else null))
+                            onExecuteAction(SetupAction.ToggleRoot(if (enabled) true else null))
                         }
                         SetupModule.Type.SHIZUKU -> {
-                            onExecuteAction(SetupAction.TOGGLE_SHIZUKU(if (enabled) true else null))
+                            onExecuteAction(SetupAction.ToggleShizuku(if (enabled) true else null))
                         }
                         else -> {}
                     }
