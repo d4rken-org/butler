@@ -64,7 +64,6 @@ class EditorWorkspace @AssistedInject constructor(
     override val info: MutableStateFlow<Workspace.Info> = _info
 
     val filePath: APath<*>? get() = arguments?.filePath
-    val isReadOnly: Boolean get() = arguments?.isReadOnly ?: false
 
     private val editorEngine = editorEngineFactory.create(id)
 
@@ -214,7 +213,6 @@ class EditorWorkspace @AssistedInject constructor(
     @Parcelize
     data class Arguments(
         val filePath: APath<*>? = null,
-        val isReadOnly: Boolean = false,
         val goToLine: Int? = null,
     ) : Workspace.Arguments {
         override val type: Workspace.Type
