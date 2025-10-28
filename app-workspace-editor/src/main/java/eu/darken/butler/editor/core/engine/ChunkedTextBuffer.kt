@@ -46,9 +46,6 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
     suspend fun initialize(): Result<Unit> = bufferMutex.withLock {
         try {
-            // Close any existing content
-            closeFileInternal()
-
             // Get info from data source (may be null for in-memory sources)
             val info = chunkRepository.getFileInfo()
             val size = if (info != null) {

@@ -71,7 +71,7 @@ fun LazyTextEditor(
     val scope = rememberCoroutineScope()
     
     // Update visible range when scroll position changes
-    LaunchedEffect(contentListState.firstVisibleItemIndex, contentListState.layoutInfo.visibleItemsInfo.size, lines.size) {
+    LaunchedEffect(contentListState.firstVisibleItemIndex, contentListState.layoutInfo.visibleItemsInfo.size) {
         if (lines.isNotEmpty() && contentListState.layoutInfo.totalItemsCount > 0) {
             val startIndex = contentListState.firstVisibleItemIndex.coerceAtLeast(0)
             val visibleCount = contentListState.layoutInfo.visibleItemsInfo.size.coerceAtLeast(1)
@@ -288,7 +288,10 @@ private fun DualColumnEditorContent(
                                     fontSize = fontSize.sp,
                                     fontFamily = FontFamily.Monospace,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                                ),
+                                softWrap = false,
+                                maxLines = 1,
+                                overflow = TextOverflow.Visible
                             )
                         }
                     }

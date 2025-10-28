@@ -52,6 +52,7 @@ class FileDataSource @AssistedInject constructor(
             }
 
             fileContent = String(content)
+
             _fileInfo.value = FileInfo(
                 path = filePath,
                 size = lookup.size!!,

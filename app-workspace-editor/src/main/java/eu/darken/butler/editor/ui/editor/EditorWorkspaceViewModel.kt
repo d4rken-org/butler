@@ -176,7 +176,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun updateVisibleRange(startLine: Int, endLine: Int) {
+    fun updateVisibleRange(startLine: Int, endLine: Int) = launch {
         val workspace = getCurrentWorkspace()
         workspace?.updateVisibleRange(startLine, endLine)
     }

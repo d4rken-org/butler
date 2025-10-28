@@ -66,6 +66,8 @@ class EditorEngine @AssistedInject constructor(
     private val _error = MutableStateFlow<Throwable?>(null)
     val error: StateFlow<Throwable?> = _error.asStateFlow()
 
+    private var isInitializing = true
+
     val fileInfo: Flow<FileInfo?> = resources.flatMapLatest { res ->
         res?.textBuffer?.fileInfo ?: flowOf(null)
     }
@@ -126,6 +128,22 @@ class EditorEngine @AssistedInject constructor(
                         return
                     }
 
+                    // Update engine state from initialized buffer
+                    _totalLines.value = textBuffer.totalLines.value
+
+                    // Load initial visible range content
+                    val endLine = minOf(50, textBuffer.totalLines.value - 1)
+                    if (endLine >= 0) {
+                        _visibleRange.value = 0..endLine
+                        val contentResult = textBuffer.getTextForRange(0, endLine)
+                        if (contentResult.isSuccess) {
+                            _currentContent.value = contentResult.getOrNull() ?: ""
+                        }
+                    } else {
+                        _visibleRange.value = 0..0
+                        _currentContent.value = ""
+                    }
+
                     log(tag) { "Successfully initialized with file: $filePath" }
                 }
                 is InMemoryDataSource -> {
@@ -155,6 +173,9 @@ class EditorEngine @AssistedInject constructor(
                     log(tag) { "Successfully initialized in-memory editor" }
                 }
             }
+
+            // Initialization complete - allow visible range updates from UI
+            isInitializing = false
 
         } catch (e: Exception) {
             log(tag, Logging.Priority.ERROR) { "Failed to initialize editor engine - ${e.asLog()}" }
@@ -376,7 +397,12 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    fun updateVisibleRange(startLine: Int, endLine: Int) {
+    suspend fun updateVisibleRange(startLine: Int, endLine: Int) {
+        if (isInitializing) {
+            log(tag) { "Ignoring visible range update during initialization: $startLine..$endLine" }
+            return
+        }
+
         val totalLines = _totalLines.value
         if (totalLines <= 0) return
 
@@ -386,6 +412,22 @@ class EditorEngine @AssistedInject constructor(
 
         if (_visibleRange.value != newRange) {
             _visibleRange.value = newRange
+
+            // Load content for the new visible range
+            val resources = _resources.value
+            if (resources != null) {
+                try {
+                    val contentResult = resources.textBuffer.getTextForRange(constrainedStart, constrainedEnd)
+                    if (contentResult.isSuccess) {
+                        _currentContent.value = contentResult.getOrNull() ?: ""
+                        log(tag) { "Loaded content for range: $constrainedStart..$constrainedEnd" }
+                    } else {
+                        log(tag, Logging.Priority.WARN) { "Failed to load content for range: ${contentResult.exceptionOrNull()?.asLog()}" }
+                    }
+                } catch (e: Exception) {
+                    log(tag, Logging.Priority.ERROR) { "Error loading content for visible range - ${e.asLog()}" }
+                }
+            }
         }
     }
 

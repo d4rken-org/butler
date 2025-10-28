@@ -197,7 +197,7 @@ class EditorWorkspace @AssistedInject constructor(
     fun insertText(text: String) = editorEngine.insertText(text)
     fun setCursorPosition(position: TextPosition) = editorEngine.setCursorPosition(position)
     fun setSelection(start: TextPosition, end: TextPosition) = editorEngine.setSelection(start, end)
-    fun updateVisibleRange(startLine: Int, endLine: Int) = editorEngine.updateVisibleRange(startLine, endLine)
+    suspend fun updateVisibleRange(startLine: Int, endLine: Int) = editorEngine.updateVisibleRange(startLine, endLine)
     fun clearError() = editorEngine.clearError()
     fun canUndo() = editorEngine.canUndo()
     fun canRedo() = editorEngine.canRedo()
