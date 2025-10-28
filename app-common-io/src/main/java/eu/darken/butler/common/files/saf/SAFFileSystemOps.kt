@@ -660,6 +660,9 @@ class SAFFileSystemOps @Inject constructor(
         }
 
         success
+    } catch (e: UnsupportedOperationException) {
+        // Don't wrap - let caller handle when document provider doesn't support move
+        throw e
     } catch (e: Exception) {
         log(TAG, WARN) { "move($source, $destination) failed: ${e.asLog()}" }
         throw WriteException(path = source, cause = e)

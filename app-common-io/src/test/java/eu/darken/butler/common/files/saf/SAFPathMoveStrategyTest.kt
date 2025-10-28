@@ -73,7 +73,7 @@ class SAFPathMoveStrategyTest : BaseTest() {
             destination = destPath,
             sourceOps = spyOps,
             destOps = spyOps,
-            options = TransferStrategy.Options(),
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             onProgress = {}
         )
 
@@ -111,7 +111,7 @@ class SAFPathMoveStrategyTest : BaseTest() {
             destination = destPath,
             sourceOps = mockOps,
             destOps = mockOps,
-            options = TransferStrategy.Options(),
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             onProgress = { bytes ->
                 progressCalled = true
                 bytesReported = bytes
@@ -143,7 +143,7 @@ class SAFPathMoveStrategyTest : BaseTest() {
             destination = destPath,
             sourceOps = mockOps,
             destOps = mockOps,
-            options = TransferStrategy.Options(),
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             onProgress = {}
         ) as TransferStrategy.TransferResult.Success
 
@@ -177,7 +177,7 @@ class SAFPathMoveStrategyTest : BaseTest() {
             destination = destPath,
             sourceOps = spyOps,
             destOps = spyOps,
-            options = TransferStrategy.Options(),
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             onProgress = {}
         )
 
@@ -217,7 +217,7 @@ class SAFPathMoveStrategyTest : BaseTest() {
             destination = destPath,
             sourceOps = spyOps,
             destOps = spyOps,
-            options = TransferStrategy.Options(),
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             onProgress = { bytes -> progressUpdates.add(bytes) }
         ) as TransferStrategy.TransferResult.Success
 
@@ -250,7 +250,7 @@ class SAFPathMoveStrategyTest : BaseTest() {
             destination = destPath,
             sourceOps = spyOps,
             destOps = spyOps,
-            options = TransferStrategy.Options(),
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             onProgress = {}
         )
 
@@ -289,7 +289,7 @@ class SAFPathMoveStrategyTest : BaseTest() {
             destination = dest1,
             sourceOps = spyOps,
             destOps = spyOps,
-            options = TransferStrategy.Options(),
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             onProgress = {}
         )
         val result2 = strategy.transferFile(
@@ -297,7 +297,7 @@ class SAFPathMoveStrategyTest : BaseTest() {
             destination = dest2,
             sourceOps = spyOps,
             destOps = spyOps,
-            options = TransferStrategy.Options(),
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             onProgress = {}
         )
 
@@ -329,7 +329,7 @@ class SAFPathMoveStrategyTest : BaseTest() {
             destination = destPath,
             sourceOps = mockOps,
             destOps = mockOps,
-            options = TransferStrategy.Options(),
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             onProgress = {}
         ) as TransferStrategy.TransferResult.Success
 
@@ -358,7 +358,7 @@ class SAFPathMoveStrategyTest : BaseTest() {
             destination = destPath,
             sourceOps = mockOps,
             destOps = mockOps,
-            options = TransferStrategy.Options(),
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             onProgress = {}
         ) as TransferStrategy.TransferResult.Success
 
@@ -389,7 +389,7 @@ class SAFPathMoveStrategyTest : BaseTest() {
             destination = destPath,
             sourceOps = spyOps,
             destOps = spyOps,
-            options = TransferStrategy.Options(),
+            options = TransferStrategy.Options(attemptAtomicMove = false),
             onProgress = {}
         ) as TransferStrategy.TransferResult.Success
 
@@ -418,7 +418,7 @@ class SAFPathMoveStrategyTest : BaseTest() {
             destination = destDir,
             sourceOps = mockOps,
             destOps = mockOps,
-            options = TransferStrategy.Options()
+            options = TransferStrategy.Options(attemptAtomicMove = false)
         )
 
         // Then

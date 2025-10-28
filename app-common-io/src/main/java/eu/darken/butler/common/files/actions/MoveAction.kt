@@ -20,6 +20,7 @@ interface MoveAction<
     data class Options(
         val preserveAttributes: Boolean = true,
         val overwrite: Boolean = false,
+        val attemptAtomicMove: Boolean = true,
     )
 
     sealed interface State<

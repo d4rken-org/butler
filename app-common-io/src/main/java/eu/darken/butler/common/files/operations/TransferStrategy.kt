@@ -82,6 +82,21 @@ interface TransferStrategy<
          * but strategies may use this for atomic operations.
          */
         val overwrite: Boolean = false,
+
+        /**
+         * Whether to attempt atomic directory moves before falling back to recursive moves.
+         *
+         * When true (default):
+         * - Directory moves attempt atomic rename first (single syscall)
+         * - Falls back to recursive scan+move+delete if atomic not supported
+         * - Optimal performance for same-filesystem renames
+         *
+         * When false:
+         * - Always use recursive scan+move+delete pattern
+         * - Useful for tests that expect old behavior
+         * - May provide more granular progress tracking
+         */
+        val attemptAtomicMove: Boolean = true,
     )
 
     /**

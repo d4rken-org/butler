@@ -28,6 +28,7 @@ import okio.FileHandle
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.file.AtomicMoveNotSupportedException
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
@@ -168,7 +169,7 @@ class LocalFileSystemOps @Inject constructor(
             val basicAttributes = try {
                 Files.readAttributes(path.toNioPath(), BasicFileAttributes::class.java)
             } catch (e: Exception) {
-                log(TAG, WARN) { "BasicFileAttributes failed on $path: ${e.asLog()}" }
+                log(TAG, WARN) { "BasicFileAttributes failed on $path: $e" }
                 null
             }
 
@@ -372,6 +373,9 @@ class LocalFileSystemOps @Inject constructor(
             LinkOption.NOFOLLOW_LINKS
         )
         true
+    } catch (e: AtomicMoveNotSupportedException) {
+        // Don't wrap - let caller handle atomic move failures and fallback
+        throw e
     } catch (e: IOException) {
         throw WriteException(path = source, cause = e)
     }

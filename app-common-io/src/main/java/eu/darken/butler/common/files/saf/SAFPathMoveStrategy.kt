@@ -113,8 +113,24 @@ class SAFPathMoveStrategy : TransferStrategy<
     ): TransferStrategy.TransferResult<SAFPath, SAFPath> {
         log(TAG, DEBUG) { "Moving SAF directory: ${sourceLookup.lookedUp} -> $destination" }
 
-        // For directories, we just create at destination
-        // The move operation will handle cleanup of empty source directories
+        // Try atomic directory move first if enabled (DocumentsContract.moveDocument handles directories)
+        if (options.attemptAtomicMove) {
+            try {
+                sourceOps.move(sourceLookup.lookedUp, destination)
+                log(TAG, DEBUG) { "Atomic SAF directory move succeeded: ${sourceLookup.lookedUp} -> $destination" }
+
+                return TransferStrategy.TransferResult.Success(
+                    source = sourceLookup.lookedUp,
+                    destination = destination,
+                    bytesTransferred = 0L
+                )
+            } catch (e: UnsupportedOperationException) {
+                log(TAG, DEBUG) { "Atomic SAF directory move not supported, creating empty directory" }
+                // Fall through to create empty directory
+            }
+        }
+
+        // Fallback: Create empty directory (children moved separately by GenericPathMove)
         val result = copyStrategy.createDirectory(
             sourceLookup = sourceLookup,
             destination = destination,

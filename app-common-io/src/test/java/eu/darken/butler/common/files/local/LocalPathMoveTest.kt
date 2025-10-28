@@ -62,7 +62,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
             .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
@@ -82,7 +82,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
             .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
@@ -110,7 +110,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
             .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
@@ -144,7 +144,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sources.move(ops, destPath)
+        val result = sources.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
             .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
@@ -171,7 +171,7 @@ class LocalPathMoveTest : BaseTest() {
 
         // When/Then
         shouldThrow<WriteException> {
-            sourcePath.move(ops, destPath, onIssue = null).last()
+            sourcePath.move(ops, destPath, onIssue = null, options = MoveAction.Options(attemptAtomicMove = false)).last()
         }
     }
 
@@ -188,7 +188,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(ops, destPath) { issue ->
+        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false)) { issue ->
             when (issue) {
                 is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Skip()
                 else -> error("Unexpected issue: $issue")
@@ -214,7 +214,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(ops, destPath) { issue ->
+        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false)) { issue ->
             when (issue) {
                 is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
                 else -> error("Unexpected issue: $issue")
@@ -240,7 +240,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(ops, destPath) { issue ->
+        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false)) { issue ->
             when (issue) {
                 is PathActionIssue.PathAlreadyExists -> {
                     PathActionIssue.PathAlreadyExists.Resolution.RenameSource("test-renamed.txt")
@@ -272,7 +272,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        sourcePath.move(ops, destPath) { issue ->
+        sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false)) { issue ->
             when (issue) {
                 is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Merge()
                 else -> error("Unexpected issue: $issue")
@@ -304,7 +304,7 @@ class LocalPathMoveTest : BaseTest() {
         var issueCount = 0
 
         // When
-        val result = sources.move(ops, destPath) { issue ->
+        val result = sources.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false)) { issue ->
             issueCount++
             when (issue) {
                 is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Skip(applyToAll = true)
@@ -336,7 +336,7 @@ class LocalPathMoveTest : BaseTest() {
         var issueCount = 0
 
         // When
-        val result = sources.move(ops, destPath) { issue ->
+        val result = sources.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false)) { issue ->
             issueCount++
             when (issue) {
                 is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Overwrite(
@@ -412,7 +412,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
             .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
@@ -443,7 +443,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
             .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - broken symlink should be moved as-is
@@ -478,7 +478,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
             .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - symlink should be moved
@@ -509,7 +509,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
             .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - link2 should be moved and still point to link1
@@ -539,8 +539,11 @@ class LocalPathMoveTest : BaseTest() {
         }
 
         // When - move the entire directory
-        val result = LocalPath.build(sourceDir).move(ops, LocalPath.build(destFolder))
-            .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        val result = LocalPath.build(sourceDir).move(
+            ops,
+            LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false)
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - directory and all contents moved, symlink preserved
         val movedDir = File(destFolder, "project")
@@ -582,6 +585,7 @@ class LocalPathMoveTest : BaseTest() {
         val result = LocalPath.build(sourceLink).move(
             ops,
             LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
             onIssue = { issue ->
                 when (issue) {
                     is PathActionIssue.PathAlreadyExists -> {
@@ -616,8 +620,11 @@ class LocalPathMoveTest : BaseTest() {
         }
 
         // When - move entire directory (symlink + target together)
-        val result = LocalPath.build(sourceDir).move(ops, LocalPath.build(destFolder))
-            .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        val result = LocalPath.build(sourceDir).move(
+            ops,
+            LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false)
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - both moved, symlink still resolves to target
         val movedDir = File(destFolder, "bundle")
@@ -660,7 +667,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When - move ONLY the symlink (Unix mv behavior: only moves the link itself)
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
             .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - symlink moved, target file remains at original location
@@ -698,7 +705,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When - move ONLY the symlink (Unix mv behavior)
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
             .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - symlink moved, original directory and contents remain
@@ -735,7 +742,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When - move the symlink
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
             .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - symlink moved, remains a symlink
@@ -776,7 +783,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When - move the symlink
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
             .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - symlink moved and preserves absolute path
@@ -814,6 +821,7 @@ class LocalPathMoveTest : BaseTest() {
         sourcePath.move(
             ops,
             destPath,
+            options = MoveAction.Options(attemptAtomicMove = false),
             onIssue = { issue ->
                 issueReceived = issue
                 PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
@@ -849,6 +857,7 @@ class LocalPathMoveTest : BaseTest() {
         listOf(LocalPath.build(dir1), LocalPath.build(dir2)).move(
             ops,
             LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
             onIssue = { issue ->
                 issueCount++
                 PathActionIssue.PathAlreadyExists.Resolution.Overwrite(applyToAll = true)
@@ -889,6 +898,7 @@ class LocalPathMoveTest : BaseTest() {
         val result = listOf(LocalPath.build(dir1), LocalPath.build(dir2)).move(
             ops,
             LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
             onIssue = { issue ->
                 issueCount++
                 PathActionIssue.PathAlreadyExists.Resolution.Skip(applyToAll = true)
@@ -922,6 +932,7 @@ class LocalPathMoveTest : BaseTest() {
         LocalPath.build(sourceFile).move(
             ops,
             LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
             onIssue = { issue ->
                 issueReceived = issue
                 PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
@@ -951,6 +962,7 @@ class LocalPathMoveTest : BaseTest() {
         LocalPath.build(sourceDir).move(
             ops,
             LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
             onIssue = { issue ->
                 issueReceived = issue
                 PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
@@ -979,6 +991,7 @@ class LocalPathMoveTest : BaseTest() {
         LocalPath.build(sourceFile).move(
             ops,
             LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
             onIssue = { issue ->
                 when (issue) {
                     is PathActionIssue.PathAlreadyExists -> {
@@ -1008,6 +1021,7 @@ class LocalPathMoveTest : BaseTest() {
         LocalPath.build(sourceFile).move(
             ops,
             LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
             onIssue = { issue ->
                 when (issue) {
                     is PathActionIssue.PathAlreadyExists -> {
@@ -1039,6 +1053,7 @@ class LocalPathMoveTest : BaseTest() {
         LocalPath.build(sourceDir).move(
             ops,
             LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
             onIssue = { issue ->
                 PathActionIssue.PathAlreadyExists.Resolution.RenameSource("dir-renamed")
             }
@@ -1066,7 +1081,7 @@ class LocalPathMoveTest : BaseTest() {
         LocalPath.build(sourceFile).move(
             ops,
             LocalPath.build(destFolder),
-            options = MoveAction.Options(preserveAttributes = true)
+            options = MoveAction.Options(preserveAttributes = true, attemptAtomicMove = false)
         ).last()
 
         // Then
@@ -1090,7 +1105,7 @@ class LocalPathMoveTest : BaseTest() {
         LocalPath.build(sourceDir).move(
             ops,
             LocalPath.build(destFolder),
-            options = MoveAction.Options(preserveAttributes = true)
+            options = MoveAction.Options(preserveAttributes = true, attemptAtomicMove = false)
         ).last()
 
         // Then
@@ -1167,6 +1182,7 @@ class LocalPathMoveTest : BaseTest() {
         val result = listOf(LocalPath.build(file1), LocalPath.build(file2)).move(
             ops,
             LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
             onIssue = { issue ->
                 PathActionIssue.PathAlreadyExists.Resolution.Skip(applyToAll = true)
             }
@@ -1290,7 +1306,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = emptySources.move(ops, destPath)
+        val result = emptySources.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
             .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
@@ -1314,7 +1330,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
             .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
@@ -1339,7 +1355,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(destFolder)
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
             .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
@@ -1367,6 +1383,7 @@ class LocalPathMoveTest : BaseTest() {
         val result = LocalPath.build(sourceDir).move(
             ops,
             LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
             onIssue = { issue ->
                 when (issue) {
                     is PathActionIssue.PathAlreadyExists -> {
@@ -1408,6 +1425,7 @@ class LocalPathMoveTest : BaseTest() {
         LocalPath.build(sourceDir).move(
             ops,
             LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
             onIssue = { issue ->
                 when (issue) {
                     is PathActionIssue.PathAlreadyExists -> {
@@ -1455,6 +1473,7 @@ class LocalPathMoveTest : BaseTest() {
             LocalPath.build(sourceFile).move(
                 ops,
                 LocalPath.build(destFolder),
+                options = MoveAction.Options(attemptAtomicMove = false),
                 onIssue = { issue ->
                     when (issue) {
                         is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
@@ -1482,6 +1501,7 @@ class LocalPathMoveTest : BaseTest() {
             listOf(LocalPath.build(file1), LocalPath.build(file2)).move(
                 ops,
                 LocalPath.build(destFolder),
+                options = MoveAction.Options(attemptAtomicMove = false),
                 onIssue = { issue ->
                     when (issue) {
                         is PathActionIssue.InsufficientPermission ->
@@ -1506,6 +1526,7 @@ class LocalPathMoveTest : BaseTest() {
             LocalPath.build(sourceFile).move(
                 ops,
                 LocalPath.build(destFolder),
+                options = MoveAction.Options(attemptAtomicMove = false),
                 onIssue = { issue ->
                     if (issue is PathActionIssue.UnknownError && retryCount < 2) {
                         retryCount++
@@ -1532,6 +1553,7 @@ class LocalPathMoveTest : BaseTest() {
             listOf(LocalPath.build(file1), LocalPath.build(file2)).move(
                 ops,
                 LocalPath.build(destFolder),
+                options = MoveAction.Options(attemptAtomicMove = false),
                 onIssue = { issue ->
                     issueCount++
                     when (issue) {
@@ -1705,6 +1727,7 @@ class LocalPathMoveTest : BaseTest() {
         LocalPath.build(sourceFile).move(
             ops,
             LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
             onIssue = { issue ->
                 when (issue) {
                     is PathActionIssue.PathAlreadyExists -> {
@@ -1757,6 +1780,7 @@ class LocalPathMoveTest : BaseTest() {
         val result = duplicatePaths.move(
             ops,
             LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
             onIssue = { issue ->
                 when (issue) {
                     is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Skip()
@@ -1793,6 +1817,7 @@ class LocalPathMoveTest : BaseTest() {
         ).move(
             ops,
             LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
             onIssue = { issue ->
                 issueCount++
                 when (issue) {
@@ -1913,7 +1938,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(sourceFolder.absoluteFile).child("renamed.txt")
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
             .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
@@ -1937,7 +1962,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(sourceFolder.absoluteFile).child("document.md")
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
             .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
@@ -1961,7 +1986,7 @@ class LocalPathMoveTest : BaseTest() {
         val destPath = LocalPath.build(sourceFolder.absoluteFile).child("NewName")
 
         // When
-        val result = sourcePath.move(ops, destPath)
+        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
             .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
@@ -2033,6 +2058,7 @@ class LocalPathMoveTest : BaseTest() {
         val result = LocalPath.build(sourceFile).move(
             ops,
             LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
             onIssue = { issue ->
                 when (issue) {
                     is PathActionIssue.PathAlreadyExists -> {
@@ -2064,6 +2090,7 @@ class LocalPathMoveTest : BaseTest() {
         val result = LocalPath.build(sourceDir).move(
             ops,
             LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
             onIssue = { issue ->
                 when (issue) {
                     is PathActionIssue.PathAlreadyExists -> {
@@ -2097,6 +2124,7 @@ class LocalPathMoveTest : BaseTest() {
         val result = LocalPath.build(sourceDir).move(
             ops,
             LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
             onIssue = { issue ->
                 when (issue) {
                     is PathActionIssue.PathAlreadyExists -> {
@@ -2141,6 +2169,7 @@ class LocalPathMoveTest : BaseTest() {
         listOf(LocalPath.build(source1), LocalPath.build(source2)).move(
             ops,
             LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
             onIssue = { issue ->
                 issuesEncountered.add(issue)
                 when (issue) {
@@ -2184,8 +2213,11 @@ class LocalPathMoveTest : BaseTest() {
         val sourcePath = File(sourceFolder, "deep")
 
         // When
-        val result = LocalPath.build(sourcePath).move(ops, LocalPath.build(destFolder))
-            .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        val result = LocalPath.build(sourcePath).move(
+            ops,
+            LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false)
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then
         result.bytesMoved shouldBe expectedSize
@@ -2213,6 +2245,7 @@ class LocalPathMoveTest : BaseTest() {
             val result = LocalPath.build(parentDir).move(
                 ops,
                 LocalPath.build(destFolder),
+                options = MoveAction.Options(attemptAtomicMove = false),
                 onIssue = { issue ->
                     when (issue) {
                         is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
