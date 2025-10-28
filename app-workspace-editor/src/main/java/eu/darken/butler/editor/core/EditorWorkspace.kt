@@ -10,6 +10,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.core.engine.FileInfo
 import eu.darken.butler.editor.core.engine.SearchResult
@@ -134,7 +135,8 @@ class EditorWorkspace @AssistedInject constructor(
 
         // Initialize editor engine with file from arguments or scratch buffer
         workspaceScope.launch {
-            val filePathToOpen = arguments?.filePath
+            // FIXME just while developing
+            val filePathToOpen = arguments?.filePath ?: LocalPath.build("/sdcard/core.log")
             if (filePathToOpen != null) {
                 log(tag, INFO) { "Opening file from arguments: ${filePathToOpen.name}" }
                 editorEngine.openFile(filePathToOpen)

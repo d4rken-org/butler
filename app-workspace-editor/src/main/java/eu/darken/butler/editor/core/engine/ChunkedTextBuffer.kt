@@ -449,14 +449,22 @@ class ChunkedTextBuffer @AssistedInject constructor(
         // For now, create a basic index by getting first chunk (may be modified)
         if (chunkIds.isNotEmpty()) {
             val firstChunkId = chunkIds.first()
-            val firstChunk = chunkManager.getChunk(firstChunkId) ?: chunkManager.loadChunk(firstChunkId).getOrNull()
-            if (firstChunk != null) {
-                buildLineIndexForChunk(firstChunk, lineNumber, currentOffset)
+            log(tag) { "Building line index from first chunk: $firstChunkId" }
+
+            val firstChunk = try {
+                chunkManager.getChunk(firstChunkId) ?: chunkManager.loadChunk(firstChunkId).getOrThrow()
+            } catch (e: Exception) {
+                log(tag, ERROR) { "Failed to load first chunk for line indexing - ${e.asLog()}" }
+                throw e
             }
+
+            log(tag) { "Processing chunk with ${firstChunk.content.length} bytes for line indexing" }
+            buildLineIndexForChunk(firstChunk, lineNumber, currentOffset)
         }
 
         // Ensure we have at least one line for empty content
         if (lineIndex.isEmpty()) {
+            log(tag) { "Line index is empty, creating fallback empty line entry" }
             lineIndex.add(
                 LineInfo(
                     lineNumber = 0,
@@ -468,6 +476,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         }
 
         _totalLines.value = lineIndex.size
+        log(tag) { "Line index built with ${lineIndex.size} lines" }
     }
 
     private fun buildLineIndexForChunk(chunk: TextChunk, startLineNumber: Int, startOffset: Long) {
