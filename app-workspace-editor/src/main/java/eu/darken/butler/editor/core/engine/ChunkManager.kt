@@ -17,7 +17,6 @@ import kotlinx.coroutines.sync.withLock
 class ChunkManager @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     @Assisted private val chunkRepository: ChunkRepository,
-    private val memoryManager: MemoryManager
 ) {
 
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "ChunkManager")
@@ -58,9 +57,6 @@ class ChunkManager @AssistedInject constructor(
             // Load from repository
             val chunk = chunkRepository.loadChunk(chunkId)
 
-            // Update memory manager
-            memoryManager.addChunk(chunk)
-
             // Update state
             _chunks.value = _chunks.value + (chunkId to chunk)
             _loadStates.value = _loadStates.value + (chunkId to ChunkLoadState(
@@ -96,11 +92,7 @@ class ChunkManager @AssistedInject constructor(
 
     suspend fun addChunk(chunk: TextChunk): Unit = chunkMutex.withLock {
         _chunks.value = _chunks.value + (chunk.id to chunk)
-        memoryManager.addChunk(chunk)
 
-        if (chunk.isDirty) {
-            memoryManager.markChunkDirty(chunk.id)
-        }
     }
 
     suspend fun updateChunk(chunkId: TextChunk.ChunkId, updater: (TextChunk) -> TextChunk): TextChunk? =
@@ -109,11 +101,6 @@ class ChunkManager @AssistedInject constructor(
             val updatedChunk = updater(currentChunk)
 
             _chunks.value = _chunks.value + (chunkId to updatedChunk)
-
-            // Notify memory manager of changes
-            if (updatedChunk.isDirty && !currentChunk.isDirty) {
-                memoryManager.markChunkDirty(chunkId)
-            }
 
             updatedChunk
         }
@@ -131,7 +118,6 @@ class ChunkManager @AssistedInject constructor(
 
         _chunks.value = _chunks.value - chunkId
         _loadStates.value = _loadStates.value - chunkId
-        memoryManager.removeChunk(chunkId)
 
         true
     }
@@ -152,7 +138,6 @@ class ChunkManager @AssistedInject constructor(
             // Mark as clean
             val cleanChunk = chunk.markClean()
             _chunks.value = _chunks.value + (chunkId to cleanChunk)
-            memoryManager.markChunkClean(chunkId)
 
             log(tag) { "Successfully saved chunk: $chunkId" }
             Result.success(Unit)
@@ -201,7 +186,6 @@ class ChunkManager @AssistedInject constructor(
         log(tag) { "Clearing all chunks" }
         _chunks.value = emptyMap()
         _loadStates.value = emptyMap()
-        memoryManager.clear()
     }
 
     @AssistedFactory

@@ -31,7 +31,6 @@ class EditorEngine @AssistedInject constructor(
     private val chunkRepositoryFactory: ChunkRepository.Factory,
     private val chunkManagerFactory: ChunkManager.Factory,
     private val chunkedTextBufferFactory: ChunkedTextBuffer.Factory,
-    private val memoryManager: MemoryManager,
 ) {
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine")
 
@@ -76,10 +75,6 @@ class EditorEngine @AssistedInject constructor(
     val isModified: Flow<Boolean> = resources.flatMapLatest { res ->
         res?.textBuffer?.isModified ?: flowOf(false)
     }
-
-    val memoryStats: Flow<MemoryStats> = flow {
-        emit(memoryManager.getMemoryStats())
-    }.catch { emit(MemoryStats(0, 0, 0, 0, 0)) }
 
     val textBuffer: VirtualTextBuffer?
         get() = _resources.value?.textBuffer

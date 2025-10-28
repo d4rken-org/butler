@@ -45,7 +45,6 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.editor.R
-import eu.darken.butler.editor.core.engine.MemoryStats
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
@@ -131,7 +130,7 @@ fun EditorWorkspacePage(
                 .fillMaxSize()
                 .padding(
                     top = 16.dp + actualToolbarHeightDp,
-                    bottom = if (state.showMemoryStats) memoryCardHeight + 8.dp else 0.dp
+                    bottom = 0.dp
                 )
                 .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
                 .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection)
@@ -164,10 +163,21 @@ fun EditorWorkspacePage(
                             fontSize = 14,
                             tabSize = 4,
                             onTextChange = { text -> onPageAction(EditorPageAction.Edit.InsertText(text)) },
-                            onCursorPositionChange = { position -> onPageAction(EditorPageAction.Navigation.SetCursor(position)) },
+                            onCursorPositionChange = { position ->
+                                onPageAction(
+                                    EditorPageAction.Navigation.SetCursor(
+                                        position
+                                    )
+                                )
+                            },
                             onSelectionChange = { selection ->
                                 if (selection != null) {
-                                    onPageAction(EditorPageAction.Navigation.SetSelection(selection.first, selection.second))
+                                    onPageAction(
+                                        EditorPageAction.Navigation.SetSelection(
+                                            selection.first,
+                                            selection.second
+                                        )
+                                    )
                                 } else {
                                     onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition))
                                 }
@@ -230,22 +240,19 @@ fun EditorWorkspacePage(
                 }
         )
 
-        // Floating memory info card at bottom with scroll behavior
-        if (state.showMemoryStats) {
-            EditorMemoryInfoCard(
-                memoryStats = state.memoryStats,
-                cursorPosition = state.cursorPosition,
-                totalLines = state.totalLines,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .graphicsLayer {
-                        // Immediate snap behavior: fully visible or fully hidden
-                        alpha = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 0f else 1f
-                        translationY = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) memoryCardHeight.toPx() else 0f
-                    }
-            )
-        }
+        EditorInfoCard(
+            cursorPosition = state.cursorPosition,
+            totalLines = state.totalLines,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .graphicsLayer {
+                    // Immediate snap behavior: fully visible or fully hidden
+                    alpha = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 0f else 1f
+                    translationY =
+                        if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) memoryCardHeight.toPx() else 0f
+                }
+        )
     }
 
     // Dialogs
@@ -462,13 +469,6 @@ private fun EditorPagePreview() {
                 totalLines = 1000,
                 isModified = true,
                 currentContent = "Sample text content\nLine 2\nLine 3",
-                memoryStats = MemoryStats(
-                    currentUsage = 10 * 1024 * 1024,
-                    maxMemory = 100 * 1024 * 1024,
-                    totalChunks = 5,
-                    dirtyChunks = 2,
-                    usagePercentage = 10
-                )
             ),
             onPageAction = {}
         )

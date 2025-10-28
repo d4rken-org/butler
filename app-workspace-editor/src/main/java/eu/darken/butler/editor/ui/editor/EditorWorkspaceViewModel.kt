@@ -15,7 +15,6 @@ import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.EditorSettings
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.editor.core.engine.FileInfo
-import eu.darken.butler.editor.core.engine.MemoryStats
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.workspace.core.Workspace
@@ -59,8 +58,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                     workspace.editorState,
                     _isLoading,
                     flowOf(id),
-                    editorSettings.showMemoryStats.flow,
-                ) { editorState, isLoading, workspaceId, showMemoryStats ->
+                ) { editorState, isLoading, workspaceId ->
                     State(
                         id = workspaceId,
                         fileInfo = editorState.fileInfo,
@@ -74,10 +72,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                         searchQuery = editorState.searchQuery,
                         searchResults = editorState.searchResults,
                         visibleRange = editorState.visibleRange,
-                        memoryStats = editorState.memoryStats,
                         showLineNumbers = editorState.showLineNumbers,
                         wordWrap = editorState.wordWrap,
-                        showMemoryStats = showMemoryStats,
                         hasWorkspace = true
                     )
                 }
@@ -308,10 +304,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val searchQuery: String = "",
         val searchResults: List<SearchResult> = emptyList(),
         val visibleRange: IntRange = 0..50,
-        val memoryStats: MemoryStats = MemoryStats(0, 0, 0, 0, 0),
         val showLineNumbers: Boolean = true,
         val wordWrap: Boolean = false,
-        val showMemoryStats: Boolean = false,
         val hasWorkspace: Boolean = true
     ) {
         val hasFile: Boolean get() = fileInfo != null

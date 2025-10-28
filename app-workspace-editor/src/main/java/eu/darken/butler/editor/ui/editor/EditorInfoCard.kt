@@ -2,7 +2,6 @@ package eu.darken.butler.editor.ui.editor
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,12 +21,10 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.editor.R
-import eu.darken.butler.editor.core.engine.MemoryStats
 import eu.darken.butler.editor.core.engine.TextPosition
 
 @Composable
-fun EditorMemoryInfoCard(
-    memoryStats: MemoryStats,
+fun EditorInfoCard(
     cursorPosition: TextPosition,
     totalLines: Int,
     modifier: Modifier = Modifier
@@ -79,36 +76,15 @@ fun EditorMemoryInfoCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // Memory usage
-            Text(
-                text = stringResource(
-                    R.string.editor_status_memory,
-                    memoryStats.currentUsage / (1024 * 1024),
-                    memoryStats.maxMemory / (1024 * 1024),
-                    memoryStats.totalChunks
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }
 
 @Preview2
 @Composable
-private fun EditorMemoryInfoCardPreview() {
+private fun EditorInfoCardPreview() {
     PreviewWrapper {
-        EditorMemoryInfoCard(
-            memoryStats = MemoryStats(
-                currentUsage = 45 * 1024 * 1024,
-                maxMemory = 100 * 1024 * 1024,
-                totalChunks = 12,
-                dirtyChunks = 3,
-                usagePercentage = 45
-            ),
+        EditorInfoCard(
             cursorPosition = TextPosition(offset = 500, line = 42, column = 15),
             totalLines = 1523,
             modifier = Modifier.padding(16.dp)

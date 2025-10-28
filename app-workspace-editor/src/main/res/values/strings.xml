@@ -13,8 +13,6 @@
     <string name="editor_settings_word_wrap_title">Line wrap</string>
     <string name="editor_settings_word_wrap_desc">Wrap long lines to fit screen.</string>
     <string name="editor_settings_word_wrap_subtitle">Wrap long lines to fit screen width.</string>
-    <string name="editor_settings_show_memory_stats_title">Show memory statistics</string>
-    <string name="editor_settings_show_memory_stats_subtitle">Display memory usage and chunk information at the bottom of the editor.</string>
     <string name="editor_settings_behavior_category">Behavior</string>
     <string name="editor_settings_auto_save_title">Auto save</string>
     <string name="editor_settings_auto_save_desc">Automatically save changes.</string>

@@ -38,7 +38,6 @@ fun EditorSettingsScreen(
     onNavigateUp: () -> Unit,
     onShowLineNumbersChange: (Boolean) -> Unit,
     onWordWrapChange: (Boolean) -> Unit,
-    onShowMemoryStatsChange: (Boolean) -> Unit,
 ) {
     LocalContext.current
 
@@ -86,17 +85,6 @@ fun EditorSettingsScreen(
                 )
                 SettingsDivider()
             }
-
-            item {
-                SettingsSwitchItem(
-                    icon = Icons.Filled.Info,
-                    title = stringResource(R.string.editor_settings_show_memory_stats_title),
-                    subtitle = stringResource(R.string.editor_settings_show_memory_stats_subtitle),
-                    checked = state.showMemoryStats,
-                    onCheckedChange = onShowMemoryStatsChange
-                )
-                SettingsDivider()
-            }
         }
     }
 }
@@ -109,12 +97,10 @@ private fun EditorSettingsScreenPreview() {
             state = EditorSettingsViewModel.State(
                 showLineNumbers = true,
                 wordWrap = false,
-                showMemoryStats = false
             ),
             onNavigateUp = {},
             onShowLineNumbersChange = {},
             onWordWrapChange = {},
-            onShowMemoryStatsChange = {},
         )
     }
 }
@@ -131,7 +117,6 @@ fun EditorSettingsScreenHost(vm: EditorSettingsViewModel = hiltViewModel()) {
             onNavigateUp = { vm.navUp() },
             onShowLineNumbersChange = { vm.updateShowLineNumbers(it) },
             onWordWrapChange = { vm.updateWordWrap(it) },
-            onShowMemoryStatsChange = { vm.updateShowMemoryStats(it) },
         )
     }
 }

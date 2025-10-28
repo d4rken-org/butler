@@ -11,11 +11,8 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.editor.core.engine.ChunkManager
 import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.core.engine.FileInfo
-import eu.darken.butler.editor.core.engine.MemoryManager
-import eu.darken.butler.editor.core.engine.MemoryStats
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.workspace.core.Workspace
@@ -83,7 +80,6 @@ class EditorWorkspace @AssistedInject constructor(
     val error: StateFlow<Throwable?> = editorEngine.error
     val fileInfo: Flow<FileInfo?> = editorEngine.fileInfo
     val isModified: Flow<Boolean> = editorEngine.isModified
-    val memoryStats: Flow<MemoryStats> = editorEngine.memoryStats
 
     // Combined editor state for UI
     val editorState: Flow<EditorState> = combine(
@@ -96,7 +92,6 @@ class EditorWorkspace @AssistedInject constructor(
         searchQuery,
         searchResults,
         visibleRange,
-        memoryStats,
         error,
         editorSettings.showLineNumbers.flow,
         editorSettings.wordWrap.flow
@@ -112,10 +107,9 @@ class EditorWorkspace @AssistedInject constructor(
             searchQuery = values[6] as String,
             searchResults = values[7] as List<SearchResult>,
             visibleRange = values[8] as IntRange,
-            memoryStats = values[9] as MemoryStats,
-            error = values[10] as Throwable?,
-            showLineNumbers = values[11] as Boolean,
-            wordWrap = values[12] as Boolean
+            error = values[9] as Throwable?,
+            showLineNumbers = values[10] as Boolean,
+            wordWrap = values[11] as Boolean
         )
     }
 
@@ -242,7 +236,6 @@ class EditorWorkspace @AssistedInject constructor(
         val searchQuery: String = "",
         val searchResults: List<SearchResult> = emptyList(),
         val visibleRange: IntRange = 0..50,
-        val memoryStats: MemoryStats = MemoryStats(0, 0, 0, 0, 0),
         val error: Throwable? = null,
         val showLineNumbers: Boolean = true,
         val wordWrap: Boolean = false
