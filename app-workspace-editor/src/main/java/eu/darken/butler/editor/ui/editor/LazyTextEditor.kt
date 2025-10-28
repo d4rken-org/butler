@@ -1,7 +1,6 @@
 package eu.darken.butler.editor.ui.editor
 
 import android.graphics.Paint
-import android.graphics.Typeface
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -32,7 +31,6 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
@@ -42,7 +40,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import eu.darken.butler.editor.core.TextPosition
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.editor.core.engine.TextPosition
 import kotlinx.coroutines.launch
 
 @Composable
@@ -71,7 +71,7 @@ fun LazyTextEditor(
     val scope = rememberCoroutineScope()
     
     // Update visible range when scroll position changes
-    LaunchedEffect(contentListState.firstVisibleItemIndex, contentListState.layoutInfo.visibleItemsInfo.size, lines.size) {
+    LaunchedEffect(contentListState.firstVisibleItemIndex, contentListState.layoutInfo.visibleItemsInfo.size) {
         if (lines.isNotEmpty() && contentListState.layoutInfo.totalItemsCount > 0) {
             val startIndex = contentListState.firstVisibleItemIndex.coerceAtLeast(0)
             val visibleCount = contentListState.layoutInfo.visibleItemsInfo.size.coerceAtLeast(1)
@@ -121,6 +121,39 @@ fun LazyTextEditor(
         onSelectionChange = onSelectionChange,
         modifier = modifier
     )
+}
+
+@Preview2
+@Composable
+private fun LazyTextEditorPreview() {
+    PreviewWrapper {
+        val sampleContent = """
+            fun calculateSum(a: Int, b: Int): Int {
+                return a + b
+            }
+
+            fun main() {
+                val result = calculateSum(5, 3)
+                println("Result: ${'$'}result")
+            }
+        """.trimIndent()
+
+        LazyTextEditor(
+            content = sampleContent,
+            cursorPosition = TextPosition(offset = 50, line = 1, column = 10),
+            selection = null,
+            visibleRange = 0..7,
+            showLineNumbers = true,
+            wordWrap = false,
+            fontSize = 14,
+            tabSize = 4,
+            onTextChange = {},
+            onCursorPositionChange = {},
+            onSelectionChange = {},
+            onVisibleRangeChange = {},
+            modifier = Modifier.fillMaxSize()
+        )
+    }
 }
 
 @Composable
@@ -255,7 +288,10 @@ private fun DualColumnEditorContent(
                                     fontSize = fontSize.sp,
                                     fontFamily = FontFamily.Monospace,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                                ),
+                                softWrap = false,
+                                maxLines = 1,
+                                overflow = TextOverflow.Visible
                             )
                         }
                     }

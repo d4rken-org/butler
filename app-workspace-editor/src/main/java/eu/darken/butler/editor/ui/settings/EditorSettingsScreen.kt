@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.WrapText
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.TextFormat
 import androidx.compose.material.icons.twotone.FormatListNumbered
 import androidx.compose.material.icons.twotone.TextFormat
@@ -95,7 +96,7 @@ private fun EditorSettingsScreenPreview() {
         EditorSettingsScreen(
             state = EditorSettingsViewModel.State(
                 showLineNumbers = true,
-                wordWrap = false
+                wordWrap = false,
             ),
             onNavigateUp = {},
             onShowLineNumbersChange = {},

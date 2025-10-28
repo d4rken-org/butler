@@ -10,6 +10,11 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.editor.core.engine.EditorEngine
+import eu.darken.butler.editor.core.engine.FileInfo
+import eu.darken.butler.editor.core.engine.SearchResult
+import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
@@ -33,12 +38,13 @@ import kotlinx.parcelize.Parcelize
 class EditorWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
     @Assisted private val arguments: Arguments?,
-    private val editorEngine: EditorEngine,
+    private val editorEngineFactory: EditorEngine.Factory,
     private val editorSettings: EditorSettings,
     private val operationsManager: OperationsManager,
 ) : Workspace {
 
-    private val tag = logTag("Editor","Workspace",  id.shortTag)
+    private val tag = logTag("Editor", "Workspace", id.shortTag)
+
     private val workspaceScope = CoroutineScope(
         SupervisorJob() +
             CoroutineExceptionHandler { _, throwable ->
@@ -59,10 +65,10 @@ class EditorWorkspace @AssistedInject constructor(
     override val info: MutableStateFlow<Workspace.Info> = _info
 
     val filePath: APath<*>? get() = arguments?.filePath
-    val chunkSize: Long get() = arguments?.chunkSize ?: ChunkManager.DEFAULT_CHUNK_SIZE
-    val memoryLimit: Long get() = arguments?.memoryLimit ?: MemoryManager.DEFAULT_MAX_MEMORY_BYTES
     val isReadOnly: Boolean get() = arguments?.isReadOnly ?: false
-    
+
+    private val editorEngine = editorEngineFactory.create(id)
+
     // Expose editor state flows
     val currentContent: StateFlow<String> = editorEngine.currentContent
     val cursorPosition: StateFlow<TextPosition> = editorEngine.cursorPosition
@@ -74,8 +80,7 @@ class EditorWorkspace @AssistedInject constructor(
     val error: StateFlow<Throwable?> = editorEngine.error
     val fileInfo: Flow<FileInfo?> = editorEngine.fileInfo
     val isModified: Flow<Boolean> = editorEngine.isModified
-    val memoryStats: Flow<MemoryStats> = editorEngine.memoryStats
-    
+
     // Combined editor state for UI
     val editorState: Flow<EditorState> = combine(
         fileInfo,
@@ -87,7 +92,6 @@ class EditorWorkspace @AssistedInject constructor(
         searchQuery,
         searchResults,
         visibleRange,
-        memoryStats,
         error,
         editorSettings.showLineNumbers.flow,
         editorSettings.wordWrap.flow
@@ -103,10 +107,9 @@ class EditorWorkspace @AssistedInject constructor(
             searchQuery = values[6] as String,
             searchResults = values[7] as List<SearchResult>,
             visibleRange = values[8] as IntRange,
-            memoryStats = values[9] as MemoryStats,
-            error = values[10] as Throwable?,
-            showLineNumbers = values[11] as Boolean,
-            wordWrap = values[12] as Boolean
+            error = values[9] as Throwable?,
+            showLineNumbers = values[10] as Boolean,
+            wordWrap = values[11] as Boolean
         )
     }
 
@@ -145,7 +148,8 @@ class EditorWorkspace @AssistedInject constructor(
 
         // Initialize editor engine
         workspaceScope.launch {
-            editorEngine.initialize(filePath, isReadOnly)
+            // FIXME for testing
+            editorEngine.initialize(LocalPath.build("/sdcard/core.log"), isReadOnly)
         }
 
         // Update title based on file info
@@ -162,7 +166,7 @@ class EditorWorkspace @AssistedInject constructor(
             filePath != null -> filePath!!.name
             else -> "Editor ${id.shortTag}"
         }
-        
+
         _info.value = _info.value.copy(title = newTitle.toCaString())
         log(tag, DEBUG) { "Updated title to: $newTitle" }
     }
@@ -179,7 +183,7 @@ class EditorWorkspace @AssistedInject constructor(
             else -> "Editor ${id.shortTag}".toCaString()
         }
     }
-    
+
     // Editor operations
     suspend fun openFile(filePath: APath<*>) = editorEngine.openFile(filePath)
     suspend fun closeFile() = editorEngine.closeFile()
@@ -189,15 +193,15 @@ class EditorWorkspace @AssistedInject constructor(
     suspend fun undo() = editorEngine.undo()
     suspend fun redo() = editorEngine.redo()
     suspend fun deleteSelection() = editorEngine.deleteSelection()
-    
+
     fun insertText(text: String) = editorEngine.insertText(text)
     fun setCursorPosition(position: TextPosition) = editorEngine.setCursorPosition(position)
     fun setSelection(start: TextPosition, end: TextPosition) = editorEngine.setSelection(start, end)
-    fun updateVisibleRange(startLine: Int, endLine: Int) = editorEngine.updateVisibleRange(startLine, endLine)
+    suspend fun updateVisibleRange(startLine: Int, endLine: Int) = editorEngine.updateVisibleRange(startLine, endLine)
     fun clearError() = editorEngine.clearError()
     fun canUndo() = editorEngine.canUndo()
     fun canRedo() = editorEngine.canRedo()
-    
+
     // Cleanup when workspace is destroyed
     fun cleanup() {
         workspaceScope.launch {
@@ -209,58 +213,19 @@ class EditorWorkspace @AssistedInject constructor(
     @Parcelize
     data class Arguments(
         val filePath: APath<*>? = null,
-        val chunkSize: Long = ChunkManager.DEFAULT_CHUNK_SIZE,
-        val memoryLimit: Long = MemoryManager.DEFAULT_MAX_MEMORY_BYTES,
         val isReadOnly: Boolean = false,
         val goToLine: Int? = null,
         val searchQuery: String? = null
     ) : Workspace.Arguments {
         override val type: Workspace.Type
             get() = Workspace.Type.EDITOR
-
-        companion object {
-            fun withFile(filePath: APath<*>, isReadOnly: Boolean = false): Arguments {
-                return Arguments(
-                    filePath = filePath,
-                    isReadOnly = isReadOnly
-                )
-            }
-
-            fun withFileAndSettings(
-                filePath: APath<*>,
-                chunkSize: Long = ChunkManager.DEFAULT_CHUNK_SIZE,
-                memoryLimit: Long = MemoryManager.DEFAULT_MAX_MEMORY_BYTES,
-                isReadOnly: Boolean = false
-            ): Arguments {
-                return Arguments(
-                    filePath = filePath,
-                    chunkSize = chunkSize,
-                    memoryLimit = memoryLimit,
-                    isReadOnly = isReadOnly
-                )
-            }
-
-            fun withFileAndNavigation(
-                filePath: APath<*>,
-                goToLine: Int? = null,
-                searchQuery: String? = null,
-                isReadOnly: Boolean = false
-            ): Arguments {
-                return Arguments(
-                    filePath = filePath,
-                    goToLine = goToLine,
-                    searchQuery = searchQuery,
-                    isReadOnly = isReadOnly
-                )
-            }
-        }
     }
 
     @AssistedFactory
     interface Factory {
         fun create(id: Workspace.Id, arguments: Arguments?): EditorWorkspace
     }
-    
+
     data class EditorState(
         val fileInfo: FileInfo? = null,
         val totalLines: Int = 0,
@@ -271,7 +236,6 @@ class EditorWorkspace @AssistedInject constructor(
         val searchQuery: String = "",
         val searchResults: List<SearchResult> = emptyList(),
         val visibleRange: IntRange = 0..50,
-        val memoryStats: MemoryStats = MemoryStats(0, 0, 0, 0, 0),
         val error: Throwable? = null,
         val showLineNumbers: Boolean = true,
         val wordWrap: Boolean = false

@@ -12,11 +12,11 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
+import eu.darken.butler.editor.core.EditorSettings
 import eu.darken.butler.editor.core.EditorWorkspace
-import eu.darken.butler.editor.core.FileInfo
-import eu.darken.butler.editor.core.MemoryStats
-import eu.darken.butler.editor.core.SearchResult
-import eu.darken.butler.editor.core.TextPosition
+import eu.darken.butler.editor.core.engine.FileInfo
+import eu.darken.butler.editor.core.engine.SearchResult
+import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
@@ -41,6 +41,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     navCtrl: NavigationController,
     private val workspaceProvider: WorkspaceProvider,
     private val workspaceRemote: WorkspaceRemote,
+    private val editorSettings: EditorSettings,
 ) : ViewModel4(dispatchers, logTag("Editor", "Workspace", id.shortTag, "Page"), navCtrl) {
 
     private val workspaceFlow = flow {
@@ -56,7 +57,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 combine(
                     workspace.editorState,
                     _isLoading,
-                    flowOf(id)
+                    flowOf(id),
                 ) { editorState, isLoading, workspaceId ->
                     State(
                         id = workspaceId,
@@ -71,7 +72,6 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                         searchQuery = editorState.searchQuery,
                         searchResults = editorState.searchResults,
                         visibleRange = editorState.visibleRange,
-                        memoryStats = editorState.memoryStats,
                         showLineNumbers = editorState.showLineNumbers,
                         wordWrap = editorState.wordWrap,
                         hasWorkspace = true
@@ -176,7 +176,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun updateVisibleRange(startLine: Int, endLine: Int) {
+    fun updateVisibleRange(startLine: Int, endLine: Int) = launch {
         val workspace = getCurrentWorkspace()
         workspace?.updateVisibleRange(startLine, endLine)
     }
@@ -260,6 +260,36 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         return currentWorkspace
     }
 
+    /**
+     * Unified handler for all page-level actions.
+     * Dispatches to appropriate ViewModel methods based on action type.
+     */
+    fun onPageAction(action: EditorPageAction) {
+        when (action) {
+            // File actions
+            is EditorPageAction.File.LaunchPicker -> launchFilePicker()
+            is EditorPageAction.File.Open -> openFile(action.path)
+            is EditorPageAction.File.Save -> saveFile()
+            is EditorPageAction.File.Close -> closeFile()
+
+            // Edit actions
+            is EditorPageAction.Edit.InsertText -> insertText(action.text)
+            is EditorPageAction.Edit.DeleteSelection -> deleteSelection()
+            is EditorPageAction.Edit.Undo -> undo()
+            is EditorPageAction.Edit.Redo -> redo()
+
+            // Navigation actions
+            is EditorPageAction.Navigation.SetCursor -> setCursorPosition(action.position)
+            is EditorPageAction.Navigation.SetSelection -> setSelection(action.start, action.end)
+            is EditorPageAction.Navigation.ClearSelection -> setCursorPosition(action.cursorPosition)
+            is EditorPageAction.Navigation.Search -> search(action.query)
+            is EditorPageAction.Navigation.GoToLine -> goToLine(action.lineNumber)
+            is EditorPageAction.Navigation.UpdateVisibleRange -> updateVisibleRange(action.startLine, action.endLine)
+
+            // Error actions
+            is EditorPageAction.Error.Clear -> clearError()
+        }
+    }
 
     data class State(
         val id: Workspace.Id,
@@ -274,7 +304,6 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val searchQuery: String = "",
         val searchResults: List<SearchResult> = emptyList(),
         val visibleRange: IntRange = 0..50,
-        val memoryStats: MemoryStats = MemoryStats(0, 0, 0, 0, 0),
         val showLineNumbers: Boolean = true,
         val wordWrap: Boolean = false,
         val hasWorkspace: Boolean = true

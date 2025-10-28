@@ -36,7 +36,7 @@ constructor(
         log(tag) { "updateShowLineNumbers($enabled)" }
         editorSettings.showLineNumbers.value(enabled)
     }
-    
+
     fun updateWordWrap(enabled: Boolean) = launch {
         log(tag) { "updateWordWrap($enabled)" }
         editorSettings.wordWrap.value(enabled)
