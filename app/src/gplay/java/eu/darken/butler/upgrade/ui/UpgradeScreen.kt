@@ -133,8 +133,9 @@ fun UpgradeScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             ButlerIcon(
-                                modifier = Modifier.graphicsLayer(alpha = toolbarAlpha),
-                                size = 32.dp
+                                modifier = Modifier
+                                    .graphicsLayer(alpha = toolbarAlpha)
+                                    .size(32.dp),
                             )
                             Spacer(modifier = Modifier.size(8.dp))
                             ColoredTitleText(
@@ -169,8 +170,8 @@ fun UpgradeScreen(
             ButlerIcon(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
-                    .graphicsLayer(alpha = contentAlpha),
-                size = 72.dp
+                    .graphicsLayer(alpha = contentAlpha)
+                    .size(72.dp),
             )
 
             ColoredTitleText(
