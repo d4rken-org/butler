@@ -20,9 +20,8 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.mockk
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
 import java.io.File
 import java.nio.file.DirectoryNotEmptyException
@@ -31,28 +30,15 @@ import java.nio.file.LinkOption
 
 class LocalPathDeleteTest : BaseTest() {
 
-    private val testFolder = File(IO_TEST_BASEDIR, "delete-test")
     private val mockOwnershipResolver = mockk<OwnershipResolver>(relaxed = true)
     private val ops = LocalFileSystemOps(
         ownershipResolver = mockOwnershipResolver,
     )
 
-    @BeforeEach
-    fun setup() {
-        testFolder.mkdirs()
-    }
-
-    @AfterEach
-    fun cleanup() {
-        if (testFolder.exists()) {
-            testFolder.deleteRecursively()
-        }
-    }
-
     @Test
-    fun `delete existing file`() = runTest {
+    fun `delete existing file`(@TempDir tempDir: File) = runTest {
         // Given
-        val testFile = File(testFolder, "test.txt")
+        val testFile = File(tempDir, "test.txt")
         testFile.writeText("Hello World")
         val testPath = LocalPath.build(testFile)
 
@@ -65,9 +51,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `delete non-existent file - ignore missing true`() = runTest {
+    fun `delete non-existent file - ignore missing true`(@TempDir tempDir: File) = runTest {
         // Given
-        val nonExistentFile = File(testFolder, "does-not-exist.txt")
+        val nonExistentFile = File(tempDir, "does-not-exist.txt")
 
         // When
         val result = listOf(LocalPath.build(nonExistentFile)).delete(ops, ignoreMissing = true)
@@ -78,8 +64,8 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `delete non-existent file - ignore missing false`() = runTest {
-        val nonExistentFile = File(testFolder, "does-not-exist.txt")
+    fun `delete non-existent file - ignore missing false`(@TempDir tempDir: File) = runTest {
+        val nonExistentFile = File(tempDir, "does-not-exist.txt")
 
         shouldThrow<ReadException> {
             LocalPath.build(nonExistentFile).delete(ops, ignoreMissing = false).last()
@@ -87,9 +73,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `delete empty directory`() = runTest {
+    fun `delete empty directory`(@TempDir tempDir: File) = runTest {
         // Given
-        val emptyDir = File(testFolder, "empty")
+        val emptyDir = File(tempDir, "empty")
         emptyDir.mkdir()
 
         // When
@@ -101,9 +87,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `delete nested structure with files and subdirectories`() = runTest {
+    fun `delete nested structure with files and subdirectories`(@TempDir tempDir: File) = runTest {
         // Given
-        val nestedDir = File(testFolder, "nested")
+        val nestedDir = File(tempDir, "nested")
         val subDir = File(nestedDir, "sub")
         val file1 = File(nestedDir, "file1.txt")
         val file2 = File(subDir, "file2.txt")
@@ -127,9 +113,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `verify correct deletion order (children before parents)`() = runTest {
+    fun `verify correct deletion order (children before parents)`(@TempDir tempDir: File) = runTest {
         // Given
-        val parentDir = File(testFolder, "parent")
+        val parentDir = File(tempDir, "parent")
         val childFile = File(parentDir, "child.txt")
         parentDir.mkdir()
         childFile.writeText("child content")
@@ -154,9 +140,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `directory with contents should not be deleted when recursive false`() = runTest {
+    fun `directory with contents should not be deleted when recursive false`(@TempDir tempDir: File) = runTest {
         // Given
-        val dirWithContent = File(testFolder, "with-content")
+        val dirWithContent = File(tempDir, "with-content")
         val childFile = File(dirWithContent, "child.txt")
         dirWithContent.mkdir()
         childFile.writeText("content")
@@ -170,9 +156,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `empty directory should be deleted when recursive false`() = runTest {
+    fun `empty directory should be deleted when recursive false`(@TempDir tempDir: File) = runTest {
         // Given
-        val emptyDir = File(testFolder, "empty")
+        val emptyDir = File(tempDir, "empty")
         emptyDir.mkdir()
 
         // When
@@ -185,10 +171,10 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `progress callback called for each file`() = runTest {
+    fun `progress callback called for each file`(@TempDir tempDir: File) = runTest {
         // Given
-        val file1 = File(testFolder, "file1.txt")
-        val file2 = File(testFolder, "file2.txt")
+        val file1 = File(tempDir, "file1.txt")
+        val file2 = File(tempDir, "file2.txt")
         file1.writeText("content1")
         file2.writeText("content2")
 
@@ -211,10 +197,10 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `delete collection with files and directories`() = runTest {
+    fun `delete collection with files and directories`(@TempDir tempDir: File) = runTest {
         // Given
-        val file = File(testFolder, "standalone.txt")
-        val dir = File(testFolder, "directory")
+        val file = File(tempDir, "standalone.txt")
+        val dir = File(tempDir, "directory")
         val dirFile = File(dir, "inside.txt")
 
         file.writeText("standalone content")
@@ -236,9 +222,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `handle read-only files gracefully`() = runTest {
+    fun `handle read-only files gracefully`(@TempDir tempDir: File) = runTest {
         // Given
-        val readOnlyFile = File(testFolder, "readonly.txt")
+        val readOnlyFile = File(tempDir, "readonly.txt")
         readOnlyFile.writeText("readonly content")
 
         // Note: On many systems, setting read-only doesn't prevent deletion by owner
@@ -258,10 +244,10 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `delete symlink without following target`() = runTest {
+    fun `delete symlink without following target`(@TempDir tempDir: File) = runTest {
         // Given
-        val targetFile = File(testFolder, "target.txt")
-        val symlink = File(testFolder, "symlink")
+        val targetFile = File(tempDir, "target.txt")
+        val symlink = File(tempDir, "symlink")
 
         targetFile.writeText("target content")
 
@@ -292,9 +278,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `collection with duplicates should handle gracefully`() = runTest {
+    fun `collection with duplicates should handle gracefully`(@TempDir tempDir: File) = runTest {
         // Given
-        val testFile = File(testFolder, "duplicate.txt")
+        val testFile = File(tempDir, "duplicate.txt")
         testFile.writeText("content")
 
         // When
@@ -306,9 +292,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `very deep directory structure`() = runTest {
+    fun `very deep directory structure`(@TempDir tempDir: File) = runTest {
         // Given
-        var currentDir = testFolder
+        var currentDir = tempDir
         val files = mutableListOf<File>()
 
         // Create 10-level deep structure
@@ -322,17 +308,17 @@ class LocalPathDeleteTest : BaseTest() {
         }
 
         // When
-        LocalPath.build(File(testFolder, "level0")).delete(ops).last()
+        LocalPath.build(File(tempDir, "level0")).delete(ops).last()
 
         // Then
-        File(testFolder, "level0").exists() shouldBe false
+        File(tempDir, "level0").exists() shouldBe false
     }
 
     @Test
-    fun `handle already-deleted files during operation`() = runTest {
+    fun `handle already-deleted files during operation`(@TempDir tempDir: File) = runTest {
         // Given
-        val file1 = File(testFolder, "file1.txt")
-        val file2 = File(testFolder, "file2.txt")
+        val file1 = File(tempDir, "file1.txt")
+        val file2 = File(tempDir, "file2.txt")
         file1.writeText("content1")
         file2.writeText("content2")
 
@@ -350,10 +336,10 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `handle large number of files efficiently`() = runTest {
+    fun `handle large number of files efficiently`(@TempDir tempDir: File) = runTest {
         // Given
         val files = (1..100).map { i ->
-            File(testFolder, "file$i.txt").apply {
+            File(tempDir, "file$i.txt").apply {
                 writeText("Content $i")
             }
         }
@@ -373,11 +359,11 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `issue handling - skip resolution with apply to all`() = runTest {
+    fun `issue handling - skip resolution with apply to all`(@TempDir tempDir: File) = runTest {
         // Given
-        val file1 = File(testFolder, "file1.txt")
-        val file2 = File(testFolder, "file2.txt")
-        val file3 = File(testFolder, "file3.txt")
+        val file1 = File(tempDir, "file1.txt")
+        val file2 = File(tempDir, "file2.txt")
+        val file3 = File(tempDir, "file3.txt")
 
         // Create files but remove write permission to simulate permission errors
         file1.writeText("content1")
@@ -437,9 +423,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `issue handling - retry resolution`() = runTest {
+    fun `issue handling - retry resolution`(@TempDir tempDir: File) = runTest {
         // Given
-        val testFile = File(testFolder, "test.txt")
+        val testFile = File(tempDir, "test.txt")
         testFile.writeText("content")
 
         var attemptCount = 0
@@ -477,10 +463,10 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `issue handling - cancel resolution stops operation`() = runTest {
+    fun `issue handling - cancel resolution stops operation`(@TempDir tempDir: File) = runTest {
         // Given
-        val file1 = File(testFolder, "file1.txt")
-        val file2 = File(testFolder, "file2.txt")
+        val file1 = File(tempDir, "file1.txt")
+        val file2 = File(tempDir, "file2.txt")
 
         file1.writeText("content1")
         file2.writeText("content2")
@@ -513,9 +499,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `issue handling works without onIssue callback`() = runTest {
+    fun `issue handling works without onIssue callback`(@TempDir tempDir: File) = runTest {
         // Given
-        val testFile = File(testFolder, "test.txt")
+        val testFile = File(tempDir, "test.txt")
         testFile.writeText("content")
 
         // When - no onIssue callback provided, should continue with other files
@@ -531,9 +517,9 @@ class LocalPathDeleteTest : BaseTest() {
     // ============ RECURSIVE FLAG TESTS ============
 
     @Test
-    fun `recursive false with empty directory should succeed`() = runTest {
+    fun `recursive false with empty directory should succeed`(@TempDir tempDir: File) = runTest {
         // Given
-        val emptyDir = File(testFolder, "empty-dir")
+        val emptyDir = File(tempDir, "empty-dir")
         emptyDir.mkdir()
 
         // When
@@ -545,9 +531,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `recursive false with non-empty directory should fail`() = runTest {
+    fun `recursive false with non-empty directory should fail`(@TempDir tempDir: File) = runTest {
         // Given
-        val dirWithContent = File(testFolder, "dir-with-content")
+        val dirWithContent = File(tempDir, "dir-with-content")
         val childFile = File(dirWithContent, "child.txt")
         dirWithContent.mkdir()
         childFile.writeText("content")
@@ -561,9 +547,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `recursive true with nested structure should succeed`() = runTest {
+    fun `recursive true with nested structure should succeed`(@TempDir tempDir: File) = runTest {
         // Given
-        val parentDir = File(testFolder, "parent")
+        val parentDir = File(tempDir, "parent")
         val childDir = File(parentDir, "child")
         val grandchildDir = File(childDir, "grandchild")
         val file1 = File(parentDir, "file1.txt")
@@ -593,11 +579,11 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `recursive flag behavior with collection of mixed content`() = runTest {
+    fun `recursive flag behavior with collection of mixed content`(@TempDir tempDir: File) = runTest {
         // Given
-        val file = File(testFolder, "standalone.txt")
-        val emptyDir = File(testFolder, "empty")
-        val dirWithContent = File(testFolder, "with-content")
+        val file = File(tempDir, "standalone.txt")
+        val emptyDir = File(tempDir, "empty")
+        val dirWithContent = File(tempDir, "with-content")
         val childFile = File(dirWithContent, "child.txt")
 
         file.writeText("standalone")
@@ -621,10 +607,10 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `recursive true vs false with same directory structure`() = runTest {
+    fun `recursive true vs false with same directory structure`(@TempDir tempDir: File) = runTest {
         // Given - create two identical directory structures
-        val dir1 = File(testFolder, "test-dir-1")
-        val dir2 = File(testFolder, "test-dir-2")
+        val dir1 = File(tempDir, "test-dir-1")
+        val dir2 = File(tempDir, "test-dir-2")
         val file1 = File(dir1, "file.txt")
         val file2 = File(dir2, "file.txt")
 
@@ -652,9 +638,9 @@ class LocalPathDeleteTest : BaseTest() {
     // ============ IGNORE MISSING FLAG TESTS ============
 
     @Test
-    fun `ignoreMissing true with non-existent file should not throw`() = runTest {
+    fun `ignoreMissing true with non-existent file should not throw`(@TempDir tempDir: File) = runTest {
         // Given
-        val nonExistentFile = File(testFolder, "does-not-exist.txt")
+        val nonExistentFile = File(tempDir, "does-not-exist.txt")
 
         // When
         val result =
@@ -665,9 +651,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `ignoreMissing false with non-existent file should throw`() = runTest {
+    fun `ignoreMissing false with non-existent file should throw`(@TempDir tempDir: File) = runTest {
         // Given
-        val nonExistentFile = File(testFolder, "does-not-exist.txt")
+        val nonExistentFile = File(tempDir, "does-not-exist.txt")
 
         // When & Then
         shouldThrow<ReadException> {
@@ -676,11 +662,11 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `ignoreMissing true with mixed existing and non-existing files`() = runTest {
+    fun `ignoreMissing true with mixed existing and non-existing files`(@TempDir tempDir: File) = runTest {
         // Given
-        val existingFile = File(testFolder, "exists.txt")
-        val nonExistentFile1 = File(testFolder, "missing1.txt")
-        val nonExistentFile2 = File(testFolder, "missing2.txt")
+        val existingFile = File(tempDir, "exists.txt")
+        val nonExistentFile1 = File(tempDir, "missing1.txt")
+        val nonExistentFile2 = File(tempDir, "missing2.txt")
 
         existingFile.writeText("content")
 
@@ -698,11 +684,11 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `ignoreMissing false with mixed existing and non-existing files should throw on first missing`() = runTest {
+    fun `ignoreMissing false with mixed existing and non-existing files should throw on first missing`(@TempDir tempDir: File) = runTest {
         // Given
-        val existingFile = File(testFolder, "exists.txt")
-        val nonExistentFile1 = File(testFolder, "missing1.txt")
-        val nonExistentFile2 = File(testFolder, "missing2.txt")
+        val existingFile = File(tempDir, "exists.txt")
+        val nonExistentFile1 = File(tempDir, "missing1.txt")
+        val nonExistentFile2 = File(tempDir, "missing2.txt")
 
         existingFile.writeText("content")
 
@@ -720,9 +706,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `ignoreMissing true with collection of all non-existent files`() = runTest {
+    fun `ignoreMissing true with collection of all non-existent files`(@TempDir tempDir: File) = runTest {
         // Given
-        val nonExistentFiles = (1..5).map { File(testFolder, "missing$it.txt") }
+        val nonExistentFiles = (1..5).map { File(tempDir, "missing$it.txt") }
 
         // When
         val result = nonExistentFiles.map { LocalPath.build(it) }.delete(ops, ignoreMissing = true)
@@ -733,9 +719,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `ignoreMissing false with collection of all non-existent files should throw`() = runTest {
+    fun `ignoreMissing false with collection of all non-existent files should throw`(@TempDir tempDir: File) = runTest {
         // Given
-        val nonExistentFiles = (1..5).map { File(testFolder, "missing$it.txt") }
+        val nonExistentFiles = (1..5).map { File(tempDir, "missing$it.txt") }
 
         // When & Then
         shouldThrow<ReadException> {
@@ -744,10 +730,10 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `ignoreMissing behavior with directories`() = runTest {
+    fun `ignoreMissing behavior with directories`(@TempDir tempDir: File) = runTest {
         // Given
-        val existingDir = File(testFolder, "existing-dir")
-        val nonExistentDir = File(testFolder, "missing-dir")
+        val existingDir = File(tempDir, "existing-dir")
+        val nonExistentDir = File(tempDir, "missing-dir")
         val fileInDir = File(existingDir, "file.txt")
 
         existingDir.mkdir()
@@ -766,10 +752,10 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `verify ignoreMissing flag consistency between single and collection operations`() = runTest {
+    fun `verify ignoreMissing flag consistency between single and collection operations`(@TempDir tempDir: File) = runTest {
         // Given
-        val nonExistent1 = File(testFolder, "missing1.txt")
-        val nonExistent2 = File(testFolder, "missing2.txt")
+        val nonExistent1 = File(tempDir, "missing1.txt")
+        val nonExistent2 = File(tempDir, "missing2.txt")
 
         // When & Then - both single and collection should behave the same with ignoreMissing=false
         shouldThrow<ReadException> {
@@ -793,12 +779,12 @@ class LocalPathDeleteTest : BaseTest() {
     // ============ COMBINED FLAG TESTS ============
 
     @Test
-    fun `recursive false and ignoreMissing true with mixed content`() = runTest {
+    fun `recursive false and ignoreMissing true with mixed content`(@TempDir tempDir: File) = runTest {
         // Given
-        val existingFile = File(testFolder, "exists.txt")
-        val nonExistentFile = File(testFolder, "missing.txt")
-        val emptyDir = File(testFolder, "empty-dir")
-        val dirWithContent = File(testFolder, "dir-with-content")
+        val existingFile = File(tempDir, "exists.txt")
+        val nonExistentFile = File(tempDir, "missing.txt")
+        val emptyDir = File(tempDir, "empty-dir")
+        val dirWithContent = File(tempDir, "dir-with-content")
         val childFile = File(dirWithContent, "child.txt")
 
         existingFile.writeText("content")
@@ -823,11 +809,11 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `recursive true and ignoreMissing false with mixed content`() = runTest {
+    fun `recursive true and ignoreMissing false with mixed content`(@TempDir tempDir: File) = runTest {
         // Given
-        val existingFile = File(testFolder, "exists.txt")
-        val nonExistentFile = File(testFolder, "missing.txt")
-        val dirWithContent = File(testFolder, "dir-with-content")
+        val existingFile = File(tempDir, "exists.txt")
+        val nonExistentFile = File(tempDir, "missing.txt")
+        val dirWithContent = File(tempDir, "dir-with-content")
         val childFile = File(dirWithContent, "child.txt")
 
         existingFile.writeText("content")
@@ -850,12 +836,12 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `recursive true and ignoreMissing true - happy path with all combinations`() = runTest {
+    fun `recursive true and ignoreMissing true - happy path with all combinations`(@TempDir tempDir: File) = runTest {
         // Given
-        val existingFile = File(testFolder, "exists.txt")
-        val nonExistentFile = File(testFolder, "missing.txt")
-        val emptyDir = File(testFolder, "empty-dir")
-        val dirWithContent = File(testFolder, "dir-with-content")
+        val existingFile = File(tempDir, "exists.txt")
+        val nonExistentFile = File(tempDir, "missing.txt")
+        val emptyDir = File(tempDir, "empty-dir")
+        val dirWithContent = File(tempDir, "dir-with-content")
         val childFile = File(dirWithContent, "child.txt")
 
         existingFile.writeText("content")
@@ -883,11 +869,11 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `recursive false and ignoreMissing false - strict mode`() = runTest {
+    fun `recursive false and ignoreMissing false - strict mode`(@TempDir tempDir: File) = runTest {
         // Given
-        val existingFile = File(testFolder, "exists.txt")
-        val nonExistentFile = File(testFolder, "missing.txt")
-        val emptyDir = File(testFolder, "empty-dir")
+        val existingFile = File(tempDir, "exists.txt")
+        val nonExistentFile = File(tempDir, "missing.txt")
+        val emptyDir = File(tempDir, "empty-dir")
 
         existingFile.writeText("content")
         emptyDir.mkdir()
@@ -907,11 +893,11 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `flag combinations with symbolic links`() = runTest {
+    fun `flag combinations with symbolic links`(@TempDir tempDir: File) = runTest {
         // Given
-        val targetFile = File(testFolder, "target.txt")
-        val symlink = File(testFolder, "symlink")
-        val nonExistentSymlink = File(testFolder, "missing-symlink")
+        val targetFile = File(tempDir, "target.txt")
+        val symlink = File(tempDir, "symlink")
+        val nonExistentSymlink = File(tempDir, "missing-symlink")
 
         targetFile.writeText("target content")
 
@@ -936,14 +922,14 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `performance with flag combinations on large collections`() = runTest {
+    fun `performance with flag combinations on large collections`(@TempDir tempDir: File) = runTest {
         // Given
         val files = (1..50).map { i ->
-            File(testFolder, "file$i.txt").apply {
+            File(tempDir, "file$i.txt").apply {
                 writeText("Content $i")
             }
         }
-        val nonExistentFiles = (51..60).map { i -> File(testFolder, "missing$i.txt") }
+        val nonExistentFiles = (51..60).map { i -> File(tempDir, "missing$i.txt") }
 
         // When - delete with various flag combinations
         val result = (files.map { LocalPath.build(it) } + nonExistentFiles.map { LocalPath.build(it) }).delete(
@@ -958,10 +944,10 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `issue handling with mixed file types`() = runTest {
+    fun `issue handling with mixed file types`(@TempDir tempDir: File) = runTest {
         // Given
-        val regularFile = File(testFolder, "regular.txt")
-        val directory = File(testFolder, "directory")
+        val regularFile = File(tempDir, "regular.txt")
+        val directory = File(tempDir, "directory")
         val dirFile = File(directory, "inside.txt")
 
         regularFile.writeText("content")
@@ -990,9 +976,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `delete two nested empty directories reports only deleted not skipped`() = runTest {
+    fun `delete two nested empty directories reports only deleted not skipped`(@TempDir tempDir: File) = runTest {
         // Given - Create /A/<B/ (two nested empty directories)
-        val dirA = File(testFolder, "A")
+        val dirA = File(tempDir, "A")
         val dirB = File(dirA, "<B")
 
         dirA.mkdir()
@@ -1008,9 +994,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `directory scan error then skip should not appear in deleted`() = runTest {
+    fun `directory scan error then skip should not appear in deleted`(@TempDir tempDir: File) = runTest {
         // Given - Create nested directory structure
-        val parentDir = File(testFolder, "parent")
+        val parentDir = File(tempDir, "parent")
         val childFile = File(parentDir, "child.txt")
 
         parentDir.mkdir()
@@ -1046,9 +1032,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `directory scan error with retry should succeed on second attempt`() = runTest {
+    fun `directory scan error with retry should succeed on second attempt`(@TempDir tempDir: File) = runTest {
         // Given - Create directory structure
-        val parentDir = File(testFolder, "parent")
+        val parentDir = File(tempDir, "parent")
         val childFile = File(parentDir, "child.txt")
 
         parentDir.mkdir()
@@ -1105,11 +1091,11 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `multiple directories with scan errors and skip all should batch skip`() = runTest {
+    fun `multiple directories with scan errors and skip all should batch skip`(@TempDir tempDir: File) = runTest {
         // Given - Create 3 directories with children
-        val dir1 = File(testFolder, "dir1")
-        val dir2 = File(testFolder, "dir2")
-        val dir3 = File(testFolder, "dir3")
+        val dir1 = File(tempDir, "dir1")
+        val dir2 = File(tempDir, "dir2")
+        val dir3 = File(tempDir, "dir3")
 
         dir1.mkdir()
         dir2.mkdir()
@@ -1172,10 +1158,10 @@ class LocalPathDeleteTest : BaseTest() {
     // ============ PROGRESS THROTTLING TESTS ============
 
     @Test
-    fun `progress callbacks should be throttled to reduce UI spam`() = runTest {
+    fun `progress callbacks should be throttled to reduce UI spam`(@TempDir tempDir: File) = runTest {
         // Given - 100 files that would normally trigger 200 callbacks (before + after each delete)
         val files = (1..100).map { i ->
-            File(testFolder, "file$i.txt").apply {
+            File(tempDir, "file$i.txt").apply {
                 writeText("content $i")
             }
         }
@@ -1206,9 +1192,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `progress callbacks should fire for small files despite throttling`() = runTest {
+    fun `progress callbacks should fire for small files despite throttling`(@TempDir tempDir: File) = runTest {
         // Given - Single small file
-        val file = File(testFolder, "single.txt")
+        val file = File(tempDir, "single.txt")
         file.writeText("Small content")
 
         var progressCallbackCalled = false
@@ -1227,10 +1213,10 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `final progress callback shows complete state`() = runTest {
+    fun `final progress callback shows complete state`(@TempDir tempDir: File) = runTest {
         // Given - 10 files
         val files = (1..10).map { i ->
-            File(testFolder, "file$i.txt").apply { writeText("content $i") }
+            File(tempDir, "file$i.txt").apply { writeText("content $i") }
         }
 
         val progressUpdates = mutableListOf<Pair<Long, Long>>()
@@ -1262,11 +1248,11 @@ class LocalPathDeleteTest : BaseTest() {
     // ============ NEW ARCHITECTURE VALIDATION TESTS ============
 
     @Test
-    fun `multiple targets with error in one should continue with others`() = runTest {
+    fun `multiple targets with error in one should continue with others`(@TempDir tempDir: File) = runTest {
         // Given - Three targets: A (succeeds), B (fails), C (succeeds)
-        val targetA = File(testFolder, "targetA.txt")
-        val targetB = File(testFolder, "targetB.txt")
-        val targetC = File(testFolder, "targetC.txt")
+        val targetA = File(tempDir, "targetA.txt")
+        val targetB = File(tempDir, "targetB.txt")
+        val targetC = File(tempDir, "targetC.txt")
 
         targetA.writeText("content A")
         targetB.writeText("content B")
@@ -1317,13 +1303,13 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `deleted and skipped sets are always mutually exclusive`() = runTest {
+    fun `deleted and skipped sets are always mutually exclusive`(@TempDir tempDir: File) = runTest {
         // Given - Complex nested structure with various scenarios
-        val dirA = File(testFolder, "dirA")
+        val dirA = File(tempDir, "dirA")
         val dirB = File(dirA, "dirB")
         val fileInA = File(dirA, "fileA.txt")
         val fileInB = File(dirB, "fileB.txt")
-        val standaloneFile = File(testFolder, "standalone.txt")
+        val standaloneFile = File(tempDir, "standalone.txt")
 
         dirA.mkdir()
         dirB.mkdir()
@@ -1362,9 +1348,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `retry can be called multiple times before success`() = runTest {
+    fun `retry can be called multiple times before success`(@TempDir tempDir: File) = runTest {
         // Given
-        val testFile = File(testFolder, "test.txt")
+        val testFile = File(tempDir, "test.txt")
         testFile.writeText("content")
 
         var attemptCount = 0
@@ -1390,9 +1376,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `progress count is accurate with new workQueue architecture`() = runTest {
+    fun `progress count is accurate with new workQueue architecture`(@TempDir tempDir: File) = runTest {
         // Given - Nested structure
-        val parentDir = File(testFolder, "parent")
+        val parentDir = File(tempDir, "parent")
         val childDir = File(parentDir, "child")
         val file1 = File(parentDir, "file1.txt")
         val file2 = File(childDir, "file2.txt")
@@ -1436,9 +1422,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `deletion error with skip should appear only in skipped not deleted`() = runTest {
+    fun `deletion error with skip should appear only in skipped not deleted`(@TempDir tempDir: File) = runTest {
         // Given
-        val testFile = File(testFolder, "test.txt")
+        val testFile = File(tempDir, "test.txt")
         testFile.writeText("content")
 
         // Make file unreadable AND unwritable to maximize chance of permission error
@@ -1479,9 +1465,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `deletion error with retry resolution works correctly`() = runTest {
+    fun `deletion error with retry resolution works correctly`(@TempDir tempDir: File) = runTest {
         // Given
-        val testFile = File(testFolder, "test.txt")
+        val testFile = File(tempDir, "test.txt")
         testFile.writeText("content")
 
         var attemptCount = 0
@@ -1535,12 +1521,12 @@ class LocalPathDeleteTest : BaseTest() {
     // ============ SYMLINK TESTS ============
 
     @Test
-    fun `delete symlink to file should delete link not target`() = runTest {
+    fun `delete symlink to file should delete link not target`(@TempDir tempDir: File) = runTest {
         // Given - symlink pointing to a file
-        val targetFile = File(testFolder, "target.txt")
+        val targetFile = File(tempDir, "target.txt")
         targetFile.writeText("target content")
 
-        val symlinkFile = File(testFolder, "link.txt")
+        val symlinkFile = File(tempDir, "link.txt")
         Files.createSymbolicLink(symlinkFile.toPath(), java.nio.file.Paths.get("target.txt"))
 
         // Only proceed if symlink was actually created
@@ -1559,9 +1545,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `delete broken symlink should succeed`() = runTest {
+    fun `delete broken symlink should succeed`(@TempDir tempDir: File) = runTest {
         // Given - symlink pointing to non-existent target
-        val brokenLink = File(testFolder, "brokenLink")
+        val brokenLink = File(tempDir, "brokenLink")
 
         // Create symlink to non-existent file
         Files.createSymbolicLink(
@@ -1584,9 +1570,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `delete directory containing symlinks should delete all`() = runTest {
+    fun `delete directory containing symlinks should delete all`(@TempDir tempDir: File) = runTest {
         // Given - directory with both regular files and symlinks
-        val sourceDir = File(testFolder, "project")
+        val sourceDir = File(tempDir, "project")
         sourceDir.mkdir()
 
         val regularFile = File(sourceDir, "file.txt")
@@ -1617,13 +1603,13 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `delete directory that is itself a symlink should delete only link`() = runTest {
+    fun `delete directory that is itself a symlink should delete only link`(@TempDir tempDir: File) = runTest {
         // Given - symlink pointing to a directory
-        val targetDir = File(testFolder, "targetDir")
+        val targetDir = File(tempDir, "targetDir")
         targetDir.mkdir()
         File(targetDir, "file.txt").writeText("content")
 
-        val linkDir = File(testFolder, "linkDir")
+        val linkDir = File(tempDir, "linkDir")
 
         // Create symlink with relative path
         Files.createSymbolicLink(
@@ -1647,15 +1633,15 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `delete symlink chain should delete only first link`() = runTest {
+    fun `delete symlink chain should delete only first link`(@TempDir tempDir: File) = runTest {
         // Given - symlink chain: link2 -> link1 -> target
-        val targetFile = File(testFolder, "target.txt")
+        val targetFile = File(tempDir, "target.txt")
         targetFile.writeText("target content")
 
-        val link1 = File(testFolder, "link1.txt")
+        val link1 = File(tempDir, "link1.txt")
         Files.createSymbolicLink(link1.toPath(), targetFile.toPath())
 
-        val link2 = File(testFolder, "link2.txt")
+        val link2 = File(tempDir, "link2.txt")
         Files.createSymbolicLink(link2.toPath(), link1.toPath())
 
         if (!Files.isSymbolicLink(link2.toPath())) {
@@ -1674,14 +1660,14 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `delete multiple symlinks pointing to same target`() = runTest {
+    fun `delete multiple symlinks pointing to same target`(@TempDir tempDir: File) = runTest {
         // Given - multiple symlinks pointing to same file
-        val targetFile = File(testFolder, "target.txt")
+        val targetFile = File(tempDir, "target.txt")
         targetFile.writeText("shared content")
 
-        val link1 = File(testFolder, "link1.txt")
-        val link2 = File(testFolder, "link2.txt")
-        val link3 = File(testFolder, "link3.txt")
+        val link1 = File(tempDir, "link1.txt")
+        val link2 = File(tempDir, "link2.txt")
+        val link3 = File(tempDir, "link3.txt")
 
         Files.createSymbolicLink(link1.toPath(), java.nio.file.Paths.get("target.txt"))
         Files.createSymbolicLink(link2.toPath(), java.nio.file.Paths.get("target.txt"))
@@ -1708,13 +1694,13 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `delete directory and symlink to that directory`() = runTest {
+    fun `delete directory and symlink to that directory`(@TempDir tempDir: File) = runTest {
         // Given - directory and a symlink pointing to it
-        val targetDir = File(testFolder, "realDir")
+        val targetDir = File(tempDir, "realDir")
         targetDir.mkdir()
         File(targetDir, "file.txt").writeText("content")
 
-        val linkDir = File(testFolder, "linkDir")
+        val linkDir = File(tempDir, "linkDir")
         Files.createSymbolicLink(
             linkDir.toPath(),
             java.nio.file.Paths.get("realDir")
@@ -1737,10 +1723,10 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `delete circular symlink should succeed`() = runTest {
+    fun `delete circular symlink should succeed`(@TempDir tempDir: File) = runTest {
         // Given - two symlinks pointing to each other
-        val link1 = File(testFolder, "link1")
-        val link2 = File(testFolder, "link2")
+        val link1 = File(tempDir, "link1")
+        val link2 = File(tempDir, "link2")
 
         // Create circular reference
         Files.createSymbolicLink(link1.toPath(), java.nio.file.Paths.get("link2"))
@@ -1763,9 +1749,9 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `delete symlink with ignoreMissing when target missing`() = runTest {
+    fun `delete symlink with ignoreMissing when target missing`(@TempDir tempDir: File) = runTest {
         // Given - symlink with missing target
-        val brokenLink = File(testFolder, "brokenLink")
+        val brokenLink = File(tempDir, "brokenLink")
         Files.createSymbolicLink(
             brokenLink.toPath(),
             java.nio.file.Paths.get("missing.txt")
@@ -1787,9 +1773,9 @@ class LocalPathDeleteTest : BaseTest() {
     // ============ SECONDARY PROGRESS ============
 
     @Test
-    fun `delete should report secondary progress with file name and size`() = runTest {
+    fun `delete should report secondary progress with file name and size`(@TempDir tempDir: File) = runTest {
         // Given
-        val file = File(testFolder, "document.pdf")
+        val file = File(tempDir, "document.pdf")
         file.writeText("x".repeat(5000))
         val fileSize = file.length()
 
@@ -1823,11 +1809,11 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `delete multiple files should report secondary progress for each`() = runTest {
+    fun `delete multiple files should report secondary progress for each`(@TempDir tempDir: File) = runTest {
         // Given
-        val file1 = File(testFolder, "file1.txt")
-        val file2 = File(testFolder, "file2.txt")
-        val file3 = File(testFolder, "file3.txt")
+        val file1 = File(tempDir, "file1.txt")
+        val file2 = File(tempDir, "file2.txt")
+        val file3 = File(tempDir, "file3.txt")
 
         file1.writeText("content1")
         file2.writeText("content2")
@@ -1859,12 +1845,12 @@ class LocalPathDeleteTest : BaseTest() {
     // ============ RETRY FUNCTIONALITY TESTS ============
 
     @Test
-    fun `delete retry resolution allows multiple retry attempts`() = runTest {
+    fun `delete retry resolution allows multiple retry attempts`(@TempDir tempDir: File) = runTest {
         // This test verifies that retry functionality is implemented and works correctly.
         // It simulates a scenario where retry is requested and validates the behavior.
 
         // Given - File that exists
-        val testFile = File(testFolder, "retrytest.txt")
+        val testFile = File(tempDir, "retrytest.txt")
         testFile.writeText("content")
 
         var retryCount = 0
@@ -1922,13 +1908,13 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `delete retry does not regress progress tracking`() = runTest {
+    fun `delete retry does not regress progress tracking`(@TempDir tempDir: File) = runTest {
         // This test verifies that retry doesn't cause progress tracking to regress (go backwards)
 
         // Given - Multiple files
-        val file1 = File(testFolder, "file1.txt")
-        val file2 = File(testFolder, "file2.txt")
-        val file3 = File(testFolder, "file3.txt")
+        val file1 = File(tempDir, "file1.txt")
+        val file2 = File(tempDir, "file2.txt")
+        val file3 = File(tempDir, "file3.txt")
 
         file1.writeText("content1")
         file2.writeText("content2")
@@ -1997,9 +1983,9 @@ class LocalPathDeleteTest : BaseTest() {
     // ============ NULLABLE FIELDS TESTS ============
 
     @Test
-    fun `delete file with null size completes successfully`() = runTest {
+    fun `delete file with null size completes successfully`(@TempDir tempDir: File) = runTest {
         // Given - Create a lookup with null size (simulates partial lookup from "/" scenario)
-        val testFile = File(testFolder, "restricted.txt")
+        val testFile = File(tempDir, "restricted.txt")
         testFile.writeText("content")
 
         // Create a stub lookup with null size
@@ -2023,11 +2009,11 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `delete multiple files with mixed null and non-null sizes`() = runTest {
+    fun `delete multiple files with mixed null and non-null sizes`(@TempDir tempDir: File) = runTest {
         // Given - Three files with different size scenarios
-        val file1 = File(testFolder, "file1.txt")
-        val file2 = File(testFolder, "file2.txt")
-        val file3 = File(testFolder, "file3.txt")
+        val file1 = File(tempDir, "file1.txt")
+        val file2 = File(tempDir, "file2.txt")
+        val file3 = File(tempDir, "file3.txt")
 
         file1.writeText("x".repeat(100))  // 100 bytes
         file2.writeText("x".repeat(50))   // 50 bytes

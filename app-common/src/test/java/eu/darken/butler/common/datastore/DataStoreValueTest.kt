@@ -12,38 +12,27 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
 import java.io.File
 
 class DataStoreValueTest : BaseTest() {
 
-    private val testFiles = mutableListOf<File>()
-
-    private fun createDataStore(scope: TestScope): DataStore<Preferences> {
+    private fun createDataStore(scope: TestScope, tempDir: File): DataStore<Preferences> {
         val testFile = File(
-            IO_TEST_BASEDIR,
+            tempDir,
             "${DataStoreValueTest::class.java.simpleName}_${System.nanoTime()}.preferences_pb"
         )
-        // Delete file if it exists from a previous test run
-        testFile.delete()
-        testFiles.add(testFile)
         return PreferenceDataStoreFactory.create(
             scope = scope,
             produceFile = { testFile },
         )
     }
 
-    @AfterEach
-    fun tearDown() {
-        testFiles.forEach { it.delete() }
-        testFiles.clear()
-    }
-
     @Test
-    fun `reading and writing strings`() = runTest {
-        val testStore = createDataStore(this)
+    fun `reading and writing strings`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
 
         testStore.createValue<String?>(
             key = "testKey",
@@ -80,8 +69,8 @@ class DataStoreValueTest : BaseTest() {
     }
 
     @Test
-    fun `reading and writing boolean`() = runTest {
-        val testStore = createDataStore(this)
+    fun `reading and writing boolean`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
 
         testStore.createValue<Boolean>(
             key = "testKey",
@@ -137,8 +126,8 @@ class DataStoreValueTest : BaseTest() {
     }
 
     @Test
-    fun `reading and writing long`() = runTest {
-        val testStore = createDataStore(this)
+    fun `reading and writing long`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
 
         testStore.createValue<Long?>(
             key = "testKey",
@@ -166,8 +155,8 @@ class DataStoreValueTest : BaseTest() {
     }
 
     @Test
-    fun `reading and writing integer`() = runTest {
-        val testStore = createDataStore(this)
+    fun `reading and writing integer`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
 
         testStore.createValue<Long?>(
             key = "testKey",
@@ -196,8 +185,8 @@ class DataStoreValueTest : BaseTest() {
     }
 
     @Test
-    fun `reading and writing float`() = runTest {
-        val testStore = createDataStore(this)
+    fun `reading and writing float`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
 
         testStore.createValue<Float?>(
             key = "testKey",
