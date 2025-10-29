@@ -72,7 +72,7 @@ class EditorWorkspace @AssistedInject constructor(
         loggingTag = tag,
         parentScope = workspaceScope,
         startValueProvider = {
-            val initialPath = arguments?.filePath ?: LocalPath.build("/sdcard/core.log")
+            val initialPath = arguments?.filePath ?: LocalPath.build("/sdcard/core-283.log")
             log(tag, INFO) { "Creating initial engine with: ${initialPath?.name ?: "scratch buffer"}" }
             editorEngineFactory.create(id, initialPath).apply {
                 initialize().getOrThrow()
