@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
 import java.io.File
+import java.io.FileNotFoundException
 import kotlin.uuid.Uuid
 
 class FileDataSourceTest : BaseTest() {
@@ -56,27 +57,27 @@ class FileDataSourceTest : BaseTest() {
 
     private suspend fun createDataSource(tempDir: File, fileName: String, content: String): FileDataSource =
         FileDataSource(workspaceId, createFilePath(tempDir, fileName, content), createMockGateway()).apply {
-            initialize()
+            open()
         }
 
     // ==================== Initialization Tests ====================
 
     @Test
-    fun `initialize succeeds without loading content`(@TempDir tempDir: File) = runTest {
+    fun `open succeeds without loading content`(@TempDir tempDir: File) = runTest {
         // Given: File with content
         val filePath = createFilePath(tempDir, "test.txt", "Hello World")
-
-        // When: Initialize
         val dataSource = FileDataSource(workspaceId, filePath, createMockGateway())
 
+        // When: Open
+        dataSource.open()
+
         // Then: Success without loading into memory
-        dataSource.initialize().isSuccess shouldBe true
         dataSource.fileInfo.value shouldNotBe null
         dataSource.fileInfo.value?.size shouldBe 11L
     }
 
     @Test
-    fun `initialize fails on non-existent file`(@TempDir tempDir: File) = runTest {
+    fun `open throws on non-existent file`(@TempDir tempDir: File) = runTest {
         // Given: Non-existent file
         val mockGateway = mockk<GatewaySwitch>().apply {
             coEvery { exists(any()) } returns false
@@ -87,12 +88,9 @@ class FileDataSourceTest : BaseTest() {
             mockGateway,
         )
 
-        // When: Initialize
-        val result = dataSource.initialize()
-
-        // Then: Failure
-        result.isFailure shouldBe true
-        result.exceptionOrNull() shouldBe instanceOf<IllegalArgumentException>()
+        // When & Then: Open throws IllegalArgumentException
+        val exception = runCatching { dataSource.open() }.exceptionOrNull()
+        exception shouldBe instanceOf<FileNotFoundException>()
     }
 
     // ==================== Read Chunk Tests ====================

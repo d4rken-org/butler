@@ -148,17 +148,8 @@ class EditorEngine @AssistedInject constructor(
             // Create new resources
             val resources = createResourcesForFile(filePath)
 
-            // Initialize data source if it's FileDataSource
-            val dataSource = resources.dataSource
-            if (dataSource is FileDataSource) {
-                val dataSourceInitResult = dataSource.initialize()
-                if (dataSourceInitResult.isFailure) {
-                    val error = dataSourceInitResult.exceptionOrNull() ?: Exception("Unknown error")
-                    _state.value = EditorState.Error(error, _state.value)
-                    _error.value = error
-                    return dataSourceInitResult
-                }
-            }
+            // Open data source
+            resources.dataSource.open()
 
             // Initialize text buffer
             val bufferInitResult = resources.textBuffer.initialize()

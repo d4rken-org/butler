@@ -27,6 +27,10 @@ class InMemoryDataSource @AssistedInject constructor(
         log(tag) { "Initialized in-memory data source with initial content: ${initialContent.length} bytes" }
     }
 
+    override suspend fun open() {
+        // No-op: in-memory data source doesn't require opening
+    }
+
     override val fileInfo: StateFlow<FileInfo?> = MutableStateFlow(null)
 
     private val _isModified = MutableStateFlow(false)

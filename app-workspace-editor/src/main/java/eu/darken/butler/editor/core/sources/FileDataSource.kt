@@ -25,6 +25,7 @@ import okio.Buffer
 import okio.Source
 import okio.buffer
 import okio.use
+import java.io.FileNotFoundException
 
 /**
  * File-based data source implementation.
@@ -45,11 +46,11 @@ class FileDataSource @AssistedInject constructor(
     private val modifiedChunks = mutableMapOf<Long, ByteArray>()
     private val accessMutex = Mutex()
 
-    suspend fun initialize(): Result<Unit> {
-        log(tag) { "Initializing file data source: $filePath" }
-        return try {
+    override suspend fun open() {
+        log(tag) { "Opening file data source: $filePath" }
+        try {
             if (!filePath.exists(gatewaySwitch)) {
-                return Result.failure(IllegalArgumentException("File does not exist: $filePath"))
+                throw FileNotFoundException("File does not exist: $filePath")
             }
 
             val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
@@ -61,11 +62,10 @@ class FileDataSource @AssistedInject constructor(
                 canWrite = true // We'll assume writable for now
             )
 
-            log(tag) { "Initialized FileDataSource without loading content (${lookup.size} bytes)" }
-            Result.success(Unit)
+            log(tag) { "Opened FileDataSource without loading content (${lookup.size} bytes)" }
         } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to initialize - ${e.asLog()}" }
-            Result.failure(e)
+            log(tag, ERROR) { "Failed to open - ${e.asLog()}" }
+            throw e
         }
     }
 
