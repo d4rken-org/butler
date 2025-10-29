@@ -6,6 +6,7 @@ import dagger.assisted.AssistedInject
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.editor.core.engine.FileInfo
+import eu.darken.butler.editor.core.engine.TextChunk
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -46,17 +47,14 @@ class InMemoryDataSource @AssistedInject constructor(
         )
     }
 
-    override suspend fun writeChunk(startOffset: Long, content: String) {
-        val before = this.content.substring(0, startOffset.toInt().coerceIn(0, this.content.length))
-        val after = this.content.substring(startOffset.toInt().coerceIn(0, this.content.length))
-        this.content = before + content + after
-        _isModified.value = this.content != initialContent
-    }
-
     override suspend fun getSize(): Long = content.length.toLong()
 
-    override suspend fun save() {
-        throw UnsupportedOperationException("Cannot save in-memory content without a file path")
+    /**
+     * In-memory content cannot be saved to disk without a file path.
+     * Use saveFileAs() from EditorWorkspace to save to a specific path.
+     */
+    override suspend fun save(dirtyChunks: List<TextChunk>) {
+        throw UnsupportedOperationException("Cannot save in-memory content without a file path. Use saveFileAs() instead.")
     }
 
     override suspend fun close() {

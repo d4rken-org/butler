@@ -351,10 +351,12 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
     suspend fun saveFile(): Result<Unit> {
         return try {
-            chunkManager.saveAllDirtyChunks()
-            chunkRepository.saveFile()
-            _isModified.value = false
-            Result.success(Unit)
+            // saveAllDirtyChunks() now handles complete save flow (get dirty, save, mark clean)
+            val result = chunkManager.saveAllDirtyChunks()
+            if (result.isSuccess) {
+                _isModified.value = false
+            }
+            result
         } catch (e: Exception) {
             Result.failure(e)
         }

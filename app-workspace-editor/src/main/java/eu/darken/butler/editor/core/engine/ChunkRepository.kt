@@ -21,7 +21,7 @@ class ChunkRepository @AssistedInject constructor(
 
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "ChunkRepository")
 
-    private var chunkSize: Long = ChunkManager.DEFAULT_CHUNK_SIZE
+    private val chunkSize: Long = ChunkManager.DEFAULT_CHUNK_SIZE
 
     suspend fun getFileInfo(): FileInfo? {
         return dataSource.fileInfo.value
@@ -53,16 +53,16 @@ class ChunkRepository @AssistedInject constructor(
         chunk
     }
 
-    suspend fun saveChunk(chunk: TextChunk): Unit = withContext(Dispatchers.IO) {
-        log(tag) { "Saving chunk: ${chunk.id}" }
-
-        dataSource.writeChunk(chunk.startOffset, chunk.content)
-
-        log(tag) { "Saved chunk: ${chunk.id}" }
-    }
-
-    suspend fun saveFile() {
-        dataSource.save()
+    /**
+     * Saves dirty chunks to the data source.
+     * DataSource handles merging and persistence.
+     *
+     * @param dirtyChunks List of modified chunks to save
+     */
+    suspend fun saveFile(dirtyChunks: List<TextChunk>) = withContext(Dispatchers.IO) {
+        log(tag) { "Saving ${dirtyChunks.size} dirty chunks to data source" }
+        dataSource.save(dirtyChunks)
+        log(tag) { "Successfully saved chunks" }
     }
 
     suspend fun searchInChunk(
@@ -104,11 +104,6 @@ class ChunkRepository @AssistedInject constructor(
             log(tag, ERROR) { "Failed to search in chunk: $chunkId - ${e.asLog()}" }
             return emptyList()
         }
-    }
-
-    fun updateChunkSize(newChunkSize: Long) {
-        chunkSize = newChunkSize
-        log(tag) { "Updated chunk size to: $chunkSize bytes" }
     }
 
     suspend fun closeFile() {

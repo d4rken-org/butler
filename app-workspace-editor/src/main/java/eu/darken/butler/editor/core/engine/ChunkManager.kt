@@ -189,52 +189,80 @@ class ChunkManager @AssistedInject constructor(
         }
     }
 
-    suspend fun saveChunk(chunkId: TextChunk.ChunkId): Result<Unit> = chunkMutex.withLock {
-        val chunk = _chunks.value[chunkId] ?: return@withLock Result.failure(
-            IllegalArgumentException("Chunk not found: $chunkId")
-        )
+    /**
+     * Commits all dirty chunks to the data source using all-or-nothing semantics.
+     *
+     * Flow:
+     * 1. Get all dirty chunks
+     * 2. Save to data source (atomic operation)
+     * 3. Mark chunks clean only if save succeeds
+     *
+     * Chunks remain dirty (protected from eviction) if save fails.
+     *
+     * @return Result.success if all chunks saved, Result.failure if save failed
+     */
+    suspend fun saveAllDirtyChunks(): Result<Unit> {
+        val dirtyChunks = getDirtyChunks()
 
-        if (!chunk.isDirty) {
-            log(tag) { "Chunk $chunkId is not dirty, skipping save" }
-            return@withLock Result.success(Unit)
+        if (dirtyChunks.isEmpty()) {
+            log(tag) { "No dirty chunks to save" }
+            return Result.success(Unit)
         }
 
-        try {
-            chunkRepository.saveChunk(chunk)
+        log(tag) { "Committing ${dirtyChunks.size} dirty chunks (all-or-nothing)" }
 
-            // Mark as clean
-            val cleanChunk = chunk.markClean()
-            _chunks.value = _chunks.value + (chunkId to cleanChunk)
+        return try {
+            // Save all chunks - throws on failure
+            chunkRepository.saveFile(dirtyChunks)
 
-            log(tag) { "Successfully saved chunk: $chunkId" }
+            // Only mark clean if save succeeded
+            val chunkIds = dirtyChunks.map { it.id }
+            markChunksClean(chunkIds)
+
+            log(tag) { "Successfully committed ${dirtyChunks.size} chunks" }
             Result.success(Unit)
 
         } catch (e: Exception) {
-            log(tag, Logging.Priority.ERROR) { "Failed to save chunk: $chunkId - ${e.asLog()}" }
+            log(tag, Logging.Priority.ERROR) {
+                "Failed to commit dirty chunks (chunks remain dirty) - ${e.asLog()}"
+            }
             Result.failure(e)
         }
     }
 
-    suspend fun saveAllDirtyChunks(): Result<Unit> {
+    /**
+     * Returns all dirty chunks sorted by startOffset.
+     * Used for batch save operations where we need all modified chunks in order.
+     */
+    suspend fun getDirtyChunks(): List<TextChunk> = chunkMutex.withLock {
         val dirtyChunks = _chunks.value.values.filter { it.isDirty }
+        log(tag) { "Found ${dirtyChunks.size} dirty chunks" }
+        dirtyChunks.sortedBy { it.startOffset }
+    }
 
-        log(tag) { "Saving ${dirtyChunks.size} dirty chunks" }
+    /**
+     * Marks multiple chunks as clean after successful save.
+     * This is a batch operation to avoid multiple StateFlow updates.
+     *
+     * @param chunkIds List of chunk IDs to mark as clean
+     */
+    suspend fun markChunksClean(chunkIds: List<TextChunk.ChunkId>): Unit = chunkMutex.withLock {
+        log(tag) { "Marking ${chunkIds.size} chunks as clean" }
 
-        var lastError: Exception? = null
-        var successCount = 0
+        val updatedChunks = _chunks.value.toMutableMap()
+        var markedCount = 0
 
-        for (chunk in dirtyChunks) {
-            saveChunk(chunk.id).fold(
-                onSuccess = { successCount++ },
-                onFailure = { lastError = it as? Exception ?: Exception(it.message) }
-            )
+        for (chunkId in chunkIds) {
+            updatedChunks[chunkId]?.let { chunk ->
+                if (chunk.isDirty) {
+                    updatedChunks[chunkId] = chunk.markClean()
+                    markedCount++
+                }
+            }
         }
 
-        return if (lastError != null && successCount == 0) {
-            Result.failure(lastError)
-        } else {
-            Result.success(Unit)
-        }
+        _chunks.value = updatedChunks
+        log(tag) { "Successfully marked $markedCount chunks as clean" }
     }
 
     suspend fun generateChunkIds(fileSize: Long): List<TextChunk.ChunkId> {
@@ -266,5 +294,62 @@ class ChunkManager @AssistedInject constructor(
     companion object {
         const val DEFAULT_CHUNK_SIZE = 64 * 1024L // 64KB for testing
         const val DEFAULT_MAX_CACHED_CHUNKS = 5 // Keep 5 chunks in memory (320KB with 64KB chunks)
+
+        /**
+         * Merges dirty chunks into original file content, correctly handling chunk size changes.
+         *
+         * Algorithm:
+         * 1. Process chunks in order (sorted by startOffset)
+         * 2. For gaps between chunks, copy unchanged content from original
+         * 3. For each chunk, insert the new content (which may be different size)
+         * 4. Copy any remaining content after the last chunk
+         *
+         * This correctly handles:
+         * - Chunk expansion (new content larger than original)
+         * - Chunk shrinking (new content smaller than original)
+         * - Multiple modifications without manual offset tracking
+         *
+         * @param originalContent The original file content as bytes
+         * @param dirtyChunks List of modified chunks (will be sorted by startOffset)
+         * @return Merged byte array with all modifications applied
+         */
+        fun mergeChunks(originalContent: ByteArray, dirtyChunks: List<TextChunk>): ByteArray {
+            if (dirtyChunks.isEmpty()) return originalContent
+
+            val sortedChunks = dirtyChunks.sortedBy { it.startOffset }
+            val result = mutableListOf<Byte>()
+            var currentOriginalPos = 0L
+
+            for (chunk in sortedChunks) {
+                // Copy unchanged content before this chunk
+                if (currentOriginalPos < chunk.startOffset) {
+                    val unchangedStart = currentOriginalPos.toInt()
+                    val unchangedEnd = chunk.startOffset.toInt()
+                    if (unchangedStart < originalContent.size) {
+                        val unchangedBytes = originalContent.sliceArray(
+                            unchangedStart until minOf(unchangedEnd, originalContent.size)
+                        )
+                        result.addAll(unchangedBytes.toList())
+                    }
+                }
+
+                // Add the modified chunk content (size may differ from original)
+                val newBytes = chunk.content.toByteArray(Charsets.UTF_8)
+                result.addAll(newBytes.toList())
+
+                // Move past this chunk in original file
+                currentOriginalPos = chunk.endOffset
+            }
+
+            // Copy any remaining content after the last chunk
+            if (currentOriginalPos < originalContent.size) {
+                val remainingBytes = originalContent.sliceArray(
+                    currentOriginalPos.toInt() until originalContent.size
+                )
+                result.addAll(remainingBytes.toList())
+            }
+
+            return result.toByteArray()
+        }
     }
 }
