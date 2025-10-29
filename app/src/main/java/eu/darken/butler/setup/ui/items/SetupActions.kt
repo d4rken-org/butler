@@ -27,6 +27,12 @@ fun SetupActions(
                 switchLabel = stringResource(R.string.setup_use_shizuku_label)
             )
         }
+        SetupModule.Type.SAF -> {
+            SAFActions(
+                item = item,
+                onExecuteAction = onExecuteAction
+            )
+        }
         else -> {
             DefaultActions(item = item, onExecuteAction = onExecuteAction)
         }

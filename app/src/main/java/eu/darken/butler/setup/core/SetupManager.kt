@@ -1,6 +1,7 @@
 package eu.darken.butler.setup.core
 
 import android.content.Intent
+import eu.darken.butler.common.SafUri
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import javax.inject.Inject
@@ -105,7 +107,8 @@ class SetupManager @Inject constructor(
                         }
                     }
                     SetupModule.Type.SAF -> {
-                        // TODO
+                        // SAF is handled via GrantSAFAccess action
+                        log(TAG, WARN) { "SAF RequestPermission not supported, use GrantSAFAccess instead" }
                     }
                     SetupModule.Type.SHIZUKU -> throw IllegalStateException("Not handled here $action")
                     SetupModule.Type.ROOT -> throw IllegalStateException("Not handled here $action")
@@ -122,11 +125,25 @@ class SetupManager @Inject constructor(
                 shizukuModule?.toggleUseShizuku(action.useShizuku)
                     ?: log(TAG, WARN) { "Module for $type is not a ShizukuSetupModule" }
             }
+            is SetupAction.GrantSAFAccess -> {
+                val safModule = module as? SAFSetupModule
+                if (safModule != null) {
+                    val currentState = safModule.state.first() as? SAFSetupModule.Result
+                    val pathAccess = currentState?.paths?.find { it.safPath.pathUri == action.safUri }
+                    if (pathAccess != null) {
+                        return PermissionResult(intent = pathAccess.grantIntent)
+                    } else {
+                        log(TAG, WARN) { "No PathAccess found for URI: ${action.safUri}" }
+                    }
+                } else {
+                    log(TAG, WARN) { "Module for $type is not a SAFSetupModule" }
+                }
+            }
         }
         return null
     }
 
-    private fun getModule(type: SetupModule.Type): SetupModule? {
+    internal fun getModule(type: SetupModule.Type): SetupModule? {
         return setupModules.find { module ->
             when (type) {
                 SetupModule.Type.ROOT -> module is RootSetupModule
@@ -150,6 +167,7 @@ sealed interface SetupAction {
     data object RequestPermission : SetupAction
     data class ToggleRoot(val useRoot: Boolean?) : SetupAction
     data class ToggleShizuku(val useShizuku: Boolean?) : SetupAction
+    data class GrantSAFAccess(val safUri: SafUri) : SetupAction
 }
 
 data class PermissionResult(

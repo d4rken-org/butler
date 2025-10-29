@@ -12,6 +12,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import eu.darken.butler.R
+import eu.darken.butler.common.SafUri
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.AppScope
@@ -236,9 +237,10 @@ class SAFSetupModule @Inject constructor(
 
     suspend fun takePermission(uri: Uri) {
         log(TAG) { "takePermission(uri=$uri)" }
+        val normalizedUri = SafUri.fromAndroidUri(uri.dropLastColon())
         val match = getAccessObjects().singleOrNull {
-            log(TAG, VERBOSE) { "Comparing $uri with ${it.safPath.pathUri}" }
-            it.safPath.pathUri == uri.dropLastColon()
+            log(TAG, VERBOSE) { "Comparing $normalizedUri with ${it.safPath.pathUri}" }
+            it.safPath.pathUri == normalizedUri
         }
         if (match == null) {
             log(TAG, WARN) { "We don't need acces to $uri" }

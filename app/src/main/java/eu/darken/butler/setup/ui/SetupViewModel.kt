@@ -103,6 +103,7 @@ class SetupViewModel @AssistedInject constructor(
 
     fun executeAction(type: SetupModule.Type, action: SetupAction) = launch {
         log(tag) { "executeAction(type=$type, action=$action)" }
+
         val result = setupManager.executeAction(type, action)
         when {
             result?.intent != null -> {
@@ -113,6 +114,17 @@ class SetupViewModel @AssistedInject constructor(
                 log(tag) { "Emitting runtime permission request for $type: ${result.runtimePermissions}" }
                 _runtimePermissionEvents.emit(result.runtimePermissions)
             }
+        }
+    }
+
+    fun handleSAFResult(uri: android.net.Uri) = launch {
+        log(tag) { "handleSAFResult(uri=$uri)" }
+        val safModule = setupManager.getModule(SetupModule.Type.SAF) as? eu.darken.butler.setup.core.saf.SAFSetupModule
+        if (safModule != null) {
+            safModule.takePermission(uri)
+            refresh()
+        } else {
+            log(tag) { "SAFSetupModule not found" }
         }
     }
 
