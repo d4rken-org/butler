@@ -88,6 +88,9 @@ class ChunkedTextBuffer @AssistedInject constructor(
             // Build line index
             buildLineIndex()
 
+            // Evict chunks outside initial visible range to enable on-demand loading
+            evictChunksOutsideRange(0, 50)
+
             log(tag) { "Successfully initialized text buffer (${size} bytes, ${_totalLines.value} lines)" }
             Result.success(Unit)
 
@@ -443,23 +446,32 @@ class ChunkedTextBuffer @AssistedInject constructor(
     private suspend fun buildLineIndex() {
         lineIndex.clear()
         var currentOffset = 0L
-        var lineNumber = 0
+        var currentLineNumber = 0
 
-        // We'll build this incrementally as we load chunks
-        // For now, create a basic index by getting first chunk (may be modified)
+        // Build line index from ALL chunks
         if (chunkIds.isNotEmpty()) {
-            val firstChunkId = chunkIds.first()
-            log(tag) { "Building line index from first chunk: $firstChunkId" }
+            log(tag) { "Building line index from ${chunkIds.size} chunks" }
 
-            val firstChunk = try {
-                chunkManager.getChunk(firstChunkId) ?: chunkManager.loadChunk(firstChunkId).getOrThrow()
-            } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to load first chunk for line indexing - ${e.asLog()}" }
-                throw e
+            for ((chunkIndex, chunkId) in chunkIds.withIndex()) {
+                val chunk = try {
+                    chunkManager.getChunk(chunkId) ?: chunkManager.loadChunk(chunkId).getOrThrow()
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "Failed to load chunk $chunkIndex for line indexing - ${e.asLog()}" }
+                    throw e
+                }
+
+                log(tag) { "Processing chunk $chunkIndex/${chunkIds.size} with ${chunk.content.length} bytes (offset: $currentOffset)" }
+
+                val linesBeforeChunk = lineIndex.size
+                val isLastChunk = chunkIndex == chunkIds.size - 1
+                buildLineIndexForChunk(chunk, currentLineNumber, currentOffset, isLastChunk)
+                val linesInChunk = lineIndex.size - linesBeforeChunk
+
+                currentLineNumber += linesInChunk
+                currentOffset = chunk.endOffset
+
+                log(tag) { "Chunk $chunkIndex added $linesInChunk lines (total: ${lineIndex.size})" }
             }
-
-            log(tag) { "Processing chunk with ${firstChunk.content.length} bytes for line indexing" }
-            buildLineIndexForChunk(firstChunk, lineNumber, currentOffset)
         }
 
         // Ensure we have at least one line for empty content
@@ -476,16 +488,16 @@ class ChunkedTextBuffer @AssistedInject constructor(
         }
 
         _totalLines.value = lineIndex.size
-        log(tag) { "Line index built with ${lineIndex.size} lines" }
+        log(tag) { "Line index built with ${lineIndex.size} lines from ${chunkIds.size} chunks" }
     }
 
-    private fun buildLineIndexForChunk(chunk: TextChunk, startLineNumber: Int, startOffset: Long) {
+    private fun buildLineIndexForChunk(chunk: TextChunk, startLineNumber: Int, startOffset: Long, isLastChunk: Boolean) {
         var currentOffset = startOffset
         var lineStart = 0
 
         chunk.content.forEachIndexed { index, char ->
-            if (char == '\n' || index == chunk.content.length - 1) {
-                val lineEnd = if (char == '\n') index else index + 1
+            if (char == '\n') {
+                val lineEnd = index
                 lineIndex.add(
                     LineInfo(
                         lineNumber = startLineNumber + lineIndex.size,
@@ -497,6 +509,18 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 lineStart = index + 1
             }
         }
+
+        // Only add final line if this is the last chunk AND it doesn't end with \n
+        if (isLastChunk && chunk.content.isNotEmpty() && !chunk.content.endsWith('\n')) {
+            lineIndex.add(
+                LineInfo(
+                    lineNumber = startLineNumber + lineIndex.size,
+                    startOffset = currentOffset + lineStart,
+                    endOffset = currentOffset + chunk.content.length,
+                    chunkId = chunk.id
+                )
+            )
+        }
     }
 
     private suspend fun findChunkForOffset(offset: Long): TextChunk? {
@@ -507,6 +531,34 @@ class ChunkedTextBuffer @AssistedInject constructor(
         _isModified.value = true
         // Rebuild line index - in a real implementation, this would be more efficient
         buildLineIndex()
+    }
+
+    private suspend fun evictChunksOutsideRange(startLine: Int, endLine: Int) {
+        if (lineIndex.isEmpty()) return
+
+        // Find which chunk IDs are needed for the given line range
+        val neededChunkIds = mutableSetOf<TextChunk.ChunkId>()
+        for (lineNum in startLine..minOf(endLine, lineIndex.size - 1)) {
+            val lineInfo = lineIndex.getOrNull(lineNum)
+            if (lineInfo != null) {
+                neededChunkIds.add(lineInfo.chunkId)
+            }
+        }
+
+        // Evict all other chunks
+        val allChunkIds = chunkIds.toSet()
+        val chunksToEvict = allChunkIds - neededChunkIds
+
+        if (chunksToEvict.isNotEmpty()) {
+            log(tag) {
+                "Evicting ${chunksToEvict.size} chunks outside range $startLine..$endLine, " +
+                        "keeping ${neededChunkIds.size} chunks in memory"
+            }
+
+            for (chunkId in chunksToEvict) {
+                chunkManager.evictChunk(chunkId)
+            }
+        }
     }
 
     @AssistedFactory

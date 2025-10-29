@@ -29,6 +29,10 @@ class ChunkManager @AssistedInject constructor(
 
     private val chunkMutex = Mutex()
 
+    // LRU tracking for chunk eviction
+    private val chunkAccessOrder = mutableListOf<TextChunk.ChunkId>()
+    private var maxCachedChunks: Int = DEFAULT_MAX_CACHED_CHUNKS
+
     var chunkSize: Long = DEFAULT_CHUNK_SIZE
         private set
 
@@ -38,7 +42,10 @@ class ChunkManager @AssistedInject constructor(
         // Check if already loaded
         _chunks.value[chunkId]?.let { existingChunk ->
             if (existingChunk.isLoaded) {
-                log(tag) { "Chunk $chunkId already loaded" }
+                log(tag) { "Chunk $chunkId already loaded (cached)" }
+                // Update LRU: move to end (most recently used)
+                chunkAccessOrder.remove(chunkId)
+                chunkAccessOrder.add(chunkId)
                 return@withLock Result.success(existingChunk)
             }
         }
@@ -55,6 +62,7 @@ class ChunkManager @AssistedInject constructor(
             _loadStates.value = _loadStates.value + (chunkId to ChunkLoadState(isLoading = true))
 
             // Load from repository
+            log(tag) { "Loading chunk $chunkId from disk" }
             val chunk = chunkRepository.loadChunk(chunkId)
 
             // Update state
@@ -64,7 +72,15 @@ class ChunkManager @AssistedInject constructor(
                 loadedAt = System.currentTimeMillis()
             ))
 
+            // Update LRU: add to end (most recently used)
+            chunkAccessOrder.remove(chunkId)
+            chunkAccessOrder.add(chunkId)
+
             log(tag) { "Successfully loaded chunk: $chunkId (${chunk.size} bytes)" }
+
+            // Trigger eviction if cache is full
+            evictOldChunksIfNeeded()
+
             Result.success(chunk)
 
         } catch (e: Exception) {
@@ -85,9 +101,36 @@ class ChunkManager @AssistedInject constructor(
     }
 
     suspend fun getChunksInRange(startOffset: Long, endOffset: Long): List<TextChunk> {
-        return _chunks.value.values.filter { chunk ->
-            chunk.startOffset < endOffset && chunk.endOffset >= startOffset
-        }.sortedBy { it.startOffset }
+        // Calculate which chunk IDs are needed for this offset range
+        val firstChunkOffset = (startOffset / chunkSize) * chunkSize
+        val neededChunkIds = mutableListOf<TextChunk.ChunkId>()
+
+        var currentOffset = firstChunkOffset
+        while (currentOffset < endOffset) {
+            neededChunkIds.add(TextChunk.ChunkId.generate(currentOffset))
+            currentOffset += chunkSize
+        }
+
+        // Load chunks if not already loaded
+        val loadedChunks = mutableListOf<TextChunk>()
+        for (chunkId in neededChunkIds) {
+            val chunk = _chunks.value[chunkId]
+            if (chunk != null && chunk.isLoaded) {
+                // Chunk already in cache
+                loadedChunks.add(chunk)
+            } else {
+                // Chunk not in cache, need to load it
+                val loadResult = loadChunk(chunkId)
+                loadResult.fold(
+                    onSuccess = { loadedChunks.add(it) },
+                    onFailure = {
+                        log(tag, Logging.Priority.WARN) { "Failed to load chunk $chunkId for range $startOffset-$endOffset" }
+                    }
+                )
+            }
+        }
+
+        return loadedChunks.sortedBy { it.startOffset }
     }
 
     suspend fun addChunk(chunk: TextChunk): Unit = chunkMutex.withLock {
@@ -114,12 +157,36 @@ class ChunkManager @AssistedInject constructor(
             return@withLock false
         }
 
-        log(tag) { "Evicting chunk: $chunkId" }
+        log(tag) { "Evicting chunk: $chunkId (LRU)" }
 
         _chunks.value = _chunks.value - chunkId
         _loadStates.value = _loadStates.value - chunkId
+        chunkAccessOrder.remove(chunkId)
 
         true
+    }
+
+    private fun evictOldChunksIfNeeded() {
+        // NOTE: This should be called from within chunkMutex.withLock
+        val currentCount = _chunks.value.size
+        if (currentCount <= maxCachedChunks) {
+            return
+        }
+
+        val chunksToEvict = currentCount - maxCachedChunks
+        log(tag) { "Cache full ($currentCount/$maxCachedChunks chunks), evicting $chunksToEvict oldest chunks" }
+
+        // Evict least recently used chunks
+        val evictCandidates = chunkAccessOrder.take(chunksToEvict).toList()
+        for (chunkId in evictCandidates) {
+            val chunk = _chunks.value[chunkId]
+            if (chunk != null && !chunk.isDirty) {
+                _chunks.value = _chunks.value - chunkId
+                _loadStates.value = _loadStates.value - chunkId
+                chunkAccessOrder.remove(chunkId)
+                log(tag) { "Evicted chunk: $chunkId (LRU)" }
+            }
+        }
     }
 
     suspend fun saveChunk(chunkId: TextChunk.ChunkId): Result<Unit> = chunkMutex.withLock {
@@ -197,6 +264,7 @@ class ChunkManager @AssistedInject constructor(
     }
 
     companion object {
-        const val DEFAULT_CHUNK_SIZE = 1024 * 1024L // 1MB
+        const val DEFAULT_CHUNK_SIZE = 64 * 1024L // 64KB for testing
+        const val DEFAULT_MAX_CACHED_CHUNKS = 5 // Keep 5 chunks in memory (320KB with 64KB chunks)
     }
 }

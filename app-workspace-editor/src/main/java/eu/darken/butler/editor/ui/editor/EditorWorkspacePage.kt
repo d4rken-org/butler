@@ -155,6 +155,7 @@ fun EditorWorkspacePage(
                     if (state.hasWorkspace) {
                         LazyTextEditor(
                             content = state.currentContent,
+                            totalLines = state.totalLines,
                             cursorPosition = state.cursorPosition,
                             selection = state.selectionRange,
                             visibleRange = state.visibleRange,
