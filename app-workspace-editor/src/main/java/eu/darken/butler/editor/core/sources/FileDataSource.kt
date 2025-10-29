@@ -86,14 +86,31 @@ class FileDataSource @AssistedInject constructor(
                             source.skip(startOffset)
                         }
 
-                        // Read requested size
+                        // Read requested size - loop to handle partial reads from Okio
                         val buffer = Buffer()
-                        val bytesRead = source.read(buffer, size)
+                        var totalBytesRead = 0L
 
-                        if (bytesRead == -1L) {
+                        // Okio's source.read() may return fewer bytes than requested
+                        // (commonly 8192 bytes per Okio Segment). Loop until we have
+                        // the full chunk or hit EOF.
+                        while (totalBytesRead < size) {
+                            val remainingBytes = size - totalBytesRead
+                            val bytesRead = source.read(buffer, remainingBytes)
+
+                            if (bytesRead == -1L) {
+                                // EOF reached before reading full size
+                                break
+                            }
+
+                            totalBytesRead += bytesRead
+                        }
+
+                        if (totalBytesRead == 0L) {
                             // Offset is beyond file size
                             return@withContext ""
                         }
+
+                        log(tag) { "readChunk: requested=$size, read=$totalBytesRead at offset $startOffset" }
 
                         val bytes = buffer.readByteArray()
                         String(bytes, Charsets.UTF_8)
