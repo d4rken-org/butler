@@ -14,6 +14,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import okio.Buffer
+import okio.buffer
+import okio.use
 import java.util.LinkedList
 
 class ChunkedTextBuffer @AssistedInject constructor(
@@ -38,7 +41,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
     val isModified: StateFlow<Boolean> = _isModified.asStateFlow()
 
     private val bufferMutex = Mutex()
-    private val lineIndex = mutableListOf<LineInfo>()
+    private val chunkMetadata = mutableListOf<ChunkMetadata>()
     private val undoStack = LinkedList<EditOperation>()
     private val redoStack = LinkedList<EditOperation>()
 
@@ -85,8 +88,8 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 chunkManager.addChunk(emptyChunk)
             }
 
-            // Build line index
-            buildLineIndex()
+            // Build chunk metadata via streaming scan
+            buildChunkMetadata()
 
             // Evict chunks outside initial visible range to enable on-demand loading
             evictChunksOutsideRange(0, 50)
@@ -119,7 +122,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         // Clear state
         chunkManager.clear()
         chunkRepository.closeFile()
-        lineIndex.clear()
+        chunkMetadata.clear()
         chunkIds = emptyList()
         undoStack.clear()
         redoStack.clear()
@@ -162,23 +165,76 @@ class ChunkedTextBuffer @AssistedInject constructor(
     }
 
     suspend fun getTextForLine(lineNumber: Int): Result<String> {
-        if (lineNumber < 0 || lineNumber >= lineIndex.size) {
+        if (lineNumber < 0 || lineNumber >= _totalLines.value) {
             return Result.failure(IndexOutOfBoundsException("Line number $lineNumber is out of bounds"))
         }
 
-        val lineInfo = lineIndex[lineNumber]
-        return getText(lineInfo.startOffset, lineInfo.endOffset)
+        // Find which chunk contains this line
+        val metadata = findChunkMetadataForLine(lineNumber)
+            ?: return Result.failure(IllegalStateException("Could not find chunk for line $lineNumber"))
+
+        // Load the chunk
+        val chunk = chunkManager.loadChunk(metadata.chunkId).getOrElse { error ->
+            return Result.failure(error)
+        }
+
+        // Calculate line index within this chunk
+        val lineIndexInChunk = lineNumber - metadata.firstLineNumber
+
+        // Extract the line from chunk
+        val lineContent = getLineFromChunk(chunk, lineIndexInChunk)
+        return Result.success(lineContent)
     }
 
     suspend fun getTextForRange(startLine: Int, endLine: Int): Result<String> {
-        if (startLine < 0 || endLine >= lineIndex.size || startLine > endLine) {
+        if (startLine < 0 || endLine >= _totalLines.value || startLine > endLine) {
             return Result.failure(IndexOutOfBoundsException("Invalid line range: $startLine-$endLine"))
         }
 
-        val startOffset = lineIndex[startLine].startOffset
-        val endOffset = lineIndex[endLine].endOffset
+        // Find which chunks contain this line range
+        val startMetadata = findChunkMetadataForLine(startLine)
+            ?: return Result.failure(IllegalStateException("Cannot find chunk for line $startLine"))
+        val endMetadata = findChunkMetadataForLine(endLine)
+            ?: return Result.failure(IllegalStateException("Cannot find chunk for line $endLine"))
 
-        return getText(startOffset, endOffset)
+        // Determine which chunks we need to load (could span multiple chunks)
+        val startChunkIndex = chunkMetadata.indexOf(startMetadata)
+        val endChunkIndex = chunkMetadata.indexOf(endMetadata)
+
+        val result = StringBuilder()
+
+        // Load each required chunk and extract needed lines
+        for (chunkIndex in startChunkIndex..endChunkIndex) {
+            val metadata = chunkMetadata[chunkIndex]
+
+            // Load the chunk
+            val chunk = chunkManager.loadChunk(metadata.chunkId).getOrElse { error ->
+                return Result.failure(error)
+            }
+
+            // Calculate which lines from this chunk we need
+            val firstLineInChunk = if (chunkIndex == startChunkIndex) {
+                startLine - metadata.firstLineNumber
+            } else {
+                0
+            }
+
+            val lastLineInChunk = if (chunkIndex == endChunkIndex) {
+                endLine - metadata.firstLineNumber
+            } else {
+                metadata.lineCount - 1
+            }
+
+            // Append the lines from this chunk using helper method
+            for (lineIndex in firstLineInChunk..lastLineInChunk) {
+                if (result.isNotEmpty()) {
+                    result.append('\n')
+                }
+                result.append(getLineFromChunk(chunk, lineIndex))
+            }
+        }
+
+        return Result.success(result.toString())
     }
 
     suspend fun insertText(position: TextPosition, text: String): Result<TextPosition> = bufferMutex.withLock {
@@ -304,38 +360,64 @@ class ChunkedTextBuffer @AssistedInject constructor(
     }
 
     suspend fun findPosition(offset: Long): TextPosition {
-        // Binary search through line index
-        var left = 0
-        var right = lineIndex.size - 1
+        // Find chunk containing this offset
+        val chunkMeta = chunkMetadata.firstOrNull { meta ->
+            offset >= meta.startOffset && offset < meta.endOffset
+        } ?: chunkMetadata.lastOrNull() ?: return TextPosition(offset, 0, 0)
 
-        while (left <= right) {
-            val mid = (left + right) / 2
-            val lineInfo = lineIndex[mid]
+        // Load the chunk
+        val chunk = chunkManager.loadChunk(chunkMeta.chunkId).getOrNull()
+            ?: return TextPosition(offset, chunkMeta.firstLineNumber, 0)
 
-            when {
-                offset < lineInfo.startOffset -> right = mid - 1
-                offset >= lineInfo.endOffset -> left = mid + 1
-                else -> {
-                    val column = (offset - lineInfo.startOffset).toInt()
-                    return TextPosition(offset, mid, column)
-                }
+        // Find line within chunk
+        val offsetInChunk = (offset - chunkMeta.startOffset).toInt()
+        var currentLine = 0
+        var lineStartPos = 0
+
+        for (i in 0 until offsetInChunk) {
+            if (i < chunk.content.length && chunk.content[i] == '\n') {
+                currentLine++
+                lineStartPos = i + 1
             }
         }
 
-        // If not found, return position at end
-        return TextPosition(offset, lineIndex.size - 1, 0)
+        val globalLineNumber = chunkMeta.firstLineNumber + currentLine
+        val column = offsetInChunk - lineStartPos
+
+        return TextPosition(offset, globalLineNumber, column)
     }
 
     suspend fun findOffset(line: Int, column: Int): Long {
-        if (line < 0 || line >= lineIndex.size) {
+        if (line < 0 || line >= _totalLines.value) {
             return _totalLength.value
         }
 
-        val lineInfo = lineIndex[line]
-        val maxColumn = (lineInfo.endOffset - lineInfo.startOffset).toInt()
-        val clampedColumn = column.coerceIn(0, maxColumn)
+        // Find chunk containing this line
+        val chunkMeta = findChunkMetadataForLine(line)
+            ?: return _totalLength.value
 
-        return lineInfo.startOffset + clampedColumn
+        // Load the chunk
+        val chunk = chunkManager.loadChunk(chunkMeta.chunkId).getOrNull()
+            ?: return chunkMeta.startOffset
+
+        // Find the line within the chunk
+        val lineIndexInChunk = line - chunkMeta.firstLineNumber
+        val lines = chunk.content.split('\n')
+
+        // Calculate offset to start of the line
+        var offsetInChunk = 0
+        for (i in 0 until lineIndexInChunk) {
+            if (i < lines.size) {
+                offsetInChunk += lines[i].length + 1 // +1 for newline
+            }
+        }
+
+        // Add column offset
+        val lineContent = lines.getOrNull(lineIndexInChunk) ?: ""
+        val clampedColumn = column.coerceIn(0, lineContent.length)
+        offsetInChunk += clampedColumn
+
+        return chunkMeta.startOffset + offsetInChunk
     }
 
     suspend fun search(query: String, startFrom: TextPosition?, ignoreCase: Boolean): List<SearchResult> {
@@ -445,105 +527,185 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
     fun canRedo(): Boolean = redoStack.isNotEmpty()
 
-    private suspend fun buildLineIndex() {
-        lineIndex.clear()
-        var currentOffset = 0L
-        var currentLineNumber = 0
+    private suspend fun buildChunkMetadata() {
+        chunkMetadata.clear()
+        var totalLines = 0
 
-        // Build line index from ALL chunks
-        if (chunkIds.isNotEmpty()) {
-            log(tag) { "Building line index from ${chunkIds.size} chunks" }
+        val fileSize = _totalLength.value
 
-            for ((chunkIndex, chunkId) in chunkIds.withIndex()) {
-                val chunk = try {
-                    chunkManager.getChunk(chunkId) ?: chunkManager.loadChunk(chunkId).getOrThrow()
-                } catch (e: Exception) {
-                    log(tag, ERROR) { "Failed to load chunk $chunkIndex for line indexing - ${e.asLog()}" }
-                    throw e
-                }
-
-                log(tag) { "Processing chunk $chunkIndex/${chunkIds.size} with ${chunk.content.length} bytes (offset: $currentOffset)" }
-
-                val linesBeforeChunk = lineIndex.size
-                val isLastChunk = chunkIndex == chunkIds.size - 1
-                buildLineIndexForChunk(chunk, currentLineNumber, currentOffset, isLastChunk)
-                val linesInChunk = lineIndex.size - linesBeforeChunk
-
-                currentLineNumber += linesInChunk
-                currentOffset = chunk.endOffset
-
-                log(tag) { "Chunk $chunkIndex added $linesInChunk lines (total: ${lineIndex.size})" }
-            }
-        }
-
-        // Ensure we have at least one line for empty content
-        if (lineIndex.isEmpty()) {
-            log(tag) { "Line index is empty, creating fallback empty line entry" }
-            lineIndex.add(
-                LineInfo(
-                    lineNumber = 0,
+        // Handle empty files
+        if (fileSize == 0L) {
+            chunkMetadata.add(
+                ChunkMetadata(
+                    chunkId = chunkIds.firstOrNull() ?: TextChunk.ChunkId.generate(0),
                     startOffset = 0L,
                     endOffset = 0L,
-                    chunkId = chunkIds.firstOrNull() ?: TextChunk.ChunkId.generate(0)
+                    lineCount = 1,
+                    firstLineNumber = 0
                 )
             )
+            _totalLines.value = 1
+            log(tag) { "Built metadata for empty file (1 line)" }
+            return
         }
 
-        _totalLines.value = lineIndex.size
-        log(tag) { "Line index built with ${lineIndex.size} lines from ${chunkIds.size} chunks" }
-    }
+        val startTime = System.currentTimeMillis()
+        log(tag) { "Building chunk metadata for ${chunkIds.size} chunks via streaming with complete reads" }
 
-    private fun buildLineIndexForChunk(chunk: TextChunk, startLineNumber: Int, startOffset: Long, isLastChunk: Boolean) {
-        var currentOffset = startOffset
-        var lineStart = 0
+        // Stream through file using pre-generated chunkIds to define boundaries
+        // This time with proper looping to ensure complete reads
+        chunkRepository.dataSource.openSource().use { source ->
+            source.buffer().use { buffered ->
+                for ((index, chunkId) in chunkIds.withIndex()) {
+                    val chunkStart = extractOffsetFromChunkId(chunkId)
+                    val chunkEnd = if (index < chunkIds.size - 1) {
+                        extractOffsetFromChunkId(chunkIds[index + 1])
+                    } else {
+                        fileSize
+                    }
+                    val chunkSize = chunkEnd - chunkStart
 
-        chunk.content.forEachIndexed { index, char ->
-            if (char == '\n') {
-                val lineEnd = index
-                lineIndex.add(
-                    LineInfo(
-                        lineNumber = startLineNumber + lineIndex.size,
-                        startOffset = currentOffset + lineStart,
-                        endOffset = currentOffset + lineEnd,
-                        chunkId = chunk.id
+                    // Read this chunk's data - loop until we get the full chunk size
+                    // (mimics FileDataSource.readChunk() logic to handle partial reads)
+                    val buffer = Buffer()
+                    var totalBytesRead = 0L
+                    while (totalBytesRead < chunkSize && !buffered.exhausted()) {
+                        val remainingBytes = chunkSize - totalBytesRead
+                        val bytesRead = buffered.read(buffer, remainingBytes)
+                        if (bytesRead == -1L) break
+                        totalBytesRead += bytesRead
+                    }
+
+                    // Count newlines in the complete chunk data
+                    // Add 1 only for last chunk if it ends without newline
+                    val content = buffer.readByteArray()
+                    val isLastChunk = index == chunkIds.size - 1
+                    val lineCount = content.count { it == '\n'.code.toByte() } +
+                        if (isLastChunk && content.isNotEmpty() && content.last() != '\n'.code.toByte()) 1 else 0
+
+                    chunkMetadata.add(
+                        ChunkMetadata(
+                            chunkId = chunkId,
+                            startOffset = chunkStart,
+                            endOffset = chunkEnd,
+                            lineCount = lineCount,
+                            firstLineNumber = totalLines
+                        )
                     )
-                )
-                lineStart = index + 1
+
+                    totalLines += lineCount
+
+                    // Progress logging every 500 chunks
+                    if ((index + 1) % 500 == 0) {
+                        val elapsed = System.currentTimeMillis() - startTime
+                        log(tag) { "Metadata progress: ${index + 1}/${chunkIds.size} chunks, $totalLines lines so far (${elapsed}ms)" }
+                    }
+                }
             }
         }
 
-        // Only add final line if this is the last chunk AND it doesn't end with \n
-        if (isLastChunk && chunk.content.isNotEmpty() && !chunk.content.endsWith('\n')) {
-            lineIndex.add(
-                LineInfo(
-                    lineNumber = startLineNumber + lineIndex.size,
-                    startOffset = currentOffset + lineStart,
-                    endOffset = currentOffset + chunk.content.length,
-                    chunkId = chunk.id
-                )
-            )
-        }
+        // Ensure at least one line
+        if (totalLines == 0) totalLines = 1
+
+        val totalTime = System.currentTimeMillis() - startTime
+        _totalLines.value = totalLines
+        log(tag) { "Built ${chunkMetadata.size} metadata entries with $totalLines lines in ${totalTime}ms" }
     }
 
     private suspend fun findChunkForOffset(offset: Long): TextChunk? {
         return chunkManager.getChunksInRange(offset, offset + 1).firstOrNull()
     }
 
+    /**
+     * Extract offset from chunk ID.
+     * ChunkIds are formatted as "chunk_<offset>", e.g. "chunk_0", "chunk_65536"
+     */
+    private fun extractOffsetFromChunkId(chunkId: TextChunk.ChunkId): Long {
+        return chunkId.value.removePrefix("chunk_").toLongOrNull() ?: 0L
+    }
+
+    /**
+     * Find chunk metadata that contains the given line number using binary search.
+     */
+    private fun findChunkMetadataForLine(lineNumber: Int): ChunkMetadata? {
+        if (chunkMetadata.isEmpty() || lineNumber < 0) return null
+
+        var left = 0
+        var right = chunkMetadata.size - 1
+
+        while (left <= right) {
+            val mid = (left + right) / 2
+            val metadata = chunkMetadata[mid]
+            val nextMetadata = chunkMetadata.getOrNull(mid + 1)
+
+            val lineInChunk = lineNumber >= metadata.firstLineNumber &&
+                    (nextMetadata == null || lineNumber < nextMetadata.firstLineNumber)
+
+            when {
+                lineInChunk -> return metadata
+                lineNumber < metadata.firstLineNumber -> right = mid - 1
+                else -> left = mid + 1
+            }
+        }
+
+        // If line number is beyond all chunks, return last chunk
+        return chunkMetadata.lastOrNull()
+    }
+
+    /**
+     * Get specific line content from a loaded chunk.
+     * @param chunk The loaded chunk to extract line from
+     * @param lineIndexInChunk The line index within this chunk (0-based)
+     * @return The line content without the newline character
+     */
+    private fun getLineFromChunk(chunk: TextChunk, lineIndexInChunk: Int): String {
+        // Don't use split() - it creates empty trailing element for content ending with \n
+        // Manually find line boundaries instead
+        var currentLine = 0
+        var lineStart = 0
+
+        for (i in chunk.content.indices) {
+            if (chunk.content[i] == '\n') {
+                if (currentLine == lineIndexInChunk) {
+                    return chunk.content.substring(lineStart, i)
+                }
+                currentLine++
+                lineStart = i + 1
+            }
+        }
+
+        // Last line (no trailing newline) or beyond content
+        return if (currentLine == lineIndexInChunk && lineStart <= chunk.content.length) {
+            chunk.content.substring(lineStart)
+        } else {
+            "" // Line index out of range
+        }
+    }
+
     private suspend fun updateAfterEdit() {
         _isModified.value = true
-        // Rebuild line index - in a real implementation, this would be more efficient
-        buildLineIndex()
+        // Rebuild chunk metadata - in a real implementation, this would be more efficient
+        buildChunkMetadata()
     }
 
     private suspend fun evictChunksOutsideRange(startLine: Int, endLine: Int) {
-        if (lineIndex.isEmpty()) return
+        if (chunkMetadata.isEmpty()) return
 
-        // Find which chunk IDs are needed for the given line range
+        // Find which chunks are needed for the given line range
         val neededChunkIds = mutableSetOf<TextChunk.ChunkId>()
-        for (lineNum in startLine..minOf(endLine, lineIndex.size - 1)) {
-            val lineInfo = lineIndex.getOrNull(lineNum)
-            if (lineInfo != null) {
-                neededChunkIds.add(lineInfo.chunkId)
+
+        for (metadata in chunkMetadata) {
+            val chunkLastLine = if (metadata == chunkMetadata.last()) {
+                _totalLines.value - 1
+            } else {
+                val nextMetadata = chunkMetadata[chunkMetadata.indexOf(metadata) + 1]
+                nextMetadata.firstLineNumber - 1
+            }
+
+            // Check if this chunk overlaps with the line range
+            val overlaps = !(chunkLastLine < startLine || metadata.firstLineNumber > endLine)
+            if (overlaps) {
+                neededChunkIds.add(metadata.chunkId)
             }
         }
 
@@ -578,4 +740,12 @@ data class LineInfo(
     val startOffset: Long,
     val endOffset: Long,
     val chunkId: TextChunk.ChunkId
+)
+
+data class ChunkMetadata(
+    val chunkId: TextChunk.ChunkId,
+    val startOffset: Long,
+    val endOffset: Long,
+    val lineCount: Int,
+    val firstLineNumber: Int
 )
