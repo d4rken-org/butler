@@ -13,39 +13,29 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import kotlinx.serialization.json.Json
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
 import java.io.File
 
 class APathDataStoreExtensionsTest : BaseTest() {
 
-    private val testFiles = mutableListOf<File>()
     private val json = SerializationIOModule().json(SerializationCommonModule().json())
 
-    private fun createDataStore(scope: TestScope): DataStore<Preferences> {
+    private fun createDataStore(scope: TestScope, tempDir: File): DataStore<Preferences> {
         val testFile = File(
-            IO_TEST_BASEDIR,
+            tempDir,
             "${APathDataStoreExtensionsTest::class.java.simpleName}_${System.nanoTime()}.preferences_pb"
         )
-        testFile.delete()
-        testFiles.add(testFile)
         return PreferenceDataStoreFactory.create(
             scope = scope,
             produceFile = { testFile },
         )
     }
 
-    @AfterEach
-    fun tearDown() {
-        testFiles.forEach { it.delete() }
-        testFiles.clear()
-    }
-
     @Test
-    fun `read and write LocalPath`() = runTest {
-        val testStore = createDataStore(this)
+    fun `read and write LocalPath`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
 
         val testPath = LocalPath.build("/storage/emulated/0/Download")
 
@@ -72,8 +62,8 @@ class APathDataStoreExtensionsTest : BaseTest() {
     }
 
     @Test
-    fun `read and write SAFPath`() = runTest {
-        val testStore = createDataStore(this)
+    fun `read and write SAFPath`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
 
         val testPath = SAFPath(
             treeRoot = "content://com.android.externalstorage.documents/tree/primary%3ADocuments",
@@ -92,8 +82,8 @@ class APathDataStoreExtensionsTest : BaseTest() {
     }
 
     @Test
-    fun `use custom default value`() = runTest {
-        val testStore = createDataStore(this)
+    fun `use custom default value`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
 
         val defaultPath = LocalPath.build("/sdcard")
 
@@ -116,8 +106,8 @@ class APathDataStoreExtensionsTest : BaseTest() {
     }
 
     @Test
-    fun `polymorphic serialization preserves type information`() = runTest {
-        val testStore = createDataStore(this)
+    fun `polymorphic serialization preserves type information`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
 
         val paths = listOf<APath<*>>(
             LocalPath.build("/storage/emulated/0"),
@@ -149,8 +139,8 @@ class APathDataStoreExtensionsTest : BaseTest() {
     }
 
     @Test
-    fun `multiple instances with different keys work independently`() = runTest {
-        val testStore = createDataStore(this)
+    fun `multiple instances with different keys work independently`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
 
         val path1 = LocalPath.build("/path1")
         val path2 = LocalPath.build("/path2")

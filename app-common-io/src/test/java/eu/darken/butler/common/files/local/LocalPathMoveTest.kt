@@ -17,9 +17,8 @@ import io.mockk.mockk
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
 import testhelpers.shouldContainPath
 import testhelpers.toPathPairs
@@ -28,32 +27,17 @@ import java.nio.file.Files
 
 class LocalPathMoveTest : BaseTest() {
 
-    private val testFolder = File(IO_TEST_BASEDIR, "move-test")
-    private val sourceFolder = File(testFolder, "source")
-    private val destFolder = File(testFolder, "dest")
     private val mockOwnershipResolver = mockk<OwnershipResolver>(relaxed = true)
     private val ops = LocalFileSystemOps(
         ownershipResolver = mockOwnershipResolver,
     )
 
-    @BeforeEach
-    fun setup() {
-        testFolder.mkdirs()
-        sourceFolder.mkdirs()
-        destFolder.mkdirs()
-    }
-
-    @AfterEach
-    fun cleanup() {
-        if (testFolder.exists()) {
-            testFolder.deleteRecursively()
-        }
-    }
-
     // ============ BASIC MOVE OPERATIONS ============
 
     @Test
-    fun `move single file to directory`() = runTest {
+    fun `move single file to directory`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceFile = File(sourceFolder, "test.txt")
         sourceFile.writeText("Hello World")
@@ -74,7 +58,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move empty directory`() = runTest {
+    fun `move empty directory`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceDir = File(sourceFolder, "empty")
         sourceDir.mkdir()
@@ -93,7 +79,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move nested structure with files and subdirectories`() = runTest {
+    fun `move nested structure with files and subdirectories`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceDir = File(sourceFolder, "nested")
         val subDir = File(sourceDir, "sub")
@@ -133,7 +121,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move multiple files to directory`() = runTest {
+    fun `move multiple files to directory`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val file1 = File(sourceFolder, "file1.txt")
         val file2 = File(sourceFolder, "file2.txt")
@@ -158,7 +148,9 @@ class LocalPathMoveTest : BaseTest() {
     // ============ CONFLICT HANDLING ============
 
     @Test
-    fun `move file - destination exists - no issue handler - should throw`() = runTest {
+    fun `move file - destination exists - no issue handler - should throw`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceFile = File(sourceFolder, "test.txt")
         sourceFile.writeText("Source content")
@@ -176,7 +168,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move file - destination exists - skip`() = runTest {
+    fun `move file - destination exists - skip`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceFile = File(sourceFolder, "test.txt")
         sourceFile.writeText("Source content")
@@ -202,7 +196,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move file - destination exists - overwrite`() = runTest {
+    fun `move file - destination exists - overwrite`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceFile = File(sourceFolder, "test.txt")
         sourceFile.writeText("Source content")
@@ -228,7 +224,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move file - destination exists - rename source`() = runTest {
+    fun `move file - destination exists - rename source`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceFile = File(sourceFolder, "test.txt")
         sourceFile.writeText("Source content")
@@ -258,7 +256,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move directory - destination exists and is directory - merge`() = runTest {
+    fun `move directory - destination exists and is directory - merge`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceDir = File(sourceFolder, "docs")
         sourceDir.mkdir()
@@ -288,7 +288,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move file - apply to all - skip`() = runTest {
+    fun `move file - apply to all - skip`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val file1 = File(sourceFolder, "file1.txt")
         val file2 = File(sourceFolder, "file2.txt")
@@ -320,7 +322,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move file - apply to all - overwrite`() = runTest {
+    fun `move file - apply to all - overwrite`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val file1 = File(sourceFolder, "file1.txt")
         val file2 = File(sourceFolder, "file2.txt")
@@ -358,7 +362,9 @@ class LocalPathMoveTest : BaseTest() {
     // ============ ERROR HANDLING ============
 
     @Test
-    fun `move non-existent file - should throw`() = runTest {
+    fun `move non-existent file - should throw`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         val nonExistentFile = File(sourceFolder, "does-not-exist.txt")
 
         shouldThrow<ReadException> {
@@ -367,13 +373,15 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move to non-existent parent directory - should throw`() = runTest {
+    fun `move to non-existent parent directory - should throw`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceFile = File(sourceFolder, "test.txt")
         sourceFile.writeText("Content")
 
         // Destination with non-existent parent directory
-        val destWithNonExistentParent = File(testFolder, "non-existent-parent/dest-file.txt")
+        val destWithNonExistentParent = File(tempDir, "non-existent-parent/dest-file.txt")
 
         // When/Then - parent directory doesn't exist, should fail
         shouldThrow<WriteException> {
@@ -382,11 +390,13 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move to existing destination - should succeed`() = runTest {
+    fun `move to existing destination - should succeed`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceFile = File(sourceFolder, "test.txt")
         sourceFile.writeText("Content")
-        val existingDest = File(testFolder, "existing-dest")
+        val existingDest = File(tempDir, "existing-dest")
         existingDest.mkdirs()
 
         // When
@@ -400,7 +410,9 @@ class LocalPathMoveTest : BaseTest() {
     // ============ SYMLINK HANDLING ============
 
     @Test
-    fun `move symlink to file`() = runTest {
+    fun `move symlink to file`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val targetFile = File(sourceFolder, "target.txt")
         targetFile.writeText("Target content")
@@ -424,7 +436,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move broken symlink should preserve symlink`() = runTest {
+    fun `move broken symlink should preserve symlink`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - symlink pointing to non-existent target
         val brokenLink = File(sourceFolder, "brokenLink")
 
@@ -455,7 +469,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move symlink to directory`() = runTest {
+    fun `move symlink to directory`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - symlink pointing to a directory
         val targetDir = File(sourceFolder, "targetDir")
         targetDir.mkdir()
@@ -490,7 +506,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move nested symlinks`() = runTest {
+    fun `move nested symlinks`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - symlink chain: link2 -> link1 -> target
         val targetFile = File(sourceFolder, "target.txt")
         targetFile.writeText("Target content")
@@ -520,7 +538,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move directory containing symlinks`() = runTest {
+    fun `move directory containing symlinks`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - directory with both regular files and symlinks
         val sourceDir = File(sourceFolder, "project")
         sourceDir.mkdir()
@@ -566,7 +586,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move symlink conflict - source symlink destination regular file`() = runTest {
+    fun `move symlink conflict - source symlink destination regular file`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - source is symlink, destination is regular file
         val targetFile = File(sourceFolder, "target.txt")
         targetFile.writeText("target")
@@ -604,7 +626,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move symlink and target together`() = runTest {
+    fun `move symlink and target together`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - both symlink and its relative target in same source directory
         val sourceDir = File(sourceFolder, "bundle")
         sourceDir.mkdir()
@@ -646,7 +670,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move symlink to file - target file remains at original location (Unix mv behavior)`() = runTest {
+    fun `move symlink to file - target file remains at original location (Unix mv behavior)`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - symlink in one location, target in another
         val targetFile = File(sourceFolder, "original/target.txt")
         targetFile.parentFile.mkdirs()
@@ -683,7 +709,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move symlink to directory - directory contents remain at original location (Unix mv behavior)`() = runTest {
+    fun `move symlink to directory - directory contents remain at original location (Unix mv behavior)`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - symlink pointing to a directory with contents
         val targetDir = File(sourceFolder, "original/data")
         targetDir.mkdirs()
@@ -723,7 +751,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move symlink with relative path - link moves but target remains (Unix mv behavior)`() = runTest {
+    fun `move symlink with relative path - link moves but target remains (Unix mv behavior)`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - symlink with relative path pointing to target in same directory
         val targetFile = File(sourceFolder, "target.txt")
         targetFile.writeText("target")
@@ -763,7 +793,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move symlink with absolute path preserves absolute path (Unix mv behavior)`() = runTest {
+    fun `move symlink with absolute path preserves absolute path (Unix mv behavior)`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - symlink with absolute path
         val targetFile = File(sourceFolder, "target.txt")
         targetFile.writeText("target")
@@ -802,7 +834,9 @@ class LocalPathMoveTest : BaseTest() {
     // ============ DIRECTORY CONFLICTS ============
 
     @Test
-    fun `move directory overwrite`() = runTest {
+    fun `move directory overwrite`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceDir = File(sourceFolder, "dir")
         sourceDir.mkdir()
@@ -837,7 +871,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move directory overwrite with apply to all`() = runTest {
+    fun `move directory overwrite with apply to all`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val dir1 = File(sourceFolder, "dir1")
         dir1.mkdir()
@@ -873,7 +909,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move directory skip with apply to all`() = runTest {
+    fun `move directory skip with apply to all`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val dir1 = File(sourceFolder, "dir1")
         dir1.mkdir()
@@ -917,7 +955,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move file to directory conflict - overwrite directory`() = runTest {
+    fun `move file to directory conflict - overwrite directory`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - file in source, directory at destination
         val sourceFile = File(sourceFolder, "item")
         sourceFile.writeText("File content")
@@ -947,7 +987,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move directory to file conflict - overwrite file`() = runTest {
+    fun `move directory to file conflict - overwrite file`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - directory in source, file at destination
         val sourceDir = File(sourceFolder, "item")
         sourceDir.mkdir()
@@ -979,7 +1021,9 @@ class LocalPathMoveTest : BaseTest() {
     // ============ RENAME RESOLUTION ============
 
     @Test
-    fun `move with rename source`() = runTest {
+    fun `move with rename source`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - file with conflict
         val sourceFile = File(sourceFolder, "file.txt")
         sourceFile.writeText("Source content")
@@ -1009,7 +1053,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move with rename destination`() = runTest {
+    fun `move with rename destination`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - file with conflict
         val sourceFile = File(sourceFolder, "file.txt")
         sourceFile.writeText("Source content")
@@ -1039,7 +1085,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move directory with rename source`() = runTest {
+    fun `move directory with rename source`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceDir = File(sourceFolder, "dir")
         sourceDir.mkdir()
@@ -1068,7 +1116,9 @@ class LocalPathMoveTest : BaseTest() {
     // ============ ATTRIBUTES ============
 
     @Test
-    fun `move file preserves attributes`() = runTest {
+    fun `move file preserves attributes`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceFile = File(sourceFolder, "file.txt")
         sourceFile.writeText("Content")
@@ -1092,7 +1142,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move directory preserves attributes`() = runTest {
+    fun `move directory preserves attributes`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceDir = File(sourceFolder, "dir")
         sourceDir.mkdir()
@@ -1117,7 +1169,9 @@ class LocalPathMoveTest : BaseTest() {
     // ============ EDGE CASES ============
 
     @Test
-    fun `move works without onProgress callback`() = runTest {
+    fun `move works without onProgress callback`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceFile = File(sourceFolder, "file.txt")
         sourceFile.writeText("Content")
@@ -1132,7 +1186,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move works without onIssue callback when no conflicts`() = runTest {
+    fun `move works without onIssue callback when no conflicts`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceFile = File(sourceFolder, "file.txt")
         sourceFile.writeText("Content")
@@ -1147,7 +1203,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `result contains correct moved pairs`() = runTest {
+    fun `result contains correct moved pairs`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val file1 = File(sourceFolder, "file1.txt")
         file1.writeText("Content 1")
@@ -1168,7 +1226,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `result contains correct skipped sources`() = runTest {
+    fun `result contains correct skipped sources`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val file1 = File(sourceFolder, "file1.txt")
         file1.writeText("New 1")
@@ -1197,7 +1257,9 @@ class LocalPathMoveTest : BaseTest() {
     // ============ PROGRESS TRACKING ============
 
     @Test
-    fun `move reports progress`() = runTest {
+    fun `move reports progress`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceFile = File(sourceFolder, "test.txt")
         sourceFile.writeText("x".repeat(10000))
@@ -1222,7 +1284,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `progress callbacks should be throttled to reduce UI spam`() = runTest {
+    fun `progress callbacks should be throttled to reduce UI spam`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - file large enough to generate many chunks (64KB buffer = ~20 chunks)
         val sourceFile = File(sourceFolder, "large.bin")
         sourceFile.writeBytes(ByteArray(1024 * 1024 * 2)) // 2MB file
@@ -1254,7 +1318,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `progress callbacks should fire for small files despite throttling`() = runTest {
+    fun `progress callbacks should fire for small files despite throttling`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - small file that transfers quickly
         val sourceFile = File(sourceFolder, "small.txt")
         sourceFile.writeText("Small content")
@@ -1274,7 +1340,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `final progress callback should always fire immediately`() = runTest {
+    fun `final progress callback should always fire immediately`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceFile = File(sourceFolder, "test.bin")
         sourceFile.writeBytes(ByteArray(512 * 1024)) // 512KB file
@@ -1300,7 +1368,9 @@ class LocalPathMoveTest : BaseTest() {
     // ============ EDGE CASES ============
 
     @Test
-    fun `move empty list of sources`() = runTest {
+    fun `move empty list of sources`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val emptySources = emptySet<LocalPath>()
         val destPath = LocalPath.build(destFolder)
@@ -1316,7 +1386,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move deeply nested structure`() = runTest {
+    fun `move deeply nested structure`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceDir = File(sourceFolder, "level1")
         var current = sourceDir
@@ -1346,7 +1418,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move large file`() = runTest {
+    fun `move large file`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val largeFile = File(sourceFolder, "large.bin")
         largeFile.writeBytes(ByteArray(1024 * 1024) { it.toByte() }) // 1MB
@@ -1369,7 +1443,9 @@ class LocalPathMoveTest : BaseTest() {
     // ============ RENAME - ADVANCED ============
 
     @Test
-    fun `directory rename destination should move existing directory and create new`() = runTest {
+    fun `directory rename destination should move existing directory and create new`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - source directory and destination directory already exists
         val sourceDir = File(sourceFolder, "Dir")
         sourceDir.mkdir()
@@ -1404,7 +1480,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `nested directory rename source should update all subdirectories and files`() = runTest {
+    fun `nested directory rename source should update all subdirectories and files`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - nested source structure and conflicting destination
         val sourceDir = File(sourceFolder, "Parent")
         sourceDir.mkdir()
@@ -1448,7 +1526,9 @@ class LocalPathMoveTest : BaseTest() {
     // ============ ERROR HANDLING ============
 
     @Test
-    fun `handle read-only source files gracefully`() = runTest {
+    fun `handle read-only source files gracefully`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceFile = File(sourceFolder, "readonly.txt")
         sourceFile.writeText("readonly content")
@@ -1463,7 +1543,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `handle write-protected destination`() = runTest {
+    fun `handle write-protected destination`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // This test is system-dependent and may not trigger issues on all systems
         // It mainly verifies the code doesn't crash with permission issues
         val sourceFile = File(sourceFolder, "file.txt")
@@ -1489,7 +1571,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `insufficient permission with apply to all`() = runTest {
+    fun `insufficient permission with apply to all`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // This test verifies the "Apply to All" mechanism for permission issues
         // Actual permission errors may not occur on all systems
         val file1 = File(sourceFolder, "file1.txt")
@@ -1516,7 +1600,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `handle unknown errors with retry resolution`() = runTest {
+    fun `handle unknown errors with retry resolution`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // This test verifies retry mechanism works
         val sourceFile = File(sourceFolder, "file.txt")
         sourceFile.writeText("content")
@@ -1542,7 +1628,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `handle unknown errors with cancel resolution`() = runTest {
+    fun `handle unknown errors with cancel resolution`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         val file1 = File(sourceFolder, "file1.txt")
         val file2 = File(sourceFolder, "file2.txt")
         file1.writeText("content1")
@@ -1576,7 +1664,9 @@ class LocalPathMoveTest : BaseTest() {
     // ============ VERIFICATION TESTS ============
 
     @Test
-    fun `verify byte tracking for moved files`() = runTest {
+    fun `verify byte tracking for moved files`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val content = "A".repeat(1024) // 1KB
         val file = File(sourceFolder, "large.txt")
@@ -1591,7 +1681,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `verify directory structure preservation`() = runTest {
+    fun `verify directory structure preservation`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - create nested structure
         val projectDir = File(sourceFolder, "project")
         val srcDir = File(projectDir, "src")
@@ -1615,7 +1707,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `verify nested directory paths`() = runTest {
+    fun `verify nested directory paths`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val deepDir = File(sourceFolder, "a/b/c")
         deepDir.mkdirs()
@@ -1632,7 +1726,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `verify multiple sources maintain structure`() = runTest {
+    fun `verify multiple sources maintain structure`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val dir1 = File(sourceFolder, "project1")
         val dir2 = File(sourceFolder, "project2")
@@ -1657,7 +1753,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `verify progress includes source and destination data`() = runTest {
+    fun `verify progress includes source and destination data`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val dir = File(sourceFolder, "project")
         val file = File(dir, "file.txt")
@@ -1686,7 +1784,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `cumulative byte tracking in progress`() = runTest {
+    fun `cumulative byte tracking in progress`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val files = (1..5).map { i ->
             File(sourceFolder, "file$i.txt").apply {
@@ -1714,7 +1814,9 @@ class LocalPathMoveTest : BaseTest() {
     // ============ EDGE CASES - ADVANCED ============
 
     @Test
-    fun `issue should provide suggested name for conflicts`() = runTest {
+    fun `issue should provide suggested name for conflicts`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - file that will conflict
         val sourceFile = File(sourceFolder, "document.pdf")
         sourceFile.writeText("content")
@@ -1749,7 +1851,9 @@ class LocalPathMoveTest : BaseTest() {
     // ============ PERFORMANCE ============
 
     @Test
-    fun `handle large number of files efficiently`() = runTest {
+    fun `handle large number of files efficiently`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - many small files
         val files = (1..50).map { i ->
             File(sourceFolder, "file$i.txt").apply { writeText("content $i") }
@@ -1768,7 +1872,9 @@ class LocalPathMoveTest : BaseTest() {
     // ============ EDGE CASES ============
 
     @Test
-    fun `collection with duplicates should handle gracefully`() = runTest {
+    fun `collection with duplicates should handle gracefully`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - collection with duplicate paths
         val file = File(sourceFolder, "document.txt")
         file.writeText("content")
@@ -1797,7 +1903,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `handle unknown errors with skip resolution`() = runTest {
+    fun `handle unknown errors with skip resolution`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - file that might cause issues
         val file1 = File(sourceFolder, "file1.txt")
         val file2 = File(sourceFolder, "file2.txt")
@@ -1834,7 +1942,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `empty result values are correct`() = runTest {
+    fun `empty result values are correct`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - empty source list
         val emptyList = emptyList<LocalPath>()
 
@@ -1849,7 +1959,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move with collection containing non-existent and existing files`() = runTest {
+    fun `move with collection containing non-existent and existing files`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - mix of existing and non-existent files
         val existingFile = File(sourceFolder, "exists.txt")
         existingFile.writeText("content")
@@ -1871,7 +1983,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `progress callback includes all expected data`() = runTest {
+    fun `progress callback includes all expected data`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val file = File(sourceFolder, "test.txt")
         file.writeText("x".repeat(1000))
@@ -1904,7 +2018,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `result accurately tracks bytes moved`() = runTest {
+    fun `result accurately tracks bytes moved`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - files with known sizes
         val file1 = File(sourceFolder, "file1.txt")
         val file2 = File(sourceFolder, "file2.txt")
@@ -1928,7 +2044,9 @@ class LocalPathMoveTest : BaseTest() {
     // ============ FILE RENAME OPERATIONS ============
 
     @Test
-    fun `rename file in same directory`() = runTest {
+    fun `rename file in same directory`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceFile = File(sourceFolder, "original.txt")
         sourceFile.writeText("Content")
@@ -1952,7 +2070,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `rename file with extension change`() = runTest {
+    fun `rename file with extension change`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceFile = File(sourceFolder, "document.txt")
         sourceFile.writeText("Markdown content")
@@ -1975,7 +2095,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `rename directory in same parent`() = runTest {
+    fun `rename directory in same parent`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceDir = File(sourceFolder, "OldName")
         sourceDir.mkdir()
@@ -2001,7 +2123,9 @@ class LocalPathMoveTest : BaseTest() {
     // ============ ADDITIONAL COVERAGE TESTS ============
 
     @Test
-    fun `verify files vs directories handled consistently`() = runTest {
+    fun `verify files vs directories handled consistently`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val file = File(sourceFolder, "file.txt")
         val dir = File(sourceFolder, "dir")
@@ -2022,7 +2146,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `no issue handler should auto-merge directories for backward compatibility`() = runTest {
+    fun `no issue handler should auto-merge directories for backward compatibility`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - directory exists at destination
         val sourceDir = File(sourceFolder, "Folder")
         sourceDir.mkdir()
@@ -2046,7 +2172,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `file rename destination should move existing file`() = runTest {
+    fun `file rename destination should move existing file`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - source file and destination file already exists
         val sourceFile = File(sourceFolder, "file.txt")
         sourceFile.writeText("new content")
@@ -2077,7 +2205,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `file-directory conflict rename destination should move file and create directory`() = runTest {
+    fun `file-directory conflict rename destination should move file and create directory`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - source directory but destination has a file with same name
         val sourceDir = File(sourceFolder, "Item")
         sourceDir.mkdir()
@@ -2111,7 +2241,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `file-directory conflict rename source should create directory with new name`() = runTest {
+    fun `file-directory conflict rename source should create directory with new name`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - source directory but destination has a file with same name
         val sourceDir = File(sourceFolder, "Item")
         sourceDir.mkdir()
@@ -2145,7 +2277,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `directory merge with apply to all should merge all directories`() = runTest {
+    fun `directory merge with apply to all should merge all directories`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - multiple directories that exist at destination
         val source1 = File(sourceFolder, "Dir1")
         source1.mkdir()
@@ -2194,7 +2328,9 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `very deep directory structure`() = runTest {
+    fun `very deep directory structure`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         var currentDir = File(sourceFolder, "deep")
         currentDir.mkdir()
@@ -2229,7 +2365,9 @@ class LocalPathMoveTest : BaseTest() {
     // ============ SCAN ERROR HANDLING ============
 
     @Test
-    fun `directory scan error then skip should not appear in moved`() = runTest {
+    fun `directory scan error then skip should not appear in moved`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - Create directory structure
         val parentDir = File(sourceFolder, "parent")
         val childFile = File(parentDir, "child.txt")
@@ -2279,7 +2417,9 @@ class LocalPathMoveTest : BaseTest() {
     // ============ NULLABLE FIELDS TESTS ============
 
     @Test
-    fun `move file with null size reports correct progress with 0L fallback`() = runTest {
+    fun `move file with null size reports correct progress with 0L fallback`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given - File that would have null size in partial lookup scenario (e.g., "/" on Android)
         val sourceFile = File(sourceFolder, "restricted.txt")
         sourceFile.writeText("content")

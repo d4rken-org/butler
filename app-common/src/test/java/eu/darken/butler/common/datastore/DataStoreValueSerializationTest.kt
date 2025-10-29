@@ -11,35 +11,23 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
 import testhelpers.json.toComparableJson
 import java.io.File
 
 class DataStoreValueSerializationTest : BaseTest() {
 
-    private val testFiles = mutableListOf<File>()
-
-    private fun createDataStore(scope: TestScope): DataStore<Preferences> {
+    private fun createDataStore(scope: TestScope, tempDir: File): DataStore<Preferences> {
         val testFile = File(
-            IO_TEST_BASEDIR,
+            tempDir,
             "${DataStoreValueSerializationTest::class.java.simpleName}_${System.nanoTime()}.preferences_pb"
         )
-        // Delete file if it exists from a previous test run
-        testFile.delete()
-        testFiles.add(testFile)
         return PreferenceDataStoreFactory.create(
             scope = scope,
             produceFile = { testFile },
         )
-    }
-
-    @AfterEach
-    fun tearDown() {
-        testFiles.forEach { it.delete() }
-        testFiles.clear()
-        File(IO_TEST_BASEDIR, "DataStoreValueSerializationTest_enum.preferences_pb").delete()
     }
 
     @Serializable
@@ -53,8 +41,8 @@ class DataStoreValueSerializationTest : BaseTest() {
     )
 
     @Test
-    fun `reading and writing using manual reader and writer`() = runTest {
-        val testStore = createDataStore(this)
+    fun `reading and writing using manual reader and writer`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
 
         val testData1 = TestJson(string = "teststring")
         val testData2 = TestJson(string = "update")
@@ -100,8 +88,8 @@ class DataStoreValueSerializationTest : BaseTest() {
     }
 
     @Test
-    fun `reading and writing using autocreated reader and writer`() = runTest {
-        val testStore = createDataStore(this)
+    fun `reading and writing using autocreated reader and writer`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
 
         val testData1 = TestJson(string = "teststring")
         val testData2 = TestJson(string = "update")
@@ -147,8 +135,8 @@ class DataStoreValueSerializationTest : BaseTest() {
     }
 
     @Test
-    fun `reading and writing using autocreated reader and writer without encodeDefaults flag`() = runTest {
-        val testStore = createDataStore(this)
+    fun `reading and writing using autocreated reader and writer without encodeDefaults flag`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
 
         val testData1 = TestJson(
             list = listOf("7", "8"),
@@ -214,8 +202,8 @@ class DataStoreValueSerializationTest : BaseTest() {
     }
 
     @Test
-    fun `reading and writing using manual reader and writer without encodeDefaults flag`() = runTest {
-        val testStore = createDataStore(this)
+    fun `reading and writing using manual reader and writer without encodeDefaults flag`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
 
         val testData1 = TestJson(
             list = listOf("3", "4"),
@@ -282,8 +270,8 @@ class DataStoreValueSerializationTest : BaseTest() {
     }
 
     @Test
-    fun `enum serialization`() = runTest {
-        val enumTestFile = File(IO_TEST_BASEDIR, "DataStoreValueSerializationTest_enum.preferences_pb")
+    fun `enum serialization`(@TempDir tempDir: File) = runTest {
+        val enumTestFile = File(tempDir, "DataStoreValueSerializationTest_enum.preferences_pb")
         val testStore = PreferenceDataStoreFactory.create(
             scope = this,
             produceFile = { enumTestFile },

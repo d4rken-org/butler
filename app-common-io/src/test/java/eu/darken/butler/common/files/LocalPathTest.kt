@@ -10,26 +10,20 @@ import io.kotest.matchers.shouldNotBe
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.serializer
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
 import testhelpers.json.toComparableJson
 import java.io.File
 import kotlin.time.Instant
 
 class LocalPathTest : BaseTest() {
-    private val testFile = File(IO_TEST_BASEDIR, "testfile")
-    private val testFile2 = File(IO_TEST_BASEDIR, "testfile2")
 
     private val json = SerializationIOModule().json()
 
-    @AfterEach
-    fun cleanup() {
-        testFile.delete()
-    }
-
     @Test
-    fun `direct serialization with transient fields`() {
+    fun `direct serialization with transient fields`(@TempDir tempDir: File) {
+        val testFile = File(tempDir, "testfile")
         testFile.tryMkFile()
         val original = LocalPath.build(file = testFile)
 
@@ -47,7 +41,8 @@ class LocalPathTest : BaseTest() {
     }
 
     @Test
-    fun `deserialization needs to respect transient fields`() {
+    fun `deserialization needs to respect transient fields`(@TempDir tempDir: File) {
+        val testFile = File(tempDir, "testfile")
         testFile.tryMkFile()
         val original = LocalPath.build(file = testFile)
 
@@ -66,7 +61,8 @@ class LocalPathTest : BaseTest() {
     }
 
     @Test
-    fun `test polymorph serialization`() {
+    fun `test polymorph serialization`(@TempDir tempDir: File) {
+        val testFile = File(tempDir, "testfile")
         testFile.tryMkFile()
         val original = LocalPath.build(file = testFile)
 
@@ -82,7 +78,9 @@ class LocalPathTest : BaseTest() {
     }
 
     @Test
-    fun `test polymorph list serialization`() {
+    fun `test polymorph list serialization`(@TempDir tempDir: File) {
+        val testFile = File(tempDir, "testfile")
+        val testFile2 = File(tempDir, "testfile2")
         testFile.tryMkFile()
         val original = listOf(
             LocalPath.build(file = testFile),
