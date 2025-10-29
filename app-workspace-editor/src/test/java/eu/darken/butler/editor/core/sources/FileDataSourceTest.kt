@@ -51,23 +51,26 @@ class FileDataSourceTest : BaseTest() {
         }
     }
 
+    private fun createFilePath(tempDir: File, fileName: String, content: String): LocalPath =
+        LocalPath.build(File(tempDir, fileName).apply { writeText(content) })
+
+    private suspend fun createDataSource(tempDir: File, fileName: String, content: String): FileDataSource =
+        FileDataSource(workspaceId, createFilePath(tempDir, fileName, content), createMockGateway()).apply {
+            initialize()
+        }
+
     // ==================== Initialization Tests ====================
 
     @Test
     fun `initialize succeeds without loading content`(@TempDir tempDir: File) = runTest {
         // Given: File with content
-        val testFile = File(tempDir, "test.txt").apply {
-            writeText("Hello World")
-        }
-        val filePath = LocalPath.build(testFile)
-        val mockGateway = createMockGateway()
+        val filePath = createFilePath(tempDir, "test.txt", "Hello World")
 
         // When: Initialize
-        val dataSource = FileDataSource(workspaceId, filePath, mockGateway)
-        val result = dataSource.initialize()
+        val dataSource = FileDataSource(workspaceId, filePath, createMockGateway())
 
         // Then: Success without loading into memory
-        result.isSuccess shouldBe true
+        dataSource.initialize().isSuccess shouldBe true
         dataSource.fileInfo.value shouldNotBe null
         dataSource.fileInfo.value?.size shouldBe 11L
     }
@@ -75,13 +78,16 @@ class FileDataSourceTest : BaseTest() {
     @Test
     fun `initialize fails on non-existent file`(@TempDir tempDir: File) = runTest {
         // Given: Non-existent file
-        val testFile = File(tempDir, "nonexistent.txt")
-        val filePath = LocalPath.build(testFile)
-        val mockGateway = mockk<GatewaySwitch>()
-        coEvery { mockGateway.exists(any()) } returns false
+        val mockGateway = mockk<GatewaySwitch>().apply {
+            coEvery { exists(any()) } returns false
+        }
+        val dataSource = FileDataSource(
+            workspaceId,
+            LocalPath.build(File(tempDir, "nonexistent.txt")),
+            mockGateway,
+        )
 
         // When: Initialize
-        val dataSource = FileDataSource(workspaceId, filePath, mockGateway)
         val result = dataSource.initialize()
 
         // Then: Failure
@@ -94,13 +100,7 @@ class FileDataSourceTest : BaseTest() {
     @Test
     fun `readChunk reads from start of file`(@TempDir tempDir: File) = runTest {
         // Given: File with known content
-        val testFile = File(tempDir, "test.txt").apply {
-            writeText("Hello World\nLine 2\nLine 3")
-        }
-        val filePath = LocalPath.build(testFile)
-        val mockGateway = createMockGateway()
-        val dataSource = FileDataSource(workspaceId, filePath, mockGateway)
-        dataSource.initialize()
+        val dataSource = createDataSource(tempDir, "test.txt", "Hello World\nLine 2\nLine 3")
 
         // When: Read first 11 bytes
         val chunk = dataSource.readChunk(startOffset = 0L, size = 11L)
@@ -112,13 +112,7 @@ class FileDataSourceTest : BaseTest() {
     @Test
     fun `readChunk reads from middle of file`(@TempDir tempDir: File) = runTest {
         // Given
-        val testFile = File(tempDir, "test.txt").apply {
-            writeText("Hello World\nLine 2\nLine 3")
-        }
-        val filePath = LocalPath.build(testFile)
-        val mockGateway = createMockGateway()
-        val dataSource = FileDataSource(workspaceId, filePath, mockGateway)
-        dataSource.initialize()
+        val dataSource = createDataSource(tempDir, "test.txt", "Hello World\nLine 2\nLine 3")
 
         // When: Read from offset 12 (after first newline)
         val chunk = dataSource.readChunk(startOffset = 12L, size = 6L)
@@ -130,13 +124,7 @@ class FileDataSourceTest : BaseTest() {
     @Test
     fun `readChunk beyond EOF returns available content`(@TempDir tempDir: File) = runTest {
         // Given
-        val testFile = File(tempDir, "test.txt").apply {
-            writeText("Hello")
-        }
-        val filePath = LocalPath.build(testFile)
-        val mockGateway = createMockGateway()
-        val dataSource = FileDataSource(workspaceId, filePath, mockGateway)
-        dataSource.initialize()
+        val dataSource = createDataSource(tempDir, "test.txt", "Hello")
 
         // When: Request more bytes than available
         val chunk = dataSource.readChunk(startOffset = 0L, size = 100L)
@@ -148,13 +136,7 @@ class FileDataSourceTest : BaseTest() {
     @Test
     fun `readChunk from offset beyond file size returns empty`(@TempDir tempDir: File) = runTest {
         // Given
-        val testFile = File(tempDir, "test.txt").apply {
-            writeText("Hello")
-        }
-        val filePath = LocalPath.build(testFile)
-        val mockGateway = createMockGateway()
-        val dataSource = FileDataSource(workspaceId, filePath, mockGateway)
-        dataSource.initialize()
+        val dataSource = createDataSource(tempDir, "test.txt", "Hello")
 
         // When: Offset beyond file
         val chunk = dataSource.readChunk(startOffset = 1000L, size = 10L)
@@ -166,13 +148,7 @@ class FileDataSourceTest : BaseTest() {
     @Test
     fun `readChunk multiple reads with different offsets`(@TempDir tempDir: File) = runTest {
         // Given
-        val testFile = File(tempDir, "test.txt").apply {
-            writeText("ABCDEFGHIJ")
-        }
-        val filePath = LocalPath.build(testFile)
-        val mockGateway = createMockGateway()
-        val dataSource = FileDataSource(workspaceId, filePath, mockGateway)
-        dataSource.initialize()
+        val dataSource = createDataSource(tempDir, "test.txt", "ABCDEFGHIJ")
 
         // When: Read different chunks
         val chunk1 = dataSource.readChunk(0L, 3L)
@@ -190,13 +166,8 @@ class FileDataSourceTest : BaseTest() {
     @Test
     fun `writeChunk caches modification without writing to disk`(@TempDir tempDir: File) = runTest {
         // Given
-        val testFile = File(tempDir, "test.txt").apply {
-            writeText("Original Content")
-        }
-        val filePath = LocalPath.build(testFile)
-        val mockGateway = createMockGateway()
-        val dataSource = FileDataSource(workspaceId, filePath, mockGateway)
-        dataSource.initialize()
+        val testFile = File(tempDir, "test.txt").apply { writeText("Original Content") }
+        val dataSource = createDataSource(tempDir, "test.txt", "Original Content")
 
         // When: Write modification
         dataSource.writeChunk(0L, "Modified")
@@ -211,32 +182,19 @@ class FileDataSourceTest : BaseTest() {
     @Test
     fun `writeChunk read returns modified content`(@TempDir tempDir: File) = runTest {
         // Given
-        val testFile = File(tempDir, "test.txt").apply {
-            writeText("Original Content")
-        }
-        val filePath = LocalPath.build(testFile)
-        val mockGateway = createMockGateway()
-        val dataSource = FileDataSource(workspaceId, filePath, mockGateway)
-        dataSource.initialize()
+        val dataSource = createDataSource(tempDir, "test.txt", "Original Content")
 
         // When: Write and read
         dataSource.writeChunk(0L, "Modified")
-        val chunk = dataSource.readChunk(0L, 8L)
 
         // Then: Modified content returned
-        chunk shouldBe "Modified"
+        dataSource.readChunk(0L, 8L) shouldBe "Modified"
     }
 
     @Test
     fun `writeChunk multiple modifications cached separately`(@TempDir tempDir: File) = runTest {
         // Given
-        val testFile = File(tempDir, "test.txt").apply {
-            writeText("AAAA\nBBBB\nCCCC")
-        }
-        val filePath = LocalPath.build(testFile)
-        val mockGateway = createMockGateway()
-        val dataSource = FileDataSource(workspaceId, filePath, mockGateway)
-        dataSource.initialize()
+        val dataSource = createDataSource(tempDir, "test.txt", "AAAA\nBBBB\nCCCC")
 
         // When: Multiple writes
         dataSource.writeChunk(0L, "1111")
@@ -253,21 +211,15 @@ class FileDataSourceTest : BaseTest() {
     @Test
     fun `save merges modifications and writes to disk`(@TempDir tempDir: File) = runTest {
         // Given
-        val testFile = File(tempDir, "test.txt").apply {
-            writeText("Hello World")
-        }
-        val filePath = LocalPath.build(testFile)
-        val mockGateway = createMockGateway()
-        val dataSource = FileDataSource(workspaceId, filePath, mockGateway)
-        dataSource.initialize()
+        val testFile = File(tempDir, "test.txt").apply { writeText("Hello World") }
+        val dataSource = createDataSource(tempDir, "test.txt", "Hello World")
 
         // When: Modify and save
         dataSource.writeChunk(0L, "Goodbye")
         dataSource.save()
 
         // Then: File updated on disk
-        val content = testFile.readText()
-        content.take(7) shouldBe "Goodbye"
+        testFile.readText().take(7) shouldBe "Goodbye"
 
         // And: isModified cleared
         dataSource.isModified.value shouldBe false
@@ -276,13 +228,8 @@ class FileDataSourceTest : BaseTest() {
     @Test
     fun `save with no modifications does nothing`(@TempDir tempDir: File) = runTest {
         // Given
-        val testFile = File(tempDir, "test.txt").apply {
-            writeText("Content")
-        }
-        val filePath = LocalPath.build(testFile)
-        val mockGateway = createMockGateway()
-        val dataSource = FileDataSource(workspaceId, filePath, mockGateway)
-        dataSource.initialize()
+        val testFile = File(tempDir, "test.txt").apply { writeText("Content") }
+        val dataSource = createDataSource(tempDir, "test.txt", "Content")
         val lastModified = testFile.lastModified()
 
         Thread.sleep(100)
@@ -299,13 +246,7 @@ class FileDataSourceTest : BaseTest() {
     @Test
     fun `handles empty file`(@TempDir tempDir: File) = runTest {
         // Given: Empty file
-        val testFile = File(tempDir, "test.txt").apply {
-            writeText("")
-        }
-        val filePath = LocalPath.build(testFile)
-        val mockGateway = createMockGateway()
-        val dataSource = FileDataSource(workspaceId, filePath, mockGateway)
-        dataSource.initialize()
+        val dataSource = createDataSource(tempDir, "test.txt", "")
 
         // When: Read
         val chunk = dataSource.readChunk(0L, 100L)
@@ -318,13 +259,7 @@ class FileDataSourceTest : BaseTest() {
     @Test
     fun `handles single byte file`(@TempDir tempDir: File) = runTest {
         // Given
-        val testFile = File(tempDir, "test.txt").apply {
-            writeText("X")
-        }
-        val filePath = LocalPath.build(testFile)
-        val mockGateway = createMockGateway()
-        val dataSource = FileDataSource(workspaceId, filePath, mockGateway)
-        dataSource.initialize()
+        val dataSource = createDataSource(tempDir, "test.txt", "X")
 
         // When
         val chunk = dataSource.readChunk(0L, 1L)
@@ -337,13 +272,7 @@ class FileDataSourceTest : BaseTest() {
     @Test
     fun `handles UTF-8 multibyte characters`(@TempDir tempDir: File) = runTest {
         // Given: File with emoji and Chinese characters
-        val testFile = File(tempDir, "test.txt").apply {
-            writeText("Hello 🚀 World 中文")
-        }
-        val filePath = LocalPath.build(testFile)
-        val mockGateway = createMockGateway()
-        val dataSource = FileDataSource(workspaceId, filePath, mockGateway)
-        dataSource.initialize()
+        val dataSource = createDataSource(tempDir, "test.txt", "Hello 🚀 World 中文")
 
         // When: Read
         val chunk = dataSource.readChunk(0L, 100L)
@@ -356,13 +285,7 @@ class FileDataSourceTest : BaseTest() {
     @Test
     fun `handles file without trailing newline`(@TempDir tempDir: File) = runTest {
         // Given
-        val testFile = File(tempDir, "test.txt").apply {
-            writeText("Line 1\nLine 2")
-        }
-        val filePath = LocalPath.build(testFile)
-        val mockGateway = createMockGateway()
-        val dataSource = FileDataSource(workspaceId, filePath, mockGateway)
-        dataSource.initialize()
+        val dataSource = createDataSource(tempDir, "test.txt", "Line 1\nLine 2")
 
         // When
         val chunk = dataSource.readChunk(0L, 100L)
@@ -375,13 +298,7 @@ class FileDataSourceTest : BaseTest() {
     @Test
     fun `close can be called multiple times safely`(@TempDir tempDir: File) = runTest {
         // Given
-        val testFile = File(tempDir, "test.txt").apply {
-            writeText("Content")
-        }
-        val filePath = LocalPath.build(testFile)
-        val mockGateway = createMockGateway()
-        val dataSource = FileDataSource(workspaceId, filePath, mockGateway)
-        dataSource.initialize()
+        val dataSource = createDataSource(tempDir, "test.txt", "Content")
 
         // When: Close multiple times
         dataSource.close()
@@ -395,18 +312,9 @@ class FileDataSourceTest : BaseTest() {
     @Test
     fun `getSize returns file size from metadata`(@TempDir tempDir: File) = runTest {
         // Given
-        val testFile = File(tempDir, "test.txt").apply {
-            writeText("Hello World")
-        }
-        val filePath = LocalPath.build(testFile)
-        val mockGateway = createMockGateway()
-        val dataSource = FileDataSource(workspaceId, filePath, mockGateway)
-        dataSource.initialize()
+        val dataSource = createDataSource(tempDir, "test.txt", "Hello World")
 
-        // When
-        val size = dataSource.getSize()
-
-        // Then
-        size shouldBe 11L
+        // When & Then
+        dataSource.getSize() shouldBe 11L
     }
 }
