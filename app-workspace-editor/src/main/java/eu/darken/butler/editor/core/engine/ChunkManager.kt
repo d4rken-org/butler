@@ -17,6 +17,7 @@ import kotlinx.coroutines.sync.withLock
 class ChunkManager @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     @Assisted private val chunkRepository: ChunkRepository,
+    @Assisted val chunkSize: Long = DEFAULT_CHUNK_SIZE
 ) {
 
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "ChunkManager")
@@ -32,9 +33,6 @@ class ChunkManager @AssistedInject constructor(
     // LRU tracking for chunk eviction
     private val chunkAccessOrder = mutableListOf<TextChunk.ChunkId>()
     private var maxCachedChunks: Int = DEFAULT_MAX_CACHED_CHUNKS
-
-    var chunkSize: Long = DEFAULT_CHUNK_SIZE
-        private set
 
     suspend fun loadChunk(chunkId: TextChunk.ChunkId): Result<TextChunk> = chunkMutex.withLock {
         log(tag) { "Loading chunk: $chunkId" }
@@ -287,7 +285,8 @@ class ChunkManager @AssistedInject constructor(
     interface Factory {
         fun create(
             workspaceId: Workspace.Id,
-            chunkRepository: ChunkRepository
+            chunkRepository: ChunkRepository,
+            chunkSize: Long = DEFAULT_CHUNK_SIZE
         ): ChunkManager
     }
 

@@ -25,7 +25,7 @@ class InMemoryDataSource @AssistedInject constructor(
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "DataSource", "InMemory")
 
     init {
-        log(tag) { "Initialized in-memory data source with initial content: ${initialContent.length} bytes" }
+        log(tag) { "Initialized in-memory data source with initial content: ${initialContent.toByteArray(Charsets.UTF_8).size} bytes" }
     }
 
     override suspend fun open() {
@@ -47,7 +47,7 @@ class InMemoryDataSource @AssistedInject constructor(
         )
     }
 
-    override suspend fun getSize(): Long = content.length.toLong()
+    override suspend fun getSize(): Long = content.toByteArray(Charsets.UTF_8).size.toLong()
 
     /**
      * In-memory content cannot be saved to disk without a file path.
@@ -63,13 +63,14 @@ class InMemoryDataSource @AssistedInject constructor(
     }
 
     override suspend fun openSource(): Source {
-        log(tag) { "Creating source from in-memory content (${content.length} bytes)" }
+        val utf8Bytes = content.toByteArray(Charsets.UTF_8)
+        log(tag) { "Creating source from in-memory content (${utf8Bytes.size} bytes)" }
 
         // Create buffer with current content
         val buffer = Buffer()
-        buffer.writeString(content, Charsets.UTF_8)
+        buffer.write(utf8Bytes)
 
-        return buffer as Source
+        return buffer
     }
 
     fun setContent(newContent: String) {

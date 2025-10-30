@@ -16,12 +16,11 @@ import kotlin.time.Instant
 
 class ChunkRepository @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
-    @Assisted val dataSource: EditorDataSource
+    @Assisted val dataSource: EditorDataSource,
+    @Assisted private val chunkSize: Long = ChunkManager.DEFAULT_CHUNK_SIZE
 ) {
 
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "ChunkRepository")
-
-    private val chunkSize: Long = ChunkManager.DEFAULT_CHUNK_SIZE
 
     suspend fun getFileInfo(): FileInfo? {
         return dataSource.fileInfo.value
@@ -120,6 +119,7 @@ class ChunkRepository @AssistedInject constructor(
         fun create(
             workspaceId: Workspace.Id,
             dataSource: EditorDataSource,
+            chunkSize: Long = ChunkManager.DEFAULT_CHUNK_SIZE
         ): ChunkRepository
     }
 }
