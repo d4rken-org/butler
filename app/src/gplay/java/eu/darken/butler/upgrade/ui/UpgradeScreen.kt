@@ -22,6 +22,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -257,7 +258,7 @@ fun UpgradeScreen(
 
             // Subscription Button
             AnimatedVisibility(
-                visible = state.subState.available || state.trialState.available,
+                visible = state.subState.available || state.trialState.available || state.isLoadingPrices,
                 enter = fadeIn(animationSpec = tween(600, delayMillis = 400))
             ) {
                 Column(
@@ -268,7 +269,20 @@ fun UpgradeScreen(
                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                     )
 
-                    if (state.trialState.available) {
+                    if (state.isLoadingPrices) {
+                        OutlinedButton(
+                            onClick = {},
+                            enabled = false,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp
+                            )
+                        }
+                    } else if (state.trialState.available) {
                         Button(
                             onClick = onGoSubscriptionTrial,
                             modifier = Modifier
@@ -292,10 +306,14 @@ fun UpgradeScreen(
                     }
 
                     Text(
-                        text = stringResource(
-                            R.string.upgrade_screen_subscription_action_hint,
-                            state.subState.formattedPrice ?: ""
-                        ),
+                        text = if (state.isLoadingPrices) {
+                            "…"
+                        } else {
+                            stringResource(
+                                R.string.upgrade_screen_subscription_action_hint,
+                                state.subState.formattedPrice ?: ""
+                            )
+                        },
                         style = MaterialTheme.typography.labelSmall,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -310,7 +328,7 @@ fun UpgradeScreen(
 
             // One-time Purchase Button
             AnimatedVisibility(
-                visible = state.iapState.available,
+                visible = state.iapState.available || state.isLoadingPrices,
                 enter = fadeIn(animationSpec = tween(600, delayMillis = 500))
             ) {
                 Column(
@@ -318,18 +336,30 @@ fun UpgradeScreen(
                 ) {
                     OutlinedButton(
                         onClick = onGoIap,
+                        enabled = !state.isLoadingPrices,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp)
                     ) {
-                        Text(text = stringResource(R.string.upgrade_screen_iap_action))
+                        if (state.isLoadingPrices) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(text = stringResource(R.string.upgrade_screen_iap_action))
+                        }
                     }
 
                     Text(
-                        text = stringResource(
-                            R.string.upgrade_screen_iap_action_hint,
-                            state.iapState.formattedPrice ?: ""
-                        ),
+                        text = if (state.isLoadingPrices) {
+                            "…"
+                        } else {
+                            stringResource(
+                                R.string.upgrade_screen_iap_action_hint,
+                                state.iapState.formattedPrice ?: ""
+                            )
+                        },
                         style = MaterialTheme.typography.labelSmall,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -341,7 +371,7 @@ fun UpgradeScreen(
             }
 
             // Show message when no upgrade options are available
-            if (!state.iapState.available && !state.subState.available && !state.trialState.available) {
+            if (!state.isLoadingPrices && !state.iapState.available && !state.subState.available && !state.trialState.available) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -383,10 +413,11 @@ fun UpgradeScreen(
 
 @Preview2
 @Composable
-fun UpgradeScreenPreview() {
+private fun UpgradeScreenPreview() {
     PreviewWrapper {
         UpgradeScreen(
             state = UpgradeViewModel.State(
+                isLoadingPrices = false,
                 iapState = UpgradeViewModel.State.Iap(
                     available = true,
                     formattedPrice = "$4.99",
@@ -398,6 +429,35 @@ fun UpgradeScreenPreview() {
                 trialState = UpgradeViewModel.State.Trial(
                     available = true,
                     formattedPrice = "$2.99"
+                ),
+            ),
+            onNavigateBack = {},
+            onGoIap = {},
+            onGoSubscription = {},
+            onGoSubscriptionTrial = {},
+            onRestorePurchase = {},
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun UpgradeScreenLoadingPreview() {
+    PreviewWrapper {
+        UpgradeScreen(
+            state = UpgradeViewModel.State(
+                isLoadingPrices = true,
+                iapState = UpgradeViewModel.State.Iap(
+                    available = false,
+                    formattedPrice = null,
+                ),
+                subState = UpgradeViewModel.State.Sub(
+                    available = false,
+                    formattedPrice = null,
+                ),
+                trialState = UpgradeViewModel.State.Trial(
+                    available = false,
+                    formattedPrice = null
                 ),
             ),
             onNavigateBack = {},

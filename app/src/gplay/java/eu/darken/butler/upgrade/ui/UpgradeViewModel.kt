@@ -21,6 +21,11 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
+private sealed interface QueryState<out T> {
+    data object Loading : QueryState<Nothing>
+    data class Loaded<T>(val data: T?) : QueryState<T>
+}
+
 @HiltViewModel
 class UpgradeViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
@@ -40,6 +45,7 @@ class UpgradeViewModel @Inject constructor(
 
     val state = combine(
         flow {
+            emit(QueryState.Loading)
             val data = withTimeoutOrNull(5000) {
                 try {
                     upgradeRepo.querySkus(OurSku.Iap.PRO_UPGRADE)
@@ -48,9 +54,10 @@ class UpgradeViewModel @Inject constructor(
                     null
                 }
             }
-            emit(data)
+            emit(QueryState.Loaded(data))
         },
         flow {
+            emit(QueryState.Loading)
             val data = withTimeoutOrNull(5000) {
                 try {
                     upgradeRepo.querySkus(OurSku.Sub.PRO_UPGRADE)
@@ -59,11 +66,16 @@ class UpgradeViewModel @Inject constructor(
                     null
                 }
             }
-            emit(data)
+            emit(QueryState.Loaded(data))
         },
         upgradeRepo.upgradeInfo,
-    ) { iap, sub, current ->
-        if (iap == null && sub == null) {
+    ) { iapQueryState, subQueryState, current ->
+        val isLoadingPrices = iapQueryState is QueryState.Loading || subQueryState is QueryState.Loading
+
+        val iap = (iapQueryState as? QueryState.Loaded)?.data
+        val sub = (subQueryState as? QueryState.Loaded)?.data
+
+        if (!isLoadingPrices && iap == null && sub == null) {
             errorEvents.emit(
                 GplayServiceUnavailableException(RuntimeException("IAP and SUB data request timed out."))
             )
@@ -92,6 +104,7 @@ class UpgradeViewModel @Inject constructor(
         )
 
         State(
+            isLoadingPrices = isLoadingPrices,
             iapState = iapState,
             subState = subState,
             trialState = trialState,
@@ -99,6 +112,7 @@ class UpgradeViewModel @Inject constructor(
     }.asStateFlow()
 
     data class State(
+        val isLoadingPrices: Boolean,
         val iapState: Iap,
         val subState: Sub,
         val trialState: Trial,
