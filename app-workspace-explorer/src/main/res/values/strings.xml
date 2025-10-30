@@ -365,11 +365,21 @@
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">Android restricts access to this folder. Use the folder picker to grant access.</string>
-    <string name="explorer_permission_saf_only_description">This folder requires special permission. Tap "Grant Access" to open Android\'s folder picker and select this folder.</string>
-    <string name="explorer_permission_multiple_options_description">You can grant access using Android\'s folder picker (quick, works immediately) or configure Root/Shizuku in Setup for permanent full access to all restricted folders.</string>
-    <string name="explorer_permission_alternative_apps_available">Alternatively, you can use Root or Shizuku for full access (configure in Setup).</string>
-    <string name="explorer_permission_setup_both_description">This folder requires elevated access. Install and configure either Root Manager or Shizuku in Setup.</string>
+    <string name="explorer_permission_multiple_options_description">You can grant access using Android\'s folder picker or set up Root/Shizuku for faster access to all restricted folders.</string>
+    <string name="explorer_permission_setup_both_description">This folder requires elevated access. Install and configure either Root or Shizuku in Setup.</string>
     <string name="explorer_permission_setup_shizuku_description">This folder requires elevated access via Shizuku. Install Shizuku Manager and configure in Setup.</string>
     <string name="explorer_permission_setup_root_description">This folder requires Root access. Configure Root in Setup if your device is rooted.</string>
-    <string name="explorer_permission_setup_generic_description">Additional setup is required to access this location. Tap "Open Setup" to configure.</string>
+
+    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_description">Use Android\'s folder picker to grant access to this folder.</string>
+    <string name="explorer_permission_option_picker_action">Open SAF picker</string>
+
+    <string name="explorer_permission_option_setup_title">Full Access</string>
+    <string name="explorer_permission_option_setup_description">Configure Root or Shizuku for faster access to all restricted folders.</string>
+    <string name="explorer_permission_option_setup_action">Configure</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">Storage Access</string>
+    <string name="explorer_permission_option_storage_description">Grant Butler permission to access files on your device storage.</string>
+    <string name="explorer_permission_option_storage_action">Grant Permission</string>
 </resources>
