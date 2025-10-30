@@ -43,6 +43,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
     private val chunkMetadata = mutableListOf<ChunkMetadata>()
     private val undoStack = LinkedList<EditOperation>()
     private val redoStack = LinkedList<EditOperation>()
+    private var isUndoRedoInProgress = false
 
     private var chunkIds: List<TextChunk.ChunkId> = emptyList()
 
@@ -280,10 +281,12 @@ class ChunkedTextBuffer @AssistedInject constructor(
             // Update line index and state  
             updateAfterEdit()
 
-            // Add to undo stack
-            val operation = EditOperation.Insert(position, text)
-            undoStack.addLast(operation)
-            redoStack.clear()
+            // Add to undo stack (unless we're undoing/redoing)
+            if (!isUndoRedoInProgress) {
+                val operation = EditOperation.Insert(position, text)
+                undoStack.addLast(operation)
+                redoStack.clear()
+            }
 
             // Calculate new position
             val newPosition = TextPosition(
@@ -313,8 +316,9 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 // Find affected chunks
                 val affectedChunks = chunkManager.getChunksInRange(startPosition.offset, endPosition.offset)
 
-                // For simplicity, handle single chunk case first
+                // Handle single chunk and multi-chunk deletions
                 if (affectedChunks.size == 1) {
+                    // Single chunk deletion
                     val chunk = affectedChunks.first()
                     val loadedChunk = if (chunk.isLoaded) {
                         chunk
@@ -333,6 +337,55 @@ class ChunkedTextBuffer @AssistedInject constructor(
                     )
 
                     chunkManager.updateChunk(chunk.id) { updatedChunk }
+                } else {
+                    // Multi-chunk deletion: merge content from first and last chunks
+                    val firstChunk = affectedChunks.first()
+                    val lastChunk = affectedChunks.last()
+
+                    // Load chunks if needed
+                    val loadedFirst = if (firstChunk.isLoaded) {
+                        firstChunk
+                    } else {
+                        chunkManager.loadChunk(firstChunk.id).getOrThrow()
+                    }
+
+                    val loadedLast = if (lastChunk.isLoaded) {
+                        lastChunk
+                    } else {
+                        chunkManager.loadChunk(lastChunk.id).getOrThrow()
+                    }
+
+                    // Calculate what to keep from each chunk
+                    val startInFirstChunk = (startPosition.offset - loadedFirst.startOffset).toInt()
+                    val endInLastChunk = (endPosition.offset - loadedLast.startOffset).toInt()
+
+                    // Build merged content: keep beginning of first chunk + end of last chunk
+                    val contentBeforeDelete = loadedFirst.content.substring(0, startInFirstChunk)
+                    val contentAfterDelete = loadedLast.content.substring(endInLastChunk)
+                    val mergedContent = contentBeforeDelete + contentAfterDelete
+
+                    // Update first chunk with merged content
+                    val updatedFirstChunk = loadedFirst.copy(
+                        content = mergedContent,
+                        endOffset = loadedFirst.startOffset + mergedContent.length,
+                        isDirty = true
+                    )
+                    chunkManager.updateChunk(firstChunk.id) { updatedFirstChunk }
+
+                    // Remove all other affected chunks (middle chunks + last chunk)
+                    val evictedChunkIds = affectedChunks.drop(1).map { it.id }.toSet()
+                    for (i in 1 until affectedChunks.size) {
+                        chunkManager.evictChunk(affectedChunks[i].id)
+                    }
+
+                    // Update chunkIds list to remove evicted chunks
+                    chunkIds = chunkIds.filterNot { it in evictedChunkIds }
+
+                    log(tag, DEBUG) {
+                        "Multi-chunk delete: merged ${affectedChunks.size} chunks, " +
+                            "kept ${contentBeforeDelete.length} + ${contentAfterDelete.length} bytes, " +
+                            "evicted ${evictedChunkIds.size} chunks"
+                    }
                 }
 
                 // Update total length
@@ -342,14 +395,16 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 // Update line index and state
                 updateAfterEdit()
 
-                // Add to undo stack
-                val operation = EditOperation.Delete(
-                    startPosition,
-                    (endPosition.offset - startPosition.offset).toInt(),
-                    deletedText
-                )
-                undoStack.addLast(operation)
-                redoStack.clear()
+                // Add to undo stack (unless we're undoing/redoing)
+                if (!isUndoRedoInProgress) {
+                    val operation = EditOperation.Delete(
+                        startPosition,
+                        (endPosition.offset - startPosition.offset).toInt(),
+                        deletedText
+                    )
+                    undoStack.addLast(operation)
+                    redoStack.clear()
+                }
 
                 Result.success(deletedText)
 
@@ -434,11 +489,34 @@ class ChunkedTextBuffer @AssistedInject constructor(
     }
 
     suspend fun search(query: String, startFrom: TextPosition?, ignoreCase: Boolean): List<SearchResult> {
+        // Handle empty query early
+        if (query.isEmpty()) {
+            return emptyList()
+        }
+
         val results = mutableListOf<SearchResult>()
+
+        // Build metadata map for line number corrections
+        val metadataMap = chunkMetadata.associateBy { it.chunkId }
 
         for (chunkId in chunkIds) {
             val chunkResults = chunkRepository.searchInChunk(chunkId, query, ignoreCase)
-            results.addAll(chunkResults)
+
+            // Correct line numbers from chunk-relative to file-relative
+            val metadata = metadataMap[chunkId]
+            if (metadata != null) {
+                val correctedResults = chunkResults.map { result ->
+                    result.copy(
+                        position = result.position.copy(
+                            line = metadata.firstLineNumber + result.position.line
+                        )
+                    )
+                }
+                results.addAll(correctedResults)
+            } else {
+                // Fallback: add results as-is if metadata not found
+                results.addAll(chunkResults)
+            }
         }
 
         return results.sortedBy { it.position.offset }
@@ -462,68 +540,84 @@ class ChunkedTextBuffer @AssistedInject constructor(
         return Result.failure(UnsupportedOperationException("Save As not implemented yet"))
     }
 
-    suspend fun undo(): Result<EditOperation?> = bufferMutex.withLock {
-        if (undoStack.isEmpty()) {
-            return@withLock Result.success(null)
+    suspend fun undo(): Result<EditOperation?> {
+        // Get operation from stack (protected by mutex)
+        val operation = bufferMutex.withLock {
+            if (undoStack.isEmpty()) {
+                return Result.success(null)
+            }
+            val op = undoStack.removeLast()
+            redoStack.addLast(op)
+            op
         }
 
-        val operation = undoStack.removeLast()
-        redoStack.addLast(operation)
-
-        // Apply reverse operation
-        when (operation) {
-            is EditOperation.Insert -> {
-                val endPosition = TextPosition(
-                    operation.position.offset + operation.text.length,
-                    operation.position.line,
-                    operation.position.column
-                )
-                deleteText(operation.position, endPosition)
-            }
-            is EditOperation.Delete -> {
-                insertText(operation.position, operation.deletedText)
-            }
-            is EditOperation.Replace -> {
-                replaceText(
-                    operation.position,
-                    TextPosition(
-                        operation.position.offset + operation.newText.length,
+        // Set flag to prevent adding new undo operations
+        isUndoRedoInProgress = true
+        try {
+            // Apply reverse operation OUTSIDE mutex to avoid deadlock
+            // (insertText/deleteText/replaceText acquire their own mutex)
+            when (operation) {
+                is EditOperation.Insert -> {
+                    val endPosition = TextPosition(
+                        operation.position.offset + operation.text.length,
                         operation.position.line,
                         operation.position.column
-                    ),
-                    operation.oldText
-                )
+                    )
+                    deleteText(operation.position, endPosition)
+                }
+                is EditOperation.Delete -> {
+                    insertText(operation.position, operation.deletedText)
+                }
+                is EditOperation.Replace -> {
+                    replaceText(
+                        operation.position,
+                        TextPosition(
+                            operation.position.offset + operation.newText.length,
+                            operation.position.line,
+                            operation.position.column
+                        ),
+                        operation.oldText
+                    )
+                }
             }
-        }
 
-        Result.success(operation)
+            return Result.success(operation)
+        } finally {
+            isUndoRedoInProgress = false
+        }
     }
 
-    suspend fun redo(): Result<EditOperation?> = bufferMutex.withLock {
-        if (redoStack.isEmpty()) {
-            return@withLock Result.success(null)
+    suspend fun redo(): Result<EditOperation?> {
+        // Get operation from stack (protected by mutex)
+        val operation = bufferMutex.withLock {
+            if (redoStack.isEmpty()) {
+                return Result.success(null)
+            }
+            val op = redoStack.removeLast()
+            undoStack.addLast(op)
+            op
         }
 
-        val operation = redoStack.removeLast()
-        undoStack.addLast(operation)
-
-        // Re-apply operation
-        when (operation) {
-            is EditOperation.Insert -> {
-                insertText(operation.position, operation.text)
-            }
-            is EditOperation.Delete -> {
-                val endPosition = TextPosition(
-                    operation.position.offset + operation.length,
-                    operation.position.line,
-                    operation.position.column
-                )
-                deleteText(operation.position, endPosition)
-            }
-            is EditOperation.Replace -> {
-                replaceText(
-                    operation.position,
-                    TextPosition(
+        // Set flag to prevent adding new undo operations
+        isUndoRedoInProgress = true
+        try {
+            // Re-apply operation OUTSIDE mutex to avoid deadlock
+            when (operation) {
+                is EditOperation.Insert -> {
+                    insertText(operation.position, operation.text)
+                }
+                is EditOperation.Delete -> {
+                    val endPosition = TextPosition(
+                        operation.position.offset + operation.length,
+                        operation.position.line,
+                        operation.position.column
+                    )
+                    deleteText(operation.position, endPosition)
+                }
+                is EditOperation.Replace -> {
+                    replaceText(
+                        operation.position,
+                        TextPosition(
                         operation.position.offset + operation.oldText.length,
                         operation.position.line,
                         operation.position.column
@@ -531,9 +625,12 @@ class ChunkedTextBuffer @AssistedInject constructor(
                     operation.newText
                 )
             }
-        }
+            }
 
-        Result.success(operation)
+            return Result.success(operation)
+        } finally {
+            isUndoRedoInProgress = false
+        }
     }
 
     fun canUndo(): Boolean = undoStack.isNotEmpty()
@@ -568,16 +665,14 @@ class ChunkedTextBuffer @AssistedInject constructor(
         // Read from ChunkManager which includes dirty (edited) chunks in memory
         // This ensures line counts reflect current edits, not just saved file content
         for ((index, chunkId) in chunkIds.withIndex()) {
-            val chunkStart = extractOffsetFromChunkId(chunkId)
-            val chunkEnd = if (index < chunkIds.size - 1) {
-                extractOffsetFromChunkId(chunkIds[index + 1])
-            } else {
-                fileSize
-            }
-
             // Get chunk from memory (includes dirty edits) or load from repository
             val chunk = chunkManager.getChunk(chunkId)
                 ?: chunkManager.loadChunk(chunkId).getOrThrow()
+
+            // Use actual chunk offsets instead of extracting from chunk ID
+            // This handles cases where chunks have been modified/merged after deletion
+            val chunkStart = chunk.startOffset
+            val chunkEnd = chunk.endOffset
 
             val content = chunk.content.toByteArray()
             val isLastChunk = index == chunkIds.size - 1

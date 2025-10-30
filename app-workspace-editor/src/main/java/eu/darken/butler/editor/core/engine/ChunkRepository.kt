@@ -64,12 +64,23 @@ class ChunkRepository @AssistedInject constructor(
         log(tag) { "Successfully saved chunks" }
     }
 
+    /**
+     * Search for a query string within a specific chunk.
+     *
+     * Note: Line numbers in results are chunk-relative (0-based within the chunk).
+     * The caller (ChunkedTextBuffer) is responsible for converting to file-relative line numbers.
+     */
     suspend fun searchInChunk(
         chunkId: TextChunk.ChunkId,
         query: String,
         ignoreCase: Boolean = false
     ): List<SearchResult> {
         try {
+            // Empty query returns no results
+            if (query.isEmpty()) {
+                return emptyList()
+            }
+
             val chunk = loadChunk(chunkId)
             val results = mutableListOf<SearchResult>()
 
@@ -82,6 +93,7 @@ class ChunkRepository @AssistedInject constructor(
                 if (foundIndex == -1) break
 
                 val absoluteOffset = chunk.startOffset + foundIndex
+                // Line number is chunk-relative (0-based within chunk)
                 val lineNumber = chunk.content.substring(0, foundIndex).count { it == '\n' }
                 val lineStart = chunk.content.lastIndexOf('\n', foundIndex - 1) + 1
                 val columnNumber = foundIndex - lineStart

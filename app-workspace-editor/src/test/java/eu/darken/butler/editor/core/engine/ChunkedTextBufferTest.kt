@@ -2,7 +2,10 @@ package eu.darken.butler.editor.core.engine
 
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
 import eu.darken.butler.workspace.core.Workspace
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
@@ -885,4 +888,452 @@ class ChunkedTextBufferTest : BaseTest() {
 
     // Note: Can't test successful save with InMemoryDataSource
     // FileDataSource save() functionality is tested in FileDataSourceTest
+
+    // ===== Phase 4: Multi-Chunk Delete Tests =====
+
+    @Test
+    fun `deleteText spanning exactly 2 chunks merges correctly`() = runTest {
+        // Given: Content spanning 2 small chunks (100 bytes each)
+        val content = "A".repeat(100) + "B".repeat(100)  // 200 bytes total
+        val buffer = createBuffer(content, chunkSize = 100L)
+
+        // Verify we have 2 chunks
+        val initialContent = buffer.getTextForRange(0, 0).getOrThrow()
+        initialContent.length shouldBe 200
+
+        // When: Delete from middle of chunk 1 to middle of chunk 2
+        val startPos = TextPosition(offset = 50L, line = 0, column = 50)   // Middle of chunk 1
+        val endPos = TextPosition(offset = 150L, line = 0, column = 150)  // Middle of chunk 2
+        val result = buffer.deleteText(startPosition = startPos, endPosition = endPos)
+
+        // Then: Delete succeeded
+        result.isSuccess shouldBe true
+
+        // And: Content is merged correctly (first 50 A's + last 50 B's)
+        val newContent = buffer.getTextForRange(0, 0).getOrThrow()
+        newContent shouldBe "A".repeat(50) + "B".repeat(50)
+        newContent.length shouldBe 100
+
+        // And: Buffer is modified
+        buffer.isModified.value shouldBe true
+    }
+
+    @Test
+    fun `deleteText spanning 3 chunks removes middle chunk entirely`() = runTest {
+        // Given: Content spanning 3 small chunks
+        val content = "A".repeat(100) + "B".repeat(100) + "C".repeat(100)  // 300 bytes
+        val buffer = createBuffer(content, chunkSize = 100L)
+
+        // When: Delete from chunk 1 through entire chunk 2 into chunk 3
+        val startPos = TextPosition(offset = 50L, line = 0, column = 50)   // Middle of chunk 1
+        val endPos = TextPosition(offset = 250L, line = 0, column = 250)  // Middle of chunk 3
+        val result = buffer.deleteText(startPosition = startPos, endPosition = endPos)
+
+        // Then: Delete succeeded
+        result.isSuccess shouldBe true
+
+        // And: Content is correct (first 50 A's + last 50 C's)
+        val newContent = buffer.getTextForRange(0, 0).getOrThrow()
+        newContent shouldBe "A".repeat(50) + "C".repeat(50)
+        newContent.length shouldBe 100
+    }
+
+    @Test
+    fun `deleteText at exact chunk boundaries handles correctly`() = runTest {
+        // Given: Content at exact chunk boundaries
+        val content = "X".repeat(100) + "Y".repeat(100)  // 200 bytes
+        val buffer = createBuffer(content, chunkSize = 100L)
+
+        // When: Delete starting at exact chunk boundary
+        val startPos = TextPosition(offset = 100L, line = 0, column = 100)  // Start of chunk 2
+        val endPos = TextPosition(offset = 200L, line = 0, column = 200)   // End of chunk 2
+        val result = buffer.deleteText(startPosition = startPos, endPosition = endPos)
+
+        // Then: Delete succeeded
+        result.isSuccess shouldBe true
+
+        // And: Only chunk 1 remains
+        val newContent = buffer.getTextForRange(0, 0).getOrThrow()
+        newContent shouldBe "X".repeat(100)
+        newContent.length shouldBe 100
+    }
+
+    @Test
+    fun `deleteText with newlines across chunks updates line count`() = runTest {
+        // Given: Multi-line content across chunks
+        // Content structure: each segment has "Line N\n" (7 bytes) + filler*94 (94 bytes) = 101 bytes
+        // Line counting: 3 newlines + 1 (no trailing newline after Z's) = 4 lines total
+        val line1 = "Line 1\n" + "X".repeat(94)  // 101 bytes, offsets 0-100
+        val line2 = "Line 2\n" + "Y".repeat(94)  // 101 bytes, offsets 101-201
+        val line3 = "Line 3\n" + "Z".repeat(94)  // 101 bytes, offsets 202-302
+        val content = line1 + line2 + line3      // 303 bytes total, 4 display lines
+        val buffer = createBuffer(content, chunkSize = 100L)
+        buffer.totalLines.value shouldBe 4  // Line 0: "Line 1", Line 1: X's, Line 2: "Line 2" + Y's, Line 3: "Line 3" + Z's
+
+        // When: Delete entire middle line (line2) including its newline
+        // This removes: byte 101-201 = "Line 2\n" + "Y"*94
+        val startPos = TextPosition(offset = 101L, line = 1, column = 0)   // Start of line 2
+        val endPos = TextPosition(offset = 202L, line = 2, column = 0)     // Start of line 3
+        val result = buffer.deleteText(startPosition = startPos, endPosition = endPos)
+
+        // Then: Delete succeeded
+        result.isSuccess shouldBe true
+
+        // And: Line count updated to 3
+        // Result structure: "Line 1\n" + "X"*94 + "Line 3\n" + "Z"*94
+        // Line 0: "Line 1"
+        // Line 1: "X"*94 + "Line 3" (merged onto same line)
+        // Line 2: "Z"*94 (last line, no trailing newline)
+        buffer.totalLines.value shouldBe 3
+
+        // And: Correct content remains
+        buffer.getTextForLine(0).getOrThrow() shouldContain "Line 1"
+        buffer.getTextForLine(1).getOrThrow() shouldContain "Line 3"  // Line 3 merged with X's
+        buffer.getTextForLine(2).getOrThrow() shouldContain "Z"  // Just Z's
+    }
+
+    @Test
+    fun `deleteText preserves content before and after deletion across chunks`() = runTest {
+        // Given: Identifiable content in 3 chunks
+        val chunk1 = "START" + "A".repeat(95)   // 100 bytes, offsets 0-99
+        val chunk2 = "B".repeat(100)            // 100 bytes, offsets 100-199
+        val chunk3 = "C".repeat(95) + "END"     // 98 bytes, offsets 200-297
+        val content = chunk1 + chunk2 + chunk3  // 298 bytes total
+        val buffer = createBuffer(content, chunkSize = 100L)
+
+        // When: Delete middle section across all 3 chunks
+        // Keep first 10 bytes (STARTAAAAA) and last 8 bytes (CCCCCEND)
+        val startPos = TextPosition(offset = 10L, line = 0, column = 10)    // After first 10 bytes
+        val endPos = TextPosition(offset = 290L, line = 0, column = 290)   // Start of last 8 bytes
+        val result = buffer.deleteText(startPosition = startPos, endPosition = endPos)
+
+        // Then: Delete succeeded
+        result.isSuccess shouldBe true
+
+        // And: Only first 10 and last 8 bytes remain
+        val newContent = buffer.getTextForRange(0, 0).getOrThrow()
+        newContent shouldBe "STARTAAAAACCCCCEND"
+        newContent.length shouldBe 18
+    }
+
+    // ===== Phase 5: Search Functionality Tests =====
+
+    @Test
+    fun `search in single chunk returns correct line numbers`() = runTest {
+        // Given: Content in single chunk with multiple lines
+        val content = "Line 0: Hello\nLine 1: World\nLine 2: Hello again\nLine 3: Test"
+        val buffer = createBuffer(content)
+
+        // When: Search for "Hello"
+        val matches = buffer.search(query = "Hello", startFrom = null, ignoreCase = false)
+
+        // Then: Found 2 matches
+        matches.size shouldBe 2
+
+        // And: First match is on line 0
+        matches[0].position.line shouldBe 0
+        matches[0].matchText shouldBe "Hello"
+
+        // And: Second match is on line 2
+        matches[1].position.line shouldBe 2
+        matches[1].matchText shouldBe "Hello"
+    }
+
+    @Test
+    fun `search spanning multiple chunks returns correct line numbers`() = runTest {
+        // Given: Content spanning multiple chunks with search term in each
+        val line0 = "SEARCH in chunk 1\n" + "X".repeat(82)  // 100 bytes total
+        val line1 = "Y".repeat(82) + "\nSEARCH in chunk 2\n"  // 100 bytes
+        val line2 = "Z".repeat(82) + "\nSEARCH in chunk 3"  // 100 bytes
+        val content = line0 + line1 + line2
+        val buffer = createBuffer(content, chunkSize = 100L)
+
+        // When: Search for "SEARCH"
+        val matches = buffer.search(query = "SEARCH", startFrom = null, ignoreCase = false)
+
+        // Then: Found 3 matches
+        matches.size shouldBe 3
+
+        // And: Matches have correct file-relative line numbers (not chunk-relative!)
+        matches[0].position.line shouldBe 0  // First line of file
+        matches[1].position.line shouldBe 2  // Third line of file (after line 0 and line 1)
+        matches[2].position.line shouldBe 4  // Fifth line of file
+    }
+
+    @Test
+    fun `search case-sensitive distinguishes matches`() = runTest {
+        // Given: Content with mixed case
+        val content = "hello HELLO Hello HeLLo"
+        val buffer = createBuffer(content)
+
+        // When: Search case-sensitive for "Hello"
+        val matches = buffer.search(query = "Hello", startFrom = null, ignoreCase = false)
+
+        // Then: Found only exact match
+        matches.size shouldBe 1
+        matches[0].matchText shouldBe "Hello"
+    }
+
+    @Test
+    fun `search returns results sorted by offset`() = runTest {
+        // Given: Content with multiple occurrences
+        val content = "apple banana apple cherry apple date"
+        val buffer = createBuffer(content)
+
+        // When: Search for "apple"
+        val matches = buffer.search(query = "apple", startFrom = null, ignoreCase = false)
+
+        // Then: Results are sorted by offset
+        matches.size shouldBe 3
+        matches[0].position.offset shouldBe 0L
+        matches[1].position.offset shouldBe 13L
+        matches[2].position.offset shouldBe 26L
+
+        // And: Each subsequent offset is greater than previous
+        for (i in 1 until matches.size) {
+            matches[i].position.offset shouldBeGreaterThan matches[i - 1].position.offset
+        }
+    }
+
+    @Test
+    fun `search with no matches returns empty list`() = runTest {
+        // Given: Content without search term
+        val content = "This is a test document"
+        val buffer = createBuffer(content)
+
+        // When: Search for non-existent term
+        val matches = buffer.search(query = "NOTFOUND", startFrom = null, ignoreCase = false)
+
+        // Then: Returns empty list (not failure)
+        matches.shouldBeEmpty()
+    }
+
+    @Test
+    fun `search with empty query returns empty list`() = runTest {
+        // Given: Any content
+        val content = "Some content here"
+        val buffer = createBuffer(content)
+
+        // When: Search for empty string
+        val matches = buffer.search(query = "", startFrom = null, ignoreCase = false)
+
+        // Then: Returns empty list
+        matches.shouldBeEmpty()
+    }
+
+    @Test
+    fun `search result positions match actual text locations`() = runTest {
+        // Given: Multi-line content
+        val content = "Line one\nLine two with TARGET\nLine three\nTARGET at start"
+        val buffer = createBuffer(content)
+
+        // When: Search for "TARGET"
+        val matches = buffer.search(query = "TARGET", startFrom = null, ignoreCase = false)
+
+        // Then: Found 2 matches
+        matches.size shouldBe 2
+
+        // And: Can retrieve actual text at reported offsets
+        val text1 = buffer.getText(matches[0].position.offset, matches[0].position.offset + 6).getOrThrow()
+        text1 shouldBe "TARGET"
+
+        val text2 = buffer.getText(matches[1].position.offset, matches[1].position.offset + 6).getOrThrow()
+        text2 shouldBe "TARGET"
+    }
+
+    // ===== Phase 6: Undo/Redo Tests =====
+
+    @Test
+    fun `canUndo returns false on empty buffer`() = runTest {
+        // Given: New buffer with no edits
+        val buffer = createBuffer("Initial content")
+
+        // When/Then: Cannot undo before any edits
+        val result = buffer.undo()
+        result.isSuccess shouldBe true
+        result.getOrThrow() shouldBe null  // No operation to undo
+    }
+
+    @Test
+    fun `canRedo returns false before undo`() = runTest {
+        // Given: Buffer with an edit
+        val buffer = createBuffer("Hello")
+        buffer.insertText(TextPosition(5, 0, 5), " World")
+
+        // When/Then: Cannot redo before undo
+        val result = buffer.redo()
+        result.isSuccess shouldBe true
+        result.getOrThrow() shouldBe null  // No operation to redo
+    }
+
+    @Test
+    fun `undo insert operation restores original text`() = runTest {
+        // Given: Buffer with original content
+        val buffer = createBuffer("Hello")
+        val originalContent = buffer.getTextForRange(0, 0).getOrThrow()
+
+        // When: Insert text then undo
+        buffer.insertText(TextPosition(5, 0, 5), " World")
+        val afterInsert = buffer.getTextForRange(0, 0).getOrThrow()
+        afterInsert shouldBe "Hello World"
+
+        val undoResult = buffer.undo()
+        undoResult.isSuccess shouldBe true
+
+        // Then: Content restored to original
+        val afterUndo = buffer.getTextForRange(0, 0).getOrThrow()
+        afterUndo shouldBe originalContent
+    }
+
+    @Test
+    fun `undo delete operation restores deleted text`() = runTest {
+        // Given: Buffer with content
+        val buffer = createBuffer("Hello World")
+        val originalContent = buffer.getTextForRange(0, 0).getOrThrow()
+
+        // When: Delete text then undo
+        buffer.deleteText(
+            startPosition = TextPosition(5, 0, 5),
+            endPosition = TextPosition(11, 0, 11)
+        )
+        val afterDelete = buffer.getTextForRange(0, 0).getOrThrow()
+        afterDelete shouldBe "Hello"
+
+        val undoResult = buffer.undo()
+        undoResult.isSuccess shouldBe true
+
+        // Then: Deleted text restored
+        val afterUndo = buffer.getTextForRange(0, 0).getOrThrow()
+        afterUndo shouldBe originalContent
+    }
+
+    @Test
+    fun `redo after undo reapplies operation`() = runTest {
+        // Given: Buffer with edit and undo
+        val buffer = createBuffer("Hello")
+        buffer.insertText(TextPosition(5, 0, 5), " World")
+        val contentAfterInsert = buffer.getTextForRange(0, 0).getOrThrow()
+
+        buffer.undo()
+        val contentAfterUndo = buffer.getTextForRange(0, 0).getOrThrow()
+        contentAfterUndo shouldBe "Hello"
+
+        // When: Redo
+        val redoResult = buffer.redo()
+        redoResult.isSuccess shouldBe true
+
+        // Then: Edit reapplied
+        val afterRedo = buffer.getTextForRange(0, 0).getOrThrow()
+        afterRedo shouldBe contentAfterInsert
+    }
+
+    @Test
+    fun `multiple undo operations work in reverse order`() = runTest {
+        // Given: Buffer with multiple edits
+        val buffer = createBuffer("A")
+        buffer.insertText(TextPosition(1, 0, 1), "B")  // "AB"
+        buffer.insertText(TextPosition(2, 0, 2), "C")  // "ABC"
+        buffer.insertText(TextPosition(3, 0, 3), "D")  // "ABCD"
+
+        buffer.getTextForRange(0, 0).getOrThrow() shouldBe "ABCD"
+
+        // When: Undo three times
+        buffer.undo()  // Remove D
+        buffer.getTextForRange(0, 0).getOrThrow() shouldBe "ABC"
+
+        buffer.undo()  // Remove C
+        buffer.getTextForRange(0, 0).getOrThrow() shouldBe "AB"
+
+        buffer.undo()  // Remove B
+        val final = buffer.getTextForRange(0, 0).getOrThrow()
+
+        // Then: Back to original
+        final shouldBe "A"
+    }
+
+    @Test
+    fun `redo stack clears after new edit`() = runTest {
+        // Given: Buffer with undo history
+        val buffer = createBuffer("Hello")
+        buffer.insertText(TextPosition(5, 0, 5), " World")
+        buffer.undo()
+
+        // When: Make new edit
+        buffer.insertText(TextPosition(5, 0, 5), "!")
+        buffer.getTextForRange(0, 0).getOrThrow() shouldBe "Hello!"
+
+        // Then: Cannot redo previous operation
+        val redoResult = buffer.redo()
+        redoResult.isSuccess shouldBe true
+        redoResult.getOrThrow() shouldBe null
+
+        // And: Content remains with new edit
+        buffer.getTextForRange(0, 0).getOrThrow() shouldBe "Hello!"
+    }
+
+    @Test
+    fun `undo-redo-undo cycle maintains consistency`() = runTest {
+        // Given: Buffer with edit
+        val buffer = createBuffer("Test")
+        buffer.insertText(TextPosition(4, 0, 4), "ing")
+
+        buffer.getTextForRange(0, 0).getOrThrow() shouldBe "Testing"
+
+        // When: Undo
+        buffer.undo()
+        buffer.getTextForRange(0, 0).getOrThrow() shouldBe "Test"
+
+        // Then: Redo
+        buffer.redo()
+        buffer.getTextForRange(0, 0).getOrThrow() shouldBe "Testing"
+
+        // And: Undo again
+        buffer.undo()
+        val final = buffer.getTextForRange(0, 0).getOrThrow()
+        final shouldBe "Test"
+    }
+
+    @Test
+    fun `undo multi-chunk delete restores all content`() = runTest {
+        // Given: Content spanning multiple chunks
+        val chunk1 = "A".repeat(100)
+        val chunk2 = "B".repeat(100)
+        val content = chunk1 + chunk2
+        val buffer = createBuffer(content, chunkSize = 100L)
+
+        // When: Delete across chunks then undo
+        buffer.deleteText(
+            startPosition = TextPosition(50, 0, 50),
+            endPosition = TextPosition(150, 0, 150)
+        )
+        buffer.getTextForRange(0, 0).getOrThrow().length shouldBe 100
+
+        val undoResult = buffer.undo()
+        undoResult.isSuccess shouldBe true
+
+        // Then: All content restored
+        val restored = buffer.getTextForRange(0, 0).getOrThrow()
+        restored shouldBe content
+        restored.length shouldBe 200
+    }
+
+    @Test
+    fun `undo and redo preserve line counts correctly`() = runTest {
+        // Given: Multi-line buffer
+        val buffer = createBuffer("Line 1\nLine 2\nLine 3")
+        buffer.totalLines.value shouldBe 3
+
+        // When: Insert newlines then undo
+        buffer.insertText(TextPosition(6, 0, 6), "\nNew Line\n")
+        buffer.totalLines.value shouldBe 5
+
+        buffer.undo()
+
+        // Then: Line count restored
+        buffer.totalLines.value shouldBe 3
+
+        // And: Redo restores added lines
+        buffer.redo()
+        buffer.totalLines.value shouldBe 5
+    }
 }
