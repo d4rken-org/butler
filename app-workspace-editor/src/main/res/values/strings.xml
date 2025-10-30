@@ -3,21 +3,10 @@
     <string name="editor_title">Editor</string>
     <string name="editor_subtitle">Edit text files</string>
     <string name="editor_settings_title">Editor Settings</string>
-    <string name="editor_settings_appearance_category">Appearance</string>
-    <string name="editor_settings_font_size_title">Font size</string>
-    <string name="editor_settings_font_size_desc">Text size in editor.</string>
-    <string name="editor_settings_line_numbers_title">Show line numbers</string>
-    <string name="editor_settings_line_numbers_desc">Display line numbers in editor.</string>
     <string name="editor_settings_show_line_numbers_title">Show line numbers</string>
     <string name="editor_settings_show_line_numbers_subtitle">Display line numbers in editor.</string>
     <string name="editor_settings_word_wrap_title">Line wrap</string>
-    <string name="editor_settings_word_wrap_desc">Wrap long lines to fit screen.</string>
     <string name="editor_settings_word_wrap_subtitle">Wrap long lines to fit screen width.</string>
-    <string name="editor_settings_behavior_category">Behavior</string>
-    <string name="editor_settings_auto_save_title">Auto save</string>
-    <string name="editor_settings_auto_save_desc">Automatically save changes.</string>
-    <string name="editor_settings_syntax_highlight_title">Syntax highlighting</string>
-    <string name="editor_settings_syntax_highlight_desc">Highlight code syntax.</string>
 
     <!-- Editor tab page -->
     <string name="editor_action_open">Open</string>
@@ -27,7 +16,6 @@
     <string name="editor_action_redo">Redo</string>
     <string name="editor_action_search">Search</string>
     <string name="editor_action_go_to_line">Go to Line</string>
-    <string name="editor_action_toggle_stats">Toggle Stats</string>
     <string name="editor_action_dismiss">Dismiss</string>
     <string name="editor_action_previous">Previous</string>
     <string name="editor_action_next">Next</string>
@@ -36,7 +24,6 @@
     <string name="editor_modified_indicator">•</string>
     <string name="editor_status_line_format">Line %1$d:%2$d</string>
     <string name="editor_status_total_lines">Total: %1$d lines</string>
-    <string name="editor_status_memory">Memory: %1$d/%2$d MB (%3$d chunks)</string>
     <string name="editor_error_unknown">Unknown error</string>
     <string name="editor_search_results_format">%1$d of %2$d results</string>
     

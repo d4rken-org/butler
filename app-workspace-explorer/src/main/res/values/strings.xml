@@ -9,14 +9,8 @@
     <string name="explorer_settings_filter_regex_desc">Use regex patterns in filters in include/exclude filters.</string>
 
     <!-- File Row Content Descriptions -->
-    <string name="explorer_file_apk_content_desc">APK file</string>
     <string name="explorer_file_regular_content_desc">File</string>
     <string name="explorer_file_symlink_content_desc">Symbolic link</string>
-    <string name="explorer_file_video_content_desc">Video file</string>
-    <string name="explorer_file_audio_content_desc">Audio file</string>
-    <string name="explorer_file_image_content_desc">Image</string>
-    <string name="explorer_file_archive_content_desc">Archive</string>
-    <string name="explorer_file_document_content_desc">Document</string>
     <string name="explorer_file_folder_content_desc">Folder</string>
     <string name="explorer_file_peek_content_desc">Loading file information</string>
 
@@ -31,7 +25,6 @@
     <string name="explorer_file_broken_link_label">Broken link</string>
     <string name="explorer_file_items_count">%1$d items</string>
     <string name="explorer_file_empty">Empty</string>
-    <string name="explorer_file_pages_count">%1$d pages</string>
 
     <!-- Picker Mode -->
     <string name="explorer_picker_select_directory_title">Select Folder</string>
@@ -68,11 +61,9 @@
     <string name="explorer_action_cut">Cut</string>
     <string name="explorer_action_delete">Delete</string>
     <string name="explorer_action_share">Share</string>
-    <string name="explorer_action_paste">Paste</string>
     <string name="explorer_action_select_all">Select All</string>
     <string name="explorer_action_deselect_all">Deselect All</string>
     <string name="explorer_action_add_location">Add location</string>
-    <string name="explorer_action_more">More options</string>
     <string name="explorer_action_info">Info</string>
 
     <!-- Item Info -->
@@ -133,7 +124,6 @@
 
     <string name="explorer_loader_progress_device_loading">Loading device</string>
     <string name="explorer_loader_progress_device_locations">Loading storage locations</string>
-    <string name="explorer_loader_progress_device_filesystem">Loading storage info</string>
 
     <string name="explorer_loader_progress_home_loading">Loading home</string>
 
@@ -161,15 +151,6 @@
     <string name="explorer_infobar_storage_free">%1$s free</string>
 
     <!-- Dialogs -->
-    <string name="explorer_dialog_delete_title_single">Delete item?</string>
-    <plurals name="explorer_dialog_delete_title_multiple">
-        <item quantity="one">Delete %1$d item?</item>
-        <item quantity="other">Delete %1$d items?</item>
-    </plurals>
-    <string name="explorer_dialog_delete_message_single">This item will be permanently deleted:</string>
-    <string name="explorer_dialog_delete_message_multiple">These items will be permanently deleted:</string>
-    <string name="explorer_dialog_delete_more_items">… and %1$d more</string>
-    <string name="explorer_dialog_delete_warning">This action cannot be undone.</string>
     <string name="explorer_dialog_create_title">Create new item</string>
     <string name="explorer_dialog_rename_title">Rename</string>
     <string name="explorer_dialog_name_label">Name</string>
@@ -329,7 +310,6 @@
         <item quantity="one">Move %1$d item to \"%2$s\".</item>
         <item quantity="other">Move %1$d items to \"%2$s\".</item>
     </plurals>
-    <string name="explorer_operation_move_progress_title">Moving…</string>
     <plurals name="explorer_operation_report_files_moved">
         <item quantity="one">%d file moved.</item>
         <item quantity="other">%d files moved.</item>
@@ -342,11 +322,6 @@
         <item quantity="one">%s moved.</item>
         <item quantity="other">%s moved.</item>
     </plurals>
-    <string name="explorer_operation_progress_bytes_moved">%s moved</string>
-    <plurals name="explorer_operation_progress_sources">
-        <item quantity="one">Source %1$d of %2$d</item>
-        <item quantity="other">Sources %1$d of %2$d</item>
-    </plurals>
 
     <string name="explorer_operation_create_title_directory">Folder creation</string>
     <string name="explorer_operation_create_description_directory">Create folder \"%1$s\" at \"%2$s\"</string>
@@ -356,5 +331,4 @@
 
     <!-- Navigation Error Messages -->
     <string name="explorer_navigation_error_title">Navigation Failed</string>
-    <string name="explorer_navigation_error_retry_action">Retry</string>
 </resources>

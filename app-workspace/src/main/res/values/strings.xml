@@ -5,7 +5,6 @@
     <string name="clipboard_show_less">Less</string>
     <string name="clipboard_clear_all">Clear All</string>
     <string name="clipboard_show_more">More</string>
-    <string name="clipboard_show_more_items">Show more (%d items)</string>
     <string name="clipboard_paste">Paste</string>
     <string name="clipboard_open_in_explorer">Open in Explorer</string>
     <string name="clipboard_copy">Copy</string>
@@ -53,14 +52,9 @@
 
     <!-- Operations -->
     <string name="operations_header_title">Operations</string>
-    <string name="operations_header_running">%1$d of %2$d operations running</string>
-    <string name="operations_header_completed">%d operations completed</string>
     <string name="operations_clear_completed">Clear completed</string>
     <string name="operations_show_more">More</string>
-    <string name="operations_show_more_items">Show more (%d operations)</string>
     <string name="operations_show_less">Less</string>
-    <string name="operations_expand">Expand operations</string>
-    <string name="operations_collapse">Collapse operations</string>
     <string name="operations_state_queued">Queued</string>
     <string name="operations_state_running">Running</string>
     <string name="operations_state_waiting">Waiting for input</string>
@@ -71,16 +65,12 @@
     <string name="operations_cancel_dialog_title">Cancel operation?</string>
     <string name="operations_cancel_dialog_message">Are you sure you want to cancel this operation?</string>
     <string name="operations_cancel_dialog_warning">Canceling may leave files in an inconsistent state.</string>
-    <string name="operations_cancel_dialog_confirm">Cancel operation</string>
-    <string name="operations_details_timeline">Timeline</string>
     <string name="operations_details_started_at">Started</string>
     <string name="operations_details_duration">Duration</string>
-    <string name="operations_details_completed_at">Completed</string>
     <string name="operations_details_progress">Progress</string>
     <string name="operations_details_error">Error Details</string>
     <string name="operations_details_actions">Actions</string>
     <string name="operations_details_overview">Overview</string>
-    <string name="operations_details_go_to_folder">Go to Folder</string>
     <string name="operations_details_copy_error">Copy Error Details</string>
     <string name="operations_details_status">Status</string>
     <string name="operations_details_result">Result</string>
@@ -170,5 +160,4 @@
     <string name="workspace_error_show_details_action">Show technical details</string>
     <string name="workspace_error_hide_details_action">Hide technical details</string>
     <string name="workspace_error_copy_action">Copy error</string>
-    <string name="workspace_error_technical_details_label">Technical Details</string>
 </resources>

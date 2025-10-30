@@ -11,7 +11,6 @@
     <string name="onboarding_beta_feature_influence_description">Your feedback shapes Butler\'s development.</string>
     <string name="onboarding_beta_feature_feedback_title">Community Driven</string>
     <string name="onboarding_beta_feature_feedback_description">Join a community of power users improving Butler.</string>
-    <string name="onboarding_beta_report_action">Report an Issue</string>
     <string name="onboarding_sustainability_title">Free &amp; Sustainable</string>
     <string name="onboarding_sustainability_message">Core features are free. Some advanced features require Butler Pro - it keeps me coding and the app evolving.</string>
     <string name="onboarding_sustainability_free_title">Core Features</string>
@@ -88,10 +87,6 @@
     <string name="setup_title">Permission setup</string>
     <string name="setup_settings_description">Configure app permissions and features.</string>
     <string name="setup_help_description">Help</string>
-    <string name="setup_refresh_label">Refresh</string>
-    <string name="setup_configure_label">Configure</string>
-    <string name="setup_root_enable_label">Enable root access</string>
-    <string name="setup_shizuku_enable_label">Enable Shizuku</string>
 
     <string name="setup_root_description">Enables access to system files and protected directories for advanced file management. Unlocks Butler\'s full potential including app data access and system modifications. Device must be rooted.</string>
     <string name="setup_shizuku_description">Alternative to root that provides privileged file operations through a secure API. Allows access to restricted directories without traditional root. Requires Shizuku app to be installed and running.</string>
@@ -115,13 +110,6 @@
     <string name="setup_status_not_installed">Not installed</string>
     <string name="setup_status_connecting">Connecting…</string>
     <string name="setup_status_unavailable">Unavailable</string>
-
-    <string name="setup_hint_root">Requires device to be rooted.</string>
-    <string name="setup_hint_shizuku">Requires Shizuku app to be installed and running.</string>
-    <string name="setup_hint_notification">Allows Butler to display notifications.</string>
-    <string name="setup_hint_usagestats">Grants access to app usage statistics.</string>
-    <string name="setup_hint_saf">Enables file access through Storage Access Framework.</string>
-    <string name="setup_hint_storage">Grants access to manage external storage.</string>
 
     <!-- Debug Log -->
     <string name="debug_notification_channel_label">Debug notifications</string>
@@ -159,7 +147,6 @@
     <string name="storage_settings_subtitle">Manage Butler\'s caches, storage and recycle bin.</string>
     <string name="storage_category_previews_label">Previews</string>
     <string name="storage_previews_disk_cache_title">Disk cache</string>
-    <string name="storage_disk_cache_subtitle">%1$s / %2$s • %3$d items</string>
     <string name="storage_previews_memory_cache_title">Memory cache</string>
     <string name="storage_previews_max_size_title">Maximum cache size</string>
     <string name="storage_clear_disk_confirm_title">Clear disk cache?</string>
@@ -171,7 +158,6 @@
     <string name="storage_clear_all_previews_action">Clear all preview caches</string>
     <string name="storage_clear_all_subtitle">Remove all preview caches</string>
     <string name="storage_cache_cleared_message">Cache cleared</string>
-    <string name="storage_settings_restart_notice">App restart required</string>
     <string name="storage_size_50mb">50 MB</string>
     <string name="storage_size_250mb">250 MB</string>
     <string name="storage_size_512mb">512 MB</string>
@@ -261,9 +247,6 @@
     <string name="acknowledgement_vico_title">Vico</string>
     <string name="acknowledgement_vico_subtitle">Charts and graphs for Jetpack Compose. (APACHE 2.0)</string>
 
-    <string name="settings_sponsor_development_title">Sponsor development</string>
-    <string name="settings_sponsor_development_summary">Become a patron and make continued development possible.</string>
-
     <string name="settings_privacy_policy_label">Privacy policy</string>
     <string name="settings_privacy_policy_desc">Handling data responsibly.</string>
 
@@ -289,19 +272,14 @@
     <!-- Workspace -->
     <!-- Workspace > Manager -->
     <string name="workspace_manager_title">Tab Manager</string>
-    <string name="workspace_manager_add_action">Add tab</string>
-    <string name="workspace_manager_status_count">Active tabs: %1$d</string>
     <string name="workspace_manager_empty_title">No tabs</string>
     <string name="workspace_manager_empty_subtitle">Create your first tab to get started</string>
-    <string name="workspace_tab_close_action">Close tab</string>
 
     <!-- Workspace > Empty Content-->
     <string name="workspace_empty_create_action">Create tab</string>
     <string name="workspace_empty_create_hint">Work in parallel: Create a tab and turn it into a tool of your choice.</string>
     <string name="workspace_empty_settings_action">Open settings</string>
     <string name="workspace_empty_settings_hint">Customize Butler to your liking. Adjust how the tools behave.</string>
-    <string name="workspace_empty_manager_action">Manage tabs</string>
-    <string name="workspace_empty_manager_hint">View and organize all your open tabs in one place.</string>
 
     <!-- Classic Workspace Tips -->
     <string name="workspace_classic_tip_create_multiple">You can create multiple tabs to work with folders simultaneously.</string>
@@ -360,7 +338,6 @@
     <string name="workspace_add_tab_description">Add tab</string>
 
     <!-- Workspace Manager Row -->
-    <string name="workspace_row_reorder_content_desc">Reorder</string>
     <string name="workspace_row_close_content_desc">Close tab</string>
 
     <!-- Settings Index -->

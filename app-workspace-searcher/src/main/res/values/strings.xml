@@ -3,14 +3,8 @@
     <string name="searcher_title">Search</string>
     <string name="searcher_subtitle">Find files and content</string>
     <string name="searcher_settings_title">Search Settings</string>
-    <string name="searcher_settings_indexing_category">Indexing</string>
-    <string name="searcher_settings_indexing_enabled_title">Enable indexing</string>
-    <string name="searcher_settings_indexing_enabled_desc">Create search index for faster results.</string>
-    <string name="searcher_settings_index_hidden_title">Index hidden files</string>
-    <string name="searcher_settings_index_hidden_desc">Include hidden files in search index.</string>
     <string name="searcher_settings_search_category">Search</string>
     <string name="searcher_settings_search_in_content_title">Search in file content</string>
-    <string name="searcher_settings_search_in_content_desc">Search inside files, not just names.</string>
     <string name="searcher_settings_history">Search History</string>
     <string name="searcher_settings_save_history_title">Save search history</string>
     <string name="searcher_settings_save_history_subtitle">Remember previous searches.</string>
@@ -28,9 +22,6 @@
     <string name="searcher_recent_searches">Recent searches</string>
     <string name="searcher_placeholder_search">Search files and folders</string>
     <string name="searcher_search_error">Search error</string>
-    <string name="searcher_no_results">No results found</string>
-    <string name="searcher_placeholder_path">Search path (e.g., /sdcard)</string>
-    <string name="searcher_select_path_title">Select Search Path</string>
     <string name="searcher_no_paths_hint">Tap + to add search paths</string>
     <string name="searcher_add_path_action">Add path</string>
     <string name="general_cancel_action">Cancel</string>
@@ -67,9 +58,6 @@
     <string name="searcher_status_no_results">No results found</string>
     <string name="searcher_status_search_completed">Search completed</string>
 
-    <!-- Permission strings -->
-    <string name="searcher_permission_search_description">Grant permissions to search this location.</string>
-
     <!-- Action strings -->
     <string name="searcher_action_open_in_editor">Open in Editor</string>
     <string name="searcher_action_open_in_explorer">Open in Explorer</string>
@@ -81,6 +69,4 @@
     <string name="searcher_action_properties">Properties</string>
     <string name="searcher_action_select_all">Select All</string>
     <string name="searcher_action_deselect_all">Deselect All</string>
-    <string name="searcher_action_exit_selection">Exit Selection</string>
-    <string name="searcher_selection_count">%1$d selected</string>
 </resources>

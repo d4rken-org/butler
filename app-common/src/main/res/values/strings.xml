@@ -14,51 +14,27 @@
     <string name="slogan_message_7">Access made easy.</string>
     <string name="slogan_message_8">Never Gonna Lose Your Files.</string>
 
-    <string name="general_thank_you_label">Thank you</string>
-    <string name="general_todo_msg">This feature is still being worked on and currently not available.</string>
     <string name="general_share_action">Share</string>
     <string name="general_done_action">Done</string>
     <string name="general_copy_action">Copy</string>
     <string name="general_cut_action">Cut</string>
     <string name="general_paste_action">Paste</string>
-    <string name="general_wipe_action">Wipe</string>
     <string name="general_apply_action">Apply</string>
     <string name="general_cancel_action">Cancel</string>
     <string name="general_confirm_action">Confirm</string>
-    <string name="general_discard_action">Discard</string>
     <string name="general_reset_action">Reset</string>
     <string name="general_save_action">Save</string>
-    <string name="general_thanks_action">Thanks</string>
-    <string name="general_gotit_action">Got it</string>
-    <string name="general_fix_action">Fix</string>
-    <string name="general_set_up_action">Set up</string>
     <string name="general_edit_action">Edit</string>
     <string name="general_na_label">N/A</string>
-    <string name="general_empty_label">Empty</string>
     <string name="general_dismiss_action">Dismiss</string>
     <string name="general_read_more_action">Read more</string>
     <string name="general_mark_as_read_action">Mark as read</string>
     <string name="general_back_action">Back</string>
     <string name="general_navigate_up_action">Navigate up</string>
-    <string name="general_maybe_later_action">Maybe later</string>
-    <string name="general_manage_action">Manage</string>
-    <string name="general_sync_action">Synchronize</string>
     <string name="general_error_label">Error</string>
-    <string name="general_tap_hint_msg">Tap for more options.</string>
     <string name="general_upgrade_action">Upgrade</string>
-    <string name="general_donate_action">Donate</string>
-    <string name="general_check_action">Check</string>
-    <string name="general_filter_action">Filter</string>
-    <string name="general_internal_not_available_msg">Internet connection unavailable.</string>
     <string name="general_refresh_action">Refresh</string>
-    <string name="general_progress_searching">Searching</string>
-    <string name="general_progress_generating_searchpaths">Generating search paths</string>
-    <string name="general_progress_filtering">Filtering</string>
-    <string name="general_progress_preparing">Preparing</string>
-    <string name="general_progress_processing_x">Processing %s</string>
     <string name="general_progress_loading">Loading</string>
-    <string name="general_progress_loading_app_data">Loading app data</string>
-    <string name="general_progress_loading_data_areas">Loading data areas</string>
     <string name="general_progress_loading_egg_0">Still faster than an iPhone</string>
     <string name="general_progress_loading_egg_1">Downloading more RAM</string>
     <string name="general_progress_loading_egg_2">Soon™</string>
@@ -73,13 +49,6 @@
     <string name="general_progress_loading_egg_11">This is fine</string>
     <string name="general_progress_loading_egg_12">Please hold</string>
     <string name="general_progress_loading_egg_13">At least you\'re not on hold</string>
-
-    <string name="general_progress_queued">In queue</string>
-    <string name="general_progress_deleting">Deleting</string>
-    <string name="general_progress_deleting_x">Deleting %s</string>
-
-    <string name="general_help_action">Help</string>
-    <string name="general_continue">Continue</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">
@@ -120,19 +89,9 @@
         <item quantity="other">%d days</item>
     </plurals>
 
-    <string name="general_sort_options_label">Sort options</string>
-    <string name="general_sort_reverse_action">Reverse sort mode</string>
-
-    <string name="general_options_label">Options</string>
-    <string name="general_details_label">Details</string>
     <string name="general_view_action">View</string>
-    <string name="general_update_action">Update</string>
-    <string name="general_scan_action">Scan</string>
     <string name="general_delete_action">Delete</string>
-    <string name="general_delete_selected_action">Delete selected</string>
     <string name="general_show_details_action">Show details</string>
-    <string name="general_show_all_action">Show all</string>
-    <string name="general_toggle_layout_mode">Switch view mode</string>
 
     <string name="general_delete_confirmation_title">Confirm deletion</string>
     <string name="general_delete_confirmation_message_x">Delete \"%s\"?</string>
@@ -142,48 +101,14 @@
         <item quantity="other">Deleted %d items.</item>
     </plurals>
 
-    <string name="general_root_required_label">Requires root</string>
-    <string name="general_root_required_message">Requires a rooted device.</string>
-
-    <plurals name="result_x_items">
-        <item quantity="one">%s item</item>
-        <item quantity="other">%s items</item>
-    </plurals>
-    <plurals name="result_x_successful">
-        <item quantity="one">%d successful</item>
-        <item quantity="other">%d successful</item>
-    </plurals>
-    <plurals name="result_x_failed">
-        <item quantity="one">%d failed</item>
-        <item quantity="other">%d failed</item>
-    </plurals>
-
-    <string name="general_info_label">Info</string>
-    <string name="general_count_label">Count</string>
-    <string name="general_app_label">App</string>
-    <string name="general_more_info_action">More info</string>
-    <string name="general_grant_access_action">Grant access</string>
-    <string name="general_enable_service_action">Enable service</string>
-    <string name="general_undo_action">Undo</string>
     <string name="general_create_action">Create</string>
     <string name="general_rename_action">Rename</string>
     <string name="general_retry_action">Retry</string>
 
     <string name="general_result_user_cancel_msg">User has cancelled the operation.</string>
 
-    <string name="general_list_select_all_action">Select all</string>
-
     <string name="general_path_label">Path</string>
     <string name="general_filename_validation_error">Name contains invalid characters: %1$s</string>
-    <string name="general_type_label">Type</string>
-    <string name="general_size_label">Size</string>
-    <string name="general_exclude_action">Exclude</string>
-    <string name="general_exclude_selected_action">Exclude selected</string>
-
-    <string name="general_device_label">Device</string>
-
-    <string name="general_settings_title">Settings</string>
-    <string name="general_help_title">Help</string>
 
     <string name="file_type_symbolic_link">Link</string>
     <string name="file_type_directory">Directory</string>
@@ -204,22 +129,7 @@
     <string name="common_mimetype_xml">XML File</string>
     <string name="common_mimetype_unknown">Unknown Type</string>
 
-    <string name="general_progress_ready">Ready</string>
-    <string name="general_progress_done">Done</string>
-
     <string name="general_rom_type_auto_label">Automatic (default)</string>
-    <plurals name="general_age_days">
-        <item quantity="one">%d day</item>
-        <item quantity="other">%d days</item>
-    </plurals>
-    <plurals name="general_age_hours">
-        <item quantity="one">%d hour</item>
-        <item quantity="other">%d hours</item>
-    </plurals>
-    <plurals name="result_x_files">
-        <item quantity="one">%s file</item>
-        <item quantity="other">%s files</item>
-    </plurals>
 
     <plurals name="general_progress_items_per_second">
         <item quantity="one">%s item/s</item>
@@ -230,14 +140,10 @@
         <item quantity="other">%s/s</item>
     </plurals>
 
-    <string name="general_advice_title">Advice</string>
-    <string name="general_error_invalid_input_label">Invalid input</string>
-    <string name="general_information_for_the_developer">Information for the developer.</string>
     <string name="general_error_type_mismatch_msg">Type mismatch: Wanted %1$s, but got %2$s.</string>
     <string name="general_error_cant_access_msg">Can\'t access %s.</string>
     <string name="general_error_root_unavailable">Root access is unavailable.</string>
     <string name="general_error_no_compatible_app_found_msg">No compatible app found to handle this request.</string>
-    <string name="general_error_report_bug_action">Report bug</string>
     <string name="general_error_ipc_deadobject_title">Service Connection Lost</string>
     <string name="general_error_ipc_deadobject_description">The connection to a critical service (e.g. Magisk, Shizuku, or other system-level services) was unexpectedly lost. Please reboot your device. If the issue persists, check for updates or reach out to me so I can fix it.</string>
 
@@ -267,5 +173,4 @@
     <string name="setup_required_card_title">Setup Required</string>
     <string name="setup_required_card_body">Additional setup is required to perform this operation.</string>
     <string name="setup_required_card_setup_action">Open Setup</string>
-    <string name="common_permission_storage_manage_description">Accessing this path requires the \'MANAGE_EXTERNAL_STORAGE\' permission.</string>
 </resources>
