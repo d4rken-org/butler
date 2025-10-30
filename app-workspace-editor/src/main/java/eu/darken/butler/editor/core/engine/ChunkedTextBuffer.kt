@@ -335,6 +335,10 @@ class ChunkedTextBuffer @AssistedInject constructor(
                     chunkManager.updateChunk(chunk.id) { updatedChunk }
                 }
 
+                // Update total length
+                val deletedLength = endPosition.offset - startPosition.offset
+                _totalLength.value = _totalLength.value - deletedLength
+
                 // Update line index and state
                 updateAfterEdit()
 
@@ -559,57 +563,43 @@ class ChunkedTextBuffer @AssistedInject constructor(
         }
 
         val startTime = System.currentTimeMillis()
-        log(tag) { "Building chunk metadata for ${chunkIds.size} chunks via streaming with complete reads" }
+        log(tag) { "Building chunk metadata for ${chunkIds.size} chunks from in-memory chunks" }
 
-        // Stream through file using pre-generated chunkIds to define boundaries
-        // This time with proper looping to ensure complete reads
-        chunkRepository.dataSource.openSource().use { source ->
-            source.buffer().use { buffered ->
-                for ((index, chunkId) in chunkIds.withIndex()) {
-                    val chunkStart = extractOffsetFromChunkId(chunkId)
-                    val chunkEnd = if (index < chunkIds.size - 1) {
-                        extractOffsetFromChunkId(chunkIds[index + 1])
-                    } else {
-                        fileSize
-                    }
-                    val chunkSize = chunkEnd - chunkStart
+        // Read from ChunkManager which includes dirty (edited) chunks in memory
+        // This ensures line counts reflect current edits, not just saved file content
+        for ((index, chunkId) in chunkIds.withIndex()) {
+            val chunkStart = extractOffsetFromChunkId(chunkId)
+            val chunkEnd = if (index < chunkIds.size - 1) {
+                extractOffsetFromChunkId(chunkIds[index + 1])
+            } else {
+                fileSize
+            }
 
-                    // Read this chunk's data - loop until we get the full chunk size
-                    // (mimics FileDataSource.readChunk() logic to handle partial reads)
-                    val buffer = Buffer()
-                    var totalBytesRead = 0L
-                    while (totalBytesRead < chunkSize && !buffered.exhausted()) {
-                        val remainingBytes = chunkSize - totalBytesRead
-                        val bytesRead = buffered.read(buffer, remainingBytes)
-                        if (bytesRead == -1L) break
-                        totalBytesRead += bytesRead
-                    }
+            // Get chunk from memory (includes dirty edits) or load from repository
+            val chunk = chunkManager.getChunk(chunkId)
+                ?: chunkManager.loadChunk(chunkId).getOrThrow()
 
-                    // Count newlines in the complete chunk data
-                    // Add 1 only for last chunk if it ends without newline
-                    val content = buffer.readByteArray()
-                    val isLastChunk = index == chunkIds.size - 1
-                    val lineCount = content.count { it == '\n'.code.toByte() } +
-                        if (isLastChunk && content.isNotEmpty() && content.last() != '\n'.code.toByte()) 1 else 0
+            val content = chunk.content.toByteArray()
+            val isLastChunk = index == chunkIds.size - 1
+            val lineCount = content.count { it == '\n'.code.toByte() } +
+                if (isLastChunk && content.isNotEmpty() && content.last() != '\n'.code.toByte()) 1 else 0
 
-                    chunkMetadata.add(
-                        ChunkMetadata(
-                            chunkId = chunkId,
-                            startOffset = chunkStart,
-                            endOffset = chunkEnd,
-                            lineCount = lineCount,
-                            firstLineNumber = totalLines
-                        )
-                    )
+            chunkMetadata.add(
+                ChunkMetadata(
+                    chunkId = chunkId,
+                    startOffset = chunkStart,
+                    endOffset = chunkEnd,
+                    lineCount = lineCount,
+                    firstLineNumber = totalLines
+                )
+            )
 
-                    totalLines += lineCount
+            totalLines += lineCount
 
-                    // Progress logging every 500 chunks
-                    if ((index + 1) % 500 == 0) {
-                        val elapsed = System.currentTimeMillis() - startTime
-                        log(tag) { "Metadata progress: ${index + 1}/${chunkIds.size} chunks, $totalLines lines so far (${elapsed}ms)" }
-                    }
-                }
+            // Progress logging every 500 chunks
+            if ((index + 1) % 500 == 0) {
+                val elapsed = System.currentTimeMillis() - startTime
+                log(tag) { "Metadata progress: ${index + 1}/${chunkIds.size} chunks, $totalLines lines so far (${elapsed}ms)" }
             }
         }
 

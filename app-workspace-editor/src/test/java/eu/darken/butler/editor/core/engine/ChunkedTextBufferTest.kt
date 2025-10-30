@@ -663,4 +663,226 @@ class ChunkedTextBufferTest : BaseTest() {
         retrievedLine4 shouldBe line4
         retrievedLine5 shouldBe line5
     }
+
+    // ==================== Edit Operations Tests ====================
+
+    @Test
+    fun `insertText at start of file`() = runTest {
+        // Given: Buffer with content
+        val content = "Hello World"
+        val buffer = createBuffer(content)
+
+        // When: Insert at start
+        val position = TextPosition(offset = 0L, line = 0, column = 0)
+        val result = buffer.insertText(position, "START ")
+
+        // Then: Insert succeeded
+        result.isSuccess shouldBe true
+
+        // And: Content updated
+        val newContent = buffer.getTextForRange(0, 0).getOrThrow()
+        newContent shouldBe "START Hello World"
+
+        // And: Modified flag set
+        buffer.isModified.value shouldBe true
+    }
+
+    @Test
+    fun `insertText at end of file`() = runTest {
+        // Given: Buffer with content
+        val content = "Hello World"
+        val buffer = createBuffer(content)
+
+        // When: Insert at end
+        val position = TextPosition(offset = 11L, line = 0, column = 11)
+        val result = buffer.insertText(position, " END")
+
+        // Then: Insert succeeded
+        result.isSuccess shouldBe true
+
+        // And: Content updated
+        val newContent = buffer.getTextForRange(0, 0).getOrThrow()
+        newContent shouldBe "Hello World END"
+    }
+
+    @Test
+    fun `insertText in middle of line`() = runTest {
+        // Given: Buffer with content
+        val content = "Hello World"
+        val buffer = createBuffer(content)
+
+        // When: Insert in middle (after "Hello")
+        val position = TextPosition(offset = 5L, line = 0, column = 5)
+        val result = buffer.insertText(position, " Beautiful")
+
+        // Then: Insert succeeded
+        result.isSuccess shouldBe true
+
+        // And: Content updated
+        val newContent = buffer.getTextForRange(0, 0).getOrThrow()
+        newContent shouldBe "Hello Beautiful World"
+    }
+
+    @Test
+    fun `insertText with newlines updates line count`() = runTest {
+        // Given: Buffer with single line
+        val content = "Hello World"
+        val buffer = createBuffer(content)
+        buffer.totalLines.value shouldBe 1
+
+        // When: Insert text with newlines
+        val position = TextPosition(offset = 5L, line = 0, column = 5)
+        val result = buffer.insertText(position, "\nNew Line\n")
+
+        // Then: Insert succeeded
+        result.isSuccess shouldBe true
+
+        // And: Line count updated
+        buffer.totalLines.value shouldBe 3
+
+        // And: Lines accessible
+        buffer.getTextForLine(0).getOrThrow() shouldBe "Hello"
+        buffer.getTextForLine(1).getOrThrow() shouldBe "New Line"
+        buffer.getTextForLine(2).getOrThrow() shouldBe " World"
+    }
+
+    @Test
+    fun `insertText returns new cursor position`() = runTest {
+        // Given: Buffer with content
+        val content = "Hello World"
+        val buffer = createBuffer(content)
+
+        // When: Insert text
+        val position = TextPosition(offset = 5L, line = 0, column = 5)
+        val result = buffer.insertText(position, " INSERTED")
+
+        // Then: Returns new position after inserted text
+        val newPosition = result.getOrThrow()
+        newPosition.offset shouldBe 14L  // 5 + 9 (" INSERTED".length)
+    }
+
+    @Test
+    fun `deleteText single character`() = runTest {
+        // Given: Buffer with content
+        val content = "Hello World"
+        val buffer = createBuffer(content)
+
+        // When: Delete single char at position 5 (" ")
+        val result = buffer.deleteText(
+            startPosition = TextPosition(offset = 5L, line = 0, column = 5),
+            endPosition = TextPosition(offset = 6L, line = 0, column = 6)
+        )
+
+        // Then: Delete succeeded
+        result.isSuccess shouldBe true
+
+        // And: Content updated
+        val newContent = buffer.getTextForRange(0, 0).getOrThrow()
+        newContent shouldBe "HelloWorld"
+
+        // And: Modified flag set
+        buffer.isModified.value shouldBe true
+    }
+
+    @Test
+    fun `deleteText multiple characters`() = runTest {
+        // Given: Buffer with content
+        val content = "Hello Beautiful World"
+        val buffer = createBuffer(content)
+
+        // When: Delete "Beautiful " (10 chars)
+        val result = buffer.deleteText(
+            startPosition = TextPosition(offset = 6L, line = 0, column = 6),
+            endPosition = TextPosition(offset = 16L, line = 0, column = 16)
+        )
+
+        // Then: Delete succeeded
+        result.isSuccess shouldBe true
+
+        // And: Content updated
+        val newContent = buffer.getTextForRange(0, 0).getOrThrow()
+        newContent shouldBe "Hello World"
+    }
+
+    @Test
+    fun `deleteText with newlines updates line count`() = runTest {
+        // Given: Buffer with multiple lines
+        val content = "Line 1\nLine 2\nLine 3"
+        val buffer = createBuffer(content)
+        buffer.totalLines.value shouldBe 3
+
+        // When: Delete middle line including its newline
+        val result = buffer.deleteText(
+            startPosition = TextPosition(offset = 7L, line = 1, column = 0),  // Start of "Line 2"
+            endPosition = TextPosition(offset = 14L, line = 2, column = 0)    // Before "Line 3"
+        )
+
+        // Then: Delete succeeded
+        result.isSuccess shouldBe true
+
+        // And: Line count updated
+        buffer.totalLines.value shouldBe 2
+
+        // And: Content correct
+        buffer.getTextForLine(0).getOrThrow() shouldBe "Line 1"
+        buffer.getTextForLine(1).getOrThrow() shouldBe "Line 3"
+    }
+
+    @Test
+    fun `multiple edits before save accumulate`() = runTest {
+        // Given: Buffer with content
+        val content = "Hello World"
+        val buffer = createBuffer(content)
+
+        // When: Multiple edits
+        buffer.insertText(TextPosition(0L, 0, 0), "START ")
+        buffer.insertText(TextPosition(17L, 0, 17), " END")
+
+        // Then: Both edits present
+        val newContent = buffer.getTextForRange(0, 0).getOrThrow()
+        newContent shouldBe "START Hello World END"
+
+        // And: Modified flag set
+        buffer.isModified.value shouldBe true
+    }
+
+    @Test
+    fun `saveFile after edit attempts save`() = runTest {
+        // Given: Buffer with edits
+        val content = "Original"
+        val buffer = createBuffer(content)
+
+        buffer.insertText(TextPosition(0L, 0, 0), "Modified ")
+
+        // Then: isModified flag is set
+        buffer.isModified.value shouldBe true
+
+        // When: Attempt save (will fail with InMemoryDataSource)
+        val result = buffer.saveFile()
+
+        // Then: Save fails (InMemoryDataSource doesn't support save)
+        result.isFailure shouldBe true
+
+        // Note: isModified remains true because save failed
+        // (This is correct behavior - only clear on successful save)
+    }
+
+    @Test
+    fun `saveFile with no modifications returns success (no-op)`() = runTest {
+        // Given: Buffer with no edits
+        val content = "Unchanged"
+        val buffer = createBuffer(content)
+
+        // When: Attempt save
+        val result = buffer.saveFile()
+
+        // Then: Succeeds (no dirty chunks to save, so it's a no-op)
+        result.isSuccess shouldBe true
+
+        // And: isModified remains false (no edits were made)
+        buffer.isModified.value shouldBe false
+    }
+
+    // Note: Can't test successful save with InMemoryDataSource
+    // FileDataSource save() functionality is tested in FileDataSourceTest
 }
