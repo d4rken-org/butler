@@ -20,6 +20,8 @@ interface SetupModule {
 
         interface Current : State {
             val isComplete: Boolean
+            val isAvailable: Boolean
+                get() = true
         }
     }
 

@@ -19,6 +19,7 @@ import eu.darken.butler.workspace.core.setup.SetupStateProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -73,7 +74,7 @@ class PathPermissionCheck @Inject constructor(
 
         // Special case: Android/data and Android/obb
         val isRestrictedPath = storageEnvironment.publicDataDirs.any { path.isDescendantOfOrSelf(it) } ||
-                storageEnvironment.publicObbDirs.any { path.isDescendantOfOrSelf(it) }
+            storageEnvironment.publicObbDirs.any { path.isDescendantOfOrSelf(it) }
 
         if (isRestrictedPath) {
             // PHASE 1: Check if SAF path already available (permission exists)
@@ -89,43 +90,44 @@ class PathPermissionCheck @Inject constructor(
                 }
             }
 
+            val setupModules = setupStateProvider.state.first()
+            val isRootAvailable = setupModules.modules[SetupModule.Type.ROOT]
+                ?.let { it as? SetupModule.State.Current }?.isAvailable == true
+            log(TAG) { "ROOT maybe available? $isRootAvailable" }
+            val isShizukuAvailable = setupModules.modules[SetupModule.Type.SHIZUKU]
+                ?.let { it as? SetupModule.State.Current }?.isAvailable == true
+            log(TAG) { "SHIZUKU maybe available? $isShizukuAvailable" }
+
             // PHASE 2: Determine access method
             return when {
                 apiLevel.has(33) -> {
                     // Android 13+: SAF trick broken, Root/Shizuku only
                     log(TAG) { "Android 13+ detected, SAF not available for $localPath" }
                     WorkspaceRequirements(
-                        combos = setOf(
-                            setOf(SetupModule.Type.STORAGE, SetupModule.Type.ROOT),
-                            setOf(SetupModule.Type.STORAGE, SetupModule.Type.SHIZUKU),
+                        combos = setOfNotNull(
+                            if (isRootAvailable) setOf(SetupModule.Type.ROOT) else null,
+                            if (isShizukuAvailable) setOf(SetupModule.Type.SHIZUKU) else null,
                         )
                     )
                 }
                 apiLevel.has(30) -> {
                     // Android 11-12: Check if SAF picker works
-                    if (androidDataAccessChecker.canUseSAFForAndroidData()) {
-                        val intent = safPickerIntentBuilder.buildPickerIntent(localPath)
-                        if (intent != null) {
-                            log(TAG) { "SAF picker available for $localPath" }
-                            WorkspaceRequirements(safPickerGrant = SAFPickerGrant(intent, localPath))
-                        } else {
-                            log(TAG, WARN) { "Failed to build SAF picker intent for $localPath" }
-                            WorkspaceRequirements(
-                                combos = setOf(
-                                    setOf(SetupModule.Type.STORAGE, SetupModule.Type.ROOT),
-                                    setOf(SetupModule.Type.STORAGE, SetupModule.Type.SHIZUKU),
-                                )
-                            )
-                        }
-                    } else {
-                        log(TAG) { "DocumentsUI restricted, SAF not available for $localPath" }
-                        WorkspaceRequirements(
-                            combos = setOf(
-                                setOf(SetupModule.Type.STORAGE, SetupModule.Type.ROOT),
-                                setOf(SetupModule.Type.STORAGE, SetupModule.Type.SHIZUKU),
-                            )
+                    WorkspaceRequirements(
+                        safPickerGrant = safPickerIntentBuilder.buildPickerIntent(localPath)
+                            ?.takeIf {
+                                androidDataAccessChecker.canUseSAFForAndroidData().also {
+                                    if (!it) log(TAG) { "DocumentsUI restricted, SAF not available for $localPath" }
+                                }
+                            }
+                            ?.let {
+                                log(TAG) { "SAF picker available for $localPath" }
+                                SAFPickerGrant(it, localPath)
+                            },
+                        combos = setOfNotNull(
+                            if (isRootAvailable) setOf(SetupModule.Type.ROOT) else null,
+                            if (isShizukuAvailable) setOf(SetupModule.Type.SHIZUKU) else null,
                         )
-                    }
+                    )
                 }
                 else -> {
                     // Android <11: Just storage permission

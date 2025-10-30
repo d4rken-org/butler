@@ -5,8 +5,7 @@ import android.content.pm.PackageManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.replayingShare
@@ -118,7 +117,9 @@ class RootManager @Inject constructor(
     companion object {
         internal val TAG = logTag("Root", "Manager")
         private val KNOWN_ROOT_MANAGERS = setOf(
-            "com.topjohnwu.magisk"
+            "com.topjohnwu.magisk",
+            "me.weishu.kernelsu",
+            "com.rifsxd.ksunext",
         )
     }
 }

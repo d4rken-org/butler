@@ -33,6 +33,9 @@ data class WorkspaceRequirements(
     val needsAction: Boolean
         get() = needsSetup || safPickerGrant != null || alternativePath != null
 
+    val hasSetupOptions: Boolean
+        get() = combos.isNotEmpty()
+
     val relevantTypes: Set<SetupModule.Type>
         get() = combos.flatten().distinct().toSet()
 }

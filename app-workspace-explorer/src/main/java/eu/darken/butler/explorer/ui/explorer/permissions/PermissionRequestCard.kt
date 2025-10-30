@@ -52,7 +52,7 @@ fun PermissionRequestCard(
             Icon(
                 imageVector = Icons.TwoTone.FolderOff,
                 contentDescription = null,
-                modifier = Modifier.size(72.dp),
+                modifier = Modifier.size(64.dp),
                 tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
             )
 
@@ -68,21 +68,15 @@ fun PermissionRequestCard(
 
             // Contextual explanation based on requirements
             val explanation = when {
+                // Both SAF picker AND setup options available
+                setupRequirements.safPickerGrant != null && setupRequirements.hasSetupOptions -> {
+                    stringResource(R.string.explorer_permission_multiple_options_description)
+                }
+
                 // SAF picker available (Android 11-12)
                 setupRequirements.safPickerGrant != null -> {
-                    if (setupRequirements.combos.isNotEmpty()) {
-                        // Multiple options available
-                        buildString {
-                            append(stringResource(R.string.explorer_permission_saf_workaround_description))
-                            if (setupRequirements.shizukuInstalled || setupRequirements.rootInstalled) {
-                                append("\n\n")
-                                append(stringResource(R.string.explorer_permission_alternative_apps_available))
-                            }
-                        }
-                    } else {
-                        // Only SAF available
-                        stringResource(R.string.explorer_permission_saf_only_description)
-                    }
+                    // Only SAF available
+                    stringResource(R.string.explorer_permission_saf_only_description)
                 }
 
                 // Setup modules needed (Root/Shizuku)
@@ -111,31 +105,35 @@ fun PermissionRequestCard(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            when {
-                setupRequirements.safPickerGrant != null && onLaunchSAFPicker != null -> {
-                    // Show SAF picker button for just-in-time permission grant
-                    val grant = setupRequirements.safPickerGrant!!
-                    Button(
-                        onClick = { onLaunchSAFPicker(grant) },
-                        modifier = Modifier.fillMaxWidth(0.8f),
-                    ) {
-                        Text(
-                            text = stringResource(R.string.explorer_grant_access_action),
-                            modifier = Modifier.padding(vertical = 4.dp),
-                        )
-                    }
+            // Show SAF picker button for just-in-time permission grant
+            if (setupRequirements.safPickerGrant != null && onLaunchSAFPicker != null) {
+                val grant = setupRequirements.safPickerGrant!!
+                Button(
+                    onClick = { onLaunchSAFPicker(grant) },
+                    modifier = Modifier.fillMaxWidth(0.8f),
+                ) {
+                    Text(
+                        text = stringResource(R.string.explorer_grant_access_action),
+                        modifier = Modifier.padding(vertical = 4.dp),
+                    )
                 }
-                setupRequirements.needsSetup -> {
-                    // Show setup button for Root/Shizuku setup
-                    Button(
-                        onClick = onNavigateToSetup,
-                        modifier = Modifier.fillMaxWidth(0.8f),
-                    ) {
-                        Text(
-                            text = stringResource(R.string.explorer_permission_setup_action),
-                            modifier = Modifier.padding(vertical = 4.dp),
-                        )
-                    }
+            }
+
+            // Show spacer between buttons if both are present
+            if (setupRequirements.safPickerGrant != null && setupRequirements.hasSetupOptions) {
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            // Show setup button for Root/Shizuku setup
+            if (setupRequirements.hasSetupOptions) {
+                Button(
+                    onClick = onNavigateToSetup,
+                    modifier = Modifier.fillMaxWidth(0.8f),
+                ) {
+                    Text(
+                        text = stringResource(R.string.explorer_permission_setup_action),
+                        modifier = Modifier.padding(vertical = 4.dp),
+                    )
                 }
             }
         }

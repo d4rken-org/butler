@@ -78,7 +78,7 @@ internal fun AdaptiveLayoutPage(
                 Icon(
                     imageVector = Icons.TwoTone.Devices,
                     contentDescription = null,
-                    modifier = Modifier.size(72.dp),
+                    modifier = Modifier.size(64.dp),
                     tint = MaterialTheme.colorScheme.primary
                 )
 

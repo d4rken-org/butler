@@ -366,6 +366,7 @@
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">Android restricts access to this folder. Use the folder picker to grant access.</string>
     <string name="explorer_permission_saf_only_description">This folder requires special permission. Tap "Grant Access" to open Android\'s folder picker and select this folder.</string>
+    <string name="explorer_permission_multiple_options_description">You can grant access using Android\'s folder picker (quick, works immediately) or configure Root/Shizuku in Setup for permanent full access to all restricted folders.</string>
     <string name="explorer_permission_alternative_apps_available">Alternatively, you can use Root or Shizuku for full access (configure in Setup).</string>
     <string name="explorer_permission_setup_both_description">This folder requires elevated access. Install and configure either Root Manager or Shizuku in Setup.</string>
     <string name="explorer_permission_setup_shizuku_description">This folder requires elevated access via Shizuku. Install Shizuku Manager and configure in Setup.</string>
