@@ -63,163 +63,167 @@ class CreateOperation @AssistedInject constructor(
     override fun perform(
         operationContext: Operation.Context
     ): Flow<State> = flow {
-        log(tag) { "perform(): $command" }
+        gatewaySwitch.useRes {
+            log(tag) { "perform(): $command" }
 
-        val operationState = State.Active(
-            startedAt = operationContext.startedAt,
-        )
-        emit(operationState)
-
-        val reportBuilder = CreateOperationReport.Builder()
-
-        var currentCommand = command
-        var destinationPath: APath<*>
-
-        // Loop to handle conflicts until we have a clear destination path
-        while (currentCoroutineContext().isActive) {
-            destinationPath = currentCommand.parentPath.child(currentCommand.name)
-
-            if (!gatewaySwitch.exists(destinationPath)) {
-                break // No conflict, proceed to creation
-            }
-
-            val issue = PathActionIssue.PathAlreadyExists(
-                destination = gatewaySwitch.lookup(destinationPath, LookupOptions.BASE),
-                canRenameSource = true,
-                canOverwrite = true,
-            )
-            log(tag) { "perform(): Issue: $issue" }
-
-            State.Waiting(
+            val operationState = State.Active(
                 startedAt = operationContext.startedAt,
-                issue = issue,
-            ).run { emit(this) }
+            )
+            emit(operationState)
 
-            val resolution = issueHandler.handleIssue(
-                operationId = operationContext.id,
-                issue = issue
-            ) as PathActionIssue.PathAlreadyExists.Resolution
-            log(tag) { "perform(): Issue: $issue - Resolution: $resolution" }
+            val reportBuilder = CreateOperationReport.Builder()
 
-            when (resolution) {
-                is PathActionIssue.PathAlreadyExists.Resolution.RenameSource -> {
-                    currentCommand = currentCommand.copy(name = resolution.newName)
-                    // Continue loop to check if new name also conflicts
+            var currentCommand = command
+            var destinationPath: APath<*>
+
+            // Loop to handle conflicts until we have a clear destination path
+            while (currentCoroutineContext().isActive) {
+                destinationPath = currentCommand.parentPath.child(currentCommand.name)
+
+                if (!gatewaySwitch.exists(destinationPath)) {
+                    break // No conflict, proceed to creation
                 }
 
-                is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
-                    while (currentCoroutineContext().isActive) {
-                        try {
-                            destinationPath.delete(
-                                gateway = gatewaySwitch,
-                                options = DeleteAction.Options(
-                                    recursive = true,
-                                    onIssue = { issue ->
-                                        State.Waiting(
-                                            startedAt = operationContext.startedAt,
-                                            waitingSince = Clock.System.now(),
-                                            issue = issue,
-                                        ).run { emit(this) }
-
-                                        issueHandler.handleIssue(
-                                            operationContext.id,
-                                            issue
-                                        ) as PathActionIssue.Resolution
-                                    }
-                                )
-                            ).last()
-                            break // Delete succeeded, exit loop
-                        } catch (e: Exception) {
-                            val deleteIssue = PathActionIssue.UnknownError(
-                                exception = e,
-                                errorMessage = (e.message ?: e.toString()).toCaString(),
-                                destination = gatewaySwitch.lookup(destinationPath, LookupOptions.BASE),
-                                canRetry = true,
-                                canSkip = false,
-                            )
-
-                            State.Waiting(
-                                startedAt = operationContext.startedAt,
-                                waitingSince = Clock.System.now(),
-                                issue = deleteIssue,
-                            ).run { emit(this) }
-                            val resolution = issueHandler.handleIssue(
-                                operationId = operationContext.id,
-                                issue = deleteIssue
-                            ) as PathActionIssue.UnknownError.Resolution
-                            when (resolution) {
-                                is PathActionIssue.UnknownError.Resolution.Retry -> continue
-                                is PathActionIssue.UnknownError.Resolution.Cancel -> throw CancellationException("Operation cancelled")
-                                is PathActionIssue.UnknownError.Resolution.Skip -> throw IllegalStateException("canSkip = false")
-                            }
-                        }
-                    }
-                    break // Path is now clear, proceed to creation
-                }
-
-                is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> throw IllegalArgumentException("Can't rename destination on create")
-                is PathActionIssue.PathAlreadyExists.Resolution.Merge -> throw IllegalArgumentException("Can't merge on create")
-                is PathActionIssue.PathAlreadyExists.Resolution.Skip -> throw IllegalStateException("canSkip = false")
-                is PathActionIssue.PathAlreadyExists.Resolution.Cancel -> throw CancellationException("Operation cancelled")
-            }
-        }
-
-        // At this point, destinationPath should be conflict-free
-        destinationPath = currentCommand.parentPath.child(currentCommand.name)
-
-        // Create the file or directory
-        while (currentCoroutineContext().isActive) {
-            try {
-                when (currentCommand.type) {
-                    ExplorerCommand.Create.Type.FILE -> {
-                        gatewaySwitch.createFile(destinationPath)
-                    }
-                    ExplorerCommand.Create.Type.DIRECTORY -> {
-                        gatewaySwitch.createDir(destinationPath)
-                    }
-                }
-                break // Creation succeeded, exit loop
-            } catch (e: Exception) {
-                val createIssue = PathActionIssue.UnknownError(
-                    exception = e,
-                    errorMessage = (e.message ?: e.toString()).toCaString(),
+                val issue = PathActionIssue.PathAlreadyExists(
                     destination = gatewaySwitch.lookup(destinationPath, LookupOptions.BASE),
-                    canRetry = true,
-                    canSkip = false,
+                    canRenameSource = true,
+                    canOverwrite = true,
                 )
+                log(tag) { "perform(): Issue: $issue" }
 
                 State.Waiting(
                     startedAt = operationContext.startedAt,
-                    waitingSince = Clock.System.now(),
-                    issue = createIssue,
+                    issue = issue,
                 ).run { emit(this) }
 
                 val resolution = issueHandler.handleIssue(
                     operationId = operationContext.id,
-                    issue = createIssue
-                ) as PathActionIssue.UnknownError.Resolution
+                    issue = issue
+                ) as PathActionIssue.PathAlreadyExists.Resolution
+                log(tag) { "perform(): Issue: $issue - Resolution: $resolution" }
 
                 when (resolution) {
-                    is PathActionIssue.UnknownError.Resolution.Retry -> continue
-                    is PathActionIssue.UnknownError.Resolution.Cancel -> throw CancellationException("Operation cancelled")
-                    is PathActionIssue.UnknownError.Resolution.Skip -> throw IllegalStateException("canSkip = false")
+                    is PathActionIssue.PathAlreadyExists.Resolution.RenameSource -> {
+                        currentCommand = currentCommand.copy(name = resolution.newName)
+                        // Continue loop to check if new name also conflicts
+                    }
+
+                    is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
+                        while (currentCoroutineContext().isActive) {
+                            try {
+                                destinationPath.delete(
+                                    gateway = gatewaySwitch,
+                                    options = DeleteAction.Options(
+                                        recursive = true,
+                                        onIssue = { issue ->
+                                            State.Waiting(
+                                                startedAt = operationContext.startedAt,
+                                                waitingSince = Clock.System.now(),
+                                                issue = issue,
+                                            ).run { emit(this) }
+
+                                            issueHandler.handleIssue(
+                                                operationContext.id,
+                                                issue
+                                            ) as PathActionIssue.Resolution
+                                        }
+                                    )
+                                ).last()
+                                break // Delete succeeded, exit loop
+                            } catch (e: Exception) {
+                                val deleteIssue = PathActionIssue.UnknownError(
+                                    exception = e,
+                                    errorMessage = (e.message ?: e.toString()).toCaString(),
+                                    destination = gatewaySwitch.lookup(destinationPath, LookupOptions.BASE),
+                                    canRetry = true,
+                                    canSkip = false,
+                                )
+
+                                State.Waiting(
+                                    startedAt = operationContext.startedAt,
+                                    waitingSince = Clock.System.now(),
+                                    issue = deleteIssue,
+                                ).run { emit(this) }
+                                val resolution = issueHandler.handleIssue(
+                                    operationId = operationContext.id,
+                                    issue = deleteIssue
+                                ) as PathActionIssue.UnknownError.Resolution
+                                when (resolution) {
+                                    is PathActionIssue.UnknownError.Resolution.Retry -> continue
+                                    is PathActionIssue.UnknownError.Resolution.Cancel -> throw CancellationException("Operation cancelled")
+                                    is PathActionIssue.UnknownError.Resolution.Skip -> throw IllegalStateException("canSkip = false")
+                                }
+                            }
+                        }
+                        break // Path is now clear, proceed to creation
+                    }
+
+                    is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> throw IllegalArgumentException(
+                        "Can't rename destination on create"
+                    )
+                    is PathActionIssue.PathAlreadyExists.Resolution.Merge -> throw IllegalArgumentException("Can't merge on create")
+                    is PathActionIssue.PathAlreadyExists.Resolution.Skip -> throw IllegalStateException("canSkip = false")
+                    is PathActionIssue.PathAlreadyExists.Resolution.Cancel -> throw CancellationException("Operation cancelled")
                 }
             }
+
+            // At this point, destinationPath should be conflict-free
+            destinationPath = currentCommand.parentPath.child(currentCommand.name)
+
+            // Create the file or directory
+            while (currentCoroutineContext().isActive) {
+                try {
+                    when (currentCommand.type) {
+                        ExplorerCommand.Create.Type.FILE -> {
+                            gatewaySwitch.createFile(destinationPath)
+                        }
+                        ExplorerCommand.Create.Type.DIRECTORY -> {
+                            gatewaySwitch.createDir(destinationPath)
+                        }
+                    }
+                    break // Creation succeeded, exit loop
+                } catch (e: Exception) {
+                    val createIssue = PathActionIssue.UnknownError(
+                        exception = e,
+                        errorMessage = (e.message ?: e.toString()).toCaString(),
+                        destination = gatewaySwitch.lookup(destinationPath, LookupOptions.BASE),
+                        canRetry = true,
+                        canSkip = false,
+                    )
+
+                    State.Waiting(
+                        startedAt = operationContext.startedAt,
+                        waitingSince = Clock.System.now(),
+                        issue = createIssue,
+                    ).run { emit(this) }
+
+                    val resolution = issueHandler.handleIssue(
+                        operationId = operationContext.id,
+                        issue = createIssue
+                    ) as PathActionIssue.UnknownError.Resolution
+
+                    when (resolution) {
+                        is PathActionIssue.UnknownError.Resolution.Retry -> continue
+                        is PathActionIssue.UnknownError.Resolution.Cancel -> throw CancellationException("Operation cancelled")
+                        is PathActionIssue.UnknownError.Resolution.Skip -> throw IllegalStateException("canSkip = false")
+                    }
+                }
+            }
+
+            val createdLookup = gatewaySwitch.lookup(destinationPath, LookupOptions.BASE)
+            fileSystemHinter.trackPathsAdded(operationContext.id, setOf(createdLookup))
+
+            FileSystemEvent.Added(
+                operationId = operationContext.id,
+                paths = setOf(createdLookup)
+            ).run { reportBuilder.addPathEvent(this) }
+
+
+            State.Completed(
+                startedAt = operationContext.startedAt,
+                report = reportBuilder.build()
+            ).run { emit(this) }
         }
-
-        val createdLookup = gatewaySwitch.lookup(destinationPath, LookupOptions.BASE)
-        fileSystemHinter.trackPathsAdded(operationContext.id, setOf(createdLookup))
-
-        FileSystemEvent.Added(
-            operationId = operationContext.id,
-            paths = setOf(createdLookup)
-        ).run { reportBuilder.addPathEvent(this) }
-
-
-        State.Completed(
-            startedAt = operationContext.startedAt,
-            report = reportBuilder.build()
-        ).run { emit(this) }
     }
 
     @AssistedFactory
