@@ -73,7 +73,6 @@ fun EditorWorkspacePageHost(
     val workspaceButtonState by workspaceButtonVm.state.collectAsState(null)
 
     val state by waitForState(vm.state)
-    log(vm.tag) { "Compose state: $state" }
 
     state?.let { state ->
         EditorWorkspacePage(

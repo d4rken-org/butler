@@ -535,4 +535,132 @@ class ChunkedTextBufferTest : BaseTest() {
         val text = buffer.getText(0, 100).getOrThrow()
         text shouldBe content
     }
+
+    // ==================== P0 Tests: Multi-Chunk Lines (Critical for Long Lines) ====================
+
+    @Test
+    fun `multi-chunk line - very long line spanning 3 chunks`() = runTest {
+        // Given: A single 300-byte line with 100-byte chunks (spans 3 chunks)
+        val veryLongLine = "x".repeat(300)
+        val content = "$veryLongLine\nshort line"
+        val buffer = createBuffer(content, chunkSize = 100)
+
+        // Then: Should count 2 lines
+        buffer.totalLines.value shouldBe 2
+
+        // When: Getting the long line
+        val line = buffer.getTextForLine(0).getOrThrow()
+
+        // Then: Should get COMPLETE line (not truncated at chunk boundary)
+        line shouldBe veryLongLine
+        line.length shouldBe 300  // Full 300 chars, not just first 100
+
+        // And: Second line should work too
+        buffer.getTextForLine(1).getOrThrow() shouldBe "short line"
+    }
+
+    @Test
+    fun `multi-chunk line - entire file is single line without newline`() = runTest {
+        // Given: 500-byte file with NO newlines, 100-byte chunks
+        val singleLine = "ABCDEFGHIJ".repeat(50)  // 500 bytes
+        val buffer = createBuffer(singleLine, chunkSize = 100)
+
+        // Then: Should count as 1 line
+        buffer.totalLines.value shouldBe 1
+
+        // When: Getting the line
+        val line = buffer.getTextForLine(0).getOrThrow()
+
+        // Then: Should get complete content
+        line shouldBe singleLine
+        line.length shouldBe 500
+    }
+
+    @Test
+    fun `multi-chunk line - multiple long lines each spanning chunks`() = runTest {
+        // Given: 3 lines, each 150 bytes, with 100-byte chunks
+        val line1 = "1".repeat(150)
+        val line2 = "2".repeat(150)
+        val line3 = "3".repeat(150)
+        val content = "$line1\n$line2\n$line3"
+        val buffer = createBuffer(content, chunkSize = 100)
+
+        // Then: 3 lines counted
+        buffer.totalLines.value shouldBe 3
+
+        // When: Getting each line
+        val retrievedLine1 = buffer.getTextForLine(0).getOrThrow()
+        val retrievedLine2 = buffer.getTextForLine(1).getOrThrow()
+        val retrievedLine3 = buffer.getTextForLine(2).getOrThrow()
+
+        // Then: All lines complete
+        retrievedLine1 shouldBe line1
+        retrievedLine2 shouldBe line2
+        retrievedLine3 shouldBe line3
+    }
+
+    @Test
+    fun `multi-chunk line - line ending exactly at chunk boundary`() = runTest {
+        // Given: Line with exactly 99 chars + newline (100 bytes total = exact chunk size)
+        val line1 = "x".repeat(99)
+        val line2 = "second line"
+        val content = "$line1\n$line2"
+        val buffer = createBuffer(content, chunkSize = 100)
+
+        // Then: Should count 2 lines
+        buffer.totalLines.value shouldBe 2
+
+        // When: Getting each line
+        val retrievedLine1 = buffer.getTextForLine(0).getOrThrow()
+        val retrievedLine2 = buffer.getTextForLine(1).getOrThrow()
+
+        // Then: Both lines correct (tests chunk boundary transition)
+        retrievedLine1 shouldBe line1
+        retrievedLine2 shouldBe line2
+    }
+
+    @Test
+    fun `multi-chunk line - getTextForRange with multi-chunk lines`() = runTest {
+        // Given: 3 lines each spanning 2 chunks (150 bytes each) with 100-byte chunks
+        val line1 = "1".repeat(150)
+        val line2 = "2".repeat(150)
+        val line3 = "3".repeat(150)
+        val content = "$line1\n$line2\n$line3"
+        val buffer = createBuffer(content, chunkSize = 100)
+
+        // When: Getting range of all 3 lines at once
+        val range = buffer.getTextForRange(0, 2).getOrThrow()
+
+        // Then: Should get all 3 complete lines with newlines preserved
+        range shouldBe "$line1\n$line2\n$line3"
+    }
+
+    @Test
+    fun `multi-chunk line - empty lines between multi-chunk lines`() = runTest {
+        // Given: Long line + 3 empty lines + another long line
+        val line1 = "A".repeat(150)
+        val line2 = ""  // empty line
+        val line3 = ""  // empty line
+        val line4 = ""  // empty line
+        val line5 = "B".repeat(150)
+        val content = "$line1\n\n\n\n$line5"
+        val buffer = createBuffer(content, chunkSize = 100)
+
+        // Then: Should count 5 lines
+        buffer.totalLines.value shouldBe 5
+
+        // When: Getting each line
+        val retrievedLine1 = buffer.getTextForLine(0).getOrThrow()
+        val retrievedLine2 = buffer.getTextForLine(1).getOrThrow()
+        val retrievedLine3 = buffer.getTextForLine(2).getOrThrow()
+        val retrievedLine4 = buffer.getTextForLine(3).getOrThrow()
+        val retrievedLine5 = buffer.getTextForLine(4).getOrThrow()
+
+        // Then: All lines correct (long lines complete, empty lines empty)
+        retrievedLine1 shouldBe line1
+        retrievedLine2 shouldBe line2
+        retrievedLine3 shouldBe line3
+        retrievedLine4 shouldBe line4
+        retrievedLine5 shouldBe line5
+    }
 }
