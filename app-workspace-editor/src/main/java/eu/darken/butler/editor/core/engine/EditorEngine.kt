@@ -270,43 +270,37 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    fun insertText(text: String) {
+    suspend fun insertText(text: String) {
         val currentState = _state.value
 
         when (currentState) {
             is EditorState.Loaded -> {
-                // TEMPORARY FIX: Bypass complex text buffer and directly update content
-                val currentContent = _currentContent.value
-                val currentPos = _cursorPosition.value
+                log(tag) { "Inserting text at position ${_cursorPosition.value}: ${text.take(50)}..." }
 
-                val beforeCursor = currentContent.substring(0, currentPos.offset.toInt().coerceIn(0, currentContent.length))
-                val afterCursor = currentContent.substring(currentPos.offset.toInt().coerceIn(0, currentContent.length))
-                val newContent = beforeCursor + text + afterCursor
+                val result = currentState.resources.textBuffer.insertText(_cursorPosition.value, text)
 
-                _currentContent.value = newContent
+                result.fold(
+                    onSuccess = { newPosition ->
+                        log(tag) { "Text inserted successfully, new position: $newPosition" }
 
-                val lines = if (newContent.isEmpty()) 1 else newContent.split('\n').size
-                _totalLines.value = lines
+                        // Update cursor position from result
+                        _cursorPosition.value = newPosition
 
-                val currentRange = _visibleRange.value
-                if (currentRange.last < lines - 1) {
-                    _visibleRange.value = currentRange.first..minOf(currentRange.first + 50, lines - 1)
-                }
+                        // Mark as modified
+                        _state.value = currentState.copy(isModified = true)
 
-                val newOffset = currentPos.offset + text.length
-                val newPosition = TextPosition(
-                    offset = newOffset,
-                    line = currentPos.line + text.count { it == '\n' },
-                    column = if (text.contains('\n')) {
-                        text.length - text.lastIndexOf('\n') - 1
-                    } else {
-                        currentPos.column + text.length
+                        // Update total lines from text buffer
+                        _totalLines.value = currentState.resources.textBuffer.totalLines.value
+
+                        // Refresh visible content from updated chunks
+                        val currentRange = _visibleRange.value
+                        updateVisibleRange(currentRange.first, currentRange.last)
+                    },
+                    onFailure = { e ->
+                        log(tag, Logging.Priority.ERROR) { "Failed to insert text - ${e.asLog()}" }
+                        _error.value = e
                     }
                 )
-                _cursorPosition.value = newPosition
-
-                // Update state to mark as modified
-                _state.value = currentState.copy(isModified = true)
             }
             else -> {
                 log(tag, Logging.Priority.WARN) { "Cannot insert text - no file open" }

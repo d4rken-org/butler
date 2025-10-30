@@ -182,8 +182,14 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun insertText(text: String) {
-        val workspace = getCurrentWorkspace()
-        workspace?.insertText(text)
+        launch {
+            try {
+                val workspace = workspaceFlow.first() as? EditorWorkspace
+                workspace?.insertText(text)
+            } catch (e: Exception) {
+                log(tag, Logging.Priority.ERROR) { "Failed to insert text - ${e.asLog()}" }
+            }
+        }
     }
 
     fun deleteSelection() {
