@@ -450,14 +450,36 @@ class ChunkedTextBuffer @AssistedInject constructor(
         }
 
         val globalLineNumber = chunkMeta.firstLineNumber + currentLine
-        val column = offsetInChunk - lineStartPos
+
+        // Calculate column: if no newline found in this chunk, line may have started in previous chunk
+        val column = if (currentLine == 0 && chunkMeta.startOffset > 0) {
+            // Line started in previous chunk - need to find actual line start
+            val lineStartOffset = findLineStartOffset(offset)
+            (offset - lineStartOffset).toInt()
+        } else {
+            // Line started in this chunk
+            offsetInChunk - lineStartPos
+        }
 
         return TextPosition(offset, globalLineNumber, column)
     }
 
+    private suspend fun findLineStartOffset(offset: Long): Long {
+        // Scan backwards from offset to find the last newline (or file start)
+        var scanOffset = offset - 1
+        while (scanOffset >= 0) {
+            val text = getText(scanOffset, scanOffset + 1).getOrNull() ?: break
+            if (text == "\n") {
+                return scanOffset + 1
+            }
+            scanOffset--
+        }
+        return 0 // Line starts at file beginning
+    }
+
     suspend fun findOffset(line: Int, column: Int): Long {
         if (line < 0 || line >= _totalLines.value) {
-            return _totalLength.value
+            throw IndexOutOfBoundsException("Line $line is out of bounds (total lines: ${_totalLines.value})")
         }
 
         // Find chunk containing this line

@@ -1336,4 +1336,257 @@ class ChunkedTextBufferTest : BaseTest() {
         buffer.redo()
         buffer.totalLines.value shouldBe 5
     }
+
+    // ============================================================
+    // Phase 7A: Error Handling Tests
+    // ============================================================
+
+    @Test
+    fun `insertText with negative offset should fail gracefully`() = runTest {
+        val buffer = createBuffer("Hello World")
+        val originalContent = buffer.getTextForRange(0, 0).getOrThrow()
+
+        val result = buffer.insertText(
+            position = TextPosition(offset = -1L, line = 0, column = 0),
+            text = "Invalid"
+        )
+
+        result.isFailure shouldBe true
+        // State should remain unchanged
+        buffer.getTextForRange(0, 0).getOrThrow() shouldBe originalContent
+    }
+
+    @Test
+    fun `insertText beyond file size should fail gracefully`() = runTest {
+        val buffer = createBuffer("Hello")
+        val originalContent = buffer.getTextForRange(0, 0).getOrThrow()
+
+        val result = buffer.insertText(
+            position = TextPosition(offset = 1000L, line = 10, column = 10),
+            text = "Invalid"
+        )
+
+        result.isFailure shouldBe true
+        buffer.getTextForRange(0, 0).getOrThrow() shouldBe originalContent
+    }
+
+    @Test
+    fun `deleteText with end before start should fail gracefully`() = runTest {
+        val buffer = createBuffer("Hello World")
+        val originalContent = buffer.getTextForRange(0, 0).getOrThrow()
+
+        val result = buffer.deleteText(
+            startPosition = TextPosition(offset = 10L, line = 0, column = 10),
+            endPosition = TextPosition(offset = 5L, line = 0, column = 5)
+        )
+
+        result.isFailure shouldBe true
+        buffer.getTextForRange(0, 0).getOrThrow() shouldBe originalContent
+    }
+
+    @Test
+    fun `deleteText with negative offset should fail gracefully`() = runTest {
+        val buffer = createBuffer("Hello World")
+        val originalContent = buffer.getTextForRange(0, 0).getOrThrow()
+
+        val result = buffer.deleteText(
+            startPosition = TextPosition(offset = -1L, line = 0, column = 0),
+            endPosition = TextPosition(offset = 5L, line = 0, column = 5)
+        )
+
+        result.isFailure shouldBe true
+        buffer.getTextForRange(0, 0).getOrThrow() shouldBe originalContent
+    }
+
+    @Test
+    fun `deleteText beyond file size should fail gracefully`() = runTest {
+        val buffer = createBuffer("Hello")
+        val originalContent = buffer.getTextForRange(0, 0).getOrThrow()
+
+        val result = buffer.deleteText(
+            startPosition = TextPosition(offset = 0L, line = 0, column = 0),
+            endPosition = TextPosition(offset = 1000L, line = 10, column = 10)
+        )
+
+        result.isFailure shouldBe true
+        buffer.getTextForRange(0, 0).getOrThrow() shouldBe originalContent
+    }
+
+    @Test
+    fun `getTextForRange with negative line should fail gracefully`() = runTest {
+        val buffer = createBuffer("Line 1\nLine 2\nLine 3")
+
+        val result = buffer.getTextForRange(startLine = -1, endLine = 1)
+
+        result.isFailure shouldBe true
+    }
+
+    @Test
+    fun `getTextForRange with end before start should fail gracefully`() = runTest {
+        val buffer = createBuffer("Line 1\nLine 2\nLine 3")
+
+        val result = buffer.getTextForRange(startLine = 2, endLine = 0)
+
+        result.isFailure shouldBe true
+    }
+
+    @Test
+    fun `failed operations should not affect undo stack`() = runTest {
+        val buffer = createBuffer("Hello")
+
+        // Make a valid change
+        buffer.insertText(TextPosition(5, 0, 5), " World")
+        buffer.getTextForRange(0, 0).getOrThrow() shouldBe "Hello World"
+
+        // Attempt invalid operation
+        val failedResult = buffer.insertText(
+            position = TextPosition(offset = -1L, line = 0, column = 0),
+            text = "Invalid"
+        )
+        failedResult.isFailure shouldBe true
+
+        // Undo should only undo the valid operation
+        val undoResult = buffer.undo()
+        undoResult.isSuccess shouldBe true
+        buffer.getTextForRange(0, 0).getOrThrow() shouldBe "Hello"
+
+        // Second undo should return null (stack empty)
+        val secondUndo = buffer.undo()
+        secondUndo.isSuccess shouldBe true
+        secondUndo.getOrNull() shouldBe null
+    }
+
+    @Test
+    fun `undo on empty stack should return success with null operation`() = runTest {
+        val buffer = createBuffer("Hello")
+        val originalContent = buffer.getTextForRange(0, 0).getOrThrow()
+
+        val result = buffer.undo()
+
+        result.isSuccess shouldBe true
+        result.getOrNull() shouldBe null
+        buffer.getTextForRange(0, 0).getOrThrow() shouldBe originalContent
+    }
+
+    @Test
+    fun `redo on empty stack should return success with null operation`() = runTest {
+        val buffer = createBuffer("Hello")
+        val originalContent = buffer.getTextForRange(0, 0).getOrThrow()
+
+        val result = buffer.redo()
+
+        result.isSuccess shouldBe true
+        result.getOrNull() shouldBe null
+        buffer.getTextForRange(0, 0).getOrThrow() shouldBe originalContent
+    }
+
+    // ============================================================
+    // Phase 7B: Position/Offset Edge Cases
+    // ============================================================
+
+    @Test
+    fun `findPosition at exact chunk boundary returns correct position`() = runTest {
+        val chunk1 = "A".repeat(100)  // 100 bytes - chunk_0
+        val chunk2 = "B".repeat(100)  // 100 bytes - chunk_1
+        val content = chunk1 + chunk2
+        val buffer = createBuffer(content, chunkSize = 100L)
+
+        // Test position at exact chunk boundary (offset 100)
+        val position = buffer.findPosition(offset = 100L)
+
+        position.offset shouldBe 100L
+        position.line shouldBe 0
+        position.column shouldBe 100
+    }
+
+    @Test
+    fun `findOffset at last character in file returns correct offset`() = runTest {
+        val buffer = createBuffer("Hello")
+
+        val offset = buffer.findOffset(line = 0, column = 4)
+
+        offset shouldBe 4L  // 'o' is at offset 4
+    }
+
+    @Test
+    fun `findPosition in empty file returns zero position`() = runTest {
+        val buffer = createBuffer("")
+
+        val position = buffer.findPosition(offset = 0L)
+
+        position shouldBe TextPosition.ZERO
+    }
+
+    @Test
+    fun `findOffset with line beyond total should handle gracefully`() = runTest {
+        val buffer = createBuffer("Line 1\nLine 2")
+
+        // Attempting to find offset for line 10 (beyond file)
+        // Should return position at end of file or fail gracefully
+        val result = runCatching {
+            buffer.findOffset(line = 10, column = 0)
+        }
+
+        // We expect this to fail or return file size
+        result.isFailure shouldBe true
+    }
+
+    @Test
+    fun `findPosition at file end returns correct line and column`() = runTest {
+        val content = "Line 1\nLine 2"
+        val buffer = createBuffer(content)
+
+        val position = buffer.findPosition(offset = content.length.toLong())
+
+        position.offset shouldBe content.length.toLong()
+        position.line shouldBe 1
+        position.column shouldBe 6  // End of "Line 2"
+    }
+
+    @Test
+    fun `getText at exact chunk boundary returns correct content`() = runTest {
+        val chunk1 = "AAAA"  // 4 bytes
+        val chunk2 = "BBBB"  // 4 bytes
+        val content = chunk1 + chunk2
+        val buffer = createBuffer(content, chunkSize = 4L)
+
+        // Get text starting exactly at chunk boundary
+        val result = buffer.getText(startOffset = 4L, endOffset = 6L)
+
+        result.isSuccess shouldBe true
+        result.getOrThrow() shouldBe "BB"
+    }
+
+    @Test
+    fun `insertText at exact chunk boundary does not corrupt data`() = runTest {
+        val chunk1 = "AAAA"  // 4 bytes
+        val chunk2 = "BBBB"  // 4 bytes
+        val content = chunk1 + chunk2
+        val buffer = createBuffer(content, chunkSize = 4L)
+
+        // Insert exactly at chunk boundary (offset 4)
+        val result = buffer.insertText(TextPosition(4L, 0, 4), "XX")
+
+        result.isSuccess shouldBe true
+        val newContent = buffer.getTextForRange(0, 0).getOrThrow()
+        newContent shouldBe "AAAAXXBBBB"
+    }
+
+    @Test
+    fun `deleteText starting at chunk boundary preserves remaining content`() = runTest {
+        val chunk1 = "AAAA"  // 4 bytes
+        val chunk2 = "BBBB"  // 4 bytes
+        val content = chunk1 + chunk2
+        val buffer = createBuffer(content, chunkSize = 4L)
+
+        // Delete starting exactly at chunk boundary
+        val result = buffer.deleteText(
+            startPosition = TextPosition(4L, 0, 4),
+            endPosition = TextPosition(6L, 0, 6)
+        )
+
+        result.isSuccess shouldBe true
+        val newContent = buffer.getTextForRange(0, 0).getOrThrow()
+        newContent shouldBe "AAAABB"
+    }
 }
