@@ -316,11 +316,9 @@ class ExplorerWorkspace @AssistedInject constructor(
     }
 
     fun navigate(request: ExplorerNavigation) {
-        log(tag) { "navigate(): $request" }
+        log(tag,INFO) { "navigate(): $request" }
         scope.launch {
-            log(tag) { "navigate(): Launching $request" }
             navigationRequests.emit(request)
-            log(tag) { "navigate(): Submitted $request" }
         }
     }
 

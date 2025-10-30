@@ -45,6 +45,15 @@ class DirectoryLocationLoader @AssistedInject constructor(
         return pathPermissionCheck.monitor(path).flatMapLatest { setupRequirements ->
             flow {
                 log(tag, INFO) { "loadDirectory(): Loading directory with setup requirements: $setupRequirements" }
+
+                // If alternative path available, redirect to it
+                val altPath = setupRequirements.alternativePath
+                if (altPath != null) {
+                    log(tag) { "Redirecting from $path to $altPath" }
+                    loadDirectory(altPath).collect { emit(it) }
+                    return@flow
+                }
+
                 val context = LocationLoaderContext(
                     initialState = ExplorerLocation.Directory(
                         path = path,
@@ -63,8 +72,8 @@ class DirectoryLocationLoader @AssistedInject constructor(
                 context.emitState()
 
                 context.updateProgressMsg(R.string.explorer_loader_progress_directory_permissions)
-                if (setupRequirements.needsSetup) {
-                    log(tag, WARN) { "Insufficient setup for $path" }
+                if (setupRequirements.needsAction) {
+                    log(tag, WARN) { "Action required for $path: $setupRequirements" }
                     emit(
                         ExplorerLocation.Directory(
                             path = path,

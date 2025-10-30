@@ -271,6 +271,7 @@
     <string name="explorer_permission_required_title">Permission Needed</string>
     <string name="explorer_permission_generic_description">Butler needs additional permission to browse this location.</string>
     <string name="explorer_permission_setup_action">Open Setup</string>
+    <string name="explorer_grant_access_action">Grant Access</string>
 
     <!-- File Options -->
     <string name="explorer_file_options_actions">Actions</string>
@@ -357,4 +358,17 @@
     <!-- Navigation Error Messages -->
     <string name="explorer_navigation_error_title">Navigation Failed</string>
     <string name="explorer_navigation_error_retry_action">Retry</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data (Special Access)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (Special Access)</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">Android restricts access to this folder. Use the folder picker to grant access.</string>
+    <string name="explorer_permission_saf_only_description">This folder requires special permission. Tap "Grant Access" to open Android\'s folder picker and select this folder.</string>
+    <string name="explorer_permission_alternative_apps_available">Alternatively, you can use Root or Shizuku for full access (configure in Setup).</string>
+    <string name="explorer_permission_setup_both_description">This folder requires elevated access. Install and configure either Root Manager or Shizuku in Setup.</string>
+    <string name="explorer_permission_setup_shizuku_description">This folder requires elevated access via Shizuku. Install Shizuku Manager and configure in Setup.</string>
+    <string name="explorer_permission_setup_root_description">This folder requires Root access. Configure Root in Setup if your device is rooted.</string>
+    <string name="explorer_permission_setup_generic_description">Additional setup is required to access this location. Tap "Open Setup" to configure.</string>
 </resources>

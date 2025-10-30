@@ -118,14 +118,9 @@ class SetupViewModel @AssistedInject constructor(
     }
 
     fun handleSAFResult(uri: android.net.Uri) = launch {
-        log(tag) { "handleSAFResult(uri=$uri)" }
-        val safModule = setupManager.getModule(SetupModule.Type.SAF) as? eu.darken.butler.setup.core.saf.SAFSetupModule
-        if (safModule != null) {
-            safModule.takePermission(uri)
-            refresh()
-        } else {
-            log(tag) { "SAFSetupModule not found" }
-        }
+        log(tag) { "handleSAFResult(uri=$uri) - SAF module removed, handled via just-in-time picker" }
+        // SAF module removed - permissions are now handled via just-in-time picker in PathPermissionCheck
+        // This method is kept for backward compatibility but does nothing
     }
 
     fun openHelp(type: SetupModule.Type) = launch {

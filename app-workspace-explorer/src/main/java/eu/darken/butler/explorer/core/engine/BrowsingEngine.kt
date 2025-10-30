@@ -88,7 +88,7 @@ class BrowsingEngine @AssistedInject constructor(
             }
             .onEach { location ->
                 val breadcrumbs = breadcrumbGenerator.getBreadcrumbs(location)
-
+                log(tag, INFO) { "Breadcrumbs ar enow $breadcrumbs" }
                 _location.value = State(
                     location = location,
                     breadcrumbs = breadcrumbs,

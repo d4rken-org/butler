@@ -23,14 +23,16 @@ class PathMapper @Inject constructor(
     private val storageManager2: StorageManager2,
 ) {
 
-    suspend fun toSAFPath(localPath: LocalPath): SAFPath? {
+    fun toSAFPath(localPath: LocalPath): SAFPath? {
         return try {
+            log(TAG, VERBOSE) { "toSAFPath() called with: $localPath" }
+
             val osStorage = storageManager2.storageVolumes
                 .onEach { log(TAG, VERBOSE) { "Trying to match volume $it against $localPath" } }
                 .filter { it.directory != null }
                 .firstOrNull { localPath.path.startsWith(it.directory!!.path) }
                 ?.also { log(TAG, VERBOSE) { "Target storageVolumes for $localPath is $it" } }
-                ?: return null
+                ?: return null.also { log(TAG, WARN) { "No storage volume found for $localPath" } }
 
             val prefixFreeFile = if (osStorage.directory!!.path != localPath.path) {
                 localPath.path.replace("${osStorage.directory!!.path}${File.separatorChar}", "")
@@ -38,18 +40,20 @@ class PathMapper @Inject constructor(
                 // Permission is equal to path
                 ""
             }
+            log(TAG, VERBOSE) { "Prefix-free path: '$prefixFreeFile'" }
 
             val segments = if (prefixFreeFile.isEmpty()) {
                 emptyList()
             } else {
                 prefixFreeFile.split(File.separator)
             }
+            log(TAG, VERBOSE) { "Calculated segments: $segments" }
 
             SAFPath.build(
                 base = osStorage.treeUri,
                 segs = segments.toTypedArray(),
             ).also {
-                log(TAG, VERBOSE) { "toSAFPath() $localPath -> $it" }
+                log(TAG) { "toSAFPath() $localPath -> pathUri=${it.pathUri}, segments=${it.segments}" }
             }
         } catch (e: Exception) {
             log(TAG, ERROR) { "Failed to map $localPath: ${e.asLog()}" }
@@ -57,7 +61,7 @@ class PathMapper @Inject constructor(
         }
     }
 
-    suspend fun toLocalPath(safPath: SAFPath): LocalPath? {
+    fun toLocalPath(safPath: SAFPath): LocalPath? {
         return try {
             val osStorage = storageManager2.storageVolumes
                 .onEach { log(TAG, VERBOSE) { "Trying to match volume $it against $safPath" } }
@@ -71,54 +75,6 @@ class PathMapper @Inject constructor(
             log(TAG, ERROR) { "Failed to map $safPath:${e.asLog()}" }
             null
         }
-    }
-
-    fun takePermission(uri: Uri) {
-        log(TAG, VERBOSE) { "takePermission(path=$uri)" }
-
-        if (hasPermission(uri)) {
-            log(TAG) { "Already have permission for $uri" }
-            return
-        }
-
-        log(TAG, INFO) { "Taking uri permission for $uri" }
-
-        try {
-            contentResolver.takePersistableUriPermission(uri, SAFGateway.RW_FLAGSINT)
-        } catch (e: SecurityException) {
-            log(TAG, ERROR) { "Failed to take permission ${e.asLog()}" }
-            try {
-                contentResolver.releasePersistableUriPermission(uri, SAFGateway.RW_FLAGSINT)
-            } catch (e2: SecurityException) {
-                log(TAG, ERROR) { "Error while releasing during error... ${e2.asLog()}" }
-            }
-            throw e
-        }
-
-        printCurrentPermissions()
-    }
-
-    fun releasePermission(path: SAFPath): Boolean {
-        log(TAG, INFO) { "Releasing uri permission for $path" }
-        contentResolver.releasePersistableUriPermission(path.treeRootUri.toAndroidUri(), SAFGateway.RW_FLAGSINT)
-        printCurrentPermissions()
-        return true
-    }
-
-    private fun printCurrentPermissions() {
-        val current = getPermissions()
-        log(TAG) { "Now holding ${current.size} permissions." }
-        for (p in current) {
-            log(TAG) { "#${current.indexOf(p)}: $p" }
-        }
-    }
-
-    fun getPermissions(): Collection<SAFPath> {
-        return contentResolver.persistedUriPermissions.map { SAFPath.build(it.uri) }
-    }
-
-    fun hasPermission(uri: Uri): Boolean {
-        return getPermissions().any { it.pathUri == uri }
     }
 
     companion object {

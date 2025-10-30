@@ -1,7 +1,6 @@
 package eu.darken.butler.setup.core
 
 import android.content.Intent
-import eu.darken.butler.common.SafUri
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
@@ -10,7 +9,6 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.setup.core.inventory.InventorySetupModule
 import eu.darken.butler.setup.core.notification.NotificationSetupModule
 import eu.darken.butler.setup.core.root.RootSetupModule
-import eu.darken.butler.setup.core.saf.SAFSetupModule
 import eu.darken.butler.setup.core.shizuku.ShizukuSetupModule
 import eu.darken.butler.setup.core.storage.StorageSetupModule
 import eu.darken.butler.setup.core.usagestats.UsageStatsSetupModule
@@ -107,8 +105,8 @@ class SetupManager @Inject constructor(
                         }
                     }
                     SetupModule.Type.SAF -> {
-                        // SAF is handled via GrantSAFAccess action
-                        log(TAG, WARN) { "SAF RequestPermission not supported, use GrantSAFAccess instead" }
+                        // SAF module removed - handled via just-in-time picker in PathPermissionCheck
+                        log(TAG, WARN) { "SAF RequestPermission not supported - use just-in-time picker" }
                     }
                     SetupModule.Type.SHIZUKU -> throw IllegalStateException("Not handled here $action")
                     SetupModule.Type.ROOT -> throw IllegalStateException("Not handled here $action")
@@ -125,20 +123,6 @@ class SetupManager @Inject constructor(
                 shizukuModule?.toggleUseShizuku(action.useShizuku)
                     ?: log(TAG, WARN) { "Module for $type is not a ShizukuSetupModule" }
             }
-            is SetupAction.GrantSAFAccess -> {
-                val safModule = module as? SAFSetupModule
-                if (safModule != null) {
-                    val currentState = safModule.state.first() as? SAFSetupModule.Result
-                    val pathAccess = currentState?.paths?.find { it.safPath.pathUri == action.safUri }
-                    if (pathAccess != null) {
-                        return PermissionResult(intent = pathAccess.grantIntent)
-                    } else {
-                        log(TAG, WARN) { "No PathAccess found for URI: ${action.safUri}" }
-                    }
-                } else {
-                    log(TAG, WARN) { "Module for $type is not a SAFSetupModule" }
-                }
-            }
         }
         return null
     }
@@ -150,9 +134,9 @@ class SetupManager @Inject constructor(
                 SetupModule.Type.NOTIFICATION -> module is NotificationSetupModule
                 SetupModule.Type.USAGE_STATS -> module is UsageStatsSetupModule
                 SetupModule.Type.SHIZUKU -> module is ShizukuSetupModule
-                SetupModule.Type.SAF -> module is SAFSetupModule
                 SetupModule.Type.STORAGE -> module is StorageSetupModule
                 SetupModule.Type.INVENTORY -> module is InventorySetupModule
+                SetupModule.Type.SAF -> false // SAF module removed - handled via just-in-time picker
             }
         }
     }
@@ -167,7 +151,6 @@ sealed interface SetupAction {
     data object RequestPermission : SetupAction
     data class ToggleRoot(val useRoot: Boolean?) : SetupAction
     data class ToggleShizuku(val useShizuku: Boolean?) : SetupAction
-    data class GrantSAFAccess(val safUri: SafUri) : SetupAction
 }
 
 data class PermissionResult(

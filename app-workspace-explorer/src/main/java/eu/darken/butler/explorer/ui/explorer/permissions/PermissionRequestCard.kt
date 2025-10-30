@@ -33,6 +33,7 @@ fun PermissionRequestCard(
     setupRequirements: WorkspaceRequirements,
     onNavigateToSetup: () -> Unit,
     modifier: Modifier = Modifier,
+    onLaunchSAFPicker: ((eu.darken.butler.workspace.core.permissions.SAFPickerGrant) -> Unit)? = null,
 ) {
     Card(
         modifier = modifier.fillMaxSize(),
@@ -65,8 +66,43 @@ fun PermissionRequestCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Contextual explanation based on requirements
+            val explanation = when {
+                // SAF picker available (Android 11-12)
+                setupRequirements.safPickerGrant != null -> {
+                    if (setupRequirements.combos.isNotEmpty()) {
+                        // Multiple options available
+                        buildString {
+                            append(stringResource(R.string.explorer_permission_saf_workaround_description))
+                            if (setupRequirements.shizukuInstalled || setupRequirements.rootInstalled) {
+                                append("\n\n")
+                                append(stringResource(R.string.explorer_permission_alternative_apps_available))
+                            }
+                        }
+                    } else {
+                        // Only SAF available
+                        stringResource(R.string.explorer_permission_saf_only_description)
+                    }
+                }
+
+                // Setup modules needed (Root/Shizuku)
+                setupRequirements.needsSetup -> {
+                    val hasRoot = SetupModule.Type.ROOT in setupRequirements.combos.flatten()
+                    val hasShizuku = SetupModule.Type.SHIZUKU in setupRequirements.combos.flatten()
+
+                    when {
+                        hasRoot && hasShizuku -> stringResource(R.string.explorer_permission_setup_both_description)
+                        hasShizuku -> stringResource(R.string.explorer_permission_setup_shizuku_description)
+                        hasRoot -> stringResource(R.string.explorer_permission_setup_root_description)
+                        else -> stringResource(R.string.explorer_permission_setup_generic_description)
+                    }
+                }
+
+                else -> stringResource(R.string.explorer_permission_generic_description)
+            }
+
             Text(
-                text = stringResource(R.string.explorer_permission_generic_description),
+                text = explanation,
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
@@ -75,15 +111,31 @@ fun PermissionRequestCard(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            if (setupRequirements.needsSetup) {
-                Button(
-                    onClick = onNavigateToSetup,
-                    modifier = Modifier.fillMaxWidth(0.8f),
-                ) {
-                    Text(
-                        text = stringResource(R.string.explorer_permission_setup_action),
-                        modifier = Modifier.padding(vertical = 4.dp),
-                    )
+            when {
+                setupRequirements.safPickerGrant != null && onLaunchSAFPicker != null -> {
+                    // Show SAF picker button for just-in-time permission grant
+                    val grant = setupRequirements.safPickerGrant!!
+                    Button(
+                        onClick = { onLaunchSAFPicker(grant) },
+                        modifier = Modifier.fillMaxWidth(0.8f),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.explorer_grant_access_action),
+                            modifier = Modifier.padding(vertical = 4.dp),
+                        )
+                    }
+                }
+                setupRequirements.needsSetup -> {
+                    // Show setup button for Root/Shizuku setup
+                    Button(
+                        onClick = onNavigateToSetup,
+                        modifier = Modifier.fillMaxWidth(0.8f),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.explorer_permission_setup_action),
+                            modifier = Modifier.padding(vertical = 4.dp),
+                        )
+                    }
                 }
             }
         }

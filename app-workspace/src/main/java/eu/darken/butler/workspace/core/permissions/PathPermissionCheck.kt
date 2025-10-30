@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.core.permissions
 
+import eu.darken.butler.common.ApiLevel
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -8,13 +9,17 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.extensions.isDescendantOfOrSelf
 import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
-import eu.darken.butler.common.hasApiLevel
+import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import eu.darken.butler.common.storage.PathMapper
 import eu.darken.butler.common.storage.StorageEnvironment
+import eu.darken.butler.common.storage.saf.AndroidDataAccessChecker
+import eu.darken.butler.common.storage.saf.SAFPickerIntentBuilder
 import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.workspace.core.setup.SetupStateProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
@@ -25,19 +30,28 @@ class PathPermissionCheck @Inject constructor(
     private val setupStateProvider: SetupStateProvider,
     private val accessChecker: LocalPathAccessChecker,
     private val storageEnvironment: StorageEnvironment,
+    private val pathMapper: PathMapper,
+    private val safLocationManager: SAFLocationManager,
+    private val androidDataAccessChecker: AndroidDataAccessChecker,
+    private val safPickerIntentBuilder: SAFPickerIntentBuilder,
+    private val apiLevel: ApiLevel,
 ) {
 
-    private fun check(
+    private suspend fun check(
         path: APath<*>,
         moduleStates: Map<SetupModule.Type, Boolean>
     ): WorkspaceRequirements {
-        val satisfyingCombos = determineModuleRequirements(path)
+        val determined = determineModuleRequirements(path)
+
+        // If alternative path or SAF picker available, return immediately
+        if (determined.alternativePath != null || determined.safPickerGrant != null) {
+            return determined
+        }
 
         // No modules needed - all good
-        if (satisfyingCombos.isEmpty()) return WorkspaceRequirements()
+        if (determined.combos.isEmpty()) return WorkspaceRequirements()
 
-        return WorkspaceRequirements(
-            combos = satisfyingCombos,
+        return determined.copy(
             complete = moduleStates.filterValues { it }.keys,
         )
     }
@@ -50,47 +64,74 @@ class PathPermissionCheck @Inject constructor(
         is SAFPath -> false
     }
 
-    private fun determineModuleRequirements(path: APath<*>): Set<Set<SetupModule.Type>> {
+    private suspend fun determineModuleRequirements(path: APath<*>): WorkspaceRequirements {
         // Only LocalPath from here on
-        val localPath = path as? LocalPath ?: return emptySet()
+        val localPath = path as? LocalPath ?: return WorkspaceRequirements()
 
         // App-specific directories don't need modules
-        if (isOurDirectory(localPath)) return emptySet()
+        if (isOurDirectory(localPath)) return WorkspaceRequirements()
 
         // Special case: Android/data and Android/obb
-        if (storageEnvironment.publicDataDirs.any { path.isDescendantOfOrSelf(it) }) {
-            val combos = mutableSetOf<Set<SetupModule.Type>>()
-            when {
-                hasApiLevel(33) -> {
-                    combos.add(setOf(SetupModule.Type.STORAGE, SetupModule.Type.ROOT))
-                    combos.add(setOf(SetupModule.Type.STORAGE, SetupModule.Type.SHIZUKU))
-                }
-                hasApiLevel(30) -> {
-                    combos.add(setOf(SetupModule.Type.STORAGE, SetupModule.Type.SAF))
-                }
-                else -> {
-                    combos.add(setOf(SetupModule.Type.STORAGE))
-                }
-            }
-            return combos
-        }
+        val isRestrictedPath = storageEnvironment.publicDataDirs.any { path.isDescendantOfOrSelf(it) } ||
+                storageEnvironment.publicObbDirs.any { path.isDescendantOfOrSelf(it) }
 
-        // Special case: Android/obb
-        if (storageEnvironment.publicObbDirs.any { path.isDescendantOfOrSelf(it) }) {
-            val combos = mutableSetOf<Set<SetupModule.Type>>()
-            when {
-                hasApiLevel(33) -> {
-                    combos.add(setOf(SetupModule.Type.STORAGE, SetupModule.Type.ROOT))
-                    combos.add(setOf(SetupModule.Type.STORAGE, SetupModule.Type.SHIZUKU))
-                }
-                hasApiLevel(30) -> {
-                    combos.add(setOf(SetupModule.Type.STORAGE, SetupModule.Type.SAF))
-                }
-                else -> {
-                    combos.add(setOf(SetupModule.Type.STORAGE))
+        if (isRestrictedPath) {
+            // PHASE 1: Check if SAF path already available (permission exists)
+            val safPath = pathMapper.toSAFPath(localPath)
+            if (safPath != null) {
+                // Verify permission actually exists (PathMapper only constructs, doesn't verify)
+                val hasPermission = safLocationManager.findPermissionFor(safPath) != null
+                if (hasPermission) {
+                    log(TAG) { "Alternative SAF path available for $localPath: $safPath" }
+                    return WorkspaceRequirements(alternativePath = safPath)
+                } else {
+                    log(TAG) { "SAFPath can be constructed but permission missing for $localPath" }
                 }
             }
-            return combos
+
+            // PHASE 2: Determine access method
+            return when {
+                apiLevel.has(33) -> {
+                    // Android 13+: SAF trick broken, Root/Shizuku only
+                    log(TAG) { "Android 13+ detected, SAF not available for $localPath" }
+                    WorkspaceRequirements(
+                        combos = setOf(
+                            setOf(SetupModule.Type.STORAGE, SetupModule.Type.ROOT),
+                            setOf(SetupModule.Type.STORAGE, SetupModule.Type.SHIZUKU),
+                        )
+                    )
+                }
+                apiLevel.has(30) -> {
+                    // Android 11-12: Check if SAF picker works
+                    if (androidDataAccessChecker.canUseSAFForAndroidData()) {
+                        val intent = safPickerIntentBuilder.buildPickerIntent(localPath)
+                        if (intent != null) {
+                            log(TAG) { "SAF picker available for $localPath" }
+                            WorkspaceRequirements(safPickerGrant = SAFPickerGrant(intent, localPath))
+                        } else {
+                            log(TAG, WARN) { "Failed to build SAF picker intent for $localPath" }
+                            WorkspaceRequirements(
+                                combos = setOf(
+                                    setOf(SetupModule.Type.STORAGE, SetupModule.Type.ROOT),
+                                    setOf(SetupModule.Type.STORAGE, SetupModule.Type.SHIZUKU),
+                                )
+                            )
+                        }
+                    } else {
+                        log(TAG) { "DocumentsUI restricted, SAF not available for $localPath" }
+                        WorkspaceRequirements(
+                            combos = setOf(
+                                setOf(SetupModule.Type.STORAGE, SetupModule.Type.ROOT),
+                                setOf(SetupModule.Type.STORAGE, SetupModule.Type.SHIZUKU),
+                            )
+                        )
+                    }
+                }
+                else -> {
+                    // Android <11: Just storage permission
+                    WorkspaceRequirements(combos = setOf(setOf(SetupModule.Type.STORAGE)))
+                }
+            }
         }
 
         val needsEscalation = !accessChecker.shouldTryNormalAccess(
@@ -107,51 +148,73 @@ class PathPermissionCheck @Inject constructor(
             } else {
                 combos.add(setOf(SetupModule.Type.STORAGE))
             }
-            return combos
+            return WorkspaceRequirements(combos = combos)
         }
 
         // Other paths (like /data, /system, etc.)
         return if (needsEscalation) {
-            setOf(
-                setOf(SetupModule.Type.STORAGE, SetupModule.Type.SHIZUKU),
-                setOf(SetupModule.Type.STORAGE, SetupModule.Type.ROOT),
+            WorkspaceRequirements(
+                combos = setOf(
+                    setOf(SetupModule.Type.STORAGE, SetupModule.Type.SHIZUKU),
+                    setOf(SetupModule.Type.STORAGE, SetupModule.Type.ROOT),
+                )
             )
         } else {
-            emptySet()
+            WorkspaceRequirements()
         }
     }
 
     fun monitor(path: APath<*>): Flow<WorkspaceRequirements> {
-        val requirements = check(path, emptyMap())
+        return flow {
+            // Get initial setup state to check app installation
+            // TODO: Extract isInstalled from module state when interface is updated
+            // For now, always false since isInstalled is not in SetupModule.State.Current interface
+            val shizukuInstalled = false
+            val rootInstalled = false
 
-        // Wait only for required modules
-        return setupStateProvider.state
-            .map { providerState ->
-                // Only get modules we actually need
-                val relevantModules = providerState.modules.values
-                    .filterIsInstance<SetupModule.State.Current>()
-                    .filter { module -> module.type in requirements.relevantTypes }
+            val requirements = check(path, emptyMap()).copy(
+                shizukuInstalled = shizukuInstalled,
+                rootInstalled = rootInstalled
+            )
 
-                // Create a map of module states
-                val moduleStates = relevantModules.associate { it.type to it.isComplete }
+            // If alternative path or SAF picker available, emit immediately and don't monitor setup
+            if (requirements.alternativePath != null || requirements.safPickerGrant != null) {
+                emit(requirements)
+                return@flow
+            }
 
-                // Check if we have all required modules (not all possible modules)
-                val hasAllModules = requirements.relevantTypes.all { type ->
-                    moduleStates.containsKey(type)
+            // For setup-based requirements, monitor setup state
+            setupStateProvider.state
+                .map { providerState ->
+                    val relevantModules = providerState.modules.values
+                        .filterIsInstance<SetupModule.State.Current>()
+                        .filter { module -> module.type in requirements.relevantTypes }
+
+                    val moduleStates = relevantModules.associate { it.type to it.isComplete }
+
+                    val hasAllModules = requirements.relevantTypes.all { type ->
+                        moduleStates.containsKey(type)
+                    }
+
+                    Pair(moduleStates, hasAllModules)
                 }
-
-                Pair(moduleStates, hasAllModules)
-            }
-            .distinctUntilChanged()
-            .filter { pair -> pair.second } // Only emit when we have required modules
-            .onEach { pair ->
-                log(TAG, VERBOSE) { "Relevant setup state for $path: ${pair.first}" }
-            }
-            .map { (moduleStates, _) -> check(path, moduleStates) }
-            .distinctUntilChanged()
-            .onEach { setupState ->
-                log(TAG, INFO) { "Setup state for $path: $setupState" }
-            }
+                .distinctUntilChanged()
+                .filter { pair -> pair.second }
+                .onEach { pair ->
+                    log(TAG, VERBOSE) { "Relevant setup state for $path: ${pair.first}" }
+                }
+                .map { (moduleStates, _) ->
+                    check(path, moduleStates).copy(
+                        shizukuInstalled = shizukuInstalled,
+                        rootInstalled = rootInstalled
+                    )
+                }
+                .distinctUntilChanged()
+                .onEach { setupState ->
+                    log(TAG) { "Setup state for $path: $setupState" }
+                }
+                .collect { emit(it) }
+        }
     }
 
     companion object {

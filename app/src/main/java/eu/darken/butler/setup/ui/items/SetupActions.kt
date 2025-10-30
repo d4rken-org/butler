@@ -28,10 +28,9 @@ fun SetupActions(
             )
         }
         SetupModule.Type.SAF -> {
-            SAFActions(
-                item = item,
-                onExecuteAction = onExecuteAction
-            )
+            // SAF module removed - handled via just-in-time picker in PathPermissionCheck
+            // Show default actions (though this shouldn't be reached in practice)
+            DefaultActions(item = item, onExecuteAction = onExecuteAction)
         }
         else -> {
             DefaultActions(item = item, onExecuteAction = onExecuteAction)
