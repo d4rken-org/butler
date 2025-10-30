@@ -9,7 +9,6 @@ import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.explorer.core.SortSettings
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,10 +23,12 @@ constructor(
     val state = combine(
         explorerSettings.sortSettings.flow,
         explorerSettings.useRegexPatterns.flow,
-    ) { sortSettings, useRegexPatterns ->
+        explorerSettings.useBackButtonForNavigation.flow,
+    ) { sortSettings, useRegexPatterns, useBackButtonForNavigation ->
         State(
             sortSettings = sortSettings,
             useRegexPatterns = useRegexPatterns,
+            useBackButtonForNavigation = useBackButtonForNavigation,
         )
     }.asStateFlow()
 
@@ -35,8 +36,13 @@ constructor(
         explorerSettings.useRegexPatterns.value(enabled)
     }
 
+    fun toggleBackButtonNavigation(enabled: Boolean) = launch {
+        explorerSettings.useBackButtonForNavigation.value(enabled)
+    }
+
     data class State(
         val sortSettings: SortSettings,
         val useRegexPatterns: Boolean,
+        val useBackButtonForNavigation: Boolean,
     )
 }

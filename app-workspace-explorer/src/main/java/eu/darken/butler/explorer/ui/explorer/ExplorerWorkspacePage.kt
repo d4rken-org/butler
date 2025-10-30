@@ -2,7 +2,6 @@ package eu.darken.butler.explorer.ui.explorer
 
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -222,6 +221,19 @@ fun ExplorerWorkspacePage(
             } else {
                 // At root, dismiss picker
                 vm?.cancelPicker()
+            }
+        }
+    }
+
+    // Handle back button for navigation history (when setting enabled)
+    if (mainState.useBackButtonForNavigation && mainState.pickerConfig == null) {
+        BackHandler(enabled = true) {
+            if (mainState.canGoBack) {
+                // Navigate back through history
+                vm?.goBack()
+            } else {
+                // At root, close workspace
+                vm?.closeWorkspace()
             }
         }
     }

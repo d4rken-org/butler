@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.twotone.ArrowBack
 import androidx.compose.material.icons.twotone.FilterList
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,6 +28,7 @@ fun ExplorerSettingsScreen(
     state: ExplorerSettingsViewModel.State,
     onNavigateUp: () -> Unit,
     onToggleRegexPatterns: (Boolean) -> Unit,
+    onToggleBackButtonNavigation: (Boolean) -> Unit,
 ) {
 
     Scaffold(
@@ -65,6 +67,20 @@ fun ExplorerSettingsScreen(
                     onCheckedChange = onToggleRegexPatterns,
                 )
             }
+
+            item {
+                SettingsCategoryHeader(text = stringResource(eu.darken.butler.explorer.R.string.explorer_settings_navigation))
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.AutoMirrored.TwoTone.ArrowBack,
+                    title = stringResource(eu.darken.butler.explorer.R.string.explorer_settings_back_button_title),
+                    subtitle = stringResource(eu.darken.butler.explorer.R.string.explorer_settings_back_button_desc),
+                    checked = state.useBackButtonForNavigation,
+                    onCheckedChange = onToggleBackButtonNavigation,
+                )
+            }
         }
     }
 
@@ -82,6 +98,7 @@ fun ExplorerSettingsScreenHost(vm: ExplorerSettingsViewModel = hiltViewModel()) 
             state = vmState,
             onNavigateUp = { vm.navUp() },
             onToggleRegexPatterns = { vm.toggleRegexPatterns(it) },
+            onToggleBackButtonNavigation = { vm.toggleBackButtonNavigation(it) },
         )
     }
 }

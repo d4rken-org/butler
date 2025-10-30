@@ -193,6 +193,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val isPro: Boolean = false,
         val filterState: FilterState = FilterState(),
         val useRegexPatterns: Boolean = false,
+        val useBackButtonForNavigation: Boolean = false,
         val pickerConfig: PickerConfig? = null,
     ) {
         val progress = currentLocation?.progress
@@ -228,8 +229,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         upgradeRepo.upgradeInfo,
         filterStateFlow,
         explorerSettings.useRegexPatterns.flow,
+        explorerSettings.useBackButtonForNavigation.flow,
         pickerConfigFlow,
-    ) { wsState, selectedItems, viewMode, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, pickerConfig ->
+    ) { wsState, selectedItems, viewMode, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig ->
         val items = wsState.currentLocation?.items
             ?.let { items -> applyPickerFilter(items, pickerConfig) }
             ?.let { items -> applyFilters(items, filterState, useRegexPatterns) }
@@ -313,6 +315,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             isPro = upgradeInfo.isUpgraded,
             filterState = filterState,
             useRegexPatterns = useRegexPatterns,
+            useBackButtonForNavigation = useBackButtonForNavigation,
             pickerConfig = pickerConfig,
         )
     }
@@ -1390,6 +1393,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun goBack() {
         log(tag) { "goBack()" }
         navigate(ExplorerNavigation.Back)
+    }
+
+    fun closeWorkspace() = launch {
+        log(tag) { "closeWorkspace()" }
+        workspaceRemote.execute(WorkspaceAction.Close(id))
     }
 
     @AssistedFactory
