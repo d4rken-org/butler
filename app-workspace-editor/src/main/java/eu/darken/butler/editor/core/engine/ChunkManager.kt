@@ -164,6 +164,48 @@ class ChunkManager @AssistedInject constructor(
         true
     }
 
+    /**
+     * Adjust chunk offsets after an insert/delete operation.
+     * All chunks that start at or after the edit point are shifted by delta.
+     * The chunk containing the edit point has its endOffset adjusted.
+     */
+    suspend fun adjustChunkOffsets(editOffset: Long, deltaLength: Long) = chunkMutex.withLock {
+        val updatedChunks = mutableMapOf<TextChunk.ChunkId, TextChunk>()
+
+        for ((chunkId, chunk) in _chunks.value) {
+            val adjusted = when {
+                // Chunk is entirely after edit point - shift both offsets
+                chunk.startOffset >= editOffset -> {
+                    chunk.copy(
+                        startOffset = chunk.startOffset + deltaLength,
+                        endOffset = chunk.endOffset + deltaLength
+                    )
+                }
+                // Chunk contains edit point - adjust end offset only
+                chunk.endOffset > editOffset -> {
+                    chunk.copy(
+                        endOffset = chunk.endOffset + deltaLength
+                    )
+                }
+                // Chunk is entirely before edit point - no change
+                else -> chunk
+            }
+
+            if (adjusted !== chunk) {
+                updatedChunks[chunkId] = adjusted
+                log(tag, Logging.Priority.DEBUG) {
+                    "Adjusted chunk $chunkId: ${chunk.startOffset}-${chunk.endOffset} → ${adjusted.startOffset}-${adjusted.endOffset}"
+                }
+            }
+        }
+
+        // Apply all adjustments at once
+        if (updatedChunks.isNotEmpty()) {
+            _chunks.value = _chunks.value + updatedChunks
+            log(tag) { "Adjusted ${updatedChunks.size} chunks after edit at offset $editOffset (delta=$deltaLength)" }
+        }
+    }
+
     private fun evictOldChunksIfNeeded() {
         // NOTE: This should be called from within chunkMutex.withLock
         val currentCount = _chunks.value.size
