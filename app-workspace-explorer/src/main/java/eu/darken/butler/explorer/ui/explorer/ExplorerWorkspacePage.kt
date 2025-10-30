@@ -397,6 +397,7 @@ fun ExplorerWorkspacePage(
                         ExplorerInfoBar(
                             info = mainState.info,
                             selectedCount = mainState.selectionState.selectedItems.size,
+                            onClearSelection = { vm?.clearSelection() },
                         )
 
                         mainState.error?.let { error ->
