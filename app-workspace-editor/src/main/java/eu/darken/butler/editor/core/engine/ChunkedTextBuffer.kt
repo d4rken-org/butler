@@ -282,7 +282,8 @@ class ChunkedTextBuffer @AssistedInject constructor(
             updateAfterEdit()
 
             // Update chunk boundaries to reflect the insertion (AFTER metadata rebuild)
-            chunkManager.updateBoundaries(position.offset, text.length.toLong())
+            val deltaLines = text.count { it == '\n' }
+            chunkManager.updateBoundaries(position.offset, text.length.toLong(), deltaLines)
 
             // Add to undo stack (unless we're undoing/redoing)
             if (!isUndoRedoInProgress) {
@@ -407,7 +408,8 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 updateAfterEdit()
 
                 // Update chunk boundaries to reflect the deletion (AFTER metadata rebuild)
-                chunkManager.updateBoundaries(startPosition.offset, -deletedLength)
+                val deltaLines = -deletedText.count { it == '\n' }
+                chunkManager.updateBoundaries(startPosition.offset, -deletedLength, deltaLines)
 
                 // Add to undo stack (unless we're undoing/redoing)
                 if (!isUndoRedoInProgress) {
@@ -710,26 +712,38 @@ class ChunkedTextBuffer @AssistedInject constructor(
         }
 
         val startTime = System.currentTimeMillis()
-        log(tag) { "Building chunk metadata for ${chunkIds.size} chunks from in-memory chunks" }
+        log(tag) { "Building chunk metadata for ${chunkIds.size} chunks from boundaries" }
 
-        // Read from ChunkManager which includes dirty (edited) chunks in memory
-        // This ensures line counts reflect current edits, not just saved file content
+        // Use line counts from boundaries (incrementally maintained during edits)
+        // Only load chunks on first initialization when lineCount=0 (sentinel value)
+        val newLineCounts = mutableMapOf<TextChunk.ChunkId, Int>()
+
         for ((index, chunkId) in chunkIds.withIndex()) {
-            // Get chunk from memory (includes dirty edits) or load from repository
-            val chunk = chunkManager.getChunk(chunkId)
-                ?: chunkManager.loadChunk(chunkId).getOrThrow()
-
             // Get authoritative boundary data from ChunkManager
             val boundary = chunkManager.getBoundary(chunkId)
                 ?: throw IllegalStateException("No boundary for chunk $chunkId")
 
             val chunkStart = boundary.startOffset
             val chunkEnd = boundary.endOffset
+            val lineCount: Int
 
-            val content = chunk.content.toByteArray()
-            val isLastChunk = index == chunkIds.size - 1
-            val lineCount = content.count { it == '\n'.code.toByte() } +
-                if (isLastChunk && content.isNotEmpty() && content.last() != '\n'.code.toByte()) 1 else 0
+            // Check if line count needs initialization (first time building metadata)
+            if (boundary.lineCount == 0) {
+                // Load chunk to count lines (only on first initialization)
+                val chunk = chunkManager.getChunk(chunkId)
+                    ?: chunkManager.loadChunk(chunkId).getOrThrow()
+
+                val content = chunk.content.toByteArray()
+                val isLastChunk = index == chunkIds.size - 1
+                lineCount = content.count { it == '\n'.code.toByte() } +
+                    if (isLastChunk && content.isNotEmpty() && content.last() != '\n'.code.toByte()) 1 else 0
+
+                // Collect line count for batch update (don't update boundary yet)
+                newLineCounts[chunkId] = lineCount
+            } else {
+                // Use cached line count from boundary (no chunk loading needed!)
+                lineCount = boundary.lineCount
+            }
 
             chunkMetadata.add(
                 ChunkMetadata(
@@ -748,6 +762,12 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 val elapsed = System.currentTimeMillis() - startTime
                 log(tag) { "Metadata progress: ${index + 1}/${chunkIds.size} chunks, $totalLines lines so far (${elapsed}ms)" }
             }
+        }
+
+        // Apply all line count updates atomically at the end
+        if (newLineCounts.isNotEmpty()) {
+            chunkManager.batchUpdateLineCounts(newLineCounts)
+            log(tag) { "Initialized line counts for ${newLineCounts.size} chunks (first-time metadata build)" }
         }
 
         // Ensure at least one line

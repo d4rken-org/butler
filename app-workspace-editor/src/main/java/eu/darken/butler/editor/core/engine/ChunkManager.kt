@@ -115,6 +115,18 @@ class ChunkManager @AssistedInject constructor(
         return boundaries[chunkId]
     }
 
+    /**
+     * Updates line counts for multiple chunks atomically.
+     * Used during first metadata build to initialize line counts.
+     */
+    suspend fun batchUpdateLineCounts(lineCounts: Map<TextChunk.ChunkId, Int>) = chunkMutex.withLock {
+        for ((chunkId, lineCount) in lineCounts) {
+            val boundary = boundaries[chunkId] ?: continue
+            boundaries[chunkId] = boundary.copy(lineCount = lineCount)
+        }
+        log(tag) { "Batch updated line counts for ${lineCounts.size} chunks" }
+    }
+
     suspend fun getChunksInRange(startOffset: Long, endOffset: Long): List<TextChunk> {
         // Snapshot relevant chunk IDs while holding mutex to avoid race conditions
         val relevantChunkIds = chunkMutex.withLock {
@@ -193,28 +205,30 @@ class ChunkManager @AssistedInject constructor(
      * @param editOffset The file offset where the edit occurred
      * @param deltaLength The change in length (positive for insert, negative for delete)
      */
-    suspend fun updateBoundaries(editOffset: Long, deltaLength: Long) = chunkMutex.withLock {
-        if (deltaLength == 0L) return@withLock
+    suspend fun updateBoundaries(editOffset: Long, deltaLength: Long, deltaLines: Int = 0) = chunkMutex.withLock {
+        if (deltaLength == 0L && deltaLines == 0) return@withLock
 
         val updatedBoundaries = mutableMapOf<TextChunk.ChunkId, ChunkBoundary>()
         var adjustedCount = 0
 
         for ((chunkId, boundary) in boundaries) {
             val newBoundary = when {
-                // Chunk entirely after edit point - shift both offsets
+                // Chunk entirely after edit point - shift both offsets, keep line count
                 boundary.startOffset >= editOffset -> {
                     adjustedCount++
                     ChunkBoundary(
                         boundary.startOffset + deltaLength,
-                        boundary.endOffset + deltaLength
+                        boundary.endOffset + deltaLength,
+                        boundary.lineCount
                     )
                 }
-                // Chunk contains edit point - adjust end offset only
-                boundary.endOffset > editOffset -> {
+                // Chunk contains or ends at edit point - adjust end offset and line count
+                boundary.endOffset >= editOffset -> {
                     adjustedCount++
                     ChunkBoundary(
                         boundary.startOffset,
-                        boundary.endOffset + deltaLength
+                        boundary.endOffset + deltaLength,
+                        boundary.lineCount + deltaLines
                     )
                 }
                 // Chunk entirely before edit point - no change
@@ -227,7 +241,7 @@ class ChunkManager @AssistedInject constructor(
         boundaries.clear()
         boundaries.putAll(updatedBoundaries)
 
-        log(tag) { "Updated $adjustedCount chunk boundaries after edit at offset $editOffset (delta=$deltaLength)" }
+        log(tag) { "Updated $adjustedCount chunk boundaries after edit at offset $editOffset (delta=$deltaLength bytes, $deltaLines lines)" }
     }
 
     private fun evictOldChunksIfNeeded() {
@@ -349,7 +363,7 @@ class ChunkManager @AssistedInject constructor(
         // Handle empty files - create one empty chunk
         if (fileSize == 0L) {
             val id = TextChunk.ChunkId.generate()
-            boundaries[id] = ChunkBoundary(0L, 0L)
+            boundaries[id] = ChunkBoundary(0L, 0L, lineCount = 1)
             chunkIds.add(id)
             log(tag) { "Generated 1 chunk ID for empty file" }
             return@withLock chunkIds
@@ -360,8 +374,8 @@ class ChunkManager @AssistedInject constructor(
             val id = TextChunk.ChunkId.generate()
             val endOffset = minOf(offset + chunkSize, fileSize)
 
-            // Store boundary for this chunk
-            boundaries[id] = ChunkBoundary(offset, endOffset)
+            // Store boundary for this chunk (lineCount=0 sentinel, will be populated by buildChunkMetadata)
+            boundaries[id] = ChunkBoundary(offset, endOffset, lineCount = 0)
 
             chunkIds.add(id)
             offset += chunkSize
@@ -467,7 +481,8 @@ class ChunkManager @AssistedInject constructor(
  */
 data class ChunkBoundary(
     val startOffset: Long,
-    val endOffset: Long
+    val endOffset: Long,
+    val lineCount: Int
 ) {
     val size: Long get() = endOffset - startOffset
 }
