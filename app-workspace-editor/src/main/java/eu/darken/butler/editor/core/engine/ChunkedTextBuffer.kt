@@ -275,13 +275,10 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
             chunkManager.updateChunk(chunk.id) { updatedChunk }
 
-            // Adjust offsets of all cached chunks after this edit point
-            chunkManager.adjustChunkOffsets(position.offset, text.length.toLong())
-
             // Update total length
             _totalLength.value = _totalLength.value + text.length
 
-            // Update line index and state
+            // Update line index and state  
             updateAfterEdit()
 
             // Add to undo stack (unless we're undoing/redoing)
@@ -391,11 +388,8 @@ class ChunkedTextBuffer @AssistedInject constructor(
                     }
                 }
 
-                // Adjust offsets of all cached chunks after this edit point
-                val deletedLength = endPosition.offset - startPosition.offset
-                chunkManager.adjustChunkOffsets(startPosition.offset, -deletedLength)
-
                 // Update total length
+                val deletedLength = endPosition.offset - startPosition.offset
                 _totalLength.value = _totalLength.value - deletedLength
 
                 // Update line index and state
