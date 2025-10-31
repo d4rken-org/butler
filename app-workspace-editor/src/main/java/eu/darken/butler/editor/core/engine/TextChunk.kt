@@ -1,5 +1,7 @@
 package eu.darken.butler.editor.core.engine
 
+import java.util.concurrent.atomic.AtomicInteger
+
 data class TextChunk(
     val id: ChunkId,
     val startOffset: Long,
@@ -26,7 +28,13 @@ data class TextChunk(
     @JvmInline
     value class ChunkId(val value: String) {
         companion object {
-            fun generate(startOffset: Long): ChunkId = ChunkId("chunk_$startOffset")
+            private val counter = AtomicInteger(0)
+
+            fun generate(): ChunkId = ChunkId("chunk_${counter.getAndIncrement()}")
+
+            fun resetCounter() {
+                counter.set(0)
+            }
         }
     }
 }

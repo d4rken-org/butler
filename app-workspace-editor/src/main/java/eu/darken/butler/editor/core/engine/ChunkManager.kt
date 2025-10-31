@@ -30,6 +30,9 @@ class ChunkManager @AssistedInject constructor(
 
     private val chunkMutex = Mutex()
 
+    // Chunk boundary tracking (offset → ID mapping)
+    private val boundaries: MutableMap<TextChunk.ChunkId, ChunkBoundary> = mutableMapOf()
+
     // LRU tracking for chunk eviction
     private val chunkAccessOrder = mutableListOf<TextChunk.ChunkId>()
     private var maxCachedChunks: Int = DEFAULT_MAX_CACHED_CHUNKS
@@ -56,12 +59,16 @@ class ChunkManager @AssistedInject constructor(
         }
 
         try {
+            // Get boundary for this chunk
+            val boundary = boundaries[chunkId]
+                ?: return@withLock Result.failure(IllegalArgumentException("No boundary found for chunk: $chunkId"))
+
             // Mark as loading
             _loadStates.value = _loadStates.value + (chunkId to ChunkLoadState(isLoading = true))
 
-            // Load from repository
+            // Load from repository with boundary information
             log(tag) { "Loading chunk $chunkId from disk" }
-            val chunk = chunkRepository.loadChunk(chunkId)
+            val chunk = chunkRepository.loadChunk(chunkId, boundary)
 
             // Update state
             _chunks.value = _chunks.value + (chunkId to chunk)
@@ -99,19 +106,18 @@ class ChunkManager @AssistedInject constructor(
     }
 
     suspend fun getChunksInRange(startOffset: Long, endOffset: Long): List<TextChunk> {
-        // Calculate which chunk IDs are needed for this offset range
-        val firstChunkOffset = (startOffset / chunkSize) * chunkSize
-        val neededChunkIds = mutableListOf<TextChunk.ChunkId>()
-
-        var currentOffset = firstChunkOffset
-        while (currentOffset < endOffset) {
-            neededChunkIds.add(TextChunk.ChunkId.generate(currentOffset))
-            currentOffset += chunkSize
+        // Snapshot relevant chunk IDs while holding mutex to avoid race conditions
+        val relevantChunkIds = chunkMutex.withLock {
+            boundaries.filter { (_, boundary) ->
+                boundary.endOffset > startOffset && boundary.startOffset < endOffset
+            }.keys.toSet()
         }
 
-        // Load chunks if not already loaded
+        log(tag) { "Found ${relevantChunkIds.size} chunks in range $startOffset-$endOffset" }
+
+        // Load chunks if not already loaded (outside mutex to avoid reentrant lock)
         val loadedChunks = mutableListOf<TextChunk>()
-        for (chunkId in neededChunkIds) {
+        for (chunkId in relevantChunkIds) {
             val chunk = _chunks.value[chunkId]
             if (chunk != null && chunk.isLoaded) {
                 // Chunk already in cache
@@ -162,6 +168,53 @@ class ChunkManager @AssistedInject constructor(
         chunkAccessOrder.remove(chunkId)
 
         true
+    }
+
+    /**
+     * Update chunk boundaries after an edit operation.
+     * Shifts boundaries for chunks after the edit point by deltaLength.
+     *
+     * Note: This ONLY updates the boundaries map. The chunks themselves keep their
+     * original offsets which represent the content they hold, not their file position.
+     *
+     * @param editOffset The file offset where the edit occurred
+     * @param deltaLength The change in length (positive for insert, negative for delete)
+     */
+    suspend fun updateBoundaries(editOffset: Long, deltaLength: Long) = chunkMutex.withLock {
+        if (deltaLength == 0L) return@withLock
+
+        val updatedBoundaries = mutableMapOf<TextChunk.ChunkId, ChunkBoundary>()
+        var adjustedCount = 0
+
+        for ((chunkId, boundary) in boundaries) {
+            val newBoundary = when {
+                // Chunk entirely after edit point - shift both offsets
+                boundary.startOffset >= editOffset -> {
+                    adjustedCount++
+                    ChunkBoundary(
+                        boundary.startOffset + deltaLength,
+                        boundary.endOffset + deltaLength
+                    )
+                }
+                // Chunk contains edit point - adjust end offset only
+                boundary.endOffset > editOffset -> {
+                    adjustedCount++
+                    ChunkBoundary(
+                        boundary.startOffset,
+                        boundary.endOffset + deltaLength
+                    )
+                }
+                // Chunk entirely before edit point - no change
+                else -> boundary
+            }
+
+            updatedBoundaries[chunkId] = newBoundary
+        }
+
+        boundaries.clear()
+        boundaries.putAll(updatedBoundaries)
+
+        log(tag) { "Updated $adjustedCount chunk boundaries after edit at offset $editOffset (delta=$deltaLength)" }
     }
 
     private fun evictOldChunksIfNeeded() {
@@ -263,22 +316,45 @@ class ChunkManager @AssistedInject constructor(
         log(tag) { "Successfully marked $markedCount chunks as clean" }
     }
 
-    suspend fun generateChunkIds(fileSize: Long): List<TextChunk.ChunkId> {
-        val chunkIds = mutableListOf<TextChunk.ChunkId>()
-        var offset = 0L
+    suspend fun generateChunkIds(fileSize: Long): List<TextChunk.ChunkId> = chunkMutex.withLock {
+        // Reset counter for deterministic ID generation
+        TextChunk.ChunkId.resetCounter()
 
+        // Clear old boundaries
+        boundaries.clear()
+
+        val chunkIds = mutableListOf<TextChunk.ChunkId>()
+
+        // Handle empty files - create one empty chunk
+        if (fileSize == 0L) {
+            val id = TextChunk.ChunkId.generate()
+            boundaries[id] = ChunkBoundary(0L, 0L)
+            chunkIds.add(id)
+            log(tag) { "Generated 1 chunk ID for empty file" }
+            return@withLock chunkIds
+        }
+
+        var offset = 0L
         while (offset < fileSize) {
-            chunkIds.add(TextChunk.ChunkId.generate(offset))
+            val id = TextChunk.ChunkId.generate()
+            val endOffset = minOf(offset + chunkSize, fileSize)
+
+            // Store boundary for this chunk
+            boundaries[id] = ChunkBoundary(offset, endOffset)
+
+            chunkIds.add(id)
             offset += chunkSize
         }
 
-        return chunkIds
+        log(tag) { "Generated ${chunkIds.size} chunk IDs with boundaries for ${fileSize} bytes" }
+        return@withLock chunkIds
     }
 
     suspend fun clear() = chunkMutex.withLock {
         log(tag) { "Clearing all chunks" }
         _chunks.value = emptyMap()
         _loadStates.value = emptyMap()
+        boundaries.clear()
     }
 
     @AssistedFactory
@@ -351,4 +427,15 @@ class ChunkManager @AssistedInject constructor(
             return result.toByteArray()
         }
     }
+}
+
+/**
+ * Tracks the offset boundaries of a chunk.
+ * Chunk IDs are sequential/opaque, boundaries track actual file positions.
+ */
+data class ChunkBoundary(
+    val startOffset: Long,
+    val endOffset: Long
+) {
+    val size: Long get() = endOffset - startOffset
 }

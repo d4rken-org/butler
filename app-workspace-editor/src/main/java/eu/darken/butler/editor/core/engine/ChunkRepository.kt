@@ -26,22 +26,17 @@ class ChunkRepository @AssistedInject constructor(
         return dataSource.fileInfo.value
     }
 
-    suspend fun loadChunk(chunkId: TextChunk.ChunkId): TextChunk = withContext(Dispatchers.IO) {
-        log(tag) { "Loading chunk: $chunkId" }
+    suspend fun loadChunk(chunkId: TextChunk.ChunkId, boundary: ChunkBoundary): TextChunk = withContext(Dispatchers.IO) {
+        log(tag) { "Loading chunk: $chunkId at ${boundary.startOffset}-${boundary.endOffset}" }
 
-        val startOffset = extractOffsetFromChunkId(chunkId)
-        val fileSize = dataSource.getSize()
-        val endOffset = minOf(startOffset + chunkSize, fileSize)
-        val chunkSizeToRead = endOffset - startOffset
-
-        val content = dataSource.readChunk(startOffset, chunkSizeToRead)
+        val content = dataSource.readChunk(boundary.startOffset, boundary.size)
 
         val lineCount = content.count { it == '\n' } + if (content.isNotEmpty() && !content.endsWith('\n')) 1 else 0
 
         val chunk = TextChunk(
             id = chunkId,
-            startOffset = startOffset,
-            endOffset = endOffset,
+            startOffset = boundary.startOffset,
+            endOffset = boundary.endOffset,
             content = content,
             lineCount = lineCount,
             isDirty = false,
@@ -71,7 +66,7 @@ class ChunkRepository @AssistedInject constructor(
      * The caller (ChunkedTextBuffer) is responsible for converting to file-relative line numbers.
      */
     suspend fun searchInChunk(
-        chunkId: TextChunk.ChunkId,
+        chunk: TextChunk,
         query: String,
         ignoreCase: Boolean = false
     ): List<SearchResult> {
@@ -81,7 +76,6 @@ class ChunkRepository @AssistedInject constructor(
                 return emptyList()
             }
 
-            val chunk = loadChunk(chunkId)
             val results = mutableListOf<SearchResult>()
 
             val searchText = if (ignoreCase) chunk.content.lowercase() else chunk.content
@@ -102,7 +96,7 @@ class ChunkRepository @AssistedInject constructor(
                     SearchResult(
                         position = TextPosition(absoluteOffset, lineNumber, columnNumber),
                         matchText = chunk.content.substring(foundIndex, foundIndex + query.length),
-                        chunkId = chunkId
+                        chunkId = chunk.id
                     )
                 )
 
@@ -112,7 +106,7 @@ class ChunkRepository @AssistedInject constructor(
             return results
 
         } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to search in chunk: $chunkId - ${e.asLog()}" }
+            log(tag, ERROR) { "Failed to search in chunk: ${chunk.id} - ${e.asLog()}" }
             return emptyList()
         }
     }
@@ -120,10 +114,6 @@ class ChunkRepository @AssistedInject constructor(
     suspend fun closeFile() {
         log(tag) { "Closing data source" }
         dataSource.close()
-    }
-
-    private fun extractOffsetFromChunkId(chunkId: TextChunk.ChunkId): Long {
-        return chunkId.value.removePrefix("chunk_").toLongOrNull() ?: 0L
     }
 
     @AssistedFactory

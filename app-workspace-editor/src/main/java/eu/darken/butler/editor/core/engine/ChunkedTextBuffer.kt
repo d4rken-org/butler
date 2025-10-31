@@ -65,13 +65,8 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
             _totalLength.value = size
 
-            // Generate chunk IDs based on content size
-            chunkIds = if (size > 0) {
-                chunkManager.generateChunkIds(size)
-            } else {
-                // For empty content, create one empty chunk
-                listOf(TextChunk.ChunkId.generate(0))
-            }
+            // Generate chunk IDs based on content size (handles empty files too)
+            chunkIds = chunkManager.generateChunkIds(size)
 
             // For empty content, we need to create and load the empty chunk
             if (size == 0L && chunkIds.isNotEmpty()) {
@@ -278,8 +273,11 @@ class ChunkedTextBuffer @AssistedInject constructor(
             // Update total length
             _totalLength.value = _totalLength.value + text.length
 
-            // Update line index and state  
+            // Update line index and state (BEFORE boundary update to avoid lock ordering issues)
             updateAfterEdit()
+
+            // Update chunk boundaries to reflect the insertion (AFTER metadata rebuild)
+            chunkManager.updateBoundaries(position.offset, text.length.toLong())
 
             // Add to undo stack (unless we're undoing/redoing)
             if (!isUndoRedoInProgress) {
@@ -392,8 +390,11 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 val deletedLength = endPosition.offset - startPosition.offset
                 _totalLength.value = _totalLength.value - deletedLength
 
-                // Update line index and state
+                // Update line index and state (BEFORE boundary update to avoid lock ordering issues)
                 updateAfterEdit()
+
+                // Update chunk boundaries to reflect the deletion (AFTER metadata rebuild)
+                chunkManager.updateBoundaries(startPosition.offset, -deletedLength)
 
                 // Add to undo stack (unless we're undoing/redoing)
                 if (!isUndoRedoInProgress) {
@@ -522,7 +523,14 @@ class ChunkedTextBuffer @AssistedInject constructor(
         val metadataMap = chunkMetadata.associateBy { it.chunkId }
 
         for (chunkId in chunkIds) {
-            val chunkResults = chunkRepository.searchInChunk(chunkId, query, ignoreCase)
+            // Load chunk first (needed for boundary-based loading)
+            val chunk = chunkManager.loadChunk(chunkId).getOrNull()
+            if (chunk == null) {
+                log(tag, WARN) { "Failed to load chunk $chunkId for search" }
+                continue
+            }
+
+            val chunkResults = chunkRepository.searchInChunk(chunk, query, ignoreCase)
 
             // Correct line numbers from chunk-relative to file-relative
             val metadata = metadataMap[chunkId]
@@ -669,7 +677,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         if (fileSize == 0L) {
             chunkMetadata.add(
                 ChunkMetadata(
-                    chunkId = chunkIds.firstOrNull() ?: TextChunk.ChunkId.generate(0),
+                    chunkId = chunkIds.firstOrNull() ?: TextChunk.ChunkId.generate(),
                     startOffset = 0L,
                     endOffset = 0L,
                     lineCount = 1,
@@ -730,14 +738,6 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
     private suspend fun findChunkForOffset(offset: Long): TextChunk? {
         return chunkManager.getChunksInRange(offset, offset + 1).firstOrNull()
-    }
-
-    /**
-     * Extract offset from chunk ID.
-     * ChunkIds are formatted as "chunk_<offset>", e.g. "chunk_0", "chunk_65536"
-     */
-    private fun extractOffsetFromChunkId(chunkId: TextChunk.ChunkId): Long {
-        return chunkId.value.removePrefix("chunk_").toLongOrNull() ?: 0L
     }
 
     /**

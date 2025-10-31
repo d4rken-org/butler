@@ -189,7 +189,7 @@ class FileDataSourceTest : BaseTest() {
         // When: Save dirty chunks
         val dirtyChunks = listOf(
             TextChunk(
-                id = TextChunk.ChunkId.generate(0L),
+                id = TextChunk.ChunkId.generate(),
                 startOffset = 0L,
                 endOffset = 7L,
                 content = "Goodbye",
