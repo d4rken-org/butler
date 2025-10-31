@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.FlashOn
 import androidx.compose.material.icons.twotone.FolderOff
@@ -22,11 +24,13 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
@@ -94,27 +98,27 @@ fun PermissionRequestCard(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
         ) {
-            // Icon - Use storage/folder icon instead of lock
+            // Icon
             Icon(
                 imageVector = Icons.TwoTone.FolderOff,
                 contentDescription = null,
-                modifier = Modifier.size(64.dp),
+                modifier = Modifier.size(48.dp),
                 tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Text(
                 text = stringResource(R.string.explorer_permission_required_title),
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.titleLarge,
                 textAlign = TextAlign.Center,
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // General explanation
             Text(
@@ -122,19 +126,15 @@ fun PermissionRequestCard(
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                modifier = Modifier.padding(horizontal = 16.dp),
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Determine which setup options are needed
             val allModules = setupRequirements.combos.flatten()
             val needsStorage = SetupModule.Type.STORAGE in allModules
             val needsRootOrShizuku = SetupModule.Type.ROOT in allModules || SetupModule.Type.SHIZUKU in allModules
             val needsStorageOnly = needsStorage && !needsRootOrShizuku
-
-            // Track if we've shown any cards (for spacing)
-            var hasShownCard = false
 
             // Show Quick Access option card if SAF picker available
             if (setupRequirements.safPickerGrant != null && onLaunchSAFPicker != null) {
@@ -145,39 +145,30 @@ fun PermissionRequestCard(
                     description = stringResource(R.string.explorer_permission_option_picker_description),
                     actionLabel = stringResource(R.string.explorer_permission_option_picker_action),
                     onAction = { onLaunchSAFPicker(grant) },
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 )
-                hasShownCard = true
+                Spacer(modifier = Modifier.height(12.dp))
             }
 
             // Show Storage Access option card if only storage permission needed
             if (needsStorageOnly) {
-                if (hasShownCard) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
                 PermissionOptionCard(
                     icon = Icons.TwoTone.FolderOpen,
                     title = stringResource(R.string.explorer_permission_option_storage_title),
                     description = stringResource(R.string.explorer_permission_option_storage_description),
                     actionLabel = stringResource(R.string.explorer_permission_option_storage_action),
                     onAction = onNavigateToSetup,
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 )
-                hasShownCard = true
+                Spacer(modifier = Modifier.height(12.dp))
             }
 
             // Show Full Access option card if Root/Shizuku needed
             if (needsRootOrShizuku) {
-                if (hasShownCard) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
                 PermissionOptionCard(
                     icon = Icons.TwoTone.Settings,
                     title = stringResource(R.string.explorer_permission_option_setup_title),
                     description = stringResource(R.string.explorer_permission_option_setup_description),
                     actionLabel = stringResource(R.string.explorer_permission_option_setup_action),
                     onAction = onNavigateToSetup,
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 )
             }
         }
@@ -196,17 +187,18 @@ private fun PermissionOptionCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         ),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
         ) {
+            // Icon + Title Row
             Row(
-                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Icon(
                     imageVector = icon,
@@ -214,30 +206,30 @@ private fun PermissionOptionCard(
                     modifier = Modifier.size(24.dp),
                     tint = MaterialTheme.colorScheme.primary,
                 )
-                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
+            // Description
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Start,
-                modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Button(
-                onClick = onAction,
-                modifier = Modifier.fillMaxWidth(0.85f),
+            // Button aligned to bottom-right
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
             ) {
-                Text(text = actionLabel)
+                TextButton(onClick = onAction) {
+                    Text(text = actionLabel)
+                }
             }
         }
     }
