@@ -353,7 +353,15 @@ class SAFLocationManagerImpl @Inject constructor(
             }
             log(TAG, VERBOSE) { "Extracted permission path segments: $permissionPathSegments" }
 
-            // Find the matching storage volume
+            // Extract volume ID from SAF URI (e.g., "primary", "sdcard", "1234-5678")
+            val volumeIdFromUri = uriPath.split("/tree/").lastOrNull()?.split(":")?.firstOrNull()
+            if (volumeIdFromUri == null) {
+                log(TAG, WARN) { "Cannot extract volume ID from URI: $uriPath" }
+                return null
+            }
+            log(TAG, VERBOSE) { "Extracted volume ID from URI: $volumeIdFromUri" }
+
+            // Find the matching storage volume by comparing volume IDs
             val volumes = storageManager2.storageVolumes
                 .also { log(TAG, VERBOSE) { "Found ${it.size} volumes to check" } }
 
@@ -362,12 +370,26 @@ class SAFLocationManagerImpl @Inject constructor(
                 return null
             }
 
-            // For simplicity, use the first volume (in production, would need proper matching)
-            val osStorage = volumes[0]
-                .also { log(TAG, VERBOSE) { "Using volume: $it" } }
+            val osStorage = volumes
+                .onEach { volume ->
+                    val volumeTreePath = volume.treeUri.path
+                    val volumeId = volumeTreePath?.split("/tree/")?.lastOrNull()?.split(":")?.firstOrNull()
+                    log(TAG, VERBOSE) { "Checking volume: ${volume.directory?.path}, volumeId=$volumeId" }
+                }
+                .firstOrNull { volume ->
+                    val volumeTreePath = volume.treeUri.path
+                    val volumeId = volumeTreePath?.split("/tree/")?.lastOrNull()?.split(":")?.firstOrNull()
+                    volumeId == volumeIdFromUri
+                }
+
+            if (osStorage == null) {
+                log(TAG, WARN) { "No matching volume found for volumeId=$volumeIdFromUri" }
+                return null
+            }
+            log(TAG, VERBOSE) { "Matched volume: ${osStorage.directory?.path}" }
 
             if (osStorage.directory == null) {
-                log(TAG, WARN) { "Volume has no directory!" }
+                log(TAG, WARN) { "Matched volume has no directory!" }
                 return null
             }
             val rootDir = osStorage.directory!!.toLocalPath()

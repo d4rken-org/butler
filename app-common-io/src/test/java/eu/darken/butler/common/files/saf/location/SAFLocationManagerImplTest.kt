@@ -421,9 +421,153 @@ class SAFLocationManagerImplTest : BaseTest() {
         safPath shouldBe null
     }
 
-    // NOTE: toLocalPath() tests are complex due to SafUri mocking requirements.
-    // The toSAFPath() tests above verify the main fix (permission-aware path mapping).
-    // toLocalPath() will be tested via integration tests with real Android URIs.
+    // --- toLocalPath() Tests ---
+
+    /**
+     * Test toLocalPath() with SD card - should match correct volume.
+     * This test WILL FAIL with current "volumes[0]" implementation.
+     */
+    @Test
+    fun `toLocalPath with SD card - matches correct volume`() {
+        // Setup: Multiple volumes (primary + SD card)
+        val primaryDir = mockk<java.io.File> {
+            every { path } returns "/storage/emulated/0"
+            every { isAbsolute } returns true
+        }
+        val primaryVolume = mockk<StorageVolumeX> {
+            every { directory } returns primaryDir
+            every { treeUri } returns Uri.parse("content://$baseAuthority/tree/primary")
+        }
+
+        val sdcardDir = mockk<java.io.File> {
+            every { path } returns "/storage/sdcard"
+            every { isAbsolute } returns true
+        }
+        val sdcardVolume = mockk<StorageVolumeX> {
+            every { directory } returns sdcardDir
+            every { treeUri } returns Uri.parse("content://$baseAuthority/tree/sdcard")
+        }
+
+        every { storageManager2.storageVolumes } returns listOf(primaryVolume, sdcardVolume)
+
+        // Create SAFPath for SD card with subdirectory
+        val sdcardUri = Uri.parse("content://$baseAuthority/tree/sdcard%3Afolder")
+        val safPath = SAFPath.build(sdcardUri, "file.txt")
+
+        // Act
+        val localPath = manager.toLocalPath(safPath)
+
+        // Assert: Should map to SD card, NOT primary storage
+        localPath shouldNotBe null
+        localPath!!.path shouldBe "/storage/sdcard/folder/file.txt"
+    }
+
+    /**
+     * Test toLocalPath() with mismatched volume - should return null.
+     * This test WILL FAIL with current "volumes[0]" implementation.
+     */
+    @Test
+    fun `toLocalPath with mismatched volume - returns null`() {
+        // Setup: Only primary volume available
+        val primaryDir = mockk<java.io.File> {
+            every { path } returns "/storage/emulated/0"
+            every { isAbsolute } returns true
+        }
+        val primaryVolume = mockk<StorageVolumeX> {
+            every { directory } returns primaryDir
+            every { treeUri } returns Uri.parse("content://$baseAuthority/tree/primary")
+        }
+
+        every { storageManager2.storageVolumes } returns listOf(primaryVolume)
+
+        // Create SAFPath for SD card (which doesn't exist)
+        val sdcardUri = Uri.parse("content://$baseAuthority/tree/sdcard%3Afolder")
+        val safPath = SAFPath.build(sdcardUri)
+
+        // Act
+        val localPath = manager.toLocalPath(safPath)
+
+        // Assert: Should return null because no matching volume
+        localPath shouldBe null
+    }
+
+    /**
+     * Test toLocalPath() with multiple volumes - should select correct one.
+     * This test WILL FAIL with current "volumes[0]" implementation.
+     */
+    @Test
+    fun `toLocalPath with multiple volumes - selects correct one`() {
+        // Setup: Three volumes (primary, sdcard, USB)
+        val primaryDir = mockk<java.io.File> {
+            every { path } returns "/storage/emulated/0"
+            every { isAbsolute } returns true
+        }
+        val primaryVolume = mockk<StorageVolumeX> {
+            every { directory } returns primaryDir
+            every { treeUri } returns Uri.parse("content://$baseAuthority/tree/primary")
+        }
+
+        val sdcardDir = mockk<java.io.File> {
+            every { path } returns "/storage/sdcard"
+            every { isAbsolute } returns true
+        }
+        val sdcardVolume = mockk<StorageVolumeX> {
+            every { directory } returns sdcardDir
+            every { treeUri } returns Uri.parse("content://$baseAuthority/tree/sdcard")
+        }
+
+        val usbDir = mockk<java.io.File> {
+            every { path } returns "/storage/usb"
+            every { isAbsolute } returns true
+        }
+        val usbVolume = mockk<StorageVolumeX> {
+            every { directory } returns usbDir
+            every { treeUri } returns Uri.parse("content://$baseAuthority/tree/1234-5678")
+        }
+
+        every { storageManager2.storageVolumes } returns listOf(primaryVolume, sdcardVolume, usbVolume)
+
+        // Create SAFPath for USB storage
+        val usbUri = Uri.parse("content://$baseAuthority/tree/1234-5678%3Adata")
+        val safPath = SAFPath.build(usbUri, "file.bin")
+
+        // Act
+        val localPath = manager.toLocalPath(safPath)
+
+        // Assert: Should map to USB storage, NOT primary (volumes[0])
+        localPath shouldNotBe null
+        localPath!!.path shouldBe "/storage/usb/data/file.bin"
+    }
+
+    /**
+     * Test toLocalPath() with single primary volume - regression check.
+     * This test SHOULD PASS even with current implementation.
+     */
+    @Test
+    fun `toLocalPath with single primary volume - still works`() {
+        // Setup: Only primary volume
+        val primaryDir = mockk<java.io.File> {
+            every { path } returns "/storage/emulated/0"
+            every { isAbsolute } returns true
+        }
+        val primaryVolume = mockk<StorageVolumeX> {
+            every { directory } returns primaryDir
+            every { treeUri } returns Uri.parse("content://$baseAuthority/tree/primary")
+        }
+
+        every { storageManager2.storageVolumes } returns listOf(primaryVolume)
+
+        // Create SAFPath for primary storage
+        val primaryUri = Uri.parse("content://$baseAuthority/tree/primary%3APictures")
+        val safPath = SAFPath.build(primaryUri, "photo.jpg")
+
+        // Act
+        val localPath = manager.toLocalPath(safPath)
+
+        // Assert: Should work correctly (regression check)
+        localPath shouldNotBe null
+        localPath!!.path shouldBe "/storage/emulated/0/Pictures/photo.jpg"
+    }
 
     // --- Helper Methods ---
 
