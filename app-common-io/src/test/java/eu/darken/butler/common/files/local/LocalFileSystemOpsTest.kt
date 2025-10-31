@@ -437,6 +437,35 @@ class LocalFileSystemOpsTest : BaseTest() {
     }
 
     @Test
+    fun `openOutputStream throws when path exists as directory`(@TempDir tempDir: File) = runTest {
+        // Given - path exists as a directory
+        val path = LocalPath.build(tempDir, "subdir")
+        fileSystemOps.createDir(path)
+
+        // When/Then - should throw WriteException (can't write to directory)
+        shouldThrow<WriteException> {
+            fileSystemOps.openOutputStream(path, append = false)
+        }
+    }
+
+    @Test
+    fun `openOutputStream follows symlink to file`(@TempDir tempDir: File) = runTest {
+        // Given - symlink pointing to a file
+        val targetFile = File(tempDir, "target.txt").apply { writeText("old") }
+        val target = LocalPath.build(targetFile)
+        val link = LocalPath.build(tempDir, "link.txt")
+        fileSystemOps.createSymlink(link, target)
+
+        // When - open stream via symlink with append=false
+        val outputStream = fileSystemOps.openOutputStream(link, append = false)
+        outputStream.write("new".toByteArray())
+        outputStream.close()
+
+        // Then - target file should be truncated
+        targetFile.readText() shouldBe "new"
+    }
+
+    @Test
     fun `file returns readable FileHandle`(@TempDir tempDir: File) = runTest {
         val testFile = File(tempDir, "handle.txt").apply { writeText("handle content") }
         val path = LocalPath.build(testFile)
