@@ -3,10 +3,9 @@ package eu.darken.butler.common.storage.saf
 import android.content.Intent
 import android.net.Uri
 import android.provider.DocumentsContract
-import eu.darken.butler.common.SafUri
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.SAFPath
-import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import eu.darken.butler.common.storage.StorageManager2
+import eu.darken.butler.common.storage.StorageVolumeX
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -27,20 +26,20 @@ class SAFPickerIntentBuilderTest : BaseTest() {
     fun `test builds picker intent for valid path`() = runTest {
         val targetPath = LocalPath.build("/storage/emulated/0/Android/data")
 
-        val mockTreeRootUri = mockk<SafUri> {
-            every { toAndroidUri() } returns Uri.parse("content://com.android.externalstorage.documents/tree/primary")
+        // Mock StorageManager2 with primary volume
+        val volumeDir = mockk<java.io.File> {
+            every { path } returns "/storage/emulated/0"
+            every { isAbsolute } returns true
+        }
+        val volume = mockk<StorageVolumeX> {
+            every { directory } returns volumeDir
+            every { treeUri } returns Uri.parse("content://com.android.externalstorage.documents/tree/primary")
+        }
+        val storageManager2 = mockk<StorageManager2> {
+            every { storageVolumes } returns listOf(volume)
         }
 
-        val safPath = mockk<SAFPath> {
-            every { treeRootUri } returns mockTreeRootUri
-            every { segments } returns listOf("Android", "data")
-        }
-
-        val safLocationManager = mockk<SAFLocationManager> {
-            every { toSAFPath(targetPath) } returns safPath
-        }
-
-        val builder = SAFPickerIntentBuilder(safLocationManager)
+        val builder = SAFPickerIntentBuilder(storageManager2)
         val intent = builder.buildPickerIntent(targetPath)
 
         intent.shouldNotBeNull()
@@ -53,25 +52,12 @@ class SAFPickerIntentBuilderTest : BaseTest() {
     fun `test returns null for unmappable path`() = runTest {
         val targetPath = LocalPath.build("/invalid/path")
 
-        val safLocationManager = mockk<SAFLocationManager> {
-            every { toSAFPath(targetPath) } returns null
+        // Mock StorageManager2 with no matching volumes
+        val storageManager2 = mockk<StorageManager2> {
+            every { storageVolumes } returns emptyList()
         }
 
-        val builder = SAFPickerIntentBuilder(safLocationManager)
-        val intent = builder.buildPickerIntent(targetPath)
-
-        intent.shouldBeNull()
-    }
-
-    @Test
-    fun `test handles exception during path mapping`() = runTest {
-        val targetPath = LocalPath.build("/storage/emulated/0/Android/data")
-
-        val safLocationManager = mockk<SAFLocationManager> {
-            every { toSAFPath(targetPath) } throws RuntimeException("Test exception")
-        }
-
-        val builder = SAFPickerIntentBuilder(safLocationManager)
+        val builder = SAFPickerIntentBuilder(storageManager2)
         val intent = builder.buildPickerIntent(targetPath)
 
         intent.shouldBeNull()
@@ -81,21 +67,19 @@ class SAFPickerIntentBuilderTest : BaseTest() {
     fun `test builds correct URI structure for Android data directory`() = runTest {
         val targetPath = LocalPath.build("/storage/emulated/0/Android/data")
 
-        // Mock SAFPath with treeRootUri and segments
-        val mockTreeRootUri = mockk<SafUri> {
-            every { toAndroidUri() } returns Uri.parse("content://com.android.externalstorage.documents/tree/primary")
+        val volumeDir = mockk<java.io.File> {
+            every { path } returns "/storage/emulated/0"
+            every { isAbsolute } returns true
+        }
+        val volume = mockk<StorageVolumeX> {
+            every { directory } returns volumeDir
+            every { treeUri } returns Uri.parse("content://com.android.externalstorage.documents/tree/primary")
+        }
+        val storageManager2 = mockk<StorageManager2> {
+            every { storageVolumes } returns listOf(volume)
         }
 
-        val safPath = mockk<SAFPath> {
-            every { treeRootUri } returns mockTreeRootUri
-            every { segments } returns listOf("Android", "data")
-        }
-
-        val safLocationManager = mockk<SAFLocationManager> {
-            every { toSAFPath(targetPath) } returns safPath
-        }
-
-        val builder = SAFPickerIntentBuilder(safLocationManager)
+        val builder = SAFPickerIntentBuilder(storageManager2)
         val intent = builder.buildPickerIntent(targetPath)
 
         intent.shouldNotBeNull()
@@ -112,20 +96,19 @@ class SAFPickerIntentBuilderTest : BaseTest() {
     fun `test builds correct URI structure for Android obb directory`() = runTest {
         val targetPath = LocalPath.build("/storage/emulated/0/Android/obb")
 
-        val mockTreeRootUri = mockk<SafUri> {
-            every { toAndroidUri() } returns Uri.parse("content://com.android.externalstorage.documents/tree/primary")
+        val volumeDir = mockk<java.io.File> {
+            every { path } returns "/storage/emulated/0"
+            every { isAbsolute } returns true
+        }
+        val volume = mockk<StorageVolumeX> {
+            every { directory } returns volumeDir
+            every { treeUri } returns Uri.parse("content://com.android.externalstorage.documents/tree/primary")
+        }
+        val storageManager2 = mockk<StorageManager2> {
+            every { storageVolumes } returns listOf(volume)
         }
 
-        val safPath = mockk<SAFPath> {
-            every { treeRootUri } returns mockTreeRootUri
-            every { segments } returns listOf("Android", "obb")
-        }
-
-        val safLocationManager = mockk<SAFLocationManager> {
-            every { toSAFPath(targetPath) } returns safPath
-        }
-
-        val builder = SAFPickerIntentBuilder(safLocationManager)
+        val builder = SAFPickerIntentBuilder(storageManager2)
         val intent = builder.buildPickerIntent(targetPath)
 
         intent.shouldNotBeNull()
@@ -140,20 +123,19 @@ class SAFPickerIntentBuilderTest : BaseTest() {
     fun `test builds correct URI for root storage path with no segments`() = runTest {
         val targetPath = LocalPath.build("/storage/emulated/0")
 
-        val mockTreeRootUri = mockk<SafUri> {
-            every { toAndroidUri() } returns Uri.parse("content://com.android.externalstorage.documents/tree/primary")
+        val volumeDir = mockk<java.io.File> {
+            every { path } returns "/storage/emulated/0"
+            every { isAbsolute } returns true
+        }
+        val volume = mockk<StorageVolumeX> {
+            every { directory } returns volumeDir
+            every { treeUri } returns Uri.parse("content://com.android.externalstorage.documents/tree/primary")
+        }
+        val storageManager2 = mockk<StorageManager2> {
+            every { storageVolumes } returns listOf(volume)
         }
 
-        val safPath = mockk<SAFPath> {
-            every { treeRootUri } returns mockTreeRootUri
-            every { segments } returns emptyList()
-        }
-
-        val safLocationManager = mockk<SAFLocationManager> {
-            every { toSAFPath(targetPath) } returns safPath
-        }
-
-        val builder = SAFPickerIntentBuilder(safLocationManager)
+        val builder = SAFPickerIntentBuilder(storageManager2)
         val intent = builder.buildPickerIntent(targetPath)
 
         intent.shouldNotBeNull()
@@ -169,20 +151,19 @@ class SAFPickerIntentBuilderTest : BaseTest() {
     fun `test builds correct URI for deeply nested path`() = runTest {
         val targetPath = LocalPath.build("/storage/emulated/0/Android/data/com.example.app/files")
 
-        val mockTreeRootUri = mockk<SafUri> {
-            every { toAndroidUri() } returns Uri.parse("content://com.android.externalstorage.documents/tree/primary")
+        val volumeDir = mockk<java.io.File> {
+            every { path } returns "/storage/emulated/0"
+            every { isAbsolute } returns true
+        }
+        val volume = mockk<StorageVolumeX> {
+            every { directory } returns volumeDir
+            every { treeUri } returns Uri.parse("content://com.android.externalstorage.documents/tree/primary")
+        }
+        val storageManager2 = mockk<StorageManager2> {
+            every { storageVolumes } returns listOf(volume)
         }
 
-        val safPath = mockk<SAFPath> {
-            every { treeRootUri } returns mockTreeRootUri
-            every { segments } returns listOf("Android", "data", "com.example.app", "files")
-        }
-
-        val safLocationManager = mockk<SAFLocationManager> {
-            every { toSAFPath(targetPath) } returns safPath
-        }
-
-        val builder = SAFPickerIntentBuilder(safLocationManager)
+        val builder = SAFPickerIntentBuilder(storageManager2)
         val intent = builder.buildPickerIntent(targetPath)
 
         intent.shouldNotBeNull()

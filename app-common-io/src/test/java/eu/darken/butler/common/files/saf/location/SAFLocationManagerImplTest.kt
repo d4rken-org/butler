@@ -377,35 +377,6 @@ class SAFLocationManagerImplTest : BaseTest() {
     }
 
     /**
-     * Test toSAFPath() without permission falls back to volume root.
-     */
-    @Test
-    fun `toSAFPath without permission - uses volume root`() {
-        // Setup: Volume for /storage/emulated/0
-        val volumeDir = mockk<java.io.File> {
-            every { path } returns "/storage/emulated/0"
-        }
-        val volume = mockk<StorageVolumeX> {
-            every { directory } returns volumeDir
-            every { treeUri } returns Uri.parse("content://$baseAuthority/tree/primary")
-        }
-        every { storageManager2.storageVolumes } returns listOf(volume)
-
-        // Setup: No permissions
-        every { contentResolver.persistedUriPermissions } returns emptyList()
-        refreshCache()
-
-        // Act: Convert LocalPath
-        val localPath = LocalPath.build("/storage/emulated/0/Pictures/photo.jpg")
-        val safPath = manager.toSAFPath(localPath)
-
-        // Assert: Should use volume root since no permission exists
-        safPath shouldNotBe null
-        safPath!!.treeRoot shouldBe "content://$baseAuthority/tree/primary"
-        safPath.segments shouldBe listOf("Pictures", "photo.jpg")
-    }
-
-    /**
      * Test toSAFPath() returns null for unknown volume.
      */
     @Test
@@ -418,6 +389,34 @@ class SAFLocationManagerImplTest : BaseTest() {
         val safPath = manager.toSAFPath(localPath)
 
         // Assert
+        safPath shouldBe null
+    }
+
+    /**
+     * Test toSAFPath() returns null when no permission exists.
+     * This verifies the fix: toSAFPath() should ONLY return when permission exists.
+     */
+    @Test
+    fun `toSAFPath without permission - returns null`() {
+        // Setup: Volume available but no permission granted
+        val volumeDir = mockk<java.io.File> {
+            every { path } returns "/storage/emulated/0"
+        }
+        val volume = mockk<StorageVolumeX> {
+            every { directory } returns volumeDir
+            every { treeUri } returns Uri.parse("content://$baseAuthority/tree/primary")
+        }
+        every { storageManager2.storageVolumes } returns listOf(volume)
+
+        // No permissions granted
+        every { contentResolver.persistedUriPermissions } returns emptyList()
+        refreshCache()
+
+        // Act
+        val localPath = LocalPath.build("/storage/emulated/0/Android/data")
+        val safPath = manager.toSAFPath(localPath)
+
+        // Assert: Should return null because no permission exists
         safPath shouldBe null
     }
 

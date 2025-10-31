@@ -271,10 +271,10 @@ class SAFLocationManagerImpl @Inject constructor(
 
             // Find the storage volume containing this path
             val osStorage = storageManager2.storageVolumes
-                .onEach { log(TAG, VERBOSE) { "Trying to match volume $it against $localPath" } }
+                .onEach { log(TAG, VERBOSE) { "Checking volume: $it" } }
                 .filter { it.directory != null }
                 .firstOrNull { localPath.path.startsWith(it.directory!!.path) }
-                ?.also { log(TAG, VERBOSE) { "Target storageVolume for $localPath is $it" } }
+                ?.also { log(TAG, VERBOSE) { "Target volume for $localPath is $it" } }
                 ?: return null.also { log(TAG, WARN) { "No storage volume found for $localPath" } }
 
             // Calculate path relative to volume root
@@ -292,27 +292,24 @@ class SAFLocationManagerImpl @Inject constructor(
             }
             log(TAG, VERBOSE) { "Calculated segments: $segments" }
 
-            // Create initial SAFPath with volume root
+            // Create volume-based path for permission matching
             val volumeBasedPath = SAFPath.build(
                 base = osStorage.treeUri,
                 segs = segments.toTypedArray(),
             )
 
-            // Check if we have a more specific permission for this path
+            // ONLY return if we have a matching permission
             val permissionMatch = findPermissionFor(volumeBasedPath)
             if (permissionMatch != null) {
-                // We have a permission! Use the permission's treeRoot instead of volume root
-                val permissionTreeRoot = permissionMatch.location.treeUri.toString()
                 val permissionBasedPath = SAFPath.build(
-                    base = permissionTreeRoot,
+                    base = permissionMatch.location.treeUri.toString(),
                     segs = permissionMatch.missingSegments.toTypedArray(),
                 )
-                log(TAG) { "toSAFPath() $localPath -> permission-based: pathUri=${permissionBasedPath.pathUri}, segments=${permissionBasedPath.segments}" }
+                log(TAG) { "toSAFPath() $localPath -> permission-based: treeRoot=${permissionBasedPath.treeRoot}, segments=${permissionBasedPath.segments}" }
                 permissionBasedPath
             } else {
-                // No permission found, use volume-based path
-                log(TAG) { "toSAFPath() $localPath -> volume-based: pathUri=${volumeBasedPath.pathUri}, segments=${volumeBasedPath.segments}" }
-                volumeBasedPath
+                log(TAG) { "toSAFPath() $localPath -> no permission found, returning null" }
+                null
             }
         } catch (e: Exception) {
             log(TAG, ERROR) { "Failed to map $localPath: ${e.asLog()}" }

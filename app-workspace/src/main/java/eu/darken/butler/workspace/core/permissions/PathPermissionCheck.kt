@@ -78,8 +78,8 @@ class PathPermissionCheck @Inject constructor(
             // PHASE 1: Check if SAF path already available (permission exists)
             val safPath = safLocationManager.toSAFPath(localPath)
             if (safPath != null) {
-                // toSAFPath already returns permission-aware paths, so if it returns non-null, permission exists
-                log(TAG) { "Alternative SAF path available for $localPath: $safPath" }
+                // toSAFPath returns non-null ONLY when permission exists, so we can use it directly
+                log(TAG) { "Alternative SAF path with permission for $localPath: $safPath" }
                 return WorkspaceRequirements(alternativePath = safPath)
             } else {
                 log(TAG) { "No SAF permission available for $localPath" }

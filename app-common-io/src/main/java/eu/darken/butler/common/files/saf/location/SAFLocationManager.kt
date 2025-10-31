@@ -141,22 +141,25 @@ interface SAFLocationManager {
     /**
      * Convert a LocalPath to SAFPath using granted SAF permissions.
      *
-     * This creates a SAFPath whose treeRoot matches the actual granted permission,
-     * not just the storage volume root. This is essential for operations like
-     * copy/move to work correctly with subdirectory permissions.
+     * This creates a SAFPath ONLY when a matching permission exists.
+     * Use this to check if a path can be accessed via SAF.
      *
-     * **Example with subdirectory permission:**
+     * **Returns null when:**
+     * - No storage volume found for the path
+     * - No SAF permission granted for the path
+     *
+     * **Example with permission:**
      * - Permission: `tree/primary:Android/data`
      * - LocalPath: `/storage/emulated/0/Android/data/com.app/file.txt`
      * - Result: `SAFPath(treeRoot="tree/primary:Android/data", segments=["com.app", "file.txt"])`
      *
-     * **Fallback to volume root when no permission:**
-     * - LocalPath: `/storage/emulated/0/Pictures/photo.jpg`
-     * - No permission for /Pictures
-     * - Result: `SAFPath(treeRoot="tree/primary", segments=["Pictures", "photo.jpg"])`
+     * **Example without permission:**
+     * - LocalPath: `/storage/emulated/0/Android/data/com.app/file.txt`
+     * - No permission for Android/data
+     * - Result: `null`
      *
      * @param localPath The local file system path to convert
-     * @return SAFPath with permission-aware treeRoot, or null if path is not on a known storage volume
+     * @return SAFPath with permission-aware treeRoot, or null if no permission exists
      */
     fun toSAFPath(localPath: LocalPath): SAFPath?
 

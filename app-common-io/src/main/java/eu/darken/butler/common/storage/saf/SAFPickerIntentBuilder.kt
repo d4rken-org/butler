@@ -8,7 +8,9 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.storage.StorageManager2
+import java.io.File
 import javax.inject.Inject
 
 /**
@@ -17,8 +19,49 @@ import javax.inject.Inject
  */
 @Reusable
 class SAFPickerIntentBuilder @Inject constructor(
-    private val safLocationManager: SAFLocationManager,
+    private val storageManager2: StorageManager2,
 ) {
+
+    /**
+     * Build volume-based SAFPath for picker navigation.
+     * Returns path regardless of permission status - use ONLY for picker intent creation.
+     */
+    private fun buildVolumeBasedSAFPath(localPath: LocalPath): SAFPath? {
+        return try {
+            log(TAG, VERBOSE) { "buildVolumeBasedSAFPath() called with: $localPath" }
+
+            // Find the storage volume containing this path
+            val osStorage = storageManager2.storageVolumes
+                .onEach { log(TAG, VERBOSE) { "Checking volume: $it" } }
+                .filter { it.directory != null }
+                .firstOrNull { localPath.path.startsWith(it.directory!!.path) }
+                ?.also { log(TAG, VERBOSE) { "Target volume for $localPath is $it" } }
+                ?: return null.also { log(TAG, WARN) { "No storage volume found for $localPath" } }
+
+            // Calculate path relative to volume root
+            val prefixFreeFile = if (osStorage.directory!!.path != localPath.path) {
+                localPath.path.replace("${osStorage.directory!!.path}${File.separator}", "")
+            } else {
+                ""
+            }
+            log(TAG, VERBOSE) { "Prefix-free path: '$prefixFreeFile'" }
+
+            val segments = if (prefixFreeFile.isEmpty()) {
+                emptyList()
+            } else {
+                prefixFreeFile.split(File.separator)
+            }
+            log(TAG, VERBOSE) { "Calculated segments: $segments" }
+
+            SAFPath.build(
+                base = osStorage.treeUri,
+                segs = segments.toTypedArray(),
+            )
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "Failed to build volume-based SAFPath for $localPath: ${e.asLog()}" }
+            null
+        }
+    }
 
     /**
      * Builds a SAF picker intent pre-navigated to the given path.
@@ -33,7 +76,7 @@ class SAFPickerIntentBuilder @Inject constructor(
         return try {
             log(TAG, VERBOSE) { "Building picker intent for targetPath: $targetPath" }
 
-            val safPath = safLocationManager.toSAFPath(targetPath)
+            val safPath = buildVolumeBasedSAFPath(targetPath)
             if (safPath == null) {
                 log(TAG, WARN) { "Cannot map $targetPath to SAF path" }
                 return null
