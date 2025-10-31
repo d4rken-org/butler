@@ -5,10 +5,13 @@ import android.content.Context
 import android.content.UriPermission
 import android.net.Uri
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.saf.location.db.SAFLocationDatabase
 import eu.darken.butler.common.files.saf.location.db.SAFLocationEntity
 import eu.darken.butler.common.files.saf.location.db.SAFLocationsDao
+import eu.darken.butler.common.storage.StorageManager2
+import eu.darken.butler.common.storage.StorageVolumeX
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
@@ -46,6 +49,7 @@ class SAFLocationManagerImplTest : BaseTest() {
     private lateinit var database: SAFLocationDatabase
     private lateinit var dao: SAFLocationsDao
     private lateinit var dispatcherProvider: DispatcherProvider
+    private lateinit var storageManager2: StorageManager2
     private lateinit var manager: SAFLocationManagerImpl
 
     private val baseAuthority = "com.android.externalstorage.documents"
@@ -72,12 +76,18 @@ class SAFLocationManagerImplTest : BaseTest() {
             every { IO } returns testDispatcher
         }
 
+        // Mock StorageManager2 with default empty volumes
+        storageManager2 = mockk {
+            every { storageVolumes } returns emptyList()
+        }
+
         manager = SAFLocationManagerImpl(
             context = context,
             appScope = testScope,
             contentResolver = contentResolver,
             dispatcherProvider = dispatcherProvider,
             database = database,
+            storageManager2 = storageManager2,
         )
 
         // Advance dispatcher to allow StateFlow cache to initialize
@@ -300,6 +310,120 @@ class SAFLocationManagerImplTest : BaseTest() {
         match!!.location.treeUri.toString() shouldBe permission2Uri.toString()
         match.missingSegments shouldBe listOf("FolderC")
     }
+
+    // --- Path Mapping Tests ---
+
+    /**
+     * Test toSAFPath() with subdirectory permission.
+     * This is the main fix: SAFPath should use permission root, not volume root.
+     */
+    @Test
+    fun `toSAFPath with subdirectory permission - uses permission root`() {
+        // Setup: Volume for /storage/emulated/0
+        val volumeDir = mockk<java.io.File> {
+            every { path } returns "/storage/emulated/0"
+        }
+        val volume = mockk<StorageVolumeX> {
+            every { directory } returns volumeDir
+            every { treeUri } returns Uri.parse("content://$baseAuthority/tree/primary")
+        }
+        every { storageManager2.storageVolumes } returns listOf(volume)
+
+        // Setup: Permission for Android/data subdirectory
+        val permissionUri = Uri.parse("content://$baseAuthority/tree/primary%3AAndroid%2Fdata")
+        val permission = mockUriPermission(permissionUri, read = true, write = true)
+        every { contentResolver.persistedUriPermissions } returns listOf(permission)
+        refreshCache()
+
+        // Act: Convert LocalPath in Android/data
+        val localPath = LocalPath.build("/storage/emulated/0/Android/data/com.app/file.txt")
+        val safPath = manager.toSAFPath(localPath)
+
+        // Assert: Should use permission root, not volume root
+        safPath shouldNotBe null
+        safPath!!.treeRoot shouldBe "content://$baseAuthority/tree/primary%3AAndroid%2Fdata"
+        safPath.segments shouldBe listOf("com.app", "file.txt")
+    }
+
+    /**
+     * Test toSAFPath() with root directory permission.
+     */
+    @Test
+    fun `toSAFPath with root directory - uses permission root`() {
+        // Setup: Volume for /storage/emulated/0
+        val volumeDir = mockk<java.io.File> {
+            every { path } returns "/storage/emulated/0"
+        }
+        val volume = mockk<StorageVolumeX> {
+            every { directory } returns volumeDir
+            every { treeUri } returns Uri.parse("content://$baseAuthority/tree/primary")
+        }
+        every { storageManager2.storageVolumes } returns listOf(volume)
+
+        // Setup: Permission for root directory
+        val permissionUri = Uri.parse("content://$baseAuthority/tree/primary")
+        val permission = mockUriPermission(permissionUri, read = true, write = true)
+        every { contentResolver.persistedUriPermissions } returns listOf(permission)
+        refreshCache()
+
+        // Act: Convert LocalPath at root
+        val localPath = LocalPath.build("/storage/emulated/0/Pictures/photo.jpg")
+        val safPath = manager.toSAFPath(localPath)
+
+        // Assert: Should use permission root (which is volume root in this case)
+        safPath shouldNotBe null
+        safPath!!.treeRoot shouldBe "content://$baseAuthority/tree/primary"
+        safPath.segments shouldBe listOf("Pictures", "photo.jpg")
+    }
+
+    /**
+     * Test toSAFPath() without permission falls back to volume root.
+     */
+    @Test
+    fun `toSAFPath without permission - uses volume root`() {
+        // Setup: Volume for /storage/emulated/0
+        val volumeDir = mockk<java.io.File> {
+            every { path } returns "/storage/emulated/0"
+        }
+        val volume = mockk<StorageVolumeX> {
+            every { directory } returns volumeDir
+            every { treeUri } returns Uri.parse("content://$baseAuthority/tree/primary")
+        }
+        every { storageManager2.storageVolumes } returns listOf(volume)
+
+        // Setup: No permissions
+        every { contentResolver.persistedUriPermissions } returns emptyList()
+        refreshCache()
+
+        // Act: Convert LocalPath
+        val localPath = LocalPath.build("/storage/emulated/0/Pictures/photo.jpg")
+        val safPath = manager.toSAFPath(localPath)
+
+        // Assert: Should use volume root since no permission exists
+        safPath shouldNotBe null
+        safPath!!.treeRoot shouldBe "content://$baseAuthority/tree/primary"
+        safPath.segments shouldBe listOf("Pictures", "photo.jpg")
+    }
+
+    /**
+     * Test toSAFPath() returns null for unknown volume.
+     */
+    @Test
+    fun `toSAFPath for unknown volume - returns null`() {
+        // Setup: No volumes
+        every { storageManager2.storageVolumes } returns emptyList()
+
+        // Act
+        val localPath = LocalPath.build("/unknown/path")
+        val safPath = manager.toSAFPath(localPath)
+
+        // Assert
+        safPath shouldBe null
+    }
+
+    // NOTE: toLocalPath() tests are complex due to SafUri mocking requirements.
+    // The toSAFPath() tests above verify the main fix (permission-aware path mapping).
+    // toLocalPath() will be tested via integration tests with real Android URIs.
 
     // --- Helper Methods ---
 

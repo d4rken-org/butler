@@ -21,9 +21,9 @@ import eu.darken.butler.common.files.operations.TransferStrategy
 import eu.darken.butler.common.files.operations.copyGeneric
 import eu.darken.butler.common.files.operations.moveGeneric
 import eu.darken.butler.common.files.saf.SAFGateway
+import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.sharedresource.SharedResource
 import eu.darken.butler.common.sharedresource.adoptChildResource
-import eu.darken.butler.common.storage.PathMapper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -44,7 +44,7 @@ class GatewaySwitch @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     private val safGateway: SAFGateway,
     private val localGateway: LocalGateway,
-    private val mapper: PathMapper,
+    private val safLocationManager: SAFLocationManager,
 ) : APathGateway<APath<*>, APathLookup<APath<*>>> {
 
     private suspend fun <T : APath<T>, R> useGateway(
@@ -229,18 +229,18 @@ class GatewaySwitch @Inject constructor(
         Type.CURRENT -> this
         Type.FORCED_LOCAL -> when (this) {
             is LocalPath -> this
-            is SAFPath -> mapper.toLocalPath(this) ?: throw IOException("Can't map $this to LOCAL")
+            is SAFPath -> safLocationManager.toLocalPath(this) ?: throw IOException("Can't map $this to LOCAL")
         }
 
         Type.FORCED_SAF -> when (this) {
-            is LocalPath -> mapper.toSAFPath(this) ?: throw IOException("Can't map $this to SAF")
+            is LocalPath -> safLocationManager.toSAFPath(this) ?: throw IOException("Can't map $this to SAF")
             is SAFPath -> this
         }
     }
 
     private suspend fun APath<*>.toAlternative(): APath<*> = when (this) {
-        is LocalPath -> mapper.toSAFPath(this) ?: throw ReadException("Can't map to SAF", this)
-        is SAFPath -> mapper.toLocalPath(this) ?: throw ReadException("Can't map to LOCAL", this)
+        is LocalPath -> safLocationManager.toSAFPath(this) ?: throw ReadException("Can't map to SAF", this)
+        is SAFPath -> safLocationManager.toLocalPath(this) ?: throw ReadException("Can't map to LOCAL", this)
     }
 
     override suspend fun getFileSystem(path: APath<*>): FileSystem {

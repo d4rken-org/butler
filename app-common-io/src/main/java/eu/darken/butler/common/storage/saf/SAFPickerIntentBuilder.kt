@@ -8,7 +8,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.storage.PathMapper
+import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import javax.inject.Inject
 
 /**
@@ -17,7 +17,7 @@ import javax.inject.Inject
  */
 @Reusable
 class SAFPickerIntentBuilder @Inject constructor(
-    private val pathMapper: PathMapper,
+    private val safLocationManager: SAFLocationManager,
 ) {
 
     /**
@@ -33,7 +33,7 @@ class SAFPickerIntentBuilder @Inject constructor(
         return try {
             log(TAG, VERBOSE) { "Building picker intent for targetPath: $targetPath" }
 
-            val safPath = pathMapper.toSAFPath(targetPath)
+            val safPath = safLocationManager.toSAFPath(targetPath)
             if (safPath == null) {
                 log(TAG, WARN) { "Cannot map $targetPath to SAF path" }
                 return null

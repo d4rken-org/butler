@@ -10,7 +10,6 @@ import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.extensions.isDescendantOfOrSelf
 import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
-import eu.darken.butler.common.storage.PathMapper
 import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.common.storage.saf.AndroidDataAccessChecker
 import eu.darken.butler.common.storage.saf.SAFPickerIntentBuilder
@@ -31,7 +30,6 @@ class PathPermissionCheck @Inject constructor(
     private val setupStateProvider: SetupStateProvider,
     private val accessChecker: LocalPathAccessChecker,
     private val storageEnvironment: StorageEnvironment,
-    private val pathMapper: PathMapper,
     private val safLocationManager: SAFLocationManager,
     private val androidDataAccessChecker: AndroidDataAccessChecker,
     private val safPickerIntentBuilder: SAFPickerIntentBuilder,
@@ -78,16 +76,13 @@ class PathPermissionCheck @Inject constructor(
 
         if (isRestrictedPath) {
             // PHASE 1: Check if SAF path already available (permission exists)
-            val safPath = pathMapper.toSAFPath(localPath)
+            val safPath = safLocationManager.toSAFPath(localPath)
             if (safPath != null) {
-                // Verify permission actually exists (PathMapper only constructs, doesn't verify)
-                val hasPermission = safLocationManager.findPermissionFor(safPath) != null
-                if (hasPermission) {
-                    log(TAG) { "Alternative SAF path available for $localPath: $safPath" }
-                    return WorkspaceRequirements(alternativePath = safPath)
-                } else {
-                    log(TAG) { "SAFPath can be constructed but permission missing for $localPath" }
-                }
+                // toSAFPath already returns permission-aware paths, so if it returns non-null, permission exists
+                log(TAG) { "Alternative SAF path available for $localPath: $safPath" }
+                return WorkspaceRequirements(alternativePath = safPath)
+            } else {
+                log(TAG) { "No SAF permission available for $localPath" }
             }
 
             val setupModules = setupStateProvider.state.first()

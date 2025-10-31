@@ -109,7 +109,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val filenameValidator: FilenameValidator,
     internal val safLocationManager: SAFLocationManager,
     private val itemInfoCalculator: ItemInfoCalculator,
-    private val pathMapper: eu.darken.butler.common.storage.PathMapper,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
 
     private val selectedItemsFlow = MutableStateFlow<Set<ExplorerItem>>(emptySet())
@@ -1127,7 +1126,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
 
             // Convert to SAF path and navigate there
-            val safPath = pathMapper.toSAFPath(grant.targetPath)
+            val safPath = safLocationManager.toSAFPath(grant.targetPath)
 
             if (safPath != null) {
                 log(tag) { "Navigating to SAF path: $safPath" }

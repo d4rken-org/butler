@@ -6,11 +6,10 @@ import android.provider.DocumentsContract
 import eu.darken.butler.common.SafUri
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
-import eu.darken.butler.common.storage.PathMapper
+import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -37,11 +36,11 @@ class SAFPickerIntentBuilderTest : BaseTest() {
             every { segments } returns listOf("Android", "data")
         }
 
-        val pathMapper = mockk<PathMapper> {
-            coEvery { toSAFPath(targetPath) } returns safPath
+        val safLocationManager = mockk<SAFLocationManager> {
+            every { toSAFPath(targetPath) } returns safPath
         }
 
-        val builder = SAFPickerIntentBuilder(pathMapper)
+        val builder = SAFPickerIntentBuilder(safLocationManager)
         val intent = builder.buildPickerIntent(targetPath)
 
         intent.shouldNotBeNull()
@@ -54,11 +53,11 @@ class SAFPickerIntentBuilderTest : BaseTest() {
     fun `test returns null for unmappable path`() = runTest {
         val targetPath = LocalPath.build("/invalid/path")
 
-        val pathMapper = mockk<PathMapper> {
-            coEvery { toSAFPath(targetPath) } returns null
+        val safLocationManager = mockk<SAFLocationManager> {
+            every { toSAFPath(targetPath) } returns null
         }
 
-        val builder = SAFPickerIntentBuilder(pathMapper)
+        val builder = SAFPickerIntentBuilder(safLocationManager)
         val intent = builder.buildPickerIntent(targetPath)
 
         intent.shouldBeNull()
@@ -68,11 +67,11 @@ class SAFPickerIntentBuilderTest : BaseTest() {
     fun `test handles exception during path mapping`() = runTest {
         val targetPath = LocalPath.build("/storage/emulated/0/Android/data")
 
-        val pathMapper = mockk<PathMapper> {
-            coEvery { toSAFPath(targetPath) } throws RuntimeException("Test exception")
+        val safLocationManager = mockk<SAFLocationManager> {
+            every { toSAFPath(targetPath) } throws RuntimeException("Test exception")
         }
 
-        val builder = SAFPickerIntentBuilder(pathMapper)
+        val builder = SAFPickerIntentBuilder(safLocationManager)
         val intent = builder.buildPickerIntent(targetPath)
 
         intent.shouldBeNull()
@@ -92,11 +91,11 @@ class SAFPickerIntentBuilderTest : BaseTest() {
             every { segments } returns listOf("Android", "data")
         }
 
-        val pathMapper = mockk<PathMapper> {
-            coEvery { toSAFPath(targetPath) } returns safPath
+        val safLocationManager = mockk<SAFLocationManager> {
+            every { toSAFPath(targetPath) } returns safPath
         }
 
-        val builder = SAFPickerIntentBuilder(pathMapper)
+        val builder = SAFPickerIntentBuilder(safLocationManager)
         val intent = builder.buildPickerIntent(targetPath)
 
         intent.shouldNotBeNull()
@@ -122,11 +121,11 @@ class SAFPickerIntentBuilderTest : BaseTest() {
             every { segments } returns listOf("Android", "obb")
         }
 
-        val pathMapper = mockk<PathMapper> {
-            coEvery { toSAFPath(targetPath) } returns safPath
+        val safLocationManager = mockk<SAFLocationManager> {
+            every { toSAFPath(targetPath) } returns safPath
         }
 
-        val builder = SAFPickerIntentBuilder(pathMapper)
+        val builder = SAFPickerIntentBuilder(safLocationManager)
         val intent = builder.buildPickerIntent(targetPath)
 
         intent.shouldNotBeNull()
@@ -150,11 +149,11 @@ class SAFPickerIntentBuilderTest : BaseTest() {
             every { segments } returns emptyList()
         }
 
-        val pathMapper = mockk<PathMapper> {
-            coEvery { toSAFPath(targetPath) } returns safPath
+        val safLocationManager = mockk<SAFLocationManager> {
+            every { toSAFPath(targetPath) } returns safPath
         }
 
-        val builder = SAFPickerIntentBuilder(pathMapper)
+        val builder = SAFPickerIntentBuilder(safLocationManager)
         val intent = builder.buildPickerIntent(targetPath)
 
         intent.shouldNotBeNull()
@@ -179,11 +178,11 @@ class SAFPickerIntentBuilderTest : BaseTest() {
             every { segments } returns listOf("Android", "data", "com.example.app", "files")
         }
 
-        val pathMapper = mockk<PathMapper> {
-            coEvery { toSAFPath(targetPath) } returns safPath
+        val safLocationManager = mockk<SAFLocationManager> {
+            every { toSAFPath(targetPath) } returns safPath
         }
 
-        val builder = SAFPickerIntentBuilder(pathMapper)
+        val builder = SAFPickerIntentBuilder(safLocationManager)
         val intent = builder.buildPickerIntent(targetPath)
 
         intent.shouldNotBeNull()
