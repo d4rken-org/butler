@@ -73,7 +73,6 @@ fun EditorWorkspacePageHost(
     val workspaceButtonState by workspaceButtonVm.state.collectAsState(null)
 
     val state by waitForState(vm.state)
-    log(vm.tag) { "Compose state: $state" }
 
     state?.let { state ->
         EditorWorkspacePage(
@@ -155,6 +154,7 @@ fun EditorWorkspacePage(
                     if (state.hasWorkspace) {
                         LazyTextEditor(
                             content = state.currentContent,
+                            totalLines = state.totalLines,
                             cursorPosition = state.cursorPosition,
                             selection = state.selectionRange,
                             visibleRange = state.visibleRange,

@@ -5,11 +5,15 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.editor.core.engine.ChunkBoundary
 import eu.darken.butler.editor.core.engine.FileInfo
+import eu.darken.butler.editor.core.engine.TextChunk
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import okio.Buffer
+import okio.Source
 
 /**
  * In-memory data source implementation for new/unsaved documents.
@@ -22,7 +26,11 @@ class InMemoryDataSource @AssistedInject constructor(
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "DataSource", "InMemory")
 
     init {
-        log(tag) { "Initialized in-memory data source with initial content: ${initialContent.length} bytes" }
+        log(tag) { "Initialized in-memory data source with initial content: ${initialContent.toByteArray(Charsets.UTF_8).size} bytes" }
+    }
+
+    override suspend fun open() {
+        // No-op: in-memory data source doesn't require opening
     }
 
     override val fileInfo: StateFlow<FileInfo?> = MutableStateFlow(null)
@@ -32,45 +40,39 @@ class InMemoryDataSource @AssistedInject constructor(
 
     private var content: String = initialContent
 
-    override suspend fun readChunk(startOffset: Long, size: Long): Result<String> {
-        return try {
-            val endOffset = (startOffset + size).coerceAtMost(content.length.toLong())
-            val chunk = content.substring(
-                startOffset.toInt().coerceIn(0, content.length),
-                endOffset.toInt().coerceIn(0, content.length)
-            )
-            Result.success(chunk)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    override suspend fun readChunk(startOffset: Long, size: Long): String {
+        val endOffset = (startOffset + size).coerceAtMost(content.length.toLong())
+        return content.substring(
+            startOffset.toInt().coerceIn(0, content.length),
+            endOffset.toInt().coerceIn(0, content.length)
+        )
     }
 
-    override suspend fun writeChunk(startOffset: Long, content: String): Result<Unit> {
-        return try {
-            val before = this.content.substring(0, startOffset.toInt().coerceIn(0, this.content.length))
-            val after = this.content.substring(startOffset.toInt().coerceIn(0, this.content.length))
-            this.content = before + content + after
-            _isModified.value = this.content != initialContent
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    override suspend fun getSize(): Long = content.toByteArray(Charsets.UTF_8).size.toLong()
+
+    /**
+     * In-memory content cannot be saved to disk without a file path.
+     * Use saveFileAs() from EditorWorkspace to save to a specific path.
+     */
+    override suspend fun save(dirtyChunks: List<TextChunk>, boundaries: Map<TextChunk.ChunkId, ChunkBoundary>) {
+        throw UnsupportedOperationException("Cannot save in-memory content without a file path. Use saveFileAs() instead.")
     }
 
-    override suspend fun getSize(): Long = content.length.toLong()
-
-    override suspend fun save(): Result<Unit> {
-        // In-memory content can't be saved without a file path
-        return Result.failure(UnsupportedOperationException("Cannot save in-memory content without a file path"))
-    }
-
-    override suspend fun close(): Result<Unit> {
+    override suspend fun close() {
         content = ""
         _isModified.value = false
-        return Result.success(Unit)
     }
 
-    fun getContent(): String = content
+    override suspend fun openSource(): Source {
+        val utf8Bytes = content.toByteArray(Charsets.UTF_8)
+        log(tag) { "Creating source from in-memory content (${utf8Bytes.size} bytes)" }
+
+        // Create buffer with current content
+        val buffer = Buffer()
+        buffer.write(utf8Bytes)
+
+        return buffer
+    }
 
     fun setContent(newContent: String) {
         content = newContent

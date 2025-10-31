@@ -17,6 +17,7 @@ import kotlinx.coroutines.sync.withLock
 class ChunkManager @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     @Assisted private val chunkRepository: ChunkRepository,
+    @Assisted val chunkSize: Long = DEFAULT_CHUNK_SIZE
 ) {
 
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "ChunkManager")
@@ -29,8 +30,12 @@ class ChunkManager @AssistedInject constructor(
 
     private val chunkMutex = Mutex()
 
-    var chunkSize: Long = DEFAULT_CHUNK_SIZE
-        private set
+    // Chunk boundary tracking (offset → ID mapping)
+    private val boundaries: MutableMap<TextChunk.ChunkId, ChunkBoundary> = mutableMapOf()
+
+    // LRU tracking for chunk eviction
+    private val chunkAccessOrder = mutableListOf<TextChunk.ChunkId>()
+    private var maxCachedChunks: Int = DEFAULT_MAX_CACHED_CHUNKS
 
     suspend fun loadChunk(chunkId: TextChunk.ChunkId): Result<TextChunk> = chunkMutex.withLock {
         log(tag) { "Loading chunk: $chunkId" }
@@ -38,7 +43,10 @@ class ChunkManager @AssistedInject constructor(
         // Check if already loaded
         _chunks.value[chunkId]?.let { existingChunk ->
             if (existingChunk.isLoaded) {
-                log(tag) { "Chunk $chunkId already loaded" }
+                log(tag) { "Chunk $chunkId already loaded (cached)" }
+                // Update LRU: move to end (most recently used)
+                chunkAccessOrder.remove(chunkId)
+                chunkAccessOrder.add(chunkId)
                 return@withLock Result.success(existingChunk)
             }
         }
@@ -51,11 +59,16 @@ class ChunkManager @AssistedInject constructor(
         }
 
         try {
+            // Get boundary for this chunk
+            val boundary = boundaries[chunkId]
+                ?: return@withLock Result.failure(IllegalArgumentException("No boundary found for chunk: $chunkId"))
+
             // Mark as loading
             _loadStates.value = _loadStates.value + (chunkId to ChunkLoadState(isLoading = true))
 
-            // Load from repository
-            val chunk = chunkRepository.loadChunk(chunkId)
+            // Load from repository with boundary information
+            log(tag) { "Loading chunk $chunkId from disk" }
+            val chunk = chunkRepository.loadChunk(chunkId, boundary)
 
             // Update state
             _chunks.value = _chunks.value + (chunkId to chunk)
@@ -64,7 +77,15 @@ class ChunkManager @AssistedInject constructor(
                 loadedAt = System.currentTimeMillis()
             ))
 
+            // Update LRU: add to end (most recently used)
+            chunkAccessOrder.remove(chunkId)
+            chunkAccessOrder.add(chunkId)
+
             log(tag) { "Successfully loaded chunk: $chunkId (${chunk.size} bytes)" }
+
+            // Trigger eviction if cache is full
+            evictOldChunksIfNeeded()
+
             Result.success(chunk)
 
         } catch (e: Exception) {
@@ -84,10 +105,61 @@ class ChunkManager @AssistedInject constructor(
         return _chunks.value[chunkId]
     }
 
+    /**
+     * Get the boundary for a chunk ID.
+     * Boundaries are the authoritative source for chunk positions in the file.
+     *
+     * Thread-safe: boundaries map is @Volatile and only modified atomically during boundary updates.
+     */
+    fun getBoundary(chunkId: TextChunk.ChunkId): ChunkBoundary? {
+        return boundaries[chunkId]
+    }
+
+    /**
+     * Updates line counts for multiple chunks atomically.
+     * Used during first metadata build to initialize line counts.
+     */
+    suspend fun batchUpdateLineCounts(lineCounts: Map<TextChunk.ChunkId, Int>) = chunkMutex.withLock {
+        for ((chunkId, lineCount) in lineCounts) {
+            val boundary = boundaries[chunkId] ?: continue
+            boundaries[chunkId] = boundary.copy(lineCount = lineCount)
+        }
+        log(tag) { "Batch updated line counts for ${lineCounts.size} chunks" }
+    }
+
     suspend fun getChunksInRange(startOffset: Long, endOffset: Long): List<TextChunk> {
-        return _chunks.value.values.filter { chunk ->
-            chunk.startOffset < endOffset && chunk.endOffset >= startOffset
-        }.sortedBy { it.startOffset }
+        // Snapshot relevant chunk IDs while holding mutex to avoid race conditions
+        val relevantChunkIds = chunkMutex.withLock {
+            boundaries.filter { (_, boundary) ->
+                boundary.endOffset > startOffset && boundary.startOffset < endOffset
+            }.keys.toSet()
+        }
+
+        log(tag) { "Found ${relevantChunkIds.size} chunks in range $startOffset-$endOffset" }
+
+        // Load chunks if not already loaded (outside mutex to avoid reentrant lock)
+        val loadedChunks = mutableListOf<TextChunk>()
+        for (chunkId in relevantChunkIds) {
+            val chunk = _chunks.value[chunkId]
+            if (chunk != null && chunk.isLoaded) {
+                // Chunk already in cache
+                loadedChunks.add(chunk)
+            } else {
+                // Chunk not in cache, need to load it
+                val loadResult = loadChunk(chunkId)
+                loadResult.fold(
+                    onSuccess = { loadedChunks.add(it) },
+                    onFailure = {
+                        log(tag, Logging.Priority.WARN) { "Failed to load chunk $chunkId for range $startOffset-$endOffset" }
+                    }
+                )
+            }
+        }
+
+        // Sort by boundary startOffset (using boundaries map as source of truth)
+        return loadedChunks.sortedBy { chunk ->
+            boundaries[chunk.id]?.startOffset ?: Long.MAX_VALUE
+        }
     }
 
     suspend fun addChunk(chunk: TextChunk): Unit = chunkMutex.withLock {
@@ -114,89 +186,303 @@ class ChunkManager @AssistedInject constructor(
             return@withLock false
         }
 
-        log(tag) { "Evicting chunk: $chunkId" }
+        log(tag) { "Evicting chunk: $chunkId (LRU)" }
 
         _chunks.value = _chunks.value - chunkId
         _loadStates.value = _loadStates.value - chunkId
+        chunkAccessOrder.remove(chunkId)
 
         true
     }
 
-    suspend fun saveChunk(chunkId: TextChunk.ChunkId): Result<Unit> = chunkMutex.withLock {
-        val chunk = _chunks.value[chunkId] ?: return@withLock Result.failure(
-            IllegalArgumentException("Chunk not found: $chunkId")
-        )
+    /**
+     * Update chunk boundaries after an edit operation.
+     * Shifts boundaries for chunks after the edit point by deltaLength.
+     *
+     * Note: This ONLY updates the boundaries map. The chunks themselves keep their
+     * original offsets which represent the content they hold, not their file position.
+     *
+     * @param editOffset The file offset where the edit occurred
+     * @param deltaLength The change in length (positive for insert, negative for delete)
+     */
+    suspend fun updateBoundaries(editOffset: Long, deltaLength: Long, deltaLines: Int = 0) = chunkMutex.withLock {
+        if (deltaLength == 0L && deltaLines == 0) return@withLock
 
-        if (!chunk.isDirty) {
-            log(tag) { "Chunk $chunkId is not dirty, skipping save" }
-            return@withLock Result.success(Unit)
+        val updatedBoundaries = mutableMapOf<TextChunk.ChunkId, ChunkBoundary>()
+        var adjustedCount = 0
+
+        for ((chunkId, boundary) in boundaries) {
+            val newBoundary = when {
+                // Chunk entirely after edit point - shift both offsets, keep line count
+                boundary.startOffset >= editOffset -> {
+                    adjustedCount++
+                    ChunkBoundary(
+                        boundary.startOffset + deltaLength,
+                        boundary.endOffset + deltaLength,
+                        boundary.lineCount
+                    )
+                }
+                // Chunk contains or ends at edit point - adjust end offset and line count
+                boundary.endOffset >= editOffset -> {
+                    adjustedCount++
+                    ChunkBoundary(
+                        boundary.startOffset,
+                        boundary.endOffset + deltaLength,
+                        boundary.lineCount + deltaLines
+                    )
+                }
+                // Chunk entirely before edit point - no change
+                else -> boundary
+            }
+
+            updatedBoundaries[chunkId] = newBoundary
         }
 
-        try {
-            chunkRepository.saveChunk(chunk)
+        boundaries.clear()
+        boundaries.putAll(updatedBoundaries)
 
-            // Mark as clean
-            val cleanChunk = chunk.markClean()
-            _chunks.value = _chunks.value + (chunkId to cleanChunk)
+        log(tag) { "Updated $adjustedCount chunk boundaries after edit at offset $editOffset (delta=$deltaLength bytes, $deltaLines lines)" }
+    }
 
-            log(tag) { "Successfully saved chunk: $chunkId" }
+    private fun evictOldChunksIfNeeded() {
+        // NOTE: This should be called from within chunkMutex.withLock
+        val currentCount = _chunks.value.size
+        if (currentCount <= maxCachedChunks) {
+            return
+        }
+
+        val chunksToEvict = currentCount - maxCachedChunks
+        log(tag) { "Cache full ($currentCount/$maxCachedChunks chunks), evicting $chunksToEvict oldest chunks" }
+
+        // Evict least recently used chunks
+        val evictCandidates = chunkAccessOrder.take(chunksToEvict).toList()
+        for (chunkId in evictCandidates) {
+            val chunk = _chunks.value[chunkId]
+            if (chunk != null && !chunk.isDirty) {
+                _chunks.value = _chunks.value - chunkId
+                _loadStates.value = _loadStates.value - chunkId
+                chunkAccessOrder.remove(chunkId)
+                log(tag) { "Evicted chunk: $chunkId (LRU)" }
+            }
+        }
+    }
+
+    /**
+     * Commits all dirty chunks to the data source using all-or-nothing semantics.
+     *
+     * Flow:
+     * 1. Get all dirty chunks
+     * 2. Save to data source (atomic operation)
+     * 3. Mark chunks clean only if save succeeds
+     *
+     * Chunks remain dirty (protected from eviction) if save fails.
+     *
+     * @return Result.success if all chunks saved, Result.failure if save failed
+     */
+    suspend fun saveAllDirtyChunks(): Result<Unit> {
+        val dirtyChunks = getDirtyChunks()
+
+        if (dirtyChunks.isEmpty()) {
+            log(tag) { "No dirty chunks to save" }
+            return Result.success(Unit)
+        }
+
+        log(tag) { "Committing ${dirtyChunks.size} dirty chunks (all-or-nothing)" }
+
+        return try {
+            // Get snapshot of boundaries for save operation
+            val boundariesSnapshot = chunkMutex.withLock {
+                boundaries.toMap() // Create immutable copy
+            }
+
+            // Save all chunks - throws on failure
+            chunkRepository.saveFile(dirtyChunks, boundariesSnapshot)
+
+            // Only mark clean if save succeeded
+            val chunkIds = dirtyChunks.map { it.id }
+            markChunksClean(chunkIds)
+
+            log(tag) { "Successfully committed ${dirtyChunks.size} chunks" }
             Result.success(Unit)
 
         } catch (e: Exception) {
-            log(tag, Logging.Priority.ERROR) { "Failed to save chunk: $chunkId - ${e.asLog()}" }
+            log(tag, Logging.Priority.ERROR) {
+                "Failed to commit dirty chunks (chunks remain dirty) - ${e.asLog()}"
+            }
             Result.failure(e)
         }
     }
 
-    suspend fun saveAllDirtyChunks(): Result<Unit> {
+    /**
+     * Returns all dirty chunks sorted by startOffset.
+     * Used for batch save operations where we need all modified chunks in order.
+     */
+    suspend fun getDirtyChunks(): List<TextChunk> = chunkMutex.withLock {
         val dirtyChunks = _chunks.value.values.filter { it.isDirty }
-
-        log(tag) { "Saving ${dirtyChunks.size} dirty chunks" }
-
-        var lastError: Exception? = null
-        var successCount = 0
-
-        for (chunk in dirtyChunks) {
-            saveChunk(chunk.id).fold(
-                onSuccess = { successCount++ },
-                onFailure = { lastError = it as? Exception ?: Exception(it.message) }
-            )
-        }
-
-        return if (lastError != null && successCount == 0) {
-            Result.failure(lastError)
-        } else {
-            Result.success(Unit)
+        log(tag) { "Found ${dirtyChunks.size} dirty chunks" }
+        // Sort by boundary startOffset (using boundaries map as source of truth)
+        dirtyChunks.sortedBy { chunk ->
+            boundaries[chunk.id]?.startOffset ?: Long.MAX_VALUE
         }
     }
 
-    suspend fun generateChunkIds(fileSize: Long): List<TextChunk.ChunkId> {
-        val chunkIds = mutableListOf<TextChunk.ChunkId>()
-        var offset = 0L
+    /**
+     * Marks multiple chunks as clean after successful save.
+     * This is a batch operation to avoid multiple StateFlow updates.
+     *
+     * @param chunkIds List of chunk IDs to mark as clean
+     */
+    suspend fun markChunksClean(chunkIds: List<TextChunk.ChunkId>): Unit = chunkMutex.withLock {
+        log(tag) { "Marking ${chunkIds.size} chunks as clean" }
 
+        val updatedChunks = _chunks.value.toMutableMap()
+        var markedCount = 0
+
+        for (chunkId in chunkIds) {
+            updatedChunks[chunkId]?.let { chunk ->
+                if (chunk.isDirty) {
+                    updatedChunks[chunkId] = chunk.markClean()
+                    markedCount++
+                }
+            }
+        }
+
+        _chunks.value = updatedChunks
+        log(tag) { "Successfully marked $markedCount chunks as clean" }
+    }
+
+    suspend fun generateChunkIds(fileSize: Long): List<TextChunk.ChunkId> = chunkMutex.withLock {
+        // Reset counter for deterministic ID generation
+        TextChunk.ChunkId.resetCounter()
+
+        // Clear old boundaries
+        boundaries.clear()
+
+        val chunkIds = mutableListOf<TextChunk.ChunkId>()
+
+        // Handle empty files - create one empty chunk
+        if (fileSize == 0L) {
+            val id = TextChunk.ChunkId.generate()
+            boundaries[id] = ChunkBoundary(0L, 0L, lineCount = 1)
+            chunkIds.add(id)
+            log(tag) { "Generated 1 chunk ID for empty file" }
+            return@withLock chunkIds
+        }
+
+        var offset = 0L
         while (offset < fileSize) {
-            chunkIds.add(TextChunk.ChunkId.generate(offset))
+            val id = TextChunk.ChunkId.generate()
+            val endOffset = minOf(offset + chunkSize, fileSize)
+
+            // Store boundary for this chunk (lineCount=0 sentinel, will be populated by buildChunkMetadata)
+            boundaries[id] = ChunkBoundary(offset, endOffset, lineCount = 0)
+
+            chunkIds.add(id)
             offset += chunkSize
         }
 
-        return chunkIds
+        log(tag) { "Generated ${chunkIds.size} chunk IDs with boundaries for ${fileSize} bytes" }
+        return@withLock chunkIds
     }
 
     suspend fun clear() = chunkMutex.withLock {
         log(tag) { "Clearing all chunks" }
         _chunks.value = emptyMap()
         _loadStates.value = emptyMap()
+        boundaries.clear()
     }
 
     @AssistedFactory
     interface Factory {
         fun create(
             workspaceId: Workspace.Id,
-            chunkRepository: ChunkRepository
+            chunkRepository: ChunkRepository,
+            chunkSize: Long = DEFAULT_CHUNK_SIZE
         ): ChunkManager
     }
 
     companion object {
-        const val DEFAULT_CHUNK_SIZE = 1024 * 1024L // 1MB
+        const val DEFAULT_CHUNK_SIZE = 64 * 1024L // 64KB for testing
+        const val DEFAULT_MAX_CACHED_CHUNKS = 5 // Keep 5 chunks in memory (320KB with 64KB chunks)
+
+        /**
+         * Merges dirty chunks into original file content, correctly handling chunk size changes.
+         *
+         * Algorithm:
+         * 1. Process chunks in order (sorted by startOffset from boundaries)
+         * 2. For gaps between chunks, copy unchanged content from original
+         * 3. For each chunk, insert the new content (which may be different size)
+         * 4. Copy any remaining content after the last chunk
+         *
+         * This correctly handles:
+         * - Chunk expansion (new content larger than original)
+         * - Chunk shrinking (new content smaller than original)
+         * - Multiple modifications without manual offset tracking
+         *
+         * @param originalContent The original file content as bytes
+         * @param dirtyChunks List of modified chunks (will be sorted by startOffset from boundaries)
+         * @param boundaries Map of chunk IDs to their original positions in the file
+         * @return Merged byte array with all modifications applied
+         */
+        fun mergeChunks(
+            originalContent: ByteArray,
+            dirtyChunks: List<TextChunk>,
+            boundaries: Map<TextChunk.ChunkId, ChunkBoundary>
+        ): ByteArray {
+            if (dirtyChunks.isEmpty()) return originalContent
+
+            // Sort by boundary startOffset
+            val sortedChunks = dirtyChunks.sortedBy { chunk ->
+                boundaries[chunk.id]?.startOffset ?: Long.MAX_VALUE
+            }
+            val result = mutableListOf<Byte>()
+            var currentOriginalPos = 0L
+
+            for (chunk in sortedChunks) {
+                val boundary = boundaries[chunk.id]
+                    ?: throw IllegalStateException("No boundary found for chunk ${chunk.id}")
+
+                // Copy unchanged content before this chunk
+                if (currentOriginalPos < boundary.startOffset) {
+                    val unchangedStart = currentOriginalPos.toInt()
+                    val unchangedEnd = boundary.startOffset.toInt()
+                    if (unchangedStart < originalContent.size) {
+                        val unchangedBytes = originalContent.sliceArray(
+                            unchangedStart until minOf(unchangedEnd, originalContent.size)
+                        )
+                        result.addAll(unchangedBytes.toList())
+                    }
+                }
+
+                // Add the modified chunk content (size may differ from original)
+                val newBytes = chunk.content.toByteArray(Charsets.UTF_8)
+                result.addAll(newBytes.toList())
+
+                // Move past this chunk in original file
+                currentOriginalPos = boundary.endOffset
+            }
+
+            // Copy any remaining content after the last chunk
+            if (currentOriginalPos < originalContent.size) {
+                val remainingBytes = originalContent.sliceArray(
+                    currentOriginalPos.toInt() until originalContent.size
+                )
+                result.addAll(remainingBytes.toList())
+            }
+
+            return result.toByteArray()
+        }
     }
+}
+
+/**
+ * Tracks the offset boundaries of a chunk.
+ * Chunk IDs are sequential/opaque, boundaries track actual file positions.
+ */
+data class ChunkBoundary(
+    val startOffset: Long,
+    val endOffset: Long,
+    val lineCount: Int
+) {
+    val size: Long get() = endOffset - startOffset
 }

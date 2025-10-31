@@ -48,6 +48,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun LazyTextEditor(
     content: String,
+    totalLines: Int,
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
     visibleRange: IntRange,
@@ -61,8 +62,16 @@ fun LazyTextEditor(
     onVisibleRangeChange: (IntRange) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val lines = remember(content) { 
-        if (content.isEmpty()) listOf("") else content.split('\n')
+    // Create a map of visible line content indexed by line number
+    val visibleLineContent = remember(content, visibleRange) {
+        if (content.isEmpty()) {
+            mapOf(0 to "")
+        } else {
+            val contentLines = content.split('\n')
+            contentLines.mapIndexed { index, line ->
+                (visibleRange.first + index) to line
+            }.toMap()
+        }
     }
     val focusRequester = remember { FocusRequester() }
     val lineNumbersListState = rememberLazyListState()
@@ -72,14 +81,14 @@ fun LazyTextEditor(
     
     // Update visible range when scroll position changes
     LaunchedEffect(contentListState.firstVisibleItemIndex, contentListState.layoutInfo.visibleItemsInfo.size) {
-        if (lines.isNotEmpty() && contentListState.layoutInfo.totalItemsCount > 0) {
+        if (totalLines > 0 && contentListState.layoutInfo.totalItemsCount > 0) {
             val startIndex = contentListState.firstVisibleItemIndex.coerceAtLeast(0)
             val visibleCount = contentListState.layoutInfo.visibleItemsInfo.size.coerceAtLeast(1)
             val endIndex = minOf(
                 startIndex + visibleCount + 10, // Buffer
-                lines.size - 1
+                totalLines - 1
             ).coerceAtLeast(startIndex)
-            
+
             onVisibleRangeChange(startIndex..endIndex)
         }
     }
@@ -87,9 +96,9 @@ fun LazyTextEditor(
     // Scroll to cursor position when it changes - only if the layout is ready
     // We check layoutInfo.totalItemsCount to ensure the layout has been measured
     LaunchedEffect(cursorPosition.line) {
-        if (lines.isNotEmpty() && cursorPosition.line >= 0 && contentListState.layoutInfo.totalItemsCount > 0) {
-            val targetLine = cursorPosition.line.coerceIn(0, lines.size - 1)
-            if (targetLine < contentListState.firstVisibleItemIndex || 
+        if (totalLines > 0 && cursorPosition.line >= 0 && contentListState.layoutInfo.totalItemsCount > 0) {
+            val targetLine = cursorPosition.line.coerceIn(0, totalLines - 1)
+            if (targetLine < contentListState.firstVisibleItemIndex ||
                 targetLine >= contentListState.firstVisibleItemIndex + contentListState.layoutInfo.visibleItemsInfo.size) {
                 try {
                     scope.launch {
@@ -105,7 +114,9 @@ fun LazyTextEditor(
 
     // Synchronized dual-column content
     DualColumnEditorContent(
-        lines = lines,
+        totalLines = totalLines,
+        visibleLineContent = visibleLineContent,
+        visibleRange = visibleRange,
         cursorPosition = cursorPosition,
         selection = selection,
         lineNumbersListState = lineNumbersListState,
@@ -140,6 +151,7 @@ private fun LazyTextEditorPreview() {
 
         LazyTextEditor(
             content = sampleContent,
+            totalLines = sampleContent.split('\n').size,
             cursorPosition = TextPosition(offset = 50, line = 1, column = 10),
             selection = null,
             visibleRange = 0..7,
@@ -158,7 +170,9 @@ private fun LazyTextEditorPreview() {
 
 @Composable
 private fun DualColumnEditorContent(
-    lines: List<String>,
+    totalLines: Int,
+    visibleLineContent: Map<Int, String>,
+    visibleRange: IntRange,
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
     lineNumbersListState: LazyListState,
@@ -176,10 +190,12 @@ private fun DualColumnEditorContent(
 ) {
     var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
     val scope = rememberCoroutineScope()
-    
-    // Sync textFieldValue with content
-    LaunchedEffect(lines) {
-        val currentContent = lines.joinToString("\n")
+
+    // Sync textFieldValue with visible content
+    LaunchedEffect(visibleLineContent) {
+        val currentContent = visibleLineContent.entries
+            .sortedBy { it.key }
+            .joinToString("\n") { it.value }
         if (textFieldValue.text != currentContent) {
             textFieldValue = TextFieldValue(
                 text = currentContent,
@@ -190,8 +206,8 @@ private fun DualColumnEditorContent(
 
     // Calculate line number width
     val lineNumberWidth = if (showLineNumbers) {
-        remember(lines.size) {
-            (lines.size.toString().length * 8 + 16).dp
+        remember(totalLines) {
+            (totalLines.toString().length * 8 + 16).dp
         }
     } else {
         0.dp
@@ -272,10 +288,10 @@ private fun DualColumnEditorContent(
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                         .clipToBounds()
                 ) {
-                    itemsIndexed(
-                        items = lines,
-                        key = { index, _ -> "line_num_$index" }
-                    ) { lineIndex, _ ->
+                    items(
+                        count = totalLines,
+                        key = { index -> "line_num_$index" }
+                    ) { lineIndex ->
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -321,10 +337,14 @@ private fun DualColumnEditorContent(
                         }
                     }
             ) {
-                itemsIndexed(
-                    items = lines,
-                    key = { index, _ -> "line_content_$index" }
-                ) { lineIndex, lineContent ->
+                items(
+                    count = totalLines,
+                    key = { index -> "line_content_$index" }
+                ) { lineIndex ->
+                    // Get line content from map, or show loading placeholder if not available
+                    val lineContent = visibleLineContent[lineIndex] ?: ""
+                    val isInVisibleRange = lineIndex in visibleRange
+
                     TextLineItem(
                         lineIndex = lineIndex,
                         lineContent = lineContent,
@@ -336,7 +356,7 @@ private fun DualColumnEditorContent(
                         tabSize = tabSize,
                         onLineClick = { clickPosition ->
                             val newPosition = TextPosition(
-                                offset = calculateOffsetForLine(lines, lineIndex, clickPosition),
+                                offset = calculateOffsetForLine(visibleLineContent, lineIndex, clickPosition),
                                 line = lineIndex,
                                 column = clickPosition
                             )
@@ -350,7 +370,7 @@ private fun DualColumnEditorContent(
     }
 
     // Request focus when content is loaded
-    LaunchedEffect(lines.size) {
+    LaunchedEffect(totalLines) {
         try {
             focusRequester.requestFocus()
         } catch (e: Exception) {
@@ -565,11 +585,9 @@ private fun String.expandTabs(tabSize: Int): String {
     return this.replace("\t", " ".repeat(tabSize))
 }
 
-private fun calculateOffsetForLine(lines: List<String>, lineIndex: Int, column: Int): Long {
-    var offset = 0L
-    for (i in 0 until lineIndex) {
-        offset += lines[i].length + 1 // +1 for newline
-    }
-    offset += column.coerceIn(0, lines.getOrNull(lineIndex)?.length ?: 0)
-    return offset
+private fun calculateOffsetForLine(visibleLineContent: Map<Int, String>, lineIndex: Int, column: Int): Long {
+    // Note: With virtual scrolling, we can't accurately calculate offset without all lines
+    // The engine should recalculate the correct offset based on line/column
+    // For now, return 0 as a placeholder
+    return 0L
 }

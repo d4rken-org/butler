@@ -16,69 +16,66 @@ import kotlin.time.Instant
 
 class ChunkRepository @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
-    @Assisted val dataSource: EditorDataSource
+    @Assisted val dataSource: EditorDataSource,
+    @Assisted private val chunkSize: Long = ChunkManager.DEFAULT_CHUNK_SIZE
 ) {
 
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "ChunkRepository")
-
-    private var chunkSize: Long = ChunkManager.DEFAULT_CHUNK_SIZE
 
     suspend fun getFileInfo(): FileInfo? {
         return dataSource.fileInfo.value
     }
 
-    suspend fun loadChunk(chunkId: TextChunk.ChunkId): TextChunk = withContext(Dispatchers.IO) {
-        log(tag) { "Loading chunk: $chunkId" }
+    suspend fun loadChunk(chunkId: TextChunk.ChunkId, boundary: ChunkBoundary): TextChunk = withContext(Dispatchers.IO) {
+        log(tag) { "Loading chunk: $chunkId at ${boundary.startOffset}-${boundary.endOffset}" }
 
-        val startOffset = extractOffsetFromChunkId(chunkId)
-        val fileSize = dataSource.getSize()
-        val endOffset = minOf(startOffset + chunkSize, fileSize)
-        val chunkSizeToRead = endOffset - startOffset
+        val content = dataSource.readChunk(boundary.startOffset, boundary.size)
 
-        val contentResult = dataSource.readChunk(startOffset, chunkSizeToRead)
-        if (contentResult.isFailure) {
-            throw contentResult.exceptionOrNull() ?: Exception("Failed to read chunk")
-        }
-
-        val content = contentResult.getOrThrow()
         val lineCount = content.count { it == '\n' } + if (content.isNotEmpty() && !content.endsWith('\n')) 1 else 0
 
         val chunk = TextChunk(
             id = chunkId,
-            startOffset = startOffset,
-            endOffset = endOffset,
             content = content,
             lineCount = lineCount,
             isDirty = false,
             isLoaded = true
         )
 
-        log(tag) { "Loaded chunk: $chunkId (${chunk.size} bytes, $lineCount lines)" }
+        log(tag) { "Loaded chunk: $chunkId (${content.length} bytes, $lineCount lines)" }
         chunk
     }
 
-    suspend fun saveChunk(chunk: TextChunk): Unit = withContext(Dispatchers.IO) {
-        log(tag) { "Saving chunk: ${chunk.id}" }
-
-        val result = dataSource.writeChunk(chunk.startOffset, chunk.content)
-        if (result.isFailure) {
-            throw result.exceptionOrNull() ?: Exception("Failed to save chunk")
-        }
-
-        log(tag) { "Saved chunk: ${chunk.id}" }
+    /**
+     * Saves dirty chunks to the data source.
+     * DataSource handles merging and persistence.
+     *
+     * @param dirtyChunks List of modified chunks to save
+     * @param boundaries Map of chunk IDs to their file positions
+     */
+    suspend fun saveFile(dirtyChunks: List<TextChunk>, boundaries: Map<TextChunk.ChunkId, ChunkBoundary>) = withContext(Dispatchers.IO) {
+        log(tag) { "Saving ${dirtyChunks.size} dirty chunks to data source" }
+        dataSource.save(dirtyChunks, boundaries)
+        log(tag) { "Successfully saved chunks" }
     }
 
-    suspend fun saveFile(): Result<Unit> {
-        return dataSource.save()
-    }
-
+    /**
+     * Search for a query string within a specific chunk.
+     *
+     * Note: Line numbers in results are chunk-relative (0-based within the chunk).
+     * The caller (ChunkedTextBuffer) is responsible for converting to file-relative line numbers.
+     */
     suspend fun searchInChunk(
-        chunkId: TextChunk.ChunkId,
+        chunk: TextChunk,
+        boundary: ChunkBoundary,
         query: String,
         ignoreCase: Boolean = false
     ): List<SearchResult> {
         try {
-            val chunk = loadChunk(chunkId)
+            // Empty query returns no results
+            if (query.isEmpty()) {
+                return emptyList()
+            }
+
             val results = mutableListOf<SearchResult>()
 
             val searchText = if (ignoreCase) chunk.content.lowercase() else chunk.content
@@ -89,7 +86,8 @@ class ChunkRepository @AssistedInject constructor(
                 val foundIndex = searchText.indexOf(searchQuery, searchIndex)
                 if (foundIndex == -1) break
 
-                val absoluteOffset = chunk.startOffset + foundIndex
+                val absoluteOffset = boundary.startOffset + foundIndex
+                // Line number is chunk-relative (0-based within chunk)
                 val lineNumber = chunk.content.substring(0, foundIndex).count { it == '\n' }
                 val lineStart = chunk.content.lastIndexOf('\n', foundIndex - 1) + 1
                 val columnNumber = foundIndex - lineStart
@@ -98,7 +96,7 @@ class ChunkRepository @AssistedInject constructor(
                     SearchResult(
                         position = TextPosition(absoluteOffset, lineNumber, columnNumber),
                         matchText = chunk.content.substring(foundIndex, foundIndex + query.length),
-                        chunkId = chunkId
+                        chunkId = chunk.id
                     )
                 )
 
@@ -108,14 +106,9 @@ class ChunkRepository @AssistedInject constructor(
             return results
 
         } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to search in chunk: $chunkId - ${e.asLog()}" }
+            log(tag, ERROR) { "Failed to search in chunk: ${chunk.id} - ${e.asLog()}" }
             return emptyList()
         }
-    }
-
-    fun updateChunkSize(newChunkSize: Long) {
-        chunkSize = newChunkSize
-        log(tag) { "Updated chunk size to: $chunkSize bytes" }
     }
 
     suspend fun closeFile() {
@@ -123,15 +116,12 @@ class ChunkRepository @AssistedInject constructor(
         dataSource.close()
     }
 
-    private fun extractOffsetFromChunkId(chunkId: TextChunk.ChunkId): Long {
-        return chunkId.value.removePrefix("chunk_").toLongOrNull() ?: 0L
-    }
-
     @AssistedFactory
     interface Factory {
         fun create(
             workspaceId: Workspace.Id,
             dataSource: EditorDataSource,
+            chunkSize: Long = ChunkManager.DEFAULT_CHUNK_SIZE
         ): ChunkRepository
     }
 }
