@@ -27,6 +27,11 @@ fun SetupActions(
                 switchLabel = stringResource(R.string.setup_use_shizuku_label)
             )
         }
+        SetupModule.Type.SAF -> {
+            // SAF module removed - handled via just-in-time picker in PathPermissionCheck
+            // Show default actions (though this shouldn't be reached in practice)
+            DefaultActions(item = item, onExecuteAction = onExecuteAction)
+        }
         else -> {
             DefaultActions(item = item, onExecuteAction = onExecuteAction)
         }

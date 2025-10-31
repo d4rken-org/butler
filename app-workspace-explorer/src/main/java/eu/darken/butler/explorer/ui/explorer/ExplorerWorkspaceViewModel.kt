@@ -30,6 +30,7 @@ import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.ui.ViewModel4
+import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerNavigation.Target.*
@@ -67,6 +68,7 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
+import eu.darken.butler.workspace.core.permissions.SAFPickerGrant
 import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
 import eu.darken.butler.workspace.core.returnResult
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
@@ -124,6 +126,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     val dialogEvents = SingleEventFlow<ExplorerDialogEvent>()
 
     val safPickerEvents = SingleEventFlow<Intent>()
+
+    private val _pendingSAFPickerGrant = MutableStateFlow<SAFPickerGrant?>(null)
+    val pendingSAFPickerGrant: Flow<SAFPickerGrant?> = _pendingSAFPickerGrant
 
     private val workspaceSource: Flow<ExplorerWorkspace?> =
         workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
@@ -187,6 +192,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val isPro: Boolean = false,
         val filterState: FilterState = FilterState(),
         val useRegexPatterns: Boolean = false,
+        val useBackButtonForNavigation: Boolean = false,
         val pickerConfig: PickerConfig? = null,
     ) {
         val progress = currentLocation?.progress
@@ -222,8 +228,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         upgradeRepo.upgradeInfo,
         filterStateFlow,
         explorerSettings.useRegexPatterns.flow,
+        explorerSettings.useBackButtonForNavigation.flow,
         pickerConfigFlow,
-    ) { wsState, selectedItems, viewMode, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, pickerConfig ->
+    ) { wsState, selectedItems, viewMode, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig ->
         val items = wsState.currentLocation?.items
             ?.let { items -> applyPickerFilter(items, pickerConfig) }
             ?.let { items -> applyFilters(items, filterState, useRegexPatterns) }
@@ -307,6 +314,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             isPro = upgradeInfo.isUpgraded,
             filterState = filterState,
             useRegexPatterns = useRegexPatterns,
+            useBackButtonForNavigation = useBackButtonForNavigation,
             pickerConfig = pickerConfig,
         )
     }
@@ -1039,6 +1047,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun addSAFLocation() = launch {
         log(tag) { "addSAFLocation(): Launching SAF directory picker" }
+        _pendingSAFPickerGrant.value = null  // Clear grant for manual addition
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
             putExtra("android.content.extra.SHOW_ADVANCED", true)
         }
@@ -1069,6 +1078,69 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to handle SAF picker result: ${e.message}" }
             errorEvents.tryEmit(e)
+        }
+    }
+
+    fun launchAndroidDataSAFPicker(grant: SAFPickerGrant) = launch {
+        log(tag) { "launchAndroidDataSAFPicker(): Launching SAF picker for ${grant.targetPath}" }
+        _pendingSAFPickerGrant.value = grant  // Store grant for auto-labeling
+        safPickerEvents.emit(grant.intent)
+    }
+
+    suspend fun handleAndroidDataSAFPickerResult(
+        treeUri: Uri?,
+        grant: SAFPickerGrant
+    ) {
+        if (treeUri == null) {
+            log(tag, WARN) { "SAF picker cancelled for ${grant.targetPath}" }
+            return
+        }
+
+        log(tag) { "handleAndroidDataSAFPickerResult(): $treeUri for ${grant.targetPath}" }
+
+        try {
+            // Take persistable permission
+            context.contentResolver.takePersistableUriPermission(
+                treeUri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+
+            log(tag, INFO) { "Successfully granted SAF permission for ${grant.targetPath}" }
+
+            // Register with SAFLocationManager and auto-label
+            val locationId = safLocationManager.grantPermission(treeUri)
+            log(tag, VERBOSE) { "SAF location registered with ID: $locationId" }
+
+            // Auto-label based on target path
+            val label = when {
+                grant.targetPath.path.contains("/Android/data") ->
+                    context.getString(R.string.explorer_saf_location_android_data_label)
+                grant.targetPath.path.contains("/Android/obb") ->
+                    context.getString(R.string.explorer_saf_location_android_obb_label)
+                else -> null
+            }
+
+            if (label != null) {
+                safLocationManager.setLocationLabel(locationId, label)
+                log(tag) { "Auto-labeled SAF location as: $label" }
+            }
+
+            // Convert to SAF path and navigate there
+            val safPath = safLocationManager.toSAFPath(grant.targetPath)
+
+            if (safPath != null) {
+                log(tag) { "Navigating to SAF path: $safPath" }
+                getWorkspace().navigate(Directory(safPath))
+            } else {
+                log(tag, WARN) { "Failed to convert ${grant.targetPath} to SAFPath after permission grant" }
+                // Fallback: just refresh current location
+                getWorkspace().navigate(ExplorerNavigation.Refresh)
+            }
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to handle Android/data SAF picker result: ${e.message}" }
+            errorEvents.tryEmit(e)
+        } finally {
+            _pendingSAFPickerGrant.value = null  // Clear grant after handling
         }
     }
 
@@ -1320,6 +1392,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun goBack() {
         log(tag) { "goBack()" }
         navigate(ExplorerNavigation.Back)
+    }
+
+    fun closeWorkspace() = launch {
+        log(tag) { "closeWorkspace()" }
+        workspaceRemote.execute(WorkspaceAction.Close(id))
     }
 
     @AssistedFactory

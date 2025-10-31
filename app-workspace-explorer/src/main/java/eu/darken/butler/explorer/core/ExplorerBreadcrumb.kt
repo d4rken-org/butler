@@ -9,4 +9,6 @@ data class ExplorerBreadcrumb(
     val showText: Boolean = true,
     val showIcon: Boolean = false,
     val target: ExplorerNavigation,
-)
+) {
+    override fun toString(): String = "Explorerbreadcrumb($target)"
+}

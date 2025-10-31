@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.CheckBox
+import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Home
@@ -39,6 +40,7 @@ fun ExplorerInfoBar(
     modifier: Modifier = Modifier,
     info: ExplorerLocation.LocationInfo?,
     selectedCount: Int = 0,
+    onClearSelection: () -> Unit = {},
 ) {
     Row(
         modifier = modifier
@@ -54,6 +56,8 @@ fun ExplorerInfoBar(
                 icon = Icons.TwoTone.CheckBox,
                 label = pluralStringResource(R.plurals.explorer_infobar_selected_count, selectedCount, selectedCount),
                 isAccented = true,
+                onClick = onClearSelection,
+                trailingIcon = Icons.TwoTone.Close,
             )
         }
 
@@ -159,9 +163,11 @@ private fun InfoChip(
     label: String,
     modifier: Modifier = Modifier,
     isAccented: Boolean = false,
+    onClick: (() -> Unit)? = null,
+    trailingIcon: ImageVector? = null,
 ) {
     AssistChip(
-        onClick = { /* Could be expandable in future */ },
+        onClick = onClick ?: {},
         label = {
             Text(
                 text = label,
@@ -176,6 +182,15 @@ private fun InfoChip(
                 modifier = Modifier.size(14.dp)
             )
         },
+        trailingIcon = trailingIcon?.let {
+            {
+                Icon(
+                    imageVector = it,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp)
+                )
+            }
+        },
         modifier = modifier.height(24.dp),
         border = null,
         colors = if (isAccented) {
@@ -183,12 +198,14 @@ private fun InfoChip(
                 containerColor = MaterialTheme.colorScheme.primary,
                 labelColor = MaterialTheme.colorScheme.onPrimary,
                 leadingIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                trailingIconContentColor = MaterialTheme.colorScheme.onPrimary,
             )
         } else {
             AssistChipDefaults.assistChipColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                 labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 leadingIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                trailingIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     )

@@ -1,5 +1,6 @@
 package eu.darken.butler.common.files.metadata
 
+import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -109,11 +110,13 @@ class MetadataRepo @Inject constructor(
         }
 
         // Cache miss
-        log(tag, VERBOSE) { "Cache miss: ${lookup.path} (modifiedAt=${lookup.modifiedAt}, size=${lookup.size})" }
+        if (Bugs.isTrace) {
+            log(tag, VERBOSE) { "Cache miss: ${lookup.path} (modifiedAt=${lookup.modifiedAt}, size=${lookup.size})" }
+        }
 
         val extractor = findExtractor(lookup)
         if (extractor == null) {
-            log(tag, VERBOSE) { "No extractor for: ${lookup.name}" }
+            if (Bugs.isTrace) log(tag, VERBOSE) { "No extractor for: ${lookup.name}" }
             return null
         }
 

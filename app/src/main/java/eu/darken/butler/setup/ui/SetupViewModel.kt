@@ -103,6 +103,7 @@ class SetupViewModel @AssistedInject constructor(
 
     fun executeAction(type: SetupModule.Type, action: SetupAction) = launch {
         log(tag) { "executeAction(type=$type, action=$action)" }
+
         val result = setupManager.executeAction(type, action)
         when {
             result?.intent != null -> {
@@ -114,6 +115,12 @@ class SetupViewModel @AssistedInject constructor(
                 _runtimePermissionEvents.emit(result.runtimePermissions)
             }
         }
+    }
+
+    fun handleSAFResult(uri: android.net.Uri) = launch {
+        log(tag) { "handleSAFResult(uri=$uri) - SAF module removed, handled via just-in-time picker" }
+        // SAF module removed - permissions are now handled via just-in-time picker in PathPermissionCheck
+        // This method is kept for backward compatibility but does nothing
     }
 
     fun openHelp(type: SetupModule.Type) = launch {

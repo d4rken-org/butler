@@ -15,6 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.setup.core.SetupAction
 import eu.darken.butler.setup.core.SetupItem
 import eu.darken.butler.setup.core.SetupModule
@@ -122,5 +125,51 @@ fun RootShizukuActions(
                 }
             )
         }
+    }
+}
+
+@Preview2
+@Composable
+private fun RootActionsEnabledPreview() {
+    PreviewWrapper {
+        RootShizukuActions(
+            item = SetupItem(
+                type = SetupModule.Type.ROOT,
+                state = RootSetupModule.Result(
+                    useRoot = true,
+                    isInstalled = true,
+                    ourService = true,
+                ),
+                isRequired = true,
+                priority = 5,
+            ),
+            onExecuteAction = {},
+            switchLabel = "Use Root"
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun ShizukuActionsNotConnectedPreview() {
+    PreviewWrapper {
+        RootShizukuActions(
+            item = SetupItem(
+                type = SetupModule.Type.SHIZUKU,
+                state = ShizukuSetupModule.Result(
+                    pkg = "moe.shizuku.privileged.api".toPkgId(),
+                    useShizuku = true,
+                    isCompatible = true,
+                    isInstalled = true,
+                    basicService = false,
+                    ourService = false,
+                    alsoHasRoot = false,
+                ),
+                isRequired = false,
+                priority = 6,
+            ),
+            onExecuteAction = {},
+            switchLabel = "Use Shizuku"
+        )
     }
 }

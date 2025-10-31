@@ -81,7 +81,7 @@ class LocalFileSystemOps @Inject constructor(
             try {
                 Os.lstat(path.file.path)
             } catch (e: Exception) {
-                log(TAG, WARN) { "fstat failed on $path: $e" }
+                log(TAG, VERBOSE) { "fstat failed on $path: $e" }
                 null
             }
         }
@@ -169,7 +169,7 @@ class LocalFileSystemOps @Inject constructor(
             val basicAttributes = try {
                 Files.readAttributes(path.toNioPath(), BasicFileAttributes::class.java)
             } catch (e: Exception) {
-                log(TAG, WARN) { "BasicFileAttributes failed on $path: $e" }
+                log(TAG, VERBOSE) { "BasicFileAttributes failed on $path: $e" }
                 null
             }
 
@@ -302,7 +302,8 @@ class LocalFileSystemOps @Inject constructor(
         } else {
             Files.newOutputStream(
                 path.toNioPath(),
-                StandardOpenOption.CREATE_NEW
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING
             )
         }
     } catch (e: FileAlreadyExistsException) {

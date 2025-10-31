@@ -10,13 +10,17 @@ import eu.darken.butler.common.SafUri
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.local.toLocalPath
 import eu.darken.butler.common.files.saf.SAFDocFile
 import eu.darken.butler.common.files.saf.location.db.SAFLocationDatabase
 import eu.darken.butler.common.files.saf.location.db.SAFLocationEntity
 import eu.darken.butler.common.rngString
+import eu.darken.butler.common.storage.StorageManager2
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,6 +50,7 @@ class SAFLocationManagerImpl @Inject constructor(
     private val contentResolver: ContentResolver,
     private val dispatcherProvider: DispatcherProvider,
     private val database: SAFLocationDatabase,
+    private val storageManager2: StorageManager2,
 ) : SAFLocationManager {
 
     private val dao = database.safLocations()
@@ -258,6 +263,145 @@ class SAFLocationManagerImpl @Inject constructor(
         val bytes = toString().toByteArray()
         val digest = MessageDigest.getInstance("MD5").digest(bytes)
         return digest.joinToString("") { "%02x".format(it) }
+    }
+
+    override fun toSAFPath(localPath: LocalPath): SAFPath? {
+        return try {
+            log(TAG, VERBOSE) { "toSAFPath() called with: $localPath" }
+
+            // Find the storage volume containing this path
+            val osStorage = storageManager2.storageVolumes
+                .onEach { log(TAG, VERBOSE) { "Checking volume: $it" } }
+                .filter { it.directory != null }
+                .firstOrNull { localPath.path.startsWith(it.directory!!.path) }
+                ?.also { log(TAG, VERBOSE) { "Target volume for $localPath is $it" } }
+                ?: return null.also { log(TAG, WARN) { "No storage volume found for $localPath" } }
+
+            // Calculate path relative to volume root
+            val prefixFreeFile = if (osStorage.directory!!.path != localPath.path) {
+                localPath.path.replace("${osStorage.directory!!.path}${File.separator}", "")
+            } else {
+                ""
+            }
+            log(TAG, VERBOSE) { "Prefix-free path: '$prefixFreeFile'" }
+
+            val segments = if (prefixFreeFile.isEmpty()) {
+                emptyList()
+            } else {
+                prefixFreeFile.split(File.separator)
+            }
+            log(TAG, VERBOSE) { "Calculated segments: $segments" }
+
+            // Create volume-based path for permission matching
+            val volumeBasedPath = SAFPath.build(
+                base = osStorage.treeUri,
+                segs = segments.toTypedArray(),
+            )
+
+            // ONLY return if we have a matching permission
+            val permissionMatch = findPermissionFor(volumeBasedPath)
+            if (permissionMatch != null) {
+                val permissionBasedPath = SAFPath.build(
+                    base = permissionMatch.location.treeUri.toString(),
+                    segs = permissionMatch.missingSegments.toTypedArray(),
+                )
+                log(TAG) { "toSAFPath() $localPath -> permission-based: treeRoot=${permissionBasedPath.treeRoot}, segments=${permissionBasedPath.segments}" }
+                permissionBasedPath
+            } else {
+                log(TAG) { "toSAFPath() $localPath -> no permission found, returning null" }
+                null
+            }
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "Failed to map $localPath: ${e.asLog()}" }
+            null
+        }
+    }
+
+    override fun toLocalPath(safPath: SAFPath): LocalPath? {
+        return try {
+            log(TAG, VERBOSE) { "toLocalPath() called with: $safPath" }
+
+            // Extract path from the SafUri
+            val safUri = safPath.treeRootUri
+            val uriPath = safUri.path
+            if (uriPath == null) {
+                log(TAG, WARN) { "No path in SafUri: $safUri" }
+                return null
+            }
+            log(TAG, VERBOSE) { "Extracted path from SafUri: $uriPath" }
+
+            // Extract the subdirectory path from the URI
+            // URI path format: "/tree/primary:Android/data" → extract "Android/data"
+            // If no colon, returns empty list (document root, like "/tree/primary")
+            val permissionPathSegments = try {
+                val parts = uriPath.split(":", limit = 2)
+                if (parts.size == 1) {
+                    // No colon found, just document root (e.g., "/tree/primary")
+                    emptyList()
+                } else {
+                    // Has subdirectory path (e.g., "Android/data" from "/tree/primary:Android/data")
+                    parts[1]
+                        .split(File.separator)
+                        .filter { it.isNotEmpty() }
+                }
+            } catch (e: Exception) {
+                log(TAG, WARN) { "Failed to parse path segments from $uriPath" }
+                emptyList()
+            }
+            log(TAG, VERBOSE) { "Extracted permission path segments: $permissionPathSegments" }
+
+            // Extract volume ID from SAF URI (e.g., "primary", "sdcard", "1234-5678")
+            val volumeIdFromUri = uriPath.split("/tree/").lastOrNull()?.split(":")?.firstOrNull()
+            if (volumeIdFromUri == null) {
+                log(TAG, WARN) { "Cannot extract volume ID from URI: $uriPath" }
+                return null
+            }
+            log(TAG, VERBOSE) { "Extracted volume ID from URI: $volumeIdFromUri" }
+
+            // Find the matching storage volume by comparing volume IDs
+            val volumes = storageManager2.storageVolumes
+                .also { log(TAG, VERBOSE) { "Found ${it.size} volumes to check" } }
+
+            if (volumes.isEmpty()) {
+                log(TAG, WARN) { "No volumes available" }
+                return null
+            }
+
+            val osStorage = volumes
+                .onEach { volume ->
+                    val volumeTreePath = volume.treeUri.path
+                    val volumeId = volumeTreePath?.split("/tree/")?.lastOrNull()?.split(":")?.firstOrNull()
+                    log(TAG, VERBOSE) { "Checking volume: ${volume.directory?.path}, volumeId=$volumeId" }
+                }
+                .firstOrNull { volume ->
+                    val volumeTreePath = volume.treeUri.path
+                    val volumeId = volumeTreePath?.split("/tree/")?.lastOrNull()?.split(":")?.firstOrNull()
+                    volumeId == volumeIdFromUri
+                }
+
+            if (osStorage == null) {
+                log(TAG, WARN) { "No matching volume found for volumeId=$volumeIdFromUri" }
+                return null
+            }
+            log(TAG, VERBOSE) { "Matched volume: ${osStorage.directory?.path}" }
+
+            if (osStorage.directory == null) {
+                log(TAG, WARN) { "Matched volume has no directory!" }
+                return null
+            }
+            val rootDir = osStorage.directory!!.toLocalPath()
+            log(TAG, VERBOSE) { "Converted volume directory to LocalPath: $rootDir" }
+
+            // Combine: volumeRoot + permissionPathSegments + safPath.segments
+            val allSegments = permissionPathSegments + safPath.segments
+            log(TAG, VERBOSE) { "Final path segments: root=$rootDir, segments=$allSegments" }
+            val result = rootDir.child(*allSegments.toTypedArray())
+            log(TAG, VERBOSE) { "Result: $result" }
+            return result
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "Failed to map $safPath: ${e.asLog()}" }
+            null
+        }
     }
 
     companion object {

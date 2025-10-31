@@ -9,7 +9,6 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.setup.core.inventory.InventorySetupModule
 import eu.darken.butler.setup.core.notification.NotificationSetupModule
 import eu.darken.butler.setup.core.root.RootSetupModule
-import eu.darken.butler.setup.core.saf.SAFSetupModule
 import eu.darken.butler.setup.core.shizuku.ShizukuSetupModule
 import eu.darken.butler.setup.core.storage.StorageSetupModule
 import eu.darken.butler.setup.core.usagestats.UsageStatsSetupModule
@@ -19,6 +18,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import javax.inject.Inject
@@ -105,7 +105,8 @@ class SetupManager @Inject constructor(
                         }
                     }
                     SetupModule.Type.SAF -> {
-                        // TODO
+                        // SAF module removed - handled via just-in-time picker in PathPermissionCheck
+                        log(TAG, WARN) { "SAF RequestPermission not supported - use just-in-time picker" }
                     }
                     SetupModule.Type.SHIZUKU -> throw IllegalStateException("Not handled here $action")
                     SetupModule.Type.ROOT -> throw IllegalStateException("Not handled here $action")
@@ -126,16 +127,16 @@ class SetupManager @Inject constructor(
         return null
     }
 
-    private fun getModule(type: SetupModule.Type): SetupModule? {
+    internal fun getModule(type: SetupModule.Type): SetupModule? {
         return setupModules.find { module ->
             when (type) {
                 SetupModule.Type.ROOT -> module is RootSetupModule
                 SetupModule.Type.NOTIFICATION -> module is NotificationSetupModule
                 SetupModule.Type.USAGE_STATS -> module is UsageStatsSetupModule
                 SetupModule.Type.SHIZUKU -> module is ShizukuSetupModule
-                SetupModule.Type.SAF -> module is SAFSetupModule
                 SetupModule.Type.STORAGE -> module is StorageSetupModule
                 SetupModule.Type.INVENTORY -> module is InventorySetupModule
+                SetupModule.Type.SAF -> false // SAF module removed - handled via just-in-time picker
             }
         }
     }

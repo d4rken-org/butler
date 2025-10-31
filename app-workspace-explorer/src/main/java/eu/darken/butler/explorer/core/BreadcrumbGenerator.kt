@@ -67,8 +67,8 @@ class BreadcrumbGenerator @Inject constructor(
                     // Find the SAF location to get its display name
                     val locationMatch = safLocationManager.findPermissionFor(location.path)
 
-                    // Add breadcrumb for the SAF root location
                     if (locationMatch != null) {
+                        // Add breadcrumb for the SAF root location
                         add(
                             ExplorerBreadcrumb(
                                 label = locationMatch.location.displayName,
@@ -79,25 +79,45 @@ class BreadcrumbGenerator @Inject constructor(
                                 )
                             )
                         )
-                    }
 
-                    // Add breadcrumbs for each path segment
-                    val accumulatedSegments = mutableListOf<String>()
-                    location.path.segments.forEach { segment ->
-                        accumulatedSegments.add(segment)
+                        // Add breadcrumbs for segments beyond the permission root
+                        // Use missingSegments to avoid duplicating segments already in the SAF location label
+                        val accumulatedSegments = mutableListOf<String>()
+                        locationMatch.missingSegments.forEach { segment ->
+                            accumulatedSegments.add(segment)
 
-                        add(
-                            ExplorerBreadcrumb(
-                                label = segment.ifEmpty { location.path.name }.toCaString(),
-                                icon = Icons.TwoTone.FolderOpen,
-                                target = ExplorerNavigation.Target.Directory(
-                                    SAFPath.build(
-                                        location.path.treeRootUri,
-                                        *accumulatedSegments.toTypedArray()
+                            add(
+                                ExplorerBreadcrumb(
+                                    label = segment.ifEmpty { location.path.name }.toCaString(),
+                                    icon = Icons.TwoTone.FolderOpen,
+                                    target = ExplorerNavigation.Target.Directory(
+                                        SAFPath.build(
+                                            location.path.treeRootUri,
+                                            *accumulatedSegments.toTypedArray()
+                                        )
                                     )
                                 )
                             )
-                        )
+                        }
+                    } else {
+                        // Fallback: No permission match found, show all segments
+                        val accumulatedSegments = mutableListOf<String>()
+                        location.path.segments.forEach { segment ->
+                            accumulatedSegments.add(segment)
+
+                            add(
+                                ExplorerBreadcrumb(
+                                    label = segment.ifEmpty { location.path.name }.toCaString(),
+                                    icon = Icons.TwoTone.FolderOpen,
+                                    target = ExplorerNavigation.Target.Directory(
+                                        SAFPath.build(
+                                            location.path.treeRootUri,
+                                            *accumulatedSegments.toTypedArray()
+                                        )
+                                    )
+                                )
+                            )
+                        }
                     }
                 }
             }

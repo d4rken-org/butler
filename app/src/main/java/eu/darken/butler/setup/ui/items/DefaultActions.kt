@@ -15,9 +15,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.permissions.Permission
 import eu.darken.butler.setup.core.SetupAction
 import eu.darken.butler.setup.core.SetupItem
 import eu.darken.butler.setup.core.SetupModule
+import eu.darken.butler.setup.core.notification.NotificationSetupModule
 
 @Composable
 fun DefaultActions(
@@ -68,5 +72,41 @@ fun DefaultActions(
                 }
             )
         }
+    }
+}
+
+@Preview2
+@Composable
+private fun DefaultActionsNotGrantedPreview() {
+    PreviewWrapper {
+        DefaultActions(
+            item = SetupItem(
+                type = SetupModule.Type.NOTIFICATION,
+                state = NotificationSetupModule.Result(
+                    missingPermission = setOf(Permission.POST_NOTIFICATIONS),
+                ),
+                isRequired = true,
+                priority = 3,
+            ),
+            onExecuteAction = {}
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun DefaultActionsGrantedPreview() {
+    PreviewWrapper {
+        DefaultActions(
+            item = SetupItem(
+                type = SetupModule.Type.NOTIFICATION,
+                state = NotificationSetupModule.Result(
+                    missingPermission = emptySet(),
+                ),
+                isRequired = false,
+                priority = 3,
+            ),
+            onExecuteAction = {}
+        )
     }
 }

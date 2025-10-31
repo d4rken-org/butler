@@ -1,6 +1,7 @@
 package eu.darken.butler.common.files.saf.location
 
 import android.net.Uri
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.saf.SAFDocFile
 import kotlinx.coroutines.flow.Flow
@@ -134,4 +135,42 @@ interface SAFLocationManager {
      * be automatically detected.
      */
     suspend fun refresh()
+
+    // --- Path Mapping ---
+
+    /**
+     * Convert a LocalPath to SAFPath using granted SAF permissions.
+     *
+     * This creates a SAFPath ONLY when a matching permission exists.
+     * Use this to check if a path can be accessed via SAF.
+     *
+     * **Returns null when:**
+     * - No storage volume found for the path
+     * - No SAF permission granted for the path
+     *
+     * **Example with permission:**
+     * - Permission: `tree/primary:Android/data`
+     * - LocalPath: `/storage/emulated/0/Android/data/com.app/file.txt`
+     * - Result: `SAFPath(treeRoot="tree/primary:Android/data", segments=["com.app", "file.txt"])`
+     *
+     * **Example without permission:**
+     * - LocalPath: `/storage/emulated/0/Android/data/com.app/file.txt`
+     * - No permission for Android/data
+     * - Result: `null`
+     *
+     * @param localPath The local file system path to convert
+     * @return SAFPath with permission-aware treeRoot, or null if no permission exists
+     */
+    fun toSAFPath(localPath: LocalPath): SAFPath?
+
+    /**
+     * Convert a SAFPath back to LocalPath.
+     *
+     * Resolves the SAF tree URI to its corresponding storage volume
+     * and constructs the local file system path.
+     *
+     * @param safPath The SAF path to convert
+     * @return LocalPath if the storage volume is known, null otherwise
+     */
+    fun toLocalPath(safPath: SAFPath): LocalPath?
 }

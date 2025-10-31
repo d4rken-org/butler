@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -93,6 +94,7 @@ import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.setHeight
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
@@ -111,20 +113,27 @@ fun ExplorerWorkspacePageHost(
     val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
 
     // SAF directory picker launcher
-    val safPickerLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
-        androidx.activity.result.contract.ActivityResultContracts.OpenDocumentTree()
+    val safPickerLauncher = rememberLauncherForActivityResult(
+        OpenDocumentTreeWithIntent()
     ) { uri ->
         uri?.let {
             coroutineScope.launch {
-                vm.handleSAFPickerResult(it)
+                val grant = vm.pendingSAFPickerGrant.first()
+                if (grant != null) {
+                    // Android/data workaround flow - auto-label
+                    vm.handleAndroidDataSAFPickerResult(it, grant)
+                } else {
+                    // Manual addition flow - prompt for label
+                    vm.handleSAFPickerResult(it)
+                }
             }
         }
     }
 
     // Handle SAF picker launch events
     LaunchedEffect(vm) {
-        vm.safPickerEvents.collect { _ ->
-            safPickerLauncher.launch(null)
+        vm.safPickerEvents.collect { intent ->
+            safPickerLauncher.launch(intent)
         }
     }
 
@@ -212,6 +221,19 @@ fun ExplorerWorkspacePage(
             } else {
                 // At root, dismiss picker
                 vm?.cancelPicker()
+            }
+        }
+    }
+
+    // Handle back button for navigation history (when setting enabled)
+    if (mainState.useBackButtonForNavigation && mainState.pickerConfig == null) {
+        BackHandler(enabled = true) {
+            if (mainState.canGoBack) {
+                // Navigate back through history
+                vm?.goBack()
+            } else {
+                // At root, close workspace
+                vm?.closeWorkspace()
             }
         }
     }
@@ -375,6 +397,7 @@ fun ExplorerWorkspacePage(
                         ExplorerInfoBar(
                             info = mainState.info,
                             selectedCount = mainState.selectionState.selectedItems.size,
+                            onClearSelection = { vm?.clearSelection() },
                         )
 
                         mainState.error?.let { error ->
@@ -390,12 +413,15 @@ fun ExplorerWorkspacePage(
 
                         val mainStateSnap = mainState
                         when {
-                            mainStateSnap.setupRequirements.needsSetup -> {
-                                // Show setup request card when setup is incomplete
+                            mainStateSnap.setupRequirements.needsAction -> {
+                                // Show setup request or SAF picker card when action needed
                                 PermissionRequestCard(
                                     setupRequirements = mainState.setupRequirements,
                                     onNavigateToSetup = {
                                         vm?.navigateToSetup(mainState.setupRequirements)
+                                    },
+                                    onLaunchSAFPicker = { grant ->
+                                        vm?.launchAndroidDataSAFPicker(grant)
                                     },
                                     modifier = Modifier.fillMaxSize(),
                                 )

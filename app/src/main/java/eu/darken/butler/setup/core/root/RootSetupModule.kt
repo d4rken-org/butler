@@ -7,7 +7,7 @@ import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.datastore.value
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.replayingShare
@@ -89,6 +89,9 @@ class RootSetupModule @Inject constructor(
     ) : SetupModule.State.Current {
 
         override val type: SetupModule.Type = SetupModule.Type.ROOT
+
+        override val isAvailable: Boolean
+            get() = isInstalled
 
         override val isComplete: Boolean = when {
             useRoot == true -> ourService // Only complete if enabled AND connected
