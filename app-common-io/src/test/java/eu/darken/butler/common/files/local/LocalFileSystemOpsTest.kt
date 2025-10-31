@@ -407,6 +407,36 @@ class LocalFileSystemOpsTest : BaseTest() {
     }
 
     @Test
+    fun `openOutputStream after createFile should truncate existing file`(@TempDir tempDir: File) = runTest {
+        // Given - create an empty file first (simulates GenericCrossTypeCopyStrategy behavior)
+        val path = LocalPath.build(tempDir, "file.txt")
+        fileSystemOps.createFile(path)
+
+        // When - open output stream with append=false on existing file
+        val outputStream = fileSystemOps.openOutputStream(path, append = false)
+        outputStream.write("new content".toByteArray())
+        outputStream.close()
+
+        // Then - should not throw FileAlreadyExistsException and should contain new content
+        path.file.readText() shouldBe "new content"
+    }
+
+    @Test
+    fun `openOutputStream with append false truncates existing content`(@TempDir tempDir: File) = runTest {
+        // Given - file with existing content
+        val testFile = File(tempDir, "existing.txt").apply { writeText("old content here") }
+        val path = LocalPath.build(testFile)
+
+        // When - open with append=false and write shorter content
+        val outputStream = fileSystemOps.openOutputStream(path, append = false)
+        outputStream.write("new".toByteArray())
+        outputStream.close()
+
+        // Then - should be truncated to new content only
+        testFile.readText() shouldBe "new"
+    }
+
+    @Test
     fun `file returns readable FileHandle`(@TempDir tempDir: File) = runTest {
         val testFile = File(tempDir, "handle.txt").apply { writeText("handle content") }
         val path = LocalPath.build(testFile)

@@ -302,7 +302,8 @@ class LocalFileSystemOps @Inject constructor(
         } else {
             Files.newOutputStream(
                 path.toNioPath(),
-                StandardOpenOption.CREATE_NEW
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING
             )
         }
     } catch (e: FileAlreadyExistsException) {
