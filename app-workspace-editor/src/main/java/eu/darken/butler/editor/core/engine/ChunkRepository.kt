@@ -35,15 +35,13 @@ class ChunkRepository @AssistedInject constructor(
 
         val chunk = TextChunk(
             id = chunkId,
-            startOffset = boundary.startOffset,
-            endOffset = boundary.endOffset,
             content = content,
             lineCount = lineCount,
             isDirty = false,
             isLoaded = true
         )
 
-        log(tag) { "Loaded chunk: $chunkId (${chunk.size} bytes, $lineCount lines)" }
+        log(tag) { "Loaded chunk: $chunkId (${content.length} bytes, $lineCount lines)" }
         chunk
     }
 
@@ -52,10 +50,11 @@ class ChunkRepository @AssistedInject constructor(
      * DataSource handles merging and persistence.
      *
      * @param dirtyChunks List of modified chunks to save
+     * @param boundaries Map of chunk IDs to their file positions
      */
-    suspend fun saveFile(dirtyChunks: List<TextChunk>) = withContext(Dispatchers.IO) {
+    suspend fun saveFile(dirtyChunks: List<TextChunk>, boundaries: Map<TextChunk.ChunkId, ChunkBoundary>) = withContext(Dispatchers.IO) {
         log(tag) { "Saving ${dirtyChunks.size} dirty chunks to data source" }
-        dataSource.save(dirtyChunks)
+        dataSource.save(dirtyChunks, boundaries)
         log(tag) { "Successfully saved chunks" }
     }
 
@@ -67,6 +66,7 @@ class ChunkRepository @AssistedInject constructor(
      */
     suspend fun searchInChunk(
         chunk: TextChunk,
+        boundary: ChunkBoundary,
         query: String,
         ignoreCase: Boolean = false
     ): List<SearchResult> {
@@ -86,7 +86,7 @@ class ChunkRepository @AssistedInject constructor(
                 val foundIndex = searchText.indexOf(searchQuery, searchIndex)
                 if (foundIndex == -1) break
 
-                val absoluteOffset = chunk.startOffset + foundIndex
+                val absoluteOffset = boundary.startOffset + foundIndex
                 // Line number is chunk-relative (0-based within chunk)
                 val lineNumber = chunk.content.substring(0, foundIndex).count { it == '\n' }
                 val lineStart = chunk.content.lastIndexOf('\n', foundIndex - 1) + 1

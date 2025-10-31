@@ -12,6 +12,7 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.extensions.exists
 import eu.darken.butler.common.files.extensions.lookup
+import eu.darken.butler.editor.core.engine.ChunkBoundary
 import eu.darken.butler.editor.core.engine.ChunkManager
 import eu.darken.butler.editor.core.engine.FileInfo
 import eu.darken.butler.editor.core.engine.TextChunk
@@ -131,7 +132,7 @@ class FileDataSource @AssistedInject constructor(
      *
      * @param dirtyChunks List of modified chunks to save (will be merged with original content)
      */
-    override suspend fun save(dirtyChunks: List<TextChunk>) = accessMutex.withLock {
+    override suspend fun save(dirtyChunks: List<TextChunk>, boundaries: Map<TextChunk.ChunkId, ChunkBoundary>) = accessMutex.withLock {
         withContext(Dispatchers.IO) {
             if (dirtyChunks.isEmpty()) {
                 log(tag) { "No modifications to save" }
@@ -150,7 +151,7 @@ class FileDataSource @AssistedInject constructor(
                 }
 
                 // Merge modifications using ChunkManager algorithm
-                val mergedContent = ChunkManager.mergeChunks(originalContent, dirtyChunks)
+                val mergedContent = ChunkManager.mergeChunks(originalContent, dirtyChunks, boundaries)
 
                 // Atomic save: write to temp file, then rename
                 val tempPath = filePath.parent?.child("${filePath.name}.tmp")

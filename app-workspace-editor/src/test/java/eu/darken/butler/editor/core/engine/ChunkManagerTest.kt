@@ -21,12 +21,28 @@ class ChunkManagerTest : BaseTest() {
     private fun createMockRepository(): ChunkRepository {
         val mockRepo = mockk<ChunkRepository>(relaxed = true)
         // saveFile() should succeed by default
-        coEvery { mockRepo.saveFile(any()) } returns Unit
+        coEvery { mockRepo.saveFile(any(), any()) } returns Unit
         return mockRepo
     }
 
     private fun createChunkManager(repository: ChunkRepository = createMockRepository()): ChunkManager {
         return ChunkManager(workspaceId, repository)
+    }
+
+    private fun boundaries(vararg entries: Pair<TextChunk, Pair<Long, Long>>): Map<TextChunk.ChunkId, ChunkBoundary> {
+        return entries.associate { (chunk, offsets) ->
+            chunk.id to ChunkBoundary(offsets.first, offsets.second)
+        }
+    }
+
+    private suspend fun ChunkManager.addChunkWithBoundary(chunk: TextChunk, startOffset: Long, endOffset: Long) {
+        addChunk(chunk)
+        // Access boundaries via reflection for test purposes
+        val boundariesField = ChunkManager::class.java.getDeclaredField("boundaries")
+        boundariesField.isAccessible = true
+        @Suppress("UNCHECKED_CAST")
+        val boundariesMap = boundariesField.get(this) as MutableMap<TextChunk.ChunkId, ChunkBoundary>
+        boundariesMap[chunk.id] = ChunkBoundary(startOffset, endOffset)
     }
 
     // ==================== mergeChunks() Algorithm Tests ====================
@@ -38,7 +54,7 @@ class ChunkManagerTest : BaseTest() {
         val dirtyChunks = emptyList<TextChunk>()
 
         // When: Merge with no dirty chunks
-        val result = ChunkManager.mergeChunks(original, dirtyChunks)
+        val result = ChunkManager.mergeChunks(original, dirtyChunks, emptyMap())
 
         // Then: Returns unchanged content
         String(result) shouldBe "Hello World"
@@ -52,15 +68,17 @@ class ChunkManagerTest : BaseTest() {
         // Modified first 5 bytes to "HELLO"
         val dirtyChunk = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 0L,
-            endOffset = 5L,
             content = "HELLO",
             lineCount = 1,
             isDirty = true
         )
 
         // When: Merge
-        val result = ChunkManager.mergeChunks(original, listOf(dirtyChunk))
+        val result = ChunkManager.mergeChunks(
+            original,
+            listOf(dirtyChunk),
+            boundaries(dirtyChunk to (0L to 5L))
+        )
 
         // Then: First 5 chars changed, rest unchanged
         String(result) shouldBe "HELLO World"
@@ -74,15 +92,17 @@ class ChunkManagerTest : BaseTest() {
         // Modified middle part (offset 6-11) "World" -> "There"
         val dirtyChunk = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 6L,
-            endOffset = 11L,
             content = "There",
             lineCount = 1,
             isDirty = true
         )
 
         // When: Merge
-        val result = ChunkManager.mergeChunks(original, listOf(dirtyChunk))
+        val result = ChunkManager.mergeChunks(
+            original,
+            listOf(dirtyChunk),
+            boundaries(dirtyChunk to (6L to 11L))
+        )
 
         // Then: Middle part changed
         String(result) shouldBe "Hello There"
@@ -96,15 +116,17 @@ class ChunkManagerTest : BaseTest() {
         // Modified last 5 bytes (offset 6-11) "World" -> "WORLD"
         val dirtyChunk = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 6L,
-            endOffset = 11L,
             content = "WORLD",
             lineCount = 1,
             isDirty = true
         )
 
         // When: Merge
-        val result = ChunkManager.mergeChunks(original, listOf(dirtyChunk))
+        val result = ChunkManager.mergeChunks(
+            original,
+            listOf(dirtyChunk),
+            boundaries(dirtyChunk to (6L to 11L))
+        )
 
         // Then: Last part changed
         String(result) shouldBe "Hello WORLD"
@@ -118,15 +140,17 @@ class ChunkManagerTest : BaseTest() {
         // Expand middle part: "World" -> "Beautiful World" (longer)
         val dirtyChunk = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 6L,
-            endOffset = 11L,  // Original end
             content = "Beautiful World",  // Longer content
             lineCount = 1,
             isDirty = true
         )
 
         // When: Merge
-        val result = ChunkManager.mergeChunks(original, listOf(dirtyChunk))
+        val result = ChunkManager.mergeChunks(
+            original,
+            listOf(dirtyChunk),
+            boundaries(dirtyChunk to (6L to 11L))
+        )
 
         // Then: Content expanded
         String(result) shouldBe "Hello Beautiful World"
@@ -140,15 +164,17 @@ class ChunkManagerTest : BaseTest() {
         // Shrink middle part: "Beautiful World" (offset 6-21) -> "There"
         val dirtyChunk = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 6L,
-            endOffset = 21L,  // Original end
             content = "There",  // Shorter content
             lineCount = 1,
             isDirty = true
         )
 
         // When: Merge
-        val result = ChunkManager.mergeChunks(original, listOf(dirtyChunk))
+        val result = ChunkManager.mergeChunks(
+            original,
+            listOf(dirtyChunk),
+            boundaries(dirtyChunk to (6L to 21L))
+        )
 
         // Then: Content shrunk
         String(result) shouldBe "Hello There"
@@ -162,23 +188,26 @@ class ChunkManagerTest : BaseTest() {
         // Modify first and last parts
         val chunk1 = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 0L,
-            endOffset = 4L,
             content = "1111",
             lineCount = 1,
             isDirty = true
         )
         val chunk2 = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 10L,
-            endOffset = 14L,
             content = "3333",
             lineCount = 1,
             isDirty = true
         )
 
         // When: Merge (provide in wrong order to test sorting)
-        val result = ChunkManager.mergeChunks(original, listOf(chunk2, chunk1))
+        val result = ChunkManager.mergeChunks(
+            original,
+            listOf(chunk2, chunk1),
+            boundaries(
+                chunk1 to (0L to 4L),
+                chunk2 to (10L to 14L)
+            )
+        )
 
         // Then: Both parts changed, middle unchanged
         String(result) shouldBe "1111 BBBB 3333"
@@ -192,23 +221,26 @@ class ChunkManagerTest : BaseTest() {
         // Two adjacent chunks
         val chunk1 = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 0L,
-            endOffset = 4L,
             content = "1111",
             lineCount = 1,
             isDirty = true
         )
         val chunk2 = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 5L,
-            endOffset = 9L,
             content = "2222",
             lineCount = 1,
             isDirty = true
         )
 
         // When: Merge
-        val result = ChunkManager.mergeChunks(original, listOf(chunk1, chunk2))
+        val result = ChunkManager.mergeChunks(
+            original,
+            listOf(chunk1, chunk2),
+            boundaries(
+                chunk1 to (0L to 4L),
+                chunk2 to (5L to 9L)
+            )
+        )
 
         // Then: Both parts changed
         String(result) shouldBe "1111 2222"
@@ -222,15 +254,17 @@ class ChunkManagerTest : BaseTest() {
         // Replace entire content
         val dirtyChunk = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 0L,
-            endOffset = 5L,
             content = "Goodbye",
             lineCount = 1,
             isDirty = true
         )
 
         // When: Merge
-        val result = ChunkManager.mergeChunks(original, listOf(dirtyChunk))
+        val result = ChunkManager.mergeChunks(
+            original,
+            listOf(dirtyChunk),
+            boundaries(dirtyChunk to (0L to 5L))
+        )
 
         // Then: Completely replaced
         String(result) shouldBe "Goodbye"
@@ -244,23 +278,26 @@ class ChunkManagerTest : BaseTest() {
         // Modify first and last, leaving middle untouched
         val chunk1 = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 0L,
-            endOffset = 4L,
             content = "1111",
             lineCount = 1,
             isDirty = true
         )
         val chunk2 = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 15L,
-            endOffset = 19L,
             content = "4444",
             lineCount = 1,
             isDirty = true
         )
 
         // When: Merge
-        val result = ChunkManager.mergeChunks(original, listOf(chunk1, chunk2))
+        val result = ChunkManager.mergeChunks(
+            original,
+            listOf(chunk1, chunk2),
+            boundaries(
+                chunk1 to (0L to 4L),
+                chunk2 to (15L to 19L)
+            )
+        )
 
         // Then: Gaps preserved
         String(result) shouldBe "1111 BBBB CCCC 4444"
@@ -274,15 +311,17 @@ class ChunkManagerTest : BaseTest() {
         // Replace second line
         val dirtyChunk = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 7L,
-            endOffset = 13L,  // "Line 2"
             content = "Modified Line",
             lineCount = 1,
             isDirty = true
         )
 
         // When: Merge
-        val result = ChunkManager.mergeChunks(original, listOf(dirtyChunk))
+        val result = ChunkManager.mergeChunks(
+            original,
+            listOf(dirtyChunk),
+            boundaries(dirtyChunk to (7L to 13L))
+        )
 
         // Then: Middle line changed
         String(result) shouldBe "Line 1\nModified Line\nLine 3"
@@ -296,15 +335,17 @@ class ChunkManagerTest : BaseTest() {
         // Delete content (empty replacement)
         val dirtyChunk = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 5L,
-            endOffset = 11L,  // " World"
             content = "",  // Empty
             lineCount = 0,
             isDirty = true
         )
 
         // When: Merge
-        val result = ChunkManager.mergeChunks(original, listOf(dirtyChunk))
+        val result = ChunkManager.mergeChunks(
+            original,
+            listOf(dirtyChunk),
+            boundaries(dirtyChunk to (5L to 11L))
+        )
 
         // Then: Content deleted
         String(result) shouldBe "Hello"
@@ -320,8 +361,6 @@ class ChunkManagerTest : BaseTest() {
         // When: Add a chunk
         val chunk = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 0L,
-            endOffset = 100L,
             content = "Test content",
             lineCount = 1,
             isDirty = false
@@ -339,8 +378,6 @@ class ChunkManagerTest : BaseTest() {
         val manager = createChunkManager()
         val originalChunk = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 0L,
-            endOffset = 100L,
             content = "Original",
             lineCount = 1,
             isDirty = false
@@ -365,24 +402,18 @@ class ChunkManagerTest : BaseTest() {
 
         val cleanChunk1 = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 0L,
-            endOffset = 100L,
             content = "Clean 1",
             lineCount = 1,
             isDirty = false
         )
         val dirtyChunk = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 100L,
-            endOffset = 200L,
             content = "Dirty",
             lineCount = 1,
             isDirty = true
         )
         val cleanChunk2 = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 200L,
-            endOffset = 300L,
             content = "Clean 2",
             lineCount = 1,
             isDirty = false
@@ -407,33 +438,27 @@ class ChunkManagerTest : BaseTest() {
 
         val chunk1 = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 200L,
-            endOffset = 300L,
             content = "Chunk 3",
             lineCount = 1,
             isDirty = true
         )
         val chunk2 = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 0L,
-            endOffset = 100L,
             content = "Chunk 1",
             lineCount = 1,
             isDirty = true
         )
         val chunk3 = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 100L,
-            endOffset = 200L,
             content = "Chunk 2",
             lineCount = 1,
             isDirty = true
         )
 
-        // Add in wrong order
-        manager.addChunk(chunk1)
-        manager.addChunk(chunk2)
-        manager.addChunk(chunk3)
+        // Add in wrong order with boundaries
+        manager.addChunkWithBoundary(chunk1, 200L, 207L)  // offset 200
+        manager.addChunkWithBoundary(chunk2, 0L, 7L)      // offset 0
+        manager.addChunkWithBoundary(chunk3, 100L, 107L)  // offset 100
 
         // When: Get dirty chunks
         val dirtyChunks = manager.getDirtyChunks()
@@ -452,16 +477,12 @@ class ChunkManagerTest : BaseTest() {
 
         val chunk1 = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 0L,
-            endOffset = 100L,
             content = "Chunk 1",
             lineCount = 1,
             isDirty = true
         )
         val chunk2 = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 100L,
-            endOffset = 200L,
             content = "Chunk 2",
             lineCount = 1,
             isDirty = true
@@ -485,8 +506,6 @@ class ChunkManagerTest : BaseTest() {
 
         val cleanChunk = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 0L,
-            endOffset = 100L,
             content = "Clean",
             lineCount = 1,
             isDirty = false
@@ -508,8 +527,6 @@ class ChunkManagerTest : BaseTest() {
 
         val dirtyChunk = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 0L,
-            endOffset = 100L,
             content = "Modified",
             lineCount = 1,
             isDirty = true
@@ -523,7 +540,7 @@ class ChunkManagerTest : BaseTest() {
         result.isSuccess shouldBe true
 
         // And: Repository saveFile was called
-        coVerify(exactly = 1) { mockRepo.saveFile(any()) }
+        coVerify(exactly = 1) { mockRepo.saveFile(any(), any()) }
 
         // And: Chunks are now clean
         val remainingDirtyChunks = manager.getDirtyChunks()
@@ -534,14 +551,12 @@ class ChunkManagerTest : BaseTest() {
     fun `saveAllDirtyChunks failure preserves dirty state`() = runTest {
         // Given: Manager with dirty chunks, repository that fails
         val mockRepo = createMockRepository()
-        coEvery { mockRepo.saveFile(any()) } throws RuntimeException("Disk full")
+        coEvery { mockRepo.saveFile(any(), any()) } throws RuntimeException("Disk full")
 
         val manager = createChunkManager(mockRepo)
 
         val dirtyChunk = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 0L,
-            endOffset = 100L,
             content = "Modified",
             lineCount = 1,
             isDirty = true
@@ -567,8 +582,6 @@ class ChunkManagerTest : BaseTest() {
 
         val dirtyChunk = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 0L,
-            endOffset = 100L,
             content = "Modified",
             lineCount = 1,
             isDirty = true
@@ -593,8 +606,6 @@ class ChunkManagerTest : BaseTest() {
 
         val cleanChunk = TextChunk(
             id = TextChunk.ChunkId.generate(),
-            startOffset = 0L,
-            endOffset = 100L,
             content = "Clean",
             lineCount = 1,
             isDirty = false

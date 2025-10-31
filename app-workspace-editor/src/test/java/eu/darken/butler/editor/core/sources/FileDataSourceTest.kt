@@ -7,6 +7,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.metadata.OwnershipResolver
+import eu.darken.butler.editor.core.engine.ChunkBoundary
 import eu.darken.butler.editor.core.engine.TextChunk
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
@@ -79,6 +80,12 @@ class FileDataSourceTest : BaseTest() {
             open()
         }
 
+    private fun boundaries(vararg entries: Pair<TextChunk, Pair<Long, Long>>): Map<TextChunk.ChunkId, ChunkBoundary> {
+        return entries.associate { (chunk, offsets) ->
+            chunk.id to ChunkBoundary(offsets.first, offsets.second)
+        }
+    }
+
     // ==================== Initialization Tests ====================
 
     @Test
@@ -120,7 +127,7 @@ class FileDataSourceTest : BaseTest() {
         val dataSource = createDataSource(tempDir, "test.txt", "Hello World\nLine 2\nLine 3")
 
         // When: Read first 11 bytes
-        val chunk = dataSource.readChunk(startOffset = 0L, size = 11L)
+        val chunk = dataSource.readChunk(0L, 11L)
 
         // Then: Should match expected content
         chunk shouldBe "Hello World"
@@ -132,7 +139,7 @@ class FileDataSourceTest : BaseTest() {
         val dataSource = createDataSource(tempDir, "test.txt", "Hello World\nLine 2\nLine 3")
 
         // When: Read from offset 12 (after first newline)
-        val chunk = dataSource.readChunk(startOffset = 12L, size = 6L)
+        val chunk = dataSource.readChunk(12L, 6L)
 
         // Then
         chunk shouldBe "Line 2"
@@ -144,7 +151,7 @@ class FileDataSourceTest : BaseTest() {
         val dataSource = createDataSource(tempDir, "test.txt", "Hello")
 
         // When: Request more bytes than available
-        val chunk = dataSource.readChunk(startOffset = 0L, size = 100L)
+        val chunk = dataSource.readChunk(0L, 100L)
 
         // Then: Returns what's available
         chunk shouldBe "Hello"
@@ -156,7 +163,7 @@ class FileDataSourceTest : BaseTest() {
         val dataSource = createDataSource(tempDir, "test.txt", "Hello")
 
         // When: Offset beyond file
-        val chunk = dataSource.readChunk(startOffset = 1000L, size = 10L)
+        val chunk = dataSource.readChunk(100L, 10L)
 
         // Then: Empty string
         chunk shouldBe ""
@@ -187,17 +194,16 @@ class FileDataSourceTest : BaseTest() {
         val dataSource = createDataSource(tempDir, "test.txt", "Hello World")
 
         // When: Save dirty chunks
-        val dirtyChunks = listOf(
-            TextChunk(
-                id = TextChunk.ChunkId.generate(),
-                startOffset = 0L,
-                endOffset = 7L,
-                content = "Goodbye",
-                lineCount = 1,
-                isDirty = true,
-            ),
+        val dirtyChunk = TextChunk(
+            id = TextChunk.ChunkId.generate(),
+            content = "Goodbye",
+            lineCount = 1,
+            isDirty = true,
         )
-        dataSource.save(dirtyChunks)
+        dataSource.save(
+            listOf(dirtyChunk),
+            boundaries(dirtyChunk to (0L to 7L))
+        )
 
         // Then: File updated on disk
         testFile.readText().take(7) shouldBe "Goodbye"
@@ -216,7 +222,7 @@ class FileDataSourceTest : BaseTest() {
         Thread.sleep(100)
 
         // When: Save with empty dirty chunks list
-        dataSource.save(emptyList())
+        dataSource.save(emptyList(), emptyMap())
 
         // Then: File timestamp unchanged (assuming implementation optimizes this)
         // Note: Depending on implementation, this may or may not update timestamp

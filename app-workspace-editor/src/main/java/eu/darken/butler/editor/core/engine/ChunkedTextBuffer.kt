@@ -73,8 +73,6 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 val emptyChunkId = chunkIds.first()
                 val emptyChunk = TextChunk(
                     id = emptyChunkId,
-                    startOffset = 0L,
-                    endOffset = 0L,
                     content = "",
                     lineCount = 1,
                     isDirty = false,
@@ -141,12 +139,16 @@ class ChunkedTextBuffer @AssistedInject constructor(
                     chunkManager.loadChunk(chunk.id).getOrThrow()
                 }
 
-                // Calculate the portion of this chunk we need
-                val chunkStartInRange = maxOf(startOffset, loadedChunk.startOffset)
-                val chunkEndInRange = minOf(endOffset, loadedChunk.endOffset)
+                // Get boundary for this chunk
+                val boundary = chunkManager.getBoundary(chunk.id)
+                    ?: return Result.failure(IllegalStateException("No boundary for chunk ${chunk.id}"))
 
-                val startInChunk = (chunkStartInRange - loadedChunk.startOffset).toInt()
-                val endInChunk = (chunkEndInRange - loadedChunk.startOffset).toInt()
+                // Calculate the portion of this chunk we need
+                val chunkStartInRange = maxOf(startOffset, boundary.startOffset)
+                val chunkEndInRange = minOf(endOffset, boundary.endOffset)
+
+                val startInChunk = (chunkStartInRange - boundary.startOffset).toInt()
+                val endInChunk = (chunkEndInRange - boundary.startOffset).toInt()
 
                 stringBuilder.append(loadedChunk.content.substring(startInChunk, endInChunk))
             }
@@ -255,8 +257,12 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 chunkManager.loadChunk(chunk.id).getOrThrow()
             }
 
+            // Get boundary for offset calculation
+            val boundary = chunkManager.getBoundary(chunk.id)
+                ?: return@withLock Result.failure(IllegalStateException("No boundary for chunk ${chunk.id}"))
+
             // Calculate insertion point within chunk
-            val insertionIndex = (position.offset - loadedChunk.startOffset).toInt()
+            val insertionIndex = (position.offset - boundary.startOffset).toInt()
             val newContent = loadedChunk.content.substring(0, insertionIndex) +
                 text +
                 loadedChunk.content.substring(insertionIndex)
@@ -264,7 +270,6 @@ class ChunkedTextBuffer @AssistedInject constructor(
             // Update the chunk
             val updatedChunk = loadedChunk.copy(
                 content = newContent,
-                endOffset = loadedChunk.endOffset + text.length,
                 isDirty = true
             )
 
@@ -324,13 +329,16 @@ class ChunkedTextBuffer @AssistedInject constructor(
                         chunkManager.loadChunk(chunk.id).getOrThrow()
                     }
 
-                    val startInChunk = (startPosition.offset - loadedChunk.startOffset).toInt()
-                    val endInChunk = (endPosition.offset - loadedChunk.startOffset).toInt()
+                    // Get boundary for offset calculation
+                    val boundary = chunkManager.getBoundary(chunk.id)
+                        ?: return@withLock Result.failure(IllegalStateException("No boundary for chunk ${chunk.id}"))
+
+                    val startInChunk = (startPosition.offset - boundary.startOffset).toInt()
+                    val endInChunk = (endPosition.offset - boundary.startOffset).toInt()
 
                     val newContent = loadedChunk.content.removeRange(startInChunk, endInChunk)
                     val updatedChunk = loadedChunk.copy(
                         content = newContent,
-                        endOffset = loadedChunk.endOffset - (endPosition.offset - startPosition.offset),
                         isDirty = true
                     )
 
@@ -353,9 +361,15 @@ class ChunkedTextBuffer @AssistedInject constructor(
                         chunkManager.loadChunk(lastChunk.id).getOrThrow()
                     }
 
+                    // Get boundaries for offset calculation
+                    val firstBoundary = chunkManager.getBoundary(firstChunk.id)
+                        ?: return@withLock Result.failure(IllegalStateException("No boundary for chunk ${firstChunk.id}"))
+                    val lastBoundary = chunkManager.getBoundary(lastChunk.id)
+                        ?: return@withLock Result.failure(IllegalStateException("No boundary for chunk ${lastChunk.id}"))
+
                     // Calculate what to keep from each chunk
-                    val startInFirstChunk = (startPosition.offset - loadedFirst.startOffset).toInt()
-                    val endInLastChunk = (endPosition.offset - loadedLast.startOffset).toInt()
+                    val startInFirstChunk = (startPosition.offset - firstBoundary.startOffset).toInt()
+                    val endInLastChunk = (endPosition.offset - lastBoundary.startOffset).toInt()
 
                     // Build merged content: keep beginning of first chunk + end of last chunk
                     val contentBeforeDelete = loadedFirst.content.substring(0, startInFirstChunk)
@@ -365,7 +379,6 @@ class ChunkedTextBuffer @AssistedInject constructor(
                     // Update first chunk with merged content
                     val updatedFirstChunk = loadedFirst.copy(
                         content = mergedContent,
-                        endOffset = loadedFirst.startOffset + mergedContent.length,
                         isDirty = true
                     )
                     chunkManager.updateChunk(firstChunk.id) { updatedFirstChunk }
@@ -530,7 +543,14 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 continue
             }
 
-            val chunkResults = chunkRepository.searchInChunk(chunk, query, ignoreCase)
+            // Get boundary for absolute offset calculation
+            val boundary = chunkManager.getBoundary(chunkId)
+            if (boundary == null) {
+                log(tag, WARN) { "No boundary found for chunk $chunkId" }
+                continue
+            }
+
+            val chunkResults = chunkRepository.searchInChunk(chunk, boundary, query, ignoreCase)
 
             // Correct line numbers from chunk-relative to file-relative
             val metadata = metadataMap[chunkId]
@@ -699,10 +719,12 @@ class ChunkedTextBuffer @AssistedInject constructor(
             val chunk = chunkManager.getChunk(chunkId)
                 ?: chunkManager.loadChunk(chunkId).getOrThrow()
 
-            // Use actual chunk offsets instead of extracting from chunk ID
-            // This handles cases where chunks have been modified/merged after deletion
-            val chunkStart = chunk.startOffset
-            val chunkEnd = chunk.endOffset
+            // Get authoritative boundary data from ChunkManager
+            val boundary = chunkManager.getBoundary(chunkId)
+                ?: throw IllegalStateException("No boundary for chunk $chunkId")
+
+            val chunkStart = boundary.startOffset
+            val chunkEnd = boundary.endOffset
 
             val content = chunk.content.toByteArray()
             val isLastChunk = index == chunkIds.size - 1

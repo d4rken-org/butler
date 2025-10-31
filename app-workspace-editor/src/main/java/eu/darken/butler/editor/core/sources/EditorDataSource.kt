@@ -1,5 +1,6 @@
 package eu.darken.butler.editor.core.sources
 
+import eu.darken.butler.editor.core.engine.ChunkBoundary
 import eu.darken.butler.editor.core.engine.FileInfo
 import eu.darken.butler.editor.core.engine.TextChunk
 import kotlinx.coroutines.flow.StateFlow
@@ -36,8 +37,9 @@ interface EditorDataSource {
      * ChunkManager passes all dirty chunks; data source merges and persists.
      *
      * @param dirtyChunks List of modified chunks to save
+     * @param boundaries Map of chunk IDs to their file positions
      */
-    suspend fun save(dirtyChunks: List<TextChunk>)
+    suspend fun save(dirtyChunks: List<TextChunk>, boundaries: Map<TextChunk.ChunkId, ChunkBoundary>)
 
     suspend fun close()
 

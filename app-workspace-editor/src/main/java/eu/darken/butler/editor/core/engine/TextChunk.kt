@@ -4,25 +4,19 @@ import java.util.concurrent.atomic.AtomicInteger
 
 data class TextChunk(
     val id: ChunkId,
-    val startOffset: Long,
-    val endOffset: Long,
     val content: String,
     val lineCount: Int,
     val isDirty: Boolean = false,
     val isLoaded: Boolean = true
 ) {
-    val size: Long get() = endOffset - startOffset
+    val size: Long get() = content.length.toLong()
     val isEmpty: Boolean get() = content.isEmpty()
-    
-    fun containsOffset(offset: Long): Boolean = offset in startOffset until endOffset
-    
-    fun containsLine(lineNumber: Int): Boolean {
-        // This will be calculated based on line tracking in the buffer
-        return false // Placeholder - will be implemented with line index
-    }
-    
+
+    // Note: Position queries (containsOffset, containsLine) should use ChunkManager.getBoundary()
+    // instead of storing positions in chunks. Chunks represent content, boundaries represent positions.
+
     fun markDirty(): TextChunk = copy(isDirty = true)
-    
+
     fun markClean(): TextChunk = copy(isDirty = false)
     
     @JvmInline

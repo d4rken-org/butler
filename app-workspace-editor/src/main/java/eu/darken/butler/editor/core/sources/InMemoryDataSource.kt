@@ -5,6 +5,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.editor.core.engine.ChunkBoundary
 import eu.darken.butler.editor.core.engine.FileInfo
 import eu.darken.butler.editor.core.engine.TextChunk
 import eu.darken.butler.workspace.core.Workspace
@@ -53,7 +54,7 @@ class InMemoryDataSource @AssistedInject constructor(
      * In-memory content cannot be saved to disk without a file path.
      * Use saveFileAs() from EditorWorkspace to save to a specific path.
      */
-    override suspend fun save(dirtyChunks: List<TextChunk>) {
+    override suspend fun save(dirtyChunks: List<TextChunk>, boundaries: Map<TextChunk.ChunkId, ChunkBoundary>) {
         throw UnsupportedOperationException("Cannot save in-memory content without a file path. Use saveFileAs() instead.")
     }
 
