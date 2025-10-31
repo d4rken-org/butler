@@ -466,6 +466,20 @@ class LocalFileSystemOpsTest : BaseTest() {
     }
 
     @Test
+    fun `openOutputStream throws when symlink points to directory`(@TempDir tempDir: File) = runTest {
+        // Given - symlink pointing to a directory
+        val targetDir = File(tempDir, "targetdir").apply { mkdirs() }
+        val target = LocalPath.build(targetDir)
+        val link = LocalPath.build(tempDir, "link")
+        fileSystemOps.createSymlink(link, target)
+
+        // When/Then - should throw WriteException (follows symlink, can't write to directory)
+        shouldThrow<WriteException> {
+            fileSystemOps.openOutputStream(link, append = false)
+        }
+    }
+
+    @Test
     fun `file returns readable FileHandle`(@TempDir tempDir: File) = runTest {
         val testFile = File(tempDir, "handle.txt").apply { writeText("handle content") }
         val path = LocalPath.build(testFile)
