@@ -283,6 +283,16 @@ fun SearcherWorkspacePage(
                     }
                 }
 
+                // Show empty state when no search targets configured
+                if (currentState.searchTargets.isEmpty()) {
+                    item {
+                        SearchTargetsEmptyStateCard(
+                            onAddDefaultPaths = { onPageAction(SearcherPageAction.Targets.AddDefaultPaths) },
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+                }
+
                 // Show search history when no search query
                 if (currentState.searchQuery.text.isBlank() && currentState.searchHistory.isNotEmpty()) {
                     searchHistorySection(

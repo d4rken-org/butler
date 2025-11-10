@@ -5,12 +5,16 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import android.os.Environment
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.issue.Issue
+import eu.darken.butler.common.storage.StorageManager2
 import eu.darken.butler.searcher.core.engine.SearchEngine
 import eu.darken.butler.searcher.core.operations.DeleteOperation
 import eu.darken.butler.searcher.core.operations.SearcherCommand
@@ -45,6 +49,8 @@ class SearcherWorkspace @AssistedInject constructor(
     private val operationsManager: OperationsManager,
     private val deleteOperationFactory: DeleteOperation.Factory,
     private val searchEngine: SearchEngine,
+    private val searcherSettings: SearcherSettings,
+    private val storageManager2: StorageManager2,
 ) : Workspace {
 
     private val tag = logTag( "Searcher","Workspace", id.shortTag)
@@ -73,6 +79,7 @@ class SearcherWorkspace @AssistedInject constructor(
         val results: List<SearchItem> = emptyList(),
         val progress: SearchProgress? = null,
         val error: Exception? = null,
+        val searchTargets: List<SearchTarget> = emptyList(),
     ) {
         enum class SearchStatus {
             IDLE, SEARCHING, COMPLETED, ERROR, CANCELLED
@@ -109,6 +116,27 @@ class SearcherWorkspace @AssistedInject constructor(
 
     init {
         log(tag, INFO) { "Initialized" }
+
+        // Initialize search targets from arguments, settings, or defaults
+        scope.launch {
+            val initialTargets = when {
+                arguments?.startTargets != null -> {
+                    log(tag, INFO) { "Using targets from arguments: ${arguments.startTargets}" }
+                    arguments.startTargets!!
+                }
+                else -> {
+                    val savedTargets = searcherSettings.defaultSearchTargets.value()
+                    if (savedTargets != null) {
+                        log(tag, INFO) { "Loaded ${savedTargets.size} targets from settings" }
+                        savedTargets
+                    } else {
+                        log(tag, INFO) { "No saved targets, using defaults" }
+                        getDefaultSearchPaths()
+                    }
+                }
+            }
+            _state.update { it.copy(searchTargets = initialTargets) }
+        }
 
         // Track operation counts for this workspace
         operationsManager.operationsForWorkspace(id).withOnlyStateChanges()
@@ -271,7 +299,48 @@ class SearcherWorkspace @AssistedInject constructor(
                     operationsManager.submit(executable)
                 }
             }
+
+            // Target management
+            is SearcherCommand.AddDefaultPaths -> addDefaultPaths()
         }
+    }
+
+    fun updateTargets(transform: (List<SearchTarget>) -> List<SearchTarget>) {
+        val newTargets = transform(_state.value.searchTargets)
+        log(tag, INFO) { "Updating search targets: ${newTargets.size} targets" }
+        _state.update { it.copy(searchTargets = newTargets) }
+        scope.launch {
+            searcherSettings.defaultSearchTargets.value(newTargets)
+        }
+    }
+
+    fun addDefaultPaths() {
+        log(tag, INFO) { "Adding default search paths" }
+        val defaultPaths = getDefaultSearchPaths()
+        updateTargets { defaultPaths }
+    }
+
+    private fun getDefaultSearchPaths(): List<SearchTarget> {
+        log(tag, INFO) { "Getting default search paths (all public storage volumes)" }
+
+        // Get all mounted storage volumes
+        val volumes = storageManager2.storageVolumes
+            .filter { it.isMounted }
+            .mapNotNull { volume ->
+                volume.directory?.let { LocalPath.build(it) }
+                    ?: volume.path?.let { LocalPath.build(it) }
+            }
+
+        log(tag, INFO) { "Found ${volumes.size} public storage volumes: ${volumes.map { it.path }}" }
+
+        if (volumes.isEmpty()) {
+            log(tag, WARN) { "No mounted storage volumes found, falling back to external storage" }
+            val fallbackPath = LocalPath.build(Environment.getExternalStorageDirectory())
+            return listOf(SearchTarget.Path.from(fallbackPath))
+        }
+
+        // Convert to SearchTargets
+        return volumes.map { SearchTarget.Path.from(it) }
     }
 
     override suspend fun release() {
