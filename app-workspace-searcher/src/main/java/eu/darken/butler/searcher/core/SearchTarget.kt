@@ -4,6 +4,7 @@ import android.os.Parcelable
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
+import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
@@ -20,7 +21,9 @@ sealed class SearchTarget : Parcelable {
         val label: String? = null,
     ) : SearchTarget() {
 
-        val displayText: CaString = label?.toCaString() ?: path.userReadablePath
+        @IgnoredOnParcel
+        val displayText: CaString
+            get() = label?.toCaString() ?: path.userReadablePath
 
         companion object {
             fun from(path: APath<*>) = Path(
