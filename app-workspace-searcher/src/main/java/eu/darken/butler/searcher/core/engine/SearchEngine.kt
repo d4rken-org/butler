@@ -2,6 +2,7 @@ package eu.darken.butler.searcher.core.engine
 
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging
+import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
@@ -59,7 +60,7 @@ class SearchEngine @Inject constructor(
                 throw CancellationException("Search cancelled")
             }
 
-            log(TAG, Logging.Priority.INFO) { "Searching path: $searchPath" }
+            log(TAG, INFO) { "Searching path: $searchPath" }
 
             try {
                 when (val gateway = gatewaySwitch.getGateway(searchPath)) {
@@ -91,27 +92,27 @@ class SearchEngine @Inject constructor(
                             }
                         )
 
-                        typedGateway.walk(searchPath, LookupOptions.Companion.MAX, walkOptions)
+                        typedGateway.walk(searchPath, LookupOptions.MAX, walkOptions)
                             .cancellable()
                             .mapNotNull { lookup ->
                                 if (matchesSearch(lookup, searchQuery)) {
                                     resultsFound++
                                     val metadata = metadataRepo.extract(lookup)
-                                    SearchItem.Companion.fromLookup(lookup, searchQuery.query, metadata = metadata)
+                                    SearchItem.fromLookup(lookup, searchQuery.query, metadata = metadata)
                                 } else {
                                     null
                                 }
                             }
                             .onEach { result ->
                                 if (searchQuery.options.maxResults != null && resultsFound >= searchQuery.options.maxResults) {
-                                    log(TAG, Logging.Priority.INFO) { "Max results reached ($resultsFound)" }
+                                    log(TAG, INFO) { "Max results reached ($resultsFound)" }
                                     throw CancellationException("Max results reached")
                                 }
                             }
                             .collect { emit(it) }
                     }
                 }
-                log(TAG, Logging.Priority.INFO) { "Completed search for path: $searchPath" }
+                log(TAG, INFO) { "Completed search for path: $searchPath" }
             } catch (e: CancellationException) {
                 // Re-throw cancellation to stop entire search
                 throw e
@@ -121,7 +122,7 @@ class SearchEngine @Inject constructor(
             }
         }
 
-        log(TAG, Logging.Priority.INFO) { "Search completed. Scanned: $itemsScanned, Found: $resultsFound" }
+        log(TAG, INFO) { "Search completed. Scanned: $itemsScanned, Found: $resultsFound" }
     }.flowOn(dispatcherProvider.IO)
 
     private fun filterLookup(lookup: APathLookup<*>, filter: SearchQuery.Filter): Boolean {
