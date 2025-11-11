@@ -367,7 +367,14 @@ class ChunkManager @AssistedInject constructor(
         }
     }
 
-    suspend fun evictChunk(chunkId: TextChunk.ChunkId): Boolean = chunkMutex.withLock {
+    /**
+     * Evict a chunk from the cache.
+     *
+     * @param chunkId The chunk to evict
+     * @param removeFromStructure If true, also removes the chunk's boundary (chunk deleted from file structure).
+     *                           If false, keeps boundary (chunk can be reloaded later).
+     */
+    suspend fun evictChunk(chunkId: TextChunk.ChunkId, removeFromStructure: Boolean = false): Boolean = chunkMutex.withLock {
         val chunk = _chunks.value[chunkId] ?: return@withLock false
 
         // Don't evict pinned chunks (dirty or actively referenced)
@@ -376,11 +383,16 @@ class ChunkManager @AssistedInject constructor(
             return@withLock false
         }
 
-        log(tag) { "Evicting chunk: $chunkId (LRU)" }
+        log(tag) { "Evicting chunk: $chunkId (removeFromStructure=$removeFromStructure)" }
 
         _chunks.value = _chunks.value - chunkId
         _loadStates.value = _loadStates.value - chunkId
         chunkAccessOrder.remove(chunkId)
+
+        if (removeFromStructure) {
+            // Remove boundary - chunk no longer exists in logical file structure
+            boundaries = (boundaries - chunkId).toMutableMap()
+        }
 
         true
     }
@@ -479,6 +491,7 @@ class ChunkManager @AssistedInject constructor(
         // Atomic update
         _chunks.value = updatedChunks
         _loadStates.value = updatedLoadStates
+        // NOTE: Boundaries are NOT removed - they're needed to reload chunks later
 
         log(tag) { "Evicted ${evictCandidates.size} chunks, cache now ${_chunks.value.size}/${maxCachedChunks}" }
     }
@@ -509,28 +522,21 @@ class ChunkManager @AssistedInject constructor(
         log(tag) { "Saving ${dirtyChunkIds.size} dirty chunks with pinning protection" }
 
         // Pin all dirty chunks to prevent eviction during save
+        // withPinnedChunks will wrap the result, so we return Unit directly (not Result<Unit>)
         return withPinnedChunks(dirtyChunkIds) { pinnedChunks ->
-            try {
-                // Get snapshot of boundaries for save operation
-                val boundariesSnapshot = chunkMutex.withLock {
-                    boundaries.toMap() // Create immutable copy
-                }
-
-                // Save all chunks - throws on failure
-                chunkRepository.saveFile(pinnedChunks, boundariesSnapshot)
-
-                // Only mark clean if save succeeded
-                markChunksClean(dirtyChunkIds.toList())
-
-                log(tag) { "Successfully committed ${pinnedChunks.size} chunks" }
-                Result.success(Unit)
-
-            } catch (e: Exception) {
-                log(tag, ERROR) {
-                    "Failed to commit dirty chunks (chunks remain dirty) - ${e.asLog()}"
-                }
-                Result.failure(e)
+            // Get snapshot of boundaries for save operation
+            val boundariesSnapshot = chunkMutex.withLock {
+                boundaries.toMap() // Create immutable copy
             }
+
+            // Save all chunks - throws on failure, withPinnedChunks will catch and return Result.failure
+            chunkRepository.saveFile(pinnedChunks, boundariesSnapshot)
+
+            // Only mark clean if save succeeded (if exception thrown above, this won't execute)
+            markChunksClean(dirtyChunkIds.toList())
+
+            log(tag) { "Successfully committed ${pinnedChunks.size} chunks" }
+            // Return Unit, withPinnedChunks will wrap in Result.success
         }
     }
 

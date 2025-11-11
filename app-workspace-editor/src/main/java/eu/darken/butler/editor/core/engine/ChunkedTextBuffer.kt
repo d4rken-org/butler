@@ -423,10 +423,11 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 }
 
                 // Now evict the chunks that need to be removed (they're unpinned now)
+                // Use removeFromStructure=true because these chunks no longer exist in the logical file
                 val chunksToEvict = pinResult.getOrThrow()
                 if (chunksToEvict.isNotEmpty()) {
                     for (chunkId in chunksToEvict) {
-                        val evicted = chunkManager.evictChunk(chunkId)
+                        val evicted = chunkManager.evictChunk(chunkId, removeFromStructure = true)
                         if (!evicted) {
                             log(tag, WARN) { "Failed to evict chunk $chunkId after deletion" }
                         }
