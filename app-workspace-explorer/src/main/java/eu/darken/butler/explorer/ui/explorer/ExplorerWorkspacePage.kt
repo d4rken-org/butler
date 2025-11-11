@@ -35,11 +35,11 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -173,10 +173,8 @@ fun ExplorerWorkspacePage(
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
-    // Reset scroll states when navigating to a new location (locationId changes)
-    // Preserves scroll position on refresh (locationId stays the same)
-    val listState = key(mainState.locationId) { rememberLazyListState() }
-    val gridState = key(mainState.locationId) { rememberLazyGridState() }
+    val listState = rememberLazyListState()
+    val gridState = rememberLazyGridState()
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Pull-to-refresh indicator state - shows briefly then hides to let progress banner take over
@@ -199,6 +197,52 @@ fun ExplorerWorkspacePage(
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
     var showCancelConfirmation by remember { mutableStateOf<Operation.Id?>(null) }
+
+    // Save scroll position when navigating away from current location
+    DisposableEffect(mainState.locationId) {
+        val locationId = mainState.locationId
+        onDispose {
+            if (locationId != null) {
+                val (index, offset) = if (mainState.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
+                    listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset
+                } else {
+                    gridState.firstVisibleItemIndex to gridState.firstVisibleItemScrollOffset
+                }
+                vm?.saveScrollPosition(locationId, index, offset)
+            }
+        }
+    }
+
+    // Restore or reset scroll position when items load
+    LaunchedEffect(mainState.locationId, mainState.items) {
+        val locationId = mainState.locationId ?: return@LaunchedEffect
+        val items = mainState.items
+
+        // Wait for items to be loaded before attempting scroll
+        if (items != null && items.isNotEmpty()) {
+            val savedPosition = vm?.getScrollPosition(locationId)
+
+            if (savedPosition != null) {
+                // Restore saved position (coming back to previously visited location)
+                if (mainState.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
+                    listState.scrollToItem(savedPosition.first, savedPosition.second)
+                } else {
+                    gridState.scrollToItem(savedPosition.first, savedPosition.second)
+                }
+            } else {
+                // New location - scroll to top
+                if (mainState.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
+                    listState.scrollToItem(0)
+                } else {
+                    gridState.scrollToItem(0)
+                }
+            }
+
+            // Always reset toolbar visibility on navigation for proper orientation
+            scrollBehavior.state.heightOffset = 0f
+            bottomBarScrollBehavior.state.heightOffset = 0f
+        }
+    }
 
     // Set the bottom bar height for scroll behavior
     bottomBarScrollBehavior.state.setHeight(64.dp)
