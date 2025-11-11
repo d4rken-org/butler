@@ -1,9 +1,11 @@
 package eu.darken.butler.explorer.core.engine
 
+import android.os.Build
 import android.os.Environment
 import android.os.StatFs
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.PhoneAndroid
+import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
@@ -48,6 +50,7 @@ class HomeLocationLoader @Inject constructor() {
                 displayIcon = Icons.TwoTone.PhoneAndroid,
                 displayName = R.string.explorer_navigation_device.toCaString(),
                 target = ExplorerNavigation.Target.Device,
+                subtitle = caString { "${Build.MODEL} (Android ${Build.VERSION.SDK_INT})" },
             ),
         )
 
