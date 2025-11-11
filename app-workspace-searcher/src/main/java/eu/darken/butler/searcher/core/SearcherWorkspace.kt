@@ -21,6 +21,7 @@ import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
 import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
 import eu.darken.butler.workspace.core.operations.withStateUpdates
+import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
@@ -28,8 +29,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -73,6 +75,9 @@ class SearcherWorkspace @AssistedInject constructor(
         val results: List<SearchItem> = emptyList(),
         val progress: SearchProgress? = null,
         val error: Exception? = null,
+        val searchTargets: List<SearchTarget> = emptyList(), // From engine
+        val setupRequirements: WorkspaceRequirements = WorkspaceRequirements(), // From engine
+        val targetProgress: List<SearchEngine.SearchTargetProgress> = emptyList(), // From engine
     ) {
         enum class SearchStatus {
             IDLE, SEARCHING, COMPLETED, ERROR, CANCELLED
@@ -85,16 +90,32 @@ class SearcherWorkspace @AssistedInject constructor(
         )
     }
 
-    private val _state = MutableStateFlow(State())
-    val state: Flow<State> = _state
+    private val _searchState = MutableStateFlow(State())
 
-    private val searchRequests = MutableSharedFlow<SearcherCommand.Search>(replay = 1)
+    val state: Flow<State> = combine(
+        _searchState,
+        searchEngine.targetState,
+        searchEngine.setupRequirements,
+        searchEngine.targetProgressState,
+    ) { searchState, targets, requirements, targetProgress ->
+        searchState.copy(
+            searchTargets = targets,
+            setupRequirements = requirements,
+            targetProgress = targetProgress,
+        )
+    }
+
     private var activeSearchJob: Job? = null
 
     fun search(command: SearcherCommand.Search) {
         log(tag) { "search(): $command" }
-        scope.launch {
-            searchRequests.emit(command)
+
+        // Cancel any active search
+        activeSearchJob?.cancel()
+
+        // Launch new search
+        activeSearchJob = scope.launch {
+            processSearchRequest(command)
         }
     }
 
@@ -109,6 +130,14 @@ class SearcherWorkspace @AssistedInject constructor(
 
     init {
         log(tag, INFO) { "Initialized" }
+
+        // Initialize search targets from arguments if provided
+        scope.launch {
+            if (arguments?.startTargets != null) {
+                log(tag, INFO) { "Using targets from arguments: ${arguments.startTargets}" }
+                searchEngine.updateTargets { arguments.startTargets!! }
+            }
+        }
 
         // Track operation counts for this workspace
         operationsManager.operationsForWorkspace(id).withOnlyStateChanges()
@@ -139,47 +168,10 @@ class SearcherWorkspace @AssistedInject constructor(
                 log(tag, VERBOSE) { "Updated operation counts: active=$operationCount, attention=$attentionCount" }
             }
             .launchIn(scope)
-
-        // Process search requests
-        searchRequests
-            .onEach { command ->
-                log(tag, INFO) { "Processing search request: ${command.query}" }
-                processSearchRequest(command)
-            }
-            .launchIn(scope)
     }
 
-    private fun processSearchRequest(command: SearcherCommand.Search) {
+    private suspend fun processSearchRequest(command: SearcherCommand.Search) {
         log(tag) { "processSearchRequest(): ${command.query}" }
-
-        // Cancel any active search
-        activeSearchJob?.cancel()
-
-        // Validate query
-        if (command.query.isBlank()) {
-            log(tag, WARN) { "Skipping search with blank query" }
-            return
-        }
-
-        // Validate targets
-        if (command.targets.isEmpty()) {
-            log(tag, ERROR) { "Cannot start search: No search targets" }
-            _state.update {
-                it.copy(
-                    searchStatus = State.SearchStatus.ERROR,
-                    error = IllegalArgumentException("No search targets specified"),
-                )
-            }
-            return
-        }
-
-        // Build search query
-        val searchQuery = SearchQuery(
-            query = command.query,
-            targets = command.targets,
-            filter = command.filter,
-            options = command.options,
-        )
 
         // Set initial progress with first target
         val initialProgress = (command.targets.firstOrNull() as? SearchTarget.Path)?.let { firstTarget ->
@@ -190,8 +182,16 @@ class SearcherWorkspace @AssistedInject constructor(
             )
         }
 
+        // Build search query for display
+        val searchQuery = SearchQuery(
+            query = command.query,
+            targets = command.targets,
+            filter = command.filter,
+            options = command.options,
+        )
+
         // Clear previous results and enter SEARCHING state
-        _state.update {
+        _searchState.update {
             it.copy(
                 currentSearchQuery = searchQuery,
                 searchStatus = State.SearchStatus.SEARCHING,
@@ -201,43 +201,82 @@ class SearcherWorkspace @AssistedInject constructor(
             )
         }
 
-        // Execute search
-        activeSearchJob = scope.launch {
-            try {
-                val results = mutableListOf<SearchItem>()
-                searchEngine.search(
-                    searchQuery = searchQuery,
-                    onProgress = { engineProgress ->
-                        _state.update { state ->
-                            state.copy(
-                                progress = State.SearchProgress(
-                                    currentPath = engineProgress.currentPath,
-                                    itemsScanned = engineProgress.itemsScanned,
-                                    resultsFound = engineProgress.resultsFound,
-                                )
-                            )
-                        }
-                    }
-                ).collect { result ->
-                    results.add(result)
-                    _state.update { state ->
-                        state.copy(results = state.results + result)
-                    }
-                }
-
-                log(tag, INFO) { "Search completed: ${results.size} results" }
-                _state.update { it.copy(searchStatus = State.SearchStatus.COMPLETED) }
-            } catch (e: CancellationException) {
-                log(tag, INFO) { "Search cancelled" }
-                _state.update { it.copy(searchStatus = State.SearchStatus.CANCELLED) }
-                throw e
-            } catch (e: Exception) {
-                log(tag, ERROR) { "Search failed: ${e.asLog()}" }
-                _state.update {
+        // Delegate to engine
+        when (val result = searchEngine.search(command, onProgress = { engineProgress ->
+            _searchState.update { state ->
+                state.copy(
+                    progress = State.SearchProgress(
+                        currentPath = engineProgress.currentPath,
+                        itemsScanned = engineProgress.itemsScanned,
+                        resultsFound = engineProgress.resultsFound,
+                    )
+                )
+            }
+        })) {
+            is SearchEngine.Result.InvalidQuery -> {
+                log(tag, WARN) { "Search failed: Invalid query" }
+                _searchState.update {
                     it.copy(
                         searchStatus = State.SearchStatus.ERROR,
-                        error = e,
+                        error = IllegalArgumentException("Invalid query"),
                     )
+                }
+            }
+
+            is SearchEngine.Result.NoTargets -> {
+                log(tag, ERROR) { "Search failed: No targets" }
+                _searchState.update {
+                    it.copy(
+                        searchStatus = State.SearchStatus.ERROR,
+                        error = IllegalArgumentException("No search targets specified"),
+                    )
+                }
+            }
+
+            is SearchEngine.Result.PermissionsRequired -> {
+                log(tag, WARN) { "Search failed: Permissions required - ${result.requirements}" }
+                _searchState.update {
+                    it.copy(
+                        searchStatus = State.SearchStatus.ERROR,
+                        error = IllegalStateException("Insufficient permissions for search targets"),
+                    )
+                }
+            }
+
+            is SearchEngine.Result.Error -> {
+                log(tag, ERROR) { "Search failed: ${result.exception.asLog()}" }
+                _searchState.update {
+                    it.copy(
+                        searchStatus = State.SearchStatus.ERROR,
+                        error = result.exception,
+                    )
+                }
+            }
+
+            is SearchEngine.Result.Success -> {
+                try {
+                    val results = mutableListOf<SearchItem>()
+                    result.results.collect { item ->
+                        results.add(item)
+                        _searchState.update { state ->
+                            state.copy(results = state.results + item)
+                        }
+                    }
+
+                    log(tag, INFO) { "Search completed: ${results.size} results" }
+                    _searchState.update { it.copy(searchStatus = State.SearchStatus.COMPLETED) }
+                } catch (e: CancellationException) {
+                    log(tag, INFO) { "Search cancelled" }
+                    _searchState.update { it.copy(searchStatus = State.SearchStatus.CANCELLED) }
+                    throw e
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "Search result collection failed: ${e.asLog()}" }
+                    _searchState.update {
+                        it.copy(
+                            searchStatus = State.SearchStatus.ERROR,
+                            error = e,
+                        )
+                    }
                 }
             }
         }
@@ -260,7 +299,7 @@ class SearcherWorkspace @AssistedInject constructor(
                 // Cancel any active search
                 activeSearchJob?.cancel()
                 // Reset state to initial empty state
-                _state.value = State()
+                _searchState.value = State()
             }
             is SearcherCommand.Delete -> {
                 scope.launch {
@@ -271,7 +310,15 @@ class SearcherWorkspace @AssistedInject constructor(
                     operationsManager.submit(executable)
                 }
             }
+
+            // Target management
+            is SearcherCommand.AddDefaultPaths -> searchEngine.addDefaultPaths()
         }
+    }
+
+    fun updateTargets(transform: (List<SearchTarget>) -> List<SearchTarget>) {
+        log(tag, INFO) { "updateTargets() - delegating to engine" }
+        searchEngine.updateTargets(transform)
     }
 
     override suspend fun release() {

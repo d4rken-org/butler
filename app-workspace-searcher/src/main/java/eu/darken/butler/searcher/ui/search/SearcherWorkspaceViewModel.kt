@@ -51,7 +51,6 @@ import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
-import eu.darken.butler.workspace.core.permissions.PathPermissionCheck
 import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
@@ -63,7 +62,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -71,7 +69,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
-import kotlinx.coroutines.flow.combine as kotlinxCombine
 
 @HiltViewModel(assistedFactory = SearcherWorkspaceViewModel.Factory::class)
 class SearcherWorkspaceViewModel @AssistedInject constructor(
@@ -81,7 +78,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     navCtrl: NavigationController,
     private val searchHistory: SearchHistory,
     private val searcherSettings: SearcherSettings,
-    private val pathPermissionCheck: PathPermissionCheck,
     private val clipboardRepo: ClipboardRepo,
     private val operationsManager: OperationsManager,
     private val workspaceRemote: WorkspaceRemote,
@@ -96,7 +92,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     private val searchQuery = MutableStateFlow(TextFieldValue(""))
     private val currentFilter = MutableStateFlow(SearchQuery.Filter())
-    private val searchTargets = MutableStateFlow<List<SearchTarget>>(emptyList())
     private val selectionState = MutableStateFlow(SearcherSelectionState())
     private val quickActionsResult = MutableStateFlow<SearchItem?>(null)
     private val dialogStateFlow = MutableStateFlow<SearcherDialogState>(SearcherDialogState.None)
@@ -123,14 +118,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             )
         }.launchIn(vmScope)
 
-        vmScope.launch {
-            val defaultTargets = searcherSettings.defaultSearchTargets.value()
-            searchTargets.value = when {
-                defaultTargets == null -> listOf(SearchTarget.Path.from(LocalPath.build(Environment.getExternalStorageDirectory())))
-                else -> defaultTargets
-            }
-        }
-
         // Handle dialog events
         dialogEvents
             .onEach { event -> handleDialogEvent(event) }
@@ -141,14 +128,15 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             .handleResult<WorkspaceEvent.PickerResult>(callerWorkspaceId = id) { result ->
                 log(tag, INFO) { "Received picker result: ${result.selectedPaths}" }
                 if (result.selectedPaths.isNotEmpty()) {
-                    // Append new paths to existing targets, removing duplicates by path
-                    val newTargets = result.selectedPaths.map { SearchTarget.Path.from(it) }
-                    val existingPaths =
-                        searchTargets.value.filterIsInstance<SearchTarget.Path>().map { it.path }.toSet()
-                    val uniqueNewTargets = newTargets.filter { it.path !in existingPaths }
-                    val updatedTargets = searchTargets.value + uniqueNewTargets
-                    searchTargets.value = updatedTargets
-                    searcherSettings.defaultSearchTargets.value(updatedTargets)
+                    vmScope.launch {
+                        val workspace = getWorkspace()
+                        // Add each selected path, deduplicating
+                        result.selectedPaths.forEach { path ->
+                            workspace.updateTargets { current ->
+                                (current + SearchTarget.Path.from(path)).distinctBy { (it as? SearchTarget.Path)?.path }
+                            }
+                        }
+                    }
                 }
             }
             .launchIn(vmScope)
@@ -227,25 +215,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         workspaceSearchState,
         searcherSettings.maxHistoryItems.flow.flatMapLatest { searchHistory.getSearches(it) },
         currentFilter,
-        searchTargets,
-        searchTargets.flatMapLatest { targets ->
-            val enabledPaths = targets.filterIsInstance<SearchTarget.Path>().filter { it.enabled }.map { it.path }
-            if (enabledPaths.isEmpty()) {
-                flowOf(WorkspaceRequirements())
-            } else {
-                kotlinxCombine(enabledPaths.map { pathPermissionCheck.monitor(it) }) { states ->
-                    // Combine all setup requirements - if any path needs setup, show the card
-                    WorkspaceRequirements(
-                        combos = states.flatMap { it.combos }.distinct().toSet(),
-                        complete = states.flatMap { it.complete }.distinct().toSet(),
-                    )
-                }
-            }
-        },
         selectionState,
         quickActionsResult,
         dialogStateFlow,
-    ) { query, workspaceState, history, filter, targets, permissionState, selection, quickActions, dialogState ->
+    ) { query, workspaceState, history, filter, selection, quickActions, dialogState ->
         val updatedSelectionState = selection.copy(selectableResults = workspaceState.results)
 
         // Calculate available actions based on selection state
@@ -283,11 +256,11 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             workspaceState = workspaceState,
             searchHistory = history,
             currentFilter = filter,
-            searchTargets = targets,
+            searchTargets = workspaceState.searchTargets,
             caseSensitive = filter.caseSensitive,
             wholeWord = filter.wholeWord,
             useRegex = filter.useRegex,
-            setupRequirements = permissionState,
+            setupRequirements = workspaceState.setupRequirements,
             selectionState = updatedSelectionState,
             quickActionsResult = quickActions,
             dialogState = dialogState,
@@ -302,8 +275,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         item.searchQuery?.let { query ->
             // Update all parameters atomically
             searchQuery.value = TextFieldValue(query.query)
-            searchTargets.value = query.targets
             currentFilter.value = query.filter
+
+            // Update targets
+            vmScope.launch {
+                val workspace = getWorkspace()
+                workspace.updateTargets { query.targets }
+            }
 
             // Clear selection state when restoring from history
             selectionState.value = SearcherSelectionState()
@@ -327,18 +305,19 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
         log(TAG, INFO) { "Performing search: $query" }
 
-        // Get targets
-        val targets = searchTargets.value
-        if (targets.isEmpty()) {
-            log(TAG, WARN) { "Cannot perform search: no search targets configured" }
-            return
-        }
-
         // Clear selection state when starting new search
         selectionState.value = SearcherSelectionState()
 
         // Execute search via workspace
         vmScope.launch {
+            val workspace = getWorkspace()
+            val targets = workspace.state.first().searchTargets
+
+            if (targets.isEmpty()) {
+                log(TAG, WARN) { "Cannot perform search: no search targets configured" }
+                return@launch
+            }
+
             // Build search command (inside coroutine to access suspend .value())
             val searchCommand = SearcherCommand.Search(
                 query = query,
@@ -350,7 +329,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 saveToHistory = saveToHistory,
             )
 
-            val workspace = getWorkspace()
             workspace.execute(searchCommand)
 
             // Record search in history only if explicitly requested
@@ -395,80 +373,49 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
 
     fun updateSearchTargets(targets: List<SearchTarget>) {
-        log(TAG) { "Updating search targets: $targets" }
-        searchTargets.value = targets
+        log(TAG) { "Updating search targets: ${targets.size} targets" }
         // Clear selection state when targets change
         selectionState.value = SearcherSelectionState()
         vmScope.launch {
-            searcherSettings.defaultSearchTargets.value(targets)
+            val workspace = getWorkspace()
+            workspace.updateTargets { targets }
         }
     }
 
     fun addSearchTarget(path: APath<*>) {
         log(TAG) { "Adding search target: $path" }
-        val target = SearchTarget.Path.from(path)
-        val newTargets = (searchTargets.value + target).distinctBy { (it as? SearchTarget.Path)?.path }
-        updateSearchTargets(newTargets)
+        vmScope.launch {
+            val workspace = getWorkspace()
+            workspace.updateTargets { current ->
+                (current + SearchTarget.Path.from(path)).distinctBy { (it as? SearchTarget.Path)?.path }
+            }
+        }
     }
 
     fun removeSearchTarget(target: SearchTarget) {
         log(TAG) { "Removing search target: ${(target as? SearchTarget.Path)?.path}" }
-        val newTargets = searchTargets.value.filter {
-            (it as? SearchTarget.Path)?.path != (target as? SearchTarget.Path)?.path
+        vmScope.launch {
+            val workspace = getWorkspace()
+            workspace.updateTargets { current ->
+                current.filter { (it as? SearchTarget.Path)?.path != (target as? SearchTarget.Path)?.path }
+            }
         }
-        updateSearchTargets(newTargets)
     }
 
     fun toggleTargetEnabled(target: SearchTarget) {
-        log(TAG) { "Toggling enabled state for target: ${(target as? SearchTarget.Path)?.path}" }
-        val newTargets = searchTargets.value.map {
-            if ((it as? SearchTarget.Path)?.path == (target as? SearchTarget.Path)?.path) {
-                when (it) {
-                    is SearchTarget.Path -> it.copy(enabled = !it.enabled)
-                }
-            } else {
-                it
-            }
-        }
-        updateSearchTargets(newTargets)
-    }
-
-    fun updateTargetLabel(target: SearchTarget, label: String?) {
-        log(TAG) { "Updating label for target: ${(target as? SearchTarget.Path)?.path} to: $label" }
-        val newTargets = searchTargets.value.map {
-            if ((it as? SearchTarget.Path)?.path == (target as? SearchTarget.Path)?.path) {
-                when (it) {
-                    is SearchTarget.Path -> it.copy(label = label)
-                }
-            } else {
-                it
-            }
-        }
-        updateSearchTargets(newTargets)
-    }
-
-
-    fun onSearchResultClick(result: SearchItem) {
-        log(TAG) { "Search result clicked: ${result.path}" }
-
-        // Save current search to history since user found it useful
+        log(TAG) { "Toggling target enabled: ${(target as? SearchTarget.Path)?.path}" }
         vmScope.launch {
-            val currentQuery = searchQuery.value.text
-            if (currentQuery.isNotBlank() && searchTargets.value.isNotEmpty()) {
-                val searchRequest = SearchQuery(
-                    query = currentQuery,
-                    targets = searchTargets.value,
-                    options = SearchQuery.Options(
-                        maxResults = searcherSettings.maxSearchResults.value()
-                    ),
-                    filter = currentFilter.value
-                )
-                searchHistory.addSearch(searchRequest)
+            val workspace = getWorkspace()
+            workspace.updateTargets { current ->
+                current.map {
+                    if ((it as? SearchTarget.Path)?.path == (target as? SearchTarget.Path)?.path) {
+                        when (it) {
+                            is SearchTarget.Path -> it.copy(enabled = !it.enabled)
+                        }
+                    } else it
+                }
             }
         }
-
-        // Show quick actions for the clicked result
-        quickActionsResult.value = result
     }
 
     // Selection and action methods
@@ -576,11 +523,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             is SearcherAction.DeselectAll -> deselectAll()
         }
         hideQuickActions()
-    }
-
-    private suspend fun onWorkspaceAction(action: WorkspaceAction) {
-        log(TAG) { "Executing workspace action: ${action.javaClass.simpleName}" }
-        workspaceRemote.execute(action)
     }
 
     private fun shareFiles(results: List<SearchItem>) {
@@ -948,6 +890,12 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             is SearcherPageAction.Targets.OpenPicker -> {
                 launch {
                     workspaceRemote.launchPicker(id, startPath = null, PickerConfig.Selection.DirectoryMulti)
+                }
+            }
+            is SearcherPageAction.Targets.AddDefaultPaths -> {
+                vmScope.launch {
+                    val workspace = getWorkspace()
+                    workspace.execute(SearcherCommand.AddDefaultPaths)
                 }
             }
 
