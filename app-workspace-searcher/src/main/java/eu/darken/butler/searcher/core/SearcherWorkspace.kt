@@ -263,8 +263,28 @@ class SearcherWorkspace @AssistedInject constructor(
                         }
                     }
 
-                    log(tag, INFO) { "Search completed: ${results.size} results" }
-                    _searchState.update { it.copy(searchStatus = State.SearchStatus.COMPLETED) }
+                    // Check if all targets failed with errors
+                    val targetProgress = searchEngine.targetProgressState.value
+                    val allTargetsFailed = targetProgress.isNotEmpty() &&
+                        targetProgress.all { it.status == SearchEngine.SearchTargetProgress.Status.ERROR }
+
+                    if (allTargetsFailed && results.isEmpty()) {
+                        // All targets failed - show error status with first exception
+                        val firstError = targetProgress.firstNotNullOfOrNull { it.exception }
+                            ?.let { it as? Exception }
+                            ?: IllegalStateException("All search targets failed")
+
+                        log(tag, ERROR) { "Search failed: All ${targetProgress.size} target(s) failed" }
+                        _searchState.update {
+                            it.copy(
+                                searchStatus = State.SearchStatus.ERROR,
+                                error = firstError as? Exception,
+                            )
+                        }
+                    } else {
+                        log(tag, INFO) { "Search completed: ${results.size} results" }
+                        _searchState.update { it.copy(searchStatus = State.SearchStatus.COMPLETED) }
+                    }
                 } catch (e: CancellationException) {
                     log(tag, INFO) { "Search cancelled" }
                     _searchState.update { it.copy(searchStatus = State.SearchStatus.CANCELLED) }

@@ -393,16 +393,24 @@ fun SearcherWorkspacePage(
                     }
             )
 
+            // Error dialog state
+            var errorDialogState by remember { mutableStateOf<Pair<String, Throwable>?>(null) }
+
             // Pinned status card below toolbar - always visible when needed
             if (showStatusCard) {
-                // Show multi-target progress card when actively searching with multiple targets
-                if (currentState.workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING &&
-                    currentState.workspaceState.targetProgress.isNotEmpty()
-                ) {
+                // Show multi-target progress card when there are targets and not idle
+                val showProgressCard = currentState.workspaceState.targetProgress.isNotEmpty() &&
+                    currentState.workspaceState.searchStatus != SearcherWorkspace.State.SearchStatus.IDLE
+
+                if (showProgressCard) {
                     SearchProgressCard(
                         targetProgress = currentState.workspaceState.targetProgress,
                         overallProgress = currentState.workspaceState.progress,
+                        searchStatus = currentState.workspaceState.searchStatus,
                         onCancel = { onPageAction(SearcherPageAction.Search.Cancel) },
+                        onErrorClick = { path, exception ->
+                            errorDialogState = path to exception
+                        },
                         modifier = Modifier
                             .align(Alignment.TopCenter)
                             .offset(y = 16.dp + actualToolbarHeightDp)
@@ -503,6 +511,19 @@ fun SearcherWorkspacePage(
                         }
                     },
                     selectionCount = currentState.selectionState.selectionCount
+                )
+            }
+
+            // Error dialog for individual search target failures
+            errorDialogState?.let { (path, exception) ->
+                SearchErrorDialog(
+                    path = path,
+                    exception = exception,
+                    onCopyError = {
+                        onPageAction(SearcherPageAction.Error.Copy(exception))
+                        errorDialogState = null
+                    },
+                    onDismiss = { errorDialogState = null }
                 )
             }
         }

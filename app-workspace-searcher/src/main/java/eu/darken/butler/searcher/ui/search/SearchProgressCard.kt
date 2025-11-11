@@ -45,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.searcher.core.SearchTarget
@@ -55,11 +56,18 @@ import eu.darken.butler.searcher.core.engine.SearchEngine
 fun SearchProgressCard(
     targetProgress: List<SearchEngine.SearchTargetProgress>,
     overallProgress: SearcherWorkspace.State.SearchProgress?,
+    searchStatus: SearcherWorkspace.State.SearchStatus,
     onCancel: () -> Unit,
+    onErrorClick: (path: String, exception: Throwable) -> Unit,
     modifier: Modifier = Modifier,
     initiallyExpanded: Boolean = false,
 ) {
-    var isExpanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
+    // Auto-collapse when search completes, but expand during active search
+    var isExpanded by rememberSaveable(searchStatus) {
+        mutableStateOf(
+            initiallyExpanded || searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING
+        )
+    }
 
     Card(modifier = modifier.fillMaxWidth()) {
         Column {
@@ -68,6 +76,8 @@ fun SearchProgressCard(
                 pathCount = targetProgress.size,
                 totalScanned = overallProgress?.itemsScanned ?: 0,
                 totalFound = overallProgress?.resultsFound ?: 0,
+                searchStatus = searchStatus,
+                failedCount = targetProgress.count { it.status == SearchEngine.SearchTargetProgress.Status.ERROR },
                 isExpanded = isExpanded,
                 onExpandClick = { isExpanded = !isExpanded },
                 onCancelClick = onCancel
@@ -85,16 +95,26 @@ fun SearchProgressCard(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                     )
 
+                    val context = LocalContext.current
                     LazyColumn(
                         modifier = Modifier.heightIn(max = 240.dp),
                         verticalArrangement = Arrangement.spacedBy(0.dp)
                     ) {
                         itemsIndexed(targetProgress) { index, pathProgress ->
                             SearchPathProgressRow(
-                                path = pathProgress.target.path.userReadablePath.get(LocalContext.current),
+                                path = pathProgress.target.path.userReadablePath.get(context),
                                 itemsScanned = pathProgress.itemsScanned,
                                 resultsFound = pathProgress.resultsFound,
-                                status = pathProgress.status
+                                status = pathProgress.status,
+                                exception = pathProgress.exception,
+                                onErrorClick = if (pathProgress.exception != null) {
+                                    {
+                                        onErrorClick(
+                                            pathProgress.target.path.userReadablePath.get(context),
+                                            pathProgress.exception
+                                        )
+                                    }
+                                } else null
                             )
 
                             if (index < targetProgress.size - 1) {
@@ -116,27 +136,75 @@ private fun SearchProgressHeader(
     pathCount: Int,
     totalScanned: Int,
     totalFound: Int,
+    searchStatus: SearcherWorkspace.State.SearchStatus,
+    failedCount: Int,
     isExpanded: Boolean,
     onExpandClick: () -> Unit,
     onCancelClick: () -> Unit,
 ) {
+    val isSearching = searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onExpandClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        CircularProgressIndicator(
-            modifier = Modifier.size(20.dp),
-            strokeWidth = 2.dp
-        )
+        // Status icon based on search state
+        when (searchStatus) {
+            SearcherWorkspace.State.SearchStatus.SEARCHING -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp
+                )
+            }
+            SearcherWorkspace.State.SearchStatus.COMPLETED -> {
+                if (failedCount > 0) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Error,
+                        contentDescription = "Completed with errors",
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.TwoTone.CheckCircle,
+                        contentDescription = "Completed",
+                        modifier = Modifier.size(20.dp),
+                        tint = Color(0xFF4CAF50)
+                    )
+                }
+            }
+            SearcherWorkspace.State.SearchStatus.ERROR -> {
+                Icon(
+                    imageVector = Icons.TwoTone.Error,
+                    contentDescription = "Error",
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
+            SearcherWorkspace.State.SearchStatus.CANCELLED -> {
+                Icon(
+                    imageVector = Icons.TwoTone.Cancel,
+                    contentDescription = "Cancelled",
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            SearcherWorkspace.State.SearchStatus.IDLE -> {
+                // Should not show card in IDLE state
+            }
+        }
 
         Spacer(modifier = Modifier.width(12.dp))
 
         Column(modifier = Modifier.weight(1f)) {
+            val actionText = if (isSearching) "Searching" else "Searched"
+            val failureText = if (failedCount > 0) " ($failedCount failed)" else ""
+
             Text(
-                text = "Searching $pathCount location${if (pathCount > 1) "s" else ""}",
+                text = "$actionText $pathCount location${if (pathCount > 1) "s" else ""}$failureText",
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium
             )
@@ -159,8 +227,11 @@ private fun SearchProgressHeader(
             )
         }
 
-        TextButton(onClick = onCancelClick) {
-            Text("Cancel")
+        // Only show cancel button while actively searching
+        if (isSearching) {
+            TextButton(onClick = onCancelClick) {
+                Text("Cancel")
+            }
         }
     }
 }
@@ -171,11 +242,22 @@ private fun SearchPathProgressRow(
     itemsScanned: Int,
     resultsFound: Int,
     status: SearchEngine.SearchTargetProgress.Status,
+    exception: Throwable?,
+    onErrorClick: (() -> Unit)?,
 ) {
-    Row(
-        modifier = Modifier
+    val rowModifier = if (status == SearchEngine.SearchTargetProgress.Status.ERROR && exception != null && onErrorClick != null) {
+        Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .clickable(onClick = onErrorClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    } else {
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    }
+
+    Row(
+        modifier = rowModifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Status-based icon
@@ -216,6 +298,17 @@ private fun SearchPathProgressRow(
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )
+
+            // Show brief error message inline
+            if (status == SearchEngine.SearchTargetProgress.Status.ERROR && exception != null) {
+                Text(
+                    text = exception.message ?: exception::class.simpleName ?: "Unknown error",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
 
         // Status text
@@ -237,12 +330,14 @@ private fun createSearchTargetProgress(
     status: SearchEngine.SearchTargetProgress.Status,
     path: String,
     scanned: Int,
-    found: Int
+    found: Int,
+    exception: Throwable? = null
 ) = SearchEngine.SearchTargetProgress(
     target = SearchTarget.Path.from(LocalPath.build(path)),
     itemsScanned = scanned,
     resultsFound = found,
-    status = status
+    status = status,
+    exception = exception
 )
 
 private fun createSearchProgress(scanned: Int, found: Int) =
@@ -252,8 +347,7 @@ private fun createSearchProgress(scanned: Int, found: Int) =
         resultsFound = found
     )
 
-@Preview(showBackground = true, name = "Light")
-@Preview(showBackground = true, name = "Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview2
 @Composable
 private fun SearchProgressCardMixedPreview() {
     PreviewWrapper {
@@ -279,14 +373,15 @@ private fun SearchProgressCardMixedPreview() {
                 ),
             ),
             overallProgress = createSearchProgress(2365, 15),
+            searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
             onCancel = {},
+            onErrorClick = { _, _ -> },
             initiallyExpanded = true
         )
     }
 }
 
-@Preview(showBackground = true, name = "Light")
-@Preview(showBackground = true, name = "Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview2
 @Composable
 private fun SearchProgressCardAllSearchingPreview() {
     PreviewWrapper {
@@ -312,14 +407,15 @@ private fun SearchProgressCardAllSearchingPreview() {
                 ),
             ),
             overallProgress = createSearchProgress(4100, 28),
+            searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
             onCancel = {},
+            onErrorClick = { _, _ -> },
             initiallyExpanded = true
         )
     }
 }
 
-@Preview(showBackground = true, name = "Light")
-@Preview(showBackground = true, name = "Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview2
 @Composable
 private fun SearchProgressCardWithErrorsPreview() {
     PreviewWrapper {
@@ -335,7 +431,8 @@ private fun SearchProgressCardWithErrorsPreview() {
                     SearchEngine.SearchTargetProgress.Status.ERROR,
                     "/storage/usb",
                     150,
-                    0
+                    0,
+                    exception = SecurityException("Permission denied: READ_EXTERNAL_STORAGE required")
                 ),
                 createSearchTargetProgress(
                     SearchEngine.SearchTargetProgress.Status.SEARCHING,
@@ -345,14 +442,15 @@ private fun SearchProgressCardWithErrorsPreview() {
                 ),
             ),
             overallProgress = createSearchProgress(4150, 30),
+            searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
             onCancel = {},
+            onErrorClick = { _, _ -> },
             initiallyExpanded = true
         )
     }
 }
 
-@Preview(showBackground = true, name = "Light")
-@Preview(showBackground = true, name = "Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview2
 @Composable
 private fun SearchProgressCardCancelledPreview() {
     PreviewWrapper {
@@ -378,14 +476,15 @@ private fun SearchProgressCardCancelledPreview() {
                 ),
             ),
             overallProgress = createSearchProgress(1900, 15),
+            searchStatus = SearcherWorkspace.State.SearchStatus.CANCELLED,
             onCancel = {},
+            onErrorClick = { _, _ -> },
             initiallyExpanded = true
         )
     }
 }
 
-@Preview(showBackground = true, name = "Light")
-@Preview(showBackground = true, name = "Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview2
 @Composable
 private fun SearchProgressCardSinglePathPreview() {
     PreviewWrapper {
@@ -399,14 +498,15 @@ private fun SearchProgressCardSinglePathPreview() {
                 ),
             ),
             overallProgress = createSearchProgress(5420, 42),
+            searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
             onCancel = {},
+            onErrorClick = { _, _ -> },
             initiallyExpanded = true
         )
     }
 }
 
-@Preview(showBackground = true, name = "Light")
-@Preview(showBackground = true, name = "Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview2
 @Composable
 private fun SearchProgressCardCompletedPreview() {
     PreviewWrapper {
@@ -432,22 +532,163 @@ private fun SearchProgressCardCompletedPreview() {
                 ),
             ),
             overallProgress = createSearchProgress(5970, 45),
+            searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
             onCancel = {},
+            onErrorClick = { _, _ -> },
             initiallyExpanded = true
         )
     }
 }
 
-@Preview(showBackground = true, name = "Light")
-@Preview(showBackground = true, name = "Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview2
+@Composable
+private fun SearchProgressCardCompletedWithErrorsPreview() {
+    PreviewWrapper {
+        SearchProgressCard(
+            targetProgress = listOf(
+                createSearchTargetProgress(
+                    SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                    "/sdcard",
+                    3200,
+                    25
+                ),
+                createSearchTargetProgress(
+                    SearchEngine.SearchTargetProgress.Status.ERROR,
+                    "/storage/usb",
+                    150,
+                    0,
+                    exception = java.io.IOException("I/O error: Device not accessible")
+                ),
+                createSearchTargetProgress(
+                    SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                    "/mnt/external",
+                    1850,
+                    14
+                ),
+            ),
+            overallProgress = createSearchProgress(5200, 39),
+            searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
+            onCancel = {},
+            onErrorClick = { _, _ -> },
+            initiallyExpanded = true
+        )
+    }
+}
+
+@Preview2
 @Composable
 private fun SearchProgressCardEmptyPreview() {
     PreviewWrapper {
         SearchProgressCard(
             targetProgress = emptyList(),
             overallProgress = null,
+            searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
             onCancel = {},
+            onErrorClick = { _, _ -> },
             initiallyExpanded = true
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun SearchProgressCardCompletedCollapsedPreview() {
+    PreviewWrapper {
+        SearchProgressCard(
+            targetProgress = listOf(
+                createSearchTargetProgress(
+                    SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                    "/sdcard",
+                    3200,
+                    25
+                ),
+                createSearchTargetProgress(
+                    SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                    "/storage/emulated/0",
+                    1850,
+                    14
+                ),
+                createSearchTargetProgress(
+                    SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                    "/mnt/usb_storage",
+                    920,
+                    6
+                ),
+            ),
+            overallProgress = createSearchProgress(5970, 45),
+            searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
+            onCancel = {},
+            onErrorClick = { _, _ -> },
+            initiallyExpanded = false
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun SearchProgressCardCompletedWithErrorsCollapsedPreview() {
+    PreviewWrapper {
+        SearchProgressCard(
+            targetProgress = listOf(
+                createSearchTargetProgress(
+                    SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                    "/sdcard",
+                    3200,
+                    25
+                ),
+                createSearchTargetProgress(
+                    SearchEngine.SearchTargetProgress.Status.ERROR,
+                    "/storage/usb",
+                    150,
+                    0,
+                    exception = java.io.IOException("I/O error: Device not accessible")
+                ),
+                createSearchTargetProgress(
+                    SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                    "/mnt/external",
+                    1850,
+                    14
+                ),
+            ),
+            overallProgress = createSearchProgress(5200, 39),
+            searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
+            onCancel = {},
+            onErrorClick = { _, _ -> },
+            initiallyExpanded = false
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun SearchProgressCardSearchingCollapsedPreview() {
+    PreviewWrapper {
+        SearchProgressCard(
+            targetProgress = listOf(
+                createSearchTargetProgress(
+                    SearchEngine.SearchTargetProgress.Status.SEARCHING,
+                    "/sdcard",
+                    2400,
+                    18
+                ),
+                createSearchTargetProgress(
+                    SearchEngine.SearchTargetProgress.Status.SEARCHING,
+                    "/storage/emulated/0",
+                    1200,
+                    8
+                ),
+                createSearchTargetProgress(
+                    SearchEngine.SearchTargetProgress.Status.SEARCHING,
+                    "/mnt/usb_storage",
+                    500,
+                    2
+                ),
+            ),
+            overallProgress = createSearchProgress(4100, 28),
+            searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
+            onCancel = {},
+            onErrorClick = { _, _ -> },
+            initiallyExpanded = false
         )
     }
 }

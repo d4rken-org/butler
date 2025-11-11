@@ -83,6 +83,7 @@ class SearchEngine @Inject constructor(
         val itemsScanned: Int,
         val resultsFound: Int,
         val status: Status,
+        val exception: Throwable? = null,
     ) {
         enum class Status {
             SEARCHING, COMPLETED, ERROR, CANCELLED
@@ -298,10 +299,13 @@ class SearchEngine @Inject constructor(
                 } catch (e: Exception) {
                     log(TAG, WARN) { "Failed to scan ${pathTarget.path}: ${e.message}" }
 
-                    // Mark as error
+                    // Mark as error with exception details
                     _targetProgressState.value = _targetProgressState.value.map { targetProgress ->
                         if (targetProgress.target.path == pathTarget.path) {
-                            targetProgress.copy(status = SearchTargetProgress.Status.ERROR)
+                            targetProgress.copy(
+                                status = SearchTargetProgress.Status.ERROR,
+                                exception = e,
+                            )
                         } else {
                             targetProgress
                         }
