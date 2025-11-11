@@ -169,7 +169,7 @@ internal fun ClassicWorkspaceContainer(
             val total = state.tabWorkspaces.size
             val workspaceName = currentWorkspace.title.get(context)
 
-            if (position > 0) {
+            if (position > 0 && total > 1) {
                 WorkspaceSwitchIndicator(
                     modifier = Modifier
                         .align(Alignment.Center)
