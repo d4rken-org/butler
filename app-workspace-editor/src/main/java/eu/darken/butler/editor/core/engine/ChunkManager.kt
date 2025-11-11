@@ -3,7 +3,7 @@ package eu.darken.butler.editor.core.engine
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import eu.darken.butler.common.debug.logging.Logging
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -91,7 +91,7 @@ class ChunkManager @AssistedInject constructor(
             Result.success(chunk)
 
         } catch (e: Exception) {
-            log(tag, Logging.Priority.ERROR) { "Failed to load chunk: $chunkId - ${e.asLog()}" }
+            log(tag, ERROR) { "Failed to load chunk: $chunkId - ${e.asLog()}" }
 
             // Mark as error
             _loadStates.value = _loadStates.value + (chunkId to ChunkLoadState(
@@ -115,6 +115,13 @@ class ChunkManager @AssistedInject constructor(
      */
     fun getBoundary(chunkId: TextChunk.ChunkId): ChunkBoundary? {
         return boundaries[chunkId]
+    }
+
+    /**
+     * Get all chunk IDs currently tracked (both in cache and evicted but with boundaries).
+     */
+    fun getAllChunkIds(): List<TextChunk.ChunkId> {
+        return boundaries.keys.toList()
     }
 
     /**
@@ -153,7 +160,7 @@ class ChunkManager @AssistedInject constructor(
                 loadResult.fold(
                     onSuccess = { loadedChunks.add(it) },
                     onFailure = {
-                        log(tag, Logging.Priority.WARN) { "Failed to load chunk $chunkId for range $startOffset-$endOffset" }
+                        log(tag, WARN) { "Failed to load chunk $chunkId for range $startOffset-$endOffset" }
                     }
                 )
             }
@@ -175,17 +182,197 @@ class ChunkManager @AssistedInject constructor(
             val currentChunk = _chunks.value[chunkId] ?: return@withLock null
             val updatedChunk = updater(currentChunk)
 
-            _chunks.value = _chunks.value + (chunkId to updatedChunk)
+            // Preserve refCount from current chunk (updater might not include it in copy())
+            val finalChunk = if (updatedChunk.refCount != currentChunk.refCount) {
+                updatedChunk.copy(refCount = currentChunk.refCount)
+            } else {
+                updatedChunk
+            }
 
-            updatedChunk
+            _chunks.value = _chunks.value + (chunkId to finalChunk)
+
+            finalChunk
         }
+
+    /**
+     * Internal helper to pin a chunk without acquiring mutex (caller must hold lock).
+     */
+    private suspend fun pinChunkInternal(chunkId: TextChunk.ChunkId): Result<TextChunk> {
+        // Ensure chunk is loaded
+        val chunk = _chunks.value[chunkId] ?: run {
+            log(tag) { "Chunk $chunkId not in cache, loading before pinning" }
+            val loadResult = loadChunk(chunkId)
+            if (loadResult.isFailure) {
+                return Result.failure(
+                    loadResult.exceptionOrNull() ?: Exception("Failed to load chunk for pinning")
+                )
+            }
+            loadResult.getOrThrow()
+        }
+
+        // Pin the chunk
+        val pinnedChunk = chunk.pin()
+        _chunks.value = _chunks.value + (chunkId to pinnedChunk)
+
+        log(tag) { "Pinned chunk: $chunkId (refCount=${pinnedChunk.refCount})" }
+
+        return Result.success(pinnedChunk)
+    }
+
+    /**
+     * Internal helper to unpin a chunk without acquiring mutex (caller must hold lock).
+     */
+    private suspend fun unpinChunkInternal(chunkId: TextChunk.ChunkId): Result<Unit> {
+        val chunk = _chunks.value[chunkId]
+            ?: return Result.failure(IllegalStateException("Chunk $chunkId not in cache"))
+
+        if (chunk.refCount == 0) {
+            log(tag, WARN) { "Attempting to unpin chunk $chunkId with refCount=0" }
+            return Result.failure(IllegalStateException("Chunk $chunkId already has refCount=0"))
+        }
+
+        val unpinnedChunk = chunk.unpin()
+        _chunks.value = _chunks.value + (chunkId to unpinnedChunk)
+
+        log(tag) { "Unpinned chunk: $chunkId (refCount=${unpinnedChunk.refCount})" }
+
+        return Result.success(Unit)
+    }
+
+    /**
+     * Pin a chunk, incrementing its reference count.
+     * Pinned chunks cannot be evicted from the cache.
+     * If the chunk is not in cache, it will be loaded first.
+     *
+     * @return Result containing the pinned chunk, or failure if chunk cannot be loaded
+     */
+    suspend fun pinChunk(chunkId: TextChunk.ChunkId): Result<TextChunk> = chunkMutex.withLock {
+        pinChunkInternal(chunkId)
+    }
+
+    /**
+     * Unpin a chunk, decrementing its reference count.
+     * When refCount reaches 0 and the chunk is clean, it becomes eligible for eviction.
+     *
+     * @return Result indicating success or failure
+     */
+    suspend fun unpinChunk(chunkId: TextChunk.ChunkId): Result<Unit> = chunkMutex.withLock {
+        unpinChunkInternal(chunkId)
+    }
+
+    /**
+     * Pin multiple chunks atomically.
+     * All chunks must be successfully pinned, or the operation fails without pinning any.
+     *
+     * @return Result containing list of pinned chunks, or failure if any chunk cannot be loaded
+     */
+    suspend fun pinChunks(chunkIds: Set<TextChunk.ChunkId>): Result<List<TextChunk>> = chunkMutex.withLock {
+        val pinnedChunks = mutableListOf<TextChunk>()
+
+        try {
+            for (chunkId in chunkIds) {
+                val pinResult = pinChunkInternal(chunkId)
+                if (pinResult.isFailure) {
+                    // Rollback: unpin all chunks we already pinned
+                    for (alreadyPinned in pinnedChunks) {
+                        unpinChunkInternal(alreadyPinned.id)
+                    }
+                    return@withLock Result.failure(
+                        pinResult.exceptionOrNull() ?: Exception("Failed to pin chunk $chunkId")
+                    )
+                }
+                pinnedChunks.add(pinResult.getOrThrow())
+            }
+
+            log(tag) { "Pinned ${chunkIds.size} chunks atomically" }
+            Result.success(pinnedChunks)
+        } catch (e: Exception) {
+            // Rollback on exception
+            for (pinnedChunk in pinnedChunks) {
+                unpinChunkInternal(pinnedChunk.id)
+            }
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Unpin multiple chunks atomically.
+     *
+     * @return Result indicating success or failure
+     */
+    suspend fun unpinChunks(chunkIds: Set<TextChunk.ChunkId>): Result<Unit> = chunkMutex.withLock {
+        for (chunkId in chunkIds) {
+            val result = unpinChunkInternal(chunkId)
+            if (result.isFailure) {
+                log(tag, WARN) { "Failed to unpin chunk $chunkId: ${result.exceptionOrNull()?.message}" }
+                // Continue unpinning other chunks despite failure
+            }
+        }
+        Result.success(Unit)
+    }
+
+    /**
+     * Execute a block with a pinned chunk, automatically unpinning when done.
+     * The chunk is guaranteed to stay in cache for the duration of the block.
+     *
+     * @param chunkId The chunk to pin
+     * @param block The operation to perform with the pinned chunk
+     * @return Result containing the block's return value, or failure if chunk cannot be pinned
+     */
+    suspend fun <T> withPinnedChunk(
+        chunkId: TextChunk.ChunkId,
+        block: suspend (TextChunk) -> T
+    ): Result<T> {
+        val pinResult = pinChunk(chunkId)
+        if (pinResult.isFailure) {
+            return Result.failure(pinResult.exceptionOrNull() ?: Exception("Failed to pin chunk"))
+        }
+
+        val pinnedChunk = pinResult.getOrThrow()
+
+        return try {
+            Result.success(block(pinnedChunk))
+        } catch (e: Exception) {
+            Result.failure(e)
+        } finally {
+            unpinChunk(chunkId)
+        }
+    }
+
+    /**
+     * Execute a block with multiple pinned chunks, automatically unpinning when done.
+     * All chunks are guaranteed to stay in cache for the duration of the block.
+     *
+     * @param chunkIds The chunks to pin
+     * @param block The operation to perform with the pinned chunks
+     * @return Result containing the block's return value, or failure if chunks cannot be pinned
+     */
+    suspend fun <T> withPinnedChunks(
+        chunkIds: Set<TextChunk.ChunkId>,
+        block: suspend (List<TextChunk>) -> T
+    ): Result<T> {
+        val pinResult = pinChunks(chunkIds)
+        if (pinResult.isFailure) {
+            return Result.failure(pinResult.exceptionOrNull() ?: Exception("Failed to pin chunks"))
+        }
+
+        val pinnedChunks = pinResult.getOrThrow()
+
+        return try {
+            Result.success(block(pinnedChunks))
+        } catch (e: Exception) {
+            Result.failure(e)
+        } finally {
+            unpinChunks(chunkIds)
+        }
+    }
 
     suspend fun evictChunk(chunkId: TextChunk.ChunkId): Boolean = chunkMutex.withLock {
         val chunk = _chunks.value[chunkId] ?: return@withLock false
 
-        // Don't evict dirty chunks without saving
-        if (chunk.isDirty) {
-            log(tag) { "Cannot evict dirty chunk: $chunkId" }
+        // Don't evict pinned chunks (dirty or actively referenced)
+        if (chunk.isPinned) {
+            log(tag) { "Cannot evict pinned chunk: $chunkId (refCount=${chunk.refCount}, isDirty=${chunk.isDirty})" }
             return@withLock false
         }
 
@@ -258,17 +445,42 @@ class ChunkManager @AssistedInject constructor(
         val chunksToEvict = currentCount - maxCachedChunks
         log(tag) { "Cache full ($currentCount/$maxCachedChunks chunks), evicting $chunksToEvict oldest chunks" }
 
-        // Evict least recently used chunks
-        val evictCandidates = chunkAccessOrder.take(chunksToEvict).toList()
-        for (chunkId in evictCandidates) {
-            val chunk = _chunks.value[chunkId]
-            if (chunk != null && !chunk.isDirty) {
-                _chunks.value = _chunks.value - chunkId
-                _loadStates.value = _loadStates.value - chunkId
-                chunkAccessOrder.remove(chunkId)
-                log(tag) { "Evicted chunk: $chunkId (LRU)" }
+        // Take atomic snapshot to avoid stale reads during iteration
+        val chunksSnapshot = _chunks.value
+
+        // Filter to only unpinned chunks (refCount=0 and clean)
+        val evictCandidates = chunkAccessOrder
+            .take(chunksToEvict * 2)  // Take extra candidates in case some are pinned
+            .mapNotNull { chunkId ->
+                val chunk = chunksSnapshot[chunkId]
+                if (chunk != null && !chunk.isPinned) chunkId else null
             }
+            .take(chunksToEvict)
+
+        if (evictCandidates.isEmpty()) {
+            val pinnedCount = chunksSnapshot.count { it.value.isPinned }
+            log(tag, WARN) {
+                "Cannot evict: all LRU chunks are pinned ($pinnedCount/${currentCount} chunks pinned)"
+            }
+            return
         }
+
+        // Evict candidates
+        var updatedChunks = _chunks.value
+        var updatedLoadStates = _loadStates.value
+
+        for (chunkId in evictCandidates) {
+            updatedChunks = updatedChunks - chunkId
+            updatedLoadStates = updatedLoadStates - chunkId
+            chunkAccessOrder.remove(chunkId)
+            log(tag) { "Evicted chunk: $chunkId (LRU)" }
+        }
+
+        // Atomic update
+        _chunks.value = updatedChunks
+        _loadStates.value = updatedLoadStates
+
+        log(tag) { "Evicted ${evictCandidates.size} chunks, cache now ${_chunks.value.size}/${maxCachedChunks}" }
     }
 
     /**
@@ -284,36 +496,41 @@ class ChunkManager @AssistedInject constructor(
      * @return Result.success if all chunks saved, Result.failure if save failed
      */
     suspend fun saveAllDirtyChunks(): Result<Unit> {
-        val dirtyChunks = getDirtyChunks()
+        // Get dirty chunk IDs first (before pinning)
+        val dirtyChunkIds = chunkMutex.withLock {
+            _chunks.value.values.filter { it.isDirty }.map { it.id }.toSet()
+        }
 
-        if (dirtyChunks.isEmpty()) {
+        if (dirtyChunkIds.isEmpty()) {
             log(tag) { "No dirty chunks to save" }
             return Result.success(Unit)
         }
 
-        log(tag) { "Committing ${dirtyChunks.size} dirty chunks (all-or-nothing)" }
+        log(tag) { "Saving ${dirtyChunkIds.size} dirty chunks with pinning protection" }
 
-        return try {
-            // Get snapshot of boundaries for save operation
-            val boundariesSnapshot = chunkMutex.withLock {
-                boundaries.toMap() // Create immutable copy
+        // Pin all dirty chunks to prevent eviction during save
+        return withPinnedChunks(dirtyChunkIds) { pinnedChunks ->
+            try {
+                // Get snapshot of boundaries for save operation
+                val boundariesSnapshot = chunkMutex.withLock {
+                    boundaries.toMap() // Create immutable copy
+                }
+
+                // Save all chunks - throws on failure
+                chunkRepository.saveFile(pinnedChunks, boundariesSnapshot)
+
+                // Only mark clean if save succeeded
+                markChunksClean(dirtyChunkIds.toList())
+
+                log(tag) { "Successfully committed ${pinnedChunks.size} chunks" }
+                Result.success(Unit)
+
+            } catch (e: Exception) {
+                log(tag, ERROR) {
+                    "Failed to commit dirty chunks (chunks remain dirty) - ${e.asLog()}"
+                }
+                Result.failure(e)
             }
-
-            // Save all chunks - throws on failure
-            chunkRepository.saveFile(dirtyChunks, boundariesSnapshot)
-
-            // Only mark clean if save succeeded
-            val chunkIds = dirtyChunks.map { it.id }
-            markChunksClean(chunkIds)
-
-            log(tag) { "Successfully committed ${dirtyChunks.size} chunks" }
-            Result.success(Unit)
-
-        } catch (e: Exception) {
-            log(tag, Logging.Priority.ERROR) {
-                "Failed to commit dirty chunks (chunks remain dirty) - ${e.asLog()}"
-            }
-            Result.failure(e)
         }
     }
 

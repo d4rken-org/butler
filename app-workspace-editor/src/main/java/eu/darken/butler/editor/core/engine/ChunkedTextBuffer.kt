@@ -250,30 +250,32 @@ class ChunkedTextBuffer @AssistedInject constructor(
             val chunk = findChunkForOffset(position.offset)
                 ?: return@withLock Result.failure(IllegalArgumentException("Position is out of bounds"))
 
-            // Load the chunk if needed
-            val loadedChunk = if (chunk.isLoaded) {
-                chunk
-            } else {
-                chunkManager.loadChunk(chunk.id).getOrThrow()
+            // Pin the chunk to prevent eviction during this operation
+            val pinResult = chunkManager.withPinnedChunk(chunk.id) { pinnedChunk ->
+                // Get boundary for offset calculation
+                val boundary = chunkManager.getBoundary(chunk.id)
+                    ?: throw IllegalStateException("No boundary for chunk ${chunk.id}")
+
+                // Calculate insertion point within chunk
+                val insertionIndex = (position.offset - boundary.startOffset).toInt()
+                val newContent = pinnedChunk.content.substring(0, insertionIndex) +
+                    text +
+                    pinnedChunk.content.substring(insertionIndex)
+
+                // Update the chunk - transform the CURRENT chunk in cache (preserves refCount)
+                chunkManager.updateChunk(chunk.id) { currentChunk ->
+                    currentChunk.copy(
+                        content = newContent,
+                        isDirty = true
+                    )
+                } ?: throw IllegalStateException("Failed to update chunk ${chunk.id}")
             }
 
-            // Get boundary for offset calculation
-            val boundary = chunkManager.getBoundary(chunk.id)
-                ?: return@withLock Result.failure(IllegalStateException("No boundary for chunk ${chunk.id}"))
-
-            // Calculate insertion point within chunk
-            val insertionIndex = (position.offset - boundary.startOffset).toInt()
-            val newContent = loadedChunk.content.substring(0, insertionIndex) +
-                text +
-                loadedChunk.content.substring(insertionIndex)
-
-            // Update the chunk
-            val updatedChunk = loadedChunk.copy(
-                content = newContent,
-                isDirty = true
-            )
-
-            chunkManager.updateChunk(chunk.id) { updatedChunk }
+            if (pinResult.isFailure) {
+                return@withLock Result.failure(
+                    pinResult.exceptionOrNull() ?: Exception("Failed to pin chunk for insertion")
+                )
+            }
 
             // Update total length
             _totalLength.value = _totalLength.value + text.length
@@ -320,85 +322,120 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
                 // Find affected chunks
                 val affectedChunks = chunkManager.getChunksInRange(startPosition.offset, endPosition.offset)
+                val affectedChunkIds = affectedChunks.map { it.id }.toSet()
 
-                // Handle single chunk and multi-chunk deletions
-                if (affectedChunks.size == 1) {
-                    // Single chunk deletion
-                    val chunk = affectedChunks.first()
-                    val loadedChunk = if (chunk.isLoaded) {
-                        chunk
+                // Pin all affected chunks to prevent eviction during this operation
+                // Lambda returns the set of chunk IDs that need to be evicted after unpinning
+                val pinResult = chunkManager.withPinnedChunks(affectedChunkIds) { pinnedChunks ->
+                    // Handle single chunk and multi-chunk deletions
+                    if (pinnedChunks.size == 1) {
+                        // Single chunk deletion
+                        val chunk = pinnedChunks.first()
+
+                        // Get boundary for offset calculation
+                        val boundary = chunkManager.getBoundary(chunk.id)
+                            ?: throw IllegalStateException("No boundary for chunk ${chunk.id}")
+
+                        val startInChunk = (startPosition.offset - boundary.startOffset).toInt()
+                        val endInChunk = (endPosition.offset - boundary.startOffset).toInt()
+
+                        val newContent = chunk.content.removeRange(startInChunk, endInChunk)
+
+                        // Update the chunk - transform the CURRENT chunk in cache (preserves refCount)
+                        chunkManager.updateChunk(chunk.id) { currentChunk ->
+                            currentChunk.copy(
+                                content = newContent,
+                                isDirty = true
+                            )
+                        } ?: throw IllegalStateException("Failed to update chunk ${chunk.id}")
+
+                        // Single chunk: nothing to evict
+                        emptySet<TextChunk.ChunkId>()
                     } else {
-                        chunkManager.loadChunk(chunk.id).getOrThrow()
+                        // Multi-chunk deletion: merge content from first and last chunks
+                        val firstChunk = pinnedChunks.first()
+                        val lastChunk = pinnedChunks.last()
+
+                        // Get boundaries for offset calculation
+                        val firstBoundary = chunkManager.getBoundary(firstChunk.id)
+                            ?: throw IllegalStateException("No boundary for chunk ${firstChunk.id}")
+                        val lastBoundary = chunkManager.getBoundary(lastChunk.id)
+                            ?: throw IllegalStateException("No boundary for chunk ${lastChunk.id}")
+
+                        // Calculate what to keep from each chunk
+                        val startInFirstChunk = (startPosition.offset - firstBoundary.startOffset).toInt()
+                        val endInLastChunk = (endPosition.offset - lastBoundary.startOffset).toInt()
+
+                        // Build merged content: keep beginning of first chunk + end of last chunk
+                        val contentBeforeDelete = firstChunk.content.substring(0, startInFirstChunk)
+                        val contentAfterDelete = lastChunk.content.substring(endInLastChunk)
+                        val mergedContent = contentBeforeDelete + contentAfterDelete
+
+                        // Update first chunk with merged content - transform the CURRENT chunk (preserves refCount)
+                        chunkManager.updateChunk(firstChunk.id) { currentChunk ->
+                            currentChunk.copy(
+                                content = mergedContent,
+                                isDirty = true
+                            )
+                        } ?: throw IllegalStateException("Failed to update chunk ${firstChunk.id}")
+
+                        // CRITICAL: Mark all chunks AFTER the merge point as dirty
+                        // Even though their content hasn't changed, their logical offsets have moved.
+                        // Until the file is saved, these chunks can't be reloaded from disk because
+                        // the disk still has the old structure (boundaries don't match file offsets).
+                        val allChunkIds = chunkManager.getAllChunkIds()
+                        val chunksAfterMerge = allChunkIds
+                            .mapNotNull { id -> chunkManager.getBoundary(id)?.let { id to it } }
+                            .filter { (id, boundary) -> boundary.startOffset > firstBoundary.startOffset && id !in pinnedChunks.map { it.id } }
+                            .map { it.first }
+
+                        // Load and mark all chunks after merge as dirty
+                        // These chunks' logical offsets have shifted, so they can't be reloaded from disk
+                        // at their boundary offsets until the file is saved with the new structure
+                        for (chunkId in chunksAfterMerge) {
+                            // Load chunk if not in cache
+                            val chunk = chunkManager.getChunk(chunkId)
+                                ?: chunkManager.loadChunk(chunkId).getOrNull()
+
+                            if (chunk == null) {
+                                log(tag, WARN) { "Failed to load chunk $chunkId for marking as dirty" }
+                                continue
+                            }
+
+                            // Mark as dirty to prevent eviction/reload
+                            chunkManager.updateChunk(chunkId) { it.copy(isDirty = true) }
+                        }
+
+                        log(tag, DEBUG) {
+                            "Multi-chunk delete: merged ${pinnedChunks.size} chunks, marked ${chunksAfterMerge.size} chunks as dirty"
+                        }
+
+                        // Return all chunks except the first one (which has the merged content)
+                        // These will be evicted AFTER unpinning
+                        pinnedChunks.drop(1).map { it.id }.toSet()
                     }
+                }
 
-                    // Get boundary for offset calculation
-                    val boundary = chunkManager.getBoundary(chunk.id)
-                        ?: return@withLock Result.failure(IllegalStateException("No boundary for chunk ${chunk.id}"))
-
-                    val startInChunk = (startPosition.offset - boundary.startOffset).toInt()
-                    val endInChunk = (endPosition.offset - boundary.startOffset).toInt()
-
-                    val newContent = loadedChunk.content.removeRange(startInChunk, endInChunk)
-                    val updatedChunk = loadedChunk.copy(
-                        content = newContent,
-                        isDirty = true
+                if (pinResult.isFailure) {
+                    return@withLock Result.failure(
+                        pinResult.exceptionOrNull() ?: Exception("Failed to pin chunks for deletion")
                     )
+                }
 
-                    chunkManager.updateChunk(chunk.id) { updatedChunk }
-                } else {
-                    // Multi-chunk deletion: merge content from first and last chunks
-                    val firstChunk = affectedChunks.first()
-                    val lastChunk = affectedChunks.last()
-
-                    // Load chunks if needed
-                    val loadedFirst = if (firstChunk.isLoaded) {
-                        firstChunk
-                    } else {
-                        chunkManager.loadChunk(firstChunk.id).getOrThrow()
+                // Now evict the chunks that need to be removed (they're unpinned now)
+                val chunksToEvict = pinResult.getOrThrow()
+                if (chunksToEvict.isNotEmpty()) {
+                    for (chunkId in chunksToEvict) {
+                        val evicted = chunkManager.evictChunk(chunkId)
+                        if (!evicted) {
+                            log(tag, WARN) { "Failed to evict chunk $chunkId after deletion" }
+                        }
                     }
 
-                    val loadedLast = if (lastChunk.isLoaded) {
-                        lastChunk
-                    } else {
-                        chunkManager.loadChunk(lastChunk.id).getOrThrow()
-                    }
+                        // Update chunkIds list to remove evicted chunks
+                    chunkIds = chunkIds.filterNot { it in chunksToEvict }
 
-                    // Get boundaries for offset calculation
-                    val firstBoundary = chunkManager.getBoundary(firstChunk.id)
-                        ?: return@withLock Result.failure(IllegalStateException("No boundary for chunk ${firstChunk.id}"))
-                    val lastBoundary = chunkManager.getBoundary(lastChunk.id)
-                        ?: return@withLock Result.failure(IllegalStateException("No boundary for chunk ${lastChunk.id}"))
-
-                    // Calculate what to keep from each chunk
-                    val startInFirstChunk = (startPosition.offset - firstBoundary.startOffset).toInt()
-                    val endInLastChunk = (endPosition.offset - lastBoundary.startOffset).toInt()
-
-                    // Build merged content: keep beginning of first chunk + end of last chunk
-                    val contentBeforeDelete = loadedFirst.content.substring(0, startInFirstChunk)
-                    val contentAfterDelete = loadedLast.content.substring(endInLastChunk)
-                    val mergedContent = contentBeforeDelete + contentAfterDelete
-
-                    // Update first chunk with merged content
-                    val updatedFirstChunk = loadedFirst.copy(
-                        content = mergedContent,
-                        isDirty = true
-                    )
-                    chunkManager.updateChunk(firstChunk.id) { updatedFirstChunk }
-
-                    // Remove all other affected chunks (middle chunks + last chunk)
-                    val evictedChunkIds = affectedChunks.drop(1).map { it.id }.toSet()
-                    for (i in 1 until affectedChunks.size) {
-                        chunkManager.evictChunk(affectedChunks[i].id)
-                    }
-
-                    // Update chunkIds list to remove evicted chunks
-                    chunkIds = chunkIds.filterNot { it in evictedChunkIds }
-
-                    log(tag, DEBUG) {
-                        "Multi-chunk delete: merged ${affectedChunks.size} chunks, " +
-                            "kept ${contentBeforeDelete.length} + ${contentAfterDelete.length} bytes, " +
-                            "evicted ${evictedChunkIds.size} chunks"
-                    }
+                    log(tag, DEBUG) { "Evicted ${chunksToEvict.size} chunks after multi-chunk delete" }
                 }
 
                 // Update total length
