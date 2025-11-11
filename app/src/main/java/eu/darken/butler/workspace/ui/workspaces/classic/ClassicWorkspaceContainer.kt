@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.workspaces.classic
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
@@ -13,14 +14,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceScreenAction
+import eu.darken.butler.workspace.ui.workspaces.WorkspaceSwitchIndicator
 import eu.darken.butler.workspace.ui.workspaces.WorkspacesViewModel
 import eu.darken.butler.workspace.ui.workspaces.asPaneInfo
 
@@ -42,6 +48,16 @@ internal fun ClassicWorkspaceContainer(
 
     var isCreatingWorkspace by remember { mutableStateOf(false) }
     var previousPage by remember { mutableStateOf<Int?>(null) }
+
+    // Track workspace switches for position indicator
+    var workspaceSwitchTrigger by remember { mutableStateOf<Workspace.Id?>(null) }
+
+    LaunchedEffect(state.focused) {
+        val currentId = state.focused
+        if (currentId != null) {
+            workspaceSwitchTrigger = currentId
+        }
+    }
 
     // Sync pager with selected tab
     LaunchedEffect(state.focused, state.all) {
@@ -114,32 +130,56 @@ internal fun ClassicWorkspaceContainer(
         }
     }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background
-    ) { paddingValues ->
-        if (state.all.isNotEmpty()) {
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                userScrollEnabled = state.swipeGesturesEnabled,
-            ) { page ->
-                val paneInfo = state.all.getOrNull(page)?.asPaneInfo()
-                val isPlaceholderPage = page >= state.all.size
-                WorkspaceMapper(
-                    info = paneInfo,
-                    design = design,
-                    isCreating = isPlaceholderPage && isCreatingWorkspace,
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = MaterialTheme.colorScheme.background
+        ) { paddingValues ->
+            if (state.all.isNotEmpty()) {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    userScrollEnabled = state.swipeGesturesEnabled,
+                ) { page ->
+                    val paneInfo = state.all.getOrNull(page)?.asPaneInfo()
+                    val isPlaceholderPage = page >= state.all.size
+                    WorkspaceMapper(
+                        info = paneInfo,
+                        design = design,
+                        isCreating = isPlaceholderPage && isCreatingWorkspace,
+                    )
+                }
+            } else {
+                EmptyClassicWorkspaceContent(
+                    modifier = Modifier.padding(paddingValues),
+                    isUpgraded = state.isUpgraded,
+                    workspaceActionHandler = workspaceActionHandler,
                 )
             }
-        } else {
-            EmptyClassicWorkspaceContent(
-                modifier = Modifier.padding(paddingValues),
-                isUpgraded = state.isUpgraded,
-                workspaceActionHandler = workspaceActionHandler,
-            )
+        }
+
+        // Position indicator overlay
+        val currentWorkspace = state.current
+        val switchedToWorkspace = workspaceSwitchTrigger
+        if (switchedToWorkspace != null && currentWorkspace != null) {
+            val context = LocalContext.current
+            val position = state.tabWorkspaces.indexOfFirst { it.id == state.focused } + 1
+            val total = state.tabWorkspaces.size
+            val workspaceName = currentWorkspace.title.get(context)
+
+            if (position > 0) {
+                WorkspaceSwitchIndicator(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(horizontal = 16.dp),
+                    position = position,
+                    totalWorkspaces = total,
+                    workspaceName = workspaceName,
+                    workspaceId = switchedToWorkspace,
+                )
+            }
         }
     }
 }

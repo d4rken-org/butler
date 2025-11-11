@@ -66,6 +66,7 @@ fun WorkspaceManagerScreenHost(
             onCreateWorkspace = vm::createWorkspace,
             onNavigateBack = vm::navigateBack,
             onDismissBadgeExplanation = vm::dismissBadgeExplanation,
+            onDismissLongPressHint = vm::dismissLongPressHint,
             onCloseAllWorkspaces = vm::closeAllWorkspaces,
         )
     }
@@ -81,6 +82,7 @@ fun WorkspaceManagerScreen(
     onCreateWorkspace: (Workspace.Type) -> Unit,
     onNavigateBack: () -> Unit,
     onDismissBadgeExplanation: () -> Unit,
+    onDismissLongPressHint: () -> Unit,
     onCloseAllWorkspaces: () -> Unit,
 ) {
     var showCloseAllDialog by remember { mutableStateOf(false) }
@@ -145,7 +147,9 @@ fun WorkspaceManagerScreen(
                     WorkspaceManagerFAB(
                         workspaceCount = state.workspaceCount,
                         onCreateWorkspace = onCreateWorkspace,
-                        onShowCloseAllDialog = { showCloseAllDialog = true }
+                        onShowCloseAllDialog = { showCloseAllDialog = true },
+                        showLongPressHint = state.showLongPressHint,
+                        onDismissLongPressHint = onDismissLongPressHint
                     )
                 }
             }
@@ -187,19 +191,25 @@ private fun WorkspaceManagerScreenPreview() {
                         id = Workspace.Id(),
                         type = Workspace.Type.TEMPLATES,
                         title = "Templates".toCaString(),
-                        subtitle = "Workspace templates".toCaString()
+                        subtitle = "Workspace templates".toCaString(),
+                        isFocused = true,
+                        isSelected = true,
+                        paneNumber = 0,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
                         id = Workspace.Id(),
                         type = Workspace.Type.EXPLORER,
                         title = "Explorer".toCaString(),
-                        subtitle = "File explorer".toCaString()
+                        subtitle = "File explorer".toCaString(),
+                        isSelected = true,
+                        paneNumber = 1,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
                         id = Workspace.Id(),
                         type = Workspace.Type.SEARCHER,
                         title = "Search".toCaString(),
-                        subtitle = "File search".toCaString()
+                        subtitle = "File search".toCaString(),
+                        paneNumber = null,
                     )
                 ),
                 operationsCount = 3,
@@ -211,6 +221,7 @@ private fun WorkspaceManagerScreenPreview() {
             onCreateWorkspace = {},
             onNavigateBack = {},
             onDismissBadgeExplanation = {},
+            onDismissLongPressHint = {},
             onCloseAllWorkspaces = {}
         )
     }
@@ -232,6 +243,7 @@ private fun WorkspaceManagerScreenEmptyPreview() {
             onCreateWorkspace = {},
             onNavigateBack = {},
             onDismissBadgeExplanation = {},
+            onDismissLongPressHint = {},
             onCloseAllWorkspaces = {}
         )
     }

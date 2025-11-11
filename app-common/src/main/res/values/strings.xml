@@ -110,6 +110,8 @@
     <string name="general_path_label">Path</string>
     <string name="general_filename_validation_error">Name contains invalid characters: %1$s</string>
 
+    <string name="common_workspace_position_indicator">%1$d of %2$d: %3$s</string>
+
     <string name="file_type_symbolic_link">Link</string>
     <string name="file_type_directory">Directory</string>
     <string name="file_type_file">File</string>

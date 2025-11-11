@@ -31,7 +31,9 @@ class ChunkManager @AssistedInject constructor(
     private val chunkMutex = Mutex()
 
     // Chunk boundary tracking (offset → ID mapping)
-    private val boundaries: MutableMap<TextChunk.ChunkId, ChunkBoundary> = mutableMapOf()
+    // @Volatile ensures cross-thread visibility after mutex release (fixes race condition)
+    @Volatile
+    private var boundaries: MutableMap<TextChunk.ChunkId, ChunkBoundary> = mutableMapOf()
 
     // LRU tracking for chunk eviction
     private val chunkAccessOrder = mutableListOf<TextChunk.ChunkId>()
@@ -131,7 +133,8 @@ class ChunkManager @AssistedInject constructor(
         // Snapshot relevant chunk IDs while holding mutex to avoid race conditions
         val relevantChunkIds = chunkMutex.withLock {
             boundaries.filter { (_, boundary) ->
-                boundary.endOffset > startOffset && boundary.startOffset < endOffset
+                // Use >= to include chunks that end exactly at startOffset (insertion at end of chunk)
+                boundary.endOffset >= startOffset && boundary.startOffset < endOffset
             }.keys.toSet()
         }
 
@@ -214,7 +217,8 @@ class ChunkManager @AssistedInject constructor(
         for ((chunkId, boundary) in boundaries) {
             val newBoundary = when {
                 // Chunk entirely after edit point - shift both offsets, keep line count
-                boundary.startOffset >= editOffset -> {
+                // Use > (not >=) because edit at startOffset means edit is WITHIN chunk, not after it
+                boundary.startOffset > editOffset -> {
                     adjustedCount++
                     ChunkBoundary(
                         boundary.startOffset + deltaLength,
@@ -238,8 +242,8 @@ class ChunkManager @AssistedInject constructor(
             updatedBoundaries[chunkId] = newBoundary
         }
 
-        boundaries.clear()
-        boundaries.putAll(updatedBoundaries)
+        // Atomic swap prevents race condition where readers see empty map during clear+putAll
+        boundaries = updatedBoundaries
 
         log(tag) { "Updated $adjustedCount chunk boundaries after edit at offset $editOffset (delta=$deltaLength bytes, $deltaLines lines)" }
     }

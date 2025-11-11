@@ -20,4 +20,9 @@ sealed interface SearcherCommand {
     data class Delete(
         val targets: Set<APath<*>>,
     ) : SearcherCommand
+
+    /**
+     * Target management command
+     */
+    data object AddDefaultPaths : SearcherCommand
 }

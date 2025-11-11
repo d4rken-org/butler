@@ -86,6 +86,11 @@ sealed interface SearcherPageAction {
          * Open path picker to add search targets
          */
         data object OpenPicker : Targets
+
+        /**
+         * Add default search paths (all public storage volumes)
+         */
+        data object AddDefaultPaths : Targets
     }
 
     /**

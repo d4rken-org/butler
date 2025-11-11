@@ -24,6 +24,9 @@
     <string name="searcher_search_error">Search error</string>
     <string name="searcher_no_paths_hint">Tap + to add search paths</string>
     <string name="searcher_add_path_action">Add path</string>
+    <string name="searcher_empty_state_title">No search paths configured</string>
+    <string name="searcher_empty_state_description">Add storage locations to search through your files</string>
+    <string name="searcher_add_default_paths_action">Add Default Search Paths</string>
     <string name="general_cancel_action">Cancel</string>
 
     <!-- Search Options -->

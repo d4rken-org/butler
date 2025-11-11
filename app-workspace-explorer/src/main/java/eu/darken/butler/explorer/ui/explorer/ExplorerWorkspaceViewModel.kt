@@ -18,7 +18,10 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
@@ -107,6 +110,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val copyErrorTool: CopyErrorTool,
     private val upgradeRepo: UpgradeRepo,
     private val filenameValidator: FilenameValidator,
+    private val gatewaySwitch: GatewaySwitch,
     internal val safLocationManager: SAFLocationManager,
     private val itemInfoCalculator: ItemInfoCalculator,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
@@ -129,6 +133,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     private val _pendingSAFPickerGrant = MutableStateFlow<SAFPickerGrant?>(null)
     val pendingSAFPickerGrant: Flow<SAFPickerGrant?> = _pendingSAFPickerGrant
+
+    // Scroll position tracking: Map<locationId, Pair<firstVisibleItemIndex, scrollOffset>>
+    private val scrollPositions = mutableMapOf<String, Pair<Int, Int>>()
 
     private val workspaceSource: Flow<ExplorerWorkspace?> =
         workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
@@ -439,6 +446,28 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     clearSelection()
                 }
                 is ExplorerItem.File -> {
+                    // Special handling for symlinks: check if target is directory
+                    if (item is ExplorerItem.SymbolicLink && !item.isBroken) {
+                        val target = item.lookup.target
+                        if (target != null) {
+                            // Perform lookup to determine if target is a directory or file
+                            val targetLookup = gatewaySwitch.lookup(
+                                target,
+                                LookupOptions(continueOnError = false)
+                            )
+
+                            if (targetLookup.isDirectory) {
+                                log(tag, INFO) { "Following symlink to directory: ${item.targetPath}" }
+                                getWorkspace().navigate(Directory(target))
+                                clearSelection()
+                                return@launch
+                            } else {
+                                log(tag, INFO) { "Symlink points to file: ${item.targetPath}" }
+                                // Fall through to show file options dialog
+                            }
+                        }
+                    }
+
                     val workspace = getWorkspace()
                     val config = workspace.pickerConfig
 
@@ -482,6 +511,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "navigate($target)" }
         getWorkspace().navigate(target)
         clearSelection()
+    }
+
+    fun saveScrollPosition(locationId: String, firstVisibleItemIndex: Int, scrollOffset: Int) {
+        scrollPositions[locationId] = firstVisibleItemIndex to scrollOffset
+        log(tag) { "saveScrollPosition: locationId=$locationId, index=$firstVisibleItemIndex, offset=$scrollOffset" }
+    }
+
+    fun getScrollPosition(locationId: String): Pair<Int, Int>? {
+        val position = scrollPositions[locationId]
+        log(tag) { "getScrollPosition: locationId=$locationId -> $position" }
+        return position
     }
 
     fun toggleItemSelection(item: ExplorerItem) {
