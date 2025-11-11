@@ -138,7 +138,10 @@ fun WorkspaceManagerGridLayout(
                         onDragStopped = {
                             isDragging = false
                             onReorderWorkspaces(localWorkspaceItems.map { it.id })
-                        }
+                        },
+                        isFocused = workspace.isFocused,
+                        isSelected = workspace.isSelected,
+                        currentPaneCount = state.currentPaneCount,
                     )
                 }
             }
@@ -170,7 +173,9 @@ private fun WorkspaceManagerGridLayoutPreview() {
                             id = Workspace.Id(),
                             type = Workspace.Type.TEMPLATES,
                             title = "Templates".toCaString(),
-                            subtitle = "Workspace templates".toCaString()
+                            subtitle = "Workspace templates".toCaString(),
+                            isFocused = true,
+                            isSelected = true,
                         ),
                         WorkspaceManagerViewModel.WorkspaceItem(
                             id = Workspace.Id(),
@@ -180,7 +185,8 @@ private fun WorkspaceManagerGridLayoutPreview() {
                         )
                     ),
                     operationsCount = 2,
-                    attentionCount = 1
+                    attentionCount = 1,
+                    currentPaneCount = 1,
                 ),
                 paddingValues = PaddingValues(),
                 screenWidth = 600.dp,
@@ -205,29 +211,37 @@ private fun WorkspaceManagerGridLayoutTabletPreview() {
                             id = Workspace.Id(),
                             type = Workspace.Type.TEMPLATES,
                             title = "Templates".toCaString(),
-                            subtitle = "Workspace templates".toCaString()
+                            subtitle = "Workspace templates".toCaString(),
+                            isFocused = true,
+                            isSelected = true,
+                            paneNumber = 0,
                         ),
                         WorkspaceManagerViewModel.WorkspaceItem(
                             id = Workspace.Id(),
                             type = Workspace.Type.EXPLORER,
                             title = "Explorer".toCaString(),
                             subtitle = "File explorer for browsing".toCaString(),
+                            isSelected = true,
+                            paneNumber = 1,
                         ),
                         WorkspaceManagerViewModel.WorkspaceItem(
                             id = Workspace.Id(),
                             type = Workspace.Type.SEARCHER,
                             title = "Search".toCaString(),
                             subtitle = "Search for files and folders".toCaString(),
+                            paneNumber = null,
                         ),
                         WorkspaceManagerViewModel.WorkspaceItem(
                             id = Workspace.Id(),
                             type = Workspace.Type.EDITOR,
                             title = "Editor".toCaString(),
                             subtitle = "Text editor".toCaString(),
+                            paneNumber = null,
                         )
                     ),
                     operationsCount = 2,
-                    attentionCount = 1
+                    attentionCount = 1,
+                    currentPaneCount = 2,
                 ),
                 paddingValues = PaddingValues(),
                 screenWidth = 900.dp,

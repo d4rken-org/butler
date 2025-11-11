@@ -65,19 +65,24 @@ private fun AdaptiveWorkspaceManagerContentListPreview() {
                             id = Workspace.Id(),
                             type = Workspace.Type.TEMPLATES,
                             title = "Templates".toCaString(),
-                            subtitle = "Workspace templates".toCaString()
+                            subtitle = "Workspace templates".toCaString(),
+                            isFocused = true,
+                            isSelected = true,
+                            paneNumber = 0,
                         ),
                         WorkspaceManagerViewModel.WorkspaceItem(
                             id = Workspace.Id(),
                             type = Workspace.Type.EXPLORER,
                             title = "Explorer".toCaString(),
-                            subtitle = "File explorer".toCaString()
+                            subtitle = "File explorer".toCaString(),
+                            paneNumber = null,
                         ),
                         WorkspaceManagerViewModel.WorkspaceItem(
                             id = Workspace.Id(),
                             type = Workspace.Type.SEARCHER,
                             title = "Search".toCaString(),
-                            subtitle = "File search".toCaString()
+                            subtitle = "File search".toCaString(),
+                            paneNumber = null,
                         )
                     ),
                     operationsCount = 3,
@@ -105,25 +110,32 @@ private fun AdaptiveWorkspaceManagerContentGridPreview() {
                             id = Workspace.Id(),
                             type = Workspace.Type.TEMPLATES,
                             title = "Templates".toCaString(),
-                            subtitle = "Workspace templates".toCaString()
+                            subtitle = "Workspace templates".toCaString(),
+                            isFocused = true,
+                            isSelected = true,
+                            paneNumber = 0,
                         ),
                         WorkspaceManagerViewModel.WorkspaceItem(
                             id = Workspace.Id(),
                             type = Workspace.Type.EXPLORER,
                             title = "Explorer".toCaString(),
-                            subtitle = "File explorer for browsing".toCaString()
+                            subtitle = "File explorer for browsing".toCaString(),
+                            isSelected = true,
+                            paneNumber = 1,
                         ),
                         WorkspaceManagerViewModel.WorkspaceItem(
                             id = Workspace.Id(),
                             type = Workspace.Type.SEARCHER,
                             title = "Search".toCaString(),
-                            subtitle = "Search for files and folders".toCaString()
+                            subtitle = "Search for files and folders".toCaString(),
+                            paneNumber = null,
                         ),
                         WorkspaceManagerViewModel.WorkspaceItem(
                             id = Workspace.Id(),
                             type = Workspace.Type.EDITOR,
                             title = "Editor".toCaString(),
-                            subtitle = "Text editor".toCaString()
+                            subtitle = "Text editor".toCaString(),
+                            paneNumber = null,
                         )
                     ),
                     operationsCount = 2,
