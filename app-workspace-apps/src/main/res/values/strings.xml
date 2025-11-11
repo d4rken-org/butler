@@ -33,8 +33,7 @@
     <string name="apps_action_clear_cache">Clear cache</string>
     <string name="apps_action_clear_data">Clear data</string>
     <string name="apps_action_export_apk">Export APK</string>
-    <string name="apps_action_browse_data">Browse data</string>
-    <string name="apps_action_browse_external">Browse external storage</string>
+    <string name="apps_action_browse_path">Browse path</string>
     <string name="apps_action_share">Share APK</string>
     <string name="apps_action_refresh">Refresh</string>
     <string name="apps_action_sort">Sort</string>
@@ -46,6 +45,11 @@
     <string name="apps_package_name_label">Package</string>
     <string name="apps_version_label">Version</string>
     <string name="apps_size_label">Size</string>
+
+    <!-- App Details -->
+    <string name="apps_details_storage_locations_label">Storage Locations</string>
+    <string name="apps_path_internal_data_label">Internal Data</string>
+    <string name="apps_path_external_data_label">External Storage</string>
 
     <!-- Empty States -->
     <string name="apps_empty_no_apps">No apps found</string>

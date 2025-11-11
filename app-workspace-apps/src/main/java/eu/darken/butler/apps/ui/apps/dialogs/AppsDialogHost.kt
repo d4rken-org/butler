@@ -21,6 +21,7 @@ fun AppsDialogHost(
         is AppsDialogState.AppDetails -> {
             AppDetailsDialog(
                 app = dialogState.app,
+                availablePaths = dialogState.availablePaths,
                 onDismiss = onDismiss,
                 onAction = onAction,
                 modifier = modifier,
