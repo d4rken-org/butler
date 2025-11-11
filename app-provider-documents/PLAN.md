@@ -240,81 +240,123 @@ app-provider-documents/
 
 Document IDs are the **core stability requirement** of DocumentsProvider. Once returned, they must never change (except during rename).
 
-**Format**: `{rootId}|{pathType}|{base64EncodedPath}`
+**Format**: `{pathType}|{base64EncodedPathData}`
 
 **Components**:
-- `rootId`: Which root this document belongs to (`internal`, `sdcard`, `root`, `adb`)
-- `pathType`: Path type for decoding (`local`, `saf`, `root`, `adb`)
-- `base64EncodedPath`: URL-safe Base64-encoded absolute path
+- `pathType`: Identifies the APath implementation (`local`, `saf`, future: `ssh`, `ftp`)
+- `base64EncodedPathData`: URL-safe Base64-encoded path data (path string for LocalPath, JSON for SAFPath)
 
 **Examples**:
 ```kotlin
-// Internal storage file
-"internal|local|L3N0b3JhZ2UvZW11bGF0ZWQvMC9Eb3dubG9hZC9maWxlLnBkZg"
+// Internal storage file - LocalPath
+"local|L3N0b3JhZ2UvZW11bGF0ZWQvMC9Eb3dubG9hZC9maWxlLnBkZg"
 // Decodes to: LocalPath("/storage/emulated/0/Download/file.pdf")
 
-// Root-accessible system file
-"root|root|L3N5c3RlbS9idWlsZC5wcm9w"
-// Decodes to: RootPath("/system/build.prop")
+// System file (root access transparent via GatewaySwitch) - LocalPath
+"local|L3N5c3RlbS9idWlsZC5wcm9w"
+// Decodes to: LocalPath("/system/build.prop")
+// Note: GatewaySwitch automatically uses RootGateway for /system paths
 
-// ADB-accessible Android/data
-"adb|adb|L3N0b3JhZ2UvZW11bGF0ZWQvMC9BbmRyb2lkL2RhdGEvY29tLmV4YW1wbGUvZmlsZXMvZGF0YS50eHQ"
-// Decodes to: ADBPath("/storage/emulated/0/Android/data/com.example/files/data.txt")
+// Android/data file (ADB access transparent via GatewaySwitch) - LocalPath
+"local|L3N0b3JhZ2UvZW11bGF0ZWQvMC9BbmRyb2lkL2RhdGEvZmlsZS50eHQ"
+// Decodes to: LocalPath("/storage/emulated/0/Android/data/file.txt")
+// Note: GatewaySwitch automatically uses ADBGateway for Android/data paths
+
+// SAF tree file - SAFPath (JSON-serialized)
+"saf|eyJ0cmVlUm9vdCI6ImNvbnRlbnQ6Ly8uLi4iLCJzZWdtZW50cyI6WyJmb2xkZXIiLCJmaWxlLnR4dCJdfQ=="
+// Decodes to: SAFPath(treeRoot="content://...", segments=["folder", "file.txt"])
+
+// Future: SSH path
+"ssh|eyJzZXJ2ZXJJZCI6IjEyMyIsInBhdGgiOiIvaG9tZS91c2VyL2ZpbGUudHh0In0="
+// Decodes to: SSHPath(serverId="123", path="/home/user/file.txt")
 ```
 
 **Why This Design**:
-- ✅ **Stable**: Paths are absolute, won't change unless file moves
-- ✅ **Unique**: Combination of root + path type + path is guaranteed unique
+- ✅ **Simple**: Only 2 components (was 3 before)
+- ✅ **Stable**: Absolute paths won't change unless file moves
+- ✅ **Unique**: Each path on the system is globally unique
 - ✅ **Reversible**: Can reconstruct exact `APath` from Document ID
-- ✅ **Safe**: Base64 encoding handles special characters, separators
-- ✅ **Extensible**: Easy to add new path types in future
+- ✅ **Safe**: Base64 URL-safe encoding handles special characters, separators
+- ✅ **Extensible**: Easy to add new path types (ssh, ftp, etc.)
+- ✅ **No Redundancy**: Path uniquely identifies location - no need for separate rootId
+
+**Why No rootId?**
+
+The path itself is globally unique on the device:
+- `/storage/emulated/0/file.txt` can only be one location
+- `/storage/1234-5678/file.txt` (SD card) is a different unique location
+- SAFPath treeRoot URIs are globally unique
+
+Root identification happens in two places:
+1. **In queryRoots()**: Android API requires `COLUMN_ROOT_ID` (e.g., "device_internal") - this is metadata, not part of document IDs
+2. **For lookups**: Can infer root from path if needed (e.g., `/storage/emulated/0` → Internal Storage root)
 
 **Implementation**:
 ```kotlin
 object DocumentIdCodec {
     private const val SEPARATOR = "|"
+    private val json = Json { ignoreUnknownKeys = true }
 
-    fun encode(rootId: String, path: APath<*>): String {
+    fun encode(path: APath<*>): String {
         val pathType = when (path) {
             is LocalPath -> "local"
             is SAFPath -> "saf"
-            // Future: RootPath, ADBPath
+            // Future: is SSHPath -> "ssh", is FTPPath -> "ftp"
             else -> throw IllegalArgumentException("Unsupported path type: ${path::class}")
         }
 
-        val encodedPath = Base64.encodeToString(
-            path.path.toByteArray(),
-            Base64.NO_WRAP or Base64.URL_SAFE
-        )
-
-        return "$rootId$SEPARATOR$pathType$SEPARATOR$encodedPath"
-    }
-
-    fun decode(documentId: String): Pair<String, APath<*>> {
-        val parts = documentId.split(SEPARATOR)
-        require(parts.size == 3) { "Invalid document ID format" }
-
-        val (rootId, pathType, encodedPath) = parts
-        val decodedPath = String(Base64.decode(encodedPath, Base64.URL_SAFE))
-
-        val path = when (pathType) {
-            "local" -> LocalPath(decodedPath)
-            "saf" -> SAFPath.build(decodedPath) // May need URI parsing
-            // Future: "root" -> RootPath(decodedPath)
-            // Future: "adb" -> ADBPath(decodedPath)
-            else -> throw IllegalArgumentException("Unknown path type: $pathType")
+        val encodedData = when (path) {
+            is LocalPath -> {
+                // Simple: encode the absolute path string
+                Base64.encodeToString(
+                    path.path.toByteArray(),
+                    Base64.NO_WRAP or Base64.URL_SAFE
+                )
+            }
+            is SAFPath -> {
+                // Complex: JSON-serialize the entire SAFPath object (treeRoot + segments)
+                val jsonString = json.encodeToString(path)
+                Base64.encodeToString(
+                    jsonString.toByteArray(),
+                    Base64.NO_WRAP or Base64.URL_SAFE
+                )
+            }
+            else -> throw IllegalArgumentException("Unsupported path type")
         }
 
-        return rootId to path
+        return "$pathType$SEPARATOR$encodedData"
+    }
+
+    fun decode(documentId: String): APath<*> {
+        val parts = documentId.split(SEPARATOR)
+        require(parts.size == 2) { "Invalid document ID format: expected 2 parts, got ${parts.size}" }
+
+        val (pathType, encodedData) = parts
+        val decodedBytes = Base64.decode(encodedData, Base64.URL_SAFE)
+
+        return when (pathType) {
+            "local" -> {
+                val pathString = String(decodedBytes)
+                LocalPath.build(pathString)
+            }
+            "saf" -> {
+                val jsonString = String(decodedBytes)
+                json.decodeFromString<SAFPath>(jsonString)
+            }
+            // Future: "ssh" -> json.decodeFromString<SSHPath>(String(decodedBytes))
+            else -> throw IllegalArgumentException("Unknown path type: $pathType")
+        }
     }
 }
 ```
 
 **Edge Cases Handled**:
-- Special characters in paths (Base64 encoding)
-- Very long paths (no length limit on Document IDs)
-- Symbolic links (encode the link path itself, not target)
-- Renamed files (renameDocument can return new ID)
+- **Special characters in paths**: Base64 encoding handles all characters safely
+- **Very long paths**: No length limit on Document IDs (Base64 is ~33% larger, but even 500-char paths → ~670-char IDs)
+- **SAFPath complexity**: JSON serialization preserves both treeRoot and segments
+- **Symbolic links**: Encode the link path itself, not target
+- **Renamed files**: renameDocument can return new ID with updated path
+- **Unicode**: UTF-8 encoding before Base64 handles all Unicode characters
 
 **What About Renames?**:
 When a file is renamed, `renameDocument()` is allowed to return a **new Document ID**. This is the one exception to ID stability. Our implementation:
@@ -322,59 +364,224 @@ When a file is renamed, `renameDocument()` is allowed to return a **new Document
 2. Return new Document ID with updated path
 3. System handles old → new ID migration for clients
 
+---
+
+### Path Types vs Access Methods vs Roots
+
+**Critical Architectural Distinction**: There are three separate concepts that must not be confused:
+
+#### 1. Path Types (Data Structures)
+
+These are **APath implementations** - data structures representing file locations:
+
+| Path Type | Class | Description | Encoded in Document ID |
+|-----------|-------|-------------|------------------------|
+| `local` | `LocalPath` | Local filesystem paths | ✅ Yes |
+| `saf` | `SAFPath` | Storage Access Framework paths | ✅ Yes |
+| `ssh` (future) | `SSHPath` | SSH/SFTP remote paths | ✅ Yes |
+| `ftp` (future) | `FTPPath` | FTP remote paths | ✅ Yes |
+
+**Examples:**
+```kotlin
+LocalPath.build("/storage/emulated/0/Download/file.pdf")  // local path type
+SAFPath(treeRoot="content://...", segments=["file.txt"])   // saf path type
+```
+
+**In Document IDs:** `pathType` field identifies which APath implementation
+
+#### 2. Access Methods (Gateways - Internal Implementation)
+
+These are **how Butler reads files** - internal implementation details that clients never see:
+
+| Gateway | Purpose | When Used |
+|---------|---------|-----------|
+| `LocalGateway` | Normal file access | Most `/storage/` paths |
+| `RootGateway` | Root-privileged access | System paths like `/system`, `/data` |
+| `ADBGateway` | Shizuku/ADB access | Restricted paths like `/Android/data` |
+| `SAFGateway` | SAF framework access | SAF paths |
+
+**Path-Based Routing (via GatewaySwitch):**
+```kotlin
+// GatewaySwitch automatically selects gateway based on path:
+val path = LocalPath.build("/system/build.prop")
+gatewaySwitch.lookup(path, options)  // Routes to RootGateway internally
+
+val path2 = LocalPath.build("/storage/emulated/0/Android/data/file.txt")
+gatewaySwitch.lookup(path2, options)  // Routes to ADBGateway internally
+```
+
+**Key Point:** Access method is **inferred from the path** - not encoded anywhere!
+
+**In Document IDs:** ❌ NOT included - internal implementation detail
+
+#### 3. Roots (Picker Drawer Entries - User-Facing)
+
+These are **what users see in the file picker** - entries in the picker drawer:
+
+| Root | Starting Path | User Sees |
+|------|---------------|-----------|
+| Internal Storage | `/storage/emulated/0` | "Butler - Internal Storage" |
+| SD Card | `/storage/XXXX-XXXX` | "Butler - SD Card" |
+| Root Directory (Phase 2+) | `/` | "Butler - Root Directory" |
+| System ROM (Phase 2+) | `/system` | "Butler - System ROM" |
+| SSH Server (Phase 2+) | `SSHPath(...)` | "Butler - My Server" |
+
+**Represented by:** `DocumentRoot` sealed class (metadata for Android's DocumentsProvider API)
+
+**In Document IDs:** ❌ NOT included - only `COLUMN_ROOT_ID` in queryRoots() response
+
+#### Example: Complete Flow
+
+**User Action:** User opens Chrome, clicks "Upload file", picks "Butler - Internal Storage", navigates to a system file
+
+```
+1. Picker shows root: "Butler - Internal Storage"
+   - Root metadata: DocumentRoot.InternalStorage
+   - Root's apiRootId: "device_internal" (for COLUMN_ROOT_ID)
+   - Root's startPath: LocalPath("/storage/emulated/0")
+
+2. User navigates to /system/build.prop
+   - Path: LocalPath("/system/build.prop")
+   - Path type: local (LocalPath)
+   - Document ID: "local|L3N5c3RlbS9idWlsZC5wcm9w"
+
+3. Butler retrieves file metadata:
+   - Decode document ID → LocalPath("/system/build.prop")
+   - Pass to GatewaySwitch
+   - GatewaySwitch sees "/system" prefix → routes to RootGateway
+   - Access method: root (transparent to caller)
+   - Returns file metadata
+
+4. User selects file:
+   - Chrome receives content:// URI with document ID
+   - Opens file via openDocument()
+   - Same flow: decode → GatewaySwitch → RootGateway → file contents
+```
+
+**Key Insight:**
+- Path type (`local`) is in document ID
+- Access method (root gateway) is internal, inferred from path
+- Root ("Internal Storage") is UI metadata, not in document ID
+
+**Why This Matters:**
+- ❌ WRONG: Treating "root" and "adb" as path types - they're access methods
+- ❌ WRONG: Including rootId in document ID - path is already unique
+- ✅ RIGHT: Path types identify data structures, access methods are inferred, roots are UI metadata
+
+---
+
 ### Root Configuration
 
-**Root Types** (Sealed Class Hierarchy):
+**What are DocumentRoots?**
+
+`DocumentRoot` is **metadata for entries shown in the file picker drawer**. When users open the Android file picker, they see a list of available document providers. Each provider can expose multiple "roots" (storage locations).
+
+**Butler's Roots** (based on Butler's existing architecture):
+
+Phase 1: Device storage locations
+- Internal Storage (`/storage/emulated/0`)
+- SD Cards (one root per detected card)
+
+Phase 2+: Advanced locations (opt-in via settings)
+- Root Directory (`/`) - for browsing entire filesystem
+- System ROM (`/system`) - for system files
+- SAF Trees (per granted SAF tree)
+
+Phase 3+: Remote servers
+- SSH servers (one root per connection)
+- FTP servers (one root per connection)
+
+**DocumentRoot Sealed Class**:
 
 ```kotlin
 sealed class DocumentRoot {
-    abstract val id: String
+    abstract val apiRootId: String  // For Android's COLUMN_ROOT_ID (not in document IDs!)
     abstract val icon: Int
     abstract val titleRes: Int
     abstract val summaryRes: Int?
     abstract val flags: Int
-    abstract val path: APath<*>
+    abstract val startPath: APath<*>  // Where browsing starts for this root
 
+    // Phase 1: Primary storage - what most users want
     data object InternalStorage : DocumentRoot() {
-        override val id = "internal"
-        override val icon = R.drawable.ic_root_internal_storage
-        override val titleRes = R.string.documents_root_internal_storage_title
-        override val summaryRes = R.string.documents_root_internal_storage_summary
+        override val apiRootId = "device_internal"
+        override val icon = R.drawable.ic_phone
+        override val titleRes = R.string.documents_root_internal_storage_title  // "Internal Storage"
+        override val summaryRes = R.string.documents_root_internal_storage_summary  // "Primary device storage"
         override val flags = FLAG_SUPPORTS_IS_CHILD or FLAG_LOCAL_ONLY
-        override val path = LocalPath("/storage/emulated/0")
+        override val startPath = LocalPath.build("/storage/emulated/0")
     }
 
-    data class ExternalStorage(
-        val storagePath: String,
-        val name: String
+    // Phase 1: SD cards - detected dynamically
+    data class SDCard(
+        val volumeId: String,  // e.g., "1234-5678"
+        val displayName: String?  // User-friendly name if available
     ) : DocumentRoot() {
-        override val id = "sdcard_${name.hashCode()}"
-        override val icon = R.drawable.ic_root_sd_card
-        override val titleRes = R.string.documents_root_external_storage_title
-        override val summaryRes = null
+        override val apiRootId = "device_sd_$volumeId"
+        override val icon = R.drawable.ic_sd_card
+        override val titleRes = R.string.documents_root_sd_card_title  // "SD Card"
+        override val summaryRes = null  // Or use displayName
         override val flags = FLAG_SUPPORTS_IS_CHILD or FLAG_LOCAL_ONLY or FLAG_SUPPORTS_EJECT
-        override val path = LocalPath(storagePath)
+        override val startPath = LocalPath.build("/storage/$volumeId")
     }
 
-    data object RootAccess : DocumentRoot() {
-        override val id = "root"
-        override val icon = R.drawable.ic_root_root_access
-        override val titleRes = R.string.documents_root_root_access_title
-        override val summaryRes = R.string.documents_root_root_access_summary
+    // Phase 2+: Root filesystem - advanced users (opt-in)
+    data object RootDirectory : DocumentRoot() {
+        override val apiRootId = "device_root"
+        override val icon = R.drawable.ic_folder
+        override val titleRes = R.string.documents_root_root_directory_title  // "Root Directory"
+        override val summaryRes = R.string.documents_root_root_directory_summary  // "Full filesystem access"
         override val flags = FLAG_SUPPORTS_IS_CHILD or FLAG_LOCAL_ONLY
-        override val path = LocalPath("/")  // Or RootPath("/")
+        override val startPath = LocalPath.build("/")
+        // Note: GatewaySwitch automatically routes /system, /data paths to RootGateway
     }
 
-    data object ADBAccess : DocumentRoot() {
-        override val id = "adb"
-        override val icon = R.drawable.ic_root_adb_access
-        override val titleRes = R.string.documents_root_adb_access_title
-        override val summaryRes = R.string.documents_root_adb_access_summary
+    // Phase 2+: System partition - advanced users (opt-in)
+    data object SystemROM : DocumentRoot() {
+        override val apiRootId = "device_system"
+        override val icon = R.drawable.ic_system
+        override val titleRes = R.string.documents_root_system_rom_title  // "System ROM"
+        override val summaryRes = R.string.documents_root_system_rom_summary  // "System partition files"
         override val flags = FLAG_SUPPORTS_IS_CHILD or FLAG_LOCAL_ONLY
-        override val path = LocalPath("/storage/emulated/0")  // Or ADBPath
+        override val startPath = LocalPath.build("/system")
+        // Note: GatewaySwitch automatically routes to RootGateway for /system
+    }
+
+    // Phase 2+: SAF trees - per granted tree
+    data class SAFTree(
+        val treeRootUri: String,  // The SAF tree URI
+        val displayName: String  // User-friendly name
+    ) : DocumentRoot() {
+        override val apiRootId = "saf_${treeRootUri.hashCode()}"
+        override val icon = R.drawable.ic_saf
+        override val titleRes = 0  // Not used - displayName used instead
+        override val summaryRes = null
+        override val flags = FLAG_SUPPORTS_IS_CHILD
+        override val startPath = SAFPath(treeRootUri, emptyList())
+    }
+
+    // Phase 3+: SSH servers
+    data class SSHServer(
+        val serverId: String,
+        val displayName: String,
+        val hostName: String
+    ) : DocumentRoot() {
+        override val apiRootId = "ssh_$serverId"
+        override val icon = R.drawable.ic_ssh
+        override val titleRes = 0  // Use displayName
+        override val summaryRes = null
+        override val flags = FLAG_SUPPORTS_IS_CHILD
+        // override val startPath = SSHPath(serverId, "/")  // Future
+        override val startPath = TODO("SSH not implemented yet")
     }
 }
 ```
+
+**Key Design Notes:**
+- **apiRootId**: Used ONLY for Android's `COLUMN_ROOT_ID` in queryRoots() response - NOT embedded in document IDs
+- **startPath**: The initial path shown when user selects this root
+- **No separate root/ADB roots**: Those are access methods (gateways), not storage locations
+- **LocalPath everywhere**: Root/ADB access is transparent - GatewaySwitch routes based on path
 
 **Root Manager** (Singleton):
 
@@ -384,55 +591,82 @@ class RootManager @Inject constructor(
     private val context: Context,
     private val gatewaySwitch: GatewaySwitch,
     private val settings: DocumentsProviderSettings,
-    // Future: rootAvailability, adbAvailability checkers
+    private val storageManager: StorageManager,  // For SD card detection
 ) {
     suspend fun getAvailableRoots(): List<DocumentRoot> {
         val roots = mutableListOf<DocumentRoot>()
 
-        // Internal storage - always available
+        // Phase 1: Internal storage - always show (if not disabled in settings)
         if (settings.showInternalStorage.value()) {
             roots.add(DocumentRoot.InternalStorage)
         }
 
-        // External storage - detect SD cards
+        // Phase 1: SD cards - detect dynamically
         if (settings.showExternalStorage.value()) {
-            roots.addAll(detectExternalStorage())
+            roots.addAll(detectSDCards())
         }
 
-        // Root access - conditional on root availability
-        if (settings.showRootAccess.value() && isRootAvailable()) {
-            roots.add(DocumentRoot.RootAccess)
+        // Phase 2+: Advanced roots (opt-in)
+        if (settings.showRootDirectory.value()) {
+            roots.add(DocumentRoot.RootDirectory)
         }
 
-        // ADB access - conditional on Shizuku availability
-        if (settings.showADBAccess.value() && isADBAvailable()) {
-            roots.add(DocumentRoot.ADBAccess)
+        if (settings.showSystemROM.value()) {
+            roots.add(DocumentRoot.SystemROM)
+        }
+
+        // Phase 2+: SAF trees
+        if (settings.showSAFTrees.value()) {
+            roots.addAll(getSAFTrees())
         }
 
         return roots
     }
 
-    private suspend fun detectExternalStorage(): List<DocumentRoot.ExternalStorage> {
+    private suspend fun detectSDCards(): List<DocumentRoot.SDCard> {
         // Use Android's StorageManager to enumerate volumes
-        // Filter for removable storage
-        // Return list of ExternalStorage roots
-        TODO("Implement SD card detection")
+        val volumes = storageManager.storageVolumes
+        return volumes
+            .filter { it.isRemovable && it.state == Environment.MEDIA_MOUNTED }
+            .mapNotNull { volume ->
+                volume.uuid?.let { uuid ->
+                    DocumentRoot.SDCard(
+                        volumeId = uuid,
+                        displayName = volume.getDescription(context)
+                    )
+                }
+            }
     }
 
-    private suspend fun isRootAvailable(): Boolean {
-        // Check if device is rooted and Butler has root access
-        // May need to inject RootChecker or similar
-        return false  // Phase 1: no root support
+    private suspend fun getSAFTrees(): List<DocumentRoot.SAFTree> {
+        // Get user-granted SAF trees from Butler's settings/database
+        // Return one root per tree
+        return emptyList()  // TODO: Phase 2
     }
 
-    private suspend fun isADBAvailable(): Boolean {
-        // Check if Shizuku is running and Butler has permission
-        // May need to inject ShizukuChecker or similar
-        return false  // Phase 1: no ADB support
+    fun getRootByApiId(apiRootId: String): DocumentRoot? {
+        return runBlocking { getAvailableRoots().find { it.apiRootId == apiRootId } }
     }
 
-    fun getRootById(rootId: String): DocumentRoot? {
-        return runBlocking { getAvailableRoots().find { it.id == rootId } }
+    fun getRootForPath(path: APath<*>): DocumentRoot? {
+        // Infer which root a path belongs to (for lookups)
+        return when (path) {
+            is LocalPath -> when {
+                path.path.startsWith("/storage/emulated/0") -> DocumentRoot.InternalStorage
+                path.path.matches(Regex("/storage/[A-F0-9]{4}-[A-F0-9]{4}.*")) -> {
+                    val volumeId = path.path.removePrefix("/storage/").substringBefore("/")
+                    DocumentRoot.SDCard(volumeId, null)
+                }
+                path.path == "/" -> DocumentRoot.RootDirectory
+                path.path.startsWith("/system") -> DocumentRoot.SystemROM
+                else -> null
+            }
+            is SAFPath -> {
+                // Find SAF tree root for this treeRoot
+                runBlocking { getSAFTrees().find { it.treeRootUri == path.treeRoot } }
+            }
+            else -> null
+        }
     }
 }
 ```
@@ -480,13 +714,13 @@ class RootQueryHandler @Inject constructor(
 
         roots.forEach { root ->
             cursor.newRow().apply {
-                add(DocumentsContract.Root.COLUMN_ROOT_ID, root.id)
+                add(DocumentsContract.Root.COLUMN_ROOT_ID, root.apiRootId)
                 add(DocumentsContract.Root.COLUMN_ICON, root.icon)
                 add(DocumentsContract.Root.COLUMN_TITLE, context.getString(root.titleRes))
                 add(DocumentsContract.Root.COLUMN_SUMMARY, root.summaryRes?.let { context.getString(it) })
-                add(DocumentsContract.Root.COLUMN_DOCUMENT_ID, DocumentIdCodec.encode(root.id, root.path))
+                add(DocumentsContract.Root.COLUMN_DOCUMENT_ID, DocumentIdCodec.encode(root.startPath))
                 add(DocumentsContract.Root.COLUMN_FLAGS, root.flags)
-                add(DocumentsContract.Root.COLUMN_AVAILABLE_BYTES, getAvailableBytes(root.path))
+                add(DocumentsContract.Root.COLUMN_AVAILABLE_BYTES, getAvailableBytes(root.startPath))
             }
         }
 
@@ -529,7 +763,7 @@ class DocumentQueryHandler @Inject constructor(
     suspend fun queryDocument(documentId: String, projection: Array<String>?): Cursor {
         log(TAG) { "queryDocument($documentId)" }
 
-        val (rootId, path) = DocumentIdCodec.decode(documentId)
+        val path = DocumentIdCodec.decode(documentId)
 
         val resolvedProjection = projection ?: DEFAULT_DOCUMENT_PROJECTION
         val cursor = MatrixCursor(resolvedProjection)
@@ -552,7 +786,7 @@ class DocumentQueryHandler @Inject constructor(
     ): Cursor {
         log(TAG) { "queryChildDocuments($parentDocumentId, sortOrder=$sortOrder)" }
 
-        val (rootId, parentPath) = DocumentIdCodec.decode(parentDocumentId)
+        val parentPath = DocumentIdCodec.decode(parentDocumentId)
 
         val resolvedProjection = projection ?: DEFAULT_DOCUMENT_PROJECTION
         val cursor = MatrixCursor(resolvedProjection)
@@ -565,7 +799,7 @@ class DocumentQueryHandler @Inject constructor(
             )
 
             children.forEach { childLookup ->
-                val childDocId = DocumentIdCodec.encode(rootId, childLookup.path)
+                val childDocId = DocumentIdCodec.encode(childLookup.path)
                 cursor.addDocument(childDocId, childLookup)
             }
 
@@ -629,7 +863,7 @@ class DocumentReader @Inject constructor(
     ): ParcelFileDescriptor {
         log(TAG) { "openDocument($documentId, mode=$mode)" }
 
-        val (rootId, path) = DocumentIdCodec.decode(documentId)
+        val path = DocumentIdCodec.decode(documentId)
 
         // Phase 1: Read-only support
         if (mode != "r") {
@@ -642,7 +876,6 @@ class DocumentReader @Inject constructor(
         return when (path) {
             is LocalPath -> openLocalPath(path, mode)
             is SAFPath -> openSAFPath(path, mode)
-            // Future: RootPath, ADBPath
             else -> throw IllegalArgumentException("Unsupported path type: ${path::class}")
         }
     }
@@ -1226,25 +1459,25 @@ class DocumentIdCodecTest {
         @Test
         fun `encode LocalPath with simple absolute path`() {
             val path = LocalPath.build("/storage/emulated/0/Download/file.pdf")
-            val encoded = DocumentIdCodec.encode("internal", path)
+            val encoded = DocumentIdCodec.encode(path)
 
-            assertTrue(encoded.startsWith("internal|local|"))
+            assertTrue(encoded.startsWith("local|"))
             assertFalse(encoded.contains("/")) // Base64 shouldn't contain slashes
         }
 
         @Test
         fun `encode path with special characters`() {
             val path = LocalPath.build("/storage/test file (1) [copy].txt")
-            val encoded = DocumentIdCodec.encode("internal", path)
+            val encoded = DocumentIdCodec.encode(path)
 
             assertNotNull(encoded)
-            assertTrue(encoded.split("|").size == 3)
+            assertTrue(encoded.split("|").size == 2)
         }
 
         @Test
         fun `encode path with Unicode characters`() {
             val path = LocalPath.build("/storage/emulated/0/文件/ファイル.txt")
-            val encoded = DocumentIdCodec.encode("internal", path)
+            val encoded = DocumentIdCodec.encode(path)
 
             assertNotNull(encoded)
             assertTrue(encoded.contains("|"))
@@ -1254,7 +1487,7 @@ class DocumentIdCodecTest {
         fun `encode very long path - no length limit`() {
             val longPath = "/storage/emulated/0/" + "a".repeat(500) + "/file.pdf"
             val path = LocalPath.build(longPath)
-            val encoded = DocumentIdCodec.encode("internal", path)
+            val encoded = DocumentIdCodec.encode(path)
 
             assertNotNull(encoded)
         }
@@ -1262,11 +1495,11 @@ class DocumentIdCodecTest {
         @Test
         fun `encode path with pipe characters in filename`() {
             val path = LocalPath.build("/storage/file|with|pipes.txt")
-            val encoded = DocumentIdCodec.encode("internal", path)
+            val encoded = DocumentIdCodec.encode(path)
 
             // Base64 part should not expose pipe characters
             val parts = encoded.split("|")
-            assertEquals(3, parts.size)
+            assertEquals(2, parts.size)
         }
     }
 
@@ -1274,38 +1507,37 @@ class DocumentIdCodecTest {
     inner class Decoding {
         @Test
         fun `decode valid document ID returns correct path`() {
-            val documentId = "internal|local|L3N0b3JhZ2UvZW11bGF0ZWQvMC9maWxlLnBkZg"
-            val (rootId, path) = DocumentIdCodec.decode(documentId)
+            val documentId = "local|L3N0b3JhZ2UvZW11bGF0ZWQvMC9maWxlLnBkZg"
+            val path = DocumentIdCodec.decode(documentId)
 
-            assertEquals("internal", rootId)
             assertEquals(LocalPath.build("/storage/emulated/0/file.pdf"), path)
         }
 
         @Test
         fun `decode throws on malformed document ID - missing parts`() {
             assertThrows<IllegalArgumentException> {
-                DocumentIdCodec.decode("internal|local") // Missing encoded path
+                DocumentIdCodec.decode("local") // Missing encoded path
             }
         }
 
         @Test
         fun `decode throws on malformed document ID - too many parts`() {
             assertThrows<IllegalArgumentException> {
-                DocumentIdCodec.decode("internal|local|base64|extra")
+                DocumentIdCodec.decode("local|base64|extra")
             }
         }
 
         @Test
         fun `decode throws on invalid base64`() {
             assertThrows<IllegalArgumentException> {
-                DocumentIdCodec.decode("internal|local|NOT_VALID_BASE64!!!")
+                DocumentIdCodec.decode("local|NOT_VALID_BASE64!!!")
             }
         }
 
         @Test
         fun `decode throws on unknown path type`() {
             assertThrows<IllegalArgumentException> {
-                DocumentIdCodec.decode("internal|unknown_type|L3N0b3JhZ2U")
+                DocumentIdCodec.decode("unknown_type|L3N0b3JhZ2U")
             }
         }
 
@@ -1331,34 +1563,35 @@ class DocumentIdCodecTest {
         ])
         fun `encode and decode round trip preserves path`(pathString: String) {
             val original = LocalPath.build(pathString)
-            val encoded = DocumentIdCodec.encode("internal", original)
-            val (rootId, decoded) = DocumentIdCodec.decode(encoded)
+            val encoded = DocumentIdCodec.encode(original)
+            val decoded = DocumentIdCodec.decode(encoded)
 
-            assertEquals("internal", rootId)
             assertEquals(original, decoded)
-        }
-
-        @Test
-        fun `round trip with different root IDs`() {
-            val path = LocalPath.build("/storage/emulated/0/file.txt")
-
-            listOf("internal", "sdcard", "root", "adb").forEach { rootId ->
-                val encoded = DocumentIdCodec.encode(rootId, path)
-                val (decodedRootId, decodedPath) = DocumentIdCodec.decode(encoded)
-
-                assertEquals(rootId, decodedRootId)
-                assertEquals(path, decodedPath)
-            }
         }
 
         @Test
         fun `round trip with root path`() {
             val path = LocalPath.build("/")
-            val encoded = DocumentIdCodec.encode("root", path)
-            val (rootId, decoded) = DocumentIdCodec.decode(encoded)
+            val encoded = DocumentIdCodec.encode(path)
+            val decoded = DocumentIdCodec.decode(encoded)
 
-            assertEquals("root", rootId)
             assertEquals(path, decoded)
+        }
+
+        @Test
+        fun `round trip with different storage locations`() {
+            val paths = listOf(
+                LocalPath.build("/storage/emulated/0/file.txt"),  // Internal storage
+                LocalPath.build("/storage/1234-5678/file.txt"),   // SD card
+                LocalPath.build("/system/build.prop"),            // System path
+                LocalPath.build("/")                               // Root
+            )
+
+            paths.forEach { original ->
+                val encoded = DocumentIdCodec.encode(original)
+                val decoded = DocumentIdCodec.decode(encoded)
+                assertEquals(original, decoded)
+            }
         }
     }
 
@@ -1368,9 +1601,9 @@ class DocumentIdCodecTest {
         fun `same input produces same output - stability guarantee`() {
             val path = LocalPath.build("/storage/emulated/0/file.pdf")
 
-            val encoded1 = DocumentIdCodec.encode("internal", path)
-            val encoded2 = DocumentIdCodec.encode("internal", path)
-            val encoded3 = DocumentIdCodec.encode("internal", path)
+            val encoded1 = DocumentIdCodec.encode(path)
+            val encoded2 = DocumentIdCodec.encode(path)
+            val encoded3 = DocumentIdCodec.encode(path)
 
             assertEquals(encoded1, encoded2)
             assertEquals(encoded2, encoded3)
@@ -1379,22 +1612,21 @@ class DocumentIdCodecTest {
         @Test
         fun `document ID format matches specification`() {
             val path = LocalPath.build("/storage/emulated/0/file.pdf")
-            val encoded = DocumentIdCodec.encode("internal", path)
+            val encoded = DocumentIdCodec.encode(path)
 
             val parts = encoded.split("|")
-            assertEquals(3, parts.size, "Format: rootId|pathType|base64")
-            assertEquals("internal", parts[0])
-            assertEquals("local", parts[1])
-            assertTrue(parts[2].isNotEmpty(), "Base64 part should not be empty")
+            assertEquals(2, parts.size, "Format: pathType|base64")
+            assertEquals("local", parts[0])
+            assertTrue(parts[1].isNotEmpty(), "Base64 part should not be empty")
         }
 
         @Test
         fun `document ID does not contain path separators in base64`() {
             val path = LocalPath.build("/storage/emulated/0/file.pdf")
-            val encoded = DocumentIdCodec.encode("internal", path)
+            val encoded = DocumentIdCodec.encode(path)
 
             val parts = encoded.split("|")
-            val base64Part = parts[2]
+            val base64Part = parts[1]
 
             // URL-safe Base64 should not contain / or +
             assertFalse(base64Part.contains("/"))
@@ -1408,8 +1640,8 @@ class DocumentIdCodecTest {
         fun `encode path with consecutive slashes - normalized by LocalPath`() {
             // LocalPath may normalize - test the codec handles whatever LocalPath returns
             val path = LocalPath.build("/storage//emulated///0/file.pdf")
-            val encoded = DocumentIdCodec.encode("internal", path)
-            val (_, decoded) = DocumentIdCodec.decode(encoded)
+            val encoded = DocumentIdCodec.encode(path)
+            val decoded = DocumentIdCodec.decode(encoded)
 
             assertEquals(path, decoded)
         }
@@ -1420,8 +1652,8 @@ class DocumentIdCodecTest {
             val path2 = LocalPath.build("/storage/emulated/0/folder/")
 
             // Document behavior: LocalPath normalization
-            val encoded1 = DocumentIdCodec.encode("internal", path1)
-            val encoded2 = DocumentIdCodec.encode("internal", path2)
+            val encoded1 = DocumentIdCodec.encode(path1)
+            val encoded2 = DocumentIdCodec.encode(path2)
 
             assertNotNull(encoded1)
             assertNotNull(encoded2)
@@ -1430,10 +1662,95 @@ class DocumentIdCodecTest {
         @Test
         fun `encode path with only root`() {
             val path = LocalPath.build("/")
-            val encoded = DocumentIdCodec.encode("root", path)
+            val encoded = DocumentIdCodec.encode(path)
 
             assertNotNull(encoded)
-            assertTrue(encoded.startsWith("root|local|"))
+            assertTrue(encoded.startsWith("local|"))
+        }
+    }
+
+    @Nested
+    inner class SAFPathEncoding {
+        @Test
+        fun `encode and decode SAFPath round trip`() {
+            val original = SAFPath(
+                treeRoot = "content://com.android.externalstorage.documents/tree/primary%3Afolder",
+                segments = listOf("subfolder", "file.txt")
+            )
+            val encoded = DocumentIdCodec.encode(original)
+            val decoded = DocumentIdCodec.decode(encoded)
+
+            assertEquals(original, decoded)
+            assertTrue(decoded is SAFPath)
+            assertEquals(original.treeRoot, (decoded as SAFPath).treeRoot)
+            assertEquals(original.segments, decoded.segments)
+        }
+
+        @Test
+        fun `encode SAFPath with empty segments`() {
+            val safPath = SAFPath(
+                treeRoot = "content://authority/tree/root",
+                segments = emptyList()
+            )
+            val encoded = DocumentIdCodec.encode(safPath)
+            val decoded = DocumentIdCodec.decode(encoded)
+
+            assertEquals(safPath, decoded)
+            assertTrue((decoded as SAFPath).segments.isEmpty())
+        }
+
+        @Test
+        fun `encode SAFPath with special characters in segments`() {
+            val safPath = SAFPath(
+                treeRoot = "content://authority/tree/root",
+                segments = listOf("folder with spaces", "file (1).txt", "文件.pdf")
+            )
+            val encoded = DocumentIdCodec.encode(safPath)
+            val decoded = DocumentIdCodec.decode(encoded)
+
+            assertEquals(safPath, decoded)
+        }
+
+        @Test
+        fun `encode SAFPath with deep nesting`() {
+            val safPath = SAFPath(
+                treeRoot = "content://authority/tree/root",
+                segments = listOf("a", "b", "c", "d", "e", "f", "g", "file.txt")
+            )
+            val encoded = DocumentIdCodec.encode(safPath)
+            val decoded = DocumentIdCodec.decode(encoded)
+
+            assertEquals(safPath, decoded)
+        }
+
+        @Test
+        fun `SAFPath document ID starts with saf pathType`() {
+            val safPath = SAFPath(
+                treeRoot = "content://authority/tree/root",
+                segments = listOf("file.txt")
+            )
+            val encoded = DocumentIdCodec.encode(safPath)
+
+            assertTrue(encoded.startsWith("saf|"))
+        }
+
+        @Test
+        fun `SAFPath document ID is JSON-based`() {
+            val safPath = SAFPath(
+                treeRoot = "content://authority/tree/root",
+                segments = listOf("file.txt")
+            )
+            val encoded = DocumentIdCodec.encode(safPath)
+            val parts = encoded.split("|")
+
+            assertEquals(2, parts.size)
+            assertEquals("saf", parts[0])
+
+            // Decode base64 and verify it's JSON
+            val jsonBytes = Base64.decode(parts[1], Base64.URL_SAFE)
+            val jsonString = String(jsonBytes)
+            assertTrue(jsonString.contains("treeRoot"))
+            assertTrue(jsonString.contains("segments"))
         }
     }
 }
