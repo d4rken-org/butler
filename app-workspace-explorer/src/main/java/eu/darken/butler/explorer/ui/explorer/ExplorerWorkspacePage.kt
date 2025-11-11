@@ -198,15 +198,13 @@ fun ExplorerWorkspacePage(
     var showCancelConfirmation by remember { mutableStateOf<Operation.Id?>(null) }
 
     LaunchedEffect(mainState.locationId) {
-        if (mainState.locationId != null) {
-            if (mainState.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
-                listState.animateScrollToItem(0)
-            } else {
-                gridState.animateScrollToItem(0)
-            }
-            scrollBehavior.state.heightOffset = 0f
-            bottomBarScrollBehavior.state.heightOffset = 0f
+        if (mainState.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
+            listState.animateScrollToItem(0)
+        } else {
+            gridState.animateScrollToItem(0)
         }
+        scrollBehavior.state.heightOffset = 0f
+        bottomBarScrollBehavior.state.heightOffset = 0f
     }
 
     // Set the bottom bar height for scroll behavior
