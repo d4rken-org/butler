@@ -208,14 +208,14 @@ class ChunkedTextBufferEditTest : ChunkedTextBufferTestBase() {
         // Then: isModified flag is set
         buffer.isModified.value shouldBe true
 
-        // When: Attempt save (will fail with InMemoryDataSource)
+        // When: Save (InMemoryDataSource now supports save for testing)
         val result = buffer.saveFile()
 
-        // Then: Save fails (InMemoryDataSource doesn't support save)
-        result.isFailure shouldBe true
+        // Then: Save succeeds
+        result.isSuccess shouldBe true
 
-        // Note: isModified remains true because save failed
-        // (This is correct behavior - only clear on successful save)
+        // And: isModified flag is cleared after successful save
+        buffer.isModified.value shouldBe false
     }
 
     @Test

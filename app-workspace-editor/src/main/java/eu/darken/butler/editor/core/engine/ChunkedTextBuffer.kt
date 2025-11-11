@@ -248,7 +248,12 @@ class ChunkedTextBuffer @AssistedInject constructor(
         try {
             // Find the chunk containing this position
             val chunk = findChunkForOffset(position.offset)
-                ?: return@withLock Result.failure(IllegalArgumentException("Position is out of bounds"))
+            if (chunk == null) {
+                log(tag, ERROR) {
+                    "insertText: No chunk found for offset ${position.offset}, totalLength=${_totalLength.value}, chunkIds=${chunkIds.map { it.value }}"
+                }
+                return@withLock Result.failure(IllegalArgumentException("Position is out of bounds"))
+            }
 
             // Pin the chunk to prevent eviction during this operation
             val pinResult = chunkManager.withPinnedChunk(chunk.id) { pinnedChunk ->
@@ -324,6 +329,10 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 val affectedChunks = chunkManager.getChunksInRange(startPosition.offset, endPosition.offset)
                 val affectedChunkIds = affectedChunks.map { it.id }.toSet()
 
+                // Track merged chunk info for boundary fix (needed outside pinning block)
+                var mergedChunkId: TextChunk.ChunkId? = null
+                var mergedChunkSize: Long = 0
+
                 // Pin all affected chunks to prevent eviction during this operation
                 // Lambda returns the set of chunk IDs that need to be evicted after unpinning
                 val pinResult = chunkManager.withPinnedChunks(affectedChunkIds) { pinnedChunks ->
@@ -378,6 +387,10 @@ class ChunkedTextBuffer @AssistedInject constructor(
                                 isDirty = true
                             )
                         } ?: throw IllegalStateException("Failed to update chunk ${firstChunk.id}")
+
+                        // Save info for boundary fix (must happen AFTER updateBoundaries call)
+                        mergedChunkId = firstChunk.id
+                        mergedChunkSize = mergedContent.length.toLong()
 
                         // CRITICAL: Mark all chunks AFTER the merge point as dirty
                         // Even though their content hasn't changed, their logical offsets have moved.
@@ -447,6 +460,23 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 // This must happen BEFORE buildChunkMetadata() so metadata uses updated boundaries
                 val deltaLines = -deletedText.count { it == '\n' }
                 chunkManager.updateBoundaries(startPosition.offset, -deletedLength, deltaLines)
+
+                // CRITICAL FIX: For multi-chunk delete, the merged chunk's boundary was destroyed by updateBoundaries()
+                // We need to fix it to reflect the actual merged content size
+                if (mergedChunkId != null) {
+                    val mergedBoundary = chunkManager.getBoundary(mergedChunkId!!)
+                    if (mergedBoundary != null) {
+                        val correctedBoundary = ChunkBoundary(
+                            startOffset = mergedBoundary.startOffset,
+                            endOffset = mergedBoundary.startOffset + mergedChunkSize,
+                            lineCount = mergedBoundary.lineCount
+                        )
+                        chunkManager.updateBoundary(mergedChunkId!!, correctedBoundary)
+                        log(tag, DEBUG) {
+                            "Fixed merged chunk boundary: ${mergedChunkId!!.value} from [${mergedBoundary.startOffset}, ${mergedBoundary.endOffset}) to [${correctedBoundary.startOffset}, ${correctedBoundary.endOffset})"
+                        }
+                    }
+                }
 
                 // Update line index and state (AFTER boundary update to use correct boundaries)
                 updateAfterEdit()
@@ -650,6 +680,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
             // (insertText/deleteText/replaceText acquire their own mutex)
             when (operation) {
                 is EditOperation.Insert -> {
+                    log(tag, DEBUG) { "Undoing insert: deleting ${operation.text.length} bytes at offset ${operation.position.offset}" }
                     val endPosition = TextPosition(
                         operation.position.offset + operation.text.length,
                         operation.position.line,
@@ -658,7 +689,9 @@ class ChunkedTextBuffer @AssistedInject constructor(
                     deleteText(operation.position, endPosition)
                 }
                 is EditOperation.Delete -> {
-                    insertText(operation.position, operation.deletedText)
+                    log(tag, DEBUG) { "Undoing delete: inserting ${operation.deletedText.length} bytes at offset ${operation.position.offset}" }
+                    val result = insertText(operation.position, operation.deletedText)
+                    log(tag, DEBUG) { "Undo insert result: ${if (result.isSuccess) "SUCCESS" else "FAILED - ${result.exceptionOrNull()?.message}"}" }
                 }
                 is EditOperation.Replace -> {
                     replaceText(

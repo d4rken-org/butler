@@ -51,11 +51,29 @@ class InMemoryDataSource @AssistedInject constructor(
     override suspend fun getSize(): Long = content.toByteArray(Charsets.UTF_8).size.toLong()
 
     /**
-     * In-memory content cannot be saved to disk without a file path.
-     * Use saveFileAs() from EditorWorkspace to save to a specific path.
+     * Saves dirty chunks by merging them back into the in-memory content.
+     * This allows testing of save operations without requiring file I/O.
      */
     override suspend fun save(dirtyChunks: List<TextChunk>, boundaries: Map<TextChunk.ChunkId, ChunkBoundary>) {
-        throw UnsupportedOperationException("Cannot save in-memory content without a file path. Use saveFileAs() instead.")
+        if (dirtyChunks.isEmpty()) {
+            log(tag) { "No dirty chunks to save" }
+            return
+        }
+
+        log(tag) { "Merging ${dirtyChunks.size} dirty chunks into in-memory content" }
+
+        // Use ChunkManager.mergeChunks to properly merge dirty chunks into original content
+        val originalBytes = content.toByteArray(Charsets.UTF_8)
+        val mergedBytes = eu.darken.butler.editor.core.engine.ChunkManager.mergeChunks(
+            originalContent = originalBytes,
+            dirtyChunks = dirtyChunks,
+            boundaries = boundaries
+        )
+
+        content = mergedBytes.toString(Charsets.UTF_8)
+        _isModified.value = content != initialContent
+
+        log(tag) { "Successfully merged dirty chunks (new size: ${content.length} bytes)" }
     }
 
     override suspend fun close() {

@@ -118,6 +118,13 @@ class ChunkManager @AssistedInject constructor(
     }
 
     /**
+     * Update a single chunk's boundary. Used when chunk content changes size.
+     */
+    suspend fun updateBoundary(chunkId: TextChunk.ChunkId, newBoundary: ChunkBoundary) = chunkMutex.withLock {
+        boundaries = (boundaries + (chunkId to newBoundary)).toMutableMap()
+    }
+
+    /**
      * Get all chunk IDs currently tracked (both in cache and evicted but with boundaries).
      */
     fun getAllChunkIds(): List<TextChunk.ChunkId> {
@@ -139,10 +146,16 @@ class ChunkManager @AssistedInject constructor(
     suspend fun getChunksInRange(startOffset: Long, endOffset: Long): List<TextChunk> {
         // Snapshot relevant chunk IDs while holding mutex to avoid race conditions
         val relevantChunkIds = chunkMutex.withLock {
-            boundaries.filter { (_, boundary) ->
+            val matching = boundaries.filter { (_, boundary) ->
                 // Use >= to include chunks that end exactly at startOffset (insertion at end of chunk)
                 boundary.endOffset >= startOffset && boundary.startOffset < endOffset
-            }.keys.toSet()
+            }
+            log(tag, DEBUG) {
+                "getChunksInRange($startOffset, $endOffset): checking ${boundaries.size} boundaries\n" +
+                    boundaries.map { (id, b) -> "  ${id.value}: [${b.startOffset}, ${b.endOffset})" }.joinToString("\n") +
+                    "\n  Matched: ${matching.keys.map { it.value }}"
+            }
+            matching.keys.toSet()
         }
 
         log(tag) { "Found ${relevantChunkIds.size} chunks in range $startOffset-$endOffset" }
@@ -459,13 +472,22 @@ class ChunkManager @AssistedInject constructor(
 
         // Take atomic snapshot to avoid stale reads during iteration
         val chunksSnapshot = _chunks.value
+        val dirtyCount = chunksSnapshot.count { it.value.isDirty }
+        log(tag, DEBUG) { "Cache state: ${chunksSnapshot.size} chunks, $dirtyCount dirty" }
 
         // Filter to only unpinned chunks (refCount=0 and clean)
         val evictCandidates = chunkAccessOrder
             .take(chunksToEvict * 2)  // Take extra candidates in case some are pinned
             .mapNotNull { chunkId ->
                 val chunk = chunksSnapshot[chunkId]
-                if (chunk != null && !chunk.isPinned) chunkId else null
+                if (chunk != null && !chunk.isPinned) {
+                    chunkId
+                } else {
+                    if (chunk != null) {
+                        log(tag, DEBUG) { "Skipping chunk $chunkId for eviction (isPinned=${chunk.isPinned}, isDirty=${chunk.isDirty}, refCount=${chunk.refCount})" }
+                    }
+                    null
+                }
             }
             .take(chunksToEvict)
 
