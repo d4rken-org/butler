@@ -66,6 +66,7 @@ fun WorkspaceManagerScreenHost(
             onCreateWorkspace = vm::createWorkspace,
             onNavigateBack = vm::navigateBack,
             onDismissBadgeExplanation = vm::dismissBadgeExplanation,
+            onDismissLongPressHint = vm::dismissLongPressHint,
             onCloseAllWorkspaces = vm::closeAllWorkspaces,
         )
     }
@@ -81,6 +82,7 @@ fun WorkspaceManagerScreen(
     onCreateWorkspace: (Workspace.Type) -> Unit,
     onNavigateBack: () -> Unit,
     onDismissBadgeExplanation: () -> Unit,
+    onDismissLongPressHint: () -> Unit,
     onCloseAllWorkspaces: () -> Unit,
 ) {
     var showCloseAllDialog by remember { mutableStateOf(false) }
@@ -145,7 +147,9 @@ fun WorkspaceManagerScreen(
                     WorkspaceManagerFAB(
                         workspaceCount = state.workspaceCount,
                         onCreateWorkspace = onCreateWorkspace,
-                        onShowCloseAllDialog = { showCloseAllDialog = true }
+                        onShowCloseAllDialog = { showCloseAllDialog = true },
+                        showLongPressHint = state.showLongPressHint,
+                        onDismissLongPressHint = onDismissLongPressHint
                     )
                 }
             }
@@ -217,6 +221,7 @@ private fun WorkspaceManagerScreenPreview() {
             onCreateWorkspace = {},
             onNavigateBack = {},
             onDismissBadgeExplanation = {},
+            onDismissLongPressHint = {},
             onCloseAllWorkspaces = {}
         )
     }
@@ -238,6 +243,7 @@ private fun WorkspaceManagerScreenEmptyPreview() {
             onCreateWorkspace = {},
             onNavigateBack = {},
             onDismissBadgeExplanation = {},
+            onDismissLongPressHint = {},
             onCloseAllWorkspaces = {}
         )
     }
