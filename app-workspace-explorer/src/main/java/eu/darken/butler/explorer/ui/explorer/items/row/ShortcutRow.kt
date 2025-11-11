@@ -72,7 +72,7 @@ fun ShortcutRow(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = stringResource(R.string.explorer_file_shortcut_label),
+                text = item.subtitle?.get(context) ?: stringResource(R.string.explorer_file_shortcut_label),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

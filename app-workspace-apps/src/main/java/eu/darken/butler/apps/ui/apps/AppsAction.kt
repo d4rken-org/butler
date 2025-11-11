@@ -9,7 +9,6 @@ import androidx.compose.material.icons.twotone.CleaningServices
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.DeleteSweep
 import androidx.compose.material.icons.twotone.Deselect
-import androidx.compose.material.icons.twotone.FileOpen
 import androidx.compose.material.icons.twotone.FilterAlt
 import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.GetApp
@@ -22,6 +21,7 @@ import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.workspace.ui.actions.WorkspaceAction
 
 sealed interface AppsAction : WorkspaceAction {
@@ -136,17 +136,11 @@ sealed interface AppsAction : WorkspaceAction {
         override val label = R.string.apps_action_open_info.toCaString()
     }
 
-    data class BrowseData(
+    data class BrowsePath(
         val app: AppItem,
+        val path: APath<*>,
     ) : AppsAction {
         override val icon = Icons.TwoTone.FolderOpen
-        override val label = R.string.apps_action_browse_data.toCaString()
-    }
-
-    data class BrowseExternal(
-        val app: AppItem,
-    ) : AppsAction {
-        override val icon = Icons.TwoTone.FileOpen
-        override val label = R.string.apps_action_browse_external.toCaString()
+        override val label = R.string.apps_action_browse_path.toCaString()
     }
 }

@@ -8,22 +8,29 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.AppsSettings
 import eu.darken.butler.apps.core.AppsWorkspace
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.core.engine.AppsState
 import eu.darken.butler.apps.core.engine.SortSettings
+import eu.darken.butler.apps.ui.apps.dialogs.AppPath
 import eu.darken.butler.apps.ui.apps.dialogs.AppsDialogState
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.ui.ViewModel4
+import eu.darken.butler.explorer.core.arguments.ExternalExplorerArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
+import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.createAndFocus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -39,6 +46,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
     dispatchers: DispatcherProvider,
     navController: NavigationController,
     workspaceProvider: WorkspaceProvider,
+    private val workspaceRemote: WorkspaceRemote,
     private val appsSettings: AppsSettings,
 ) : ViewModel4(dispatchers, logTag("Apps", "Workspace", id.shortTag, "Page"), navController) {
 
@@ -241,7 +249,32 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
 
     fun showAppDetails(app: AppItem) = launch {
         log(tag) { "Showing app details: ${app.packageName}" }
-        dialogStateFlow.value = AppsDialogState.AppDetails(app)
+
+        // Build list of app-related paths
+        val paths = buildList {
+            // Internal data directory (/data/data/package.name)
+            val internalDataPath = LocalPath.build("/data/data/${app.packageName}")
+            add(
+                AppPath(
+                    path = internalDataPath,
+                    label = R.string.apps_path_internal_data_label.toCaString(),
+                )
+            )
+
+            // External storage directory (/storage/emulated/0/Android/data/package.name)
+            val externalDataPath = LocalPath.build("/storage/emulated/0/Android/data/${app.packageName}")
+            add(
+                AppPath(
+                    path = externalDataPath,
+                    label = R.string.apps_path_external_data_label.toCaString(),
+                )
+            )
+        }
+
+        dialogStateFlow.value = AppsDialogState.AppDetails(
+            app = app,
+            availablePaths = paths,
+        )
     }
 
     fun showFilterDialog() = launch {
@@ -321,16 +354,12 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                 log(tag, WARN) { "Share APK not implemented yet" }
             }
 
-            is AppsAction.BrowseData -> launch {
-                log(tag) { "Browse data action for ${action.app.packageName}" }
-                // TODO: Implement browse data (open Explorer at /data/data/package.name)
-                log(tag, WARN) { "Browse data not implemented yet" }
-            }
-
-            is AppsAction.BrowseExternal -> launch {
-                log(tag) { "Browse external action for ${action.app.packageName}" }
-                // TODO: Implement browse external storage
-                log(tag, WARN) { "Browse external storage not implemented yet" }
+            is AppsAction.BrowsePath -> launch {
+                log(tag) { "Browse path action for ${action.app.packageName}: ${action.path}" }
+                workspaceRemote.createAndFocus(
+                    type = Workspace.Type.EXPLORER,
+                    arguments = ExternalExplorerArguments(startPath = action.path),
+                )
             }
         }
     }
