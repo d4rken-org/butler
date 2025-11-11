@@ -78,6 +78,7 @@ internal fun FileRowBase(
     leadingContent: @Composable () -> Unit,
     primaryText: String,
     secondaryText: String? = null,
+    tertiaryText: String? = null,
     trailingContent: (@Composable () -> Unit)? = null,
     hasProblematicChars: Boolean = false,
 ) {
@@ -138,6 +139,16 @@ internal fun FileRowBase(
                     text = text,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            tertiaryText?.let { text ->
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
