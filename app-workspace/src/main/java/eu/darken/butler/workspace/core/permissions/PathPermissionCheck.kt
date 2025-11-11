@@ -64,11 +64,19 @@ class PathPermissionCheck @Inject constructor(
     }
 
     private suspend fun determineModuleRequirements(path: APath<*>): WorkspaceRequirements {
-        // Only LocalPath from here on
         val localPath = path as? LocalPath ?: return WorkspaceRequirements()
 
-        // App-specific directories don't need modules
-        if (isOurDirectory(localPath)) return WorkspaceRequirements()
+        when {
+            // Our folder is always accessible
+            isOurDirectory(localPath) -> return WorkspaceRequirements()
+
+            // Doesn't need anything?
+            localPath.isDescendantOfOrSelf(storageEnvironment.systemDir) -> return WorkspaceRequirements()
+
+            localPath.isDescendantOfOrSelf(storageEnvironment.dataDir) -> return WorkspaceRequirements(
+                combos = setOf(setOf(SetupModule.Type.ROOT))
+            )
+        }
 
         // Special case: Android/data and Android/obb
         val isRestrictedPath = storageEnvironment.publicDataDirs.any { path.isDescendantOfOrSelf(it) } ||
@@ -148,12 +156,12 @@ class PathPermissionCheck @Inject constructor(
             return WorkspaceRequirements(combos = combos)
         }
 
-        // Other paths (like /data, /system, etc.)
         return if (needsEscalation) {
             WorkspaceRequirements(
                 combos = setOf(
                     setOf(SetupModule.Type.STORAGE, SetupModule.Type.SHIZUKU),
                     setOf(SetupModule.Type.STORAGE, SetupModule.Type.ROOT),
+                    setOf(SetupModule.Type.ROOT),
                 )
             )
         } else {
