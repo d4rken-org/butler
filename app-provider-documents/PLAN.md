@@ -879,11 +879,36 @@ The provider must be registered in the main app's `AndroidManifest.xml` (not the
 12. Drawable resources (icons)
 
 **Testing**:
-- Manual: Open Chrome on device, upload file, verify Butler appears in picker
-- Manual: Browse internal storage through Butler provider
-- Manual: Open files from Butler in various apps
 
-**Estimated Effort**: 2-3 days
+*Unit Tests (TDD - Write First):*
+- **DocumentIdCodec**: 30+ tests covering encoding, decoding, round-trip, stability, edge cases (>95% coverage target)
+  - Test strategy: Write ALL tests FIRST, then implement (RED → GREEN → REFACTOR)
+  - Critical: Document ID stability is a breaking bug - exhaustive testing required
+- **DocumentRoot**: Validation tests for InternalStorage configuration, flags, resource IDs (>90% coverage)
+- **RootManager**: Mock-based tests for root visibility logic, settings integration (>85% coverage)
+
+*Unit Tests (Test-After):*
+- **Query handlers**: Robolectric tests for cursor population and error handling (~80% coverage)
+  - Test cursor column mapping from APathLookup
+  - Test error handling (empty cursors on failure)
+- **DocumentReader**: Integration tests with real file I/O (~70% coverage)
+
+*Integration Tests:*
+- **Instrumented**: ContentProvider registration, queryRoots validation
+- **Manual**: Chrome file upload, system file picker browsing, multi-app compatibility
+
+*Performance Tests:*
+- Query performance with test file structure (`tooling/test-files/`)
+- Memory usage profiling with large directories
+
+**TDD Implementation Timeline**:
+- **Day 1** (2-3h): DocumentIdCodec TDD - Write 30+ tests → Implement → Refactor
+- **Day 2** (3-4h): DocumentRoot + RootManager TDD - Write tests → Implement with mocks
+- **Day 3** (4-6h): Settings + Query handlers (test-after) - Implement → Write Robolectric tests
+- **Day 4** (4-6h): DocumentReader + Provider (test-after) - Implement → Integration tests
+- **Day 5** (3-4h): Full integration testing + manual verification
+
+**Estimated Effort**: 2-3 days (20-25 hours total including comprehensive testing)
 
 ---
 
@@ -1168,46 +1193,742 @@ object DocumentsProviderModule {
 
 ## Testing Strategy
 
-### Unit Testing
+### Overview: TDD Approach
 
-**Testable Components**:
+This implementation follows a **selective TDD strategy**: Write tests first for pure logic and business rules (DocumentIdCodec, RootManager), and test-after for Android framework integration (query handlers, ContentProvider).
 
-1. **DocumentIdCodec**:
-   ```kotlin
-   @Test
-   fun `encode and decode round trip`() {
-       val original = LocalPath("/storage/emulated/0/Download/test.pdf")
-       val encoded = DocumentIdCodec.encode("internal", original)
-       val (rootId, decoded) = DocumentIdCodec.decode(encoded)
+**Why TDD for DocumentsProvider?**
+- **Document ID stability** is a critical correctness requirement - bugs here break client apps
+- **Pure business logic** (encoding, root management) benefits from TDD's fast feedback
+- **Android framework code** (cursors, ContentProvider) is better tested after implementation
 
-       assertEquals("internal", rootId)
-       assertEquals(original, decoded)
-   }
+### Component-by-Component Testing Analysis
 
-   @Test
-   fun `handles special characters in paths`() {
-       val original = LocalPath("/storage/test file (1) [copy].txt")
-       val encoded = DocumentIdCodec.encode("internal", original)
-       val (_, decoded) = DocumentIdCodec.decode(encoded)
+---
 
-       assertEquals(original, decoded)
-   }
-   ```
+#### 1. DocumentIdCodec - **TDD Priority: CRITICAL** ⭐⭐⭐
 
-2. **RootManager**:
-   - Mock settings and gateways
-   - Verify root visibility logic
-   - Test permission-based filtering
+**Why Perfect for TDD:**
+- Pure functions with no side effects or Android dependencies
+- Document ID stability is a **breaking bug** if incorrect - must be tested exhaustively
+- Fast test execution (milliseconds)
+- Clear specification in PLAN.md
 
-3. **Query Handlers**:
-   - Mock GatewaySwitch
-   - Verify cursor population
-   - Test error handling
+**Test Strategy: Write ALL tests FIRST, then implement**
 
-**Testing Challenges**:
-- ContentProvider testing traditionally difficult
-- Requires mocking Android framework classes
-- Consider using Robolectric for Android API simulation
+**Complete Test Suite (30+ tests)**:
+
+```kotlin
+class DocumentIdCodecTest {
+
+    @Nested
+    inner class Encoding {
+        @Test
+        fun `encode LocalPath with simple absolute path`() {
+            val path = LocalPath.build("/storage/emulated/0/Download/file.pdf")
+            val encoded = DocumentIdCodec.encode("internal", path)
+
+            assertTrue(encoded.startsWith("internal|local|"))
+            assertFalse(encoded.contains("/")) // Base64 shouldn't contain slashes
+        }
+
+        @Test
+        fun `encode path with special characters`() {
+            val path = LocalPath.build("/storage/test file (1) [copy].txt")
+            val encoded = DocumentIdCodec.encode("internal", path)
+
+            assertNotNull(encoded)
+            assertTrue(encoded.split("|").size == 3)
+        }
+
+        @Test
+        fun `encode path with Unicode characters`() {
+            val path = LocalPath.build("/storage/emulated/0/文件/ファイル.txt")
+            val encoded = DocumentIdCodec.encode("internal", path)
+
+            assertNotNull(encoded)
+            assertTrue(encoded.contains("|"))
+        }
+
+        @Test
+        fun `encode very long path - no length limit`() {
+            val longPath = "/storage/emulated/0/" + "a".repeat(500) + "/file.pdf"
+            val path = LocalPath.build(longPath)
+            val encoded = DocumentIdCodec.encode("internal", path)
+
+            assertNotNull(encoded)
+        }
+
+        @Test
+        fun `encode path with pipe characters in filename`() {
+            val path = LocalPath.build("/storage/file|with|pipes.txt")
+            val encoded = DocumentIdCodec.encode("internal", path)
+
+            // Base64 part should not expose pipe characters
+            val parts = encoded.split("|")
+            assertEquals(3, parts.size)
+        }
+    }
+
+    @Nested
+    inner class Decoding {
+        @Test
+        fun `decode valid document ID returns correct path`() {
+            val documentId = "internal|local|L3N0b3JhZ2UvZW11bGF0ZWQvMC9maWxlLnBkZg"
+            val (rootId, path) = DocumentIdCodec.decode(documentId)
+
+            assertEquals("internal", rootId)
+            assertEquals(LocalPath.build("/storage/emulated/0/file.pdf"), path)
+        }
+
+        @Test
+        fun `decode throws on malformed document ID - missing parts`() {
+            assertThrows<IllegalArgumentException> {
+                DocumentIdCodec.decode("internal|local") // Missing encoded path
+            }
+        }
+
+        @Test
+        fun `decode throws on malformed document ID - too many parts`() {
+            assertThrows<IllegalArgumentException> {
+                DocumentIdCodec.decode("internal|local|base64|extra")
+            }
+        }
+
+        @Test
+        fun `decode throws on invalid base64`() {
+            assertThrows<IllegalArgumentException> {
+                DocumentIdCodec.decode("internal|local|NOT_VALID_BASE64!!!")
+            }
+        }
+
+        @Test
+        fun `decode throws on unknown path type`() {
+            assertThrows<IllegalArgumentException> {
+                DocumentIdCodec.decode("internal|unknown_type|L3N0b3JhZ2U")
+            }
+        }
+
+        @Test
+        fun `decode empty document ID throws`() {
+            assertThrows<IllegalArgumentException> {
+                DocumentIdCodec.decode("")
+            }
+        }
+    }
+
+    @Nested
+    inner class RoundTrip {
+        @ParameterizedTest
+        @ValueSource(strings = [
+            "/storage/emulated/0/Download/file.pdf",
+            "/storage/test file (1).txt",
+            "/storage/emulated/0/文件.txt",
+            "/storage/emulated/0/a/b/c/d/e/f/g/deep.txt",
+            "/storage/My Documents/Report [Final] (2).docx",
+            "/storage/file with\ttab.txt",
+            "/storage/file with\nnewline.txt"
+        ])
+        fun `encode and decode round trip preserves path`(pathString: String) {
+            val original = LocalPath.build(pathString)
+            val encoded = DocumentIdCodec.encode("internal", original)
+            val (rootId, decoded) = DocumentIdCodec.decode(encoded)
+
+            assertEquals("internal", rootId)
+            assertEquals(original, decoded)
+        }
+
+        @Test
+        fun `round trip with different root IDs`() {
+            val path = LocalPath.build("/storage/emulated/0/file.txt")
+
+            listOf("internal", "sdcard", "root", "adb").forEach { rootId ->
+                val encoded = DocumentIdCodec.encode(rootId, path)
+                val (decodedRootId, decodedPath) = DocumentIdCodec.decode(encoded)
+
+                assertEquals(rootId, decodedRootId)
+                assertEquals(path, decodedPath)
+            }
+        }
+
+        @Test
+        fun `round trip with root path`() {
+            val path = LocalPath.build("/")
+            val encoded = DocumentIdCodec.encode("root", path)
+            val (rootId, decoded) = DocumentIdCodec.decode(encoded)
+
+            assertEquals("root", rootId)
+            assertEquals(path, decoded)
+        }
+    }
+
+    @Nested
+    inner class Stability {
+        @Test
+        fun `same input produces same output - stability guarantee`() {
+            val path = LocalPath.build("/storage/emulated/0/file.pdf")
+
+            val encoded1 = DocumentIdCodec.encode("internal", path)
+            val encoded2 = DocumentIdCodec.encode("internal", path)
+            val encoded3 = DocumentIdCodec.encode("internal", path)
+
+            assertEquals(encoded1, encoded2)
+            assertEquals(encoded2, encoded3)
+        }
+
+        @Test
+        fun `document ID format matches specification`() {
+            val path = LocalPath.build("/storage/emulated/0/file.pdf")
+            val encoded = DocumentIdCodec.encode("internal", path)
+
+            val parts = encoded.split("|")
+            assertEquals(3, parts.size, "Format: rootId|pathType|base64")
+            assertEquals("internal", parts[0])
+            assertEquals("local", parts[1])
+            assertTrue(parts[2].isNotEmpty(), "Base64 part should not be empty")
+        }
+
+        @Test
+        fun `document ID does not contain path separators in base64`() {
+            val path = LocalPath.build("/storage/emulated/0/file.pdf")
+            val encoded = DocumentIdCodec.encode("internal", path)
+
+            val parts = encoded.split("|")
+            val base64Part = parts[2]
+
+            // URL-safe Base64 should not contain / or +
+            assertFalse(base64Part.contains("/"))
+            assertFalse(base64Part.contains("+"))
+        }
+    }
+
+    @Nested
+    inner class EdgeCases {
+        @Test
+        fun `encode path with consecutive slashes - normalized by LocalPath`() {
+            // LocalPath may normalize - test the codec handles whatever LocalPath returns
+            val path = LocalPath.build("/storage//emulated///0/file.pdf")
+            val encoded = DocumentIdCodec.encode("internal", path)
+            val (_, decoded) = DocumentIdCodec.decode(encoded)
+
+            assertEquals(path, decoded)
+        }
+
+        @Test
+        fun `encode path with trailing slash`() {
+            val path1 = LocalPath.build("/storage/emulated/0/folder")
+            val path2 = LocalPath.build("/storage/emulated/0/folder/")
+
+            // Document behavior: LocalPath normalization
+            val encoded1 = DocumentIdCodec.encode("internal", path1)
+            val encoded2 = DocumentIdCodec.encode("internal", path2)
+
+            assertNotNull(encoded1)
+            assertNotNull(encoded2)
+        }
+
+        @Test
+        fun `encode path with only root`() {
+            val path = LocalPath.build("/")
+            val encoded = DocumentIdCodec.encode("root", path)
+
+            assertNotNull(encoded)
+            assertTrue(encoded.startsWith("root|local|"))
+        }
+    }
+}
+```
+
+**Coverage Goal**: >95% - This is the **stability foundation** of the entire provider
+
+**TDD Workflow**:
+1. ✅ Write all 30+ tests FIRST (they will fail - RED)
+2. ✅ Implement `DocumentIdCodec.encode()` - watch tests turn GREEN
+3. ✅ Implement `DocumentIdCodec.decode()` - watch tests turn GREEN
+4. ✅ Refactor with confidence - tests prevent regressions
+
+---
+
+#### 2. DocumentRoot Sealed Class - **TDD Priority: HIGH** ⭐⭐⭐
+
+**Why Excellent for TDD:**
+- Simple data structure validation
+- No external dependencies
+- Clear requirements
+
+**Test Suite**:
+
+```kotlin
+class DocumentRootTest {
+
+    @Test
+    fun `InternalStorage has correct configuration`() {
+        val root = DocumentRoot.InternalStorage
+
+        assertEquals("internal", root.id)
+        assertTrue(root.path is LocalPath)
+        assertEquals("/storage/emulated/0", root.path.path)
+        assertNotEquals(0, root.icon)
+        assertNotEquals(0, root.titleRes)
+    }
+
+    @Test
+    fun `InternalStorage has required DocumentsProvider flags`() {
+        val flags = DocumentRoot.InternalStorage.flags
+
+        assertTrue(flags and DocumentsContract.Root.FLAG_SUPPORTS_IS_CHILD != 0)
+        assertTrue(flags and DocumentsContract.Root.FLAG_LOCAL_ONLY != 0)
+    }
+
+    @Test
+    fun `all root IDs are unique`() {
+        val allRoots = listOf(
+            DocumentRoot.InternalStorage.id,
+            // Future: ExternalStorage instances will need dynamic ID checks
+        )
+
+        assertEquals(allRoots.size, allRoots.distinct().size)
+    }
+
+    @Test
+    fun `all root icons are valid resource IDs`() {
+        assertTrue(DocumentRoot.InternalStorage.icon > 0)
+    }
+
+    @Test
+    fun `all root title resources are valid`() {
+        assertTrue(DocumentRoot.InternalStorage.titleRes > 0)
+    }
+}
+```
+
+**Coverage Goal**: >90%
+
+---
+
+#### 3. RootManager - **TDD Priority: HIGH** ⭐⭐
+
+**Why Good for TDD:**
+- Business logic with clear inputs/outputs
+- Dependencies can be mocked
+- Deterministic behavior
+
+**Test Suite with Mocks**:
+
+```kotlin
+class RootManagerTest {
+
+    private lateinit var mockSettings: DocumentsProviderSettings
+    private lateinit var mockGatewaySwitch: GatewaySwitch
+    private lateinit var mockContext: Context
+    private lateinit var rootManager: RootManager
+
+    @BeforeEach
+    fun setup() {
+        mockSettings = mock()
+        mockGatewaySwitch = mock()
+        mockContext = mock()
+
+        // Setup default mock returns
+        whenever(mockSettings.showInternalStorage.value()).thenReturn(true)
+        whenever(mockSettings.showExternalStorage.value()).thenReturn(false)
+        whenever(mockSettings.showRootAccess.value()).thenReturn(false)
+        whenever(mockSettings.showADBAccess.value()).thenReturn(false)
+
+        rootManager = RootManager(
+            context = mockContext,
+            gatewaySwitch = mockGatewaySwitch,
+            settings = mockSettings
+        )
+    }
+
+    @Test
+    fun `getAvailableRoots returns InternalStorage when enabled`() = runTest {
+        // Given: Internal storage enabled (already set in setup)
+
+        // When
+        val roots = rootManager.getAvailableRoots()
+
+        // Then
+        assertEquals(1, roots.size)
+        assertTrue(roots[0] is DocumentRoot.InternalStorage)
+    }
+
+    @Test
+    fun `getAvailableRoots returns empty list when all disabled`() = runTest {
+        // Given
+        whenever(mockSettings.showInternalStorage.value()).thenReturn(false)
+
+        // When
+        val roots = rootManager.getAvailableRoots()
+
+        // Then
+        assertTrue(roots.isEmpty())
+    }
+
+    @Test
+    fun `getAvailableRoots respects all setting toggles`() = runTest {
+        // Given: All enabled
+        whenever(mockSettings.showInternalStorage.value()).thenReturn(true)
+        whenever(mockSettings.showExternalStorage.value()).thenReturn(true)
+        whenever(mockSettings.showRootAccess.value()).thenReturn(true)
+        whenever(mockSettings.showADBAccess.value()).thenReturn(true)
+
+        // When
+        val roots = rootManager.getAvailableRoots()
+
+        // Then: Phase 1 only has internal, but test structure ready
+        assertTrue(roots.isNotEmpty())
+        verify(mockSettings).showInternalStorage
+        verify(mockSettings).showExternalStorage
+    }
+
+    @Test
+    fun `getRootById returns correct root`() {
+        // When
+        val root = rootManager.getRootById("internal")
+
+        // Then
+        assertNotNull(root)
+        assertEquals(DocumentRoot.InternalStorage, root)
+    }
+
+    @Test
+    fun `getRootById returns null for unknown ID`() {
+        // When
+        val root = rootManager.getRootById("unknown_root_id")
+
+        // Then
+        assertNull(root)
+    }
+
+    @Test
+    fun `getRootById returns null for disabled root`() = runTest {
+        // Given: Internal storage disabled
+        whenever(mockSettings.showInternalStorage.value()).thenReturn(false)
+
+        // When
+        val root = rootManager.getRootById("internal")
+
+        // Then: Should not return disabled roots
+        assertNull(root)
+    }
+}
+```
+
+**Coverage Goal**: >85%
+
+**Mock Setup Note**: `DocumentsProviderSettings.showInternalStorage` returns a `DataStoreValue` wrapper. You'll need to mock the `.value()` extension function. Consider creating a test fake:
+
+```kotlin
+class FakeDataStoreValue<T>(private var testValue: T) : DataStoreValue<T> {
+    suspend fun value(): T = testValue
+    fun value(newValue: T) { testValue = newValue }
+}
+```
+
+---
+
+#### 4. Query Handlers - **TDD Priority: MODERATE** ⭐
+
+**Why Moderate TDD Viability:**
+- Requires Android framework classes (`MatrixCursor`, `DocumentsContract`)
+- Need Robolectric for unit testing OR test-after with integration tests
+- Setup overhead is high
+
+**Recommendation**: **Test-after** with Robolectric OR integration tests for faster iteration
+
+**Test Strategy (with Robolectric)**:
+
+```kotlin
+@RunWith(RobolectricTestRunner::class)
+class DocumentQueryHandlerTest {
+
+    private lateinit var mockGatewaySwitch: GatewaySwitch
+    private lateinit var mockRootManager: RootManager
+    private lateinit var handler: DocumentQueryHandler
+
+    @Before
+    fun setup() {
+        mockGatewaySwitch = mock()
+        mockRootManager = mock()
+        handler = DocumentQueryHandler(mockGatewaySwitch, mockRootManager)
+    }
+
+    @Test
+    fun `queryDocument returns cursor with file metadata`() = runTest {
+        // Given
+        val documentId = "internal|local|L3N0b3JhZ2UvZW11bGF0ZWQvMC9maWxlLnBkZg"
+        val mockLookup = createMockLookup(
+            name = "file.pdf",
+            size = 1024L,
+            mimeType = "application/pdf"
+        )
+        whenever(mockGatewaySwitch.lookup(any(), any())).thenReturn(mockLookup)
+
+        // When
+        val cursor = handler.queryDocument(documentId, null)
+
+        // Then
+        assertEquals(1, cursor.count)
+        cursor.moveToFirst()
+        assertEquals("file.pdf", cursor.getString(
+            cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
+        ))
+        assertEquals(1024L, cursor.getLong(
+            cursor.getColumnIndex(DocumentsContract.Document.COLUMN_SIZE)
+        ))
+    }
+
+    @Test
+    fun `queryDocument returns empty cursor on gateway error`() = runTest {
+        // Given
+        val documentId = "internal|local|L3N0b3JhZ2U"
+        whenever(mockGatewaySwitch.lookup(any(), any()))
+            .thenThrow(RuntimeException("File not found"))
+
+        // When
+        val cursor = handler.queryDocument(documentId, null)
+
+        // Then
+        assertEquals(0, cursor.count, "Should return empty cursor on error")
+    }
+
+    @Test
+    fun `queryChildDocuments returns multiple children`() = runTest {
+        // Given
+        val parentDocId = "internal|local|L3N0b3JhZ2UvZW11bGF0ZWQvMA"
+        val mockChildren = listOf(
+            createMockLookup("file1.txt", 100L, "text/plain"),
+            createMockLookup("file2.txt", 200L, "text/plain")
+        )
+        whenever(mockGatewaySwitch.lookupFiles(any(), any())).thenReturn(mockChildren)
+
+        // When
+        val cursor = handler.queryChildDocuments(parentDocId, null, null)
+
+        // Then
+        assertEquals(2, cursor.count)
+    }
+
+    private fun createMockLookup(
+        name: String,
+        size: Long,
+        mimeType: String
+    ): APathLookup<LocalPath> = mock {
+        on { this.name } doReturn name
+        on { this.size } doReturn size
+        on { this.mimeType } doReturn mimeType
+        on { fileType } doReturn FileType.FILE
+        on { path } doReturn LocalPath.build("/storage/emulated/0/$name")
+    }
+}
+```
+
+**Coverage Goal**: >80%
+
+---
+
+#### 5. DocumentReader - **TDD Priority: LOW (Integration Test)**
+
+**Why Integration Test is Better:**
+- `ParcelFileDescriptor` requires real file I/O
+- Android framework lifecycle
+- Test-after with real files is faster
+
+**Test Strategy**:
+
+```kotlin
+@RunWith(AndroidJUnit4::class)
+class DocumentReaderIntegrationTest {
+
+    @get:Rule
+    val tempFolder = TemporaryFolder()
+
+    private lateinit var documentReader: DocumentReader
+
+    @Before
+    fun setup() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val gatewaySwitch = mock<GatewaySwitch>() // Or use real gateway
+        documentReader = DocumentReader(context, gatewaySwitch)
+    }
+
+    @Test
+    fun `openDocument returns readable ParcelFileDescriptor`() = runTest {
+        // Given: Create test file
+        val testFile = tempFolder.newFile("test.txt")
+        testFile.writeText("Hello DocumentsProvider")
+
+        val path = LocalPath.build(testFile.absolutePath)
+        val documentId = DocumentIdCodec.encode("internal", path)
+
+        // When
+        val pfd = documentReader.openDocument(documentId, "r", null)
+
+        // Then: Can read file contents
+        FileInputStream(pfd.fileDescriptor).use { inputStream ->
+            val content = inputStream.readBytes().toString(Charsets.UTF_8)
+            assertEquals("Hello DocumentsProvider", content)
+        }
+
+        pfd.close()
+    }
+
+    @Test
+    fun `openDocument throws on write mode in Phase 1`() = runTest {
+        val documentId = "internal|local|L3N0b3JhZ2Uv"
+
+        assertThrows<UnsupportedOperationException> {
+            documentReader.openDocument(documentId, "w", null)
+        }
+    }
+}
+```
+
+**Coverage Goal**: >70%
+
+---
+
+#### 6. ButlerDocumentsProvider - **Integration Test Only**
+
+**Why Unit Testing is Impractical:**
+- ContentProvider lifecycle managed by Android system
+- Requires ContentResolver
+- Better tested end-to-end
+
+**Test Strategy**:
+
+```kotlin
+@RunWith(AndroidJUnit4::class)
+class ButlerDocumentsProviderIntegrationTest {
+
+    @Test
+    fun `provider is registered and accessible`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val authority = "${context.packageName}.documents"
+
+        val providerInfo = context.packageManager.resolveContentProvider(authority, 0)
+        assertNotNull(providerInfo, "Provider should be registered in manifest")
+    }
+
+    @Test
+    fun `queryRoots returns at least one root`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val authority = "${context.packageName}.documents"
+        val uri = DocumentsContract.buildRootsUri(authority)
+
+        val cursor = context.contentResolver.query(uri, null, null, null, null)
+
+        assertNotNull(cursor)
+        assertTrue(cursor!!.count > 0, "Should return at least Internal Storage root")
+        cursor.close()
+    }
+}
+```
+
+**Coverage Goal**: >60% (mostly via manual testing)
+
+---
+
+### Test Coverage Goals Summary
+
+| Component | Coverage Target | TDD Viability | Testing Approach | Priority |
+|-----------|----------------|---------------|------------------|----------|
+| **DocumentIdCodec** | >95% | ⭐⭐⭐ Critical | TDD - Write tests first | **CRITICAL** |
+| **DocumentRoot** | >90% | ⭐⭐⭐ High | TDD - Write tests first | High |
+| **RootManager** | >85% | ⭐⭐ Good | TDD with mocks | High |
+| **DocumentsProviderSettings** | >70% | ⭐ Low | Test-after (DataStore tested by framework) | Medium |
+| **DocumentQueryHandler** | >80% | ⭐ Moderate | Test-after with Robolectric OR integration | Medium |
+| **RootQueryHandler** | >80% | ⭐ Moderate | Test-after with Robolectric OR integration | Medium |
+| **DocumentReader** | >70% | ❌ None | Integration tests with real I/O | Medium |
+| **ButlerDocumentsProvider** | >60% | ❌ None | Integration + manual testing | Low |
+
+**Overall Project Coverage Target**: >80%
+
+---
+
+### Testing Infrastructure Requirements
+
+**Add to `app-provider-documents/build.gradle.kts`**:
+
+```kotlin
+dependencies {
+    // Unit testing framework
+    testImplementation(project(":app-common-test"))
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.1")
+
+    // Mocking
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
+    testImplementation("org.mockito:mockito-inline:5.2.0")
+
+    // Coroutines testing
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+
+    // Android framework testing (Robolectric for query handlers)
+    testImplementation("org.robolectric:robolectric:4.11.1")
+
+    // Integration tests
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test:runner:1.5.2")
+    androidTestImplementation("androidx.test:rules:1.5.0")
+}
+```
+
+---
+
+### Recommended TDD Implementation Order
+
+**Phase 1: High-Value TDD Components (Write Tests First)**
+
+```
+Day 1: DocumentIdCodec (TDD)
+├─ Write all 30+ tests (encode, decode, round-trip, stability, edge cases) → RED
+├─ Implement encode() → GREEN
+├─ Implement decode() → GREEN
+└─ Refactor with confidence
+   Expected: 2-3 hours coding, >95% coverage
+
+Day 2: DocumentRoot + RootManager (TDD)
+├─ Write DocumentRoot validation tests → GREEN (data class)
+├─ Write RootManager tests with mocks → RED
+├─ Implement RootManager.getAvailableRoots() → GREEN
+├─ Implement RootManager.getRootById() → GREEN
+└─ Refactor
+   Expected: 3-4 hours coding, >85% coverage
+```
+
+**Phase 2: Test-After for Android Framework Integration**
+
+```
+Day 3: Settings + Query Handlers (Test-After)
+├─ Implement DocumentsProviderSettings (DataStore pattern)
+├─ Implement RootQueryHandler
+├─ Implement DocumentQueryHandler
+├─ Write Robolectric tests for query handlers
+└─ Write smoke tests for settings
+   Expected: 4-6 hours coding, ~80% coverage
+
+Day 4: DocumentReader + Provider (Test-After)
+├─ Implement DocumentReader
+├─ Implement ButlerDocumentsProvider
+├─ Wire up Hilt DI
+├─ Write integration tests
+└─ AndroidManifest setup
+   Expected: 4-6 hours coding, ~70% coverage
+
+Day 5: Integration & Manual Testing
+├─ Run all unit tests (should be >80% coverage)
+├─ Run integration tests
+├─ Manual testing with Chrome, Gmail, Documents UI
+└─ Fix issues, iterate
+   Expected: 3-4 hours testing
+```
+
+**Result**: ~50% of code written with TDD (the critical stability parts), ~50% test-after for faster framework integration.
+
+---
 
 ### Integration Testing
 
@@ -1267,10 +1988,16 @@ object DocumentsProviderModule {
 **Impact**: HIGH - Critical requirement of DocumentsProvider API.
 
 **Mitigation**:
-- Comprehensive unit tests for DocumentIdCodec
-- Never use relative paths (always absolute)
-- Document the one exception: rename operations
-- Code review focus on ID generation changes
+- **TDD-First Approach**: 30+ tests written BEFORE DocumentIdCodec implementation (see Testing Strategy section)
+  - Test coverage target: >95% for DocumentIdCodec
+  - Tests cover: encoding, decoding, round-trip, stability guarantees, edge cases
+  - Parameterized tests for special characters, Unicode, long paths
+  - Stability tests verify same input produces same output consistently
+- **Design guarantees**: Use absolute paths only (never relative), Base64 URL-safe encoding
+- **Format specification**: Documented format (`rootId|pathType|base64`) enforced by tests
+- **Exception handling**: Document the one exception (rename operations can return new ID)
+- **Code review**: Focus on ID generation changes, require test updates for any codec modifications
+- **Regression prevention**: Comprehensive test suite prevents accidental breaking changes
 
 ### Risk 2: Performance Issues with Large Directories
 
@@ -1347,9 +2074,13 @@ object DocumentsProviderModule {
 
 ✅ **Quality**:
 1. All public methods have error handling
-2. DocumentIdCodec has >90% test coverage
-3. No memory leaks detected in profiler
-4. Logging provides clear debugging trail
+2. Test coverage meets targets:
+   - DocumentIdCodec: >95% (TDD with 30+ tests)
+   - RootManager: >85%
+   - Overall project: >80%
+3. All TDD components (DocumentIdCodec, RootManager) have tests written first
+4. No memory leaks detected in profiler
+5. Logging provides clear debugging trail
 
 ✅ **User Experience**:
 1. Browsing feels responsive (< 200ms for typical directories)
