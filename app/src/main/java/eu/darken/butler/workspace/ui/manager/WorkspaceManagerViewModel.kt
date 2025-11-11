@@ -30,20 +30,27 @@ class WorkspaceManagerViewModel @Inject constructor(
         workspaceRepo.state,
         workspaceSettings.showBadgeExplanation.flow,
         workspaceSettings.livePreview.flow,
-    ) { repoState, showBadge, livePreview ->
+        workspacePageManager.state,
+    ) { repoState, showBadge, livePreview, pageManagerState ->
         State(
             workspaces = repoState.infos.map { info ->
+                val panePosition = pageManagerState.selectedWorkspaces.entries
+                    .find { it.value == info.id }?.key
                 WorkspaceItem(
                     id = info.id,
                     type = info.type,
                     title = info.title,
                     subtitle = info.subtitle,
+                    isFocused = pageManagerState.focusedWorkspaceId == info.id,
+                    isSelected = pageManagerState.selectedWorkspaces.values.contains(info.id),
+                    paneNumber = panePosition,
                 )
             },
             useLivePreview = livePreview,
             showBadgeExplanation = showBadge,
             operationsCount = repoState.operationCount,
             attentionCount = repoState.attentionCount,
+            currentPaneCount = pageManagerState.currentPaneCount,
         )
     }.asStateFlow()
 
@@ -92,6 +99,7 @@ class WorkspaceManagerViewModel @Inject constructor(
         val useLivePreview: Boolean = true,
         val operationsCount: Int = 0,
         val attentionCount: Int = 0,
+        val currentPaneCount: Int = 1,
     ) {
         val workspaceCount: Int = workspaces.size
     }
@@ -101,5 +109,8 @@ class WorkspaceManagerViewModel @Inject constructor(
         val type: Workspace.Type,
         val title: CaString,
         val subtitle: CaString?,
+        val isFocused: Boolean = false,
+        val isSelected: Boolean = false,
+        val paneNumber: Int? = null,
     )
 }

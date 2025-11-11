@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.ui.manager.rows
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -45,6 +46,9 @@ fun WorkspaceGridItem(
     isDragging: Boolean = false,
     onDragStarted: () -> Unit = {},
     onDragStopped: () -> Unit = {},
+    isFocused: Boolean = false,
+    isSelected: Boolean = false,
+    currentPaneCount: Int = 1,
 ) {
     val haptic = LocalHapticFeedback.current
     Card(
@@ -53,7 +57,11 @@ fun WorkspaceGridItem(
             .clickable { onSelect() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = when {
+                isFocused -> MaterialTheme.colorScheme.primaryContainer
+                isSelected -> MaterialTheme.colorScheme.surfaceContainerHighest
+                else -> MaterialTheme.colorScheme.surfaceVariant
+            }
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = if (isDragging) 16.dp else 2.dp,
@@ -66,61 +74,63 @@ fun WorkspaceGridItem(
                 .padding(6.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            Row(
-                modifier = with(reorderableScope) {
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(start = 4.dp)
-                        .draggableHandle(
-                            onDragStarted = {
-                                onDragStarted()
-                                haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
-                            },
-                            onDragStopped = {
-                                onDragStopped()
-                                haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
-                            },
-                        )
-                },
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    modifier = Modifier.size(16.dp),
-                    imageVector = workspace.type.icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-
-                Text(
-                    modifier = Modifier.weight(1f),
-                    text = workspace.title.asComposable(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-
-                IconButton(
-                    modifier = Modifier.size(24.dp),
-                    onClick = onClose,
+                Row(
+                    modifier = with(reorderableScope) {
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(start = 4.dp)
+                            .draggableHandle(
+                                onDragStarted = {
+                                    onDragStarted()
+                                    haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
+                                },
+                                onDragStopped = {
+                                    onDragStopped()
+                                    haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                                },
+                            )
+                    },
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        modifier = Modifier.size(18.dp),
-                        imageVector = Icons.TwoTone.Close,
-                        contentDescription = stringResource(R.string.workspace_row_close_content_desc),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        modifier = Modifier.size(16.dp),
+                        imageVector = workspace.type.icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
                     )
-                }
-            }
 
-            WorkspacePreview(
-                modifier = Modifier.fillMaxWidth(),
-                workspaceId = workspace.id,
-                type = workspace.type,
-                livePreview = livePreview,
-            )
-        }
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = workspace.title.asComposable(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+
+                    IconButton(
+                        modifier = Modifier.size(24.dp),
+                        onClick = onClose,
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(18.dp),
+                            imageVector = Icons.TwoTone.Close,
+                            contentDescription = stringResource(R.string.workspace_row_close_content_desc),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        )
+                    }
+                }
+
+                WorkspacePreview(
+                    modifier = Modifier.fillMaxWidth(),
+                    workspaceId = workspace.id,
+                    type = workspace.type,
+                    livePreview = livePreview,
+                    paneNumber = workspace.paneNumber,
+                    shouldShowBadge = workspace.paneNumber != null && currentPaneCount > 1,
+                )
+            }
 
     }
 }
@@ -220,5 +230,76 @@ private fun WorkspaceGridItemDraggingPreview() {
             livePreview = false,
             isDragging = true
         )
+    }
+}
+
+@Preview2
+@Composable
+private fun WorkspaceGridItemFocusStatesPreview() {
+    PreviewWrapper {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Focused workspace in pane 1 - SHOWS BADGE (multi-pane mode)
+            WorkspaceGridItem(
+                reorderableScope = createMockReorderableScope(),
+                workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                    id = Workspace.Id(),
+                    type = Workspace.Type.EXPLORER,
+                    title = "Focused Workspace".toCaString(),
+                    subtitle = "This workspace is focused".toCaString(),
+                    isFocused = true,
+                    isSelected = true,
+                    paneNumber = 0,
+                ),
+                onClose = {},
+                onSelect = {},
+                livePreview = false,
+                isFocused = true,
+                isSelected = true,
+                currentPaneCount = 2,
+            )
+
+            // Selected but not focused in pane 2 - SHOWS BADGE
+            WorkspaceGridItem(
+                reorderableScope = createMockReorderableScope(),
+                workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                    id = Workspace.Id(),
+                    type = Workspace.Type.SEARCHER,
+                    title = "Selected Workspace".toCaString(),
+                    subtitle = "Selected but not focused".toCaString(),
+                    isFocused = false,
+                    isSelected = true,
+                    paneNumber = 1,
+                ),
+                onClose = {},
+                onSelect = {},
+                livePreview = false,
+                isFocused = false,
+                isSelected = true,
+                currentPaneCount = 2,
+            )
+
+            // Normal workspace - NO BADGE (not selected)
+            WorkspaceGridItem(
+                reorderableScope = createMockReorderableScope(),
+                workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                    id = Workspace.Id(),
+                    type = Workspace.Type.EDITOR,
+                    title = "Normal Workspace".toCaString(),
+                    subtitle = "Not selected or focused".toCaString(),
+                    isFocused = false,
+                    isSelected = false,
+                    paneNumber = null,
+                ),
+                onClose = {},
+                onSelect = {},
+                livePreview = false,
+                isFocused = false,
+                isSelected = false,
+                currentPaneCount = 2,
+            )
+        }
     }
 }
