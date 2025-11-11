@@ -25,6 +25,8 @@ import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
 import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
 import eu.darken.butler.workspace.core.operations.withStateUpdates
+import eu.darken.butler.workspace.core.permissions.PathPermissionCheck
+import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
@@ -34,6 +36,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -51,6 +54,7 @@ class SearcherWorkspace @AssistedInject constructor(
     private val searchEngine: SearchEngine,
     private val searcherSettings: SearcherSettings,
     private val storageManager2: StorageManager2,
+    private val pathPermissionCheck: PathPermissionCheck,
 ) : Workspace {
 
     private val tag = logTag( "Searcher","Workspace", id.shortTag)
@@ -80,6 +84,7 @@ class SearcherWorkspace @AssistedInject constructor(
         val progress: SearchProgress? = null,
         val error: Exception? = null,
         val searchTargets: List<SearchTarget> = emptyList(),
+        val setupRequirements: WorkspaceRequirements = WorkspaceRequirements(),
     ) {
         enum class SearchStatus {
             IDLE, SEARCHING, COMPLETED, ERROR, CANCELLED
@@ -201,6 +206,59 @@ class SearcherWorkspace @AssistedInject constructor(
             return
         }
 
+        // Check permissions for enabled paths
+        val enabledPaths = command.targets
+            .filterIsInstance<SearchTarget.Path>()
+            .filter { it.enabled }
+            .map { it.path }
+
+        // Launch coroutine to check permissions
+        activeSearchJob = scope.launch {
+            try {
+                // Get permission requirements for all enabled paths
+                val requirementsList = enabledPaths.map { path ->
+                    pathPermissionCheck.monitor(path).first()
+                }
+
+                // Aggregate requirements
+                val setupRequirements = WorkspaceRequirements(
+                    combos = requirementsList.flatMap { it.combos }.distinct().toSet(),
+                    complete = requirementsList.flatMap { it.complete }.distinct().toSet(),
+                )
+
+                // Update state with permission requirements
+                _state.update { it.copy(setupRequirements = setupRequirements) }
+
+                // Check if setup is needed
+                if (setupRequirements.needsSetup) {
+                    log(tag, WARN) { "Cannot start search: Setup required - $setupRequirements" }
+                    _state.update {
+                        it.copy(
+                            searchStatus = State.SearchStatus.ERROR,
+                            error = IllegalStateException("Insufficient permissions for search targets"),
+                        )
+                    }
+                    return@launch
+                }
+
+                // Permission check passed, proceed with search
+                performSearch(command)
+            } catch (e: CancellationException) {
+                log(tag, INFO) { "Permission check cancelled" }
+                throw e
+            } catch (e: Exception) {
+                log(tag, ERROR) { "Permission check failed: ${e.asLog()}" }
+                _state.update {
+                    it.copy(
+                        searchStatus = State.SearchStatus.ERROR,
+                        error = e,
+                    )
+                }
+            }
+        }
+    }
+
+    private suspend fun performSearch(command: SearcherCommand.Search) {
         // Build search query
         val searchQuery = SearchQuery(
             query = command.query,
@@ -229,44 +287,42 @@ class SearcherWorkspace @AssistedInject constructor(
             )
         }
 
-        // Execute search
-        activeSearchJob = scope.launch {
-            try {
-                val results = mutableListOf<SearchItem>()
-                searchEngine.search(
-                    searchQuery = searchQuery,
-                    onProgress = { engineProgress ->
-                        _state.update { state ->
-                            state.copy(
-                                progress = State.SearchProgress(
-                                    currentPath = engineProgress.currentPath,
-                                    itemsScanned = engineProgress.itemsScanned,
-                                    resultsFound = engineProgress.resultsFound,
-                                )
-                            )
-                        }
-                    }
-                ).collect { result ->
-                    results.add(result)
+        // Execute search (already in coroutine context from processSearchRequest)
+        try {
+            val results = mutableListOf<SearchItem>()
+            searchEngine.search(
+                searchQuery = searchQuery,
+                onProgress = { engineProgress ->
                     _state.update { state ->
-                        state.copy(results = state.results + result)
+                        state.copy(
+                            progress = State.SearchProgress(
+                                currentPath = engineProgress.currentPath,
+                                itemsScanned = engineProgress.itemsScanned,
+                                resultsFound = engineProgress.resultsFound,
+                            )
+                        )
                     }
                 }
-
-                log(tag, INFO) { "Search completed: ${results.size} results" }
-                _state.update { it.copy(searchStatus = State.SearchStatus.COMPLETED) }
-            } catch (e: CancellationException) {
-                log(tag, INFO) { "Search cancelled" }
-                _state.update { it.copy(searchStatus = State.SearchStatus.CANCELLED) }
-                throw e
-            } catch (e: Exception) {
-                log(tag, ERROR) { "Search failed: ${e.asLog()}" }
-                _state.update {
-                    it.copy(
-                        searchStatus = State.SearchStatus.ERROR,
-                        error = e,
-                    )
+            ).collect { result ->
+                results.add(result)
+                _state.update { state ->
+                    state.copy(results = state.results + result)
                 }
+            }
+
+            log(tag, INFO) { "Search completed: ${results.size} results" }
+            _state.update { it.copy(searchStatus = State.SearchStatus.COMPLETED) }
+        } catch (e: CancellationException) {
+            log(tag, INFO) { "Search cancelled" }
+            _state.update { it.copy(searchStatus = State.SearchStatus.CANCELLED) }
+            throw e
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Search failed: ${e.asLog()}" }
+            _state.update {
+                it.copy(
+                    searchStatus = State.SearchStatus.ERROR,
+                    error = e,
+                )
             }
         }
     }

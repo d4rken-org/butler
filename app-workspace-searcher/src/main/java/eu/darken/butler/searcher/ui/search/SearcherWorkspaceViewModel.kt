@@ -51,7 +51,6 @@ import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
-import eu.darken.butler.workspace.core.permissions.PathPermissionCheck
 import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
@@ -63,7 +62,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -71,7 +69,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
-import kotlinx.coroutines.flow.combine as kotlinxCombine
 
 @HiltViewModel(assistedFactory = SearcherWorkspaceViewModel.Factory::class)
 class SearcherWorkspaceViewModel @AssistedInject constructor(
@@ -81,7 +78,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     navCtrl: NavigationController,
     private val searchHistory: SearchHistory,
     private val searcherSettings: SearcherSettings,
-    private val pathPermissionCheck: PathPermissionCheck,
     private val clipboardRepo: ClipboardRepo,
     private val operationsManager: OperationsManager,
     private val workspaceRemote: WorkspaceRemote,
@@ -219,25 +215,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         workspaceSearchState,
         searcherSettings.maxHistoryItems.flow.flatMapLatest { searchHistory.getSearches(it) },
         currentFilter,
-        workspaceSearchState.flatMapLatest { wsState ->
-            val targets = wsState.searchTargets
-            val enabledPaths = targets.filterIsInstance<SearchTarget.Path>().filter { it.enabled }.map { it.path }
-            if (enabledPaths.isEmpty()) {
-                flowOf(WorkspaceRequirements())
-            } else {
-                kotlinxCombine(enabledPaths.map { pathPermissionCheck.monitor(it) }) { states ->
-                    // Combine all setup requirements - if any path needs setup, show the card
-                    WorkspaceRequirements(
-                        combos = states.flatMap { it.combos }.distinct().toSet(),
-                        complete = states.flatMap { it.complete }.distinct().toSet(),
-                    )
-                }
-            }
-        },
         selectionState,
         quickActionsResult,
         dialogStateFlow,
-    ) { query, workspaceState, history, filter, permissionState, selection, quickActions, dialogState ->
+    ) { query, workspaceState, history, filter, selection, quickActions, dialogState ->
         val updatedSelectionState = selection.copy(selectableResults = workspaceState.results)
 
         // Calculate available actions based on selection state
@@ -279,7 +260,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             caseSensitive = filter.caseSensitive,
             wholeWord = filter.wholeWord,
             useRegex = filter.useRegex,
-            setupRequirements = permissionState,
+            setupRequirements = workspaceState.setupRequirements,
             selectionState = updatedSelectionState,
             quickActionsResult = quickActions,
             dialogState = dialogState,
