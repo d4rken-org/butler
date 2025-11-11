@@ -77,6 +77,7 @@ class SearcherWorkspace @AssistedInject constructor(
         val error: Exception? = null,
         val searchTargets: List<SearchTarget> = emptyList(), // From engine
         val setupRequirements: WorkspaceRequirements = WorkspaceRequirements(), // From engine
+        val targetProgress: List<SearchEngine.SearchTargetProgress> = emptyList(), // From engine
     ) {
         enum class SearchStatus {
             IDLE, SEARCHING, COMPLETED, ERROR, CANCELLED
@@ -95,10 +96,12 @@ class SearcherWorkspace @AssistedInject constructor(
         _searchState,
         searchEngine.targetState,
         searchEngine.setupRequirements,
-    ) { searchState, targets, requirements ->
+        searchEngine.targetProgressState,
+    ) { searchState, targets, requirements, targetProgress ->
         searchState.copy(
             searchTargets = targets,
             setupRequirements = requirements,
+            targetProgress = targetProgress,
         )
     }
 

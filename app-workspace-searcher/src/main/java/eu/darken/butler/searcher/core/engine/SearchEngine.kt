@@ -54,6 +54,9 @@ class SearchEngine @Inject constructor(
     private val _setupRequirements = MutableStateFlow(WorkspaceRequirements())
     val setupRequirements: StateFlow<WorkspaceRequirements> = _setupRequirements.asStateFlow()
 
+    private val _targetProgressState = MutableStateFlow<List<SearchTargetProgress>>(emptyList())
+    val targetProgressState: StateFlow<List<SearchTargetProgress>> = _targetProgressState.asStateFlow()
+
     init {
         log(TAG, INFO) { "Initialized" }
         scope.launch {
@@ -74,6 +77,17 @@ class SearchEngine @Inject constructor(
         val itemsScanned: Int,
         val resultsFound: Int
     )
+
+    data class SearchTargetProgress(
+        val target: SearchTarget.Path,
+        val itemsScanned: Int,
+        val resultsFound: Int,
+        val status: Status,
+    ) {
+        enum class Status {
+            SEARCHING, COMPLETED, ERROR, CANCELLED
+        }
+    }
 
     fun updateTargets(transform: (List<SearchTarget>) -> List<SearchTarget>) {
         val newTargets = transform(_targetState.value)
@@ -200,6 +214,17 @@ class SearchEngine @Inject constructor(
 
         log(TAG, INFO) { "Starting concurrent search with query: ${searchQuery.query} across ${enabledTargets.size} enabled path(s)" }
 
+        // Initialize target progress states
+        val initialProgress = enabledTargets.map { target ->
+            SearchTargetProgress(
+                target = target,
+                itemsScanned = 0,
+                resultsFound = 0,
+                status = SearchTargetProgress.Status.SEARCHING,
+            )
+        }
+        _targetProgressState.value = initialProgress
+
         val progressAggregator = ProgressAggregator()
         val foundCounter = AtomicInteger(0)
         val maxResults = searchQuery.options.maxResults
@@ -213,6 +238,18 @@ class SearchEngine @Inject constructor(
                         query = searchQuery,
                         onProgress = { pathProgress ->
                             progressAggregator.update(pathTarget.path, pathProgress)
+
+                            // Update target progress state
+                            _targetProgressState.value = _targetProgressState.value.map { targetProgress ->
+                                if (targetProgress.target.path == pathTarget.path) {
+                                    targetProgress.copy(
+                                        itemsScanned = pathProgress.itemsScanned,
+                                        resultsFound = pathProgress.resultsFound,
+                                    )
+                                } else {
+                                    targetProgress
+                                }
+                            }
 
                             // Report aggregate progress every 100 items
                             if (pathProgress.itemsScanned % 100 == 0) {
@@ -237,11 +274,38 @@ class SearchEngine @Inject constructor(
                     }
 
                     log(TAG, INFO) { "Completed scan for path: ${pathTarget.path}" }
+
+                    // Mark as completed
+                    _targetProgressState.value = _targetProgressState.value.map { targetProgress ->
+                        if (targetProgress.target.path == pathTarget.path) {
+                            targetProgress.copy(status = SearchTargetProgress.Status.COMPLETED)
+                        } else {
+                            targetProgress
+                        }
+                    }
                 } catch (e: CancellationException) {
                     log(TAG, INFO) { "Scanner cancelled for ${pathTarget.path}" }
+
+                    // Mark as cancelled
+                    _targetProgressState.value = _targetProgressState.value.map { targetProgress ->
+                        if (targetProgress.target.path == pathTarget.path) {
+                            targetProgress.copy(status = SearchTargetProgress.Status.CANCELLED)
+                        } else {
+                            targetProgress
+                        }
+                    }
                     throw e
                 } catch (e: Exception) {
                     log(TAG, WARN) { "Failed to scan ${pathTarget.path}: ${e.message}" }
+
+                    // Mark as error
+                    _targetProgressState.value = _targetProgressState.value.map { targetProgress ->
+                        if (targetProgress.target.path == pathTarget.path) {
+                            targetProgress.copy(status = SearchTargetProgress.Status.ERROR)
+                        } else {
+                            targetProgress
+                        }
+                    }
                     // Continue with other paths
                 }
             }

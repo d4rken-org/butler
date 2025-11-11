@@ -53,8 +53,10 @@ import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchTarget
+import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
 import eu.darken.butler.searcher.ui.search.input.SearchStatusCard
+import eu.darken.butler.searcher.ui.search.SearchProgressCard
 import eu.darken.butler.searcher.ui.search.input.SearchToolbarCard
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.workspace.core.Workspace
@@ -393,15 +395,31 @@ fun SearcherWorkspacePage(
 
             // Pinned status card below toolbar - always visible when needed
             if (showStatusCard) {
-                SearchStatusCard(
-                    state = currentState,
-                    onCancel = { onPageAction(SearcherPageAction.Search.Cancel) },
-                    onClear = { onPageAction(SearcherPageAction.Search.ClearResults) },
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .offset(y = 16.dp + actualToolbarHeightDp) // Account for toolbar's vertical padding + gap
-                        .padding(horizontal = 16.dp)
-                )
+                // Show multi-target progress card when actively searching with multiple targets
+                if (currentState.workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING &&
+                    currentState.workspaceState.targetProgress.isNotEmpty()
+                ) {
+                    SearchProgressCard(
+                        targetProgress = currentState.workspaceState.targetProgress,
+                        overallProgress = currentState.workspaceState.progress,
+                        onCancel = { onPageAction(SearcherPageAction.Search.Cancel) },
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .offset(y = 16.dp + actualToolbarHeightDp)
+                            .padding(horizontal = 16.dp)
+                    )
+                } else {
+                    // Show regular status card for other states
+                    SearchStatusCard(
+                        state = currentState,
+                        onCancel = { onPageAction(SearcherPageAction.Search.Cancel) },
+                        onClear = { onPageAction(SearcherPageAction.Search.ClearResults) },
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .offset(y = 16.dp + actualToolbarHeightDp)
+                            .padding(horizontal = 16.dp)
+                    )
+                }
             }
 
             // Floating Operations and Clipboard Bars Container
