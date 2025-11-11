@@ -12,7 +12,7 @@ plugins {
 apply(plugin = "dagger.hilt.android.plugin")
 
 android {
-    namespace = "${projectConfig.packageName}.documents.provider"
+    namespace = "${projectConfig.packageName}.provider.documents"
 
     setupLibraryDefaults(projectConfig)
 

@@ -193,7 +193,7 @@ Butler already has a sophisticated file access architecture. DocumentsProvider w
 ### Module Structure
 
 ```
-app-documents-provider/
+app-provider-documents/
 ├── build.gradle.kts
 ├── PLAN.md (this file)
 ├── src/main/
@@ -206,7 +206,7 @@ app-documents-provider/
 │   │   │   └── ic_root_adb_access.xml
 │   │   └── values/
 │   │       └── strings.xml
-│   └── java/eu/darken/butler/documents/provider/
+│   └── java/eu/darken/butler/provider/documents/
 │       ├── ButlerDocumentsProvider.kt        # Main ContentProvider
 │       ├── DocumentIdCodec.kt                # Encode/decode Document IDs ↔ APath
 │       ├── DocumentsProviderModule.kt        # Hilt DI setup
@@ -231,7 +231,7 @@ app-documents-provider/
 │           └── ProviderPreferences.kt        # Serializable preferences data class
 │
 └── src/test/
-    └── java/eu/darken/butler/documents/provider/
+    └── java/eu/darken/butler/provider/documents/
         ├── DocumentIdCodecTest.kt
         └── RootManagerTest.kt
 ```
@@ -830,7 +830,7 @@ The provider must be registered in the main app's `AndroidManifest.xml` (not the
 
 ```xml
 <provider
-    android:name="eu.darken.butler.documents.provider.ButlerDocumentsProvider"
+    android:name="eu.darken.butler.provider.documents.ButlerDocumentsProvider"
     android:authorities="${applicationId}.documents"
     android:exported="true"
     android:grantUriPermissions="true"
