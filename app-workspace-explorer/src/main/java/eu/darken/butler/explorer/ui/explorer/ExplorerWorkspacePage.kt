@@ -39,6 +39,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -172,8 +173,10 @@ fun ExplorerWorkspacePage(
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
-    val listState = rememberLazyListState()
-    val gridState = rememberLazyGridState()
+    // Reset scroll states when navigating to a new location (locationId changes)
+    // Preserves scroll position on refresh (locationId stays the same)
+    val listState = key(mainState.locationId) { rememberLazyListState() }
+    val gridState = key(mainState.locationId) { rememberLazyGridState() }
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Pull-to-refresh indicator state - shows briefly then hides to let progress banner take over
@@ -196,16 +199,6 @@ fun ExplorerWorkspacePage(
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
     var showCancelConfirmation by remember { mutableStateOf<Operation.Id?>(null) }
-
-    LaunchedEffect(mainState.locationId) {
-        if (mainState.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
-            listState.animateScrollToItem(0)
-        } else {
-            gridState.animateScrollToItem(0)
-        }
-        scrollBehavior.state.heightOffset = 0f
-        bottomBarScrollBehavior.state.heightOffset = 0f
-    }
 
     // Set the bottom bar height for scroll behavior
     bottomBarScrollBehavior.state.setHeight(64.dp)
