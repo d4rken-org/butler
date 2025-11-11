@@ -278,12 +278,13 @@ class ChunkedTextBuffer @AssistedInject constructor(
             // Update total length
             _totalLength.value = _totalLength.value + text.length
 
-            // Update line index and state (BEFORE boundary update to avoid lock ordering issues)
-            updateAfterEdit()
-
-            // Update chunk boundaries to reflect the insertion (AFTER metadata rebuild)
+            // Update chunk boundaries FIRST to reflect the insertion
+            // This must happen BEFORE buildChunkMetadata() so metadata uses updated boundaries
             val deltaLines = text.count { it == '\n' }
             chunkManager.updateBoundaries(position.offset, text.length.toLong(), deltaLines)
+
+            // Update line index and state (AFTER boundary update to use correct boundaries)
+            updateAfterEdit()
 
             // Add to undo stack (unless we're undoing/redoing)
             if (!isUndoRedoInProgress) {
@@ -404,12 +405,13 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 val deletedLength = endPosition.offset - startPosition.offset
                 _totalLength.value = _totalLength.value - deletedLength
 
-                // Update line index and state (BEFORE boundary update to avoid lock ordering issues)
-                updateAfterEdit()
-
-                // Update chunk boundaries to reflect the deletion (AFTER metadata rebuild)
+                // Update chunk boundaries FIRST to reflect the deletion
+                // This must happen BEFORE buildChunkMetadata() so metadata uses updated boundaries
                 val deltaLines = -deletedText.count { it == '\n' }
                 chunkManager.updateBoundaries(startPosition.offset, -deletedLength, deltaLines)
+
+                // Update line index and state (AFTER boundary update to use correct boundaries)
+                updateAfterEdit()
 
                 // Add to undo stack (unless we're undoing/redoing)
                 if (!isUndoRedoInProgress) {
@@ -718,9 +720,16 @@ class ChunkedTextBuffer @AssistedInject constructor(
         // Only load chunks on first initialization when lineCount=0 (sentinel value)
         val newLineCounts = mutableMapOf<TextChunk.ChunkId, Int>()
 
+        // Snapshot all boundaries at once to prevent race conditions during concurrent updates
+        // Without this, concurrent edits could modify boundaries mid-iteration, causing inconsistent state
+        val boundariesSnapshot = chunkIds.associateWith { chunkId ->
+            chunkManager.getBoundary(chunkId)
+                ?: throw IllegalStateException("No boundary for chunk $chunkId")
+        }
+
         for ((index, chunkId) in chunkIds.withIndex()) {
-            // Get authoritative boundary data from ChunkManager
-            val boundary = chunkManager.getBoundary(chunkId)
+            // Use snapshotted boundary data (prevents stale reads during concurrent edits)
+            val boundary = boundariesSnapshot[chunkId]
                 ?: throw IllegalStateException("No boundary for chunk $chunkId")
 
             val chunkStart = boundary.startOffset
