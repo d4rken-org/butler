@@ -116,7 +116,7 @@ fun SearchBar(
                     Box(modifier = Modifier.padding(start = 8.dp)) {
                         Icon(
                             imageVector = Icons.TwoTone.Close,
-                            contentDescription = stringResource(R.string.general_cancel_action),
+                            contentDescription = stringResource(eu.darken.butler.common.R.string.general_cancel_action),
                             modifier = Modifier
                                 .clickable { onCancel() }
                                 .size(24.dp),

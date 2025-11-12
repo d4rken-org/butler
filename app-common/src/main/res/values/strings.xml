@@ -34,6 +34,13 @@
     <string name="general_error_label">Error</string>
     <string name="general_upgrade_action">Upgrade</string>
     <string name="general_refresh_action">Refresh</string>
+    <string name="general_clear_action">Clear</string>
+    <string name="general_expand_action">Expand</string>
+    <string name="general_collapse_action">Collapse</string>
+    <string name="general_completed_label">Completed</string>
+    <string name="general_cancelled_label">Cancelled</string>
+    <string name="general_searching_label">Searching</string>
+    <string name="general_searching_ellipsis">Searching…</string>
     <string name="general_progress_loading">Loading</string>
     <string name="general_progress_loading_egg_0">Still faster than an iPhone</string>
     <string name="general_progress_loading_egg_1">Downloading more RAM</string>

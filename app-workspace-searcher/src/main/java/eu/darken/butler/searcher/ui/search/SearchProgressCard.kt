@@ -41,13 +41,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.engine.SearchEngine
@@ -65,9 +66,7 @@ fun SearchProgressCard(
 ) {
     // Auto-collapse when search completes, but expand during active search
     var isExpanded by rememberSaveable(searchStatus) {
-        mutableStateOf(
-            initiallyExpanded || searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING
-        )
+        mutableStateOf(initiallyExpanded)
     }
 
     Card(modifier = modifier.fillMaxWidth()) {
@@ -166,14 +165,14 @@ private fun SearchProgressHeader(
                 if (failedCount > 0) {
                     Icon(
                         imageVector = Icons.TwoTone.Error,
-                        contentDescription = "Completed with errors",
+                        contentDescription = stringResource(R.string.searcher_progress_status_completed_with_errors),
                         modifier = Modifier.size(20.dp),
                         tint = MaterialTheme.colorScheme.error
                     )
                 } else {
                     Icon(
                         imageVector = Icons.TwoTone.CheckCircle,
-                        contentDescription = "Completed",
+                        contentDescription = stringResource(eu.darken.butler.common.R.string.general_completed_label),
                         modifier = Modifier.size(20.dp),
                         tint = Color(0xFF4CAF50)
                     )
@@ -182,7 +181,7 @@ private fun SearchProgressHeader(
             SearcherWorkspace.State.SearchStatus.ERROR -> {
                 Icon(
                     imageVector = Icons.TwoTone.Error,
-                    contentDescription = "Error",
+                    contentDescription = stringResource(eu.darken.butler.common.R.string.general_error_label),
                     modifier = Modifier.size(20.dp),
                     tint = MaterialTheme.colorScheme.error
                 )
@@ -190,7 +189,7 @@ private fun SearchProgressHeader(
             SearcherWorkspace.State.SearchStatus.CANCELLED -> {
                 Icon(
                     imageVector = Icons.TwoTone.Cancel,
-                    contentDescription = "Cancelled",
+                    contentDescription = stringResource(eu.darken.butler.common.R.string.general_cancelled_label),
                     modifier = Modifier.size(20.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -203,16 +202,38 @@ private fun SearchProgressHeader(
         Spacer(modifier = Modifier.width(12.dp))
 
         Column(modifier = Modifier.weight(1f)) {
-            val actionText = if (isSearching) "Searching" else "Searched"
-            val failureText = if (failedCount > 0) " ($failedCount failed)" else ""
+            val actionText = stringResource(
+                if (isSearching) R.string.searcher_progress_action_searching
+                else R.string.searcher_progress_action_searched
+            )
+            val locationsText = pluralStringResource(
+                R.plurals.searcher_progress_locations_count,
+                pathCount,
+                pathCount
+            )
+            val failureText = if (failedCount > 0) {
+                " (${pluralStringResource(R.plurals.searcher_progress_failed_count, failedCount, failedCount)})"
+            } else ""
 
             Text(
-                text = "$actionText $pathCount location${if (pathCount > 1) "s" else ""}$failureText",
+                text = "$actionText $locationsText$failureText",
                 style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
 
+            val scannedText = pluralStringResource(
+                R.plurals.searcher_progress_items_scanned_count,
+                totalScanned,
+                totalScanned
+            )
+            val foundText = pluralStringResource(
+                R.plurals.searcher_progress_results_found_count,
+                totalFound,
+                totalFound
+            )
             Text(
-                text = "$totalScanned scanned • $totalFound found",
+                text = "$scannedText${stringResource(R.string.searcher_progress_stats_separator)}$foundText",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -225,18 +246,21 @@ private fun SearchProgressHeader(
                 } else {
                     Icons.TwoTone.ExpandMore
                 },
-                contentDescription = if (isExpanded) "Collapse" else "Expand"
+                contentDescription = stringResource(
+                    if (isExpanded) eu.darken.butler.common.R.string.general_collapse_action
+                    else eu.darken.butler.common.R.string.general_expand_action
+                )
             )
         }
 
         // Show Cancel while searching, Clear when completed
         if (isSearching) {
             TextButton(onClick = onCancelClick) {
-                Text("Cancel")
+                Text(stringResource(eu.darken.butler.common.R.string.general_cancel_action))
             }
         } else {
             TextButton(onClick = onClearClick) {
-                Text("Clear")
+                Text(stringResource(R.string.searcher_progress_clear_action))
             }
         }
     }
@@ -251,16 +275,17 @@ private fun SearchPathProgressRow(
     exception: Throwable?,
     onErrorClick: (() -> Unit)?,
 ) {
-    val rowModifier = if (status == SearchEngine.SearchTargetProgress.Status.ERROR && exception != null && onErrorClick != null) {
-        Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onErrorClick)
-            .padding(horizontal = 16.dp, vertical = 4.dp)
-    } else {
-        Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
-    }
+    val rowModifier =
+        if (status == SearchEngine.SearchTargetProgress.Status.ERROR && exception != null && onErrorClick != null) {
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onErrorClick)
+                .padding(horizontal = 16.dp, vertical = 4.dp)
+        } else {
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 4.dp)
+        }
 
     Row(
         modifier = rowModifier,
@@ -274,12 +299,14 @@ private fun SearchPathProgressRow(
                 SearchEngine.SearchTargetProgress.Status.ERROR -> Icons.TwoTone.Error
                 SearchEngine.SearchTargetProgress.Status.CANCELLED -> Icons.TwoTone.Cancel
             },
-            contentDescription = when (status) {
-                SearchEngine.SearchTargetProgress.Status.SEARCHING -> "Searching"
-                SearchEngine.SearchTargetProgress.Status.COMPLETED -> "Completed"
-                SearchEngine.SearchTargetProgress.Status.ERROR -> "Error"
-                SearchEngine.SearchTargetProgress.Status.CANCELLED -> "Cancelled"
-            },
+            contentDescription = stringResource(
+                when (status) {
+                    SearchEngine.SearchTargetProgress.Status.SEARCHING -> eu.darken.butler.common.R.string.general_searching_label
+                    SearchEngine.SearchTargetProgress.Status.COMPLETED -> eu.darken.butler.common.R.string.general_completed_label
+                    SearchEngine.SearchTargetProgress.Status.ERROR -> eu.darken.butler.common.R.string.general_error_label
+                    SearchEngine.SearchTargetProgress.Status.CANCELLED -> eu.darken.butler.common.R.string.general_cancelled_label
+                }
+            ),
             modifier = Modifier.size(12.dp),
             tint = when (status) {
                 SearchEngine.SearchTargetProgress.Status.SEARCHING -> MaterialTheme.colorScheme.primary
@@ -299,8 +326,18 @@ private fun SearchPathProgressRow(
                 overflow = TextOverflow.Ellipsis
             )
 
+            val scannedText = pluralStringResource(
+                R.plurals.searcher_progress_items_scanned_count,
+                itemsScanned,
+                itemsScanned
+            )
+            val foundText = pluralStringResource(
+                R.plurals.searcher_progress_results_found_count,
+                resultsFound,
+                resultsFound
+            )
             Text(
-                text = "$itemsScanned scanned • $resultsFound found",
+                text = "$scannedText${stringResource(R.string.searcher_progress_stats_separator)}$foundText",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )
@@ -319,12 +356,14 @@ private fun SearchPathProgressRow(
 
         // Status text
         Text(
-            text = when (status) {
-                SearchEngine.SearchTargetProgress.Status.SEARCHING -> "Searching…"
-                SearchEngine.SearchTargetProgress.Status.COMPLETED -> "Done"
-                SearchEngine.SearchTargetProgress.Status.ERROR -> "Error"
-                SearchEngine.SearchTargetProgress.Status.CANCELLED -> "Cancelled"
-            },
+            text = stringResource(
+                when (status) {
+                    SearchEngine.SearchTargetProgress.Status.SEARCHING -> eu.darken.butler.common.R.string.general_searching_ellipsis
+                    SearchEngine.SearchTargetProgress.Status.COMPLETED -> eu.darken.butler.common.R.string.general_done_action
+                    SearchEngine.SearchTargetProgress.Status.ERROR -> eu.darken.butler.common.R.string.general_error_label
+                    SearchEngine.SearchTargetProgress.Status.CANCELLED -> eu.darken.butler.common.R.string.general_cancelled_label
+                }
+            ),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
