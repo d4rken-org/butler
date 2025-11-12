@@ -58,6 +58,7 @@ fun SearchProgressCard(
     overallProgress: SearcherWorkspace.State.SearchProgress?,
     searchStatus: SearcherWorkspace.State.SearchStatus,
     onCancel: () -> Unit,
+    onClear: () -> Unit,
     onErrorClick: (path: String, exception: Throwable) -> Unit,
     modifier: Modifier = Modifier,
     initiallyExpanded: Boolean = false,
@@ -80,7 +81,8 @@ fun SearchProgressCard(
                 failedCount = targetProgress.count { it.status == SearchEngine.SearchTargetProgress.Status.ERROR },
                 isExpanded = isExpanded,
                 onExpandClick = { isExpanded = !isExpanded },
-                onCancelClick = onCancel
+                onCancelClick = onCancel,
+                onClearClick = onClear
             )
 
             // Expandable per-path list
@@ -141,6 +143,7 @@ private fun SearchProgressHeader(
     isExpanded: Boolean,
     onExpandClick: () -> Unit,
     onCancelClick: () -> Unit,
+    onClearClick: () -> Unit,
 ) {
     val isSearching = searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING
 
@@ -227,10 +230,14 @@ private fun SearchProgressHeader(
             )
         }
 
-        // Only show cancel button while actively searching
+        // Show Cancel while searching, Clear when completed
         if (isSearching) {
             TextButton(onClick = onCancelClick) {
                 Text("Cancel")
+            }
+        } else {
+            TextButton(onClick = onClearClick) {
+                Text("Clear")
             }
         }
     }
@@ -375,6 +382,7 @@ private fun SearchProgressCardMixedPreview() {
             overallProgress = createSearchProgress(2365, 15),
             searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
             onCancel = {},
+            onClear = {},
             onErrorClick = { _, _ -> },
             initiallyExpanded = true
         )
@@ -409,6 +417,7 @@ private fun SearchProgressCardAllSearchingPreview() {
             overallProgress = createSearchProgress(4100, 28),
             searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
             onCancel = {},
+            onClear = {},
             onErrorClick = { _, _ -> },
             initiallyExpanded = true
         )
@@ -444,6 +453,7 @@ private fun SearchProgressCardWithErrorsPreview() {
             overallProgress = createSearchProgress(4150, 30),
             searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
             onCancel = {},
+            onClear = {},
             onErrorClick = { _, _ -> },
             initiallyExpanded = true
         )
@@ -478,6 +488,7 @@ private fun SearchProgressCardCancelledPreview() {
             overallProgress = createSearchProgress(1900, 15),
             searchStatus = SearcherWorkspace.State.SearchStatus.CANCELLED,
             onCancel = {},
+            onClear = {},
             onErrorClick = { _, _ -> },
             initiallyExpanded = true
         )
@@ -500,6 +511,7 @@ private fun SearchProgressCardSinglePathPreview() {
             overallProgress = createSearchProgress(5420, 42),
             searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
             onCancel = {},
+            onClear = {},
             onErrorClick = { _, _ -> },
             initiallyExpanded = true
         )
@@ -534,6 +546,7 @@ private fun SearchProgressCardCompletedPreview() {
             overallProgress = createSearchProgress(5970, 45),
             searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
             onCancel = {},
+            onClear = {},
             onErrorClick = { _, _ -> },
             initiallyExpanded = true
         )
@@ -569,6 +582,7 @@ private fun SearchProgressCardCompletedWithErrorsPreview() {
             overallProgress = createSearchProgress(5200, 39),
             searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
             onCancel = {},
+            onClear = {},
             onErrorClick = { _, _ -> },
             initiallyExpanded = true
         )
@@ -584,6 +598,7 @@ private fun SearchProgressCardEmptyPreview() {
             overallProgress = null,
             searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
             onCancel = {},
+            onClear = {},
             onErrorClick = { _, _ -> },
             initiallyExpanded = true
         )
@@ -618,6 +633,7 @@ private fun SearchProgressCardCompletedCollapsedPreview() {
             overallProgress = createSearchProgress(5970, 45),
             searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
             onCancel = {},
+            onClear = {},
             onErrorClick = { _, _ -> },
             initiallyExpanded = false
         )
@@ -653,6 +669,7 @@ private fun SearchProgressCardCompletedWithErrorsCollapsedPreview() {
             overallProgress = createSearchProgress(5200, 39),
             searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
             onCancel = {},
+            onClear = {},
             onErrorClick = { _, _ -> },
             initiallyExpanded = false
         )
@@ -687,6 +704,7 @@ private fun SearchProgressCardSearchingCollapsedPreview() {
             overallProgress = createSearchProgress(4100, 28),
             searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
             onCancel = {},
+            onClear = {},
             onErrorClick = { _, _ -> },
             initiallyExpanded = false
         )
