@@ -31,18 +31,73 @@ class ChunkRepository @AssistedInject constructor(
 
         val content = dataSource.readChunk(boundary.startOffset, boundary.size)
 
-        val lineCount = content.count { it == '\n' } + if (content.isNotEmpty() && !content.endsWith('\n')) 1 else 0
+        // Detect line ending style in this chunk
+        val lineEnding = detectLineEnding(content)
+
+        // Count lines using detected style
+        val lineCount = countLines(content, lineEnding)
 
         val chunk = TextChunk(
             id = chunkId,
             content = content,
             lineCount = lineCount,
+            lineEnding = lineEnding,
             isDirty = false,
             isLoaded = true
         )
 
-        log(tag) { "Loaded chunk: $chunkId (${content.length} bytes, $lineCount lines)" }
+        log(tag) { "Loaded chunk: $chunkId (${content.length} bytes, $lineCount lines, $lineEnding)" }
         chunk
+    }
+
+    /**
+     * Detects the line ending style used in the given content.
+     * Prioritizes the most common style found in the text.
+     */
+    private fun detectLineEnding(content: String): LineEnding {
+        if (content.isEmpty()) return LineEnding.LF  // Default for empty content
+
+        val crlfCount = content.windowed(2).count { it == "\r\n" }
+        val lfCount = content.count { it == '\n' } - crlfCount  // LF not part of CRLF
+        val crCount = content.count { it == '\r' } - crlfCount  // CR not part of CRLF
+
+        return when {
+            // Pure CRLF (Windows)
+            crlfCount > 0 && lfCount == 0 && crCount == 0 -> LineEnding.CRLF
+            // Pure LF (Unix)
+            lfCount > 0 && crlfCount == 0 && crCount == 0 -> LineEnding.LF
+            // Pure CR (old Mac)
+            crCount > 0 && lfCount == 0 && crlfCount == 0 -> LineEnding.CR
+            // Mixed or multiple styles present
+            else -> {
+                if (crlfCount + lfCount + crCount == 0) LineEnding.LF  // No newlines, default LF
+                else LineEnding.MIXED
+            }
+        }
+    }
+
+    /**
+     * Counts the number of lines in content based on the detected line ending style.
+     */
+    private fun countLines(content: String, lineEnding: LineEnding): Int {
+        if (content.isEmpty()) return 1  // Empty content is 1 line
+
+        val lineCount = when (lineEnding) {
+            LineEnding.LF -> content.count { it == '\n' }
+            LineEnding.CRLF -> content.windowed(2).count { it == "\r\n" }
+            LineEnding.CR -> content.count { it == '\r' }
+            LineEnding.MIXED -> content.count { it == '\n' }  // Use LF as primary for mixed
+        }
+
+        // Add 1 if content doesn't end with a newline (last line has no terminator)
+        val endsWithNewline = when (lineEnding) {
+            LineEnding.LF -> content.endsWith('\n')
+            LineEnding.CRLF -> content.endsWith("\r\n")
+            LineEnding.CR -> content.endsWith('\r')
+            LineEnding.MIXED -> content.endsWith('\n') || content.endsWith("\r\n") || content.endsWith('\r')
+        }
+
+        return lineCount + if (!endsWithNewline) 1 else 0
     }
 
     /**
@@ -130,7 +185,8 @@ data class FileInfo(
     val path: APath<*>,
     val size: Long,
     val lastModified: Instant,
-    val canWrite: Boolean
+    val canWrite: Boolean,
+    val lineEnding: LineEnding = LineEnding.LF
 )
 
 data class SearchResult(

@@ -2,10 +2,21 @@ package eu.darken.butler.editor.core.engine
 
 import java.util.concurrent.atomic.AtomicInteger
 
+/**
+ * Line ending style detected in text content.
+ */
+enum class LineEnding {
+    LF,      // \n (Unix/Linux/macOS)
+    CRLF,    // \r\n (Windows)
+    CR,      // \r (old Mac OS) - rare
+    MIXED    // Inconsistent line endings
+}
+
 data class TextChunk(
     val id: ChunkId,
     val content: String,
     val lineCount: Int,
+    val lineEnding: LineEnding = LineEnding.LF,
     val isDirty: Boolean = false,
     val isLoaded: Boolean = true,
     val refCount: Int = 0,

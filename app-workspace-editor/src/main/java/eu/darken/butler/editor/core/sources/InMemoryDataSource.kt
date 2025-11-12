@@ -31,6 +31,7 @@ class InMemoryDataSource @AssistedInject constructor(
 
     override suspend fun open() {
         // No-op: in-memory data source doesn't require opening
+        // Line ending will be detected by ChunkRepository when chunks are loaded
     }
 
     override val fileInfo: StateFlow<FileInfo?> = MutableStateFlow(null)
