@@ -194,6 +194,13 @@ fun ExplorerWorkspacePage(
         vm?.showIssueSheetEvent?.collect { showIssueSheet = true }
     }
 
+    // Collect success messages and show snackbar
+    LaunchedEffect(vm) {
+        vm?.successMessageEvents?.collect { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
+
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
     var showCancelConfirmation by remember { mutableStateOf<Operation.Id?>(null) }

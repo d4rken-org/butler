@@ -20,13 +20,16 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.extensions.commonParent
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.ui.ViewModel4
+import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.explorer.core.arguments.ExternalExplorerArguments
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.searcher.core.SearchItem
@@ -38,6 +41,7 @@ import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogEvent
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
+import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
@@ -83,6 +87,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val workspaceRemote: WorkspaceRemote,
     private val workspaceProvider: WorkspaceProvider,
     private val systemClipboardHelper: SystemClipboardHelper,
+    private val openInNewTabsUseCase: OpenInNewTabsUseCase,
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page"), navCtrl) {
 
     private val workspaceSource: Flow<SearcherWorkspace?> =
@@ -99,6 +104,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private var currentSearchId: String? = null
 
     val dialogEvents = SingleEventFlow<SearcherDialogEvent>()
+
+    val successMessageEvents = SingleEventFlow<String>()
 
     // Observe workspace search state
     private val workspaceSearchState: Flow<SearcherWorkspace.State> = workspaceSource
@@ -230,6 +237,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 } else if (updatedSelectionState.selectableResults.isNotEmpty()) {
                     add(SearcherAction.SelectAll)
                 }
+
+                // Open in New Tabs
+                add(SearcherAction.OpenInNewTabs(updatedSelectionState.selectedResults))
 
                 // Copy
                 add(SearcherAction.Copy(updatedSelectionState.selectedResults))
@@ -521,8 +531,82 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             }
             is SearcherAction.SelectAll -> selectAll()
             is SearcherAction.DeselectAll -> deselectAll()
+            is SearcherAction.OpenInNewTabs -> {
+                vmScope.launch {
+                    log(TAG) { "openInNewTabs(): ${action.results.size} items" }
+
+                    // Convert SearchItems to use case items
+                    val items = action.results.map { item ->
+                        if (item.fileType == FileType.DIRECTORY) {
+                            OpenInNewTabsUseCase.Item.Directory(item.path)
+                        } else {
+                            val isText = TextFileDetector.isTextFile(item.path)
+                            OpenInNewTabsUseCase.Item.File(item.path, isText)
+                        }
+                    }
+
+                    val request = OpenInNewTabsUseCase.Request(
+                        items = items,
+                        sourceWorkspaceId = id,
+                    )
+
+                    val analysis = openInNewTabsUseCase.analyze(request)
+
+                    if (!analysis.hasItemsToOpen) {
+                        log(TAG, WARN) { "All items skipped (no openable items)" }
+                        return@launch
+                    }
+
+                    if (analysis.needsConfirmation) {
+                        dialogStateFlow.value = SearcherDialogState.OpenInNewTabsConfirmation(analysis)
+                    } else {
+                        executeOpenInNewTabs(analysis)
+                    }
+                }
+            }
         }
         hideQuickActions()
+    }
+
+    private suspend fun executeOpenInNewTabs(analysis: OpenInNewTabsUseCase.AnalysisResult) {
+        log(TAG, INFO) { "executeOpenInNewTabs(): Opening ${analysis.totalOpenableCount} workspaces" }
+
+        try {
+            openInNewTabsUseCase.execute(
+                analysis = analysis,
+                createExplorerArguments = { path -> ExternalExplorerArguments(startPath = path) },
+                createEditorArguments = { path -> EditorArguments(filePath = path) },
+            )
+
+            log(TAG, INFO) {
+                "Successfully opened ${analysis.totalOpenableCount} workspaces" +
+                    if (analysis.skippedCount > 0) " (${analysis.skippedCount} skipped)" else ""
+            }
+
+            deselectAll()
+
+            // Show success message
+            val message = if (analysis.skippedCount > 0) {
+                appContext.getString(
+                    CommonR.string.common_open_tabs_success_with_skipped,
+                    analysis.totalOpenableCount,
+                    analysis.skippedCount
+                )
+            } else {
+                appContext.getString(CommonR.string.common_open_tabs_success, analysis.totalOpenableCount)
+            }
+            successMessageEvents.emit(message)
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "Failed to open workspaces: ${e.asLog()}" }
+        }
+    }
+
+    fun onOpenInNewTabsConfirmed() {
+        vmScope.launch {
+            val dialogState = dialogStateFlow.value as? SearcherDialogState.OpenInNewTabsConfirmation ?: return@launch
+            dismissDialog()
+            executeOpenInNewTabs(dialogState.analysis)
+        }
     }
 
     private fun shareFiles(results: List<SearchItem>) {

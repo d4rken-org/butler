@@ -15,11 +15,13 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.datastore.valueBlocking
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
@@ -34,6 +36,7 @@ import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.R
+import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerNavigation.Target.*
@@ -57,10 +60,12 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.*
 import eu.darken.butler.explorer.ui.explorer.dialogs.FilterOptionsResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
+import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortOptionsResult
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.upgrade.isPro
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
@@ -102,6 +107,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val workspaceRemote: WorkspaceRemote,
     private val actionProvider: DefaultActionProvider,
     private val clipboardRepo: ClipboardRepo,
+    private val openInNewTabsUseCase: OpenInNewTabsUseCase,
     private val fileIntentHelper: FileIntentHelper,
     private val explorerSettings: ExplorerSettings,
     itemSorterFactory: ExplorerItemSorter.Factory,
@@ -128,6 +134,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     val showAddStorageSheet = showAddStorageSheetFlow
 
     val dialogEvents = SingleEventFlow<ExplorerDialogEvent>()
+
+    val successMessageEvents = SingleEventFlow<String>()
 
     val safPickerEvents = SingleEventFlow<Intent>()
 
@@ -525,7 +533,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun toggleItemSelection(item: ExplorerItem) {
-        log(tag) { "toggleItemSelection($item)" }
         if (item !is ExplorerItem.Path && item !is ExplorerItem.Storage) {
             log(tag, WARN) { "toggleItemSelection($item) is not selectable" }
             return
@@ -673,6 +680,43 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerAction.Directory.DeselectAll -> {
                 selectedItemsFlow.value = emptySet()
             }
+            is ExplorerAction.Directory.OpenInNewTabs -> {
+                log(tag) { "openInNewTabs(): ${selectedItemsFlow.value.size} items" }
+                val selected = selectedItemsFlow.value.filterIsInstance<ExplorerItem.Lookup>()
+                if (selected.isEmpty()) return@launch
+
+                // Convert Explorer items to use case items
+                val items = selected.map { item ->
+                    if (item.lookup.isDirectory) {
+                        OpenInNewTabsUseCase.Item.Directory(item.lookup.lookedUp)
+                    } else {
+                        val isText = when (item) {
+                            is ExplorerItem.File -> TextFileDetector.isTextFile(item.mimeType)
+                            else -> TextFileDetector.isTextFile(item.lookup.lookedUp)
+                        }
+                        OpenInNewTabsUseCase.Item.File(item.lookup.lookedUp, isText)
+                    }
+                }
+
+                val request = OpenInNewTabsUseCase.Request(
+                    items = items,
+                    sourceWorkspaceId = id,
+                )
+
+                val analysis = openInNewTabsUseCase.analyze(request)
+
+                if (!analysis.hasItemsToOpen) {
+                    // All items were skipped
+                    log(tag, WARN) { "All items skipped (no openable items)" }
+                    return@launch
+                }
+
+                if (analysis.needsConfirmation) {
+                    dialogStateFlow.value = OpenInNewTabsConfirmation(analysis)
+                } else {
+                    executeOpenInNewTabs(analysis)
+                }
+            }
             is ExplorerAction.Common.Sort -> {
                 dialogStateFlow.value = EditSortOptions(
                     currentSortSettings = currentSortSettings.value
@@ -739,33 +783,53 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     // File action handlers
+    private suspend fun executeOpenInNewTabs(analysis: OpenInNewTabsUseCase.AnalysisResult) {
+        log(tag, INFO) { "executeOpenInNewTabs(): Opening ${analysis.totalOpenableCount} workspaces" }
+
+        try {
+            openInNewTabsUseCase.execute(
+                analysis = analysis,
+                createExplorerArguments = { path -> ExplorerWorkspace.Arguments(startPath = path) },
+                createEditorArguments = { path -> EditorWorkspace.Arguments(filePath = path) },
+            )
+
+            log(tag, INFO) {
+                "Successfully opened ${analysis.totalOpenableCount} workspaces" +
+                    if (analysis.skippedCount > 0) " (${analysis.skippedCount} skipped)" else ""
+            }
+
+            clearSelection()
+
+            // Show success message
+            val message = if (analysis.skippedCount > 0) {
+                context.getString(
+                    CommonR.string.common_open_tabs_success_with_skipped,
+                    analysis.totalOpenableCount,
+                    analysis.skippedCount
+                )
+            } else {
+                context.getString(CommonR.string.common_open_tabs_success, analysis.totalOpenableCount)
+            }
+            successMessageEvents.emit(message)
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to open workspaces: ${e.asLog()}" }
+        }
+    }
+
+    fun onOpenInNewTabsConfirmed() = launch {
+        val dialogState = dialogStateFlow.value as? OpenInNewTabsConfirmation ?: return@launch
+        dismissDialog()
+        executeOpenInNewTabs(dialogState.analysis)
+    }
+
     fun openFileInEditor(item: ExplorerItem.File) = launch {
         log(tag) { "openFileInEditor(${item.lookup.name})" }
         dismissDialog()
 
-        // Create editor workspace arguments via reflection to avoid direct dependency
         try {
-            val editorArgsClass = Class.forName("eu.darken.butler.editor.core.EditorWorkspace\$Arguments")
-            val constructor = editorArgsClass.getConstructor(
-                APath::class.java,
-                Long::class.java,
-                Long::class.java,
-                Boolean::class.java,
-                Int::class.java,
-                String::class.java
-            )
-            val editorArguments = constructor.newInstance(
-                item.lookup.lookedUp, // filePath
-                null, // chunkSize - use default
-                null, // memoryLimit - use default
-                false, // isReadOnly
-                null, // goToLine
-                null // searchQuery
-            ) as Workspace.Arguments
-
             val action = WorkspaceAction.Create(
                 type = Workspace.Type.EDITOR,
-                arguments = editorArguments
+                arguments = EditorWorkspace.Arguments(filePath = item.lookup.lookedUp)
             )
 
             workspaceRemote.execute(action)
@@ -1317,6 +1381,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerAction.Directory.Delete,
             is ExplorerAction.Directory.Share,
             is ExplorerAction.Directory.Rename,
+            is ExplorerAction.Directory.OpenInNewTabs,
             is ExplorerAction.Common.Info,
             is ExplorerAction.Device.AddLocation,
             is ExplorerAction.Device.RemoveLocation,

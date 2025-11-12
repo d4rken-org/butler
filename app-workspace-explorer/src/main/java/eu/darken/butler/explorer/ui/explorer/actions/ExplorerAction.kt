@@ -12,6 +12,7 @@ import androidx.compose.material.icons.twotone.FilterList
 import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material.icons.twotone.GridView
 import androidx.compose.material.icons.twotone.Info
+import androidx.compose.material.icons.twotone.OpenInNew
 import androidx.compose.material.icons.twotone.Refresh
 import androidx.compose.material.icons.twotone.RemoveCircle
 import androidx.compose.material.icons.twotone.SelectAll
@@ -132,6 +133,14 @@ sealed interface ExplorerAction : WorkspaceAction {
         object DeselectAll : Directory {
             override val icon = Icons.TwoTone.Deselect
             override val label = R.string.explorer_action_deselect_all.toCaString()
+        }
+
+        data class OpenInNewTabs(
+            override val isEnabled: Boolean = true,
+            override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
+        ) : Directory {
+            override val icon = Icons.TwoTone.OpenInNew
+            override val label = R.string.explorer_action_open_in_new_tabs.toCaString()
         }
     }
 
