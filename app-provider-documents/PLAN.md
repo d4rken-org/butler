@@ -199,42 +199,47 @@ app-provider-documents/
 ├── src/main/
 │   ├── AndroidManifest.xml
 │   ├── res/
-│   │   ├── drawable/
-│   │   │   ├── ic_root_internal_storage.xml
-│   │   │   ├── ic_root_sd_card.xml
-│   │   │   ├── ic_root_root_access.xml
-│   │   │   └── ic_root_adb_access.xml
+│   │   ├── drawable/                          # (Phase 2: Custom icons)
+│   │   │   ├── ic_root_butler.xml
+│   │   │   ├── ic_home_device.xml
+│   │   │   └── ic_location_storage.xml
 │   │   └── values/
-│   │       └── strings.xml
+│   │       └── strings.xml                    # ✅ DONE (basic strings)
 │   └── java/eu/darken/butler/provider/documents/
-│       ├── ButlerDocumentsProvider.kt        # Main ContentProvider
-│       ├── DocumentIdCodec.kt                # Encode/decode Document IDs ↔ APath
-│       ├── DocumentsProviderModule.kt        # Hilt DI setup
+│       ├── ButlerDocumentsProvider.kt         # Main ContentProvider (TODO)
+│       ├── DocumentsProviderModule.kt         # Hilt DI setup (TODO)
 │       │
-│       ├── roots/
-│       │   ├── DocumentRoot.kt               # Sealed class hierarchy for root types
-│       │   ├── RootManager.kt                # Manages available roots, dynamic visibility
-│       │   └── RootVisibilityMonitor.kt      # Monitors permission changes (future)
+│       ├── core/
+│       │   ├── ProviderLocation.kt            # ✅ DONE - Unified location hierarchy
+│       │   │                                  #   - Root.Butler (single picker root)
+│       │   │                                  #   - Home.Device (device home base)
+│       │   │                                  #   - Location.Local/SAF (storage paths)
+│       │   ├── DocumentIdCodec.kt             # ✅ DONE - Encode/decode Document IDs ↔ APath
+│       │   ├── RootManager.kt                 # TODO: Returns single Butler root
+│       │   └── RootVisibilityMonitor.kt       # (Future: Monitors permission changes)
 │       │
 │       ├── query/
-│       │   ├── DocumentQueryHandler.kt       # Handles queryDocument/queryChildDocuments
-│       │   └── RootQueryHandler.kt           # Handles queryRoots
+│       │   ├── DocumentQueryHandler.kt        # TODO: Handles queryDocument/queryChildDocuments
+│       │   └── RootQueryHandler.kt            # TODO: Handles queryRoots
 │       │
 │       ├── operations/
-│       │   ├── DocumentReader.kt             # Handles openDocument (read-only)
-│       │   ├── DocumentCreator.kt            # Handles createDocument (Phase 3)
-│       │   ├── DocumentModifier.kt           # Handles rename/delete (Phase 3)
-│       │   └── DocumentMover.kt              # Handles copy/move (Phase 3)
+│       │   ├── DocumentReader.kt              # TODO: Handles openDocument (read-only)
+│       │   ├── DocumentCreator.kt             # (Phase 3: createDocument)
+│       │   ├── DocumentModifier.kt            # (Phase 3: rename/delete)
+│       │   └── DocumentMover.kt               # (Phase 3: copy/move)
 │       │
 │       └── settings/
-│           ├── DocumentsProviderSettings.kt  # DataStore for user preferences
-│           └── ProviderPreferences.kt        # Serializable preferences data class
+│           ├── DocumentsProviderSettings.kt   # TODO: DataStore for user preferences
+│           └── ProviderPreferences.kt         # TODO: Serializable preferences data class
 │
 └── src/test/
-    └── java/eu/darken/butler/provider/documents/
-        ├── DocumentIdCodecTest.kt
-        └── RootManagerTest.kt
+    └── java/eu/darken/butler/provider/documents/core/
+        ├── DocumentIdCodecTest.kt             # ✅ DONE (45 tests - encoding, decoding, virtual docs)
+        ├── DocumentRootTest.kt                # ✅ DONE (11 tests - Root.Butler validation)
+        └── ConnectionTest.kt                  # ✅ DONE (9 tests - Home.Device validation)
 ```
+
+**Status**: Core data model (ProviderLocation + DocumentIdCodec) complete with 65 tests passing.
 
 ### Document ID Design
 
@@ -364,6 +369,65 @@ When a file is renamed, `renameDocument()` is allowed to return a **new Document
 2. Return new Document ID with updated path
 3. System handles old → new ID migration for clients
 
+#### Virtual Document IDs
+
+Not all document IDs represent filesystem paths. Butler's ProviderLocation hierarchy includes **virtual documents** for navigation:
+
+**Virtual Document ID Format**: Plain string identifiers (no path encoding)
+
+**Examples**:
+```kotlin
+// Root document (Butler picker entry)
+"butler"
+// Decodes to: ProviderLocation.Root.Butler (virtual - not a path)
+
+// Device home (local device connection)
+"device|self"
+// Decodes to: ProviderLocation.Home.Device (virtual - not a path)
+
+// Future: SSH/FTP homes
+"ssh|server123"
+"ftp|backup-server"
+```
+
+**Detection**:
+```kotlin
+// DocumentIdCodec provides helper to distinguish virtual from path-based IDs
+fun isVirtualDocument(documentId: String): Boolean {
+    return documentId == ProviderLocation.Root.Butler.rootDocumentId ||
+        documentId.startsWith("device|") ||
+        documentId.startsWith("ssh|") ||
+        documentId.startsWith("ftp|")
+}
+```
+
+**Usage in Query Handlers**:
+```kotlin
+fun queryChildDocuments(parentDocumentId: String): Cursor {
+    when {
+        parentDocumentId == "butler" -> {
+            // Return virtual documents: Home.Device (and future SSH/FTP homes)
+            return createCursorWith(ProviderLocation.Home.Device)
+        }
+        parentDocumentId.startsWith("device|") -> {
+            // Enumerate storage locations dynamically
+            return createCursorWith(discoverStorageLocations())
+        }
+        !codec.isVirtualDocument(parentDocumentId) -> {
+            // Real filesystem path - decode and list directory
+            val path = codec.decode(parentDocumentId)
+            return listDirectory(path)
+        }
+    }
+}
+```
+
+**Benefits**:
+- Clean separation: Virtual navigation vs filesystem access
+- Extensible: Easy to add SSH/FTP homes in future phases
+- Consistent: All virtual IDs follow same `{type}|{identifier}` pattern
+- Discoverable: `isVirtualDocument()` makes handling explicit
+
 ---
 
 ### Path Types vs Access Methods vs Roots
@@ -416,43 +480,53 @@ gatewaySwitch.lookup(path2, options)  // Routes to ADBGateway internally
 
 #### 3. Roots (Picker Drawer Entries - User-Facing)
 
-These are **what users see in the file picker** - entries in the picker drawer:
+Butler exposes a **single root** ("Butler") in the file picker drawer. Navigation to storage locations happens after selecting the root:
 
-| Root | Starting Path | User Sees |
-|------|---------------|-----------|
-| Internal Storage | `/storage/emulated/0` | "Butler - Internal Storage" |
-| SD Card | `/storage/XXXX-XXXX` | "Butler - SD Card" |
-| Root Directory (Phase 2+) | `/` | "Butler - Root Directory" |
-| System ROM (Phase 2+) | `/system` | "Butler - System ROM" |
-| SSH Server (Phase 2+) | `SSHPath(...)` | "Butler - My Server" |
+| Level | Identifier | User Sees |
+|-------|------------|-----------|
+| Root (Level 1) | `"butler"` | "Butler" (picker drawer entry) |
+| Home (Level 2) | `"device\|self"` | "Device" (local device connection) |
+| Storage (Level 3) | `"local\|base64"` | Discovered storage locations: |
+|  |  | - "/" → "Root Filesystem" |
+|  |  | - "/storage/emulated/0" → "Internal Storage" |
+|  |  | - "/storage/1234-5678" → "SD Card" |
 
-**Represented by:** `DocumentRoot` sealed class (metadata for Android's DocumentsProvider API)
+**Represented by:** `ProviderLocation` sealed interface hierarchy (Root → Home → Location)
 
-**In Document IDs:** ❌ NOT included - only `COLUMN_ROOT_ID` in queryRoots() response
+**In Document IDs:** ❌ Root metadata NOT in path-based document IDs - only virtual navigation IDs
 
 #### Example: Complete Flow
 
-**User Action:** User opens Chrome, clicks "Upload file", picks "Butler - Internal Storage", navigates to a system file
+**User Action:** User opens Chrome, clicks "Upload file", picks "Butler", navigates to Device → Root Filesystem → /system/build.prop
 
 ```
-1. Picker shows root: "Butler - Internal Storage"
-   - Root metadata: DocumentRoot.InternalStorage
-   - Root's apiRootId: "device_internal" (for COLUMN_ROOT_ID)
-   - Root's startPath: LocalPath("/storage/emulated/0")
+1. Picker shows root: "Butler"
+   - Root metadata: ProviderLocation.Root.Butler
+   - Root's apiRootId: "butler" (for COLUMN_ROOT_ID)
+   - Root's rootDocumentId: "butler" (virtual document ID)
 
-2. User navigates to /system/build.prop
+2. User selects Butler → Sees "Device" home
+   - Virtual document ID: "device|self"
+   - Represented by: ProviderLocation.Home.Device
+
+3. User selects Device → Sees storage locations
+   - Root Filesystem: Location.Local(LocalPath("/"))
+   - Internal Storage: Location.Local(LocalPath("/storage/emulated/0"))
+   - SD Card: Location.Local(LocalPath("/storage/1234-5678"))
+
+4. User selects Root Filesystem → Navigates to /system/build.prop
    - Path: LocalPath("/system/build.prop")
    - Path type: local (LocalPath)
    - Document ID: "local|L3N5c3RlbS9idWlsZC5wcm9w"
 
-3. Butler retrieves file metadata:
+5. Butler retrieves file metadata:
    - Decode document ID → LocalPath("/system/build.prop")
    - Pass to GatewaySwitch
    - GatewaySwitch sees "/system" prefix → routes to RootGateway
    - Access method: root (transparent to caller)
    - Returns file metadata
 
-4. User selects file:
+6. User selects file:
    - Chrome receives content:// URI with document ID
    - Opens file via openDocument()
    - Same flow: decode → GatewaySwitch → RootGateway → file contents
@@ -461,239 +535,252 @@ These are **what users see in the file picker** - entries in the picker drawer:
 **Key Insight:**
 - Path type (`local`) is in document ID
 - Access method (root gateway) is internal, inferred from path
-- Root ("Internal Storage") is UI metadata, not in document ID
+- Root ("Butler") is UI metadata with single picker entry
+- Storage locations are discovered dynamically, not predefined
 
 **Why This Matters:**
 - ❌ WRONG: Treating "root" and "adb" as path types - they're access methods
 - ❌ WRONG: Including rootId in document ID - path is already unique
-- ✅ RIGHT: Path types identify data structures, access methods are inferred, roots are UI metadata
+- ❌ WRONG: Multiple picker roots for each storage location - clutters picker drawer
+- ✅ RIGHT: Path types identify data structures, access methods are inferred, single root with dynamic storage discovery
 
 ---
 
-### Root Configuration
+### ProviderLocation Hierarchy
 
-**What are DocumentRoots?**
+**What is ProviderLocation?**
 
-`DocumentRoot` is **metadata for entries shown in the file picker drawer**. When users open the Android file picker, they see a list of available document providers. Each provider can expose multiple "roots" (storage locations).
+`ProviderLocation` is Butler's **unified interface for representing all levels of the document hierarchy** - from the single picker root entry to individual storage locations. This consolidates what were previously separate `DocumentRoot`, `Connection`, and `Storage` types into one coherent model.
 
-**Butler's Roots** (based on Butler's existing architecture):
+**The 3-Level Hierarchy**:
 
-Phase 1: Device storage locations
-- Internal Storage (`/storage/emulated/0`)
-- SD Cards (one root per detected card)
+```
+Level 1: Root (Picker drawer entry)
+    └── "Butler" - Single entry shown in Android file picker
 
-Phase 2+: Advanced locations (opt-in via settings)
-- Root Directory (`/`) - for browsing entire filesystem
-- System ROM (`/system`) - for system files
-- SAF Trees (per granted SAF tree)
+Level 2: Home (Connection/device type)
+    └── "Device" - Local device storage (Phase 1)
+    └── "SSH Server" - Remote SSH connections (Phase 2+)
+    └── "FTP Server" - Remote FTP connections (Phase 2+)
 
-Phase 3+: Remote servers
-- SSH servers (one root per connection)
-- FTP servers (one root per connection)
+Level 3: Location (Actual storage paths)
+    └── LocalPath("/") - Root filesystem
+    └── LocalPath("/storage/emulated/0") - Internal storage
+    └── LocalPath("/storage/1234-5678") - SD card
+    └── SAFPath(...) - SAF-granted directories
+```
 
-**DocumentRoot Sealed Class**:
+**Implementation**:
 
 ```kotlin
-sealed class DocumentRoot {
-    abstract val apiRootId: String  // For Android's COLUMN_ROOT_ID (not in document IDs!)
-    abstract val icon: Int
-    abstract val titleRes: Int
-    abstract val summaryRes: Int?
-    abstract val flags: Int
-    abstract val startPath: APath<*>  // Where browsing starts for this root
+// src/main/java/eu/darken/butler/provider/documents/core/ProviderLocation.kt
+interface ProviderLocation {
+    val icon: Int
+    val title: CaString
 
-    // Phase 1: Primary storage - what most users want
-    data object InternalStorage : DocumentRoot() {
-        override val apiRootId = "device_internal"
-        override val icon = R.drawable.ic_phone
-        override val titleRes = R.string.documents_root_internal_storage_title  // "Internal Storage"
-        override val summaryRes = R.string.documents_root_internal_storage_summary  // "Primary device storage"
-        override val flags = FLAG_SUPPORTS_IS_CHILD or FLAG_LOCAL_ONLY
-        override val startPath = LocalPath.build("/storage/emulated/0")
+    /**
+     * Level 1: Root - Single entry shown in file picker drawer
+     */
+    sealed interface Root : ProviderLocation {
+        val apiRootId: String           // For Android's COLUMN_ROOT_ID
+        val summary: CaString?
+        val flags: Int                  // DocumentsContract flags
+        val rootDocumentId: String      // Starting document ID ("butler")
+
+        data object Butler : Root {
+            override val apiRootId = "butler"
+            override val icon = android.R.drawable.ic_menu_manage
+            override val title = R.string.documents_root_butler_title.toCaString()
+            override val summary = R.string.documents_root_butler_summary.toCaString()
+            override val flags = FLAG_SUPPORTS_IS_CHILD or FLAG_LOCAL_ONLY
+            override val rootDocumentId = "butler"  // Virtual document ID
+        }
     }
 
-    // Phase 1: SD cards - detected dynamically
-    data class SDCard(
-        val volumeId: String,  // e.g., "1234-5678"
-        val displayName: String?  // User-friendly name if available
-    ) : DocumentRoot() {
-        override val apiRootId = "device_sd_$volumeId"
-        override val icon = R.drawable.ic_sd_card
-        override val titleRes = R.string.documents_root_sd_card_title  // "SD Card"
-        override val summaryRes = null  // Or use displayName
-        override val flags = FLAG_SUPPORTS_IS_CHILD or FLAG_LOCAL_ONLY or FLAG_SUPPORTS_EJECT
-        override val startPath = LocalPath.build("/storage/$volumeId")
+    /**
+     * Level 2: Home - Connection type or device base
+     */
+    sealed interface Home : ProviderLocation {
+        val documentId: String          // Virtual document ID
+        val summary: CaString?
+        val flags: Int
+
+        data object Device : Home {
+            override val documentId = "device|self"
+            override val icon = android.R.drawable.ic_menu_manage
+            override val title = R.string.documents_connection_device_title.toCaString()
+            override val summary = R.string.documents_connection_device_summary.toCaString()
+            override val flags = FLAG_DIR_SUPPORTS_CREATE
+        }
+
+        // Phase 2+: Remote homes
+        // data class SSH(val serverId: String, val serverName: String, ...) : Home
+        // data class FTP(val serverId: String, val serverName: String, ...) : Home
     }
 
-    // Phase 2+: Root filesystem - advanced users (opt-in)
-    data object RootDirectory : DocumentRoot() {
-        override val apiRootId = "device_root"
-        override val icon = R.drawable.ic_folder
-        override val titleRes = R.string.documents_root_root_directory_title  // "Root Directory"
-        override val summaryRes = R.string.documents_root_root_directory_summary  // "Full filesystem access"
-        override val flags = FLAG_SUPPORTS_IS_CHILD or FLAG_LOCAL_ONLY
-        override val startPath = LocalPath.build("/")
-        // Note: GatewaySwitch automatically routes /system, /data paths to RootGateway
-    }
+    /**
+     * Level 3: Location - Actual filesystem storage paths
+     */
+    sealed interface Location : ProviderLocation {
+        val path: APath<*>              // Real filesystem path
 
-    // Phase 2+: System partition - advanced users (opt-in)
-    data object SystemROM : DocumentRoot() {
-        override val apiRootId = "device_system"
-        override val icon = R.drawable.ic_system
-        override val titleRes = R.string.documents_root_system_rom_title  // "System ROM"
-        override val summaryRes = R.string.documents_root_system_rom_summary  // "System partition files"
-        override val flags = FLAG_SUPPORTS_IS_CHILD or FLAG_LOCAL_ONLY
-        override val startPath = LocalPath.build("/system")
-        // Note: GatewaySwitch automatically routes to RootGateway for /system
-    }
+        data class Local(
+            override val path: LocalPath,
+            override val icon: Int = android.R.drawable.ic_menu_view,
+            override val title: CaString = path.name.toCaString(),
+        ) : Location
 
-    // Phase 2+: SAF trees - per granted tree
-    data class SAFTree(
-        val treeRootUri: String,  // The SAF tree URI
-        val displayName: String  // User-friendly name
-    ) : DocumentRoot() {
-        override val apiRootId = "saf_${treeRootUri.hashCode()}"
-        override val icon = R.drawable.ic_saf
-        override val titleRes = 0  // Not used - displayName used instead
-        override val summaryRes = null
-        override val flags = FLAG_SUPPORTS_IS_CHILD
-        override val startPath = SAFPath(treeRootUri, emptyList())
-    }
-
-    // Phase 3+: SSH servers
-    data class SSHServer(
-        val serverId: String,
-        val displayName: String,
-        val hostName: String
-    ) : DocumentRoot() {
-        override val apiRootId = "ssh_$serverId"
-        override val icon = R.drawable.ic_ssh
-        override val titleRes = 0  // Use displayName
-        override val summaryRes = null
-        override val flags = FLAG_SUPPORTS_IS_CHILD
-        // override val startPath = SSHPath(serverId, "/")  // Future
-        override val startPath = TODO("SSH not implemented yet")
+        data class SAF(
+            override val path: eu.darken.butler.common.files.SAFPath,
+            override val icon: Int = android.R.drawable.ic_menu_view,
+            override val title: CaString = path.name.toCaString(),
+        ) : Location
     }
 }
 ```
 
-**Key Design Notes:**
-- **apiRootId**: Used ONLY for Android's `COLUMN_ROOT_ID` in queryRoots() response - NOT embedded in document IDs
-- **startPath**: The initial path shown when user selects this root
-- **No separate root/ADB roots**: Those are access methods (gateways), not storage locations
-- **LocalPath everywhere**: Root/ADB access is transparent - GatewaySwitch routes based on path
+**Key Design Principles**:
 
-**Root Manager** (Singleton):
+1. **Path-Based Identity**: Storage locations are identified by their paths, not predefined types
+   - No `Storage.InternalStorage` or `Storage.SDCard` objects
+   - Just `Location.Local(LocalPath("/storage/emulated/0"))` created dynamically
+
+2. **Single Picker Root**: Butler exposes ONE root ("Butler"), not multiple storage roots
+   - Cleaner picker drawer (one "Butler" entry vs multiple "Butler - Internal", "Butler - SD Card")
+   - Navigation happens after selecting Butler: Butler → Device → storage locations
+
+3. **Virtual vs Real Documents**:
+   - Virtual: `"butler"`, `"device|self"` (navigation nodes)
+   - Real: `"local|base64"`, `"saf|base64"` (actual paths)
+
+4. **Dynamic Discovery**: Storage locations enumerated at runtime
+   - Query Android's StorageManager for available volumes
+   - Create `Location.Local` instances dynamically
+   - No hardcoded assumptions about device configuration
+
+**Navigation Flow**:
+
+```
+User opens file picker
+    ↓
+Sees "Butler" in drawer (Root.Butler)
+    ↓
+Selects "Butler" → Shows Device home (Home.Device)
+    ↓
+Selects "Device" → Shows storage locations:
+    - Location.Local(LocalPath("/")) - "Root Filesystem"
+    - Location.Local(LocalPath("/storage/emulated/0")) - "Internal Storage"
+    - Location.Local(LocalPath("/storage/1234-5678")) - "SD Card"
+    ↓
+Selects location → Browses filesystem
+```
+
+**Example: Storage Location Discovery**:
+
+```kotlin
+// In DocumentQueryHandler.kt (future implementation)
+fun queryChildDocuments(parentDocumentId: String): Cursor {
+    return when {
+        parentDocumentId == "butler" -> {
+            // Return Home.Device (and future SSH/FTP homes)
+            createCursorWith(listOf(ProviderLocation.Home.Device))
+        }
+
+        parentDocumentId == "device|self" -> {
+            // Dynamically discover storage locations
+            val locations = mutableListOf<ProviderLocation.Location>()
+
+            // Root filesystem (Phase 1)
+            locations.add(
+                ProviderLocation.Location.Local(
+                    path = LocalPath.build("/"),
+                    icon = R.drawable.ic_root_filesystem,
+                    title = R.string.documents_storage_root_label.toCaString()
+                )
+            )
+
+            // Internal storage (auto-detected)
+            val primaryVolume = storageManager.primaryStorageVolume
+            primaryVolume?.let {
+                locations.add(
+                    ProviderLocation.Location.Local(
+                        path = LocalPath.build(it.directory.path),
+                        icon = R.drawable.ic_internal_storage,
+                        title = (it.getDescription(context) ?: "Internal Storage").toCaString()
+                    )
+                )
+            }
+
+            // SD cards (auto-detected)
+            storageManager.storageVolumes
+                .filter { it.isRemovable && it.state == Environment.MEDIA_MOUNTED }
+                .forEach { volume ->
+                    volume.directory?.let { dir ->
+                        locations.add(
+                            ProviderLocation.Location.Local(
+                                path = LocalPath.build(dir.path),
+                                icon = R.drawable.ic_sd_card,
+                                title = volume.getDescription(context).toCaString()
+                            )
+                        )
+                    }
+                }
+
+            // Phase 2+: SAF trees
+            // locations.addAll(getSAFTreeLocations())
+
+            createCursorWith(locations)
+        }
+
+        else -> {
+            // Real filesystem path - decode and list directory
+            val path = codec.decode(parentDocumentId)
+            listDirectory(path)
+        }
+    }
+}
+```
+
+**Benefits of This Architecture**:
+
+✅ **Adapts to Device**: Automatically shows what's available (internal storage, SD cards, etc.)
+✅ **No Hardcoding**: No assumptions about `/storage/emulated/0` vs `/storage/self/primary`
+✅ **Consistent Pattern**: Virtual docs for navigation, path-based docs for files
+✅ **Extensible**: Add SSH/FTP homes in Phase 2+ without changing Root structure
+✅ **Simpler Code**: One unified interface instead of three separate types
+
+**Comparison to Old Architecture**:
+
+| Old (Separate Types) | New (Unified ProviderLocation) |
+|---------------------|-------------------------------|
+| `DocumentRoot.InternalStorage` | `Location.Local(LocalPath("/storage/emulated/0"))` |
+| `DocumentRoot.SDCard("1234-5678")` | `Location.Local(LocalPath("/storage/1234-5678"))` |
+| `Connection.Device` | `Home.Device` |
+| `Storage.RootFilesystem` | `Location.Local(LocalPath("/"))` |
+| Multiple picker roots | Single "Butler" root |
+| Static type checking | Path-based identification |
+
+**Root Manager** (TODO - Needs Simplification):
+
+The RootManager will be simpler in the new architecture:
 
 ```kotlin
 @Singleton
 class RootManager @Inject constructor(
     private val context: Context,
-    private val gatewaySwitch: GatewaySwitch,
-    private val settings: DocumentsProviderSettings,
-    private val storageManager: StorageManager,  // For SD card detection
 ) {
-    suspend fun getAvailableRoots(): List<DocumentRoot> {
-        val roots = mutableListOf<DocumentRoot>()
-
-        // Phase 1: Internal storage - always show (if not disabled in settings)
-        if (settings.showInternalStorage.value()) {
-            roots.add(DocumentRoot.InternalStorage)
-        }
-
-        // Phase 1: SD cards - detect dynamically
-        if (settings.showExternalStorage.value()) {
-            roots.addAll(detectSDCards())
-        }
-
-        // Phase 2+: Advanced roots (opt-in)
-        if (settings.showRootDirectory.value()) {
-            roots.add(DocumentRoot.RootDirectory)
-        }
-
-        if (settings.showSystemROM.value()) {
-            roots.add(DocumentRoot.SystemROM)
-        }
-
-        // Phase 2+: SAF trees
-        if (settings.showSAFTrees.value()) {
-            roots.addAll(getSAFTrees())
-        }
-
-        return roots
-    }
-
-    private suspend fun detectSDCards(): List<DocumentRoot.SDCard> {
-        // Use Android's StorageManager to enumerate volumes
-        val volumes = storageManager.storageVolumes
-        return volumes
-            .filter { it.isRemovable && it.state == Environment.MEDIA_MOUNTED }
-            .mapNotNull { volume ->
-                volume.uuid?.let { uuid ->
-                    DocumentRoot.SDCard(
-                        volumeId = uuid,
-                        displayName = volume.getDescription(context)
-                    )
-                }
-            }
-    }
-
-    private suspend fun getSAFTrees(): List<DocumentRoot.SAFTree> {
-        // Get user-granted SAF trees from Butler's settings/database
-        // Return one root per tree
-        return emptyList()  // TODO: Phase 2
-    }
-
-    fun getRootByApiId(apiRootId: String): DocumentRoot? {
-        return runBlocking { getAvailableRoots().find { it.apiRootId == apiRootId } }
-    }
-
-    fun getRootForPath(path: APath<*>): DocumentRoot? {
-        // Infer which root a path belongs to (for lookups)
-        return when (path) {
-            is LocalPath -> when {
-                path.path.startsWith("/storage/emulated/0") -> DocumentRoot.InternalStorage
-                path.path.matches(Regex("/storage/[A-F0-9]{4}-[A-F0-9]{4}.*")) -> {
-                    val volumeId = path.path.removePrefix("/storage/").substringBefore("/")
-                    DocumentRoot.SDCard(volumeId, null)
-                }
-                path.path == "/" -> DocumentRoot.RootDirectory
-                path.path.startsWith("/system") -> DocumentRoot.SystemROM
-                else -> null
-            }
-            is SAFPath -> {
-                // Find SAF tree root for this treeRoot
-                runBlocking { getSAFTrees().find { it.treeRootUri == path.treeRoot } }
-            }
-            else -> null
-        }
+    /**
+     * Returns the single Butler root.
+     * Phase 1: Only one root - Butler.
+     * Phase 2+: Could add per-server roots for SSH/FTP if needed.
+     */
+    fun getAvailableRoots(): List<ProviderLocation.Root> {
+        return listOf(ProviderLocation.Root.Butler)
     }
 }
 ```
 
-**Dynamic Root Visibility**:
-
-Phase 1: Roots determined at query time (simple)
-Phase 2: Monitor permission changes and notify system to refresh:
-
-```kotlin
-class RootVisibilityMonitor @Inject constructor(
-    private val context: Context,
-    @AppScope private val appScope: CoroutineScope
-) {
-    fun startMonitoring() {
-        // Monitor root availability changes
-        // Monitor Shizuku connection changes
-        // When changes detected:
-        notifyRootsChanged()
-    }
-
-    private fun notifyRootsChanged() {
-        val uri = DocumentsContract.buildRootsUri(AUTHORITY)
-        context.contentResolver.notifyChange(uri, null)
-    }
-}
-```
+Storage enumeration happens at query time in `DocumentQueryHandler`, not in `RootManager`.
 
 ### Query Implementation
 
@@ -707,7 +794,7 @@ class RootQueryHandler @Inject constructor(
     suspend fun queryRoots(projection: Array<String>?): Cursor {
         log(TAG) { "queryRoots() called" }
 
-        val roots = rootManager.getAvailableRoots()
+        val roots = rootManager.getAvailableRoots()  // Returns [ProviderLocation.Root.Butler]
 
         val resolvedProjection = projection ?: DEFAULT_ROOT_PROJECTION
         val cursor = MatrixCursor(resolvedProjection)
@@ -716,27 +803,16 @@ class RootQueryHandler @Inject constructor(
             cursor.newRow().apply {
                 add(DocumentsContract.Root.COLUMN_ROOT_ID, root.apiRootId)
                 add(DocumentsContract.Root.COLUMN_ICON, root.icon)
-                add(DocumentsContract.Root.COLUMN_TITLE, context.getString(root.titleRes))
-                add(DocumentsContract.Root.COLUMN_SUMMARY, root.summaryRes?.let { context.getString(it) })
-                add(DocumentsContract.Root.COLUMN_DOCUMENT_ID, DocumentIdCodec.encode(root.startPath))
+                add(DocumentsContract.Root.COLUMN_TITLE, root.title.get(context))
+                add(DocumentsContract.Root.COLUMN_SUMMARY, root.summary?.get(context))
+                add(DocumentsContract.Root.COLUMN_DOCUMENT_ID, root.rootDocumentId)  // "butler"
                 add(DocumentsContract.Root.COLUMN_FLAGS, root.flags)
-                add(DocumentsContract.Root.COLUMN_AVAILABLE_BYTES, getAvailableBytes(root.startPath))
+                add(DocumentsContract.Root.COLUMN_AVAILABLE_BYTES, null)  // Phase 2: Calculate total device storage
             }
         }
 
         log(TAG) { "Returning ${roots.size} roots" }
         return cursor
-    }
-
-    private suspend fun getAvailableBytes(path: APath<*>): Long? {
-        return try {
-            // Use StatFs or gateway to get available space
-            // For root access, may need special handling
-            TODO("Implement storage space calculation")
-        } catch (e: Exception) {
-            log(TAG, WARN) { "Failed to get available bytes for $path: ${e.asLog()}" }
-            null
-        }
     }
 
     companion object {
@@ -1098,18 +1174,20 @@ The provider must be registered in the main app's `AndroidManifest.xml` (not the
 - ✅ Error handling (empty cursors on failure)
 
 **Deliverables**:
-1. `ButlerDocumentsProvider.kt` - Main provider (queryRoots, queryDocument, queryChildDocuments, openDocument)
-2. `DocumentIdCodec.kt` - Encode/decode logic
-3. `DocumentRoot.kt` - Sealed class (InternalStorage only)
-4. `RootManager.kt` - Root management (returns only InternalStorage)
-5. `RootQueryHandler.kt` - queryRoots implementation
-6. `DocumentQueryHandler.kt` - queryDocument/queryChildDocuments implementation
-7. `DocumentReader.kt` - openDocument implementation
-8. `DocumentsProviderModule.kt` - Hilt module
-9. `DocumentsProviderSettings.kt` - DataStore settings
-10. AndroidManifest entry in main app
-11. String resources
-12. Drawable resources (icons)
+1. ❌ `ButlerDocumentsProvider.kt` - Main provider (queryRoots, queryDocument, queryChildDocuments, openDocument)
+2. ✅ `DocumentIdCodec.kt` - Encode/decode logic **[DONE - 45 tests passing]**
+3. ✅ `ProviderLocation.kt` - Unified hierarchy (Root/Home/Location) **[DONE - replaces DocumentRoot + Connection + Storage]**
+4. ❌ `RootManager.kt` - Root management (returns single Butler root)
+5. ❌ `RootQueryHandler.kt` - queryRoots implementation
+6. ❌ `DocumentQueryHandler.kt` - queryDocument/queryChildDocuments implementation
+7. ❌ `DocumentReader.kt` - openDocument implementation
+8. ❌ `DocumentsProviderModule.kt` - Hilt module
+9. ❌ `DocumentsProviderSettings.kt` - DataStore settings
+10. ❌ AndroidManifest entry in main app
+11. ✅ String resources **[DONE - basic strings]**
+12. ❌ Drawable resources (icons)
+
+**Major Refactor Note**: Consolidated `DocumentRoot`, `Connection`, and `Storage` into unified `ProviderLocation` interface (3 sealed sub-interfaces: Root/Home/Location). This enables dynamic storage discovery and path-based identity instead of static storage type objects. See "ProviderLocation Hierarchy" section for details.
 
 **Testing**:
 
