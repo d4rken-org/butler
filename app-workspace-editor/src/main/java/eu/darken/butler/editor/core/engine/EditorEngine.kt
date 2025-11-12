@@ -470,7 +470,11 @@ class EditorEngine @AssistedInject constructor(
         return when (currentState) {
             is EditorState.Loaded -> {
                 try {
-                    currentState.resources.textBuffer.undo()
+                    val result = currentState.resources.textBuffer.undo()
+                    // Clear search results as they're now stale
+                    _searchResults.value = emptyList()
+                    _searchQuery.value = ""
+                    result
                 } catch (e: Exception) {
                     log(tag, ERROR) { "Failed to undo - ${e.asLog()}" }
                     _error.value = e
@@ -491,7 +495,11 @@ class EditorEngine @AssistedInject constructor(
         return when (currentState) {
             is EditorState.Loaded -> {
                 try {
-                    currentState.resources.textBuffer.redo()
+                    val result = currentState.resources.textBuffer.redo()
+                    // Clear search results as they're now stale
+                    _searchResults.value = emptyList()
+                    _searchQuery.value = ""
+                    result
                 } catch (e: Exception) {
                     log(tag, ERROR) { "Failed to redo - ${e.asLog()}" }
                     _error.value = e
