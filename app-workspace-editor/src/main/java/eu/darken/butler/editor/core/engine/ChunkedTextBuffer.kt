@@ -22,7 +22,9 @@ import java.util.LinkedList
 class ChunkedTextBuffer @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     @Assisted private val chunkManager: ChunkManager,
-    @Assisted private val chunkRepository: ChunkRepository
+    @Assisted private val chunkRepository: ChunkRepository,
+    @Assisted private val maxUndoStackSize: Int = 100,
+    @Assisted private val maxUndoMemoryBytes: Long = 10_485_760, // 10 MB
 ) {
 
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "ChunkedTextBuffer")
@@ -44,6 +46,8 @@ class ChunkedTextBuffer @AssistedInject constructor(
     private val undoStack = LinkedList<EditOperation>()
     private val redoStack = LinkedList<EditOperation>()
     private var isUndoRedoInProgress = false
+    private var currentUndoMemoryBytes: Long = 0
+    private var currentRedoMemoryBytes: Long = 0
 
     private var chunkIds: List<TextChunk.ChunkId> = emptyList()
 
@@ -296,8 +300,25 @@ class ChunkedTextBuffer @AssistedInject constructor(
             // Add to undo stack (unless we're undoing/redoing)
             if (!isUndoRedoInProgress) {
                 val operation = EditOperation.Insert(position, text)
+                val opMemory = operation.estimateMemoryBytes()
+
                 undoStack.addLast(operation)
+                currentUndoMemoryBytes += opMemory
+
+                // Evict oldest operations if limits exceeded
+                while ((undoStack.size > maxUndoStackSize || currentUndoMemoryBytes > maxUndoMemoryBytes)
+                       && undoStack.size > 1) {  // Keep at least one operation
+                    val evicted = undoStack.removeFirst()
+                    currentUndoMemoryBytes -= evicted.estimateMemoryBytes()
+                    log(tag, DEBUG) {
+                        "Evicted old undo operation (stack: ${undoStack.size}/${maxUndoStackSize}, " +
+                        "memory: ${currentUndoMemoryBytes}/${maxUndoMemoryBytes} bytes)"
+                    }
+                }
+
+                // Clear redo stack and reset its memory counter
                 redoStack.clear()
+                currentRedoMemoryBytes = 0
             }
 
             // Calculate new position
@@ -488,8 +509,25 @@ class ChunkedTextBuffer @AssistedInject constructor(
                         (endPosition.offset - startPosition.offset).toInt(),
                         deletedText
                     )
+                    val opMemory = operation.estimateMemoryBytes()
+
                     undoStack.addLast(operation)
+                    currentUndoMemoryBytes += opMemory
+
+                    // Evict oldest operations if limits exceeded
+                    while ((undoStack.size > maxUndoStackSize || currentUndoMemoryBytes > maxUndoMemoryBytes)
+                           && undoStack.size > 1) {  // Keep at least one operation
+                        val evicted = undoStack.removeFirst()
+                        currentUndoMemoryBytes -= evicted.estimateMemoryBytes()
+                        log(tag, DEBUG) {
+                            "Evicted old undo operation (stack: ${undoStack.size}/${maxUndoStackSize}, " +
+                            "memory: ${currentUndoMemoryBytes}/${maxUndoMemoryBytes} bytes)"
+                        }
+                    }
+
+                    // Clear redo stack and reset its memory counter
                     redoStack.clear()
+                    currentRedoMemoryBytes = 0
                 }
 
                 Result.success(deletedText)
@@ -669,7 +707,13 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 return Result.success(null)
             }
             val op = undoStack.removeLast()
+            val opMemory = op.estimateMemoryBytes()
+
+            // Update memory counters when moving operation between stacks
+            currentUndoMemoryBytes -= opMemory
             redoStack.addLast(op)
+            currentRedoMemoryBytes += opMemory
+
             op
         }
 
@@ -719,7 +763,13 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 return Result.success(null)
             }
             val op = redoStack.removeLast()
+            val opMemory = op.estimateMemoryBytes()
+
+            // Update memory counters when moving operation between stacks
+            currentRedoMemoryBytes -= opMemory
             undoStack.addLast(op)
+            currentUndoMemoryBytes += opMemory
+
             op
         }
 
@@ -943,12 +993,27 @@ class ChunkedTextBuffer @AssistedInject constructor(
         }
     }
 
+    /**
+     * Estimates the memory footprint of an EditOperation in bytes.
+     * Strings in JVM use UTF-16 encoding (2 bytes per character).
+     */
+    private fun EditOperation.estimateMemoryBytes(): Long {
+        val baseSize = 32L  // Position (24 bytes) + timestamp (8 bytes) overhead
+        return when (this) {
+            is EditOperation.Insert -> baseSize + (text.length * 2L)
+            is EditOperation.Delete -> baseSize + (deletedText.length * 2L) + 4L  // +4 for length Int
+            is EditOperation.Replace -> baseSize + (oldText.length * 2L) + (newText.length * 2L)
+        }
+    }
+
     @AssistedFactory
     interface Factory {
         fun create(
             workspaceId: Workspace.Id,
             chunkManager: ChunkManager,
-            chunkRepository: ChunkRepository
+            chunkRepository: ChunkRepository,
+            maxUndoStackSize: Int = 100,
+            maxUndoMemoryBytes: Long = 10_485_760,
         ): ChunkedTextBuffer
     }
 }

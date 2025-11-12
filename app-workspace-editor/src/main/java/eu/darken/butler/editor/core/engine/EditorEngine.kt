@@ -9,9 +9,11 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
 import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.editor.core.EditorSettings
 import eu.darken.butler.editor.core.sources.EditorDataSource
 import eu.darken.butler.editor.core.sources.FileDataSource
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
@@ -32,6 +34,7 @@ class EditorEngine @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     @Assisted private val filePath: APath<*>?,
     private val gatewaySwitch: GatewaySwitch,
+    private val editorSettings: EditorSettings,
     private val fileDataSourceFactory: FileDataSource.Factory,
     private val inMemoryDataSourceFactory: InMemoryDataSource.Factory,
     private val chunkRepositoryFactory: ChunkRepository.Factory,
@@ -107,7 +110,18 @@ class EditorEngine @AssistedInject constructor(
         // Create dependent resources
         val chunkRepository = chunkRepositoryFactory.create(workspaceId, dataSource)
         val chunkManager = chunkManagerFactory.create(workspaceId, chunkRepository)
-        val textBuffer = chunkedTextBufferFactory.create(workspaceId, chunkManager, chunkRepository)
+
+        // Read undo settings
+        val maxUndoStackSize = editorSettings.undoStackSize.value()
+        val maxUndoMemoryBytes = editorSettings.undoMaxMemoryMB.value() * 1_048_576L  // Convert MB to bytes
+
+        val textBuffer = chunkedTextBufferFactory.create(
+            workspaceId,
+            chunkManager,
+            chunkRepository,
+            maxUndoStackSize,
+            maxUndoMemoryBytes
+        )
 
         return EditorResources(
             dataSource = dataSource,
