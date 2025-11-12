@@ -41,14 +41,62 @@ class InMemoryDataSource @AssistedInject constructor(
     private var content: String = initialContent
 
     override suspend fun readChunk(startOffset: Long, size: Long): String {
-        val endOffset = (startOffset + size).coerceAtMost(content.length.toLong())
-        return content.substring(
-            startOffset.toInt().coerceIn(0, content.length),
-            endOffset.toInt().coerceIn(0, content.length)
-        )
+        log(tag) { "readChunk called: startOffset=$startOffset, size=$size, content.length=${content.length}" }
+
+        val start = startOffset.toInt().coerceIn(0, content.length)
+        val requestedEnd = (startOffset + size).toInt().coerceAtMost(content.length)
+
+        log(tag) { "readChunk: start=$start, requestedEnd=$requestedEnd" }
+
+        // CRITICAL: Ensure we don't split UTF-16 surrogate pairs at chunk boundaries
+        // Adjust end position if it would split a surrogate pair
+        val safeEnd = adjustForSurrogatePairs(content, requestedEnd)
+
+        if (requestedEnd != safeEnd) {
+            log(tag) {
+                "readChunk: Adjusted end position from $requestedEnd to $safeEnd (surrogate pair protection)"
+            }
+        }
+
+        return content.substring(start, safeEnd)
     }
 
-    override suspend fun getSize(): Long = content.toByteArray(Charsets.UTF_8).size.toLong()
+    /**
+     * Adjusts a position to avoid splitting UTF-16 surrogate pairs.
+     *
+     * UTF-16 surrogate pairs consist of two Char values:
+     * - High surrogate: U+D800 to U+DBFF
+     * - Low surrogate: U+DC00 to U+DFFF
+     *
+     * If the position would split a pair, we adjust it to include the complete character.
+     *
+     * @param text The string to check
+     * @param position The requested position
+     * @return Adjusted position that doesn't split a surrogate pair
+     */
+    private fun adjustForSurrogatePairs(text: String, position: Int): Int {
+        if (position <= 0 || position >= text.length) {
+            return position
+        }
+
+        // Check if position is at a low surrogate (second half of pair)
+        // If so, move back by 1 to include the high surrogate
+        if (Character.isLowSurrogate(text[position])) {
+            log(tag) { "adjustForSurrogatePairs: Position $position is low surrogate, moving back to ${position - 1}" }
+            return position - 1
+        }
+
+        // Check if position-1 is a high surrogate (first half of pair)
+        // If so, move forward by 1 to include the low surrogate
+        if (Character.isHighSurrogate(text[position - 1])) {
+            log(tag) { "adjustForSurrogatePairs: Position ${position - 1} is high surrogate, moving forward to ${position + 1}" }
+            return position + 1
+        }
+
+        return position
+    }
+
+    override suspend fun getSize(): Long = content.length.toLong()
 
     /**
      * Saves dirty chunks by merging them back into the in-memory content.

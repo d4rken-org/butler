@@ -72,6 +72,40 @@ class ChunkManager @AssistedInject constructor(
             log(tag) { "Loading chunk $chunkId from disk" }
             val chunk = chunkRepository.loadChunk(chunkId, boundary)
 
+            // CRITICAL: Adjust boundary if chunk size differs due to surrogate pair protection
+            // This can happen when chunk end falls in the middle of a UTF-16 surrogate pair
+            val actualEndOffset = boundary.startOffset + chunk.size
+            if (actualEndOffset != boundary.endOffset) {
+                log(tag) {
+                    "Adjusting boundary for $chunkId: [${boundary.startOffset}, ${boundary.endOffset}) -> " +
+                            "[${boundary.startOffset}, $actualEndOffset) (surrogate pair protection)"
+                }
+
+                // Update this chunk's boundary
+                boundaries = (boundaries + (chunkId to ChunkBoundary(
+                    startOffset = boundary.startOffset,
+                    endOffset = actualEndOffset,
+                    lineCount = chunk.lineCount
+                ))).toMutableMap()
+
+                // CASCADE: Adjust next chunk's start offset to match this chunk's new end
+                // Find the next chunk by looking for one whose start matches our old end
+                val nextChunkEntry = boundaries.entries.find { it.value.startOffset == boundary.endOffset }
+                if (nextChunkEntry != null) {
+                    val nextChunkId = nextChunkEntry.key
+                    val nextBoundary = nextChunkEntry.value
+                    log(tag) {
+                        "Cascading boundary adjustment to next chunk $nextChunkId: " +
+                                "start ${nextBoundary.startOffset} -> $actualEndOffset"
+                    }
+                    boundaries[nextChunkId] = ChunkBoundary(
+                        startOffset = actualEndOffset,  // Start where previous chunk ended
+                        endOffset = nextBoundary.endOffset,
+                        lineCount = nextBoundary.lineCount
+                    )
+                }
+            }
+
             // Update state
             _chunks.value = _chunks.value + (chunkId to chunk)
             _loadStates.value = _loadStates.value + (chunkId to ChunkLoadState(
@@ -83,7 +117,7 @@ class ChunkManager @AssistedInject constructor(
             chunkAccessOrder.remove(chunkId)
             chunkAccessOrder.add(chunkId)
 
-            log(tag) { "Successfully loaded chunk: $chunkId (${chunk.size} bytes)" }
+            log(tag) { "Successfully loaded chunk: $chunkId (${chunk.size} chars)" }
 
             // Trigger eviction if cache is full
             evictOldChunksIfNeeded()
