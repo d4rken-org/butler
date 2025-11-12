@@ -151,7 +151,7 @@ private fun SearchProgressHeader(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onExpandClick)
-            .padding(horizontal = 16.dp, vertical = 4.dp),
+            .padding(horizontal = 16.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Status icon based on search state
@@ -209,12 +209,11 @@ private fun SearchProgressHeader(
             Text(
                 text = "$actionText $pathCount location${if (pathCount > 1) "s" else ""}$failureText",
                 style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium
             )
 
             Text(
                 text = "$totalScanned scanned • $totalFound found",
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -256,11 +255,11 @@ private fun SearchPathProgressRow(
         Modifier
             .fillMaxWidth()
             .clickable(onClick = onErrorClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = 16.dp, vertical = 4.dp)
     } else {
         Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = 16.dp, vertical = 4.dp)
     }
 
     Row(

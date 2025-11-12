@@ -39,7 +39,7 @@ fun MultiPathChipBar(
     FlowRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy((-8).dp),
+        verticalArrangement = Arrangement.spacedBy((-10).dp),
     ) {
         if (paths.isEmpty()) {
             Text(
