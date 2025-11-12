@@ -55,7 +55,6 @@ import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
-import eu.darken.butler.searcher.ui.search.input.SearchStatusCard
 import eu.darken.butler.searcher.ui.search.SearchProgressCard
 import eu.darken.butler.searcher.ui.search.input.SearchToolbarCard
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
@@ -168,14 +167,12 @@ fun SearcherWorkspacePage(
     topToolbarScrollBehavior.state.getCurrentHeightDp()
     val statusCardHeight = 60.dp // Fixed height for status card
 
-    // Determine if status card should be visible
-    val showStatusCard by remember {
+    // Determine if progress card should be visible
+    val showProgressCard by remember {
         derivedStateOf {
             state?.let { currentState ->
-                currentState.searchQuery.text.isNotBlank() ||
-                        currentState.isSearching ||
-                        currentState.workspaceState.results.isNotEmpty() ||
-                        currentState.workspaceState.error != null
+                currentState.workspaceState.targetProgress.isNotEmpty() &&
+                    currentState.workspaceState.searchStatus != SearcherWorkspace.State.SearchStatus.IDLE
             } ?: false
         }
     }
@@ -261,7 +258,7 @@ fun SearcherWorkspacePage(
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp,
-                    top = 16.dp + actualToolbarHeightDp + (if (showStatusCard) statusCardHeight + 8.dp else 0.dp),
+                    top = 16.dp + actualToolbarHeightDp + (if (showProgressCard) statusCardHeight + 8.dp else 0.dp),
                     bottom = run {
                         val actionBarHeight = if (hasActions) 64.dp else 0.dp
                         val clipboardHeight = if (hasClipboard) 88.dp else 0.dp
@@ -396,39 +393,22 @@ fun SearcherWorkspacePage(
             // Error dialog state
             var errorDialogState by remember { mutableStateOf<Pair<String, Throwable>?>(null) }
 
-            // Pinned status card below toolbar - always visible when needed
-            if (showStatusCard) {
-                // Show multi-target progress card when there are targets and not idle
-                val showProgressCard = currentState.workspaceState.targetProgress.isNotEmpty() &&
-                    currentState.workspaceState.searchStatus != SearcherWorkspace.State.SearchStatus.IDLE
-
-                if (showProgressCard) {
-                    SearchProgressCard(
-                        targetProgress = currentState.workspaceState.targetProgress,
-                        overallProgress = currentState.workspaceState.progress,
-                        searchStatus = currentState.workspaceState.searchStatus,
-                        onCancel = { onPageAction(SearcherPageAction.Search.Cancel) },
-                        onClear = { onPageAction(SearcherPageAction.Search.ClearResults) },
-                        onErrorClick = { path, exception ->
-                            errorDialogState = path to exception
-                        },
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .offset(y = 16.dp + actualToolbarHeightDp)
-                            .padding(horizontal = 16.dp)
-                    )
-                } else {
-                    // Show regular status card for other states
-                    SearchStatusCard(
-                        state = currentState,
-                        onCancel = { onPageAction(SearcherPageAction.Search.Cancel) },
-                        onClear = { onPageAction(SearcherPageAction.Search.ClearResults) },
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .offset(y = 16.dp + actualToolbarHeightDp)
-                            .padding(horizontal = 16.dp)
-                    )
-                }
+            // Pinned progress card below toolbar
+            if (showProgressCard) {
+                SearchProgressCard(
+                    targetProgress = currentState.workspaceState.targetProgress,
+                    overallProgress = currentState.workspaceState.progress,
+                    searchStatus = currentState.workspaceState.searchStatus,
+                    onCancel = { onPageAction(SearcherPageAction.Search.Cancel) },
+                    onClear = { onPageAction(SearcherPageAction.Search.ClearResults) },
+                    onErrorClick = { path, exception ->
+                        errorDialogState = path to exception
+                    },
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .offset(y = 16.dp + actualToolbarHeightDp)
+                        .padding(horizontal = 16.dp)
+                )
             }
 
             // Floating Operations and Clipboard Bars Container

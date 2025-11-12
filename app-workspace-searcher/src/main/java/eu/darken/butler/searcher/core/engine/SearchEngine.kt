@@ -108,6 +108,11 @@ class SearchEngine @Inject constructor(
         }
     }
 
+    fun clearTargetProgress() {
+        log(TAG, INFO) { "Clearing target progress state" }
+        _targetProgressState.value = emptyList()
+    }
+
     private fun getDefaultSearchPaths(): List<SearchTarget> {
         log(TAG, INFO) { "Getting default search paths (all public storage volumes)" }
 

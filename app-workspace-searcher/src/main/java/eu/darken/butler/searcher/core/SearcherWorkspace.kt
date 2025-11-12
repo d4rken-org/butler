@@ -320,6 +320,8 @@ class SearcherWorkspace @AssistedInject constructor(
                 activeSearchJob?.cancel()
                 // Reset state to initial empty state
                 _searchState.value = State()
+                // Clear target progress from engine
+                searchEngine.clearTargetProgress()
             }
             is SearcherCommand.Delete -> {
                 scope.launch {
