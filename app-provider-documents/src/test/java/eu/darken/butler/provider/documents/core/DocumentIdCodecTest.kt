@@ -368,7 +368,7 @@ class DocumentIdCodecTest : BaseTest() {
 
         @Test
         fun `root document ID is virtual`() {
-            codec.isVirtualDocument(DocumentIdCodec.ROOT_DOCUMENT_ID) shouldBe true
+            codec.isVirtualDocument(ProviderLocation.Root.Butler.rootDocumentId) shouldBe true
         }
 
         @Test
@@ -378,22 +378,12 @@ class DocumentIdCodecTest : BaseTest() {
 
         @Test
         fun `device self is virtual document`() {
-            codec.isVirtualDocument(DocumentIdCodec.DEVICE_DOCUMENT_ID) shouldBe true
+            codec.isVirtualDocument(ProviderLocation.Home.Device.documentId) shouldBe true
         }
 
         @Test
         fun `device pipe self is virtual document`() {
             codec.isVirtualDocument("device|self") shouldBe true
-        }
-
-        @Test
-        fun `ssh connection is virtual document`() {
-            codec.isVirtualDocument("ssh|server1") shouldBe true
-        }
-
-        @Test
-        fun `ftp connection is virtual document`() {
-            codec.isVirtualDocument("ftp|server1") shouldBe true
         }
 
         @Test
@@ -438,20 +428,6 @@ class DocumentIdCodecTest : BaseTest() {
         @Test
         fun `device without suffix is still virtual`() {
             codec.isVirtualDocument("device|anything") shouldBe true
-        }
-
-        @Test
-        fun `ssh with different server IDs are all virtual`() {
-            codec.isVirtualDocument("ssh|server1") shouldBe true
-            codec.isVirtualDocument("ssh|server2") shouldBe true
-            codec.isVirtualDocument("ssh|prod-server-01") shouldBe true
-        }
-
-        @Test
-        fun `ftp with different server IDs are all virtual`() {
-            codec.isVirtualDocument("ftp|server1") shouldBe true
-            codec.isVirtualDocument("ftp|server2") shouldBe true
-            codec.isVirtualDocument("ftp|backup-ftp") shouldBe true
         }
     }
 }
