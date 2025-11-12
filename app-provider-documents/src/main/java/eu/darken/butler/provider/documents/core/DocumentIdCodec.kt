@@ -106,8 +106,36 @@ class DocumentIdCodec @Inject constructor(
         return path
     }
 
+    /**
+     * Checks if a document ID represents a virtual document (not a real filesystem path).
+     *
+     * Virtual documents include:
+     * - Root: "butler"
+     * - Connections: "device|self", "ssh|{id}", "ftp|{id}"
+     *
+     * @return true if virtual, false if real path (local|*, saf|*)
+     */
+    fun isVirtualDocument(documentId: String): Boolean {
+        return documentId == ROOT_DOCUMENT_ID ||
+                documentId.startsWith("device|") ||
+                documentId.startsWith("ssh|") ||
+                documentId.startsWith("ftp|")
+    }
+
     companion object {
         private val TAG = logTag("Provider", "Documents", "IdCodec")
         private const val SEPARATOR = "|"
+
+        /**
+         * Document ID for the Butler root (Level 1).
+         * This is the single entry shown in the picker drawer.
+         */
+        const val ROOT_DOCUMENT_ID = "butler"
+
+        /**
+         * Document ID for the local device connection (Level 2).
+         * Child of Butler root, contains local storage locations.
+         */
+        const val DEVICE_DOCUMENT_ID = "device|self"
     }
 }

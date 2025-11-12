@@ -361,4 +361,97 @@ class DocumentIdCodecTest : BaseTest() {
             jsonString shouldContain "segments"
         }
     }
+
+    @Nested
+    @DisplayName("Virtual Document Detection")
+    inner class VirtualDocumentDetection {
+
+        @Test
+        fun `root document ID is virtual`() {
+            codec.isVirtualDocument(DocumentIdCodec.ROOT_DOCUMENT_ID) shouldBe true
+        }
+
+        @Test
+        fun `butler is virtual document`() {
+            codec.isVirtualDocument("butler") shouldBe true
+        }
+
+        @Test
+        fun `device self is virtual document`() {
+            codec.isVirtualDocument(DocumentIdCodec.DEVICE_DOCUMENT_ID) shouldBe true
+        }
+
+        @Test
+        fun `device pipe self is virtual document`() {
+            codec.isVirtualDocument("device|self") shouldBe true
+        }
+
+        @Test
+        fun `ssh connection is virtual document`() {
+            codec.isVirtualDocument("ssh|server1") shouldBe true
+        }
+
+        @Test
+        fun `ftp connection is virtual document`() {
+            codec.isVirtualDocument("ftp|server1") shouldBe true
+        }
+
+        @Test
+        fun `local path document ID is not virtual`() {
+            val path = LocalPath.build("/storage/emulated/0/file.txt")
+            val encoded = codec.encode(path)
+
+            codec.isVirtualDocument(encoded) shouldBe false
+        }
+
+        @Test
+        fun `saf path document ID is not virtual`() {
+            val safPath = SAFPath.build(
+                "content://com.android.externalstorage.documents/tree/primary%3Afolder",
+                "file.txt"
+            )
+            val encoded = codec.encode(safPath)
+
+            codec.isVirtualDocument(encoded) shouldBe false
+        }
+
+        @Test
+        fun `document ID starting with local is not virtual`() {
+            codec.isVirtualDocument("local|L3N0b3JhZ2U") shouldBe false
+        }
+
+        @Test
+        fun `document ID starting with saf is not virtual`() {
+            codec.isVirtualDocument("saf|eyJ0cmVlUm9vdCI") shouldBe false
+        }
+
+        @Test
+        fun `random document ID is not virtual`() {
+            codec.isVirtualDocument("random|something") shouldBe false
+        }
+
+        @Test
+        fun `empty string is not virtual`() {
+            codec.isVirtualDocument("") shouldBe false
+        }
+
+        @Test
+        fun `device without suffix is still virtual`() {
+            codec.isVirtualDocument("device|anything") shouldBe true
+        }
+
+        @Test
+        fun `ssh with different server IDs are all virtual`() {
+            codec.isVirtualDocument("ssh|server1") shouldBe true
+            codec.isVirtualDocument("ssh|server2") shouldBe true
+            codec.isVirtualDocument("ssh|prod-server-01") shouldBe true
+        }
+
+        @Test
+        fun `ftp with different server IDs are all virtual`() {
+            codec.isVirtualDocument("ftp|server1") shouldBe true
+            codec.isVirtualDocument("ftp|server2") shouldBe true
+            codec.isVirtualDocument("ftp|backup-ftp") shouldBe true
+        }
+    }
 }
