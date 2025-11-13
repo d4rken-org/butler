@@ -169,7 +169,7 @@ private fun AppsWorkspacePage(
                     else -> {
                         items(
                             items = state.apps,
-                            key = { it.packageName }
+                            key = { it.pkg.installId }
                         ) { appItem ->
                             AppListItem(
                                 item = appItem,

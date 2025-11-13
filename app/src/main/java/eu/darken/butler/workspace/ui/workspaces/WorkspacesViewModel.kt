@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.WebpageTool
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.combine
@@ -14,11 +15,15 @@ import eu.darken.butler.main.core.motd.MotdState
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.WorkspacePanelMode
+import eu.darken.butler.workspace.ui.dialogs.WorkspaceManagerDialogState
+import eu.darken.butler.workspace.ui.feedback.BannerState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
@@ -42,13 +47,23 @@ class WorkspacesViewModel @Inject constructor(
 
     private val hiddenMotdIds = MutableStateFlow<Set<Uuid>>(emptySet())
 
+    private val _managerDialogStates = MutableStateFlow<Map<Workspace.Id, WorkspaceManagerDialogState.Targeted>>(
+        emptyMap()
+    )
+    val managerDialogStates = _managerDialogStates.asStateFlow()
+
+    private val _bannerStates = MutableStateFlow<Map<Workspace.Id, BannerState>>(emptyMap())
+    val bannerStates = _bannerStates.asStateFlow()
+
     init {
+        log(tag) { "WorkspacesViewModel initializing..." }
+
         launch {
             val currentWorkspaces = workspaceRepo.state.first()
             if (currentWorkspaces.infos.isEmpty()) {
                 log(tag) { "No workspaces found, auto-creating workspace for testing" }
                 // FIXME: AUTO-CREATE WORKSPACE FOR TESTING - REMOVE BEFORE MERGE, DO NOT COMMIT
-                workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.SEARCHER))
+                workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.EXPLORER))
             }
         }
 
@@ -61,6 +76,73 @@ class WorkspacesViewModel @Inject constructor(
                 savedStateHandle["workspaceUIState"] = state
             }
             .launchInViewModel()
+
+        // Observe pending confirmations and show dialogs
+        workspaceRepo.pendingConfirmations
+            .onEach { confirmations ->
+                log(tag) { "Pending confirmations updated: ${confirmations.size}" }
+
+                // Map confirmations to dialog states
+                val newDialogStates = confirmations.mapNotNull { (confirmationId, confirmation) ->
+                    val targetWorkspaceId = confirmation.sourceWorkspaceId
+                        ?: workspacePageManager.state.value.focusedWorkspaceId
+                        ?: run {
+                            log(tag, WARN) { "No target workspace for confirmation $confirmationId" }
+                            return@mapNotNull null
+                        }
+
+                    val dialogState = when (val data = confirmation.data) {
+                        is WorkspaceRepo.ConfirmationData.BatchWorkspaceCreation -> {
+                            WorkspaceManagerDialogState.OpenInNewTabsConfirmation(
+                                confirmationId = confirmationId,
+                                targetWorkspaceId = targetWorkspaceId,
+                                totalCount = data.totalCount,
+                            )
+                        }
+                        // Future: map other confirmation types to appropriate dialogs
+                    }
+
+                    targetWorkspaceId to dialogState
+                }.toMap()
+
+                _managerDialogStates.update { newDialogStates }
+            }
+            .launchInViewModel()
+
+        // Observe workspace events for banner feedback
+        workspaceRepo.events
+            .onEach { event ->
+                when (event) {
+                    is WorkspaceEvent.BatchCreationCompleted -> {
+                        log(tag, INFO) { "BatchCreationCompleted: $event" }
+
+                        val targetWorkspaceId = event.sourceWorkspaceId
+                            ?: workspacePageManager.state.value.focusedWorkspaceId
+
+                        if (targetWorkspaceId != null) {
+                            val bannerState = if (event.failureCount == 0 && event.skippedCount == 0) {
+                                BannerState.Success(event.successCount)
+                            } else {
+                                BannerState.Partial(event.successCount, event.failureCount, event.skippedCount)
+                            }
+
+                            _bannerStates.update { states ->
+                                states + (targetWorkspaceId to bannerState)
+                            }
+
+                            // Auto-clear banner after 3 seconds
+                            launch {
+                                delay(3000)
+                                _bannerStates.update { it - targetWorkspaceId }
+                            }
+                        }
+                    }
+                    else -> {} // Ignore other events
+                }
+            }
+            .launchInViewModel()
+
+        log(tag) { "WorkspacesViewModel initialization complete" }
     }
 
     val state = combine(
@@ -129,6 +211,36 @@ class WorkspacesViewModel @Inject constructor(
     fun openMotdLink(url: String) = launch {
         log(tag) { "openMotdLink($url)" }
         webpageTool.open(url)
+    }
+
+    fun dismissManagerDialog(workspaceId: Workspace.Id) = launch {
+        log(tag) { "dismissManagerDialog($workspaceId)" }
+        val dialogState = _managerDialogStates.value[workspaceId]
+
+        // For confirmation dialogs, resolve as cancelled
+        if (dialogState is WorkspaceManagerDialogState.OpenInNewTabsConfirmation) {
+            log(tag) { "Confirmation dialog dismissed, resolving as cancelled" }
+            workspaceRepo.resolveConfirmation(dialogState.confirmationId, confirmed = false)
+        }
+
+        log(tag) { "dismissManagerDialog() - dialog removed for workspace $workspaceId" }
+    }
+
+    fun confirmManagerDialog(dialogState: WorkspaceManagerDialogState.Targeted) = launch {
+        log(tag) { "confirmManagerDialog($dialogState)" }
+
+        when (dialogState) {
+            is WorkspaceManagerDialogState.OpenInNewTabsConfirmation -> {
+                log(tag) { "Confirmation dialog confirmed, resolving" }
+                workspaceRepo.resolveConfirmation(dialogState.confirmationId, confirmed = true)
+            }
+            // Handle other dialog types here in the future
+        }
+    }
+
+    fun dismissBanner(workspaceId: Workspace.Id) = launch {
+        log(tag) { "dismissBanner($workspaceId)" }
+        _bannerStates.update { it - workspaceId }
     }
 
     data class State(

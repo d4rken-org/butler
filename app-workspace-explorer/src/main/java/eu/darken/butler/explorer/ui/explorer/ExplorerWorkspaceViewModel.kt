@@ -15,10 +15,15 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.datastore.valueBlocking
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
@@ -31,6 +36,7 @@ import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.R
+import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerNavigation.Target.*
@@ -54,10 +60,12 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.*
 import eu.darken.butler.explorer.ui.explorer.dialogs.FilterOptionsResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
+import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortOptionsResult
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.upgrade.isPro
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
@@ -99,6 +107,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val workspaceRemote: WorkspaceRemote,
     private val actionProvider: DefaultActionProvider,
     private val clipboardRepo: ClipboardRepo,
+    private val openInNewTabsUseCase: OpenInNewTabsUseCase,
     private val fileIntentHelper: FileIntentHelper,
     private val explorerSettings: ExplorerSettings,
     itemSorterFactory: ExplorerItemSorter.Factory,
@@ -107,6 +116,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val copyErrorTool: CopyErrorTool,
     private val upgradeRepo: UpgradeRepo,
     private val filenameValidator: FilenameValidator,
+    private val gatewaySwitch: GatewaySwitch,
     internal val safLocationManager: SAFLocationManager,
     private val itemInfoCalculator: ItemInfoCalculator,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
@@ -129,6 +139,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     private val _pendingSAFPickerGrant = MutableStateFlow<SAFPickerGrant?>(null)
     val pendingSAFPickerGrant: Flow<SAFPickerGrant?> = _pendingSAFPickerGrant
+
+    // Scroll position tracking: Map<locationId, Pair<firstVisibleItemIndex, scrollOffset>>
+    private val scrollPositions = mutableMapOf<String, Pair<Int, Int>>()
 
     private val workspaceSource: Flow<ExplorerWorkspace?> =
         workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
@@ -439,6 +452,28 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     clearSelection()
                 }
                 is ExplorerItem.File -> {
+                    // Special handling for symlinks: check if target is directory
+                    if (item is ExplorerItem.SymbolicLink && !item.isBroken) {
+                        val target = item.lookup.target
+                        if (target != null) {
+                            // Perform lookup to determine if target is a directory or file
+                            val targetLookup = gatewaySwitch.lookup(
+                                target,
+                                LookupOptions(continueOnError = false)
+                            )
+
+                            if (targetLookup.isDirectory) {
+                                log(tag, INFO) { "Following symlink to directory: ${item.targetPath}" }
+                                getWorkspace().navigate(Directory(target))
+                                clearSelection()
+                                return@launch
+                            } else {
+                                log(tag, INFO) { "Symlink points to file: ${item.targetPath}" }
+                                // Fall through to show file options dialog
+                            }
+                        }
+                    }
+
                     val workspace = getWorkspace()
                     val config = workspace.pickerConfig
 
@@ -484,8 +519,18 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         clearSelection()
     }
 
+    fun saveScrollPosition(locationId: String, firstVisibleItemIndex: Int, scrollOffset: Int) {
+        scrollPositions[locationId] = firstVisibleItemIndex to scrollOffset
+        log(tag) { "saveScrollPosition: locationId=$locationId, index=$firstVisibleItemIndex, offset=$scrollOffset" }
+    }
+
+    fun getScrollPosition(locationId: String): Pair<Int, Int>? {
+        val position = scrollPositions[locationId]
+        log(tag) { "getScrollPosition: locationId=$locationId -> $position" }
+        return position
+    }
+
     fun toggleItemSelection(item: ExplorerItem) {
-        log(tag) { "toggleItemSelection($item)" }
         if (item !is ExplorerItem.Path && item !is ExplorerItem.Storage) {
             log(tag, WARN) { "toggleItemSelection($item) is not selectable" }
             return
@@ -633,6 +678,40 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerAction.Directory.DeselectAll -> {
                 selectedItemsFlow.value = emptySet()
             }
+            is ExplorerAction.Directory.OpenInNewTabs -> {
+                log(tag) { "openInNewTabs(): ${selectedItemsFlow.value.size} items" }
+                val selected = selectedItemsFlow.value.filterIsInstance<ExplorerItem.Lookup>()
+                if (selected.isEmpty()) return@launch
+
+                // Convert Explorer items to use case items
+                val items = selected.map { item ->
+                    if (item.lookup.isDirectory) {
+                        OpenInNewTabsUseCase.Item.Directory(item.lookup.lookedUp)
+                    } else {
+                        val isText = when (item) {
+                            is ExplorerItem.File -> TextFileDetector.isTextFile(item.mimeType)
+                            else -> TextFileDetector.isTextFile(item.lookup.lookedUp)
+                        }
+                        OpenInNewTabsUseCase.Item.File(item.lookup.lookedUp, isText)
+                    }
+                }
+
+                val request = OpenInNewTabsUseCase.Request(
+                    items = items,
+                    sourceWorkspaceId = id,
+                )
+
+                val analysis = openInNewTabsUseCase.analyze(request)
+
+                if (!analysis.hasItemsToOpen) {
+                    // All items were skipped
+                    log(tag, WARN) { "All items skipped (no openable items)" }
+                    return@launch
+                }
+
+                // Always emit event - WorkspacesViewModel handles confirmation
+                executeOpenInNewTabs(analysis)
+            }
             is ExplorerAction.Common.Sort -> {
                 dialogStateFlow.value = EditSortOptions(
                     currentSortSettings = currentSortSettings.value
@@ -699,33 +778,44 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     // File action handlers
+    private suspend fun executeOpenInNewTabs(analysis: OpenInNewTabsUseCase.AnalysisResult) {
+        log(tag, INFO) { "executeOpenInNewTabs(): Opening ${analysis.totalOpenableCount} workspaces" }
+
+        // Create workspace requests
+        val requests = openInNewTabsUseCase.createRequests(
+            analysis = analysis,
+            createExplorerArguments = { path -> ExplorerWorkspace.Arguments(startPath = path) },
+            createEditorArguments = { path -> EditorWorkspace.Arguments(filePath = path) },
+        )
+
+        // Execute batch creation directly - WorkspaceRepo handles confirmation and banner
+        val result = workspaceRemote.execute(
+            WorkspaceAction.CreateBatch(
+                requests = requests,
+                sourceWorkspaceId = id,
+            )
+        )
+
+        when (result) {
+            is WorkspaceAction.CreateBatch.Result.Success -> {
+                log(tag, INFO) { "Batch creation succeeded: $result" }
+            }
+            is WorkspaceAction.CreateBatch.Result.Cancelled -> {
+                log(tag, INFO) { "Batch creation cancelled by user" }
+            }
+        }
+
+        clearSelection()
+    }
+
     fun openFileInEditor(item: ExplorerItem.File) = launch {
         log(tag) { "openFileInEditor(${item.lookup.name})" }
         dismissDialog()
 
-        // Create editor workspace arguments via reflection to avoid direct dependency
         try {
-            val editorArgsClass = Class.forName("eu.darken.butler.editor.core.EditorWorkspace\$Arguments")
-            val constructor = editorArgsClass.getConstructor(
-                APath::class.java,
-                Long::class.java,
-                Long::class.java,
-                Boolean::class.java,
-                Int::class.java,
-                String::class.java
-            )
-            val editorArguments = constructor.newInstance(
-                item.lookup.lookedUp, // filePath
-                null, // chunkSize - use default
-                null, // memoryLimit - use default
-                false, // isReadOnly
-                null, // goToLine
-                null // searchQuery
-            ) as Workspace.Arguments
-
             val action = WorkspaceAction.Create(
                 type = Workspace.Type.EDITOR,
-                arguments = editorArguments
+                arguments = EditorWorkspace.Arguments(filePath = item.lookup.lookedUp)
             )
 
             workspaceRemote.execute(action)
@@ -1277,6 +1367,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerAction.Directory.Delete,
             is ExplorerAction.Directory.Share,
             is ExplorerAction.Directory.Rename,
+            is ExplorerAction.Directory.OpenInNewTabs,
             is ExplorerAction.Common.Info,
             is ExplorerAction.Device.AddLocation,
             is ExplorerAction.Device.RemoveLocation,

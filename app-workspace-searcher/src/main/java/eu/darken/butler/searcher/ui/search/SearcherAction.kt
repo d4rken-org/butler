@@ -7,6 +7,7 @@ import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Deselect
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.Link
+import androidx.compose.material.icons.twotone.OpenInNew
 import androidx.compose.material.icons.twotone.SelectAll
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -96,5 +97,13 @@ sealed interface SearcherAction : WorkspaceAction {
     data object DeselectAll : SearcherAction {
         override val icon = Icons.TwoTone.Deselect
         override val label = R.string.searcher_action_deselect_all.toCaString()
+    }
+
+    data class OpenInNewTabs(
+        val results: List<SearchItem>,
+    ) : SearcherAction {
+        override val icon = Icons.TwoTone.OpenInNew
+        override val label = R.string.searcher_action_open_in_new_tabs.toCaString()
+        override val group = WorkspaceAction.Group.PRIMARY
     }
 }

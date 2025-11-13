@@ -80,6 +80,10 @@ fun StorageRow(
                 else -> null
             }
         },
+        tertiaryText = when (item) {
+            is ExplorerItem.Storage.Local -> item.target.path.path
+            is ExplorerItem.Storage.SAF -> stringResource(R.string.explorer_file_storage_saf_uri_label)
+        },
         trailingContent = if (item is ExplorerItem.Storage.SAF) {
             { PermissionIndicator(item.location) }
         } else null

@@ -109,8 +109,6 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 } else {
                     log(tag) { "Workspace removed" }
                     currentWorkspace = null
-                    // Navigate back when workspace is removed
-                    navUp()
                 }
             }
             .catch { e ->

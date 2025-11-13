@@ -52,6 +52,15 @@
     <string name="workspace_button_menu_close_current_action">Close current tab</string>
     <string name="workspace_button_menu_settings_action">Settings</string>
 
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">Close All Tabs?</string>
+    <string name="workspace_manager_close_all_message">This will close all %1$d open %2$s. This action cannot be undone.</string>
+    <string name="workspace_manager_close_all_message_singular">tab</string>
+    <string name="workspace_manager_close_all_message_plural">tabs</string>
+    <string name="workspace_manager_close_all_action">Close All</string>
+    <string name="workspace_fab_close_all">Close All Tabs</string>
+    <string name="general_cancel_action">Cancel</string>
+
     <!-- Operations -->
     <string name="operations_header_title">Operations</string>
     <string name="operations_clear_completed">Clear completed</string>
@@ -160,4 +169,14 @@
     <string name="workspace_error_show_details_action">Show technical details</string>
     <string name="workspace_error_hide_details_action">Hide technical details</string>
     <string name="workspace_error_copy_action">Copy error</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">Open multiple tabs?</string>
+    <string name="workspace_open_tabs_confirmation_message">This will open %1$d workspaces.</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="one">Opened %1$d tab</item>
+        <item quantity="other">Opened %1$d tabs</item>
+    </plurals>
 </resources>

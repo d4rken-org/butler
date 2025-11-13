@@ -20,6 +20,7 @@
     <string name="general_cut_action">Cut</string>
     <string name="general_paste_action">Paste</string>
     <string name="general_apply_action">Apply</string>
+    <string name="general_open_action">Open</string>
     <string name="general_cancel_action">Cancel</string>
     <string name="general_confirm_action">Confirm</string>
     <string name="general_reset_action">Reset</string>
@@ -56,6 +57,7 @@
     <string name="general_progress_loading_egg_11">This is fine</string>
     <string name="general_progress_loading_egg_12">Please hold</string>
     <string name="general_progress_loading_egg_13">At least you\'re not on hold</string>
+    <string name="general_progress_loading_egg_14">Apply directly to the forehead</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">
@@ -116,6 +118,8 @@
 
     <string name="general_path_label">Path</string>
     <string name="general_filename_validation_error">Name contains invalid characters: %1$s</string>
+
+    <string name="common_workspace_position_indicator">%1$d of %2$d: %3$s</string>
 
     <string name="file_type_symbolic_link">Link</string>
     <string name="file_type_directory">Directory</string>
@@ -180,4 +184,10 @@
     <string name="setup_required_card_title">Setup Required</string>
     <string name="setup_required_card_body">Additional setup is required to perform this operation.</string>
     <string name="setup_required_card_setup_action">Open Setup</string>
+
+    <!-- Open in new tabs feature -->
+    <string name="common_open_tabs_confirmation_title">Open multiple tabs?</string>
+    <string name="common_open_tabs_confirmation_message">This will open %1$d workspaces.</string>
+    <string name="common_open_tabs_success">Opened %1$d tabs</string>
+    <string name="common_open_tabs_success_with_skipped">Opened %1$d tabs (%2$d items skipped)</string>
 </resources>

@@ -35,6 +35,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -197,13 +198,47 @@ fun ExplorerWorkspacePage(
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
     var showCancelConfirmation by remember { mutableStateOf<Operation.Id?>(null) }
 
-    LaunchedEffect(mainState.locationId) {
-        if (mainState.locationId != null) {
-            if (mainState.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
-                listState.animateScrollToItem(0)
-            } else {
-                gridState.animateScrollToItem(0)
+    // Save scroll position when navigating away from current location
+    DisposableEffect(mainState.locationId) {
+        val locationId = mainState.locationId
+        onDispose {
+            if (locationId != null) {
+                val (index, offset) = if (mainState.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
+                    listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset
+                } else {
+                    gridState.firstVisibleItemIndex to gridState.firstVisibleItemScrollOffset
+                }
+                vm?.saveScrollPosition(locationId, index, offset)
             }
+        }
+    }
+
+    // Restore or reset scroll position when items load
+    LaunchedEffect(mainState.locationId, mainState.items) {
+        val locationId = mainState.locationId ?: return@LaunchedEffect
+        val items = mainState.items
+
+        // Wait for items to be loaded before attempting scroll
+        if (items != null && items.isNotEmpty()) {
+            val savedPosition = vm?.getScrollPosition(locationId)
+
+            if (savedPosition != null) {
+                // Restore saved position (coming back to previously visited location)
+                if (mainState.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
+                    listState.scrollToItem(savedPosition.first, savedPosition.second)
+                } else {
+                    gridState.scrollToItem(savedPosition.first, savedPosition.second)
+                }
+            } else {
+                // New location - scroll to top
+                if (mainState.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
+                    listState.scrollToItem(0)
+                } else {
+                    gridState.scrollToItem(0)
+                }
+            }
+
+            // Always reset toolbar visibility on navigation for proper orientation
             scrollBehavior.state.heightOffset = 0f
             bottomBarScrollBehavior.state.heightOffset = 0f
         }

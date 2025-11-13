@@ -4,6 +4,7 @@ import eu.darken.butler.apps.core.AppsWorkspace
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.replayingShare
@@ -22,6 +23,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
@@ -42,6 +45,34 @@ class WorkspaceRepo @Inject constructor(
     private val lock = Mutex()
     private val _workspaces = MutableStateFlow<List<Workspace>>(emptyList())
     private val _events = MutableSharedFlow<WorkspaceEvent>()
+
+    // Generic confirmation system
+    data class PendingConfirmation(
+        val id: String,
+        val sourceWorkspaceId: Workspace.Id?,
+        val data: ConfirmationData,
+    )
+
+    sealed interface ConfirmationData {
+        /**
+         * Confirmation for creating multiple workspaces at once
+         */
+        data class BatchWorkspaceCreation(
+            val totalCount: Int,
+            val skippedCount: Int = 0,
+        ) : ConfirmationData
+
+        // Future confirmation types can be added here:
+        // data class BulkDelete(val itemCount: Int, val itemType: String) : ConfirmationData
+        // data class DangerousOperation(val message: String) : ConfirmationData
+    }
+
+    private val _pendingConfirmations = MutableStateFlow<Map<String, PendingConfirmation>>(emptyMap())
+    val pendingConfirmations: Flow<Map<String, PendingConfirmation>> = _pendingConfirmations
+        .setupCommonEventHandlers(TAG, enabled = Bugs.isDebug) { "PendingConfirmations" }
+        .replayingShare(appScope)
+
+    private val confirmationContinuations = mutableMapOf<String, kotlin.coroutines.Continuation<Boolean>>()
     private val infos: Flow<List<Workspace.Info>> = _workspaces.flatMapLatest { workspaces ->
         if (workspaces.isEmpty()) {
             flowOf(emptyList())
@@ -125,6 +156,14 @@ class WorkspaceRepo @Inject constructor(
         return _workspaces.map { wss -> wss.singleOrNull { it.id == id } }
     }
 
+    fun resolveConfirmation(confirmationId: String, confirmed: Boolean) {
+        log(TAG, INFO) { "resolveConfirmation($confirmationId, confirmed=$confirmed)" }
+        confirmationContinuations.remove(confirmationId)?.let { continuation ->
+            continuation.resumeWith(Result.success(confirmed))
+        } ?: log(TAG, WARN) { "No continuation found for confirmation $confirmationId" }
+        _pendingConfirmations.update { it - confirmationId }
+    }
+
     override suspend fun execute(action: WorkspaceAction): WorkspaceAction.Result = lock.withLock {
         log(TAG, INFO) { "execute($action)" }
         when (action) {
@@ -145,8 +184,93 @@ class WorkspaceRepo @Inject constructor(
                 WorkspaceAction.Create.Result(newId)
             }
 
+            is WorkspaceAction.CreateBatch -> {
+                log(TAG, INFO) { "Creating batch of ${action.requests.size} workspaces" }
+
+                // Check if confirmation is needed
+                val needsConfirmation = action.requests.size >= CONFIRMATION_THRESHOLD
+
+                if (needsConfirmation) {
+                    log(TAG, INFO) { "Batch size (${action.requests.size}) >= threshold ($CONFIRMATION_THRESHOLD), requesting confirmation" }
+                    val confirmationId = kotlin.uuid.Uuid.random().toString()
+
+                    val confirmed = suspendCancellableCoroutine { continuation ->
+                        confirmationContinuations[confirmationId] = continuation
+                        _pendingConfirmations.update {
+                            it + (confirmationId to PendingConfirmation(
+                                id = confirmationId,
+                                sourceWorkspaceId = action.sourceWorkspaceId,
+                                data = ConfirmationData.BatchWorkspaceCreation(
+                                    totalCount = action.requests.size,
+                                    skippedCount = 0, // Could be passed in action if needed
+                                ),
+                            ))
+                        }
+                    }
+
+                    if (!confirmed) {
+                        log(TAG, INFO) { "Confirmation cancelled by user" }
+                        return@withLock WorkspaceAction.CreateBatch.Result.Cancelled
+                    }
+                    log(TAG, INFO) { "Confirmation approved by user" }
+                }
+
+                // Execute batch creation
+                val results = mutableMapOf<WorkspaceAction.Create, WorkspaceAction.CreateBatch.CreationResult>()
+
+                action.requests.forEach { createRequest ->
+                    try {
+                        log(TAG) { "Creating workspace: ${createRequest.type}" }
+                        val newId = create(
+                            type = createRequest.type,
+                            arguments = createRequest.arguments,
+                            idToReplace = createRequest.replace
+                        )
+                        _events.emit(
+                            WorkspaceEvent.Created(
+                                workspaceId = newId,
+                                replacedId = createRequest.replace
+                            )
+                        )
+                        results[createRequest] = WorkspaceAction.CreateBatch.CreationResult.Success(newId)
+                        log(TAG) { "Batch creation succeeded for ${createRequest.type}: $newId" }
+                    } catch (e: Exception) {
+                        log(TAG, ERROR) { "Batch creation failed for ${createRequest.type}: ${e.asLog()}" }
+                        results[createRequest] = WorkspaceAction.CreateBatch.CreationResult.Failure(e)
+                    }
+                }
+
+                val successCount = results.values.count { it is WorkspaceAction.CreateBatch.CreationResult.Success }
+                val failureCount = results.values.count { it is WorkspaceAction.CreateBatch.CreationResult.Failure }
+
+                log(TAG, INFO) { "Batch creation completed: $successCount succeeded, $failureCount failed" }
+
+                // Emit event for banner feedback
+                _events.emit(
+                    WorkspaceEvent.BatchCreationCompleted(
+                        successCount = successCount,
+                        failureCount = failureCount,
+                        skippedCount = 0,
+                        sourceWorkspaceId = action.sourceWorkspaceId,
+                    )
+                )
+
+                WorkspaceAction.CreateBatch.Result.Success(
+                    results = results,
+                    skippedCount = 0,
+                )
+            }
+
             is WorkspaceAction.Close -> {
                 log(TAG, INFO) { "Closing workspace with id ${action.id}" }
+
+                // Cancel any pending confirmations for this workspace
+                _pendingConfirmations.value
+                    .filter { (_, confirmation) -> confirmation.sourceWorkspaceId == action.id }
+                    .forEach { (confirmationId, _) ->
+                        log(TAG, INFO) { "Workspace closing, cancelling confirmation $confirmationId" }
+                        resolveConfirmation(confirmationId, confirmed = false)
+                    }
 
                 // Find and close all child workspaces owned by this workspace
                 val childWorkspaces = _workspaces.value.filter { ws ->
@@ -199,6 +323,7 @@ class WorkspaceRepo @Inject constructor(
 
     companion object {
         private val TAG = logTag("Workspace", "Repo")
+        private const val CONFIRMATION_THRESHOLD = 5
     }
 
 }
