@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.core.permissions
+package eu.darken.butler.permissions.core
 
 import android.content.Intent
 import android.net.Uri
@@ -11,7 +11,7 @@ import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.common.storage.saf.AndroidDataAccessChecker
 import eu.darken.butler.common.storage.saf.SAFPickerIntentBuilder
 import eu.darken.butler.setup.core.SetupModule
-import eu.darken.butler.workspace.core.setup.SetupStateProvider
+import eu.darken.butler.setup.core.SetupStateProvider
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe

@@ -17,7 +17,7 @@ import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.storage.StorageManager2
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
-import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
+import eu.darken.butler.permissions.core.PathRequirements
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
@@ -35,9 +35,9 @@ class DeviceLocationLoader @Inject constructor(
 
     private val tag = logTag("Explorer", "DeviceLocationLoader")
 
-    private suspend fun checkLocationRequirements(): WorkspaceRequirements {
+    private suspend fun checkLocationRequirements(): PathRequirements {
         log(tag) { "checkLocationRequirements(): Checking requirements for Device" }
-        return WorkspaceRequirements()
+        return PathRequirements()
     }
 
     fun loadDevice(): Flow<ExplorerLocation> = flow {

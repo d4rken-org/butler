@@ -30,12 +30,12 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.setup.core.SetupModule
-import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
+import eu.darken.butler.permissions.core.PathRequirements
 
 @Composable
 fun PermissionSetupCard(
     searchPath: APath<*>,
-    setupRequirements: WorkspaceRequirements,
+    setupRequirements: PathRequirements,
     onOpenSetup: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -119,7 +119,7 @@ private fun PermissionSetupCardPreview() {
     PreviewWrapper {
         PermissionSetupCard(
             searchPath = LocalPath.build("/storage/emulated/0/Documents"),
-            setupRequirements = WorkspaceRequirements(
+            setupRequirements = PathRequirements(
                 combos = setOf(
                     setOf(SetupModule.Type.STORAGE, SetupModule.Type.ROOT),
                 )

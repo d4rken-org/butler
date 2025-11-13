@@ -11,7 +11,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
-import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
+import eu.darken.butler.permissions.core.PathRequirements
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -22,9 +22,9 @@ class HomeLocationLoader @Inject constructor() {
 
     private val tag = logTag("Explorer", "HomeLocationLoader")
 
-    private suspend fun checkLocationRequirements(): WorkspaceRequirements {
+    private suspend fun checkLocationRequirements(): PathRequirements {
         log(tag) { "checkLocationRequirements(): Checking requirements for Home" }
-        return WorkspaceRequirements()
+        return PathRequirements()
     }
 
     fun loadHome(): Flow<ExplorerLocation> = flow {

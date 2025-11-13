@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.core.permissions
+package eu.darken.butler.permissions.core
 
 import eu.darken.butler.common.ApiLevel
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -14,7 +14,7 @@ import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.common.storage.saf.AndroidDataAccessChecker
 import eu.darken.butler.common.storage.saf.SAFPickerIntentBuilder
 import eu.darken.butler.setup.core.SetupModule
-import eu.darken.butler.workspace.core.setup.SetupStateProvider
+import eu.darken.butler.setup.core.SetupStateProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -39,7 +39,7 @@ class PathPermissionCheck @Inject constructor(
     private suspend fun check(
         path: APath<*>,
         moduleStates: Map<SetupModule.Type, Boolean>
-    ): WorkspaceRequirements {
+    ): PathRequirements {
         val determined = determineModuleRequirements(path)
 
         // If alternative path or SAF picker available, return immediately
@@ -48,7 +48,7 @@ class PathPermissionCheck @Inject constructor(
         }
 
         // No modules needed - all good
-        if (determined.combos.isEmpty()) return WorkspaceRequirements()
+        if (determined.combos.isEmpty()) return PathRequirements()
 
         return determined.copy(
             complete = moduleStates.filterValues { it }.keys,
@@ -63,12 +63,12 @@ class PathPermissionCheck @Inject constructor(
         is SAFPath -> false
     }
 
-    private suspend fun determineModuleRequirements(path: APath<*>): WorkspaceRequirements {
+    private suspend fun determineModuleRequirements(path: APath<*>): PathRequirements {
         // Only LocalPath from here on
-        val localPath = path as? LocalPath ?: return WorkspaceRequirements()
+        val localPath = path as? LocalPath ?: return PathRequirements()
 
         // App-specific directories don't need modules
-        if (isOurDirectory(localPath)) return WorkspaceRequirements()
+        if (isOurDirectory(localPath)) return PathRequirements()
 
         // Special case: Android/data and Android/obb
         val isRestrictedPath = storageEnvironment.publicDataDirs.any { path.isDescendantOfOrSelf(it) } ||
@@ -80,7 +80,7 @@ class PathPermissionCheck @Inject constructor(
             if (safPath != null) {
                 // toSAFPath returns non-null ONLY when permission exists, so we can use it directly
                 log(TAG) { "Alternative SAF path with permission for $localPath: $safPath" }
-                return WorkspaceRequirements(alternativePath = safPath)
+                return PathRequirements(alternativePath = safPath)
             } else {
                 log(TAG) { "No SAF permission available for $localPath" }
             }
@@ -98,7 +98,7 @@ class PathPermissionCheck @Inject constructor(
                 apiLevel.has(33) -> {
                     // Android 13+: SAF trick broken, Root/Shizuku only
                     log(TAG) { "Android 13+ detected, SAF not available for $localPath" }
-                    WorkspaceRequirements(
+                    PathRequirements(
                         combos = setOfNotNull(
                             if (isRootAvailable) setOf(SetupModule.Type.ROOT) else null,
                             if (isShizukuAvailable) setOf(SetupModule.Type.SHIZUKU) else null,
@@ -107,7 +107,7 @@ class PathPermissionCheck @Inject constructor(
                 }
                 apiLevel.has(30) -> {
                     // Android 11-12: Check if SAF picker works
-                    WorkspaceRequirements(
+                    PathRequirements(
                         safPickerGrant = safPickerIntentBuilder.buildPickerIntent(localPath)
                             ?.takeIf {
                                 androidDataAccessChecker.canUseSAFForAndroidData().also {
@@ -126,7 +126,7 @@ class PathPermissionCheck @Inject constructor(
                 }
                 else -> {
                     // Android <11: Just storage permission
-                    WorkspaceRequirements(combos = setOf(setOf(SetupModule.Type.STORAGE)))
+                    PathRequirements(combos = setOf(setOf(SetupModule.Type.STORAGE)))
                 }
             }
         }
@@ -145,23 +145,23 @@ class PathPermissionCheck @Inject constructor(
             } else {
                 combos.add(setOf(SetupModule.Type.STORAGE))
             }
-            return WorkspaceRequirements(combos = combos)
+            return PathRequirements(combos = combos)
         }
 
         // Other paths (like /data, /system, etc.)
         return if (needsEscalation) {
-            WorkspaceRequirements(
+            PathRequirements(
                 combos = setOf(
                     setOf(SetupModule.Type.STORAGE, SetupModule.Type.SHIZUKU),
                     setOf(SetupModule.Type.STORAGE, SetupModule.Type.ROOT),
                 )
             )
         } else {
-            WorkspaceRequirements()
+            PathRequirements()
         }
     }
 
-    fun monitor(path: APath<*>): Flow<WorkspaceRequirements> {
+    fun monitor(path: APath<*>): Flow<PathRequirements> {
         return flow {
             // Get initial setup state to check app installation
             // TODO: Extract isInstalled from module state when interface is updated

@@ -75,7 +75,8 @@ class LocalPathAccessChecker @Inject constructor(
      */
     fun shouldTryNormalAccess(path: LocalPath, forWriting: Boolean): Boolean {
         if (path.path == "/") {
-            return !forWriting
+            // Root filesystem always requires escalation (root/ADB) on Android
+            return false
         }
 
         if (ourDirs.any { path.isDescendantOf(it) || path.matches(it) }) {
