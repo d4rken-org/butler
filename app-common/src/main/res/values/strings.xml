@@ -20,6 +20,7 @@
     <string name="general_cut_action">Cut</string>
     <string name="general_paste_action">Paste</string>
     <string name="general_apply_action">Apply</string>
+    <string name="general_open_action">Open</string>
     <string name="general_cancel_action">Cancel</string>
     <string name="general_confirm_action">Confirm</string>
     <string name="general_reset_action">Reset</string>
@@ -176,4 +177,10 @@
     <string name="setup_required_card_title">Setup Required</string>
     <string name="setup_required_card_body">Additional setup is required to perform this operation.</string>
     <string name="setup_required_card_setup_action">Open Setup</string>
+
+    <!-- Open in new tabs feature -->
+    <string name="common_open_tabs_confirmation_title">Open multiple tabs?</string>
+    <string name="common_open_tabs_confirmation_message">This will open %1$d workspaces.</string>
+    <string name="common_open_tabs_success">Opened %1$d tabs</string>
+    <string name="common_open_tabs_success_with_skipped">Opened %1$d tabs (%2$d items skipped)</string>
 </resources>

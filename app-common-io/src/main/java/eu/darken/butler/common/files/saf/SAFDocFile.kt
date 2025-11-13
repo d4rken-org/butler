@@ -52,15 +52,26 @@ data class SAFDocFile(
 
     val writable: Boolean
         get() {
-            // Ignore if grant doesn't allow write
-            if (!hasPermission(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)) {
+            // Ignore documents without MIME (fast failure path)
+            if (TextUtils.isEmpty(mimeType)) return false
+
+            // Check direct URI permission (for non-tree URIs)
+            val hasDirectWritePermission = hasPermission(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+
+            // For SAF tree document URIs, check if parent tree has write permission
+            val hasTreeWritePermission = if (!hasDirectWritePermission && isTreeDocumentUri()) {
+                val treeRootUri = extractTreeRootUri()
+                treeRootUri != null && hasPermissionOnUri(treeRootUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            } else {
+                false
+            }
+
+            // If no write permission at all, not writable
+            if (!hasDirectWritePermission && !hasTreeWritePermission) {
                 return false
             }
 
             val flags: Int = queryForLong(DocumentsContract.Document.COLUMN_FLAGS)?.toInt() ?: 0
-
-            // Ignore documents without MIME
-            if (TextUtils.isEmpty(mimeType)) return false
 
             // Deletable documents considered writable
             if (flags and DocumentsContract.Document.FLAG_SUPPORTS_DELETE != 0) {
@@ -80,13 +91,22 @@ data class SAFDocFile(
 
     val readable: Boolean
         get() {
-            // Ignore if grant doesn't allow read
-            if (!hasPermission(Intent.FLAG_GRANT_READ_URI_PERMISSION)) return false
-
-            // Ignore documents without MIME
+            // Ignore documents without MIME (fast failure path)
             if (TextUtils.isEmpty(mimeType)) return false
 
-            return true
+            // Check direct URI permission (for non-tree URIs from ACTION_OPEN_DOCUMENT, etc.)
+            if (hasPermission(Intent.FLAG_GRANT_READ_URI_PERMISSION)) return true
+
+            // For SAF tree document URIs, check if parent tree has permission
+            // Tree children don't have explicit grants - they inherit from tree root
+            if (isTreeDocumentUri()) {
+                val treeRootUri = extractTreeRootUri()
+                if (treeRootUri != null && hasPermissionOnUri(treeRootUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)) {
+                    return true
+                }
+            }
+
+            return false
         }
 
     val lastModified: Instant
@@ -282,9 +302,42 @@ data class SAFDocFile(
         return resolver.openFileDescriptor(uri, mode.value) ?: throw IOException("Couldn't open $uri")
     }
 
-    private fun hasPermission(
-        flag: Int
-    ): Boolean = context.checkCallingOrSelfUriPermission(uri, flag) == PackageManager.PERMISSION_GRANTED
+    private fun hasPermission(flag: Int): Boolean =
+        hasPermissionOnUri(uri, flag)
+
+    private fun hasPermissionOnUri(targetUri: Uri, flag: Int): Boolean =
+        context.checkCallingOrSelfUriPermission(targetUri, flag) == PackageManager.PERMISSION_GRANTED
+
+    /**
+     * Check if this URI is a SAF tree document URI (not just a tree root).
+     * Tree document URIs have the pattern: .../tree/[treeId]/document/[documentId]
+     */
+    private fun isTreeDocumentUri(): Boolean {
+        val uriStr = uri.toString()
+        return uriStr.contains("/tree/") && uriStr.contains("/document/")
+    }
+
+    /**
+     * Extract the tree root URI from a tree document URI.
+     * Example:
+     *   Input:  content://.../tree/primary%3AFolder/document/primary%3AFolder%2Fchild
+     *   Output: content://.../tree/primary%3AFolder
+     */
+    private fun extractTreeRootUri(): Uri? {
+        return try {
+            val uriStr = uri.toString()
+            val docIndex = uriStr.indexOf("/document/")
+            if (docIndex == -1) return null
+
+            val treeRootStr = uriStr.substring(0, docIndex)
+            if (!treeRootStr.contains("/tree/")) return null
+
+            Uri.parse(treeRootStr)
+        } catch (e: Exception) {
+            log(SAFGateway.TAG + ":SAFDocFile", WARN) { "Failed to extract tree root from $uri: ${e.asLog()}" }
+            null
+        }
+    }
 
     @SuppressLint("Recycle")
     private fun queryForString(column: String): String? {

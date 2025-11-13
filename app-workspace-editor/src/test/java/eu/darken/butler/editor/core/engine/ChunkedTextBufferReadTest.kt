@@ -713,4 +713,46 @@ class ChunkedTextBufferReadTest : ChunkedTextBufferTestBase() {
         result.isSuccess shouldBe true
         result.getOrThrow() shouldBe "BB"
     }
+
+    // ==================== UTF-8 Safety Verification ====================
+
+    @Test
+    fun `UTF-8 emoji at chunk boundary preserves character - smoke test`() = runTest {
+        // CRITICAL SAFETY TEST: UTF-16 surrogate pairs at chunk boundaries
+        // Emoji "🎉" = 2 Char values (UTF-16 surrogate pair) in Java/Kotlin String
+        // Content: 98 X's + emoji (positions 98-99) + 98 Y's = 198 total Char values
+        // Chunk size: 100 Char values
+        // Emoji at 98-99 is safely within chunk_0 [0, 100)
+        val emoji = "🎉"
+        val content = "X".repeat(98) + emoji + "Y".repeat(98)
+
+        val buffer = createBuffer(content, chunkSize = 100L)
+
+        // Read the emoji - should be complete
+        val text = buffer.getText(98L, 100L).getOrThrow()
+
+        // Emoji must be intact
+        text shouldBe emoji
+        text.length shouldBe 2  // Emoji is 2 Char values (surrogate pair)
+    }
+
+    @Test
+    fun `UTF-16 emoji split across chunk boundary is protected`() = runTest {
+        // This test exposes the CRITICAL BUG: emoji split across chunk boundary
+        // Emoji at positions 99-100, chunk boundary at 100
+        // chunk_0: [0, 100) contains high surrogate at position 99
+        // chunk_1: [100, 199) contains low surrogate at position 100
+        // Reading chunk_0 alone would return corrupted data!
+        val emoji = "🎉"
+        val content = "X".repeat(99) + emoji + "Y".repeat(98)  // 199 Char values total
+
+        val buffer = createBuffer(content, chunkSize = 100L)
+
+        // Read the emoji that spans the chunk boundary
+        val text = buffer.getText(99L, 101L).getOrThrow()
+
+        // With surrogate protection, emoji should be intact
+        text shouldBe emoji
+        text.length shouldBe 2
+    }
 }

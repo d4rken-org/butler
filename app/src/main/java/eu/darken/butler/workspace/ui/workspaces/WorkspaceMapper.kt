@@ -12,15 +12,9 @@ import eu.darken.butler.workspace.ui.workspaces.classic.CreatingWorkspacePlaceho
 
 @Composable
 fun WorkspaceMapper(
-    info: WorkspacePaneInfo?,
+    info: WorkspacePaneInfo,
     design: WorkspaceDesign,
-    isCreating: Boolean = false,
 ) {
-    if (info == null) {
-        CreatingWorkspacePlaceholder(isCreating = isCreating)
-        return
-    }
-
     when (info.type) {
         Workspace.Type.TEMPLATES -> TemplatesWorkspacePageHost(
             id = info.id,

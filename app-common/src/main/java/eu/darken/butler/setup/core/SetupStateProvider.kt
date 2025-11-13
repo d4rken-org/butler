@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.core.setup
+package eu.darken.butler.setup.core
 
 import eu.darken.butler.setup.core.SetupModule
 import kotlinx.coroutines.flow.Flow

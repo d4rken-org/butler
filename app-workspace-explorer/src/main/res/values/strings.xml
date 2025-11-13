@@ -361,4 +361,9 @@
     <string name="explorer_permission_option_storage_title">Storage Access</string>
     <string name="explorer_permission_option_storage_description">Grant Butler permission to access files on your device storage.</string>
     <string name="explorer_permission_option_storage_action">Grant Permission</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_action_open_in_new_tabs">Open in new tabs</string>
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
 </resources>

@@ -2,7 +2,6 @@ package eu.darken.butler.searcher.ui.search
 
 import android.content.Context
 import android.content.Intent
-import android.os.Environment
 import android.webkit.MimeTypeMap
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.core.content.FileProvider
@@ -20,7 +19,9 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.extensions.commonParent
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.navigation.Nav
@@ -38,6 +39,7 @@ import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogEvent
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
+import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
@@ -51,7 +53,8 @@ import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
-import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
+import eu.darken.butler.permissions.core.PathPermissionCheck
+import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlinx.coroutines.flow.Flow
@@ -83,6 +86,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val workspaceRemote: WorkspaceRemote,
     private val workspaceProvider: WorkspaceProvider,
     private val systemClipboardHelper: SystemClipboardHelper,
+    private val openInNewTabsUseCase: OpenInNewTabsUseCase,
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page"), navCtrl) {
 
     private val workspaceSource: Flow<SearcherWorkspace?> =
@@ -230,6 +234,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 } else if (updatedSelectionState.selectableResults.isNotEmpty()) {
                     add(SearcherAction.SelectAll)
                 }
+
+                // Open in New Tabs
+                add(SearcherAction.OpenInNewTabs(updatedSelectionState.selectedResults))
 
                 // Copy
                 add(SearcherAction.Copy(updatedSelectionState.selectedResults))
@@ -521,8 +528,68 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             }
             is SearcherAction.SelectAll -> selectAll()
             is SearcherAction.DeselectAll -> deselectAll()
+            is SearcherAction.OpenInNewTabs -> {
+                vmScope.launch {
+                    log(TAG) { "openInNewTabs(): ${action.results.size} items" }
+
+                    // Convert SearchItems to use case items
+                    val items = action.results.map { item ->
+                        if (item.fileType == FileType.DIRECTORY) {
+                            OpenInNewTabsUseCase.Item.Directory(item.path)
+                        } else {
+                            val isText = TextFileDetector.isTextFile(item.path)
+                            OpenInNewTabsUseCase.Item.File(item.path, isText)
+                        }
+                    }
+
+                    val request = OpenInNewTabsUseCase.Request(
+                        items = items,
+                        sourceWorkspaceId = id,
+                    )
+
+                    val analysis = openInNewTabsUseCase.analyze(request)
+
+                    if (!analysis.hasItemsToOpen) {
+                        log(TAG, WARN) { "All items skipped (no openable items)" }
+                        return@launch
+                    }
+
+                    // Always emit event - WorkspacesViewModel handles confirmation
+                    executeOpenInNewTabs(analysis)
+                }
+            }
         }
         hideQuickActions()
+    }
+
+    private suspend fun executeOpenInNewTabs(analysis: OpenInNewTabsUseCase.AnalysisResult) {
+        log(TAG, INFO) { "executeOpenInNewTabs(): Opening ${analysis.totalOpenableCount} workspaces" }
+
+        // Create workspace requests
+        val requests = openInNewTabsUseCase.createRequests(
+            analysis = analysis,
+            createExplorerArguments = { path -> ExternalExplorerArguments(startPath = path) },
+            createEditorArguments = { path -> EditorArguments(filePath = path) },
+        )
+
+        // Execute batch creation directly - WorkspaceRepo handles confirmation and banner
+        val result = workspaceRemote.execute(
+            WorkspaceAction.CreateBatch(
+                requests = requests,
+                sourceWorkspaceId = id,
+            )
+        )
+
+        when (result) {
+            is WorkspaceAction.CreateBatch.Result.Success -> {
+                log(TAG, INFO) { "Batch creation succeeded: $result" }
+            }
+            is WorkspaceAction.CreateBatch.Result.Cancelled -> {
+                log(TAG, INFO) { "Batch creation cancelled by user" }
+            }
+        }
+
+        deselectAll()
     }
 
     private fun shareFiles(results: List<SearchItem>) {
@@ -653,7 +720,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val caseSensitive: Boolean = false,
         val wholeWord: Boolean = false,
         val useRegex: Boolean = false,
-        val setupRequirements: WorkspaceRequirements = WorkspaceRequirements(),
+        val setupRequirements: PathRequirements = PathRequirements(),
         val selectionState: SearcherSelectionState = SearcherSelectionState(),
         val quickActionsResult: SearchItem? = null,
         val dialogState: SearcherDialogState = SearcherDialogState.None,
