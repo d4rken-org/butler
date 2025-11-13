@@ -307,8 +307,7 @@ class EditorEngine @AssistedInject constructor(
                         _totalLines.value = currentState.resources.textBuffer.totalLines.value
 
                         // Refresh visible content from updated chunks
-                        val currentRange = _visibleRange.value
-                        updateVisibleRange(currentRange.first, currentRange.last)
+                        refreshVisibleContent()
                     },
                     onFailure = { e ->
                         log(tag, Logging.Priority.ERROR) { "Failed to insert text - ${e.asLog()}" }
@@ -337,6 +336,8 @@ class EditorEngine @AssistedInject constructor(
                         _selectionRange.value = null
                         _cursorPosition.value = selection.first
                         _state.value = currentState.copy(isModified = true)
+                        _totalLines.value = currentState.resources.textBuffer.totalLines.value
+                        refreshVisibleContent()
                     } else {
                         _error.value = result.exceptionOrNull()
                     }
@@ -427,6 +428,26 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
+    private suspend fun refreshVisibleContent() {
+        val currentState = _state.value as? EditorState.Loaded ?: return
+        val currentRange = _visibleRange.value
+
+        try {
+            val contentResult = currentState.resources.textBuffer.getTextForRange(
+                currentRange.first,
+                currentRange.last
+            )
+            if (contentResult.isSuccess) {
+                _currentContent.value = contentResult.getOrNull() ?: ""
+                log(tag) { "Refreshed visible content for range: ${currentRange.first}..${currentRange.last}" }
+            } else {
+                log(tag, Logging.Priority.WARN) { "Failed to refresh content: ${contentResult.exceptionOrNull()?.asLog()}" }
+            }
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Error refreshing visible content - ${e.asLog()}" }
+        }
+    }
+
     suspend fun updateVisibleRange(startLine: Int, endLine: Int) {
         if (isInitializing) {
             log(tag) { "Ignoring visible range update during initialization: $startLine..$endLine" }
@@ -471,6 +492,10 @@ class EditorEngine @AssistedInject constructor(
             is EditorState.Loaded -> {
                 try {
                     val result = currentState.resources.textBuffer.undo()
+                    if (result.isSuccess) {
+                        _totalLines.value = currentState.resources.textBuffer.totalLines.value
+                        refreshVisibleContent()
+                    }
                     // Clear search results as they're now stale
                     _searchResults.value = emptyList()
                     _searchQuery.value = ""
@@ -496,6 +521,10 @@ class EditorEngine @AssistedInject constructor(
             is EditorState.Loaded -> {
                 try {
                     val result = currentState.resources.textBuffer.redo()
+                    if (result.isSuccess) {
+                        _totalLines.value = currentState.resources.textBuffer.totalLines.value
+                        refreshVisibleContent()
+                    }
                     // Clear search results as they're now stale
                     _searchResults.value = emptyList()
                     _searchQuery.value = ""
