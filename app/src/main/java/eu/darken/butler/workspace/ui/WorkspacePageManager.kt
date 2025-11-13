@@ -61,6 +61,9 @@ class WorkspacePageManager @Inject constructor(
                     is WorkspaceEvent.ResultEvent -> {
                         // Handled by individual workspaces, UI manager ignores it
                     }
+                    is WorkspaceEvent.BatchCreationCompleted -> {
+                        // Handled by WorkspacesViewModel for banner feedback
+                    }
                     is WorkspaceEvent.SelectionRequested -> {
                         log(TAG) { "Selection requested for workspace: ${event.workspaceId}" }
                         handleWorkspaceSelection(event.workspaceId)

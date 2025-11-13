@@ -14,6 +14,8 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
+import eu.darken.butler.workspace.ui.dialogs.WorkspaceManagerDialogState
 import eu.darken.butler.workspace.ui.workspaces.adaptive.AdaptiveWorkspaceContainer
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DragDropState
@@ -35,6 +37,11 @@ fun AdaptiveWorkspaceLayout(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     workspaceActionHandler: WorkspaceActionHandler? = null,
     onScreenAction: (WorkspaceScreenAction) -> Unit,
+    managerDialogStates: Map<Workspace.Id, WorkspaceManagerDialogState.Targeted>,
+    onDismissManagerDialog: (Workspace.Id) -> Unit,
+    onConfirmManagerDialog: (WorkspaceManagerDialogState.Targeted) -> Unit,
+    bannerStates: Map<Workspace.Id, eu.darken.butler.workspace.ui.feedback.BannerState>,
+    onDismissBanner: (Workspace.Id) -> Unit,
 ) {
     val dragDropState = remember { DragDropState() }
 
@@ -111,10 +118,19 @@ fun AdaptiveWorkspaceLayout(
                 paneContent = { info, paneNumber ->
                     if (info != null) {
                         key(info.id) {
-                            WorkspaceMapper(
-                                info = info,
-                                design = design,
-                            )
+                            WorkspaceOverlayContainer(
+                                workspaceId = info.id,
+                                managerDialogStates = managerDialogStates,
+                                onDismissManagerDialog = onDismissManagerDialog,
+                                onConfirmManagerDialog = onConfirmManagerDialog,
+                                bannerStates = bannerStates,
+                                onDismissBanner = onDismissBanner,
+                            ) {
+                                WorkspaceMapper(
+                                    info = info,
+                                    design = design,
+                                )
+                            }
                         }
                     } else {
                         EmptyAdaptiveWorkspaceContent(

@@ -22,6 +22,8 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
+import eu.darken.butler.workspace.ui.dialogs.WorkspaceManagerDialogState
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
@@ -38,6 +40,11 @@ internal fun ClassicWorkspaceContainer(
     state: WorkspacesViewModel.State,
     onWorkspaceScreenAction: (WorkspaceScreenAction) -> Unit,
     workspaceActionHandler: WorkspaceActionHandler?,
+    managerDialogStates: Map<Workspace.Id, WorkspaceManagerDialogState.Targeted>,
+    onDismissManagerDialog: (Workspace.Id) -> Unit,
+    onConfirmManagerDialog: (WorkspaceManagerDialogState.Targeted) -> Unit,
+    bannerStates: Map<Workspace.Id, eu.darken.butler.workspace.ui.feedback.BannerState>,
+    onDismissBanner: (Workspace.Id) -> Unit,
 ) {
     val effectivePageCount = if (state.onDemandWorkspaceCreation && state.swipeGesturesEnabled) {
         state.all.size + 1
@@ -145,11 +152,20 @@ internal fun ClassicWorkspaceContainer(
                 ) { page ->
                     val paneInfo = state.all.getOrNull(page)?.asPaneInfo()
                     val isPlaceholderPage = page >= state.all.size
-                    WorkspaceMapper(
-                        info = paneInfo,
-                        design = design,
-                        isCreating = isPlaceholderPage && isCreatingWorkspace,
-                    )
+                    WorkspaceOverlayContainer(
+                        workspaceId = paneInfo?.id,
+                        managerDialogStates = managerDialogStates,
+                        onDismissManagerDialog = onDismissManagerDialog,
+                        onConfirmManagerDialog = onConfirmManagerDialog,
+                        bannerStates = bannerStates,
+                        onDismissBanner = onDismissBanner,
+                    ) {
+                        WorkspaceMapper(
+                            info = paneInfo,
+                            design = design,
+                            isCreating = isPlaceholderPage && isCreatingWorkspace,
+                        )
+                    }
                 }
             } else {
                 EmptyClassicWorkspaceContent(

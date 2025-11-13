@@ -22,6 +22,8 @@ class DirectoryActionProvider @Inject constructor() : ExplorerActionProvider {
                 actions.add(ExplorerAction.Directory.SelectAll)
             }
 
+            actions.add(ExplorerAction.Directory.OpenInNewTabs())
+
             if (selectionState.selectionCount == 1) {
                 actions.add(ExplorerAction.Directory.Rename())
             }
