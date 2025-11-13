@@ -141,7 +141,8 @@ class SAFFileSystemOps @Inject constructor(
     }
 
     private fun SAFDocFile.performLookup(path: SAFPath, options: LookupOptions): SAFPathLookup {
-        if (!readable) throw IOException("readable=false")
+        // Note: We don't pre-check readable here because ContentResolver.query() validates tree permissions internally.
+        // If getLookupData() succeeds, the document is readable. If not, it throws SecurityException.
         val data = getLookupData()
 
         // SAF extended metadata (ownership/permissions/createdAt)
