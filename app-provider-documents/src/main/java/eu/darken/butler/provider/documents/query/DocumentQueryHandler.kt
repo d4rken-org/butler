@@ -158,7 +158,7 @@ class DocumentQueryHandler @Inject constructor(
 
         cursor.addVirtualDocument(
             documentId = rootDocumentId,
-            displayName = "Root Filesystem", // TODO: Use string resource
+            displayName = context.getString(eu.darken.butler.provider.documents.R.string.documents_storage_root_label),
             mimeType = MIME_TYPE_DIR,
             flags = FLAG_DIR_SUPPORTS_CREATE,
             icon = android.R.drawable.ic_menu_view,
