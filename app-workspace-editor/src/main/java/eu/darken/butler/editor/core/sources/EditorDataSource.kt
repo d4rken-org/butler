@@ -1,8 +1,8 @@
 package eu.darken.butler.editor.core.sources
 
 import eu.darken.butler.editor.core.engine.ChunkBoundary
+import eu.darken.butler.editor.core.engine.EditorChunk
 import eu.darken.butler.editor.core.engine.FileInfo
-import eu.darken.butler.editor.core.engine.TextChunk
 import kotlinx.coroutines.flow.StateFlow
 import okio.Source
 import java.io.FileNotFoundException
@@ -25,12 +25,23 @@ interface EditorDataSource {
     suspend fun open()
 
     /**
-     * Reads a chunk from the data source.
+     * Reads a chunk from the data source as raw bytes.
      * ChunkManager cache is the source of truth for modified chunks.
+     * Modes (TextMode/HexMode) are responsible for decoding bytes appropriately.
      */
-    suspend fun readChunk(startOffset: Long, size: Long): String
+    suspend fun readChunk(startOffset: Long, size: Long): ByteArray
 
     suspend fun getSize(): Long
+
+    /**
+     * Writes raw bytes at the specified offset (for direct chunk writes).
+     * Used by binary editor modes for saving modifications.
+     *
+     * @param offset File offset to write at
+     * @param bytes Raw bytes to write
+     * @throws IOException if write fails
+     */
+    suspend fun writeChunk(offset: Long, bytes: ByteArray)
 
     /**
      * Saves dirty chunks to the data source.
@@ -39,7 +50,7 @@ interface EditorDataSource {
      * @param dirtyChunks List of modified chunks to save
      * @param boundaries Map of chunk IDs to their file positions
      */
-    suspend fun save(dirtyChunks: List<TextChunk>, boundaries: Map<TextChunk.ChunkId, ChunkBoundary>)
+    suspend fun save(dirtyChunks: List<EditorChunk>, boundaries: Map<EditorChunk.ChunkId, ChunkBoundary>)
 
     suspend fun close()
 

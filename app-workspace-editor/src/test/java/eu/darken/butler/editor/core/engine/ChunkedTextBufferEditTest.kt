@@ -208,14 +208,14 @@ class ChunkedTextBufferEditTest : ChunkedTextBufferTestBase() {
         // Then: isModified flag is set
         buffer.isModified.value shouldBe true
 
-        // When: Attempt save (will fail with InMemoryDataSource)
+        // When: Save (InMemoryDataSource now supports save for testing)
         val result = buffer.saveFile()
 
-        // Then: Save fails (InMemoryDataSource doesn't support save)
-        result.isFailure shouldBe true
+        // Then: Save succeeds
+        result.isSuccess shouldBe true
 
-        // Note: isModified remains true because save failed
-        // (This is correct behavior - only clear on successful save)
+        // And: isModified flag is cleared after successful save
+        buffer.isModified.value shouldBe false
     }
 
     @Test
@@ -397,5 +397,135 @@ class ChunkedTextBufferEditTest : ChunkedTextBufferTestBase() {
         result.isSuccess shouldBe true
         val newContent = buffer.getTextForRange(0, 0).getOrThrow()
         newContent shouldBe "AAAABB"
+    }
+
+    // ==================== Empty Chunk Edge Cases ====================
+
+    @Test
+    fun `deleteText entire chunk content leaves valid empty chunk`() = runTest {
+        // Given: Content spanning 3 chunks
+        val chunk1 = "A".repeat(100)
+        val chunk2 = "B".repeat(100)
+        val chunk3 = "C".repeat(100)
+        val content = chunk1 + chunk2 + chunk3
+        val buffer = createBuffer(content, chunkSize = 100L)
+
+        // When: Delete all content from chunk_1 (middle chunk)
+        // This tests that after deletion, the chunk can be empty but still valid
+        val result = buffer.deleteText(
+            startPosition = TextPosition(100L, 0, 100),
+            endPosition = TextPosition(200L, 0, 200)
+        )
+
+        // Then: Delete succeeded
+        result.isSuccess shouldBe true
+
+        // And: Content is correct (chunk_0 + chunk_2, chunk_1 removed)
+        val newContent = buffer.getTextForRange(0, 0).getOrThrow()
+        newContent shouldBe "A".repeat(100) + "C".repeat(100)
+        newContent.length shouldBe 200
+
+        // And: Buffer state is valid (can still perform operations)
+        val position = buffer.findPosition(100L)
+        position.offset shouldBe 100L
+    }
+
+    @Test
+    fun `insertText after deleting to empty works correctly`() = runTest {
+        // Given: Small buffer
+        val content = "TEST"
+        val buffer = createBuffer(content)
+
+        // When: Delete all content
+        buffer.deleteText(
+            startPosition = TextPosition(0L, 0, 0),
+            endPosition = TextPosition(4L, 0, 4)
+        )
+
+        val afterDelete = buffer.getTextForRange(0, 0).getOrThrow()
+        afterDelete shouldBe ""
+
+        // Then: Insert into empty buffer works
+        val insertResult = buffer.insertText(TextPosition(0L, 0, 0), "NEW")
+        insertResult.isSuccess shouldBe true
+
+        val afterInsert = buffer.getTextForRange(0, 0).getOrThrow()
+        afterInsert shouldBe "NEW"
+    }
+
+    @Test
+    fun `deleteText to empty then undo restores content`() = runTest {
+        // Given: Buffer with content
+        val content = "Original Content"
+        val buffer = createBuffer(content)
+
+        // When: Delete all content
+        buffer.deleteText(
+            startPosition = TextPosition(0L, 0, 0),
+            endPosition = TextPosition(content.length.toLong(), 0, content.length)
+        )
+
+        val afterDelete = buffer.getTextForRange(0, 0).getOrThrow()
+        afterDelete shouldBe ""
+
+        // Then: Undo restores content
+        val undoResult = buffer.undo()
+        undoResult.isSuccess shouldBe true
+
+        val restored = buffer.getTextForRange(0, 0).getOrThrow()
+        restored shouldBe content
+    }
+
+    @Test
+    fun `saveFile with empty chunks maintains structure`() = runTest {
+        // Given: Buffer with content spanning chunks
+        val chunk1 = "A".repeat(100)
+        val chunk2 = "B".repeat(100)
+        val content = chunk1 + chunk2
+        val buffer = createBuffer(content, chunkSize = 100L)
+
+        // When: Delete middle section (creates scenario with potential empty space)
+        buffer.deleteText(
+            startPosition = TextPosition(50L, 0, 50),
+            endPosition = TextPosition(150L, 0, 150)
+        )
+
+        // Then: Save should work correctly
+        val saveResult = buffer.saveFile()
+        saveResult.isSuccess shouldBe true
+
+        // And: Content is still correct after save
+        val afterSave = buffer.getTextForRange(0, 0).getOrThrow()
+        afterSave shouldBe "A".repeat(50) + "B".repeat(50)
+        afterSave.length shouldBe 100
+    }
+
+    @Test
+    fun `multiple deletes creating empty sections work correctly`() = runTest {
+        // Given: Content spanning multiple chunks
+        val content = "A".repeat(50) + "B".repeat(50) + "C".repeat(50) + "D".repeat(50)
+        val buffer = createBuffer(content, chunkSize = 50L)
+
+        // When: Delete multiple sections
+        buffer.deleteText(
+            startPosition = TextPosition(25L, 0, 25),
+            endPosition = TextPosition(75L, 0, 75)
+        )
+
+        val afterFirst = buffer.getTextForRange(0, 0).getOrThrow()
+        afterFirst.length shouldBe 150
+
+        buffer.deleteText(
+            startPosition = TextPosition(50L, 0, 50),
+            endPosition = TextPosition(100L, 0, 100)
+        )
+
+        // Then: Multiple deletes succeeded
+        val final = buffer.getTextForRange(0, 0).getOrThrow()
+        final.length shouldBe 100
+
+        // And: Buffer is still functional
+        val position = buffer.findPosition(50L)
+        position.offset shouldBe 50L
     }
 }

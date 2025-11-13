@@ -29,7 +29,7 @@ class ChunkManagerTest : BaseTest() {
         return ChunkManager(workspaceId, repository)
     }
 
-    private fun boundaries(vararg entries: Pair<TextChunk, Pair<Long, Long>>): Map<TextChunk.ChunkId, ChunkBoundary> {
+    private fun boundaries(vararg entries: Pair<EditorChunk.Text, Pair<Long, Long>>): Map<EditorChunk.ChunkId, ChunkBoundary> {
         return entries.associate { (chunk, offsets) ->
             // Calculate line count from chunk content
             val lineCount = chunk.content.count { it == '\n' } + if (chunk.content.isNotEmpty() && !chunk.content.endsWith('\n')) 1 else 0
@@ -37,13 +37,13 @@ class ChunkManagerTest : BaseTest() {
         }
     }
 
-    private suspend fun ChunkManager.addChunkWithBoundary(chunk: TextChunk, startOffset: Long, endOffset: Long) {
+    private suspend fun ChunkManager.addChunkWithBoundary(chunk: EditorChunk.Text, startOffset: Long, endOffset: Long) {
         addChunk(chunk)
         // Access boundaries via reflection for test purposes
         val boundariesField = ChunkManager::class.java.getDeclaredField("boundaries")
         boundariesField.isAccessible = true
         @Suppress("UNCHECKED_CAST")
-        val boundariesMap = boundariesField.get(this) as MutableMap<TextChunk.ChunkId, ChunkBoundary>
+        val boundariesMap = boundariesField.get(this) as MutableMap<EditorChunk.ChunkId, ChunkBoundary>
         // Calculate line count from chunk content
         val lineCount = chunk.content.count { it == '\n' } + if (chunk.content.isNotEmpty() && !chunk.content.endsWith('\n')) 1 else 0
         boundariesMap[chunk.id] = ChunkBoundary(startOffset, endOffset, lineCount)
@@ -55,7 +55,7 @@ class ChunkManagerTest : BaseTest() {
     fun `mergeChunks with empty dirty list returns original content`() {
         // Given: Original content
         val original = "Hello World".toByteArray()
-        val dirtyChunks = emptyList<TextChunk>()
+        val dirtyChunks = emptyList<EditorChunk.Text>()
 
         // When: Merge with no dirty chunks
         val result = ChunkManager.mergeChunks(original, dirtyChunks, emptyMap())
@@ -70,11 +70,16 @@ class ChunkManagerTest : BaseTest() {
         val original = "Hello World".toByteArray()
 
         // Modified first 5 bytes to "HELLO"
-        val dirtyChunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val dirtyChunk = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 0L,
             content = "HELLO",
+            size = 5L,
             lineCount = 1,
-            isDirty = true
+            lineEnding = LineEnding.LF,
+            isDirty = true,
+            isLoaded = true,
+            refCount = 0
         )
 
         // When: Merge
@@ -94,8 +99,13 @@ class ChunkManagerTest : BaseTest() {
         val original = "Hello World".toByteArray()
 
         // Modified middle part (offset 6-11) "World" -> "There"
-        val dirtyChunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val dirtyChunk = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 6L,
+            size = 5L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "There",
             lineCount = 1,
             isDirty = true
@@ -118,8 +128,13 @@ class ChunkManagerTest : BaseTest() {
         val original = "Hello World".toByteArray()
 
         // Modified last 5 bytes (offset 6-11) "World" -> "WORLD"
-        val dirtyChunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val dirtyChunk = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 6L,
+            size = 5L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "WORLD",
             lineCount = 1,
             isDirty = true
@@ -142,8 +157,13 @@ class ChunkManagerTest : BaseTest() {
         val original = "Hello World".toByteArray()
 
         // Expand middle part: "World" -> "Beautiful World" (longer)
-        val dirtyChunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val dirtyChunk = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 6L,
+            size = 5L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "Beautiful World",  // Longer content
             lineCount = 1,
             isDirty = true
@@ -166,8 +186,13 @@ class ChunkManagerTest : BaseTest() {
         val original = "Hello Beautiful World".toByteArray()
 
         // Shrink middle part: "Beautiful World" (offset 6-21) -> "There"
-        val dirtyChunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val dirtyChunk = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 6L,
+            size = 5L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "There",  // Shorter content
             lineCount = 1,
             isDirty = true
@@ -190,14 +215,24 @@ class ChunkManagerTest : BaseTest() {
         val original = "AAAA BBBB CCCC".toByteArray()
 
         // Modify first and last parts
-        val chunk1 = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val chunk1 = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 0L,
+            size = 4L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "1111",
             lineCount = 1,
             isDirty = true
         )
-        val chunk2 = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val chunk2 = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 5L,
+            size = 4L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "3333",
             lineCount = 1,
             isDirty = true
@@ -223,14 +258,24 @@ class ChunkManagerTest : BaseTest() {
         val original = "AAAA BBBB".toByteArray()
 
         // Two adjacent chunks
-        val chunk1 = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val chunk1 = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 0L,
+            size = 4L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "1111",
             lineCount = 1,
             isDirty = true
         )
-        val chunk2 = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val chunk2 = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 5L,
+            size = 4L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "2222",
             lineCount = 1,
             isDirty = true
@@ -256,8 +301,13 @@ class ChunkManagerTest : BaseTest() {
         val original = "Hello".toByteArray()
 
         // Replace entire content
-        val dirtyChunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val dirtyChunk = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 6L,
+            size = 5L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "Goodbye",
             lineCount = 1,
             isDirty = true
@@ -280,14 +330,24 @@ class ChunkManagerTest : BaseTest() {
         val original = "AAAA BBBB CCCC DDDD".toByteArray()
 
         // Modify first and last, leaving middle untouched
-        val chunk1 = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val chunk1 = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 0L,
+            size = 4L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "1111",
             lineCount = 1,
             isDirty = true
         )
-        val chunk2 = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val chunk2 = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 5L,
+            size = 4L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "4444",
             lineCount = 1,
             isDirty = true
@@ -313,8 +373,13 @@ class ChunkManagerTest : BaseTest() {
         val original = "Line 1\nLine 2\nLine 3".toByteArray()
 
         // Replace second line
-        val dirtyChunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val dirtyChunk = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 6L,
+            size = 5L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "Modified Line",
             lineCount = 1,
             isDirty = true
@@ -337,8 +402,13 @@ class ChunkManagerTest : BaseTest() {
         val original = "Hello World".toByteArray()
 
         // Delete content (empty replacement)
-        val dirtyChunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val dirtyChunk = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 6L,
+            size = 5L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "",  // Empty
             lineCount = 0,
             isDirty = true
@@ -363,11 +433,16 @@ class ChunkManagerTest : BaseTest() {
         val manager = createChunkManager()
 
         // When: Add a chunk
-        val chunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val chunk = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 0L,
             content = "Test content",
+            size = 12L,
             lineCount = 1,
-            isDirty = false
+            lineEnding = LineEnding.LF,
+            isDirty = false,
+            isLoaded = true,
+            refCount = 0
         )
         manager.addChunk(chunk)
 
@@ -380,8 +455,13 @@ class ChunkManagerTest : BaseTest() {
     fun `updateChunk marks chunk as dirty`() = runTest {
         // Given: Manager with clean chunk
         val manager = createChunkManager()
-        val originalChunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val originalChunk = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 0L,
+            size = 8L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "Original",
             lineCount = 1,
             isDirty = false
@@ -404,20 +484,35 @@ class ChunkManagerTest : BaseTest() {
         // Given: Manager with mix of clean and dirty chunks
         val manager = createChunkManager()
 
-        val cleanChunk1 = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val cleanChunk1 = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 0L,
+            size = 7L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "Clean 1",
             lineCount = 1,
             isDirty = false
         )
-        val dirtyChunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val dirtyChunk = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 6L,
+            size = 5L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "Dirty",
             lineCount = 1,
             isDirty = true
         )
-        val cleanChunk2 = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val cleanChunk2 = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 0L,
+            size = 7L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "Clean 2",
             lineCount = 1,
             isDirty = false
@@ -440,20 +535,35 @@ class ChunkManagerTest : BaseTest() {
         // Given: Manager with dirty chunks in wrong order
         val manager = createChunkManager()
 
-        val chunk1 = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val chunk1 = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 0L,
+            size = 4L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "Chunk 3",
             lineCount = 1,
             isDirty = true
         )
-        val chunk2 = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val chunk2 = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 5L,
+            size = 4L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "Chunk 1",
             lineCount = 1,
             isDirty = true
         )
-        val chunk3 = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val chunk3 = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 100L,
+            size = 7L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "Chunk 2",
             lineCount = 1,
             isDirty = true
@@ -479,14 +589,24 @@ class ChunkManagerTest : BaseTest() {
         // Given: Manager with dirty chunks
         val manager = createChunkManager()
 
-        val chunk1 = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val chunk1 = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 0L,
+            size = 4L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "Chunk 1",
             lineCount = 1,
             isDirty = true
         )
-        val chunk2 = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val chunk2 = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 5L,
+            size = 4L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "Chunk 2",
             lineCount = 1,
             isDirty = true
@@ -508,8 +628,13 @@ class ChunkManagerTest : BaseTest() {
         // Given: Manager with only clean chunks
         val manager = createChunkManager()
 
-        val cleanChunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val cleanChunk = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 0L,
+            size = 5L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "Clean",
             lineCount = 1,
             isDirty = false
@@ -529,8 +654,13 @@ class ChunkManagerTest : BaseTest() {
         val mockRepo = createMockRepository()
         val manager = createChunkManager(mockRepo)
 
-        val dirtyChunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val dirtyChunk = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 6L,
+            size = 5L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "Modified",
             lineCount = 1,
             isDirty = true
@@ -559,8 +689,13 @@ class ChunkManagerTest : BaseTest() {
 
         val manager = createChunkManager(mockRepo)
 
-        val dirtyChunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val dirtyChunk = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 6L,
+            size = 5L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "Modified",
             lineCount = 1,
             isDirty = true
@@ -584,8 +719,13 @@ class ChunkManagerTest : BaseTest() {
         // Given: Manager with dirty chunk
         val manager = createChunkManager()
 
-        val dirtyChunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val dirtyChunk = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 6L,
+            size = 5L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "Modified",
             lineCount = 1,
             isDirty = true
@@ -608,8 +748,13 @@ class ChunkManagerTest : BaseTest() {
         // Given: Manager with clean chunk
         val manager = createChunkManager()
 
-        val cleanChunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val cleanChunk = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 0L,
+            size = 5L,
+            lineEnding = LineEnding.LF,
+            isLoaded = true,
+            refCount = 0,
             content = "Clean",
             lineCount = 1,
             isDirty = false

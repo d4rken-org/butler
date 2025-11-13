@@ -1,6 +1,7 @@
 package eu.darken.butler.editor.core.engine
 
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.editor.core.mode.EditorMode
 import eu.darken.butler.editor.core.sources.EditorDataSource
 
 sealed class EditorState {
@@ -40,7 +41,9 @@ sealed class EditorState {
  */
 data class EditorResources(
     val dataSource: EditorDataSource,
-    val chunkRepository: ChunkRepository,
+    val chunkRepository: ChunkRepository?,  // Can be null for text-only mode
+    val binaryRepository: BinaryChunkRepository?,  // Can be null for text-only mode
     val chunkManager: ChunkManager,
-    val textBuffer: ChunkedTextBuffer,
+    val mode: EditorMode,
+    val buffer: EditorBuffer,
 )
