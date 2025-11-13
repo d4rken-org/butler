@@ -76,8 +76,8 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
-import eu.darken.butler.workspace.core.permissions.SAFPickerGrant
-import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
+import eu.darken.butler.permissions.core.SAFPickerGrant
+import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.workspace.core.returnResult
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
@@ -201,7 +201,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val canGoForward: Boolean = false,
         val availableActions: List<ExplorerAction> = emptyList(),
         val dialogState: ExplorerDialogState = None,
-        val setupRequirements: WorkspaceRequirements = WorkspaceRequirements(),
+        val setupRequirements: PathRequirements = PathRequirements(),
         val isPro: Boolean = false,
         val filterState: FilterState = FilterState(),
         val useRegexPatterns: Boolean = false,
@@ -323,7 +323,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             canGoForward = wsState.canGoForward,
             availableActions = availableActions,
             dialogState = dialogState,
-            setupRequirements = wsState.currentLocation?.setupRequirements ?: WorkspaceRequirements(),
+            setupRequirements = wsState.currentLocation?.setupRequirements ?: PathRequirements(),
             isPro = upgradeInfo.isUpgraded,
             filterState = filterState,
             useRegexPatterns = useRegexPatterns,
@@ -1114,7 +1114,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun navigateToSetup(requirements: WorkspaceRequirements) = launch {
+    fun navigateToSetup(requirements: PathRequirements) = launch {
         log(tag) { "navigateToSetup(): Opening setup for $requirements" }
         navTo(
             Nav.Main.destSetup(

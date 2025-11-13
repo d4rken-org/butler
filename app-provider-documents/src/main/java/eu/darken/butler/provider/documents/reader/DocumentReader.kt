@@ -10,6 +10,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
@@ -110,9 +111,9 @@ class DocumentReader @Inject constructor(
 
     /**
      * Open a file via GatewaySwitch using pipe pattern.
-     * Used for files that require root/ADB access.
+     * Used for files that require privileged access (root/ADB) or caller lacks permissions (SAF).
      */
-    private suspend fun openViaGateway(path: LocalPath): ParcelFileDescriptor {
+    private suspend fun openViaGateway(path: APath<*>): ParcelFileDescriptor {
         val inputStream = gatewaySwitch.openInputStream(path)
         return createPipeFromInputStream(inputStream)
     }
@@ -150,12 +151,14 @@ class DocumentReader @Inject constructor(
 
     /**
      * Open a SAFPath file.
-     * Uses ContentResolver to open the Storage Access Framework URI.
+     * Uses pipe pattern because calling app doesn't have the SAF tree grant - only Butler does.
+     * Similar to root/ADB files that require privileged access.
      */
-    private fun openSAFPath(path: SAFPath, mode: String): ParcelFileDescriptor {
-        // ContentResolver expects same mode strings as DocumentsProvider
-        return context.contentResolver.openFileDescriptor(path.pathUri.toAndroidUri(), mode)
-            ?: throw FileNotFoundException("Couldn't open SAF file: ${path.pathUri}")
+    private suspend fun openSAFPath(path: SAFPath, mode: String): ParcelFileDescriptor {
+        // SAF files are like root/ADB files - calling app doesn't have the tree grant
+        // We must stream through a pipe using Butler's permissions
+        log(TAG, INFO) { "SAF file requires pipe (caller lacks tree grant): ${path.path}" }
+        return openViaGateway(path)
     }
 
     companion object {

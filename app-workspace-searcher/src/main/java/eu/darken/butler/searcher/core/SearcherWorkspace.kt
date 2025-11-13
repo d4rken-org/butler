@@ -11,6 +11,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.issue.Issue
+import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.engine.SearchEngine
 import eu.darken.butler.searcher.core.operations.DeleteOperation
 import eu.darken.butler.searcher.core.operations.SearcherCommand
@@ -21,7 +22,6 @@ import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
 import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
 import eu.darken.butler.workspace.core.operations.withStateUpdates
-import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
@@ -31,7 +31,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -76,7 +75,7 @@ class SearcherWorkspace @AssistedInject constructor(
         val progress: SearchProgress? = null,
         val error: Exception? = null,
         val searchTargets: List<SearchTarget> = emptyList(), // From engine
-        val setupRequirements: WorkspaceRequirements = WorkspaceRequirements(), // From engine
+        val setupRequirements: PathRequirements = PathRequirements(), // From engine
         val targetProgress: List<SearchEngine.SearchTargetProgress> = emptyList(), // From engine
     ) {
         enum class SearchStatus {
