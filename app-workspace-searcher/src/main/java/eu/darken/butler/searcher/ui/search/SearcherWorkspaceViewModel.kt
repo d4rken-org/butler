@@ -2,7 +2,6 @@ package eu.darken.butler.searcher.ui.search
 
 import android.content.Context
 import android.content.Intent
-import android.os.Environment
 import android.webkit.MimeTypeMap
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.core.content.FileProvider
@@ -29,7 +28,6 @@ import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.explorer.core.arguments.ExternalExplorerArguments
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.searcher.core.SearchItem
@@ -104,8 +102,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private var currentSearchId: String? = null
 
     val dialogEvents = SingleEventFlow<SearcherDialogEvent>()
-
-    val successMessageEvents = SingleEventFlow<String>()
 
     // Observe workspace search state
     private val workspaceSearchState: Flow<SearcherWorkspace.State> = workspaceSource
@@ -557,11 +553,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                         return@launch
                     }
 
-                    if (analysis.needsConfirmation) {
-                        dialogStateFlow.value = SearcherDialogState.OpenInNewTabsConfirmation(analysis)
-                    } else {
-                        executeOpenInNewTabs(analysis)
-                    }
+                    // Always emit event - WorkspacesViewModel handles confirmation
+                    executeOpenInNewTabs(analysis)
                 }
             }
         }
@@ -571,42 +564,31 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private suspend fun executeOpenInNewTabs(analysis: OpenInNewTabsUseCase.AnalysisResult) {
         log(TAG, INFO) { "executeOpenInNewTabs(): Opening ${analysis.totalOpenableCount} workspaces" }
 
-        try {
-            openInNewTabsUseCase.execute(
-                analysis = analysis,
-                createExplorerArguments = { path -> ExternalExplorerArguments(startPath = path) },
-                createEditorArguments = { path -> EditorArguments(filePath = path) },
+        // Create workspace requests
+        val requests = openInNewTabsUseCase.createRequests(
+            analysis = analysis,
+            createExplorerArguments = { path -> ExternalExplorerArguments(startPath = path) },
+            createEditorArguments = { path -> EditorArguments(filePath = path) },
+        )
+
+        // Execute batch creation directly - WorkspaceRepo handles confirmation and banner
+        val result = workspaceRemote.execute(
+            WorkspaceAction.CreateBatch(
+                requests = requests,
+                sourceWorkspaceId = id,
             )
+        )
 
-            log(TAG, INFO) {
-                "Successfully opened ${analysis.totalOpenableCount} workspaces" +
-                    if (analysis.skippedCount > 0) " (${analysis.skippedCount} skipped)" else ""
+        when (result) {
+            is WorkspaceAction.CreateBatch.Result.Success -> {
+                log(TAG, INFO) { "Batch creation succeeded: $result" }
             }
-
-            deselectAll()
-
-            // Show success message
-            val message = if (analysis.skippedCount > 0) {
-                appContext.getString(
-                    CommonR.string.common_open_tabs_success_with_skipped,
-                    analysis.totalOpenableCount,
-                    analysis.skippedCount
-                )
-            } else {
-                appContext.getString(CommonR.string.common_open_tabs_success, analysis.totalOpenableCount)
+            is WorkspaceAction.CreateBatch.Result.Cancelled -> {
+                log(TAG, INFO) { "Batch creation cancelled by user" }
             }
-            successMessageEvents.emit(message)
-        } catch (e: Exception) {
-            log(TAG, ERROR) { "Failed to open workspaces: ${e.asLog()}" }
         }
-    }
 
-    fun onOpenInNewTabsConfirmed() {
-        vmScope.launch {
-            val dialogState = dialogStateFlow.value as? SearcherDialogState.OpenInNewTabsConfirmation ?: return@launch
-            dismissDialog()
-            executeOpenInNewTabs(dialogState.analysis)
-        }
+        deselectAll()
     }
 
     private fun shareFiles(results: List<SearchItem>) {

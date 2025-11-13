@@ -21,8 +21,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -103,7 +101,6 @@ fun SearcherWorkspacePage(
     val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
     val topToolbarScrollBehavior = rememberTopToolbarScrollBehavior()
     val listState = rememberLazyListState()
-    val snackbarHostState = remember { SnackbarHostState() }
     var showClearHistoryDialog by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -188,13 +185,6 @@ fun SearcherWorkspacePage(
         if (hasActions) {
             // Smoothly animate action bar to visible when selection is activated
             bottomBarScrollBehavior.state.animateToExpanded()
-        }
-    }
-
-    // Collect success messages and show snackbar
-    LaunchedEffect(vm) {
-        vm?.successMessageEvents?.collect { message ->
-            snackbarHostState.showSnackbar(message)
         }
     }
 
@@ -515,14 +505,6 @@ fun SearcherWorkspacePage(
                     selectionCount = currentState.selectionState.selectionCount
                 )
             }
-
-            // Snackbar host for feedback messages
-            SnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 80.dp)
-            )
         }
 
         // Quick actions bottom sheet
@@ -582,7 +564,6 @@ fun SearcherWorkspacePage(
             onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
             onNavigateToClipboardSource = { clip -> vm?.navigateToClipboardSource(clip) },
             onRemoveClipboardEntry = { clip -> vm?.removeClipboardEntry(clip) },
-            onConfirmOpenInNewTabs = { vm?.onOpenInNewTabsConfirmed() },
         )
 
         // Operation dialog host

@@ -135,8 +135,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     val dialogEvents = SingleEventFlow<ExplorerDialogEvent>()
 
-    val successMessageEvents = SingleEventFlow<String>()
-
     val safPickerEvents = SingleEventFlow<Intent>()
 
     private val _pendingSAFPickerGrant = MutableStateFlow<SAFPickerGrant?>(null)
@@ -711,11 +709,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     return@launch
                 }
 
-                if (analysis.needsConfirmation) {
-                    dialogStateFlow.value = OpenInNewTabsConfirmation(analysis)
-                } else {
-                    executeOpenInNewTabs(analysis)
-                }
+                // Always emit event - WorkspacesViewModel handles confirmation
+                executeOpenInNewTabs(analysis)
             }
             is ExplorerAction.Common.Sort -> {
                 dialogStateFlow.value = EditSortOptions(
@@ -786,40 +781,31 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private suspend fun executeOpenInNewTabs(analysis: OpenInNewTabsUseCase.AnalysisResult) {
         log(tag, INFO) { "executeOpenInNewTabs(): Opening ${analysis.totalOpenableCount} workspaces" }
 
-        try {
-            openInNewTabsUseCase.execute(
-                analysis = analysis,
-                createExplorerArguments = { path -> ExplorerWorkspace.Arguments(startPath = path) },
-                createEditorArguments = { path -> EditorWorkspace.Arguments(filePath = path) },
+        // Create workspace requests
+        val requests = openInNewTabsUseCase.createRequests(
+            analysis = analysis,
+            createExplorerArguments = { path -> ExplorerWorkspace.Arguments(startPath = path) },
+            createEditorArguments = { path -> EditorWorkspace.Arguments(filePath = path) },
+        )
+
+        // Execute batch creation directly - WorkspaceRepo handles confirmation and banner
+        val result = workspaceRemote.execute(
+            WorkspaceAction.CreateBatch(
+                requests = requests,
+                sourceWorkspaceId = id,
             )
+        )
 
-            log(tag, INFO) {
-                "Successfully opened ${analysis.totalOpenableCount} workspaces" +
-                    if (analysis.skippedCount > 0) " (${analysis.skippedCount} skipped)" else ""
+        when (result) {
+            is WorkspaceAction.CreateBatch.Result.Success -> {
+                log(tag, INFO) { "Batch creation succeeded: $result" }
             }
-
-            clearSelection()
-
-            // Show success message
-            val message = if (analysis.skippedCount > 0) {
-                context.getString(
-                    CommonR.string.common_open_tabs_success_with_skipped,
-                    analysis.totalOpenableCount,
-                    analysis.skippedCount
-                )
-            } else {
-                context.getString(CommonR.string.common_open_tabs_success, analysis.totalOpenableCount)
+            is WorkspaceAction.CreateBatch.Result.Cancelled -> {
+                log(tag, INFO) { "Batch creation cancelled by user" }
             }
-            successMessageEvents.emit(message)
-        } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to open workspaces: ${e.asLog()}" }
         }
-    }
 
-    fun onOpenInNewTabsConfirmed() = launch {
-        val dialogState = dialogStateFlow.value as? OpenInNewTabsConfirmation ?: return@launch
-        dismissDialog()
-        executeOpenInNewTabs(dialogState.analysis)
+        clearSelection()
     }
 
     fun openFileInEditor(item: ExplorerItem.File) = launch {

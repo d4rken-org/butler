@@ -8,7 +8,6 @@ import eu.darken.butler.workspace.ui.clipboard.details.ClipboardInfoBottomSheet
 import eu.darken.butler.workspace.ui.dialogs.DeleteConfirmationDialog
 import eu.darken.butler.workspace.ui.dialogs.FileInfo
 import eu.darken.butler.workspace.ui.dialogs.FileInfoBottomSheet
-import eu.darken.butler.workspace.ui.dialogs.OpenInNewTabsConfirmationDialog
 
 @Composable
 fun SearcherDialogHost(
@@ -19,7 +18,6 @@ fun SearcherDialogHost(
     onCopyToClipboard: (String) -> Unit,
     onNavigateToClipboardSource: (ClipboardClip) -> Unit,
     onRemoveClipboardEntry: (ClipboardClip) -> Unit,
-    onConfirmOpenInNewTabs: () -> Unit = {},
 ) {
     when (dialogState) {
         is SearcherDialogState.None -> {
@@ -50,13 +48,6 @@ fun SearcherDialogHost(
                 onPaste = null, // Not applicable for searcher
                 onRemove = { onRemoveClipboardEntry(dialogState.clip) },
                 onCopyPath = onCopyToClipboard,
-            )
-        }
-        is SearcherDialogState.OpenInNewTabsConfirmation -> {
-            OpenInNewTabsConfirmationDialog(
-                analysis = dialogState.analysis,
-                onDismiss = onDismiss,
-                onConfirm = onConfirmOpenInNewTabs,
             )
         }
     }

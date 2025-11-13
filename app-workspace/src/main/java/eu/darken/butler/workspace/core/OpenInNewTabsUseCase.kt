@@ -11,9 +11,7 @@ import javax.inject.Inject
  * Use case for opening multiple items (directories and files) as new workspace tabs.
  * Handles the logic for categorizing items and determining what can be opened.
  */
-class OpenInNewTabsUseCase @Inject constructor(
-    private val workspaceRemote: WorkspaceRemote,
-) {
+class OpenInNewTabsUseCase @Inject constructor() {
     private val tag = logTag("Workspace", "OpenInNewTabsUseCase")
 
     companion object {
@@ -86,48 +84,35 @@ class OpenInNewTabsUseCase @Inject constructor(
     }
 
     /**
-     * Creates workspaces for the analyzed items
-     * The caller must provide functions to create appropriate workspace arguments
+     * Creates workspace creation requests from the analysis result.
+     * The caller must provide functions to create appropriate workspace arguments for each type.
      */
-    suspend fun execute(
+    fun createRequests(
         analysis: AnalysisResult,
         createExplorerArguments: (APath<*>) -> Workspace.Arguments,
         createEditorArguments: (APath<*>) -> Workspace.Arguments,
-    ) {
-        log(tag, INFO) {
-            "execute(): Opening ${analysis.totalOpenableCount} workspaces " +
+    ): List<WorkspaceAction.Create> {
+        log(tag) {
+            "createRequests(): Creating ${analysis.totalOpenableCount} workspace requests " +
                 "(${analysis.directoriesToOpen.size} Explorer, ${analysis.textFilesToOpen.size} Editor)"
         }
 
-        try {
-            // Create Explorer workspaces for directories
+        return buildList {
+            // Create Explorer workspace requests for directories
             analysis.directoriesToOpen.forEach { path ->
-                val arguments = createExplorerArguments(path)
-                workspaceRemote.execute(
-                    WorkspaceAction.Create(
-                        type = Workspace.Type.EXPLORER,
-                        arguments = arguments,
-                    )
-                )
-                log(tag) { "Created Explorer workspace for: ${path.path}" }
+                add(WorkspaceAction.Create(
+                    type = Workspace.Type.EXPLORER,
+                    arguments = createExplorerArguments(path),
+                ))
             }
 
-            // Create Editor workspaces for text files
+            // Create Editor workspace requests for text files
             analysis.textFilesToOpen.forEach { path ->
-                val arguments = createEditorArguments(path)
-                workspaceRemote.execute(
-                    WorkspaceAction.Create(
-                        type = Workspace.Type.EDITOR,
-                        arguments = arguments,
-                    )
-                )
-                log(tag) { "Created Editor workspace for: ${path.path}" }
+                add(WorkspaceAction.Create(
+                    type = Workspace.Type.EDITOR,
+                    arguments = createEditorArguments(path),
+                ))
             }
-
-            log(tag, INFO) { "Successfully opened ${analysis.totalOpenableCount} workspaces" }
-        } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to create workspaces: ${e.asLog()}" }
-            throw e
         }
     }
 }

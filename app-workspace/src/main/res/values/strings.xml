@@ -173,4 +173,10 @@
     <!-- Open in New Tabs Confirmation Dialog -->
     <string name="workspace_open_tabs_confirmation_title">Open multiple tabs?</string>
     <string name="workspace_open_tabs_confirmation_message">This will open %1$d workspaces.</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="one">Opened %1$d tab</item>
+        <item quantity="other">Opened %1$d tabs</item>
+    </plurals>
 </resources>

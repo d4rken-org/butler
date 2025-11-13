@@ -4,7 +4,6 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.engine.ExplorerItem
-import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 
 sealed interface ExplorerDialogState {
@@ -36,8 +35,6 @@ sealed interface ExplorerDialogState {
     data class FileOptions(val item: ExplorerItem.File) : ExplorerDialogState
 
     data class ClipboardInfo(val clip: ClipboardClip) : ExplorerDialogState
-
-    data class OpenInNewTabsConfirmation(val analysis: OpenInNewTabsUseCase.AnalysisResult) : ExplorerDialogState
 
     data class ItemInfo(val context: InfoContext) : ExplorerDialogState {
         sealed interface InfoContext {

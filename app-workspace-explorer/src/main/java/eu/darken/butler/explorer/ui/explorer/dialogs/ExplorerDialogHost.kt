@@ -8,7 +8,6 @@ import eu.darken.butler.workspace.ui.dialogs.DeleteConfirmationDialog
 import eu.darken.butler.workspace.ui.dialogs.FileInfo
 import eu.darken.butler.workspace.ui.dialogs.FileInfoBottomSheet
 import eu.darken.butler.workspace.ui.dialogs.MultipleItemsInfoBottomSheet
-import eu.darken.butler.workspace.ui.dialogs.OpenInNewTabsConfirmationDialog
 
 @Composable
 fun ExplorerDialogHost(
@@ -96,14 +95,6 @@ fun ExplorerDialogHost(
                 onPaste = { vm?.pasteClipboard(dialogState.clip) },
                 onRemove = { vm?.removeClipboardEntry(dialogState.clip) },
                 onCopyPath = { path -> vm?.copyPathToSystemClipboard(path) }
-            )
-        }
-
-        is ExplorerDialogState.OpenInNewTabsConfirmation -> {
-            OpenInNewTabsConfirmationDialog(
-                analysis = dialogState.analysis,
-                onDismiss = { vm?.dismissDialog() },
-                onConfirm = { vm?.onOpenInNewTabsConfirmed() }
             )
         }
 
