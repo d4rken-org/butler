@@ -6,13 +6,19 @@ import android.os.ParcelFileDescriptor
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
 import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.FileNotFoundException
+import java.io.InputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,6 +38,7 @@ import javax.inject.Singleton
 class DocumentReader @Inject constructor(
     @ApplicationContext private val context: Context,
     private val codec: DocumentIdCodec,
+    private val gatewaySwitch: GatewaySwitch,
 ) {
 
     /**
@@ -83,22 +90,62 @@ class DocumentReader @Inject constructor(
 
     /**
      * Open a LocalPath file.
-     * Uses standard Java File I/O.
+     * Fast path: Direct Java File I/O if accessible.
+     * Fallback: GatewaySwitch with pipe for inaccessible files (root/ADB).
      */
-    private fun openLocalPath(path: LocalPath, mode: String): ParcelFileDescriptor {
+    private suspend fun openLocalPath(path: LocalPath, mode: String): ParcelFileDescriptor {
         val file = path.file
 
-        if (!file.exists()) {
-            throw FileNotFoundException("File not found: ${path.path}")
+        // Fast path: Direct file access if possible
+        if (file.exists() && file.isFile && file.canRead()) {
+            log(TAG, VERBOSE) { "Using direct file access for: ${path.path}" }
+            val pfdMode = ParcelFileDescriptor.parseMode(mode)
+            return ParcelFileDescriptor.open(file, pfdMode)
         }
 
-        if (!file.isFile) {
-            throw FileNotFoundException("Not a file: ${path.path}")
+        // Fallback: Use GatewaySwitch for inaccessible files
+        log(TAG, INFO) { "File not directly accessible, routing through GatewaySwitch: ${path.path}" }
+        return openViaGateway(path)
+    }
+
+    /**
+     * Open a file via GatewaySwitch using pipe pattern.
+     * Used for files that require root/ADB access.
+     */
+    private suspend fun openViaGateway(path: LocalPath): ParcelFileDescriptor {
+        val inputStream = gatewaySwitch.openInputStream(path)
+        return createPipeFromInputStream(inputStream)
+    }
+
+    /**
+     * Create a ParcelFileDescriptor pipe from an InputStream.
+     * Data is transferred asynchronously from InputStream to pipe's write side.
+     */
+    private fun createPipeFromInputStream(inputStream: InputStream): ParcelFileDescriptor {
+        val pipe = ParcelFileDescriptor.createPipe()
+        val readSide = pipe[0]
+        val writeSide = pipe[1]
+
+        // Transfer data on background thread
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                ParcelFileDescriptor.AutoCloseOutputStream(writeSide).use { output ->
+                    inputStream.use { input ->
+                        input.copyTo(output)
+                    }
+                }
+                log(TAG, VERBOSE) { "Pipe transfer completed successfully" }
+            } catch (e: Exception) {
+                log(TAG, ERROR) { "Pipe transfer failed: ${e.asLog()}" }
+                try {
+                    readSide.closeWithError(e.message ?: "Transfer failed")
+                } catch (closeError: Exception) {
+                    log(TAG, ERROR) { "Failed to close read side with error: ${closeError.asLog()}" }
+                }
+            }
         }
 
-        // Parse mode string to ParcelFileDescriptor mode flags
-        val pfdMode = ParcelFileDescriptor.parseMode(mode)
-        return ParcelFileDescriptor.open(file, pfdMode)
+        return readSide
     }
 
     /**

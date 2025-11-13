@@ -16,8 +16,11 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import eu.darken.butler.common.storage.StorageManager2
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
 import eu.darken.butler.provider.documents.core.ProviderLocation
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,6 +39,8 @@ class DocumentQueryHandler @Inject constructor(
     @ApplicationContext private val context: Context,
     private val codec: DocumentIdCodec,
     private val gatewaySwitch: GatewaySwitch,
+    private val storageManager2: StorageManager2,
+    private val safLocationManager: SAFLocationManager,
 ) {
 
     /**
@@ -148,26 +153,54 @@ class DocumentQueryHandler @Inject constructor(
 
     /**
      * Enumerate available storage locations under Device home.
-     * Phase 1: Only root filesystem ("/").
-     * Phase 2+: Auto-detect internal storage, SD cards, SAF trees.
+     * Mirrors Explorer's DeviceLocationLoader logic:
+     * - Root filesystem ("/")
+     * - Storage volumes (internal storage + SD cards)
+     * - SAF locations (user-granted trees)
      */
-    private fun enumerateStorageLocations(cursor: MatrixCursor) {
-        // Phase 1: Root filesystem only
+    private suspend fun enumerateStorageLocations(cursor: MatrixCursor) {
+        // 1. Root filesystem
         val rootPath = LocalPath.build("/")
-        val rootDocumentId = codec.encode(rootPath)
-
         cursor.addVirtualDocument(
-            documentId = rootDocumentId,
+            documentId = codec.encode(rootPath),
             displayName = context.getString(eu.darken.butler.provider.documents.R.string.documents_storage_root_label),
             mimeType = MIME_TYPE_DIR,
             flags = FLAG_DIR_SUPPORTS_CREATE,
             icon = android.R.drawable.ic_menu_view,
         )
 
-        // Phase 2+: Auto-detect storage volumes
-        // - Internal storage: /storage/emulated/0
-        // - SD cards: /storage/{uuid}
-        // - SAF trees: User-granted locations
+        // 2. Storage volumes (internal + SD cards)
+        storageManager2.storageVolumes.forEachIndexed { index, volume ->
+            val path = volume.directory?.let { LocalPath.build(it) }
+                ?: volume.path?.let { LocalPath.build(it) }
+                ?: return@forEachIndexed
+
+            val displayName = volume.userLabel?.takeIf { it.isNotBlank() }
+                ?: when (index) {
+                    0 -> context.getString(eu.darken.butler.provider.documents.R.string.documents_storage_internal_label)
+                    else -> context.getString(eu.darken.butler.provider.documents.R.string.documents_storage_sd_card_label)
+                }
+
+            cursor.addVirtualDocument(
+                documentId = codec.encode(path),
+                displayName = displayName,
+                mimeType = MIME_TYPE_DIR,
+                flags = FLAG_DIR_SUPPORTS_CREATE,
+                icon = android.R.drawable.ic_menu_view,
+            )
+        }
+
+        // 3. SAF locations (user-granted trees)
+        val safLocations = safLocationManager.locations.first()
+        safLocations.forEach { location ->
+            cursor.addVirtualDocument(
+                documentId = codec.encode(location.path),
+                displayName = location.displayName.get(context),
+                mimeType = MIME_TYPE_DIR,
+                flags = FLAG_DIR_SUPPORTS_CREATE,
+                icon = android.R.drawable.ic_menu_view,
+            )
+        }
     }
 
     /**

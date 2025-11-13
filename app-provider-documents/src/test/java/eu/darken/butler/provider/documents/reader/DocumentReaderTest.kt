@@ -6,6 +6,7 @@ import android.os.CancellationSignal
 import android.os.OperationCanceledException
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.SafUri
+import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
@@ -34,13 +35,15 @@ class DocumentReaderTest {
 
     private lateinit var context: Context
     private lateinit var codec: DocumentIdCodec
+    private lateinit var gatewaySwitch: GatewaySwitch
     private lateinit var reader: DocumentReader
 
     @Before
     fun setup() {
         context = ApplicationProvider.getApplicationContext()
         codec = mockk()
-        reader = DocumentReader(context, codec)
+        gatewaySwitch = mockk()
+        reader = DocumentReader(context, codec, gatewaySwitch)
     }
 
     @Test
@@ -72,6 +75,7 @@ class DocumentReaderTest {
         val documentId = "local|missing"
 
         coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.openInputStream(path) } throws java.io.FileNotFoundException("File not found")
 
         try {
             reader.openDocument(documentId, "r", null)
@@ -89,6 +93,7 @@ class DocumentReaderTest {
         val documentId = "local|dir"
 
         coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.openInputStream(path) } throws java.io.FileNotFoundException("Not a file")
 
         try {
             reader.openDocument(documentId, "r", null)

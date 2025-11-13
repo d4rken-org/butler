@@ -9,13 +9,17 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import eu.darken.butler.common.storage.StorageManager2
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
 import eu.darken.butler.provider.documents.core.ProviderLocation
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -31,6 +35,8 @@ class DocumentQueryHandlerTest {
     private lateinit var context: Context
     private lateinit var codec: DocumentIdCodec
     private lateinit var gatewaySwitch: GatewaySwitch
+    private lateinit var storageManager2: StorageManager2
+    private lateinit var safLocationManager: SAFLocationManager
     private lateinit var handler: DocumentQueryHandler
 
     @Before
@@ -38,7 +44,13 @@ class DocumentQueryHandlerTest {
         context = ApplicationProvider.getApplicationContext()
         codec = mockk()
         gatewaySwitch = mockk()
-        handler = DocumentQueryHandler(context, codec, gatewaySwitch)
+        storageManager2 = mockk {
+            every { storageVolumes } returns emptyList()
+        }
+        safLocationManager = mockk {
+            every { locations } returns flowOf(emptyList())
+        }
+        handler = DocumentQueryHandler(context, codec, gatewaySwitch, storageManager2, safLocationManager)
     }
 
     @Test

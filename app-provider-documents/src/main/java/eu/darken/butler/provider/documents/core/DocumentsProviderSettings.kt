@@ -22,38 +22,10 @@ class DocumentsProviderSettings @Inject constructor(
     override val dataStore: DataStore<Preferences>
         get() = context.dataStore
 
-    // Phase 1: Basic settings
     val isEnabled = dataStore.createValue("provider.enabled", true)
 
-    // Phase 2+: Root visibility settings
-    val showRootFilesystem = dataStore.createValue("provider.roots.show_root_filesystem", true)
-    val showInternalStorage = dataStore.createValue("provider.roots.show_internal_storage", true)
-    val showExternalStorage = dataStore.createValue("provider.roots.show_external_storage", true)
-    val showSAFTrees = dataStore.createValue("provider.roots.show_saf_trees", false)
-
-    // Phase 2+: Advanced settings
-    val requireRootAccess = dataStore.createValue("provider.root_access.require", false)
-    val requireADBAccess = dataStore.createValue("provider.adb_access.require", false)
-
-    // Phase 3+: Performance settings
-    val thumbnailCacheEnabled = dataStore.createValue("provider.thumbnails.cache_enabled", true)
-    val maxCachedThumbnails = dataStore.createValue("provider.thumbnails.max_cached", 100)
-
     override val mapper = PreferenceStoreMapper(
-        // Phase 1
         isEnabled,
-
-        // Phase 2+
-        showRootFilesystem,
-        showInternalStorage,
-        showExternalStorage,
-        showSAFTrees,
-        requireRootAccess,
-        requireADBAccess,
-
-        // Phase 3+
-        thumbnailCacheEnabled,
-        maxCachedThumbnails,
     )
 
     companion object {
