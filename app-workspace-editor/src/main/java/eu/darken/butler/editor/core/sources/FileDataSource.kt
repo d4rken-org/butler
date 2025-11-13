@@ -114,7 +114,11 @@ class FileDataSource @AssistedInject constructor(
                         log(tag) { "readChunk: requested=$size, read=$totalBytesRead at offset $startOffset" }
 
                         val bytes = buffer.readByteArray()
-                        String(bytes, Charsets.UTF_8)
+                        val rawContent = String(bytes, Charsets.UTF_8)
+
+                        // CRITICAL: Ensure we don't return content that ends mid-surrogate-pair
+                        // This can happen if byte boundaries cut a multi-byte UTF-8 character
+                        adjustForSurrogatePairs(rawContent)
                     }
                 }
             } catch (e: Exception) {
@@ -122,6 +126,33 @@ class FileDataSource @AssistedInject constructor(
                 throw e
             }
         }
+    }
+
+    /**
+     * Adjusts content to avoid ending mid-surrogate-pair.
+     *
+     * UTF-16 surrogate pairs consist of two Char values:
+     * - High surrogate: U+D800 to U+DBFF
+     * - Low surrogate: U+DC00 to U+DFFF
+     *
+     * If the content ends mid-pair, we truncate to exclude the incomplete character.
+     *
+     * @param content The decoded string content
+     * @return Content with complete surrogate pairs only
+     */
+    private fun adjustForSurrogatePairs(content: String): String {
+        if (content.isEmpty()) return content
+
+        val lastIndex = content.length - 1
+
+        // Check if content ends with a high surrogate (first half of pair)
+        // If so, we have an incomplete pair - truncate it
+        if (Character.isHighSurrogate(content[lastIndex])) {
+            log(tag) { "adjustForSurrogatePairs: Content ends with high surrogate, truncating" }
+            return content.substring(0, lastIndex)
+        }
+
+        return content
     }
 
     override suspend fun getSize(): Long = _fileInfo.value?.size ?: 0L
