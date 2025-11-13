@@ -26,23 +26,85 @@ class ChunkRepository @AssistedInject constructor(
         return dataSource.fileInfo.value
     }
 
-    suspend fun loadChunk(chunkId: TextChunk.ChunkId, boundary: ChunkBoundary): TextChunk = withContext(Dispatchers.IO) {
+    suspend fun loadChunk(chunkId: EditorChunk.ChunkId, boundary: ChunkBoundary): EditorChunk.Text = withContext(Dispatchers.IO) {
         log(tag) { "Loading chunk: $chunkId at ${boundary.startOffset}-${boundary.endOffset}" }
 
-        val content = dataSource.readChunk(boundary.startOffset, boundary.size)
+        // Read raw bytes from data source
+        val bytes = dataSource.readChunk(boundary.startOffset, boundary.size)
 
-        val lineCount = content.count { it == '\n' } + if (content.isNotEmpty() && !content.endsWith('\n')) 1 else 0
+        // Decode bytes to String using UTF-8 (text mode responsibility)
+        val content = bytes.toString(Charsets.UTF_8)
 
-        val chunk = TextChunk(
-            id = chunkId,
+        // Detect line ending style in this chunk
+        val lineEnding = detectLineEnding(content)
+
+        // Count lines using detected style
+        val lineCount = countLines(content, lineEnding)
+
+        val chunk = EditorChunk.Text(
+            offset = boundary.startOffset,
             content = content,
+            size = bytes.size.toLong(),
             lineCount = lineCount,
+            lineEnding = lineEnding,
             isDirty = false,
-            isLoaded = true
+            isLoaded = true,
+            refCount = 0,
+            id = chunkId
         )
 
-        log(tag) { "Loaded chunk: $chunkId (${content.length} bytes, $lineCount lines)" }
+        log(tag) { "Loaded chunk: $chunkId (${bytes.size} bytes → ${content.length} chars, $lineCount lines, $lineEnding)" }
         chunk
+    }
+
+    /**
+     * Detects the line ending style used in the given content.
+     * Prioritizes the most common style found in the text.
+     */
+    private fun detectLineEnding(content: String): LineEnding {
+        if (content.isEmpty()) return LineEnding.LF  // Default for empty content
+
+        val crlfCount = content.windowed(2).count { it == "\r\n" }
+        val lfCount = content.count { it == '\n' } - crlfCount  // LF not part of CRLF
+        val crCount = content.count { it == '\r' } - crlfCount  // CR not part of CRLF
+
+        return when {
+            // Pure CRLF (Windows)
+            crlfCount > 0 && lfCount == 0 && crCount == 0 -> LineEnding.CRLF
+            // Pure LF (Unix)
+            lfCount > 0 && crlfCount == 0 && crCount == 0 -> LineEnding.LF
+            // Pure CR (old Mac)
+            crCount > 0 && lfCount == 0 && crlfCount == 0 -> LineEnding.CR
+            // Mixed or multiple styles present
+            else -> {
+                if (crlfCount + lfCount + crCount == 0) LineEnding.LF  // No newlines, default LF
+                else LineEnding.MIXED
+            }
+        }
+    }
+
+    /**
+     * Counts the number of lines in content based on the detected line ending style.
+     */
+    private fun countLines(content: String, lineEnding: LineEnding): Int {
+        if (content.isEmpty()) return 1  // Empty content is 1 line
+
+        val lineCount = when (lineEnding) {
+            LineEnding.LF -> content.count { it == '\n' }
+            LineEnding.CRLF -> content.windowed(2).count { it == "\r\n" }
+            LineEnding.CR -> content.count { it == '\r' }
+            LineEnding.MIXED -> content.count { it == '\n' }  // Use LF as primary for mixed
+        }
+
+        // Add 1 if content doesn't end with a newline (last line has no terminator)
+        val endsWithNewline = when (lineEnding) {
+            LineEnding.LF -> content.endsWith('\n')
+            LineEnding.CRLF -> content.endsWith("\r\n")
+            LineEnding.CR -> content.endsWith('\r')
+            LineEnding.MIXED -> content.endsWith('\n') || content.endsWith("\r\n") || content.endsWith('\r')
+        }
+
+        return lineCount + if (!endsWithNewline) 1 else 0
     }
 
     /**
@@ -52,7 +114,7 @@ class ChunkRepository @AssistedInject constructor(
      * @param dirtyChunks List of modified chunks to save
      * @param boundaries Map of chunk IDs to their file positions
      */
-    suspend fun saveFile(dirtyChunks: List<TextChunk>, boundaries: Map<TextChunk.ChunkId, ChunkBoundary>) = withContext(Dispatchers.IO) {
+    suspend fun saveFile(dirtyChunks: List<EditorChunk.Text>, boundaries: Map<EditorChunk.ChunkId, ChunkBoundary>) = withContext(Dispatchers.IO) {
         log(tag) { "Saving ${dirtyChunks.size} dirty chunks to data source" }
         dataSource.save(dirtyChunks, boundaries)
         log(tag) { "Successfully saved chunks" }
@@ -65,7 +127,7 @@ class ChunkRepository @AssistedInject constructor(
      * The caller (ChunkedTextBuffer) is responsible for converting to file-relative line numbers.
      */
     suspend fun searchInChunk(
-        chunk: TextChunk,
+        chunk: EditorChunk.Text,
         boundary: ChunkBoundary,
         query: String,
         ignoreCase: Boolean = false
@@ -130,11 +192,12 @@ data class FileInfo(
     val path: APath<*>,
     val size: Long,
     val lastModified: Instant,
-    val canWrite: Boolean
+    val canWrite: Boolean,
+    val lineEnding: LineEnding = LineEnding.LF
 )
 
 data class SearchResult(
     val position: TextPosition,
     val matchText: String,
-    val chunkId: TextChunk.ChunkId
+    val chunkId: EditorChunk.ChunkId
 )

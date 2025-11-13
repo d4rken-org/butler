@@ -3,28 +3,24 @@ package eu.darken.butler.searcher.core.engine
 import android.os.Environment
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
-import eu.darken.butler.common.debug.logging.Logging
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.storage.StorageManager2
+import eu.darken.butler.permissions.core.PathPermissionCheck
+import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearcherSettings
 import eu.darken.butler.searcher.core.operations.SearcherCommand
-import eu.darken.butler.workspace.core.permissions.PathPermissionCheck
-import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -51,8 +47,8 @@ class SearchEngine @Inject constructor(
     private val _targetState = MutableStateFlow<List<SearchTarget>>(emptyList())
     val targetState: StateFlow<List<SearchTarget>> = _targetState.asStateFlow()
 
-    private val _setupRequirements = MutableStateFlow(WorkspaceRequirements())
-    val setupRequirements: StateFlow<WorkspaceRequirements> = _setupRequirements.asStateFlow()
+    private val _setupRequirements = MutableStateFlow(PathRequirements())
+    val setupRequirements: StateFlow<PathRequirements> = _setupRequirements.asStateFlow()
 
     private val _targetProgressState = MutableStateFlow<List<SearchTargetProgress>>(emptyList())
     val targetProgressState: StateFlow<List<SearchTargetProgress>> = _targetProgressState.asStateFlow()
@@ -170,7 +166,7 @@ class SearchEngine @Inject constructor(
             }
 
             // Aggregate requirements
-            val setupRequirements = WorkspaceRequirements(
+            val setupRequirements = PathRequirements(
                 combos = requirementsList.flatMap { it.combos }.distinct().toSet(),
                 complete = requirementsList.flatMap { it.complete }.distinct().toSet(),
             )
@@ -205,7 +201,7 @@ class SearchEngine @Inject constructor(
     sealed interface Result {
         data object InvalidQuery : Result
         data object NoTargets : Result
-        data class PermissionsRequired(val requirements: WorkspaceRequirements) : Result
+        data class PermissionsRequired(val requirements: PathRequirements) : Result
         data class Success(val results: Flow<SearchItem>) : Result
         data class Error(val exception: Exception) : Result
     }

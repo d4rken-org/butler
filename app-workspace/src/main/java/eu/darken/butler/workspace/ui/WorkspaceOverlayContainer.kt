@@ -38,7 +38,7 @@ import eu.darken.butler.workspace.ui.feedback.WorkspaceBanner
  */
 @Composable
 fun WorkspaceOverlayContainer(
-    workspaceId: Workspace.Id?,
+    workspaceId: Workspace.Id,
     managerDialogStates: Map<Workspace.Id, WorkspaceManagerDialogState.Targeted>,
     onDismissManagerDialog: (Workspace.Id) -> Unit,
     onConfirmManagerDialog: (WorkspaceManagerDialogState.Targeted) -> Unit,
@@ -52,7 +52,7 @@ fun WorkspaceOverlayContainer(
         content()
 
         // Manager dialog overlay - direct lookup for this workspace
-        val dialogState = workspaceId?.let { managerDialogStates[it] }
+        val dialogState = managerDialogStates[workspaceId]
 
         dialogState?.let { dialog ->
             when (dialog) {
@@ -71,7 +71,7 @@ fun WorkspaceOverlayContainer(
         }
 
         // Banner feedback overlay - direct lookup for this workspace
-        val bannerState = workspaceId?.let { bannerStates[it] }
+        val bannerState = bannerStates[workspaceId]
 
         bannerState?.let { banner ->
             Box(
@@ -82,7 +82,7 @@ fun WorkspaceOverlayContainer(
             ) {
                 WorkspaceBanner(
                     state = banner,
-                    onDismiss = { workspaceId?.let { onDismissBanner(it) } }
+                    onDismiss = { onDismissBanner(workspaceId) }
                 )
             }
         }

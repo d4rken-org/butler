@@ -43,6 +43,7 @@ class EditorSettings @Inject constructor(
     val highlightCurrentLine = dataStore.createValue("editor.highlight.current_line", true)
     val showMatchingBrackets = dataStore.createValue("editor.brackets.show_matching", true)
     val undoStackSize = dataStore.createValue("editor.undo.stack_size", 100)
+    val undoMaxMemoryMB = dataStore.createValue("editor.undo.max_memory_mb", 10)
 
 
     override val mapper = PreferenceStoreMapper(
@@ -68,6 +69,7 @@ class EditorSettings @Inject constructor(
         highlightCurrentLine,
         showMatchingBrackets,
         undoStackSize,
+        undoMaxMemoryMB,
     )
 
 

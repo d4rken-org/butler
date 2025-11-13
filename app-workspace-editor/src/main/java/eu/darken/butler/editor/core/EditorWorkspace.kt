@@ -17,6 +17,7 @@ import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.core.engine.FileInfo
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
+import eu.darken.butler.editor.core.mode.EditorMode
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
@@ -103,11 +104,16 @@ class EditorWorkspace @AssistedInject constructor(
             engine.searchResults,
             engine.visibleRange,
             engine.error,
+            engine.state,  // Include engine state to access mode
             editorSettings.showLineNumbers.flow,
             editorSettings.wordWrap.flow,
         ) { fileInfo, totalLines, isModified, currentContent, cursorPosition,
             selectionRange, searchQuery, searchResults, visibleRange, error,
-            showLineNumbers, wordWrap ->
+            engineState, showLineNumbers, wordWrap ->
+
+            // Extract mode from engine state
+            val mode = (engineState as? eu.darken.butler.editor.core.engine.EditorState.Loaded)?.resources?.mode
+
             EditorState(
                 fileInfo = fileInfo,
                 totalLines = totalLines,
@@ -119,6 +125,7 @@ class EditorWorkspace @AssistedInject constructor(
                 searchResults = searchResults,
                 visibleRange = visibleRange,
                 error = error,
+                mode = mode,
                 showLineNumbers = showLineNumbers,
                 wordWrap = wordWrap
             )
@@ -280,6 +287,7 @@ class EditorWorkspace @AssistedInject constructor(
         val searchResults: List<SearchResult> = emptyList(),
         val visibleRange: IntRange = 0..50,
         val error: Throwable? = null,
+        val mode: EditorMode? = null,
         val showLineNumbers: Boolean = true,
         val wordWrap: Boolean = false
     ) {

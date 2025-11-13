@@ -182,30 +182,72 @@ class DocumentReaderTest {
     }
 
     @Test
-    fun `openDocument handles SAFPath`() = runTest {
-        // Given: SAF path (mock URI - actual SAF testing requires more setup)
-        val androidUri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3ADocuments%2Ftest.txt")
+    fun `openDocument handles SAFPath via pipe pattern`() = runTest {
+        // Given: SAF path that will be opened via GatewaySwitch (pipe pattern)
+        val androidUri = Uri.parse("content://com.android.externalstorage.documents/tree/primary%3AFolder/document/primary%3AFolder%2Ftest.txt")
         val safUri = mockk<SafUri> {
             every { toAndroidUri() } returns androidUri
         }
         val safPath = mockk<SAFPath> {
             every { pathUri } returns safUri
+            every { path } returns "/tree/primary:Folder/test.txt"
         }
         val documentId = "saf|encoded"
+        val testContent = "SAF file content via pipe"
 
         coEvery { codec.decode(documentId) } returns safPath
+        coEvery { gatewaySwitch.openInputStream(safPath) } returns testContent.byteInputStream()
 
-        // Note: In real Robolectric environment, ContentResolver.openFileDescriptor might not work
-        // This test validates the code path exists, but full SAF testing requires instrumented tests
-        try {
-            reader.openDocument(documentId, "r", null)
-            // If it succeeds, that's fine (depends on Robolectric SAF support)
-        } catch (e: FileNotFoundException) {
-            // Expected in test environment without real SAF setup
-            // Either our error message or Robolectric's is acceptable
-            val validMessages = listOf("Couldn't open SAF file", "No content provider")
-            validMessages.any { e.message?.contains(it) == true } shouldBe true
+        // When
+        val pfd = reader.openDocument(documentId, "r", null)
+
+        // Allow background coroutine to transfer data through pipe
+        kotlinx.coroutines.delay(100)
+
+        // Then: Can read file contents through pipe
+        FileInputStream(pfd.fileDescriptor).use { inputStream ->
+            val content = inputStream.readBytes().toString(Charsets.UTF_8)
+            content shouldBe testContent
         }
+
+        pfd.close()
+    }
+
+    @Test
+    fun `openDocument uses pipe for SAFPath with large file`() = runTest {
+        // Given: Larger SAF file (100KB) - tests pipe streaming with more data
+        val androidUri = Uri.parse("content://com.android.externalstorage.documents/tree/primary%3AFolder/document/primary%3AFolder%2Flarge.bin")
+        val safUri = mockk<SafUri> {
+            every { toAndroidUri() } returns androidUri
+        }
+        val safPath = mockk<SAFPath> {
+            every { pathUri } returns safUri
+            every { path } returns "/tree/primary:Folder/large.bin"
+        }
+        val documentId = "saf|large"
+        val largeData = ByteArray(100 * 1024) { (it % 256).toByte() }
+
+        coEvery { codec.decode(documentId) } returns safPath
+        coEvery { gatewaySwitch.openInputStream(safPath) } returns largeData.inputStream()
+
+        // When
+        val pfd = reader.openDocument(documentId, "r", null)
+
+        // Allow background coroutine to transfer data through pipe
+        kotlinx.coroutines.delay(200)
+
+        // Then: Can read all data through pipe
+        FileInputStream(pfd.fileDescriptor).use { inputStream ->
+            val content = inputStream.readBytes()
+            content.size shouldBe largeData.size
+            // Verify data integrity on sample points (not every byte for performance)
+            content[0] shouldBe 0.toByte()
+            content[255] shouldBe 255.toByte()
+            content[256] shouldBe 0.toByte()
+            content[largeData.size - 1] shouldBe ((largeData.size - 1) % 256).toByte()
+        }
+
+        pfd.close()
     }
 
     @Test

@@ -3,13 +3,13 @@ package eu.darken.butler.explorer.core.engine
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.ExplorerNavigation
-import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
+import eu.darken.butler.permissions.core.PathRequirements
 
 sealed interface ExplorerLocation {
     val locationId: String
     val items: List<ExplorerItem>?
     val info: LocationInfo?
-    val setupRequirements: WorkspaceRequirements
+    val setupRequirements: PathRequirements
     val progress: Progress.Data?
 
     val isLoading: Boolean get() = progress != null
@@ -19,7 +19,7 @@ sealed interface ExplorerLocation {
     data class Home(
         override val items: List<ExplorerItem>? = null,
         override val info: Info? = null,
-        override val setupRequirements: WorkspaceRequirements = WorkspaceRequirements(),
+        override val setupRequirements: PathRequirements = PathRequirements(),
         override val progress: Progress.Data? = Progress.Data(),
     ) : ExplorerLocation {
 
@@ -35,7 +35,7 @@ sealed interface ExplorerLocation {
     data class Device(
         override val items: List<ExplorerItem>? = null,
         override val info: Info? = null,
-        override val setupRequirements: WorkspaceRequirements = WorkspaceRequirements(),
+        override val setupRequirements: PathRequirements = PathRequirements(),
         override val progress: Progress.Data? = Progress.Data(),
     ) : ExplorerLocation {
 
@@ -51,7 +51,7 @@ sealed interface ExplorerLocation {
     data class Directory(
         override val items: List<ExplorerItem.Path>? = null,
         override val info: Info? = null,
-        override val setupRequirements: WorkspaceRequirements = WorkspaceRequirements(),
+        override val setupRequirements: PathRequirements = PathRequirements(),
         override val progress: Progress.Data? = Progress.Data(),
         val path: APath<*>,
         val parent: ExplorerNavigation.Target? = null,

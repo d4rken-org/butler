@@ -18,8 +18,12 @@ import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.storage.StorageManager2
+import eu.darken.butler.permissions.core.PathPermissionCheck
+import eu.darken.butler.permissions.core.PathRequirements
+import eu.darken.butler.provider.documents.R
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
 import eu.darken.butler.provider.documents.core.ProviderLocation
+import eu.darken.butler.setup.core.SetupModule
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -41,6 +45,7 @@ class DocumentQueryHandler @Inject constructor(
     private val gatewaySwitch: GatewaySwitch,
     private val storageManager2: StorageManager2,
     private val safLocationManager: SAFLocationManager,
+    private val pathPermissionCheck: PathPermissionCheck,
 ) {
 
     /**
@@ -132,19 +137,33 @@ class DocumentQueryHandler @Inject constructor(
                 }
 
                 else -> {
-                    // Real filesystem path - decode and list directory
+                    // Real filesystem path - check permissions before accessing
                     val path = codec.decode(parentDocumentId)
-                    val children = gatewaySwitch.lookupFiles(path, LookupOptions())
+                    val requirements = pathPermissionCheck.monitor(path).first()
 
-                    children.forEach { childLookup ->
-                        val childDocumentId = codec.encode(childLookup.lookedUp)
-                        cursor.addFilesystemDocument(childDocumentId, childLookup)
+                    if (requirements.needsAction) {
+                        // Path requires permissions - return error cursor
+                        log(TAG, WARN) { "Path $path requires permissions (${requirements.combos}), returning error" }
+                        val errorMessage = buildPermissionErrorMessage(requirements)
+                        return ErrorMatrixCursor(resolvedProjection, errorMessage)
+                    } else {
+                        // Path accessible - list directory contents
+                        val children = gatewaySwitch.lookupFiles(path, LookupOptions())
+
+                        children.forEach { childLookup ->
+                            val childDocumentId = codec.encode(childLookup.lookedUp)
+                            cursor.addFilesystemDocument(childDocumentId, childLookup)
+                        }
                     }
                 }
             }
         } catch (e: Exception) {
             log(TAG, WARN) { "queryChildDocuments($parentDocumentId) failed: ${e.asLog()}" }
-            // Return empty cursor on error
+            // Return error cursor for user feedback
+            return ErrorMatrixCursor(
+                resolvedProjection,
+                context.getString(R.string.documents_error_generic)
+            )
         }
 
         log(TAG, INFO) { "queryChildDocuments($parentDocumentId) returning ${cursor.count} children" }
@@ -154,45 +173,63 @@ class DocumentQueryHandler @Inject constructor(
     /**
      * Enumerate available storage locations under Device home.
      * Mirrors Explorer's DeviceLocationLoader logic:
-     * - Root filesystem ("/")
-     * - Storage volumes (internal storage + SD cards)
-     * - SAF locations (user-granted trees)
+     * - Root filesystem ("/") - only if accessible
+     * - Storage volumes (internal storage + SD cards) - only if accessible
+     * - SAF locations (user-granted trees) - always shown (permissions granted)
+     *
+     * Phase 1: Filter inaccessible locations (root/ADB required)
+     * Phase 2: Add setting to show all with cursor extras
      */
     private suspend fun enumerateStorageLocations(cursor: MatrixCursor) {
-        // 1. Root filesystem
+        // 1. Root filesystem - check permissions first
         val rootPath = LocalPath.build("/")
-        cursor.addVirtualDocument(
-            documentId = codec.encode(rootPath),
-            displayName = context.getString(eu.darken.butler.provider.documents.R.string.documents_storage_root_label),
-            mimeType = MIME_TYPE_DIR,
-            flags = FLAG_DIR_SUPPORTS_CREATE,
-            icon = android.R.drawable.ic_menu_view,
-        )
+        val rootRequirements = pathPermissionCheck.monitor(rootPath).first()
 
-        // 2. Storage volumes (internal + SD cards)
+        if (!rootRequirements.needsAction) {
+            log(TAG, INFO) { "Root filesystem accessible, adding to list" }
+            cursor.addVirtualDocument(
+                documentId = codec.encode(rootPath),
+                displayName = context.getString(R.string.documents_storage_root_label),
+                mimeType = MIME_TYPE_DIR,
+                flags = FLAG_DIR_SUPPORTS_CREATE,
+                icon = android.R.drawable.ic_menu_view,
+            )
+        } else {
+            log(TAG, INFO) { "Root filesystem requires permissions (${rootRequirements.combos}), filtering out" }
+        }
+
+        // 2. Storage volumes (internal + SD cards) - check permissions
         storageManager2.storageVolumes.forEachIndexed { index, volume ->
             val path = volume.directory?.let { LocalPath.build(it) }
                 ?: volume.path?.let { LocalPath.build(it) }
                 ?: return@forEachIndexed
 
-            val displayName = volume.userLabel?.takeIf { it.isNotBlank() }
-                ?: when (index) {
-                    0 -> context.getString(eu.darken.butler.provider.documents.R.string.documents_storage_internal_label)
-                    else -> context.getString(eu.darken.butler.provider.documents.R.string.documents_storage_sd_card_label)
-                }
+            val requirements = pathPermissionCheck.monitor(path).first()
 
-            cursor.addVirtualDocument(
-                documentId = codec.encode(path),
-                displayName = displayName,
-                mimeType = MIME_TYPE_DIR,
-                flags = FLAG_DIR_SUPPORTS_CREATE,
-                icon = android.R.drawable.ic_menu_view,
-            )
+            if (!requirements.needsAction) {
+                val displayName = volume.userLabel?.takeIf { it.isNotBlank() }
+                    ?: when (index) {
+                        0 -> context.getString(R.string.documents_storage_internal_label)
+                        else -> context.getString(R.string.documents_storage_sd_card_label)
+                    }
+
+                log(TAG, INFO) { "Storage volume accessible: $displayName ($path)" }
+                cursor.addVirtualDocument(
+                    documentId = codec.encode(path),
+                    displayName = displayName,
+                    mimeType = MIME_TYPE_DIR,
+                    flags = FLAG_DIR_SUPPORTS_CREATE,
+                    icon = android.R.drawable.ic_menu_view,
+                )
+            } else {
+                log(TAG, INFO) { "Storage volume requires permissions: $path (${requirements.combos}), filtering out" }
+            }
         }
 
-        // 3. SAF locations (user-granted trees)
+        // 3. SAF locations (user-granted trees) - always accessible
         val safLocations = safLocationManager.locations.first()
         safLocations.forEach { location ->
+            log(TAG, INFO) { "SAF location accessible: ${location.displayName.get(context)}" }
             cursor.addVirtualDocument(
                 documentId = codec.encode(location.path),
                 displayName = location.displayName.get(context),
@@ -273,6 +310,34 @@ class DocumentQueryHandler @Inject constructor(
             "mp4" -> "video/mp4"
             "zip" -> "application/zip"
             else -> "application/octet-stream"
+        }
+    }
+
+    /**
+     * Build an appropriate error message based on permission requirements.
+     * Returns a user-friendly message indicating what access is needed.
+     *
+     * Phase 1: Basic permission types (ROOT, SHIZUKU, STORAGE)
+     * Phase 2: More detailed messages with actionable guidance
+     */
+    private fun buildPermissionErrorMessage(requirements: PathRequirements): String {
+        // Check for specific permission combos to provide targeted messages
+        val allTypes = requirements.combos.flatten().distinct()
+
+        return when {
+            SetupModule.Type.ROOT in allTypes && SetupModule.Type.SHIZUKU !in allTypes -> {
+                context.getString(R.string.documents_error_requires_root)
+            }
+            SetupModule.Type.SHIZUKU in allTypes && SetupModule.Type.ROOT !in allTypes -> {
+                context.getString(R.string.documents_error_requires_adb)
+            }
+            SetupModule.Type.STORAGE in allTypes -> {
+                context.getString(R.string.documents_error_requires_storage)
+            }
+            else -> {
+                // Generic message if multiple options or unknown combo
+                context.getString(R.string.documents_error_requires_permissions)
+            }
         }
     }
 

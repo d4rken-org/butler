@@ -53,7 +53,8 @@ import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
-import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
+import eu.darken.butler.permissions.core.PathPermissionCheck
+import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlinx.coroutines.flow.Flow
@@ -733,7 +734,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val caseSensitive: Boolean = false,
         val wholeWord: Boolean = false,
         val useRegex: Boolean = false,
-        val setupRequirements: WorkspaceRequirements = WorkspaceRequirements(),
+        val setupRequirements: PathRequirements = PathRequirements(),
         val selectionState: SearcherSelectionState = SearcherSelectionState(),
         val quickActionsResult: SearchItem? = null,
         val dialogState: SearcherDialogState = SearcherDialogState.None,

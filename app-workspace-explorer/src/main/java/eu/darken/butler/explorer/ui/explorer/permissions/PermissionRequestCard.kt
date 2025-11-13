@@ -38,11 +38,11 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.explorer.R
 import eu.darken.butler.setup.core.SetupModule
-import eu.darken.butler.workspace.core.permissions.SAFPickerGrant
-import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
+import eu.darken.butler.permissions.core.SAFPickerGrant
+import eu.darken.butler.permissions.core.PathRequirements
 
 private fun getDescriptionForRequirements(
-    requirements: WorkspaceRequirements
+    requirements: PathRequirements
 ): Int {
     val hasSAFPicker = requirements.safPickerGrant != null
     requirements.combos.isNotEmpty()
@@ -84,7 +84,7 @@ private fun getDescriptionForRequirements(
 
 @Composable
 fun PermissionRequestCard(
-    setupRequirements: WorkspaceRequirements,
+    setupRequirements: PathRequirements,
     onNavigateToSetup: () -> Unit,
     modifier: Modifier = Modifier,
     onLaunchSAFPicker: ((SAFPickerGrant) -> Unit)? = null,
@@ -240,7 +240,7 @@ private fun PermissionOptionCard(
 private fun PermissionRequestCardBothOptionsPreview() {
     PreviewWrapper {
         PermissionRequestCard(
-            setupRequirements = WorkspaceRequirements(
+            setupRequirements = PathRequirements(
                 safPickerGrant = SAFPickerGrant(
                     intent = Intent(),
                     targetPath = LocalPath.build("/storage/emulated/0/Android/data"),
@@ -261,7 +261,7 @@ private fun PermissionRequestCardBothOptionsPreview() {
 private fun PermissionRequestCardSAFOnlyPreview() {
     PreviewWrapper {
         PermissionRequestCard(
-            setupRequirements = WorkspaceRequirements(
+            setupRequirements = PathRequirements(
                 safPickerGrant = SAFPickerGrant(
                     intent = Intent(),
                     targetPath = LocalPath.build("/storage/emulated/0/Android/data"),
@@ -278,7 +278,7 @@ private fun PermissionRequestCardSAFOnlyPreview() {
 private fun PermissionRequestCardSetupOnlyPreview() {
     PreviewWrapper {
         PermissionRequestCard(
-            setupRequirements = WorkspaceRequirements(
+            setupRequirements = PathRequirements(
                 combos = setOf(
                     setOf(SetupModule.Type.ROOT),
                     setOf(SetupModule.Type.SHIZUKU),
@@ -294,7 +294,7 @@ private fun PermissionRequestCardSetupOnlyPreview() {
 private fun PermissionRequestCardStorageOnlyPreview() {
     PreviewWrapper {
         PermissionRequestCard(
-            setupRequirements = WorkspaceRequirements(
+            setupRequirements = PathRequirements(
                 combos = setOf(setOf(SetupModule.Type.STORAGE)),
             ),
             onNavigateToSetup = {},

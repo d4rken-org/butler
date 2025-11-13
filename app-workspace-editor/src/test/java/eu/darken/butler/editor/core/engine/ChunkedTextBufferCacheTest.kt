@@ -53,8 +53,8 @@ class ChunkedTextBufferCacheTest : ChunkedTextBufferTestBase() {
         val result = buffer.insertText(TextPosition(5L, 0, 5), "XX")
         result.isSuccess shouldBe true
 
-        // Verify edit worked
-        val modifiedContent = buffer.getText(0L, 15L).getOrThrow()
+        // Verify edit worked - read only the modified chunk_0 (now 12 bytes)
+        val modifiedContent = buffer.getText(0L, 12L).getOrThrow()
         modifiedContent shouldBe "AAAAAXXAAAAA"
     }
 
@@ -73,7 +73,8 @@ class ChunkedTextBufferCacheTest : ChunkedTextBufferTestBase() {
         }
 
         // Chunk 0 should still have the modification (not evicted because dirty)
-        val chunk0Content = buffer.getText(0L, 15L).getOrThrow()
+        // Read only chunk_0's content (now 12 bytes after insertion)
+        val chunk0Content = buffer.getText(0L, 12L).getOrThrow()
         chunk0Content shouldBe "AAAAAXXAAAAA"
     }
 
@@ -81,10 +82,10 @@ class ChunkedTextBufferCacheTest : ChunkedTextBufferTestBase() {
     fun `searching across evicted chunks works correctly`() = runTest {
         // Create 10 chunks with pattern
         val chunks = (0 until 10).map { i ->
-            "Line$i" + "X".repeat(5) + "\n"  // 10 bytes per chunk
+            "Line$i" + "X".repeat(5) + "\n"  // 11 bytes per chunk
         }
         val content = chunks.joinToString("")
-        val buffer = createBuffer(content, chunkSize = 10L)
+        val buffer = createBuffer(content, chunkSize = 11L)
 
         // Access first 5 chunks
         for (i in 0 until 5) {
@@ -152,6 +153,7 @@ class ChunkedTextBufferCacheTest : ChunkedTextBufferTestBase() {
         }
 
         // Delete across chunks 2-4 (some may be evicted)
+        // Deletes from offset 25 to 45: last 5 chars of chunk_2 + all of chunk_3 + first 5 chars of chunk_4
         val deleteResult = buffer.deleteText(
             startPosition = TextPosition(25L, 0, 25),
             endPosition = TextPosition(45L, 0, 45)
@@ -159,8 +161,9 @@ class ChunkedTextBufferCacheTest : ChunkedTextBufferTestBase() {
         deleteResult.isSuccess shouldBe true
 
         // Verify correct content after deletion
+        // Result: first 5 chars of chunk_2 + last 5 chars of chunk_4 + chunks 5, 6, 7
         val result = buffer.getTextForRange(0, 0).getOrThrow()
-        result shouldBe "0".repeat(10) + "1".repeat(10) + "22222" + "55555" + "6".repeat(10) + "7".repeat(10)
+        result shouldBe "0".repeat(10) + "1".repeat(10) + "22222" + "44444" + "5".repeat(10) + "6".repeat(10) + "7".repeat(10)
     }
 
     @Test

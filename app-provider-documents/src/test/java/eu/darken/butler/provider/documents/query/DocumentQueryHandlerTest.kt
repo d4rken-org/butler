@@ -1,6 +1,7 @@
 package eu.darken.butler.provider.documents.query
 
 import android.content.Context
+import android.provider.DocumentsContract
 import android.provider.DocumentsContract.Document.*
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.files.APath
@@ -11,6 +12,8 @@ import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.storage.StorageManager2
+import eu.darken.butler.permissions.core.PathPermissionCheck
+import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
 import eu.darken.butler.provider.documents.core.ProviderLocation
 import io.kotest.matchers.ints.shouldBeGreaterThan
@@ -19,6 +22,7 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -37,6 +41,7 @@ class DocumentQueryHandlerTest {
     private lateinit var gatewaySwitch: GatewaySwitch
     private lateinit var storageManager2: StorageManager2
     private lateinit var safLocationManager: SAFLocationManager
+    private lateinit var pathPermissionCheck: PathPermissionCheck
     private lateinit var handler: DocumentQueryHandler
 
     @Before
@@ -50,7 +55,18 @@ class DocumentQueryHandlerTest {
         safLocationManager = mockk {
             every { locations } returns flowOf(emptyList())
         }
-        handler = DocumentQueryHandler(context, codec, gatewaySwitch, storageManager2, safLocationManager)
+        pathPermissionCheck = mockk {
+            // Default: all paths are accessible (no permission requirements)
+            coEvery { monitor(any()) } returns flowOf(PathRequirements())
+        }
+        handler = DocumentQueryHandler(
+            context,
+            codec,
+            gatewaySwitch,
+            storageManager2,
+            safLocationManager,
+            pathPermissionCheck
+        )
     }
 
     @Test
@@ -212,8 +228,10 @@ class DocumentQueryHandlerTest {
 
         val cursor = handler.queryChildDocuments(parentDocId, null, null)
 
-        // Should return empty cursor on error
+        // Should return error cursor with generic error message
         cursor.count shouldBe 0
+        cursor.extras shouldNotBe null
+        cursor.extras.getString(DocumentsContract.EXTRA_ERROR) shouldNotBe null
     }
 
     @Test
@@ -246,5 +264,105 @@ class DocumentQueryHandlerTest {
         cursor.moveToFirst() shouldBe true
         val mimeIndex = cursor.getColumnIndex(COLUMN_MIME_TYPE)
         cursor.getString(mimeIndex) shouldBe MIME_TYPE_DIR
+    }
+
+    @Test
+    fun `queryChildDocuments returns error cursor for inaccessible paths`() = runTest {
+        val parentPath = LocalPath.build("/test")
+        val parentDocId = "local|parent"
+
+        val requiresRoot = eu.darken.butler.permissions.core.PathRequirements(
+            combos = setOf(setOf(eu.darken.butler.setup.core.SetupModule.Type.ROOT))
+        )
+
+        coEvery { codec.decode(parentDocId) } returns parentPath
+        coEvery { pathPermissionCheck.monitor(parentPath) } returns flowOf(requiresRoot)
+
+        val cursor = handler.queryChildDocuments(parentDocId, null, null)
+
+        // Should return empty cursor with EXTRA_ERROR
+        cursor.count shouldBe 0
+        cursor.extras shouldNotBe null
+        cursor.extras.getString(DocumentsContract.EXTRA_ERROR) shouldNotBe null
+    }
+
+    @Test
+    fun `enumerateStorageLocations filters out root filesystem when inaccessible`() = runTest {
+        val rootPath = LocalPath.build("/")
+        val requiresRoot = eu.darken.butler.permissions.core.PathRequirements(
+            combos = setOf(setOf(eu.darken.butler.setup.core.SetupModule.Type.ROOT))
+        )
+
+        coEvery { pathPermissionCheck.monitor(rootPath) } returns flowOf(requiresRoot)
+        coEvery { codec.encode(rootPath) } returns "local|Lw=="
+
+        val cursor = handler.queryChildDocuments(
+            ProviderLocation.Home.Device.documentId,
+            null,
+            null
+        )
+
+        // Should return empty cursor (root filesystem filtered, no other storage)
+        cursor.count shouldBe 0
+    }
+
+    @Test
+    fun `error cursor contains root access message for ROOT requirement`() = runTest {
+        val parentPath = LocalPath.build("/system")
+        val parentDocId = "local|system"
+
+        val requiresRoot = eu.darken.butler.permissions.core.PathRequirements(
+            combos = setOf(setOf(eu.darken.butler.setup.core.SetupModule.Type.ROOT))
+        )
+
+        coEvery { codec.decode(parentDocId) } returns parentPath
+        coEvery { pathPermissionCheck.monitor(parentPath) } returns flowOf(requiresRoot)
+
+        val cursor = handler.queryChildDocuments(parentDocId, null, null)
+
+        cursor.count shouldBe 0
+        val errorMessage = cursor.extras.getString(DocumentsContract.EXTRA_ERROR)
+        errorMessage shouldNotBe null
+        errorMessage!!.contains("Root access", ignoreCase = true) shouldBe true
+    }
+
+    @Test
+    fun `error cursor contains ADB message for SHIZUKU requirement`() = runTest {
+        val parentPath = LocalPath.build("/data")
+        val parentDocId = "local|data"
+
+        val requiresShizuku = eu.darken.butler.permissions.core.PathRequirements(
+            combos = setOf(setOf(eu.darken.butler.setup.core.SetupModule.Type.SHIZUKU))
+        )
+
+        coEvery { codec.decode(parentDocId) } returns parentPath
+        coEvery { pathPermissionCheck.monitor(parentPath) } returns flowOf(requiresShizuku)
+
+        val cursor = handler.queryChildDocuments(parentDocId, null, null)
+
+        cursor.count shouldBe 0
+        val errorMessage = cursor.extras.getString(DocumentsContract.EXTRA_ERROR)
+        errorMessage shouldNotBe null
+        errorMessage!!.contains("ADB", ignoreCase = true) shouldBe true
+    }
+
+    @Test
+    fun `error cursor contains storage permission message for STORAGE requirement`() = runTest {
+        val parentPath = LocalPath.build("/storage/emulated/0")
+        val parentDocId = "local|storage"
+
+        val requiresStorage = eu.darken.butler.permissions.core.PathRequirements(
+            combos = setOf(setOf(eu.darken.butler.setup.core.SetupModule.Type.STORAGE))
+        )
+
+        coEvery { codec.decode(parentDocId) } returns parentPath
+        coEvery { pathPermissionCheck.monitor(parentPath) } returns flowOf(requiresStorage)
+
+        val cursor = handler.queryChildDocuments(parentDocId, null, null)
+
+        cursor.count shouldBe 0
+        val errorMessage = cursor.extras.getString(DocumentsContract.EXTRA_ERROR)
+        errorMessage shouldNotBe null
+        errorMessage!!.contains("Storage permission", ignoreCase = true) shouldBe true
     }
 }

@@ -1,4 +1,4 @@
-package eu.darken.butler.workspace.core.permissions
+package eu.darken.butler.permissions.core
 
 import android.content.Intent
 import android.os.Parcelable
@@ -16,7 +16,7 @@ data class SAFPickerGrant(
     val targetPath: LocalPath,
 ) : Parcelable
 
-data class WorkspaceRequirements(
+data class PathRequirements(
     val combos: Set<Set<SetupModule.Type>> = emptySet(),
     val complete: Set<SetupModule.Type> = emptySet(),
     val alternativePath: APath<*>? = null,
