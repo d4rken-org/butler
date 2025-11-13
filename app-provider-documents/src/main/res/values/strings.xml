@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="documents_root_butler_title">Butler</string>
+    <string name="documents_root_butler_summary">File manager with advanced access</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="documents_connection_device_title">Device</string>
+    <string name="documents_connection_device_summary">Local device storage</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="documents_storage_root_label">Root Filesystem</string>
+
+    <!-- Future: Additional storage types -->
+    <string name="documents_storage_internal_label">Internal Storage</string>
+    <string name="documents_storage_sd_card_label">SD Card</string>
+    <string name="documents_storage_saf_label">SAF Location</string>
+
+    <!-- Future: Remote connections -->
+    <string name="documents_connection_ssh_title">SSH: %1$s</string>
+    <string name="documents_connection_ftp_title">FTP: %1$s</string>
+</resources>

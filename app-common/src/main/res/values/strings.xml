@@ -50,6 +50,7 @@
     <string name="general_progress_loading_egg_11">This is fine</string>
     <string name="general_progress_loading_egg_12">Please hold</string>
     <string name="general_progress_loading_egg_13">At least you\'re not on hold</string>
+    <string name="general_progress_loading_egg_14">Apply directly to the forehead</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">
