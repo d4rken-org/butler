@@ -4,7 +4,7 @@
 
 This module implements Android's `DocumentsProvider` API to expose Butler's file access capabilities to other apps through the system file picker. This enables users to select Butler-managed files (including root and ADB-accessible locations) when uploading files in browsers, selecting attachments in email clients, or any app using Android's Storage Access Framework (SAF).
 
-**Status**: Planning phase
+**Status**: ✅ Phase 1 Complete (Read-Only) - Implemented and tested
 **Priority**: Medium - Enhances Butler's integration with Android ecosystem
 **Complexity**: Moderate - Leverages existing infrastructure with careful API implementation
 
@@ -1174,18 +1174,20 @@ The provider must be registered in the main app's `AndroidManifest.xml` (not the
 - ✅ Error handling (empty cursors on failure)
 
 **Deliverables**:
-1. ❌ `ButlerDocumentsProvider.kt` - Main provider (queryRoots, queryDocument, queryChildDocuments, openDocument)
-2. ✅ `DocumentIdCodec.kt` - Encode/decode logic **[DONE - 45 tests passing]**
+1. ✅ `ButlerDocumentsProvider.kt` - Main provider (queryRoots, queryDocument, queryChildDocuments, openDocument) **[DONE - Hilt integration]**
+2. ✅ `DocumentIdCodec.kt` - Encode/decode logic **[DONE - 35 tests passing]**
 3. ✅ `ProviderLocation.kt` - Unified hierarchy (Root/Home/Location) **[DONE - replaces DocumentRoot + Connection + Storage]**
-4. ❌ `RootManager.kt` - Root management (returns single Butler root)
-5. ❌ `RootQueryHandler.kt` - queryRoots implementation
-6. ❌ `DocumentQueryHandler.kt` - queryDocument/queryChildDocuments implementation
-7. ❌ `DocumentReader.kt` - openDocument implementation
-8. ❌ `DocumentsProviderModule.kt` - Hilt module
-9. ❌ `DocumentsProviderSettings.kt` - DataStore settings
-10. ❌ AndroidManifest entry in main app
-11. ✅ String resources **[DONE - basic strings]**
-12. ❌ Drawable resources (icons)
+4. ✅ `RootQueryHandler.kt` - queryRoots implementation **[DONE - 7 tests passing]**
+5. ✅ `DocumentQueryHandler.kt` - queryDocument/queryChildDocuments implementation **[DONE - 10 tests passing]**
+6. ✅ `DocumentReader.kt` - openDocument implementation **[DONE - 12 tests passing]**
+7. ✅ `DocumentsProviderModule.kt` - Hilt module **[DONE - Empty module, handlers auto-injected]**
+8. ✅ `DocumentsProviderSettings.kt` - DataStore settings **[DONE - Prepared for Phase 2+]**
+9. ✅ AndroidManifest entry **[DONE - Provider registered with correct authorities and permissions]**
+10. ✅ String resources **[DONE - Complete Phase 1 strings]**
+11. ✅ Module integration **[DONE - Added to main app build.gradle.kts]**
+12. ❌ Drawable resources (custom icons) **[DEFERRED - Using system icons for Phase 1]**
+
+**Note**: RootManager was not needed - RootQueryHandler directly returns Butler root. Simpler architecture achieved through direct delegation pattern.
 
 **Major Refactor Note**: Consolidated `DocumentRoot`, `Connection`, and `Storage` into unified `ProviderLocation` interface (3 sealed sub-interfaces: Root/Home/Location). This enables dynamic storage discovery and path-based identity instead of static storage type objects. See "ProviderLocation Hierarchy" section for details.
 
