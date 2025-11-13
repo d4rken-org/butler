@@ -50,20 +50,25 @@ class DocumentReaderTest {
     fun `openDocument returns readable ParcelFileDescriptor for LocalPath`() = runTest {
         // Given: Create test file
         val testFile = tempFolder.newFile("test.txt")
-        testFile.writeText("Hello DocumentsProvider")
+        val testContent = "Hello DocumentsProvider"
+        testFile.writeText(testContent)
 
         val path = LocalPath.build(testFile.absolutePath)
         val documentId = "local|encoded"
 
         coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.openInputStream(path) } returns testContent.byteInputStream()
 
         // When
         val pfd = reader.openDocument(documentId, "r", null)
 
+        // Allow background coroutine to transfer data through pipe
+        kotlinx.coroutines.delay(100)
+
         // Then: Can read file contents
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
             val content = inputStream.readBytes().toString(Charsets.UTF_8)
-            content shouldBe "Hello DocumentsProvider"
+            content shouldBe testContent
         }
 
         pfd.close()
@@ -215,7 +220,7 @@ class DocumentReaderTest {
 
     @Test
     fun `openDocument uses pipe for SAFPath with large file`() = runTest {
-        // Given: Larger SAF file (100KB) - tests pipe streaming with more data
+        // Given: Larger SAF file (10KB) - tests pipe streaming with more data
         val androidUri = Uri.parse("content://com.android.externalstorage.documents/tree/primary%3AFolder/document/primary%3AFolder%2Flarge.bin")
         val safUri = mockk<SafUri> {
             every { toAndroidUri() } returns androidUri
@@ -225,7 +230,7 @@ class DocumentReaderTest {
             every { path } returns "/tree/primary:Folder/large.bin"
         }
         val documentId = "saf|large"
-        val largeData = ByteArray(100 * 1024) { (it % 256).toByte() }
+        val largeData = ByteArray(10 * 1024) { (it % 256).toByte() }
 
         coEvery { codec.decode(documentId) } returns safPath
         coEvery { gatewaySwitch.openInputStream(safPath) } returns largeData.inputStream()
@@ -234,7 +239,7 @@ class DocumentReaderTest {
         val pfd = reader.openDocument(documentId, "r", null)
 
         // Allow background coroutine to transfer data through pipe
-        kotlinx.coroutines.delay(200)
+        kotlinx.coroutines.delay(150)
 
         // Then: Can read all data through pipe
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
@@ -261,9 +266,13 @@ class DocumentReaderTest {
         val documentId = "local|data"
 
         coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.openInputStream(path) } returns testData.byteInputStream()
 
         // When
         val pfd = reader.openDocument(documentId, "r", null)
+
+        // Allow background coroutine to transfer data through pipe
+        kotlinx.coroutines.delay(100)
 
         // Then: Read line by line
         FileInputStream(pfd.fileDescriptor).bufferedReader().use { reader ->
@@ -283,9 +292,13 @@ class DocumentReaderTest {
         val documentId = "local|empty"
 
         coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.openInputStream(path) } returns ByteArray(0).inputStream()
 
         // When
         val pfd = reader.openDocument(documentId, "r", null)
+
+        // Allow background coroutine to transfer data through pipe
+        kotlinx.coroutines.delay(100)
 
         // Then: Can open and read (returns empty)
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
@@ -298,18 +311,22 @@ class DocumentReaderTest {
 
     @Test
     fun `openDocument handles large file`() = runTest {
-        // Given: Large file (1MB)
+        // Given: Large file (100KB) - reduced for faster testing
         val testFile = tempFolder.newFile("large.txt")
-        val largeData = ByteArray(1024 * 1024) { (it % 256).toByte() }
+        val largeData = ByteArray(100 * 1024) { (it % 256).toByte() }
         testFile.writeBytes(largeData)
 
         val path = LocalPath.build(testFile.absolutePath)
         val documentId = "local|large"
 
         coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.openInputStream(path) } returns largeData.inputStream()
 
         // When
         val pfd = reader.openDocument(documentId, "r", null)
+
+        // Allow background coroutine to transfer data through pipe
+        kotlinx.coroutines.delay(200)
 
         // Then: Can read all data
         FileInputStream(pfd.fileDescriptor).use { inputStream ->

@@ -91,21 +91,11 @@ class DocumentReader @Inject constructor(
 
     /**
      * Open a LocalPath file.
-     * Fast path: Direct Java File I/O if accessible.
-     * Fallback: GatewaySwitch with pipe for inaccessible files (root/ADB).
+     * Always routes through GatewaySwitch for consistent file access handling.
+     * This ensures proper support for root/ADB access and maintains architecture consistency.
      */
     private suspend fun openLocalPath(path: LocalPath, mode: String): ParcelFileDescriptor {
-        val file = path.file
-
-        // Fast path: Direct file access if possible
-        if (file.exists() && file.isFile && file.canRead()) {
-            log(TAG, VERBOSE) { "Using direct file access for: ${path.path}" }
-            val pfdMode = ParcelFileDescriptor.parseMode(mode)
-            return ParcelFileDescriptor.open(file, pfdMode)
-        }
-
-        // Fallback: Use GatewaySwitch for inaccessible files
-        log(TAG, INFO) { "File not directly accessible, routing through GatewaySwitch: ${path.path}" }
+        log(TAG, VERBOSE) { "Routing LocalPath through GatewaySwitch: ${path.path}" }
         return openViaGateway(path)
     }
 
