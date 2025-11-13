@@ -23,6 +23,7 @@
     <string name="searcher_search_error">Search error</string>
     <string name="searcher_no_paths_hint">Tap + to add search paths</string>
     <string name="searcher_add_path_action">Add path</string>
+    <string name="searcher_multipath_show_fewer_action">Show fewer</string>
     <string name="searcher_empty_state_title">No search paths configured</string>
     <string name="searcher_empty_state_description">Add storage locations to search through your files</string>
     <string name="searcher_add_default_paths_action">Add Default Search Paths</string>
@@ -47,6 +48,11 @@
         <item quantity="zero">No results</item>
         <item quantity="one">%d result</item>
         <item quantity="other">%d results</item>
+    </plurals>
+
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="one">Show %d more</item>
+        <item quantity="other">Show %d more</item>
     </plurals>
 
     <!-- Search progress -->

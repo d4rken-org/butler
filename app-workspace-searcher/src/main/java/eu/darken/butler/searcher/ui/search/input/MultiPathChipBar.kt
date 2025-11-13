@@ -10,14 +10,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.Close
+import androidx.compose.material.icons.twotone.ExpandLess
+import androidx.compose.material.icons.twotone.ExpandMore
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
@@ -36,6 +43,11 @@ fun MultiPathChipBar(
     onAddPathClick: () -> Unit,
     isSearching: Boolean = false,
 ) {
+    var isExpanded by rememberSaveable { mutableStateOf(false) }
+    val visibleSize = 2
+    val hasMore = paths.size > visibleSize
+    val visiblePaths = if (isExpanded || !hasMore) paths else paths.take(visibleSize)
+
     FlowRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -52,7 +64,7 @@ fun MultiPathChipBar(
             )
         }
 
-        paths.forEach { target ->
+        visiblePaths.forEach { target ->
             when (target) {
                 is SearchTarget.Path -> {
                     FilterChip(
@@ -84,6 +96,35 @@ fun MultiPathChipBar(
                     )
                 }
             }
+        }
+
+        // Show more/fewer button
+        if (hasMore) {
+            val remainingCount = paths.size - visibleSize
+            AssistChip(
+                onClick = { isExpanded = !isExpanded },
+                label = {
+                    Text(
+                        text = if (isExpanded) {
+                            stringResource(R.string.searcher_multipath_show_fewer_action)
+                        } else {
+                            pluralStringResource(
+                                R.plurals.searcher_multipath_show_more_action,
+                                remainingCount,
+                                remainingCount
+                            )
+                        },
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = if (isExpanded) Icons.TwoTone.ExpandLess else Icons.TwoTone.ExpandMore,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            )
         }
 
         // Add button
@@ -144,6 +185,30 @@ private fun MultiPathChipBarSinglePreview() {
     PreviewWrapper {
         MultiPathChipBar(
             paths = listOf(SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))),
+            onPathRemove = {},
+            onPathToggle = {},
+            onAddPathClick = {},
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun MultiPathChipBarManyPathsPreview() {
+    PreviewWrapper {
+        MultiPathChipBar(
+            paths = listOf(
+                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/aaatest1")),
+                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/aaatrestdir")),
+                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Android")),
+                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
+                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/DCIM")),
+                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Music")),
+                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Pictures")),
+                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
+                SearchTarget.Path.from(LocalPath.build("/storage/4BBD-D3E7")),
+                SearchTarget.Path.from(LocalPath.build("/[primary]/Android/data")),
+            ),
             onPathRemove = {},
             onPathToggle = {},
             onAddPathClick = {},

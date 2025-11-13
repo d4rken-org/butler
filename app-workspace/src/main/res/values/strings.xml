@@ -2,9 +2,7 @@
 <resources>
     <!-- Clipboard -->
     <string name="clipboard_header_title">Clipboard</string>
-    <string name="clipboard_show_less">Less</string>
     <string name="clipboard_clear_all">Clear All</string>
-    <string name="clipboard_show_more">More</string>
     <string name="clipboard_paste">Paste</string>
     <string name="clipboard_open_in_explorer">Open in Explorer</string>
     <string name="clipboard_copy">Copy</string>
@@ -45,6 +43,10 @@
     <string name="workspace_templates_label">Templates</string>
     <string name="workspace_apps_label">Apps</string>
 
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">More</string>
+    <string name="workspace_expand_less_action">Less</string>
+
     <!-- Workspace Button Menu -->
     <string name="workspace_button_menu_manager_action">Tab manager</string>
     <string name="workspace_button_menu_close_current_action">Close current tab</string>
@@ -53,8 +55,6 @@
     <!-- Operations -->
     <string name="operations_header_title">Operations</string>
     <string name="operations_clear_completed">Clear completed</string>
-    <string name="operations_show_more">More</string>
-    <string name="operations_show_less">Less</string>
     <string name="operations_state_queued">Queued</string>
     <string name="operations_state_running">Running</string>
     <string name="operations_state_waiting">Waiting for input</string>
