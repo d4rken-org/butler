@@ -152,19 +152,23 @@ internal fun ClassicWorkspaceContainer(
                 ) { page ->
                     val paneInfo = state.all.getOrNull(page)?.asPaneInfo()
                     val isPlaceholderPage = page >= state.all.size
-                    WorkspaceOverlayContainer(
-                        workspaceId = paneInfo?.id,
-                        managerDialogStates = managerDialogStates,
-                        onDismissManagerDialog = onDismissManagerDialog,
-                        onConfirmManagerDialog = onConfirmManagerDialog,
-                        bannerStates = bannerStates,
-                        onDismissBanner = onDismissBanner,
-                    ) {
-                        WorkspaceMapper(
-                            info = paneInfo,
-                            design = design,
-                            isCreating = isPlaceholderPage && isCreatingWorkspace,
-                        )
+
+                    if (paneInfo == null) {
+                        CreatingWorkspacePlaceholder(isCreating = isPlaceholderPage && isCreatingWorkspace)
+                    } else {
+                        WorkspaceOverlayContainer(
+                            workspaceId = paneInfo.id,
+                            managerDialogStates = managerDialogStates,
+                            onDismissManagerDialog = onDismissManagerDialog,
+                            onConfirmManagerDialog = onConfirmManagerDialog,
+                            bannerStates = bannerStates,
+                            onDismissBanner = onDismissBanner,
+                        ) {
+                            WorkspaceMapper(
+                                info = paneInfo,
+                                design = design,
+                            )
+                        }
                     }
                 }
             } else {
