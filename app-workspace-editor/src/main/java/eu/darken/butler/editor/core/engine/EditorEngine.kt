@@ -14,6 +14,10 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.editor.core.EditorSettings
+import eu.darken.butler.editor.core.mode.EditorMode
+import eu.darken.butler.editor.core.mode.EditorModeType
+import eu.darken.butler.editor.core.mode.FileAnalyzer
+import eu.darken.butler.editor.core.mode.TextMode
 import eu.darken.butler.editor.core.sources.EditorDataSource
 import eu.darken.butler.editor.core.sources.FileDataSource
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
@@ -35,11 +39,14 @@ class EditorEngine @AssistedInject constructor(
     @Assisted private val filePath: APath<*>?,
     private val gatewaySwitch: GatewaySwitch,
     private val editorSettings: EditorSettings,
+    private val fileAnalyzer: FileAnalyzer,
     private val fileDataSourceFactory: FileDataSource.Factory,
     private val inMemoryDataSourceFactory: InMemoryDataSource.Factory,
     private val chunkRepositoryFactory: ChunkRepository.Factory,
     private val chunkManagerFactory: ChunkManager.Factory,
     private val chunkedTextBufferFactory: ChunkedTextBuffer.Factory,
+    // TODO: Add binary buffer factory when HexMode UI is ready (Phase 4)
+    // private val chunkedBinaryBufferFactory: ChunkedBinaryBuffer.Factory,
 ) {
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine")
 
@@ -87,10 +94,13 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    val textBuffer: ChunkedTextBuffer?
-        get() = (state.value as? EditorState.Loaded)?.resources?.textBuffer
+    val buffer: EditorBuffer?
+        get() = (state.value as? EditorState.Loaded)?.resources?.buffer
 
-    private suspend fun createResourcesForFile(filePath: APath<*>?): EditorResources {
+    val mode: EditorMode?
+        get() = (state.value as? EditorState.Loaded)?.resources?.mode
+
+    private suspend fun createResourcesForFile(filePath: APath<*>?, explicitMode: EditorMode? = null): EditorResources {
         log(tag) { "Creating resources for file: ${filePath?.name ?: "in-memory"}" }
 
         // Create data source
@@ -107,27 +117,53 @@ class EditorEngine @AssistedInject constructor(
             )
         }
 
-        // Create dependent resources
-        val chunkRepository = chunkRepositoryFactory.create(workspaceId, dataSource)
-        val chunkManager = chunkManagerFactory.create(workspaceId, chunkRepository)
+        // Open data source for analysis
+        dataSource.open()
+
+        // Use explicit mode if provided, otherwise analyze file
+        val mode: EditorMode = explicitMode ?: fileAnalyzer.analyzeFile(filePath, dataSource)
+        log(tag) { "Selected mode: ${mode.type}" }
 
         // Read undo settings
         val maxUndoStackSize = editorSettings.undoStackSize.value()
         val maxUndoMemoryBytes = editorSettings.undoMaxMemoryMB.value() * 1_048_576L  // Convert MB to bytes
 
-        val textBuffer = chunkedTextBufferFactory.create(
-            workspaceId,
-            chunkManager,
-            chunkRepository,
-            maxUndoStackSize,
-            maxUndoMemoryBytes
-        )
+        // Create mode-specific resources
+        val chunkRepository = chunkRepositoryFactory.create(workspaceId, dataSource)
+        val chunkManager = chunkManagerFactory.create(workspaceId, chunkRepository)
+
+        // Create appropriate buffer based on mode
+        val buffer: EditorBuffer = when (mode.type) {
+            EditorModeType.TEXT -> {
+                chunkedTextBufferFactory.create(
+                    workspaceId,
+                    chunkManager,
+                    chunkRepository,
+                    maxUndoStackSize,
+                    maxUndoMemoryBytes
+                )
+            }
+            EditorModeType.HEX -> {
+                // TODO Phase 4: Create binary buffer when UI is ready
+                // For now, fall back to text mode for binary files
+                log(tag, INFO) { "HexMode detected but not fully implemented yet - using TextMode" }
+                chunkedTextBufferFactory.create(
+                    workspaceId,
+                    chunkManager,
+                    chunkRepository,
+                    maxUndoStackSize,
+                    maxUndoMemoryBytes
+                )
+            }
+        }
 
         return EditorResources(
             dataSource = dataSource,
             chunkRepository = chunkRepository,
+            binaryRepository = null,  // Only used in HexMode (Phase 4)
             chunkManager = chunkManager,
-            textBuffer = textBuffer,
+            mode = mode,
+            buffer = buffer,
         )
     }
 
@@ -136,9 +172,9 @@ class EditorEngine @AssistedInject constructor(
 
         // Clean up in reverse order, don't abort on failures
         try {
-            resources.textBuffer.release()
+            resources.buffer.dispose()
         } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to release text buffer - ${e.asLog()}" }
+            log(tag, ERROR) { "Failed to dispose buffer - ${e.asLog()}" }
         }
 
         try {
@@ -159,14 +195,11 @@ class EditorEngine @AssistedInject constructor(
                 EditorState.Empty
             }
 
-            // Create new resources
+            // Create new resources (data source is opened during creation)
             val resources = createResourcesForFile(filePath)
 
-            // Open data source
-            resources.dataSource.open()
-
-            // Initialize text buffer
-            val bufferInitResult = resources.textBuffer.initialize()
+            // Initialize buffer
+            val bufferInitResult = resources.buffer.initialize()
             if (bufferInitResult.isFailure) {
                 val error = bufferInitResult.exceptionOrNull() ?: Exception("Unknown error")
                 _state.value = EditorState.Error(error, _state.value)
@@ -174,25 +207,28 @@ class EditorEngine @AssistedInject constructor(
                 return bufferInitResult
             }
 
-            // Update engine state from initialized buffer
-            _totalLines.value = resources.textBuffer.totalLines.value
+            // Update engine state from initialized buffer (text mode only)
+            if (resources.buffer is ChunkedTextBuffer) {
+                val textBuffer = resources.buffer as ChunkedTextBuffer
+                _totalLines.value = textBuffer.totalLines.value
 
-            // Load initial visible range content
-            val endLine = minOf(50, resources.textBuffer.totalLines.value - 1)
-            if (endLine >= 0) {
-                _visibleRange.value = 0..endLine
-                val contentResult = resources.textBuffer.getTextForRange(0, endLine)
-                if (contentResult.isSuccess) {
-                    _currentContent.value = contentResult.getOrNull() ?: ""
+                // Load initial visible range content
+                val endLine = minOf(50, textBuffer.totalLines.value - 1)
+                if (endLine >= 0) {
+                    _visibleRange.value = 0..endLine
+                    val contentResult = textBuffer.getTextForRange(0, endLine)
+                    if (contentResult.isSuccess) {
+                        _currentContent.value = contentResult.getOrNull() ?: ""
+                    }
+                } else {
+                    _visibleRange.value = 0..0
+                    _currentContent.value = ""
                 }
-            } else {
-                _visibleRange.value = 0..0
-                _currentContent.value = ""
             }
 
             // Transition to Loaded state
-            val fileInfoValue = resources.textBuffer.fileInfo.value
-            val isModifiedValue = resources.textBuffer.isModified.value
+            val fileInfoValue = (resources.buffer as? ChunkedTextBuffer)?.fileInfo?.value
+            val isModifiedValue = resources.buffer.isModified.value
             _state.value = EditorState.Loaded(
                 filePath = filePath,
                 resources = resources,
@@ -219,7 +255,7 @@ class EditorEngine @AssistedInject constructor(
             is EditorState.Loaded -> {
                 try {
                     log(tag) { "Saving file: ${currentState.filePath?.name ?: "in-memory"}" }
-                    val result = currentState.resources.textBuffer.saveFile()
+                    val result = currentState.resources.buffer.saveFile()
                     if (result.isFailure) {
                         _error.value = result.exceptionOrNull()
                     } else {
@@ -289,11 +325,18 @@ class EditorEngine @AssistedInject constructor(
 
         when (currentState) {
             is EditorState.Loaded -> {
+                // Only works in text mode
+                val textBuffer = currentState.resources.buffer as? ChunkedTextBuffer
+                if (textBuffer == null) {
+                    log(tag, Logging.Priority.WARN) { "insertText() only supported in text mode" }
+                    return
+                }
+
                 val cursorPos = _cursorPosition.value
 
                 // Recalculate correct offset from line/column using chunk metadata
                 // UI may send placeholder offset=0 with virtual scrolling
-                val correctedOffset = currentState.resources.textBuffer.findOffset(
+                val correctedOffset = textBuffer.findOffset(
                     cursorPos.line,
                     cursorPos.column
                 )
@@ -306,7 +349,7 @@ class EditorEngine @AssistedInject constructor(
 
                 log(tag) { "Inserting text at position $correctedPosition: ${text.take(50)}..." }
 
-                val result = currentState.resources.textBuffer.insertText(correctedPosition, text)
+                val result = textBuffer.insertText(correctedPosition, text)
 
                 result.fold(
                     onSuccess = { newPosition ->
@@ -319,7 +362,7 @@ class EditorEngine @AssistedInject constructor(
                         _state.value = currentState.copy(isModified = true)
 
                         // Update total lines from text buffer
-                        _totalLines.value = currentState.resources.textBuffer.totalLines.value
+                        _totalLines.value = textBuffer.totalLines.value
 
                         // Refresh visible content from updated chunks
                         refreshVisibleContent()
@@ -341,17 +384,22 @@ class EditorEngine @AssistedInject constructor(
 
         return when (currentState) {
             is EditorState.Loaded -> {
+                // Only works in text mode
+                val textBuffer = currentState.resources.buffer as? ChunkedTextBuffer ?: return Result.failure(
+                    IllegalStateException("deleteSelection() only supported in text mode")
+                )
+
                 val selection = _selectionRange.value ?: return Result.failure(
                     IllegalStateException("No selection to delete")
                 )
 
                 try {
-                    val result = currentState.resources.textBuffer.deleteText(selection.first, selection.second)
+                    val result = textBuffer.deleteText(selection.first, selection.second)
                     if (result.isSuccess) {
                         _selectionRange.value = null
                         _cursorPosition.value = selection.first
                         _state.value = currentState.copy(isModified = true)
-                        _totalLines.value = currentState.resources.textBuffer.totalLines.value
+                        _totalLines.value = textBuffer.totalLines.value
                         refreshVisibleContent()
                     } else {
                         _error.value = result.exceptionOrNull()
@@ -392,8 +440,13 @@ class EditorEngine @AssistedInject constructor(
 
         return when (currentState) {
             is EditorState.Loaded -> {
+                // Only works in text mode
+                val textBuffer = currentState.resources.buffer as? ChunkedTextBuffer ?: return Result.failure(
+                    IllegalStateException("search() only supported in text mode")
+                )
+
                 try {
-                    val results = currentState.resources.textBuffer.search(query, _cursorPosition.value, ignoreCase = true)
+                    val results = textBuffer.search(query, _cursorPosition.value, ignoreCase = true)
                     _searchResults.value = results
                     Result.success(results)
                 } catch (e: Exception) {
@@ -445,10 +498,11 @@ class EditorEngine @AssistedInject constructor(
 
     private suspend fun refreshVisibleContent() {
         val currentState = _state.value as? EditorState.Loaded ?: return
+        val textBuffer = currentState.resources.buffer as? ChunkedTextBuffer ?: return
         val currentRange = _visibleRange.value
 
         try {
-            val contentResult = currentState.resources.textBuffer.getTextForRange(
+            val contentResult = textBuffer.getTextForRange(
                 currentRange.first,
                 currentRange.last
             )
@@ -475,6 +529,12 @@ class EditorEngine @AssistedInject constructor(
             return
         }
 
+        val textBuffer = currentState.resources.buffer as? ChunkedTextBuffer
+        if (textBuffer == null) {
+            log(tag) { "Ignoring visible range update - not in text mode" }
+            return
+        }
+
         val totalLines = _totalLines.value
         if (totalLines <= 0) return
 
@@ -487,7 +547,7 @@ class EditorEngine @AssistedInject constructor(
 
             // Load content for the new visible range
             try {
-                val contentResult = currentState.resources.textBuffer.getTextForRange(constrainedStart, constrainedEnd)
+                val contentResult = textBuffer.getTextForRange(constrainedStart, constrainedEnd)
                 if (contentResult.isSuccess) {
                     _currentContent.value = contentResult.getOrNull() ?: ""
                     log(tag) { "Loaded content for range: $constrainedStart..$constrainedEnd" }
@@ -500,15 +560,19 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    suspend fun undo(): Result<EditOperation?> {
+    suspend fun undo(): Result<TextPosition?> {
         val currentState = _state.value
 
         return when (currentState) {
             is EditorState.Loaded -> {
                 try {
-                    val result = currentState.resources.textBuffer.undo()
+                    val result = currentState.resources.buffer.undo()
                     if (result.isSuccess) {
-                        _totalLines.value = currentState.resources.textBuffer.totalLines.value
+                        // Update total lines for text mode
+                        if (currentState.resources.buffer is ChunkedTextBuffer) {
+                            val textBuffer = currentState.resources.buffer as ChunkedTextBuffer
+                            _totalLines.value = textBuffer.totalLines.value
+                        }
                         refreshVisibleContent()
                     }
                     // Clear search results as they're now stale
@@ -529,15 +593,19 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    suspend fun redo(): Result<EditOperation?> {
+    suspend fun redo(): Result<TextPosition?> {
         val currentState = _state.value
 
         return when (currentState) {
             is EditorState.Loaded -> {
                 try {
-                    val result = currentState.resources.textBuffer.redo()
+                    val result = currentState.resources.buffer.redo()
                     if (result.isSuccess) {
-                        _totalLines.value = currentState.resources.textBuffer.totalLines.value
+                        // Update total lines for text mode
+                        if (currentState.resources.buffer is ChunkedTextBuffer) {
+                            val textBuffer = currentState.resources.buffer as ChunkedTextBuffer
+                            _totalLines.value = textBuffer.totalLines.value
+                        }
                         refreshVisibleContent()
                     }
                     // Clear search results as they're now stale
@@ -560,16 +628,79 @@ class EditorEngine @AssistedInject constructor(
 
     fun canUndo(): Boolean {
         val currentState = _state.value
-        return (currentState as? EditorState.Loaded)?.resources?.textBuffer?.canUndo() ?: false
+        return (currentState as? EditorState.Loaded)?.resources?.buffer?.canUndo() ?: false
     }
 
     fun canRedo(): Boolean {
         val currentState = _state.value
-        return (currentState as? EditorState.Loaded)?.resources?.textBuffer?.canRedo() ?: false
+        return (currentState as? EditorState.Loaded)?.resources?.buffer?.canRedo() ?: false
     }
 
     fun clearError() {
         _error.value = null
+    }
+
+    /**
+     * Switch to a different editor mode (e.g., Text → Hex or Hex → Text).
+     *
+     * This recreates the buffer with the new mode while preserving the file content.
+     * Note: Switching modes will lose undo/redo history.
+     *
+     * @param newMode The mode to switch to
+     * @return Result.success if mode switch succeeded, Result.failure otherwise
+     */
+    suspend fun switchMode(newMode: EditorMode): Result<Unit> = stateMutex.withLock {
+        val currentState = _state.value
+
+        if (currentState !is EditorState.Loaded) {
+            return Result.failure(IllegalStateException("Cannot switch mode - no file loaded"))
+        }
+
+        if (currentState.resources.mode.type == newMode.type) {
+            log(tag) { "Already in ${newMode.type} mode, no switch needed" }
+            return Result.success(Unit)
+        }
+
+        return try {
+            log(tag) { "Switching from ${currentState.resources.mode.type} to ${newMode.type} mode" }
+
+            // Save any pending changes before switching
+            if (currentState.isModified) {
+                log(tag) { "Saving pending changes before mode switch" }
+                val saveResult = currentState.resources.buffer.saveFile()
+                if (saveResult.isFailure) {
+                    return Result.failure(
+                        saveResult.exceptionOrNull() ?: Exception("Failed to save before mode switch")
+                    )
+                }
+            }
+
+            // Dispose old resources
+            disposeResources(currentState.resources)
+
+            // Create new resources with new mode
+            val newResources = createResourcesForFile(currentState.filePath)
+
+            // Update state with new mode
+            val fileInfoValue = (newResources.buffer as? ChunkedTextBuffer)?.fileInfo?.value
+            _state.value = EditorState.Loaded(
+                filePath = currentState.filePath,
+                resources = newResources,
+                fileInfo = fileInfoValue,
+                isModified = false,
+            )
+
+            // Refresh visible content
+            refreshVisibleContent()
+
+            log(tag) { "Successfully switched to ${newMode.type} mode" }
+            Result.success(Unit)
+
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to switch mode: ${e.asLog()}" }
+            _error.value = e
+            Result.failure(e)
+        }
     }
 
     suspend fun release() {

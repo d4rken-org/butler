@@ -6,8 +6,8 @@ import dagger.assisted.AssistedInject
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.editor.core.engine.ChunkBoundary
+import eu.darken.butler.editor.core.engine.EditorChunk
 import eu.darken.butler.editor.core.engine.FileInfo
-import eu.darken.butler.editor.core.engine.TextChunk
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -41,69 +41,54 @@ class InMemoryDataSource @AssistedInject constructor(
 
     private var content: String = initialContent
 
-    override suspend fun readChunk(startOffset: Long, size: Long): String {
-        log(tag) { "readChunk called: startOffset=$startOffset, size=$size, content.length=${content.length}" }
+    override suspend fun readChunk(startOffset: Long, size: Long): ByteArray {
+        log(tag) { "readChunk called: startOffset=$startOffset, size=$size" }
 
-        val start = startOffset.toInt().coerceIn(0, content.length)
-        val requestedEnd = (startOffset + size).toInt().coerceAtMost(content.length)
+        // Convert content to bytes
+        val contentBytes = content.toByteArray(Charsets.UTF_8)
 
-        log(tag) { "readChunk: start=$start, requestedEnd=$requestedEnd" }
+        val start = startOffset.toInt().coerceIn(0, contentBytes.size)
+        val end = (startOffset + size).toInt().coerceAtMost(contentBytes.size)
 
-        // CRITICAL: Ensure we don't split UTF-16 surrogate pairs at chunk boundaries
-        // Adjust end position if it would split a surrogate pair
-        val safeEnd = adjustForSurrogatePairs(content, requestedEnd)
+        log(tag) { "readChunk: start=$start, end=$end, returning ${end - start} bytes" }
 
-        if (requestedEnd != safeEnd) {
-            log(tag) {
-                "readChunk: Adjusted end position from $requestedEnd to $safeEnd (surrogate pair protection)"
-            }
-        }
-
-        return content.substring(start, safeEnd)
+        return contentBytes.copyOfRange(start, end)
     }
+
+    override suspend fun getSize(): Long = content.toByteArray(Charsets.UTF_8).size.toLong()
 
     /**
-     * Adjusts a position to avoid splitting UTF-16 surrogate pairs.
-     *
-     * UTF-16 surrogate pairs consist of two Char values:
-     * - High surrogate: U+D800 to U+DBFF
-     * - Low surrogate: U+DC00 to U+DFFF
-     *
-     * If the position would split a pair, we adjust it to include the complete character.
-     *
-     * @param text The string to check
-     * @param position The requested position
-     * @return Adjusted position that doesn't split a surrogate pair
+     * Writes raw bytes at a specific offset in the in-memory content.
+     * Uses ISO-8859-1 encoding to preserve all byte values (0x00-0xFF).
      */
-    private fun adjustForSurrogatePairs(text: String, position: Int): Int {
-        if (position <= 0 || position >= text.length) {
-            return position
-        }
+    override suspend fun writeChunk(offset: Long, bytes: ByteArray) {
+        log(tag) { "Writing ${bytes.size} bytes at offset $offset to in-memory content" }
 
-        // Check if position is at a low surrogate (second half of pair)
-        // If so, move back by 1 to include the high surrogate
-        if (Character.isLowSurrogate(text[position])) {
-            log(tag) { "adjustForSurrogatePairs: Position $position is low surrogate, moving back to ${position - 1}" }
-            return position - 1
-        }
+        // Convert current content to bytes using ISO-8859-1 (1:1 byte mapping)
+        val currentBytes = content.toByteArray(Charsets.ISO_8859_1)
 
-        // Check if position-1 is a high surrogate (first half of pair)
-        // If so, move forward by 1 to include the low surrogate
-        if (Character.isHighSurrogate(text[position - 1])) {
-            log(tag) { "adjustForSurrogatePairs: Position ${position - 1} is high surrogate, moving forward to ${position + 1}" }
-            return position + 1
-        }
+        // Calculate new size
+        val newSize = maxOf(currentBytes.size.toLong(), offset + bytes.size)
+        val newBytes = ByteArray(newSize.toInt())
 
-        return position
+        // Copy original content
+        System.arraycopy(currentBytes, 0, newBytes, 0, currentBytes.size)
+
+        // Write new bytes at offset
+        System.arraycopy(bytes, 0, newBytes, offset.toInt(), bytes.size)
+
+        // Convert back to string using ISO-8859-1
+        content = String(newBytes, Charsets.ISO_8859_1)
+        _isModified.value = true
+
+        log(tag) { "Successfully wrote ${bytes.size} bytes at offset $offset (new size: ${content.length})" }
     }
-
-    override suspend fun getSize(): Long = content.length.toLong()
 
     /**
      * Saves dirty chunks by merging them back into the in-memory content.
      * This allows testing of save operations without requiring file I/O.
      */
-    override suspend fun save(dirtyChunks: List<TextChunk>, boundaries: Map<TextChunk.ChunkId, ChunkBoundary>) {
+    override suspend fun save(dirtyChunks: List<EditorChunk>, boundaries: Map<EditorChunk.ChunkId, ChunkBoundary>) {
         if (dirtyChunks.isEmpty()) {
             log(tag) { "No dirty chunks to save" }
             return
@@ -111,11 +96,14 @@ class InMemoryDataSource @AssistedInject constructor(
 
         log(tag) { "Merging ${dirtyChunks.size} dirty chunks into in-memory content" }
 
+        // Filter only text chunks for saving
+        val textChunks = dirtyChunks.filterIsInstance<EditorChunk.Text>()
+
         // Use ChunkManager.mergeChunks to properly merge dirty chunks into original content
         val originalBytes = content.toByteArray(Charsets.UTF_8)
         val mergedBytes = eu.darken.butler.editor.core.engine.ChunkManager.mergeChunks(
             originalContent = originalBytes,
-            dirtyChunks = dirtyChunks,
+            dirtyChunks = textChunks,
             boundaries = boundaries
         )
 

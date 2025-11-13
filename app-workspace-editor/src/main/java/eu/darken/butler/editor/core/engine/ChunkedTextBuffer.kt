@@ -25,7 +25,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
     @Assisted private val chunkRepository: ChunkRepository,
     @Assisted private val maxUndoStackSize: Int = 100,
     @Assisted private val maxUndoMemoryBytes: Long = 10_485_760, // 10 MB
-) {
+) : EditorBuffer {
 
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "ChunkedTextBuffer")
 
@@ -42,7 +42,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
     val totalLength: StateFlow<Long> = _totalLength.asStateFlow()
 
     private val _isModified = MutableStateFlow(false)
-    val isModified: StateFlow<Boolean> = _isModified.asStateFlow()
+    override val isModified: StateFlow<Boolean> = _isModified.asStateFlow()
 
     private val bufferMutex = Mutex()
     private val chunkMetadata = mutableListOf<ChunkMetadata>()
@@ -52,9 +52,9 @@ class ChunkedTextBuffer @AssistedInject constructor(
     private var currentUndoMemoryBytes: Long = 0
     private var currentRedoMemoryBytes: Long = 0
 
-    private var chunkIds: List<TextChunk.ChunkId> = emptyList()
+    private var chunkIds: List<EditorChunk.ChunkId> = emptyList()
 
-    suspend fun initialize(): Result<Unit> = bufferMutex.withLock {
+    override suspend fun initialize(): Result<Unit> = bufferMutex.withLock {
         try {
             // Get info from data source (may be null for in-memory sources)
             val info = chunkRepository.getFileInfo()
@@ -78,12 +78,16 @@ class ChunkedTextBuffer @AssistedInject constructor(
             // For empty content, we need to create and load the empty chunk
             if (size == 0L && chunkIds.isNotEmpty()) {
                 val emptyChunkId = chunkIds.first()
-                val emptyChunk = TextChunk(
+                val emptyChunk = EditorChunk.Text(
+                    offset = 0L,
                     id = emptyChunkId,
                     content = "",
+                    size = 0L,
                     lineCount = 1,
+                    lineEnding = LineEnding.LF,
                     isDirty = false,
-                    isLoaded = true
+                    isLoaded = true,
+                    refCount = 0
                 )
                 chunkManager.addChunk(emptyChunk)
             }
@@ -366,7 +370,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 val affectedChunkIds = affectedChunks.map { it.id }.toSet()
 
                 // Track merged chunk info for boundary fix (needed outside pinning block)
-                var mergedChunkId: TextChunk.ChunkId? = null
+                var mergedChunkId: EditorChunk.ChunkId? = null
                 var mergedChunkSize: Long = 0
 
                 // Pin all affected chunks to prevent eviction during this operation
@@ -395,7 +399,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
                         } ?: throw IllegalStateException("Failed to update chunk ${chunk.id}")
 
                         // Single chunk: nothing to evict
-                        emptySet<TextChunk.ChunkId>()
+                        emptySet<EditorChunk.ChunkId>()
                     } else {
                         // Multi-chunk deletion: merge content from first and last chunks
                         val firstChunk = pinnedChunks.first()
@@ -697,7 +701,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         return results.sortedBy { it.position.offset }
     }
 
-    suspend fun saveFile(): Result<Unit> {
+    override suspend fun saveFile(): Result<Unit> {
         return try {
             // saveAllDirtyChunks() now handles complete save flow (get dirty, save, mark clean)
             val result = chunkManager.saveAllDirtyChunks()
@@ -715,7 +719,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         return Result.failure(UnsupportedOperationException("Save As not implemented yet"))
     }
 
-    suspend fun undo(): Result<EditOperation?> {
+    override suspend fun undo(): Result<TextPosition?> {
         // Get operation from stack (protected by mutex)
         val operation = bufferMutex.withLock {
             if (undoStack.isEmpty()) {
@@ -765,13 +769,13 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 }
             }
 
-            return Result.success(operation)
+            return Result.success(operation.position)
         } finally {
             isUndoRedoInProgress = false
         }
     }
 
-    suspend fun redo(): Result<EditOperation?> {
+    override suspend fun redo(): Result<TextPosition?> {
         // Get operation from stack (protected by mutex)
         val operation = bufferMutex.withLock {
             if (redoStack.isEmpty()) {
@@ -817,15 +821,15 @@ class ChunkedTextBuffer @AssistedInject constructor(
             }
             }
 
-            return Result.success(operation)
+            return Result.success(operation.position)
         } finally {
             isUndoRedoInProgress = false
         }
     }
 
-    fun canUndo(): Boolean = undoStack.isNotEmpty()
+    override fun canUndo(): Boolean = undoStack.isNotEmpty()
 
-    fun canRedo(): Boolean = redoStack.isNotEmpty()
+    override fun canRedo(): Boolean = redoStack.isNotEmpty()
 
     /**
      * Counts lines in a chunk using the specified line ending style.
@@ -902,7 +906,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         if (fileSize == 0L) {
             chunkMetadata.add(
                 ChunkMetadata(
-                    chunkId = chunkIds.firstOrNull() ?: TextChunk.ChunkId.generate(),
+                    chunkId = chunkIds.firstOrNull() ?: EditorChunk.ChunkId.generate(),
                     startOffset = 0L,
                     endOffset = 0L,
                     lineCount = 1,
@@ -947,7 +951,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
         // Use line counts from boundaries (incrementally maintained during edits)
         // Only load chunks on first initialization when lineCount=0 (sentinel value)
-        val newLineCounts = mutableMapOf<TextChunk.ChunkId, Int>()
+        val newLineCounts = mutableMapOf<EditorChunk.ChunkId, Int>()
 
         // Snapshot all boundaries at once to prevent race conditions during concurrent updates
         // Without this, concurrent edits could modify boundaries mid-iteration, causing inconsistent state
@@ -1016,7 +1020,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         log(tag) { "Built ${chunkMetadata.size} metadata entries with $totalLines lines in ${totalTime}ms" }
     }
 
-    private suspend fun findChunkForOffset(offset: Long): TextChunk? {
+    private suspend fun findChunkForOffset(offset: Long): EditorChunk.Text? {
         return chunkManager.getChunksInRange(offset, offset + 1).firstOrNull()
     }
 
@@ -1068,7 +1072,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         if (chunkMetadata.isEmpty()) return
 
         // Find which chunks are needed for the given line range
-        val neededChunkIds = mutableSetOf<TextChunk.ChunkId>()
+        val neededChunkIds = mutableSetOf<EditorChunk.ChunkId>()
 
         for (metadata in chunkMetadata) {
             val chunkLastLine = if (metadata == chunkMetadata.last()) {
@@ -1114,6 +1118,16 @@ class ChunkedTextBuffer @AssistedInject constructor(
         }
     }
 
+    /**
+     * Dispose of resources held by this buffer.
+     * Note: This does NOT save modifications. Call saveFile() first if needed.
+     */
+    override fun dispose() {
+        // Text buffer cleanup is handled by ChunkManager
+        // undo/redo stacks will be cleared when buffer is released
+        log(tag) { "Disposing text buffer" }
+    }
+
     @AssistedFactory
     interface Factory {
         fun create(
@@ -1130,11 +1144,11 @@ data class LineInfo(
     val lineNumber: Int,
     val startOffset: Long,
     val endOffset: Long,
-    val chunkId: TextChunk.ChunkId
+    val chunkId: EditorChunk.ChunkId
 )
 
 data class ChunkMetadata(
-    val chunkId: TextChunk.ChunkId,
+    val chunkId: EditorChunk.ChunkId,
     val startOffset: Long,
     val endOffset: Long,
     val lineCount: Int,

@@ -8,7 +8,8 @@ import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.metadata.OwnershipResolver
 import eu.darken.butler.editor.core.engine.ChunkBoundary
-import eu.darken.butler.editor.core.engine.TextChunk
+import eu.darken.butler.editor.core.engine.EditorChunk
+import eu.darken.butler.editor.core.engine.LineEnding
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -80,7 +81,7 @@ class FileDataSourceTest : BaseTest() {
             open()
         }
 
-    private fun boundaries(vararg entries: Pair<TextChunk, Pair<Long, Long>>): Map<TextChunk.ChunkId, ChunkBoundary> {
+    private fun boundaries(vararg entries: Pair<EditorChunk.Text, Pair<Long, Long>>): Map<EditorChunk.ChunkId, ChunkBoundary> {
         return entries.associate { (chunk, offsets) ->
             // Calculate line count from chunk content
             val lineCount = chunk.content.count { it == '\n' } + if (chunk.content.isNotEmpty() && !chunk.content.endsWith('\n')) 1 else 0
@@ -132,7 +133,7 @@ class FileDataSourceTest : BaseTest() {
         val chunk = dataSource.readChunk(0L, 11L)
 
         // Then: Should match expected content
-        chunk shouldBe "Hello World"
+        String(chunk) shouldBe "Hello World"
     }
 
     @Test
@@ -144,7 +145,7 @@ class FileDataSourceTest : BaseTest() {
         val chunk = dataSource.readChunk(12L, 6L)
 
         // Then
-        chunk shouldBe "Line 2"
+        String(chunk) shouldBe "Line 2"
     }
 
     @Test
@@ -156,7 +157,7 @@ class FileDataSourceTest : BaseTest() {
         val chunk = dataSource.readChunk(0L, 100L)
 
         // Then: Returns what's available
-        chunk shouldBe "Hello"
+        String(chunk) shouldBe "Hello"
     }
 
     @Test
@@ -168,7 +169,7 @@ class FileDataSourceTest : BaseTest() {
         val chunk = dataSource.readChunk(100L, 10L)
 
         // Then: Empty string
-        chunk shouldBe ""
+        String(chunk) shouldBe ""
     }
 
     @Test
@@ -196,11 +197,16 @@ class FileDataSourceTest : BaseTest() {
         val dataSource = createDataSource(tempDir, "test.txt", "Hello World")
 
         // When: Save dirty chunks
-        val dirtyChunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
+        val dirtyChunk = EditorChunk.Text(
+            id = EditorChunk.ChunkId.generate(),
+            offset = 0L,
             content = "Goodbye",
+            size = 7L,
             lineCount = 1,
+            lineEnding = LineEnding.LF,
             isDirty = true,
+            isLoaded = true,
+            refCount = 0
         )
         dataSource.save(
             listOf(dirtyChunk),
@@ -242,7 +248,7 @@ class FileDataSourceTest : BaseTest() {
         val chunk = dataSource.readChunk(0L, 100L)
 
         // Then: Empty string
-        chunk shouldBe ""
+        String(chunk) shouldBe ""
         dataSource.getSize() shouldBe 0L
     }
 
@@ -255,7 +261,7 @@ class FileDataSourceTest : BaseTest() {
         val chunk = dataSource.readChunk(0L, 1L)
 
         // Then
-        chunk shouldBe "X"
+        String(chunk) shouldBe "X"
         dataSource.getSize() shouldBe 1L
     }
 
@@ -268,8 +274,8 @@ class FileDataSourceTest : BaseTest() {
         val chunk = dataSource.readChunk(0L, 100L)
 
         // Then: Characters preserved
-        chunk.contains("🚀") shouldBe true
-        chunk.contains("中文") shouldBe true
+        String(chunk).contains("🚀") shouldBe true
+        String(chunk).contains("中文") shouldBe true
     }
 
     @Test
@@ -281,8 +287,8 @@ class FileDataSourceTest : BaseTest() {
         val chunk = dataSource.readChunk(0L, 100L)
 
         // Then: Content preserved without trailing newline
-        chunk shouldBe "Line 1\nLine 2"
-        chunk.endsWith("\n") shouldBe false
+        String(chunk) shouldBe "Line 1\nLine 2"
+        String(chunk).endsWith("\n") shouldBe false
     }
 
     @Test
@@ -322,8 +328,8 @@ class FileDataSourceTest : BaseTest() {
         val chunk = dataSource.readChunk(1024L, chunkSize)
 
         // Then: Full chunk is read despite Okio returning partial reads
-        chunk.length shouldBe chunkSize.toInt()
-        chunk shouldBe "a".repeat(chunkSize.toInt())
+        chunk.size shouldBe chunkSize.toInt()
+        String(chunk) shouldBe "a".repeat(chunkSize.toInt())
     }
 
     @Test
@@ -337,8 +343,8 @@ class FileDataSourceTest : BaseTest() {
         val chunk = dataSource.readChunk(0L, chunkSize.toLong())
 
         // Then: All 64KB read correctly (not just first 8KB segment)
-        chunk.length shouldBe chunkSize
-        chunk shouldBe "b".repeat(chunkSize)
+        chunk.size shouldBe chunkSize
+        String(chunk) shouldBe "b".repeat(chunkSize)
     }
 
     @Test
@@ -352,8 +358,8 @@ class FileDataSourceTest : BaseTest() {
         val chunk = dataSource.readChunk(0L, 64 * 1024L)
 
         // Then: Returns what's available (20KB), not empty or error
-        chunk.length shouldBe contentSize
-        chunk shouldBe "c".repeat(contentSize)
+        chunk.size shouldBe contentSize
+        String(chunk) shouldBe "c".repeat(contentSize)
     }
 
     @Test
@@ -370,8 +376,8 @@ class FileDataSourceTest : BaseTest() {
 
         // Then: Returns only the 6KB available, not 64KB
         val expectedSize = contentSize - secondChunkStart.toInt()
-        chunk.length shouldBe expectedSize
-        chunk shouldBe "d".repeat(expectedSize)
+        chunk.size shouldBe expectedSize
+        String(chunk) shouldBe "d".repeat(expectedSize)
     }
 
     @Test
@@ -384,6 +390,6 @@ class FileDataSourceTest : BaseTest() {
         val chunk = dataSource.readChunk(1024L, 100L)
 
         // Then: Returns empty string
-        chunk shouldBe ""
+        String(chunk) shouldBe ""
     }
 }

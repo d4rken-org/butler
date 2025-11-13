@@ -14,8 +14,8 @@ import eu.darken.butler.common.files.extensions.exists
 import eu.darken.butler.common.files.extensions.lookup
 import eu.darken.butler.editor.core.engine.ChunkBoundary
 import eu.darken.butler.editor.core.engine.ChunkManager
+import eu.darken.butler.editor.core.engine.EditorChunk
 import eu.darken.butler.editor.core.engine.FileInfo
-import eu.darken.butler.editor.core.engine.TextChunk
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,12 +70,12 @@ class FileDataSource @AssistedInject constructor(
         }
     }
 
-    override suspend fun readChunk(startOffset: Long, size: Long): String = accessMutex.withLock {
+    override suspend fun readChunk(startOffset: Long, size: Long): ByteArray = accessMutex.withLock {
         withContext(Dispatchers.IO) {
             // Check if offset is beyond file size
             val fileSize = _fileInfo.value?.size ?: 0L
             if (startOffset >= fileSize) {
-                return@withContext ""
+                return@withContext ByteArray(0)
             }
 
             // Read from file (ChunkManager cache is the source of truth for modified chunks)
@@ -108,13 +108,12 @@ class FileDataSource @AssistedInject constructor(
 
                         if (totalBytesRead == 0L) {
                             // Offset is beyond file size
-                            return@withContext ""
+                            return@withContext ByteArray(0)
                         }
 
-                        log(tag) { "readChunk: requested=$size, read=$totalBytesRead at offset $startOffset" }
+                        log(tag) { "readChunk: requested=$size, read=$totalBytesRead bytes at offset $startOffset" }
 
-                        val bytes = buffer.readByteArray()
-                        String(bytes, Charsets.UTF_8)
+                        buffer.readByteArray()
                     }
                 }
             } catch (e: Exception) {
@@ -127,12 +126,81 @@ class FileDataSource @AssistedInject constructor(
     override suspend fun getSize(): Long = _fileInfo.value?.size ?: 0L
 
     /**
+     * Writes raw bytes at a specific offset in the file.
+     * Note: This method writes directly without merging - caller must handle content assembly.
+     * For complex edits with multiple chunks, use save() instead.
+     */
+    override suspend fun writeChunk(offset: Long, bytes: ByteArray) = accessMutex.withLock {
+        withContext(Dispatchers.IO) {
+            try {
+                log(tag) { "Writing ${bytes.size} bytes at offset $offset" }
+
+                // For now, we'll read entire file, modify, and write back
+                // This is not optimal for large files but matches our atomic write pattern
+                // TODO: Optimize for large files with RandomAccessFile or memory-mapped files
+
+                // Read original content
+                val originalContent = gatewaySwitch.file(filePath, readWrite = false).use { handle ->
+                    handle.source().buffer().use { source ->
+                        source.readByteArray()
+                    }
+                }
+
+                // Calculate new file size
+                val newSize = maxOf(originalContent.size.toLong(), offset + bytes.size)
+                val newContent = ByteArray(newSize.toInt())
+
+                // Copy original content
+                System.arraycopy(originalContent, 0, newContent, 0, originalContent.size)
+
+                // Write new bytes at offset
+                System.arraycopy(bytes, 0, newContent, offset.toInt(), bytes.size)
+
+                // Atomic save via temp file
+                val tempPath = filePath.parent?.child("${filePath.name}.tmp")
+                    ?: throw IllegalStateException("Cannot create temp file - no parent directory")
+
+                try {
+                    gatewaySwitch.file(tempPath, readWrite = true).use { handle ->
+                        handle.sink().buffer().use { sink ->
+                            sink.write(newContent)
+                        }
+                    }
+
+                    // Atomic rename
+                    gatewaySwitch.delete(filePath)
+                    gatewaySwitch.move(tempPath, filePath)
+
+                    log(tag) { "Successfully wrote ${bytes.size} bytes at offset $offset" }
+
+                } catch (e: Exception) {
+                    // Clean up temp file on failure
+                    try {
+                        if (tempPath.exists(gatewaySwitch)) {
+                            gatewaySwitch.delete(tempPath)
+                        }
+                    } catch (cleanupError: Exception) {
+                        log(tag, ERROR) { "Failed to cleanup temp file: ${cleanupError.asLog()}" }
+                    }
+                    throw e
+                }
+
+                _isModified.value = false
+
+            } catch (e: Exception) {
+                log(tag, ERROR) { "Failed to write chunk at offset $offset - ${e.asLog()}" }
+                throw e
+            }
+        }
+    }
+
+    /**
      * Saves dirty chunks to file using atomic write pattern.
      * Uses temp file + atomic rename to prevent corruption.
      *
      * @param dirtyChunks List of modified chunks to save (will be merged with original content)
      */
-    override suspend fun save(dirtyChunks: List<TextChunk>, boundaries: Map<TextChunk.ChunkId, ChunkBoundary>) = accessMutex.withLock {
+    override suspend fun save(dirtyChunks: List<EditorChunk>, boundaries: Map<EditorChunk.ChunkId, ChunkBoundary>) = accessMutex.withLock {
         withContext(Dispatchers.IO) {
             if (dirtyChunks.isEmpty()) {
                 log(tag) { "No modifications to save" }
@@ -150,8 +218,11 @@ class FileDataSource @AssistedInject constructor(
                     }
                 }
 
+                // Filter only text chunks for saving
+                val textChunks = dirtyChunks.filterIsInstance<EditorChunk.Text>()
+
                 // Merge modifications using ChunkManager algorithm
-                val mergedContent = ChunkManager.mergeChunks(originalContent, dirtyChunks, boundaries)
+                val mergedContent = ChunkManager.mergeChunks(originalContent, textChunks, boundaries)
 
                 // Atomic save: write to temp file, then rename
                 val tempPath = filePath.parent?.child("${filePath.name}.tmp")

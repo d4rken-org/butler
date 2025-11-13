@@ -26,10 +26,14 @@ class ChunkRepository @AssistedInject constructor(
         return dataSource.fileInfo.value
     }
 
-    suspend fun loadChunk(chunkId: TextChunk.ChunkId, boundary: ChunkBoundary): TextChunk = withContext(Dispatchers.IO) {
+    suspend fun loadChunk(chunkId: EditorChunk.ChunkId, boundary: ChunkBoundary): EditorChunk.Text = withContext(Dispatchers.IO) {
         log(tag) { "Loading chunk: $chunkId at ${boundary.startOffset}-${boundary.endOffset}" }
 
-        val content = dataSource.readChunk(boundary.startOffset, boundary.size)
+        // Read raw bytes from data source
+        val bytes = dataSource.readChunk(boundary.startOffset, boundary.size)
+
+        // Decode bytes to String using UTF-8 (text mode responsibility)
+        val content = bytes.toString(Charsets.UTF_8)
 
         // Detect line ending style in this chunk
         val lineEnding = detectLineEnding(content)
@@ -37,16 +41,19 @@ class ChunkRepository @AssistedInject constructor(
         // Count lines using detected style
         val lineCount = countLines(content, lineEnding)
 
-        val chunk = TextChunk(
-            id = chunkId,
+        val chunk = EditorChunk.Text(
+            offset = boundary.startOffset,
             content = content,
+            size = bytes.size.toLong(),
             lineCount = lineCount,
             lineEnding = lineEnding,
             isDirty = false,
-            isLoaded = true
+            isLoaded = true,
+            refCount = 0,
+            id = chunkId
         )
 
-        log(tag) { "Loaded chunk: $chunkId (${content.length} bytes, $lineCount lines, $lineEnding)" }
+        log(tag) { "Loaded chunk: $chunkId (${bytes.size} bytes → ${content.length} chars, $lineCount lines, $lineEnding)" }
         chunk
     }
 
@@ -107,7 +114,7 @@ class ChunkRepository @AssistedInject constructor(
      * @param dirtyChunks List of modified chunks to save
      * @param boundaries Map of chunk IDs to their file positions
      */
-    suspend fun saveFile(dirtyChunks: List<TextChunk>, boundaries: Map<TextChunk.ChunkId, ChunkBoundary>) = withContext(Dispatchers.IO) {
+    suspend fun saveFile(dirtyChunks: List<EditorChunk.Text>, boundaries: Map<EditorChunk.ChunkId, ChunkBoundary>) = withContext(Dispatchers.IO) {
         log(tag) { "Saving ${dirtyChunks.size} dirty chunks to data source" }
         dataSource.save(dirtyChunks, boundaries)
         log(tag) { "Successfully saved chunks" }
@@ -120,7 +127,7 @@ class ChunkRepository @AssistedInject constructor(
      * The caller (ChunkedTextBuffer) is responsible for converting to file-relative line numbers.
      */
     suspend fun searchInChunk(
-        chunk: TextChunk,
+        chunk: EditorChunk.Text,
         boundary: ChunkBoundary,
         query: String,
         ignoreCase: Boolean = false
@@ -192,5 +199,5 @@ data class FileInfo(
 data class SearchResult(
     val position: TextPosition,
     val matchText: String,
-    val chunkId: TextChunk.ChunkId
+    val chunkId: EditorChunk.ChunkId
 )
