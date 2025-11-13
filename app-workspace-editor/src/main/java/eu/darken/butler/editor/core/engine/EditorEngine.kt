@@ -289,9 +289,24 @@ class EditorEngine @AssistedInject constructor(
 
         when (currentState) {
             is EditorState.Loaded -> {
-                log(tag) { "Inserting text at position ${_cursorPosition.value}: ${text.take(50)}..." }
+                val cursorPos = _cursorPosition.value
 
-                val result = currentState.resources.textBuffer.insertText(_cursorPosition.value, text)
+                // Recalculate correct offset from line/column using chunk metadata
+                // UI may send placeholder offset=0 with virtual scrolling
+                val correctedOffset = currentState.resources.textBuffer.findOffset(
+                    cursorPos.line,
+                    cursorPos.column
+                )
+
+                val correctedPosition = TextPosition(
+                    offset = correctedOffset,
+                    line = cursorPos.line,
+                    column = cursorPos.column
+                )
+
+                log(tag) { "Inserting text at position $correctedPosition: ${text.take(50)}..." }
+
+                val result = currentState.resources.textBuffer.insertText(correctedPosition, text)
 
                 result.fold(
                     onSuccess = { newPosition ->
