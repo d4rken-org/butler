@@ -707,11 +707,6 @@ class ChunkedTextBuffer @AssistedInject constructor(
         }
     }
 
-    suspend fun saveFileAs(filePath: APath<*>): Result<Unit> {
-        // This would require implementing file copying with chunks
-        return Result.failure(UnsupportedOperationException("Save As not implemented yet"))
-    }
-
     suspend fun undo(): Result<EditOperation?> {
         // Get operation from stack (protected by mutex)
         val operation = bufferMutex.withLock {
