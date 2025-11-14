@@ -97,6 +97,51 @@ class ChunkRepositoryTest : BaseTest() {
     }
 
     @Test
+    fun `loadChunk detects CR line ending`() = runTest {
+        // Given
+        val mockDataSource = createMockDataSource("Line 1\rLine 2\rLine 3\r")
+        val repository = createRepository(mockDataSource)
+
+        // When
+        val boundary = ChunkBoundary(startOffset = 0L, endOffset = 20L, lineCount = 3)
+        val chunk = repository.loadChunk(TextChunk.ChunkId.generate(), boundary)
+
+        // Then
+        chunk.lineEnding shouldBe LineEnding.CR
+        chunk.lineCount shouldBe 3
+    }
+
+    @Test
+    fun `loadChunk detects mixed line endings`() = runTest {
+        // Given
+        val mockDataSource = createMockDataSource("Line 1\nLine 2\r\nLine 3\rLine 4")
+        val repository = createRepository(mockDataSource)
+
+        // When
+        val boundary = ChunkBoundary(startOffset = 0L, endOffset = 31L, lineCount = 4)
+        val chunk = repository.loadChunk(TextChunk.ChunkId.generate(), boundary)
+
+        // Then
+        chunk.lineEnding shouldBe LineEnding.MIXED
+        chunk.lineCount shouldBe 4
+    }
+
+    @Test
+    fun `loadChunk defaults to LF for empty content`() = runTest {
+        // Given
+        val mockDataSource = createMockDataSource("")
+        val repository = createRepository(mockDataSource)
+
+        // When
+        val boundary = ChunkBoundary(startOffset = 0L, endOffset = 0L, lineCount = 1)
+        val chunk = repository.loadChunk(TextChunk.ChunkId.generate(), boundary)
+
+        // Then
+        chunk.lineEnding shouldBe LineEnding.LF
+        chunk.lineCount shouldBe 1
+    }
+
+    @Test
     fun `loadChunk counts lines without trailing newline correctly`() = runTest {
         // Given: Content without trailing newline
         val mockDataSource = createMockDataSource("Line 1\nLine 2")
@@ -108,6 +153,62 @@ class ChunkRepositoryTest : BaseTest() {
 
         // Then: Should count as 2 lines (last line has no newline)
         chunk.lineCount shouldBe 2
+    }
+
+    @Test
+    fun `loadChunk counts lines with CRLF and trailing newline`() = runTest {
+        // Given
+        val mockDataSource = createMockDataSource("Line 1\r\nLine 2\r\nLine 3\r\n")
+        val repository = createRepository(mockDataSource)
+
+        // When
+        val boundary = ChunkBoundary(startOffset = 0L, endOffset = 23L, lineCount = 3)
+        val chunk = repository.loadChunk(TextChunk.ChunkId.generate(), boundary)
+
+        // Then
+        chunk.lineCount shouldBe 3
+    }
+
+    @Test
+    fun `loadChunk counts lines with CRLF without trailing newline`() = runTest {
+        // Given
+        val mockDataSource = createMockDataSource("Line 1\r\nLine 2\r\nLine 3")
+        val repository = createRepository(mockDataSource)
+
+        // When
+        val boundary = ChunkBoundary(startOffset = 0L, endOffset = 21L, lineCount = 3)
+        val chunk = repository.loadChunk(TextChunk.ChunkId.generate(), boundary)
+
+        // Then: Last chunk without trailing newline gets +1
+        chunk.lineCount shouldBe 3
+    }
+
+    @Test
+    fun `loadChunk counts lines with CR endings`() = runTest {
+        // Given
+        val mockDataSource = createMockDataSource("Line 1\rLine 2\rLine 3\r")
+        val repository = createRepository(mockDataSource)
+
+        // When
+        val boundary = ChunkBoundary(startOffset = 0L, endOffset = 20L, lineCount = 3)
+        val chunk = repository.loadChunk(TextChunk.ChunkId.generate(), boundary)
+
+        // Then
+        chunk.lineCount shouldBe 3
+    }
+
+    @Test
+    fun `loadChunk counts lines with mixed endings`() = runTest {
+        // Given: CRLF + standalone LF + standalone CR
+        val mockDataSource = createMockDataSource("Line 1\nLine 2\r\nLine 3\rLine 4")
+        val repository = createRepository(mockDataSource)
+
+        // When
+        val boundary = ChunkBoundary(startOffset = 0L, endOffset = 31L, lineCount = 4)
+        val chunk = repository.loadChunk(TextChunk.ChunkId.generate(), boundary)
+
+        // Then: Should count all distinct line endings (1 LF + 1 CRLF + 1 CR = 3, plus +1 for last line)
+        chunk.lineCount shouldBe 4
     }
 
     // ==================== UTF-16 Surrogate Pair Tests ====================

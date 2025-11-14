@@ -827,71 +827,6 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
     fun canRedo(): Boolean = redoStack.isNotEmpty()
 
-    /**
-     * Counts lines in a chunk using the specified line ending style.
-     * Only adds +1 for missing trailing newline if this is the last chunk.
-     *
-     * For CRLF files, we count LF since every CRLF contains an LF.
-     * This handles CRLF sequences that may be split across chunk boundaries.
-     */
-    private fun countLinesInChunk(content: String, lineEnding: LineEnding, isLastChunk: Boolean): Int {
-        if (content.isEmpty()) return if (isLastChunk) 1 else 0
-
-        val newlineCount = when (lineEnding) {
-            LineEnding.LF -> content.count { it == '\n' }
-            LineEnding.CRLF -> content.count { it == '\n' }  // Count LF (part of every CRLF)
-            LineEnding.CR -> content.count { it == '\r' }
-            LineEnding.MIXED -> {
-                // For mixed, count distinct line endings (avoid double-counting CRLF)
-                val crlfCount = content.windowed(2).count { it == "\r\n" }
-                val totalLfCount = content.count { it == '\n' }
-                val totalCrCount = content.count { it == '\r' }
-                val standaloneLf = totalLfCount - crlfCount
-                val standaloneCr = totalCrCount - crlfCount
-                crlfCount + standaloneLf + standaloneCr
-            }
-        }
-
-        // Only add +1 for last chunk if it doesn't end with newline
-        if (isLastChunk) {
-            val endsWithNewline = when (lineEnding) {
-                LineEnding.LF -> content.endsWith('\n')
-                LineEnding.CRLF -> content.endsWith('\n') || content.endsWith("\r\n")
-                LineEnding.CR -> content.endsWith('\r')
-                LineEnding.MIXED -> content.endsWith('\n') || content.endsWith("\r\n") || content.endsWith('\r')
-            }
-            return newlineCount + if (!endsWithNewline) 1 else 0
-        }
-
-        return newlineCount
-    }
-
-    /**
-     * Detects line ending style from content.
-     * Same logic as ChunkRepository but needed here for multi-chunk scanning.
-     */
-    private fun detectLineEndingFromContent(content: String): LineEnding {
-        if (content.isEmpty()) return LineEnding.LF
-
-        val crlfCount = content.windowed(2).count { it == "\r\n" }
-        val lfCount = content.count { it == '\n' } - crlfCount  // LF not part of CRLF
-        val crCount = content.count { it == '\r' } - crlfCount  // CR not part of CRLF
-
-        return when {
-            // Pure CRLF (Windows)
-            crlfCount > 0 && lfCount == 0 && crCount == 0 -> LineEnding.CRLF
-            // Pure LF (Unix)
-            lfCount > 0 && crlfCount == 0 && crCount == 0 -> LineEnding.LF
-            // Pure CR (old Mac)
-            crCount > 0 && lfCount == 0 && crlfCount == 0 -> LineEnding.CR
-            // Mixed or multiple styles present
-            else -> {
-                if (crlfCount + lfCount + crCount == 0) LineEnding.LF  // No newlines, default LF
-                else LineEnding.MIXED
-            }
-        }
-    }
-
     private suspend fun buildChunkMetadata() {
         chunkMetadata.clear()
         var totalLines = 0
@@ -934,7 +869,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
             }
 
             // Detect from combined content (handles split CRLF at boundaries)
-            detectLineEndingFromContent(combinedContent.toString())
+            chunkRepository.detectLineEnding(combinedContent.toString())
         } else {
             LineEnding.LF  // Default for empty
         }
@@ -974,7 +909,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 // Count lines using detected line ending style
                 val content = chunk.content
                 val isLastChunk = index == chunkIds.size - 1
-                lineCount = countLinesInChunk(content, documentLineEnding, isLastChunk)
+                lineCount = chunkRepository.countLines(content, documentLineEnding, isLastChunk)
 
                 // Collect line count for batch update (don't update boundary yet)
                 newLineCounts[chunkId] = lineCount

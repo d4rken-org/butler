@@ -24,6 +24,10 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.border
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -35,6 +39,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
@@ -189,6 +194,7 @@ private fun DualColumnEditorContent(
     modifier: Modifier = Modifier
 ) {
     var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
+    var isFocused by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     // Sync textFieldValue with visible content
@@ -253,9 +259,9 @@ private fun DualColumnEditorContent(
             onValueChange = { newValue ->
                 val oldText = textFieldValue.text
                 val newText = newValue.text
-                
+
                 textFieldValue = newValue
-                
+
                 if (newText != oldText) {
                     if (newText.length > oldText.length && newText.startsWith(oldText)) {
                         val addedText = newText.substring(oldText.length)
@@ -265,7 +271,10 @@ private fun DualColumnEditorContent(
             },
             modifier = Modifier
                 .size(1.dp)
-                .align(Alignment.TopStart),
+                .align(Alignment.TopStart)
+                .onFocusChanged { focusState ->
+                    isFocused = focusState.isFocused
+                },
             textStyle = TextStyle(
                 fontSize = 1.sp,
                 color = Color.Transparent
@@ -322,10 +331,21 @@ private fun DualColumnEditorContent(
                     .fillMaxSize()
                     .horizontalScroll(horizontalScrollState)
             }
-            
+
+            // Add focus border when editor is focused
+            val focusBorderModifier = if (isFocused) {
+                Modifier.border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                )
+            } else {
+                Modifier
+            }
+
             LazyColumn(
                 state = contentListState,
                 modifier = contentModifier
+                    .then(focusBorderModifier)
                     .clipToBounds()
                     .pointerInput(Unit) {
                         detectTapGestures {
@@ -351,6 +371,7 @@ private fun DualColumnEditorContent(
                         cursorPosition = cursorPosition,
                         selection = selection,
                         isCurrentLine = lineIndex == cursorPosition.line,
+                        isFocused = isFocused,
                         wordWrap = wordWrap,
                         fontSize = fontSize,
                         tabSize = tabSize,
@@ -387,23 +408,120 @@ private fun TextLineItem(
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
     isCurrentLine: Boolean,
+    isFocused: Boolean,
     wordWrap: Boolean,
     fontSize: Int,
     tabSize: Int,
     onLineClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    
+    var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+    val density = LocalDensity.current
+    val cursorColor = MaterialTheme.colorScheme.primary
+
+    // Blinking animation when focused
+    val infiniteTransition = rememberInfiniteTransition(label = "cursor_blink")
+    val cursorAlpha by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = if (isFocused) 0f else 1f,
+        animationSpec = if (isFocused) {
+            infiniteRepeatable(
+                animation = keyframes {
+                    durationMillis = 1060
+                    1f at 0
+                    1f at 530
+                    0f at 531
+                    0f at 1060
+                },
+                repeatMode = RepeatMode.Restart
+            )
+        } else {
+            infiniteRepeatable(
+                animation = tween(0),
+                repeatMode = RepeatMode.Restart
+            )
+        },
+        label = "cursor_alpha"
+    )
+
     val backgroundColor = if (isCurrentLine) {
         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
     } else {
         Color.Transparent
     }
 
+    // Draw cursor using drawWithContent to ensure it's on top
+    val cursorModifier = if (isCurrentLine && selection == null) {
+        Modifier.drawWithContent {
+            // Draw content first (text and background)
+            drawContent()
+
+            // Calculate cursor position
+            val expandedText = lineContent.expandTabs(tabSize)
+            val position = cursorPosition.column
+
+            val layoutResult = textLayoutResult
+            val cursorX = if (layoutResult != null && position <= expandedText.length) {
+                val boundingBox = layoutResult.getBoundingBox(position.coerceIn(0, expandedText.length))
+                boundingBox.left
+            } else {
+                val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
+                position.coerceIn(0, expandedText.length) * charWidth
+            }
+
+            // DEBUG: Draw red box
+            drawRect(
+                color = Color.Red,
+                topLeft = Offset(cursorX, 0f),
+                size = Size(20f, size.height)
+            )
+
+            // Draw cursor on top
+            if (isFocused) {
+                // Focused: Blinking line cursor
+                drawLine(
+                    color = cursorColor.copy(alpha = cursorAlpha),
+                    start = Offset(cursorX, 0f),
+                    end = Offset(cursorX, size.height),
+                    strokeWidth = 3.dp.toPx()
+                )
+            } else {
+                // Unfocused: Block cursor
+                val layoutResultForWidth = textLayoutResult
+                val charWidth = if (layoutResultForWidth != null && position < expandedText.length) {
+                    val currentBox = layoutResultForWidth.getBoundingBox(position)
+                    val nextBox = if (position + 1 <= expandedText.length) {
+                        layoutResultForWidth.getBoundingBox(position + 1)
+                    } else {
+                        currentBox
+                    }
+                    (nextBox.left - currentBox.left).coerceAtLeast(0f)
+                } else {
+                    with(density) { (fontSize * 0.6f).sp.toPx() }
+                }
+
+                val blockWidth = if (position < expandedText.length) {
+                    charWidth
+                } else {
+                    charWidth * 0.3f
+                }
+
+                drawRect(
+                    color = cursorColor.copy(alpha = 0.4f),
+                    topLeft = Offset(cursorX, 0f),
+                    size = Size(blockWidth, size.height)
+                )
+            }
+        }
+    } else {
+        Modifier
+    }
+
     Box(
         modifier = modifier
             .background(backgroundColor)
             .padding(horizontal = 8.dp, vertical = 2.dp)
+            .then(cursorModifier)
     ) {
         // Text content with selection highlighting
         SelectableText(
@@ -414,17 +532,11 @@ private fun TextLineItem(
             wordWrap = wordWrap,
             fontSize = fontSize,
             onTextClick = onLineClick,
+            onTextLayout = { layoutResult ->
+                textLayoutResult = layoutResult
+            },
             modifier = Modifier.fillMaxWidth()
         )
-
-        // Cursor indicator
-        if (isCurrentLine) {
-            CursorIndicator(
-                position = cursorPosition.column,
-                text = lineContent.expandTabs(tabSize),
-                fontSize = fontSize
-            )
-        }
     }
 }
 
@@ -437,10 +549,12 @@ private fun SelectableText(
     wordWrap: Boolean,
     fontSize: Int,
     onTextClick: (Int) -> Unit,
+    onTextLayout: (TextLayoutResult) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
     val textColor = MaterialTheme.colorScheme.onSurface
+    var layoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     val useCanvasRendering = false // Switch to compose text rendering for now
     
     if (useCanvasRendering) {
@@ -469,12 +583,16 @@ private fun SelectableText(
         // Use Compose Text rendering (more reliable)
         Box(
             modifier = modifier
-                .pointerInput(lineIndex) {
+                .pointerInput(lineIndex, layoutResult) {
                     detectTapGestures { offset ->
-                        // For wrapped text, we can't easily calculate exact character position
-                        // So we'll approximate based on x position only
-                        val charWidth = fontSize * density.density * 0.6f // Approximate monospace char width
-                        val clickedColumn = (offset.x / charWidth).toInt().coerceIn(0, text.length)
+                        val clickedColumn = if (layoutResult != null) {
+                            // Use precise text layout measurements
+                            layoutResult!!.getOffsetForPosition(offset).coerceIn(0, text.length)
+                        } else {
+                            // Fallback to approximate calculation
+                            val charWidth = fontSize * density.density * 0.6f
+                            (offset.x / charWidth).toInt().coerceIn(0, text.length)
+                        }
                         onTextClick(clickedColumn)
                     }
                 }
@@ -510,6 +628,10 @@ private fun SelectableText(
                 ),
                 softWrap = wordWrap,
                 overflow = TextOverflow.Visible,
+                onTextLayout = { result ->
+                    layoutResult = result
+                    onTextLayout(result)
+                },
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -521,19 +643,91 @@ private fun CursorIndicator(
     position: Int,
     text: String,
     fontSize: Int,
+    isFocused: Boolean,
+    textLayoutResult: TextLayoutResult?,
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
-    val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
-    val cursorX = position * charWidth
+    val cursorColor = MaterialTheme.colorScheme.primary
 
-    Canvas(modifier = modifier.fillMaxSize()) {
-        drawLine(
-            color = Color.Black,
-            start = Offset(cursorX, 0f),
-            end = Offset(cursorX, size.height),
-            strokeWidth = 2.dp.toPx()
+    // Calculate cursor position - use precise layout if available
+    val cursorX = if (textLayoutResult != null && position <= text.length) {
+        val boundingBox = textLayoutResult.getBoundingBox(position.coerceIn(0, text.length))
+        boundingBox.left
+    } else {
+        // Fallback to approximate calculation
+        val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
+        position.coerceIn(0, text.length) * charWidth
+    }
+
+    // Calculate character width for block cursor
+    val charWidth = if (textLayoutResult != null && position < text.length) {
+        val currentBox = textLayoutResult.getBoundingBox(position)
+        val nextBox = if (position + 1 <= text.length) {
+            textLayoutResult.getBoundingBox(position + 1)
+        } else {
+            currentBox
+        }
+        (nextBox.left - currentBox.left).coerceAtLeast(0f)
+    } else {
+        with(density) { (fontSize * 0.6f).sp.toPx() }
+    }
+
+    // Blinking animation when focused
+    val infiniteTransition = rememberInfiniteTransition(label = "cursor_blink")
+    val cursorAlpha by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = if (isFocused) 0f else 1f,
+        animationSpec = if (isFocused) {
+            infiniteRepeatable(
+                animation = keyframes {
+                    durationMillis = 1060
+                    1f at 0
+                    1f at 530
+                    0f at 531
+                    0f at 1060
+                },
+                repeatMode = RepeatMode.Restart
+            )
+        } else {
+            infiniteRepeatable(
+                animation = tween(0),
+                repeatMode = RepeatMode.Restart
+            )
+        },
+        label = "cursor_alpha"
+    )
+
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        // DEBUG: Draw bright red box to verify Canvas is rendering
+        drawRect(
+            color = Color.Red,
+            topLeft = Offset(cursorX, 0f),
+            size = Size(20f, size.height)
         )
+
+        if (isFocused) {
+            // Focused: Blinking line cursor (3dp width)
+            drawLine(
+                color = cursorColor.copy(alpha = cursorAlpha),
+                start = Offset(cursorX, 0f),
+                end = Offset(cursorX, size.height),
+                strokeWidth = 3.dp.toPx()
+            )
+        } else {
+            // Unfocused: Solid block cursor
+            val blockWidth = if (position < text.length) {
+                charWidth
+            } else {
+                charWidth * 0.3f // Thin block at end of line
+            }
+
+            drawRect(
+                color = cursorColor.copy(alpha = 0.4f),
+                topLeft = Offset(cursorX, 0f),
+                size = Size(blockWidth, size.height)
+            )
+        }
     }
 }
 

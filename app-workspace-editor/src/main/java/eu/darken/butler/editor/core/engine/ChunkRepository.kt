@@ -40,7 +40,8 @@ class ChunkRepository @AssistedInject constructor(
         val lineEnding = detectLineEnding(validContent)
 
         // Count lines using detected style
-        val lineCount = countLines(validContent, lineEnding)
+        // Note: isLastChunk defaults to true; ChunkManager will recalculate with proper values
+        val lineCount = countLines(validContent, lineEnding, isLastChunk = true)
 
         val chunk = TextChunk(
             id = chunkId,
@@ -92,7 +93,7 @@ class ChunkRepository @AssistedInject constructor(
      * Detects the line ending style used in the given content.
      * Prioritizes the most common style found in the text.
      */
-    private fun detectLineEnding(content: String): LineEnding {
+    fun detectLineEnding(content: String): LineEnding {
         if (content.isEmpty()) return LineEnding.LF  // Default for empty content
 
         val crlfCount = content.windowed(2).count { it == "\r\n" }
@@ -116,26 +117,42 @@ class ChunkRepository @AssistedInject constructor(
 
     /**
      * Counts the number of lines in content based on the detected line ending style.
+     *
+     * @param content The text content to count lines in
+     * @param lineEnding The line ending style detected in the content
+     * @param isLastChunk Whether this is the last chunk in the file (affects +1 for missing newline)
+     * @return The number of lines in the content
      */
-    private fun countLines(content: String, lineEnding: LineEnding): Int {
-        if (content.isEmpty()) return 1  // Empty content is 1 line
+    fun countLines(content: String, lineEnding: LineEnding, isLastChunk: Boolean = true): Int {
+        if (content.isEmpty()) return if (isLastChunk) 1 else 0
 
-        val lineCount = when (lineEnding) {
+        val newlineCount = when (lineEnding) {
             LineEnding.LF -> content.count { it == '\n' }
-            LineEnding.CRLF -> content.windowed(2).count { it == "\r\n" }
+            LineEnding.CRLF -> content.count { it == '\n' }  // Count LF (part of every CRLF)
             LineEnding.CR -> content.count { it == '\r' }
-            LineEnding.MIXED -> content.count { it == '\n' }  // Use LF as primary for mixed
+            LineEnding.MIXED -> {
+                // For mixed, count distinct line endings (avoid double-counting CRLF)
+                val crlfCount = content.windowed(2).count { it == "\r\n" }
+                val totalLfCount = content.count { it == '\n' }
+                val totalCrCount = content.count { it == '\r' }
+                val standaloneLf = totalLfCount - crlfCount
+                val standaloneCr = totalCrCount - crlfCount
+                crlfCount + standaloneLf + standaloneCr
+            }
         }
 
-        // Add 1 if content doesn't end with a newline (last line has no terminator)
-        val endsWithNewline = when (lineEnding) {
-            LineEnding.LF -> content.endsWith('\n')
-            LineEnding.CRLF -> content.endsWith("\r\n")
-            LineEnding.CR -> content.endsWith('\r')
-            LineEnding.MIXED -> content.endsWith('\n') || content.endsWith("\r\n") || content.endsWith('\r')
+        // Only add +1 for last chunk if it doesn't end with newline
+        if (isLastChunk) {
+            val endsWithNewline = when (lineEnding) {
+                LineEnding.LF -> content.endsWith('\n')
+                LineEnding.CRLF -> content.endsWith('\n') || content.endsWith("\r\n")
+                LineEnding.CR -> content.endsWith('\r')
+                LineEnding.MIXED -> content.endsWith('\n') || content.endsWith("\r\n") || content.endsWith('\r')
+            }
+            return newlineCount + if (!endsWithNewline) 1 else 0
         }
 
-        return lineCount + if (!endsWithNewline) 1 else 0
+        return newlineCount
     }
 
     /**
