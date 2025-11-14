@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import okio.Source
 import okio.buffer
 import okio.use
 
@@ -277,45 +278,23 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    suspend fun saveFileAs(newFilePath: APath<*>): Result<Unit> = stateMutex.withLock {
+    /**
+     * Gets a content stream for reading the current document content.
+     * Engine exposes content, Workspace handles file I/O operations.
+     *
+     * @return Source for streaming content
+     * @throws IllegalStateException if no content is loaded
+     */
+    suspend fun getContentStream(): Source = stateMutex.withLock {
         val currentState = _state.value
 
         return when (currentState) {
             is EditorState.Loaded -> {
-                try {
-                    log(tag) { "Saving as: ${newFilePath.name}" }
-
-                    // Open source from current data source for streaming
-                    val currentDataSource = currentState.resources.dataSource
-                    val source = currentDataSource.openSource()
-
-                    // Stream to new file using gateway
-                    try {
-                        gatewaySwitch.file(newFilePath, readWrite = true).use { handle ->
-                            handle.sink().buffer().use { sink ->
-                                sink.writeAll(source)
-                            }
-                        }
-                    } finally {
-                        source.close()
-                    }
-
-                    log(tag) { "Content streamed to: ${newFilePath.name}" }
-
-                    // Note: Engine remains with old source. Workspace should handle engine switch if needed.
-                    Result.success(Unit)
-
-                } catch (e: Exception) {
-                    log(tag, ERROR) { "Failed to save as: ${newFilePath.name} - ${e.asLog()}" }
-                    _state.value = EditorState.Error(e, currentState)
-                    _error.value = e
-                    Result.failure(e)
-                }
+                log(tag) { "Opening content stream for reading" }
+                currentState.resources.dataSource.openSource()
             }
             else -> {
-                val error = IllegalStateException("Cannot save - no content available")
-                log(tag, Logging.Priority.WARN) { error.message ?: "Unknown error" }
-                Result.failure(error)
+                throw IllegalStateException("Cannot get content stream - no content available")
             }
         }
     }

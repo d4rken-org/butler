@@ -10,6 +10,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.flow.combine
@@ -36,11 +37,14 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.parcelize.Parcelize
+import okio.buffer
+import okio.use
 
 
 class EditorWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
     @Assisted private val arguments: Arguments?,
+    private val gatewaySwitch: GatewaySwitch,
     private val editorEngineFactory: EditorEngine.Factory,
     private val editorSettings: EditorSettings,
     private val operationsManager: OperationsManager,
@@ -228,17 +232,29 @@ class EditorWorkspace @AssistedInject constructor(
     suspend fun saveFileAs(newFilePath: APath<*>): Result<Unit> {
         val engine = engineHolder.value()
 
-        // Save content to new file
-        val saveResult = engine.saveFileAs(newFilePath)
-        if (saveResult.isFailure) {
-            return saveResult
-        }
-
-        // Switch to new engine with the new file path
         return try {
+            log(tag) { "Saving as: ${newFilePath.name}" }
+
+            // Get content stream from engine (Engine manages content)
+            val source = engine.getContentStream()
+
+            // Workspace handles file I/O operations
+            source.use {
+                gatewaySwitch.file(newFilePath, readWrite = true).use { handle ->
+                    handle.sink().buffer().use { sink ->
+                        sink.writeAll(source)
+                    }
+                }
+            }
+
+            log(tag) { "Content written to: ${newFilePath.name}" }
+
+            // Switch to new engine with the new file path
             switchEngine(newFilePath)
+
             Result.success(Unit)
         } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to save as: ${newFilePath.name} - ${e.asLog()}" }
             Result.failure(e)
         }
     }
