@@ -49,6 +49,15 @@ class ChunkManagerTest : BaseTest() {
         boundariesMap[chunk.id] = ChunkBoundary(startOffset, endOffset, lineCount)
     }
 
+    private suspend fun ChunkManager.addBoundaryOnly(chunkId: TextChunk.ChunkId, startOffset: Long, endOffset: Long, lineCount: Int = 1) {
+        // Access boundaries via reflection to set boundary without adding chunk to cache
+        val boundariesField = ChunkManager::class.java.getDeclaredField("boundaries")
+        boundariesField.isAccessible = true
+        @Suppress("UNCHECKED_CAST")
+        val boundariesMap = boundariesField.get(this) as MutableMap<TextChunk.ChunkId, ChunkBoundary>
+        boundariesMap[chunkId] = ChunkBoundary(startOffset, endOffset, lineCount)
+    }
+
     // ==================== mergeChunks() Algorithm Tests ====================
 
     @Test
@@ -625,5 +634,158 @@ class ChunkManagerTest : BaseTest() {
         // And: Chunk no longer in manager
         val retrieved = manager.getChunk(cleanChunk.id)
         retrieved shouldBe null
+    }
+
+    // ==================== Boundary Adjustment Tests ====================
+
+    @Test
+    fun `loadChunk adjusts boundary when chunk smaller than expected`() = runTest {
+        // Given: Repository returns chunk smaller than boundary size
+        // This happens when surrogate pair protection truncates content
+        val mockRepo = mockk<ChunkRepository>(relaxed = true)
+        val smallerContent = "a".repeat(97)  // 97 chars instead of expected 100
+
+        val chunkId = TextChunk.ChunkId.generate()
+        val returnedChunk = TextChunk(
+            id = chunkId,
+            content = smallerContent,  // Smaller than expected
+            lineCount = 1,
+            lineEnding = LineEnding.LF,
+            isDirty = false
+        )
+
+        coEvery { mockRepo.loadChunk(chunkId, any()) } returns returnedChunk
+
+        val manager = createChunkManager(mockRepo)
+
+        // Setup initial boundary expecting 100 chars (DON'T cache the chunk)
+        manager.addBoundaryOnly(chunkId, startOffset = 0L, endOffset = 100L, lineCount = 1)
+
+        // When: Load chunk (which returns smaller content)
+        manager.loadChunk(chunkId)
+
+        // Then: Boundary should be adjusted to actual size (97)
+        val boundary = manager.getBoundary(chunkId)
+        boundary shouldNotBe null
+        boundary?.endOffset shouldBe 97L  // Adjusted from 100 to 97
+    }
+
+    @Test
+    fun `boundary adjustment cascades to next chunk`() = runTest {
+        // Given: Two adjacent chunks, first one gets truncated
+        val mockRepo = mockk<ChunkRepository>(relaxed = true)
+
+        val chunk1Id = TextChunk.ChunkId.generate()
+        val chunk2Id = TextChunk.ChunkId.generate()
+
+        // First chunk returns 97 chars instead of expected 100
+        val chunk1 = TextChunk(
+            id = chunk1Id,
+            content = "a".repeat(97),  // Truncated by 3
+            lineCount = 1,
+            lineEnding = LineEnding.LF,
+            isDirty = false
+        )
+
+        // Second chunk unchanged
+        val chunk2 = TextChunk(
+            id = chunk2Id,
+            content = "b".repeat(100),
+            lineCount = 1,
+            lineEnding = LineEnding.LF,
+            isDirty = false
+        )
+
+        coEvery { mockRepo.loadChunk(chunk1Id, any()) } returns chunk1
+        coEvery { mockRepo.loadChunk(chunk2Id, any()) } returns chunk2
+
+        val manager = createChunkManager(mockRepo)
+
+        // Setup boundaries: chunk1 [0-100), chunk2 [100-200) (DON'T cache chunks)
+        manager.addBoundaryOnly(chunk1Id, startOffset = 0L, endOffset = 100L, lineCount = 1)
+        manager.addBoundaryOnly(chunk2Id, startOffset = 100L, endOffset = 200L, lineCount = 1)
+
+        // When: Load first chunk (gets truncated to 97)
+        manager.loadChunk(chunk1Id)
+
+        // Then: First chunk boundary adjusted
+        val boundary1 = manager.getBoundary(chunk1Id)
+        boundary1?.endOffset shouldBe 97L
+
+        // And: Second chunk boundary CASCADE adjusted (start moved from 100 to 97)
+        val boundary2 = manager.getBoundary(chunk2Id)
+        boundary2?.startOffset shouldBe 97L  // Cascaded from chunk1's new end
+        boundary2?.endOffset shouldBe 197L   // Shifted by 3
+    }
+
+    @Test
+    fun `multiple chunk adjustments maintain gap-free boundaries`() = runTest {
+        // Given: Three chunks, first two get truncated
+        val mockRepo = mockk<ChunkRepository>(relaxed = true)
+
+        val chunk1Id = TextChunk.ChunkId.generate()
+        val chunk2Id = TextChunk.ChunkId.generate()
+        val chunk3Id = TextChunk.ChunkId.generate()
+
+        val chunk1 = TextChunk(
+            id = chunk1Id,
+            content = "a".repeat(98),  // Truncated by 2
+            lineCount = 1,
+            lineEnding = LineEnding.LF,
+            isDirty = false
+        )
+
+        val chunk2 = TextChunk(
+            id = chunk2Id,
+            content = "b".repeat(99),  // Truncated by 1
+            lineCount = 1,
+            lineEnding = LineEnding.LF,
+            isDirty = false
+        )
+
+        val chunk3 = TextChunk(
+            id = chunk3Id,
+            content = "c".repeat(100),  // No truncation
+            lineCount = 1,
+            lineEnding = LineEnding.LF,
+            isDirty = false
+        )
+
+        coEvery { mockRepo.loadChunk(chunk1Id, any()) } returns chunk1
+        coEvery { mockRepo.loadChunk(chunk2Id, any()) } returns chunk2
+        coEvery { mockRepo.loadChunk(chunk3Id, any()) } returns chunk3
+
+        val manager = createChunkManager(mockRepo)
+
+        // Setup boundaries: [0-100), [100-200), [200-300) (DON'T cache chunks)
+        manager.addBoundaryOnly(chunk1Id, 0L, 100L, lineCount = 1)
+        manager.addBoundaryOnly(chunk2Id, 100L, 200L, lineCount = 1)
+        manager.addBoundaryOnly(chunk3Id, 200L, 300L, lineCount = 1)
+
+        // When: Load all chunks sequentially
+        manager.loadChunk(chunk1Id)
+        manager.loadChunk(chunk2Id)
+        manager.loadChunk(chunk3Id)
+
+        // Then: Verify gap-free boundaries
+        val boundary1 = manager.getBoundary(chunk1Id)
+        val boundary2 = manager.getBoundary(chunk2Id)
+        val boundary3 = manager.getBoundary(chunk3Id)
+
+        // Chunk 1: [0-98)
+        boundary1?.startOffset shouldBe 0L
+        boundary1?.endOffset shouldBe 98L
+
+        // Chunk 2: [98-197) - cascaded from chunk1 + own truncation
+        boundary2?.startOffset shouldBe 98L  // Chunk1's end
+        boundary2?.endOffset shouldBe 197L   // 98 + 99
+
+        // Chunk 3: [197-297) - cascaded from chunk2
+        boundary3?.startOffset shouldBe 197L // Chunk2's end
+        boundary3?.endOffset shouldBe 297L   // 197 + 100
+
+        // Verify no gaps: each chunk's end = next chunk's start
+        boundary1?.endOffset shouldBe boundary2?.startOffset
+        boundary2?.endOffset shouldBe boundary3?.startOffset
     }
 }

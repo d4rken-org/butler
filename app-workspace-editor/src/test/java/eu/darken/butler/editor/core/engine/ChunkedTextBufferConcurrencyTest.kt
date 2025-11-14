@@ -37,7 +37,7 @@ class ChunkedTextBufferConcurrencyTest : BaseTest() {
         val dataSource = InMemoryDataSource(workspaceId, content)
         dataSource.open()
 
-        val repository = ChunkRepository(workspaceId, dataSource, chunkSize)
+        val repository = ChunkRepository(workspaceId, dataSource)
         val manager = ChunkManager(workspaceId, repository, chunkSize)
         val buffer = ChunkedTextBuffer(workspaceId, manager, repository)
 

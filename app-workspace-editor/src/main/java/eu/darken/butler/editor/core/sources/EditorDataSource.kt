@@ -11,7 +11,15 @@ import java.io.FileNotFoundException
  * Data source interface for editor content.
  * Supports both file-based and in-memory editing.
  *
- * Caching is handled by ChunkManager - data sources are pure I/O layers.
+ * ## Architectural Role
+ * DataSource is a **pure I/O layer** - it handles reading/writing bytes from storage.
+ * - **Does NOT handle**: Text semantics (line endings, UTF-16 validation, etc.)
+ * - **Does handle**: File I/O, memory operations, encoding/decoding
+ *
+ * Text-level concerns (line ending detection, UTF-16 surrogate pair protection) are
+ * handled by ChunkRepository.
+ *
+ * Caching is handled by ChunkManager - data sources don't cache content.
  */
 interface EditorDataSource {
     val fileInfo: StateFlow<FileInfo?>
@@ -25,7 +33,17 @@ interface EditorDataSource {
     suspend fun open()
 
     /**
-     * Reads a chunk from the data source.
+     * Reads a chunk of content from the data source.
+     *
+     * @param startOffset Byte offset in the file/content where reading begins
+     * @param size Number of bytes to read
+     * @return String content decoded from UTF-8 bytes
+     *
+     * **Important**: The returned String may contain incomplete UTF-16 surrogate pairs
+     * at chunk boundaries. This occurs when byte-based chunk boundaries split multi-byte
+     * UTF-8 characters (like emoji). ChunkRepository is responsible for detecting and
+     * handling incomplete surrogate pairs.
+     *
      * ChunkManager cache is the source of truth for modified chunks.
      */
     suspend fun readChunk(startOffset: Long, size: Long): String

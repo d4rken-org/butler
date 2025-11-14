@@ -88,21 +88,37 @@ class ChunkManager @AssistedInject constructor(
                     lineCount = chunk.lineCount
                 ))).toMutableMap()
 
-                // CASCADE: Adjust next chunk's start offset to match this chunk's new end
-                // Find the next chunk by looking for one whose start matches our old end
-                val nextChunkEntry = boundaries.entries.find { it.value.startOffset == boundary.endOffset }
-                if (nextChunkEntry != null) {
+                // CASCADE: Adjust ALL subsequent chunks' start AND end offsets
+                // When one chunk shrinks, all following chunks need to shift left
+                var currentEndOffset = boundary.endOffset  // Where we originally ended
+                var newEndOffset = actualEndOffset          // Where we actually end now
+                val delta = currentEndOffset - newEndOffset // How much we shifted
+
+                // Loop through all subsequent chunks and shift them
+                var searchOffset = currentEndOffset
+                while (true) {
+                    val nextChunkEntry = boundaries.entries.find { it.value.startOffset == searchOffset }
+                    if (nextChunkEntry == null) break  // No more chunks to cascade
+
                     val nextChunkId = nextChunkEntry.key
                     val nextBoundary = nextChunkEntry.value
+                    val newNextStart = nextBoundary.startOffset - delta
+                    val newNextEnd = nextBoundary.endOffset - delta
+
                     log(tag) {
-                        "Cascading boundary adjustment to next chunk $nextChunkId: " +
-                                "start ${nextBoundary.startOffset} -> $actualEndOffset"
+                        "Cascading boundary adjustment to chunk $nextChunkId: " +
+                                "[${nextBoundary.startOffset}, ${nextBoundary.endOffset}) -> " +
+                                "[$newNextStart, $newNextEnd)"
                     }
+
                     boundaries[nextChunkId] = ChunkBoundary(
-                        startOffset = actualEndOffset,  // Start where previous chunk ended
-                        endOffset = nextBoundary.endOffset,
+                        startOffset = newNextStart,
+                        endOffset = newNextEnd,
                         lineCount = nextBoundary.lineCount
                     )
+
+                    // Move to next chunk in chain
+                    searchOffset = nextBoundary.endOffset
                 }
             }
 

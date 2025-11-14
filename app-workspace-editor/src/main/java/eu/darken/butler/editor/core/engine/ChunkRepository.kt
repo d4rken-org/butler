@@ -17,7 +17,6 @@ import kotlin.time.Instant
 class ChunkRepository @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     @Assisted val dataSource: EditorDataSource,
-    @Assisted private val chunkSize: Long = ChunkManager.DEFAULT_CHUNK_SIZE
 ) {
 
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "ChunkRepository")
@@ -29,25 +28,64 @@ class ChunkRepository @AssistedInject constructor(
     suspend fun loadChunk(chunkId: TextChunk.ChunkId, boundary: ChunkBoundary): TextChunk = withContext(Dispatchers.IO) {
         log(tag) { "Loading chunk: $chunkId at ${boundary.startOffset}-${boundary.endOffset}" }
 
-        val content = dataSource.readChunk(boundary.startOffset, boundary.size)
+        // Read from DataSource (may contain incomplete UTF-16 surrogate pairs at boundaries)
+        val rawContent = dataSource.readChunk(boundary.startOffset, boundary.size)
+
+        // CRITICAL: Adjust for UTF-16 surrogate pairs
+        // DataSource reads byte-based chunks, which can split multi-byte UTF-8 characters
+        // This creates incomplete UTF-16 surrogate pairs in JVM Strings
+        val validContent = adjustForSurrogatePairs(rawContent)
 
         // Detect line ending style in this chunk
-        val lineEnding = detectLineEnding(content)
+        val lineEnding = detectLineEnding(validContent)
 
         // Count lines using detected style
-        val lineCount = countLines(content, lineEnding)
+        val lineCount = countLines(validContent, lineEnding)
 
         val chunk = TextChunk(
             id = chunkId,
-            content = content,
+            content = validContent,  // Adjusted content with complete characters only
             lineCount = lineCount,
             lineEnding = lineEnding,
             isDirty = false,
             isLoaded = true
         )
 
-        log(tag) { "Loaded chunk: $chunkId (${content.length} bytes, $lineCount lines, $lineEnding)" }
+        log(tag) { "Loaded chunk: $chunkId (${validContent.length} bytes, $lineCount lines, $lineEnding)" }
         chunk
+    }
+
+    /**
+     * Adjusts content to ensure it doesn't end mid-surrogate-pair.
+     *
+     * UTF-16 surrogate pairs consist of two Char values:
+     * - High surrogate: U+D800 to U+DBFF
+     * - Low surrogate: U+DC00 to U+DFFF
+     *
+     * When DataSource reads byte-based chunks, multi-byte UTF-8 characters (like emoji)
+     * can be split at chunk boundaries. This creates incomplete UTF-16 surrogate pairs
+     * in the decoded String.
+     *
+     * If content ends with a high surrogate (incomplete pair), we truncate it.
+     * ChunkManager will adjust chunk boundaries accordingly and the "missing" character
+     * will become the first character of the next chunk.
+     *
+     * @param content The decoded string content from DataSource
+     * @return Content with complete surrogate pairs only
+     */
+    private fun adjustForSurrogatePairs(content: String): String {
+        if (content.isEmpty()) return content
+
+        val lastIndex = content.length - 1
+
+        // Check if content ends with a high surrogate (first half of pair)
+        // If so, we have an incomplete pair - truncate it
+        if (Character.isHighSurrogate(content[lastIndex])) {
+            log(tag) { "Adjusting content: truncating orphaned high surrogate at end" }
+            return content.substring(0, lastIndex)
+        }
+
+        return content
     }
 
     /**
@@ -176,7 +214,6 @@ class ChunkRepository @AssistedInject constructor(
         fun create(
             workspaceId: Workspace.Id,
             dataSource: EditorDataSource,
-            chunkSize: Long = ChunkManager.DEFAULT_CHUNK_SIZE
         ): ChunkRepository
     }
 }
