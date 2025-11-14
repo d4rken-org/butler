@@ -18,6 +18,7 @@ fun SearcherDialogHost(
     onCopyToClipboard: (String) -> Unit,
     onNavigateToClipboardSource: (ClipboardClip) -> Unit,
     onRemoveClipboardEntry: (ClipboardClip) -> Unit,
+    onSortOptionsConfirmed: (SearchSortOptionsResult) -> Unit = {},
 ) {
     when (dialogState) {
         is SearcherDialogState.None -> {
@@ -48,6 +49,13 @@ fun SearcherDialogHost(
                 onPaste = null, // Not applicable for searcher
                 onRemove = { onRemoveClipboardEntry(dialogState.clip) },
                 onCopyPath = onCopyToClipboard,
+            )
+        }
+        is SearcherDialogState.EditSortOptions -> {
+            SearchSortOptionsDialog(
+                currentSortSettings = dialogState.currentSortSettings,
+                onDismiss = onDismiss,
+                onConfirm = onSortOptionsConfirmed,
             )
         }
     }

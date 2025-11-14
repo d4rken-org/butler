@@ -1,0 +1,200 @@
+package eu.darken.butler.apps.ui.details
+
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.ArrowBack
+import androidx.compose.material.icons.twotone.Android
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
+import eu.darken.butler.apps.R
+import eu.darken.butler.apps.core.details.AppInfo
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
+import eu.darken.butler.workspace.ui.manager.WorkspaceButton
+import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
+import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+
+@Composable
+fun AppDetailsToolbarCard(
+    modifier: Modifier = Modifier,
+    app: AppInfo?,
+    design: WorkspaceDesign,
+    isModal: Boolean,
+    collapsedFraction: Float = 0f,
+    onBackClick: () -> Unit,
+    workspaceButtonState: WorkspaceButtonViewModel.State? = null,
+    workspaceActionHandler: WorkspaceActionHandler? = null,
+) {
+    val context = LocalContext.current
+    val isCollapsed = collapsedFraction > 0.5f
+
+    val cardPadding by animateDpAsState(
+        targetValue = if (isCollapsed) 6.dp else 8.dp,
+        label = "cardPadding"
+    )
+
+    val iconSize by animateDpAsState(
+        targetValue = if (isCollapsed) 36.dp else 40.dp,
+        label = "iconSize"
+    )
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(cardPadding),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Back button (modal mode)
+            if (isModal) {
+                IconButton(
+                    onClick = onBackClick,
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.TwoTone.ArrowBack,
+                        contentDescription = stringResource(R.string.appdetails_back_action),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            } else {
+                // Add padding in pane mode
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+
+            // App icon
+            if (app?.icon != null) {
+                AsyncImage(
+                    model = app.icon.get(context),
+                    contentDescription = null,
+                    modifier = Modifier.size(iconSize),
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.TwoTone.Android,
+                    contentDescription = null,
+                    modifier = Modifier.size(iconSize),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            // App name
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = app?.label?.get(context) ?: "",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = if (isCollapsed) 1 else 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+                // Show package name only when expanded
+                if (!isCollapsed && app?.packageName != null) {
+                    Text(
+                        text = app.packageName,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+
+            // Workspace button (non-modal mode, single pane)
+            if (!isModal && design.isSingle && workspaceButtonState != null && workspaceActionHandler != null) {
+                WorkspaceButton(
+                    modifier = Modifier.size(40.dp),
+                    state = workspaceButtonState,
+                    workspaceActionHandler = workspaceActionHandler,
+                )
+            }
+        }
+    }
+}
+
+@Preview2
+@Composable
+private fun AppDetailsToolbarCardExpandedPreview() {
+    PreviewWrapper {
+        AppDetailsToolbarCard(
+            app = null,
+            design = WorkspaceDesign(),
+            isModal = false,
+            collapsedFraction = 0f,
+            onBackClick = {},
+            workspaceButtonState = null,
+            workspaceActionHandler = null,
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun AppDetailsToolbarCardCollapsedPreview() {
+    PreviewWrapper {
+        AppDetailsToolbarCard(
+            app = null,
+            design = WorkspaceDesign(),
+            isModal = false,
+            collapsedFraction = 1f,
+            onBackClick = {},
+            workspaceButtonState = null,
+            workspaceActionHandler = null,
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun AppDetailsToolbarCardModalPreview() {
+    PreviewWrapper {
+        AppDetailsToolbarCard(
+            app = null,
+            design = WorkspaceDesign(),
+            isModal = true,
+            collapsedFraction = 0f,
+            onBackClick = {},
+            workspaceButtonState = null,
+            workspaceActionHandler = null,
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}

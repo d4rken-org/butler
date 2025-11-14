@@ -16,8 +16,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +32,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -53,8 +58,9 @@ import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchTarget
+import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
-import eu.darken.butler.searcher.ui.search.input.SearchStatusCard
+import eu.darken.butler.searcher.ui.search.SearchProgressCard
 import eu.darken.butler.searcher.ui.search.input.SearchToolbarCard
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.workspace.core.Workspace
@@ -106,8 +112,12 @@ fun SearcherWorkspacePage(
 
     // Track actual measured height of the toolbar card
     val density = LocalDensity.current
-    var actualToolbarHeightPx by remember { mutableStateOf(0) }
+    var actualToolbarHeightPx by remember { mutableIntStateOf(0) }
     val actualToolbarHeightDp = with(density) { actualToolbarHeightPx.toDp() }
+
+    // Track actual measured height of the info bar
+    var actualInfoBarHeightPx by remember { mutableIntStateOf(0) }
+    val actualInfoBarHeightDp = with(density) { actualInfoBarHeightPx.toDp() }
 
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
@@ -159,22 +169,30 @@ fun SearcherWorkspacePage(
         derivedStateOf { clipboardState.entries.isNotEmpty() }
     }
     val hasActions by remember {
-        derivedStateOf { state?.selectionState?.selectedResultIds?.isNotEmpty() == true }
+        derivedStateOf {
+            state?.selectionState?.selectedResultIds?.isNotEmpty() == true ||
+            state?.listItems?.isNotEmpty() == true
+        }
     }
 
     // Get current toolbar height for layout calculations
     topToolbarScrollBehavior.state.getCurrentHeightDp()
     val statusCardHeight = 60.dp // Fixed height for status card
 
-    // Determine if status card should be visible
-    val showStatusCard by remember {
+    // Determine if progress card should be visible
+    val showProgressCard by remember {
         derivedStateOf {
             state?.let { currentState ->
-                currentState.searchQuery.text.isNotBlank() ||
-                        currentState.isSearching ||
-                        currentState.workspaceState.results.isNotEmpty() ||
-                        currentState.workspaceState.error != null
+                currentState.workspaceState.targetProgress.isNotEmpty() &&
+                    currentState.workspaceState.searchStatus != SearcherWorkspace.State.SearchStatus.IDLE
             } ?: false
+        }
+    }
+
+    // Determine if info bar should be visible
+    val showInfoBar by remember {
+        derivedStateOf {
+            state?.selectionState?.selectionCount?.let { it > 0 } ?: false
         }
     }
 
@@ -259,7 +277,9 @@ fun SearcherWorkspacePage(
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp,
-                    top = 16.dp + actualToolbarHeightDp + (if (showStatusCard) statusCardHeight + 8.dp else 0.dp),
+                    top = 8.dp + actualToolbarHeightDp +
+                        (if (showProgressCard) statusCardHeight + 8.dp else 0.dp) +
+                        (if (showInfoBar) actualInfoBarHeightDp + 8.dp else 0.dp),
                     bottom = run {
                         val actionBarHeight = if (hasActions) 64.dp else 0.dp
                         val clipboardHeight = if (hasClipboard) 88.dp else 0.dp
@@ -278,6 +298,16 @@ fun SearcherWorkspacePage(
                             searchPath = searchPath,
                             setupRequirements = currentState.setupRequirements,
                             onOpenSetup = { onPageAction(SearcherPageAction.Setup.Open(currentState.setupRequirements)) },
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+                }
+
+                // Show empty state when no search targets configured
+                if (currentState.searchTargets.isEmpty()) {
+                    item {
+                        SearchTargetsEmptyStateCard(
+                            onAddDefaultPaths = { onPageAction(SearcherPageAction.Targets.AddDefaultPaths) },
                             modifier = Modifier.padding(top = 8.dp)
                         )
                     }
@@ -381,16 +411,42 @@ fun SearcherWorkspacePage(
                     }
             )
 
-            // Pinned status card below toolbar - always visible when needed
-            if (showStatusCard) {
-                SearchStatusCard(
-                    state = currentState,
+            // Error dialog state
+            var errorDialogState by remember { mutableStateOf<Pair<String, Throwable>?>(null) }
+
+            // Pinned progress card below toolbar
+            if (showProgressCard) {
+                SearchProgressCard(
+                    targetProgress = currentState.workspaceState.targetProgress,
+                    overallProgress = currentState.workspaceState.progress,
+                    searchStatus = currentState.workspaceState.searchStatus,
                     onCancel = { onPageAction(SearcherPageAction.Search.Cancel) },
                     onClear = { onPageAction(SearcherPageAction.Search.ClearResults) },
+                    onErrorClick = { path, exception ->
+                        errorDialogState = path to exception
+                    },
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .offset(y = 16.dp + actualToolbarHeightDp) // Account for toolbar's vertical padding + gap
+                        .offset(y = 16.dp + actualToolbarHeightDp)
                         .padding(horizontal = 16.dp)
+                )
+            }
+
+            // Pinned info bar below progress card
+            if (showInfoBar) {
+                SearcherInfoBar(
+                    selectedCount = currentState.selectionState.selectionCount,
+                    onClearSelection = { onPageAction(SearcherPageAction.Results.ExitSelectionMode) },
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .offset(
+                            y = 8.dp + actualToolbarHeightDp +
+                                (if (showProgressCard) statusCardHeight + 8.dp else 0.dp)
+                        )
+                        .padding(horizontal = 16.dp)
+                        .onGloballyPositioned { layoutCoordinates ->
+                            actualInfoBarHeightPx = layoutCoordinates.size.height
+                        }
                 )
             }
 
@@ -473,8 +529,20 @@ fun SearcherWorkspacePage(
                             is SearcherAction.DeselectAll -> onPageAction(SearcherPageAction.Results.ExitSelectionMode)
                             else -> onPageAction(SearcherPageAction.WorkspaceAction(searcherAction))
                         }
+                    }
+                )
+            }
+
+            // Error dialog for individual search target failures
+            errorDialogState?.let { (path, exception) ->
+                SearchErrorDialog(
+                    path = path,
+                    exception = exception,
+                    onCopyError = {
+                        onPageAction(SearcherPageAction.Error.Copy(exception))
+                        errorDialogState = null
                     },
-                    selectionCount = currentState.selectionState.selectionCount
+                    onDismiss = { errorDialogState = null }
                 )
             }
         }
@@ -522,7 +590,7 @@ fun SearcherWorkspacePage(
                     TextButton(
                         onClick = { showClearHistoryDialog = false }
                     ) {
-                        Text(text = stringResource(R.string.general_cancel_action))
+                        Text(text = stringResource(eu.darken.butler.common.R.string.general_cancel_action))
                     }
                 }
             )
@@ -536,6 +604,7 @@ fun SearcherWorkspacePage(
             onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
             onNavigateToClipboardSource = { clip -> vm?.navigateToClipboardSource(clip) },
             onRemoveClipboardEntry = { clip -> vm?.removeClipboardEntry(clip) },
+            onSortOptionsConfirmed = { vm?.onSortOptions(it) },
         )
 
         // Operation dialog host
@@ -627,12 +696,12 @@ private fun SearcherWorkspacePageWithResultsPreview() {
 
 @Preview2
 @Composable
-private fun SearcherWorkspacePageSearchingPreview() {
+private fun SearcherWorkspacePageSearchingWithProgressPreview() {
     PreviewWrapper {
         val workspaceId = Workspace.Id()
         SearcherWorkspacePage(
             workspaceId = workspaceId,
-            stateSource = flowOf(SearcherMockDataProvider.createMockSearchingState(workspaceId)),
+            stateSource = flowOf(SearcherMockDataProvider.createMockSearchingWithProgressState(workspaceId)),
             clipboardStateSource = flowOf(SearcherWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(SearcherWorkspaceViewModel.OperationsState()),
             workspaceStateSource = flowOf(null),

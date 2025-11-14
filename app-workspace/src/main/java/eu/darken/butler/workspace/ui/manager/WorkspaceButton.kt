@@ -53,6 +53,7 @@ fun WorkspaceButton(
     workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    var showCloseAllDialog by remember { mutableStateOf(false) }
 
     Box(modifier = modifier) {
         @Suppress("COMPOSE_APPLIER_CALL_MISMATCH")
@@ -64,7 +65,11 @@ fun WorkspaceButton(
                 .background(containerColor ?: MaterialTheme.colorScheme.tertiaryContainer)
                 .combinedClickable(
                     onClick = { expanded = true },
-                    onLongClick = { workspaceActionHandler?.executeWorkspaceAction(WorkspaceAction.Create()) }
+                    onLongClick = {
+                        if ((state?.workspaceCount ?: 0) > 0) {
+                            showCloseAllDialog = true
+                        }
+                    }
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -123,6 +128,17 @@ fun WorkspaceButton(
                 )
             }
         }
+
+        // Close all confirmation dialog
+        CloseAllWorkspacesDialog(
+            visible = showCloseAllDialog,
+            workspaceCount = state?.workspaceCount ?: 0,
+            onDismiss = { showCloseAllDialog = false },
+            onConfirm = {
+                showCloseAllDialog = false
+                workspaceActionHandler?.executeWorkspaceAction(WorkspaceAction.CloseAll)
+            }
+        )
 
         // Badge showing workspace count (top-left)
         if (state?.workspaceCount != null && state.workspaceCount > 0) {

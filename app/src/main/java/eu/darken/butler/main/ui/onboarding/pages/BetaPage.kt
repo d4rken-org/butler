@@ -6,7 +6,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,8 +20,6 @@ import androidx.compose.material.icons.twotone.Forum
 import androidx.compose.material.icons.twotone.NewReleases
 import androidx.compose.material.icons.twotone.Science
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.main.ui.onboarding.components.OnboardingInfoCard
+import eu.darken.butler.main.ui.onboarding.components.OnboardingPageHeader
 
 @Composable
 internal fun BetaPage(
@@ -75,31 +74,18 @@ internal fun BetaPage(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-
-                Icon(
-                    imageVector = Icons.TwoTone.Science,
-                    contentDescription = null,
-                    modifier = Modifier.size(96.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Text(
-                    text = stringResource(R.string.onboarding_beta_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = stringResource(R.string.onboarding_beta_message),
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurface,
+                OnboardingPageHeader(
+                    title = stringResource(R.string.onboarding_beta_title),
+                    message = stringResource(R.string.onboarding_beta_message),
+                    icon = {
+                        Icon(
+                            imageVector = Icons.TwoTone.Science,
+                            contentDescription = null,
+                            modifier = Modifier.size(96.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -108,18 +94,12 @@ internal fun BetaPage(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                    OnboardingInfoCard(
+                        title = stringResource(R.string.onboarding_beta_feature_early_access_title),
+                        description = stringResource(R.string.onboarding_beta_feature_early_access_description),
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        icon = {
                             Icon(
                                 imageVector = Icons.TwoTone.NewReleases,
                                 contentDescription = null,
@@ -127,34 +107,15 @@ internal fun BetaPage(
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                             Spacer(modifier = Modifier.size(12.dp))
-                            Column {
-                                Text(
-                                    text = stringResource(R.string.onboarding_beta_feature_early_access_title),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                                Text(
-                                    text = stringResource(R.string.onboarding_beta_feature_early_access_description),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                                )
-                            }
                         }
-                    }
+                    )
 
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                    OnboardingInfoCard(
+                        title = stringResource(R.string.onboarding_beta_feature_influence_title),
+                        description = stringResource(R.string.onboarding_beta_feature_influence_description),
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        icon = {
                             Icon(
                                 imageVector = Icons.AutoMirrored.TwoTone.TrendingUp,
                                 contentDescription = null,
@@ -162,34 +123,15 @@ internal fun BetaPage(
                                 tint = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                             Spacer(modifier = Modifier.size(12.dp))
-                            Column {
-                                Text(
-                                    text = stringResource(R.string.onboarding_beta_feature_influence_title),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                                )
-                                Text(
-                                    text = stringResource(R.string.onboarding_beta_feature_influence_description),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
-                                )
-                            }
                         }
-                    }
+                    )
 
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                    OnboardingInfoCard(
+                        title = stringResource(R.string.onboarding_beta_feature_feedback_title),
+                        description = stringResource(R.string.onboarding_beta_feature_feedback_description),
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                        icon = {
                             Icon(
                                 imageVector = Icons.TwoTone.Forum,
                                 contentDescription = null,
@@ -197,21 +139,8 @@ internal fun BetaPage(
                                 tint = MaterialTheme.colorScheme.onTertiaryContainer
                             )
                             Spacer(modifier = Modifier.size(12.dp))
-                            Column {
-                                Text(
-                                    text = stringResource(R.string.onboarding_beta_feature_feedback_title),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer
-                                )
-                                Text(
-                                    text = stringResource(R.string.onboarding_beta_feature_feedback_description),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f)
-                                )
-                            }
                         }
-                    }
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))

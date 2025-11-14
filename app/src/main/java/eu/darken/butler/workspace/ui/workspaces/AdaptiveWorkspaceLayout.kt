@@ -1,6 +1,7 @@
 package eu.darken.butler.workspace.ui.workspaces
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.systemBarsPadding
@@ -14,6 +15,8 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
+import eu.darken.butler.workspace.ui.dialogs.WorkspaceManagerDialogState
 import eu.darken.butler.workspace.ui.workspaces.adaptive.AdaptiveWorkspaceContainer
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DragDropState
@@ -35,6 +38,12 @@ fun AdaptiveWorkspaceLayout(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     workspaceActionHandler: WorkspaceActionHandler? = null,
     onScreenAction: (WorkspaceScreenAction) -> Unit,
+    managerDialogStates: Map<Workspace.Id, WorkspaceManagerDialogState.Targeted>,
+    onDismissManagerDialog: (Workspace.Id) -> Unit,
+    onConfirmManagerDialog: (WorkspaceManagerDialogState.Targeted) -> Unit,
+    bannerStates: Map<Workspace.Id, eu.darken.butler.workspace.ui.feedback.BannerState>,
+    onDismissBanner: (Workspace.Id) -> Unit,
+    paneLocalModals: Map<Workspace.Id, Workspace.Info> = emptyMap(),
 ) {
     val dragDropState = remember { DragDropState() }
 
@@ -111,10 +120,44 @@ fun AdaptiveWorkspaceLayout(
                 paneContent = { info, paneNumber ->
                     if (info != null) {
                         key(info.id) {
-                            WorkspaceMapper(
-                                info = info,
-                                design = design,
-                            )
+                            // Check if this workspace has a pane-local modal child
+                            val childModal = paneLocalModals[info.id]
+
+                            Box {
+                                // Background: Parent workspace
+                                WorkspaceOverlayContainer(
+                                    workspaceId = info.id,
+                                    managerDialogStates = managerDialogStates,
+                                    onDismissManagerDialog = onDismissManagerDialog,
+                                    onConfirmManagerDialog = onConfirmManagerDialog,
+                                    bannerStates = bannerStates,
+                                    onDismissBanner = onDismissBanner,
+                                ) {
+                                    WorkspaceMapper(
+                                        info = info,
+                                        design = design,
+                                    )
+                                }
+
+                                // Overlay: Child modal (if any)
+                                childModal?.let { modal ->
+                                    key(modal.id) {
+                                        WorkspaceOverlayContainer(
+                                            workspaceId = modal.id,
+                                            managerDialogStates = managerDialogStates,
+                                            onDismissManagerDialog = onDismissManagerDialog,
+                                            onConfirmManagerDialog = onConfirmManagerDialog,
+                                            bannerStates = bannerStates,
+                                            onDismissBanner = onDismissBanner,
+                                        ) {
+                                            WorkspaceMapper(
+                                                info = modal.asPaneInfo(),
+                                                design = design,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                     } else {
                         EmptyAdaptiveWorkspaceContent(

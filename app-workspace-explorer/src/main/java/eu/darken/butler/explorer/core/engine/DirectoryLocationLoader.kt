@@ -21,7 +21,7 @@ import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.explorer.R
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.permissions.PathPermissionCheck
+import eu.darken.butler.permissions.core.PathPermissionCheck
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow

@@ -82,14 +82,10 @@ class OwnershipResolver @Inject constructor(
      */
     private suspend fun resolveUserName(uid: Int): String? {
         // Strategy 1: Check positive cache
-        userCache[uid]?.let { name ->
-            log(tag, VERBOSE) { "resolveUserName($uid): cache hit -> $name" }
-            return name
-        }
+        userCache[uid]?.let { name -> return name }
 
         // Strategy 1b: Check negative cache (for system UIDs only)
         if (userCacheNegative.contains(uid)) {
-            log(tag, VERBOSE) { "resolveUserName($uid): negative cache hit -> null" }
             return null
         }
 
@@ -144,14 +140,10 @@ class OwnershipResolver @Inject constructor(
      */
     private suspend fun resolveGroupName(gid: Int): String? {
         // Strategy 1: Check positive cache
-        groupCache[gid]?.let { name ->
-            log(tag, VERBOSE) { "resolveGroupName($gid): cache hit -> $name" }
-            return name
-        }
+        groupCache[gid]?.let { name -> return name }
 
         // Strategy 1b: Check negative cache (for system GIDs only)
         if (groupCacheNegative.contains(gid)) {
-            log(tag, VERBOSE) { "resolveGroupName($gid): negative cache hit -> null" }
             return null
         }
 

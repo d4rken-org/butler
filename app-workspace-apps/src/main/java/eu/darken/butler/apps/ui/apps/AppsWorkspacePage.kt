@@ -169,7 +169,7 @@ private fun AppsWorkspacePage(
                     else -> {
                         items(
                             items = state.apps,
-                            key = { it.packageName }
+                            key = { it.pkg.installId }
                         ) { appItem ->
                             AppListItem(
                                 item = appItem,
@@ -215,6 +215,8 @@ private fun AppsWorkspacePage(
                 userAppsCount = state.userAppsCount,
                 systemAppsCount = state.systemAppsCount,
                 selectedCount = state.selectionCount,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
             )
         }
 

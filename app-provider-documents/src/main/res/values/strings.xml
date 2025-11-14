@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="documents_root_butler_title">Butler</string>
+    <string name="documents_root_butler_summary">File manager with advanced access</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="documents_connection_device_title">Device</string>
+    <string name="documents_connection_device_summary">Local device storage</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="documents_storage_root_label">Root Filesystem</string>
+
+    <!-- Future: Additional storage types -->
+    <string name="documents_storage_internal_label">Internal Storage</string>
+    <string name="documents_storage_sd_card_label">SD Card</string>
+    <string name="documents_storage_saf_label">SAF Location</string>
+
+    <!-- Future: Remote connections -->
+    <string name="documents_connection_ssh_title">SSH: %1$s</string>
+    <string name="documents_connection_ftp_title">FTP: %1$s</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="documents_error_requires_root">Root access required to browse this location. Enable root access in Butler app settings.</string>
+    <string name="documents_error_requires_adb">ADB/Shizuku access required to browse this location. Enable Shizuku in Butler app settings.</string>
+    <string name="documents_error_requires_storage">Storage permission required to browse this location. Grant storage permission in Butler app settings.</string>
+    <string name="documents_error_requires_permissions">Additional permissions required to browse this location. Check Butler app settings.</string>
+    <string name="documents_error_generic">Unable to access this location. Check Butler app for access options.</string>
+
+    <!-- Error Messages - Phase 3: Write Operations -->
+    <string name="documents_error_create_failed">Failed to create file or directory</string>
+    <string name="documents_error_delete_failed">Failed to delete file or directory</string>
+    <string name="documents_error_rename_failed">Failed to rename file or directory</string>
+    <string name="documents_error_parent_not_directory">Parent is not a directory</string>
+    <string name="documents_error_invalid_name">Invalid file or directory name</string>
+    <string name="documents_error_destination_exists">A file or directory with that name already exists</string>
+</resources>

@@ -62,7 +62,8 @@ fun StorageRow(
             }
         },
         primaryText = item.displayName.get(context),
-        secondaryText = run {
+        secondaryText = item.target.path.path,
+        tertiaryText = run {
             val totalBytes = item.totalBytes
             val availableBytes = item.availableBytes
             when {

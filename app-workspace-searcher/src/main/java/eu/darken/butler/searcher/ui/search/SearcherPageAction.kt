@@ -6,7 +6,7 @@ import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.operations.Operation
-import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
+import eu.darken.butler.permissions.core.PathRequirements
 
 /**
  * Sealed interface representing all page-level actions in the Searcher workspace.
@@ -86,6 +86,11 @@ sealed interface SearcherPageAction {
          * Open path picker to add search targets
          */
         data object OpenPicker : Targets
+
+        /**
+         * Add default search paths (all public storage volumes)
+         */
+        data object AddDefaultPaths : Targets
     }
 
     /**
@@ -185,7 +190,7 @@ sealed interface SearcherPageAction {
         /**
          * Open setup screen for permissions
          */
-        data class Open(val requirements: WorkspaceRequirements) : Setup
+        data class Open(val requirements: PathRequirements) : Setup
     }
 
     /**

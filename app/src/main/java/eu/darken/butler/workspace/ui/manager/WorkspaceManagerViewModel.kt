@@ -3,6 +3,7 @@ package eu.darken.butler.workspace.ui.manager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
@@ -28,22 +29,31 @@ class WorkspaceManagerViewModel @Inject constructor(
 
     val state = combine(
         workspaceRepo.state,
-        workspaceSettings.showBadgeExplanation.flow,
+        workspaceSettings.showTipBadgeExplanation.flow,
+        workspaceSettings.showTipFabLongPress.flow,
         workspaceSettings.livePreview.flow,
-    ) { repoState, showBadge, livePreview ->
+        workspacePageManager.state,
+    ) { repoState, showBadge, showFabLongPressHint, livePreview, pageManagerState ->
         State(
             workspaces = repoState.infos.map { info ->
+                val panePosition = pageManagerState.selectedWorkspaces.entries
+                    .find { it.value == info.id }?.key
                 WorkspaceItem(
                     id = info.id,
                     type = info.type,
                     title = info.title,
                     subtitle = info.subtitle,
+                    isFocused = pageManagerState.focusedWorkspaceId == info.id,
+                    isSelected = pageManagerState.selectedWorkspaces.values.contains(info.id),
+                    paneNumber = panePosition,
                 )
             },
             useLivePreview = livePreview,
             showBadgeExplanation = showBadge,
+            showLongPressHint = showFabLongPressHint,
             operationsCount = repoState.operationCount,
             attentionCount = repoState.attentionCount,
+            currentPaneCount = pageManagerState.currentPaneCount,
         )
     }.asStateFlow()
 
@@ -73,7 +83,11 @@ class WorkspaceManagerViewModel @Inject constructor(
     }
 
     fun dismissBadgeExplanation() = launch {
-        workspaceSettings.showBadgeExplanation.update { false }
+        workspaceSettings.showTipBadgeExplanation.value(false)
+    }
+
+    fun dismissLongPressHint() = launch {
+        workspaceSettings.showTipFabLongPress.value(false)
     }
 
     fun closeAllWorkspaces() = launch {
@@ -89,9 +103,11 @@ class WorkspaceManagerViewModel @Inject constructor(
     data class State(
         val workspaces: List<WorkspaceItem> = emptyList(),
         val showBadgeExplanation: Boolean = true,
+        val showLongPressHint: Boolean = true,
         val useLivePreview: Boolean = true,
         val operationsCount: Int = 0,
         val attentionCount: Int = 0,
+        val currentPaneCount: Int = 1,
     ) {
         val workspaceCount: Int = workspaces.size
     }
@@ -101,5 +117,8 @@ class WorkspaceManagerViewModel @Inject constructor(
         val type: Workspace.Type,
         val title: CaString,
         val subtitle: CaString?,
+        val isFocused: Boolean = false,
+        val isSelected: Boolean = false,
+        val paneNumber: Int? = null,
     )
 }

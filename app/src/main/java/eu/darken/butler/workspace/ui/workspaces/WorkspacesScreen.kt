@@ -21,9 +21,12 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.main.ui.motd.MotdCard
+import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.ui.WorkspacePanelMode
+import eu.darken.butler.workspace.ui.dialogs.WorkspaceManagerDialogState
+import eu.darken.butler.workspace.ui.feedback.BannerState
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -41,7 +44,9 @@ fun WorkspacesScreenHost(
 ) {
     ErrorEventHandler(vm)
 
-    val workspaceButtonState by workspaceButtonVm.state.collectAsState(null)
+    val workspaceButtonState by workspaceButtonVm.state.collectAsState(initial = null)
+    val managerDialogStates by vm.managerDialogStates.collectAsState(initial = emptyMap())
+    val bannerStates by vm.bannerStates.collectAsState(initial = emptyMap())
 
     val state by waitForState(vm.state)
 
@@ -50,10 +55,15 @@ fun WorkspacesScreenHost(
             workspaceButtonState = workspaceButtonState,
             workspaceActionHandler = workspaceButtonVm,
             state = state,
+            bannerStates = bannerStates,
+            managerDialogStates = managerDialogStates,
             onScreenAction = { vm.executeScreenAction(it) },
             onHideMotd = { vm.hideMotd(it) },
             onDismissMotd = { vm.dismissMotd(it) },
             onMotdLinkClick = { vm.openMotdLink(it) },
+            onDismissBanner = { vm.dismissBanner(it) },
+            onDismissManagerDialog = { vm.dismissManagerDialog(it) },
+            onConfirmManagerDialog = { vm.confirmManagerDialog(it) },
         )
     }
 }
@@ -64,10 +74,15 @@ fun WorkspaceScreen(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     workspaceActionHandler: WorkspaceActionHandler? = null,
     state: WorkspacesViewModel.State,
+    bannerStates: Map<Workspace.Id, BannerState> = emptyMap(),
+    managerDialogStates: Map<Workspace.Id, WorkspaceManagerDialogState.Targeted>,
     onScreenAction: (WorkspaceScreenAction) -> Unit,
-    onHideMotd: (Uuid) -> Unit,
-    onDismissMotd: (Uuid) -> Unit,
-    onMotdLinkClick: (String) -> Unit,
+    onHideMotd: (Uuid) -> Unit = {},
+    onDismissMotd: (Uuid) -> Unit = {},
+    onMotdLinkClick: (String) -> Unit = {},
+    onDismissBanner: (Workspace.Id) -> Unit = {},
+    onDismissManagerDialog: (Workspace.Id) -> Unit = {},
+    onConfirmManagerDialog: (WorkspaceManagerDialogState.Targeted) -> Unit = {},
 ) {
     val windowSizeInfo = rememberWindowSizeInfo()
     var showPaneNumbers by remember { mutableStateOf(false) }
@@ -120,12 +135,23 @@ fun WorkspaceScreen(
                 workspaceButtonState = workspaceButtonState,
                 workspaceActionHandler = workspaceActionHandler,
                 onScreenAction = onScreenAction,
+                managerDialogStates = managerDialogStates,
+                onDismissManagerDialog = onDismissManagerDialog,
+                onConfirmManagerDialog = onConfirmManagerDialog,
+                bannerStates = bannerStates,
+                onDismissBanner = onDismissBanner,
+                paneLocalModals = state.paneLocalModals,
             )
         } else {
             ClassicWorkspaceContainer(
                 state = state,
                 onWorkspaceScreenAction = onScreenAction,
                 workspaceActionHandler = workspaceActionHandler,
+                managerDialogStates = managerDialogStates,
+                onDismissManagerDialog = onDismissManagerDialog,
+                onConfirmManagerDialog = onConfirmManagerDialog,
+                bannerStates = bannerStates,
+                onDismissBanner = onDismissBanner,
             )
         }
 
@@ -143,14 +169,15 @@ fun WorkspaceScreen(
         }
     }
 
-    // Modal workspace overlay (picker dialogs, etc.)
-    state.modalWorkspace?.let { modalWorkspace ->
+    // Full-screen modal workspace overlay (pickers, settings dialogs, detail views on phones)
+    state.fullScreenModalWorkspace?.let { fullScreenModal ->
         WorkspaceModalDialog(
-            workspace = modalWorkspace,
+            workspace = fullScreenModal,
+            design = design,
             onDismissRequest = {
                 // Dismiss by closing the modal workspace
                 workspaceActionHandler?.executeWorkspaceAction(
-                    WorkspaceAction.Close(modalWorkspace.id)
+                    WorkspaceAction.Close(fullScreenModal.id)
                 )
             },
         )
@@ -193,6 +220,8 @@ private fun WorkspacesScreenPreviewContent(
     WorkspaceScreen(
         workspaceButtonState = workspaceButtonState,
         state = state,
+        bannerStates = emptyMap(),
+        managerDialogStates = emptyMap(),
         onScreenAction = {},
         onHideMotd = {},
         onDismissMotd = {},

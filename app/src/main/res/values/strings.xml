@@ -37,6 +37,7 @@
     <string name="onboarding_workspaces_editor_description">Edit files.</string>
     <string name="onboarding_workspaces_templates_title">Templates</string>
     <string name="onboarding_workspaces_templates_description">Save your setup.</string>
+    <string name="onboarding_workspaces_apps_description">Manage your apps.</string>
 
     <string name="onboarding_adaptive_title">Fits Any Screen</string>
     <string name="onboarding_adaptive_message">Butler adapts to your device for the best experience.</string>
@@ -328,8 +329,10 @@
     <string name="workspace_fab_explorer">Explorer</string>
     <string name="workspace_fab_search">Search</string>
     <string name="workspace_fab_editor">Editor</string>
+    <string name="workspace_fab_apps">Apps</string>
     <string name="workspace_fab_templates">Templates</string>
     <string name="workspace_fab_close_all">Close All Tabs</string>
+    <string name="workspace_fab_longpress_hint">Tip: Long-press for quick access to all workspace types</string>
 
     <!-- Workspace Navigation Rail -->
     <string name="workspace_pane_assign_action">Assign to pane %1$d</string>

@@ -23,6 +23,22 @@ sealed interface WorkspaceEvent {
     data object AllClosed : WorkspaceEvent
 
     /**
+     * Emitted when batch workspace creation completes.
+     * Used to trigger feedback banner targeted to the workspace that initiated the request.
+     *
+     * @param successCount Number of successfully created workspaces
+     * @param failureCount Number of failed workspace creations
+     * @param skippedCount Number of items that were skipped (non-openable)
+     * @param sourceWorkspaceId Workspace that initiated the request (null if from global action)
+     */
+    data class BatchCreationCompleted(
+        val successCount: Int,
+        val failureCount: Int,
+        val skippedCount: Int,
+        val sourceWorkspaceId: Workspace.Id?,
+    ) : WorkspaceEvent
+
+    /**
      * Base interface for workspace result events.
      * Used for workspaces that return results to caller workspaces (e.g., pickers, dialogs).
      */

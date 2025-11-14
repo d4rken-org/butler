@@ -1,9 +1,11 @@
 package eu.darken.butler.explorer.core.engine
 
+import android.os.Build
 import android.os.Environment
 import android.os.StatFs
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.PhoneAndroid
+import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
@@ -11,7 +13,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
-import eu.darken.butler.workspace.core.permissions.WorkspaceRequirements
+import eu.darken.butler.permissions.core.PathRequirements
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -22,9 +24,9 @@ class HomeLocationLoader @Inject constructor() {
 
     private val tag = logTag("Explorer", "HomeLocationLoader")
 
-    private suspend fun checkLocationRequirements(): WorkspaceRequirements {
+    private suspend fun checkLocationRequirements(): PathRequirements {
         log(tag) { "checkLocationRequirements(): Checking requirements for Home" }
-        return WorkspaceRequirements()
+        return PathRequirements()
     }
 
     fun loadHome(): Flow<ExplorerLocation> = flow {
@@ -48,6 +50,7 @@ class HomeLocationLoader @Inject constructor() {
                 displayIcon = Icons.TwoTone.PhoneAndroid,
                 displayName = R.string.explorer_navigation_device.toCaString(),
                 target = ExplorerNavigation.Target.Device,
+                subtitle = caString { "${Build.MODEL} (Android ${Build.VERSION.SDK_INT})" },
             ),
         )
 

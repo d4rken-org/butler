@@ -63,9 +63,9 @@ fun ClipboardBarHeader(
             Icon(
                 imageVector = if (isExpanded) Icons.TwoTone.ExpandMore else Icons.TwoTone.ExpandLess,
                 contentDescription = if (isExpanded) {
-                    stringResource(R.string.clipboard_show_less)
+                    stringResource(R.string.workspace_expand_less_action)
                 } else {
-                    stringResource(R.string.clipboard_show_more)
+                    stringResource(R.string.workspace_expand_more_action)
                 },
                 modifier = Modifier.size(14.dp),
                 tint = MaterialTheme.colorScheme.onTertiaryContainer,
@@ -73,9 +73,9 @@ fun ClipboardBarHeader(
             Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = if (isExpanded) {
-                    stringResource(R.string.clipboard_show_less)
+                    stringResource(R.string.workspace_expand_less_action)
                 } else {
-                    stringResource(R.string.clipboard_show_more)
+                    stringResource(R.string.workspace_expand_more_action)
                 },
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onTertiaryContainer,

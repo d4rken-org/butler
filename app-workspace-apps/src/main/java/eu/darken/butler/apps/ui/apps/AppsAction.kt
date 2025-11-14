@@ -2,6 +2,7 @@ package eu.darken.butler.apps.ui.apps
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Launch
+import androidx.compose.material.icons.automirrored.twotone.OpenInNew
 import androidx.compose.material.icons.automirrored.twotone.Sort
 import androidx.compose.material.icons.twotone.Block
 import androidx.compose.material.icons.twotone.CheckCircle
@@ -9,7 +10,6 @@ import androidx.compose.material.icons.twotone.CleaningServices
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.DeleteSweep
 import androidx.compose.material.icons.twotone.Deselect
-import androidx.compose.material.icons.twotone.FileOpen
 import androidx.compose.material.icons.twotone.FilterAlt
 import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.GetApp
@@ -22,6 +22,7 @@ import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.workspace.ui.actions.WorkspaceAction
 
 sealed interface AppsAction : WorkspaceAction {
@@ -121,6 +122,14 @@ sealed interface AppsAction : WorkspaceAction {
         override val isVisible: Boolean get() = apps.size <= 5 // Reasonable limit for sharing
     }
 
+    data class OpenInTab(
+        val apps: List<AppItem>,
+    ) : AppsAction {
+        override val icon = Icons.AutoMirrored.TwoTone.OpenInNew
+        override val label = R.string.apps_action_open_in_tab.toCaString()
+        override val isVisible: Boolean get() = apps.isNotEmpty()
+    }
+
     // Single-app actions (shown in details dialog or quick actions)
     data class Launch(
         val app: AppItem,
@@ -136,17 +145,11 @@ sealed interface AppsAction : WorkspaceAction {
         override val label = R.string.apps_action_open_info.toCaString()
     }
 
-    data class BrowseData(
+    data class BrowsePath(
         val app: AppItem,
+        val path: APath<*>,
     ) : AppsAction {
         override val icon = Icons.TwoTone.FolderOpen
-        override val label = R.string.apps_action_browse_data.toCaString()
-    }
-
-    data class BrowseExternal(
-        val app: AppItem,
-    ) : AppsAction {
-        override val icon = Icons.TwoTone.FileOpen
-        override val label = R.string.apps_action_browse_external.toCaString()
+        override val label = R.string.apps_action_browse_path.toCaString()
     }
 }

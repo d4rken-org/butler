@@ -18,7 +18,6 @@ import androidx.compose.material.icons.twotone.Android
 import androidx.compose.material.icons.twotone.Block
 import androidx.compose.material.icons.twotone.CheckCircle
 import androidx.compose.material.icons.twotone.Delete
-import androidx.compose.material.icons.twotone.FileOpen
 import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.GetApp
 import androidx.compose.material.icons.twotone.Info
@@ -39,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import eu.darken.butler.apps.R
+import eu.darken.butler.apps.core.AppPath
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.ui.apps.AppsAction
 import eu.darken.butler.common.formatFileSize
@@ -46,6 +46,7 @@ import eu.darken.butler.common.formatFileSize
 @Composable
 fun AppDetailsDialog(
     app: AppItem,
+    availablePaths: List<AppPath>,
     onDismiss: () -> Unit,
     onAction: (AppsAction) -> Unit,
     modifier: Modifier = Modifier,
@@ -59,6 +60,7 @@ fun AppDetailsDialog(
     ) {
         AppDetailsContent(
             app = app,
+            availablePaths = availablePaths,
             onAction = onAction,
             onDismiss = onDismiss,
         )
@@ -69,6 +71,7 @@ fun AppDetailsDialog(
 @Composable
 private fun AppDetailsContent(
     app: AppItem,
+    availablePaths: List<AppPath>,
     onAction: (AppsAction) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -187,6 +190,53 @@ private fun AppDetailsContent(
 
         HorizontalDivider()
 
+        // Storage Locations
+        if (availablePaths.isNotEmpty()) {
+            Text(
+                text = stringResource(R.string.apps_details_storage_locations_label),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                availablePaths.forEach { appPath ->
+                    FilledTonalButton(
+                        onClick = {
+                            onAction(AppsAction.BrowsePath(app, appPath.path))
+                            onDismiss()
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.TwoTone.FolderOpen,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                            Text(
+                                text = appPath.label.get(context),
+                                style = MaterialTheme.typography.labelMedium,
+                            )
+                            Text(
+                                text = appPath.path.path,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
+
+            HorizontalDivider()
+        }
+
         // Quick Actions
         Text(
             text = "Actions",
@@ -229,38 +279,6 @@ private fun AppDetailsContent(
                 )
                 Spacer(modifier = Modifier.size(8.dp))
                 Text(stringResource(R.string.apps_action_open_info))
-            }
-
-            // Browse Data
-            FilledTonalButton(
-                onClick = {
-                    onAction(AppsAction.BrowseData(app))
-                    onDismiss()
-                }
-            ) {
-                Icon(
-                    imageVector = Icons.TwoTone.FolderOpen,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Text(stringResource(R.string.apps_action_browse_data))
-            }
-
-            // Browse External
-            FilledTonalButton(
-                onClick = {
-                    onAction(AppsAction.BrowseExternal(app))
-                    onDismiss()
-                }
-            ) {
-                Icon(
-                    imageVector = Icons.TwoTone.FileOpen,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Text(stringResource(R.string.apps_action_browse_external))
             }
 
             // Enable/Disable

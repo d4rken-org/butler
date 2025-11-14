@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -53,6 +54,10 @@ fun SearchBar(
     val focusRequester = remember { FocusRequester() }
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
 
     Surface(
         modifier = modifier,
@@ -116,7 +121,7 @@ fun SearchBar(
                     Box(modifier = Modifier.padding(start = 8.dp)) {
                         Icon(
                             imageVector = Icons.TwoTone.Close,
-                            contentDescription = stringResource(R.string.general_cancel_action),
+                            contentDescription = stringResource(eu.darken.butler.common.R.string.general_cancel_action),
                             modifier = Modifier
                                 .clickable { onCancel() }
                                 .size(24.dp),

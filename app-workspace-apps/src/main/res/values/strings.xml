@@ -33,19 +33,44 @@
     <string name="apps_action_clear_cache">Clear cache</string>
     <string name="apps_action_clear_data">Clear data</string>
     <string name="apps_action_export_apk">Export APK</string>
-    <string name="apps_action_browse_data">Browse data</string>
-    <string name="apps_action_browse_external">Browse external storage</string>
+    <string name="apps_action_browse_path">Browse path</string>
     <string name="apps_action_share">Share APK</string>
     <string name="apps_action_refresh">Refresh</string>
     <string name="apps_action_sort">Sort</string>
     <string name="apps_action_filter">Filter</string>
     <string name="apps_action_select_all">Select all</string>
     <string name="apps_action_deselect_all">Deselect all</string>
+    <string name="apps_action_open_in_tab">Open in Tab</string>
+
+    <!-- Action Descriptions -->
+    <string name="apps_action_launch_desc">Start the application</string>
+    <string name="apps_action_open_info_desc">View detailed system information</string>
+    <string name="apps_action_enable_desc">Enable this application</string>
+    <string name="apps_action_disable_desc">Disable this application</string>
+    <string name="apps_action_uninstall_desc">Remove this application</string>
+    <string name="apps_action_export_apk_desc">Save APK file to storage</string>
+    <string name="apps_action_share_desc">Share APK file with other apps</string>
 
     <!-- App Info Labels -->
     <string name="apps_package_name_label">Package</string>
     <string name="apps_version_label">Version</string>
     <string name="apps_size_label">Size</string>
+
+    <!-- App Details -->
+    <string name="apps_details_storage_locations_label">Storage Locations</string>
+    <string name="apps_path_internal_data_label">Internal Data</string>
+    <string name="apps_path_external_data_label">External Storage</string>
+
+    <!-- App Details Tabs -->
+    <string name="appdetails_tab_overview_label">Overview</string>
+    <string name="appdetails_tab_packageinfo_label">Package Info</string>
+
+    <!-- App Details Actions -->
+    <string name="appdetails_back_action">Back to apps</string>
+    <string name="appdetails_close_action">Close</string>
+
+    <!-- App Details Package Info -->
+    <string name="appdetails_packageinfo_comingsoon_msg">APK details coming soon</string>
 
     <!-- Empty States -->
     <string name="apps_empty_no_apps">No apps found</string>
@@ -75,5 +100,21 @@
         <item quantity="one">%d selected</item>
         <item quantity="other">%d selected</item>
     </plurals>
+
+    <!-- App Details Sections -->
+    <string name="apps_details_section_actions">Actions</string>
+    <string name="apps_details_section_overview">Overview</string>
+    <string name="apps_details_section_storage">Storage</string>
+
+    <!-- App Details Action Bar -->
+    <string name="apps_details_more_options">More options</string>
+
+    <!-- App Information -->
+    <string name="apps_type_label">Type</string>
+    <string name="apps_type_system">System app</string>
+    <string name="apps_type_user">User app</string>
+    <string name="apps_status_label">Status</string>
+    <string name="apps_status_enabled">Enabled</string>
+    <string name="apps_status_disabled">Disabled</string>
 
 </resources>

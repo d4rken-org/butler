@@ -40,7 +40,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -61,7 +60,6 @@ import eu.darken.butler.common.R as CommonR
  *
  * @param actions List of actions to display
  * @param onActionClick Callback when an action is clicked
- * @param selectionCount Optional selection count to display on the left (for selection mode)
  * @param modifier Modifier to apply to the action bar
  */
 @Composable
@@ -69,7 +67,6 @@ fun WorkspaceActionBar(
     actions: List<WorkspaceAction>,
     onActionClick: (WorkspaceAction) -> Unit,
     modifier: Modifier = Modifier,
-    selectionCount: Int? = null,
 ) {
     BoxWithConstraints(modifier = modifier) {
         val availableWidth = maxWidth
@@ -79,13 +76,11 @@ fun WorkspaceActionBar(
         // - Horizontal padding: 16dp (8dp * 2)
         // - Each action button: 48dp
         // - Overflow button (if needed): 48dp
-        // - Selection count (if present): ~80dp
         val horizontalPadding = 16.dp
         val actionButtonWidth = 48.dp
         val overflowButtonWidth = 48.dp
-        val selectionCountWidth: Dp = if (selectionCount != null) 80.dp else 0.dp
 
-        val spaceForActions = availableWidth - horizontalPadding - selectionCountWidth
+        val spaceForActions = availableWidth - horizontalPadding
 
         // How many actions can we fit WITHOUT overflow?
         val maxActionsWithoutOverflow = (spaceForActions / actionButtonWidth).toInt()
@@ -136,117 +131,100 @@ fun WorkspaceActionBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Optional selection count (left side)
-                if (selectionCount != null) {
-                    Text(
-                        text = pluralStringResource(R.plurals.workspace_selection_count, selectionCount, selectionCount),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(start = 12.dp)
-                    )
-                }
+                displayedActions.forEach { action ->
+                    Box {
+                        IconButton(
+                            onClick = { onActionClick(action) },
+                            enabled = action.isEnabled,
+                        ) {
+                            Icon(
+                                imageVector = action.icon,
+                                contentDescription = action.label.get(LocalContext.current),
+                                tint = when {
+                                    !action.isEnabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                    action.isDestructive -> MaterialTheme.colorScheme.error
+                                    else -> LocalContentColor.current
+                                }
+                            )
+                        }
 
-                // Actions (right side)
-                Row(
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = if (selectionCount == null) Modifier.fillMaxWidth() else Modifier
-                ) {
-                    displayedActions.forEach { action ->
-                        Box {
-                            IconButton(
-                                onClick = { onActionClick(action) },
-                                enabled = action.isEnabled,
-                            ) {
-                                Icon(
-                                    imageVector = action.icon,
-                                    contentDescription = action.label.get(LocalContext.current),
-                                    tint = when {
-                                        !action.isEnabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                                        action.isDestructive -> MaterialTheme.colorScheme.error
-                                        else -> LocalContentColor.current
-                                    }
-                                )
-                            }
-
-                            if (action.badge) {
-                                Box(
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .offset(x = (-8).dp, y = 8.dp)
-                                        .size(8.dp)
-                                        .background(
-                                            color = MaterialTheme.colorScheme.primary,
-                                            shape = CircleShape
-                                        )
-                                )
-                            }
+                        if (action.badge) {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .offset(x = (-8).dp, y = 8.dp)
+                                    .size(8.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.primary,
+                                        shape = CircleShape
+                                    )
+                            )
                         }
                     }
+                }
 
-                    // Overflow menu for remaining actions
-                    if (overflowActions.isNotEmpty()) {
-                        var showOverflowMenu by remember { mutableStateOf(false) }
-                        val hasOverflowBadge = overflowActions.any { it.badge }
+                // Overflow menu for remaining actions
+                if (overflowActions.isNotEmpty()) {
+                    var showOverflowMenu by remember { mutableStateOf(false) }
+                    val hasOverflowBadge = overflowActions.any { it.badge }
 
-                        Box {
-                            IconButton(
-                                onClick = { showOverflowMenu = true },
-                            ) {
-                                Icon(
-                                    imageVector = Icons.TwoTone.MoreVert,
-                                    contentDescription = stringResource(R.string.workspace_action_more),
-                                )
-                            }
+                    Box {
+                        IconButton(
+                            onClick = { showOverflowMenu = true },
+                        ) {
+                            Icon(
+                                imageVector = Icons.TwoTone.MoreVert,
+                                contentDescription = stringResource(R.string.workspace_action_more),
+                            )
+                        }
 
-                            if (hasOverflowBadge) {
-                                Box(
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .offset(x = (-8).dp, y = 8.dp)
-                                        .size(8.dp)
-                                        .background(
-                                            color = MaterialTheme.colorScheme.primary,
-                                            shape = CircleShape
-                                        )
-                                )
-                            }
-
-                            DropdownMenu(
-                                expanded = showOverflowMenu,
-                                onDismissRequest = { showOverflowMenu = false },
-                            ) {
-                                overflowActions.forEach { action ->
-                                    DropdownMenuItem(
-                                        text = {
-                                            Text(
-                                                text = action.label.get(LocalContext.current),
-                                                color = when {
-                                                    action.isDestructive -> MaterialTheme.colorScheme.error
-                                                    else -> LocalContentColor.current
-                                                }
-                                            )
-                                        },
-                                        onClick = {
-                                            onActionClick(action)
-                                            showOverflowMenu = false
-                                        },
-                                        leadingIcon = {
-                                            Icon(
-                                                imageVector = action.icon,
-                                                contentDescription = null,
-                                                tint = when {
-                                                    action.isDestructive -> MaterialTheme.colorScheme.error
-                                                    else -> LocalContentColor.current
-                                                }
-                                            )
-                                        },
-                                        enabled = action.isEnabled,
+                        if (hasOverflowBadge) {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .offset(x = (-8).dp, y = 8.dp)
+                                    .size(8.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.primary,
+                                        shape = CircleShape
                                     )
-                                }
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = showOverflowMenu,
+                            onDismissRequest = { showOverflowMenu = false },
+                        ) {
+                            overflowActions.forEach { action ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            text = action.label.get(LocalContext.current),
+                                            color = when {
+                                                action.isDestructive -> MaterialTheme.colorScheme.error
+                                                else -> LocalContentColor.current
+                                            }
+                                        )
+                                    },
+                                    onClick = {
+                                        onActionClick(action)
+                                        showOverflowMenu = false
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = action.icon,
+                                            contentDescription = null,
+                                            tint = when {
+                                                action.isDestructive -> MaterialTheme.colorScheme.error
+                                                else -> LocalContentColor.current
+                                            }
+                                        )
+                                    },
+                                    enabled = action.isEnabled,
+                                )
                             }
                         }
                     }
@@ -287,20 +265,6 @@ private fun WorkspaceActionBarPreview() {
                     ),
                 ),
                 onActionClick = {},
-            )
-
-            // With selection count (selection mode)
-            WorkspaceActionBar(
-                actions = listOf(
-                    SampleAction(Icons.TwoTone.ContentCopy, CommonR.string.general_copy_action.toCaString()),
-                    SampleAction(
-                        Icons.TwoTone.Delete,
-                        CommonR.string.general_delete_action.toCaString(),
-                        isDestructive = true
-                    ),
-                ),
-                onActionClick = {},
-                selectionCount = 5,
             )
 
             // With overflow menu (more actions than fit)
