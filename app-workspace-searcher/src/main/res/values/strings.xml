@@ -94,4 +94,15 @@
     <string name="searcher_action_select_all">Select All</string>
     <string name="searcher_action_deselect_all">Deselect All</string>
     <string name="searcher_action_open_in_new_tabs">Open in new tabs</string>
+    <string name="searcher_action_sort">Sort</string>
+    <string name="searcher_action_view">View</string>
+
+    <!-- Sort options -->
+    <string name="searcher_sort_mode_label">Sort by</string>
+    <string name="searcher_sort_mode_name_label">Name</string>
+    <string name="searcher_sort_mode_size_label">Size</string>
+    <string name="searcher_sort_mode_modified_label">Modified date</string>
+    <string name="searcher_sort_mode_created_label">Created date</string>
+    <string name="searcher_sort_mode_path_label">Path</string>
+    <string name="searcher_sort_descending_label">Descending order</string>
 </resources>

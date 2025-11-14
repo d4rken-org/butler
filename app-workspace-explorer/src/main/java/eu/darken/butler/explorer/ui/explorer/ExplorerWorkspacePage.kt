@@ -427,6 +427,8 @@ fun ExplorerWorkspacePage(
                             info = mainState.info,
                             selectedCount = mainState.selectionState.selectedItems.size,
                             onClearSelection = { vm?.clearSelection() },
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
                         )
 
                         mainState.error?.let { error ->
