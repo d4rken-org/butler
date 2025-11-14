@@ -6,20 +6,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import eu.darken.butler.apps.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
@@ -32,7 +26,8 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 fun AppsToolbarCard(
     workspaceId: Workspace.Id,
     modifier: Modifier = Modifier,
-    searchQuery: String,
+    searchQuery: TextFieldValue,
+    onSearchQueryChange: (TextFieldValue) -> Unit,
     design: WorkspaceDesign,
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     workspaceActionHandler: WorkspaceActionHandler?,
@@ -46,35 +41,21 @@ fun AppsToolbarCard(
         )
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Icon(
-                modifier = Modifier.size(24.dp),
-                imageVector = Icons.TwoTone.Search,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
-
-            Text(
-                text = searchQuery.ifBlank { stringResource(R.string.apps_search_hint) },
-                style = MaterialTheme.typography.bodyMedium,
-                color = if (searchQuery.isBlank()) {
-                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                } else {
-                    MaterialTheme.colorScheme.onSurface
-                },
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+            AppsSearchBar(
+                query = searchQuery,
+                onQueryChange = onSearchQueryChange,
                 modifier = Modifier.weight(1f)
             )
 
             if (design.isSingle) {
                 WorkspaceButton(
-                    modifier = Modifier.size(32.dp),
+                    modifier = Modifier
+                        .size(32.dp)
+                        .padding(end = 8.dp),
                     state = workspaceButtonState,
                     currentWorkspaceId = workspaceId,
                     workspaceActionHandler = workspaceActionHandler,
@@ -90,7 +71,8 @@ private fun AppsToolbarCardPreview() {
     PreviewWrapper {
         AppsToolbarCard(
             workspaceId = Workspace.Id(),
-            searchQuery = "",
+            searchQuery = TextFieldValue(""),
+            onSearchQueryChange = {},
             design = WorkspaceDesign(),
             workspaceButtonState = null,
             workspaceActionHandler = null,
@@ -105,7 +87,8 @@ private fun AppsToolbarCardWithQueryPreview() {
     PreviewWrapper {
         AppsToolbarCard(
             workspaceId = Workspace.Id(),
-            searchQuery = "Chrome",
+            searchQuery = TextFieldValue("Chrome"),
+            onSearchQueryChange = {},
             design = WorkspaceDesign(),
             workspaceButtonState = null,
             workspaceActionHandler = null,

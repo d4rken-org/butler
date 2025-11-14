@@ -3,6 +3,7 @@ package eu.darken.butler.apps.ui.apps
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
+import androidx.compose.ui.text.input.TextFieldValue
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -56,13 +57,13 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
 
     private suspend fun getWorkspace(): AppsWorkspace = workspaceSource.filterNotNull().first()
 
-    private val searchQueryFlow = MutableStateFlow("")
+    private val searchQueryFlow = MutableStateFlow(TextFieldValue(""))
     private val viewModeFlow = MutableStateFlow(ViewMode.LIST)
     private val dialogStateFlow = MutableStateFlow<AppsDialogState>(AppsDialogState.None)
 
     data class State(
         val appsState: AppsState = AppsState(),
-        val searchQuery: String = "",
+        val searchQuery: TextFieldValue = TextFieldValue(""),
         val viewMode: ViewMode = ViewMode.LIST,
         val isLoading: Boolean = true,
         val dialogState: AppsDialogState = AppsDialogState.None,
@@ -190,10 +191,10 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         workspace.appsEngine.selectApp(packageName, !isSelected)
     }
 
-    fun onSearchQueryChanged(query: String) = launch {
-        log(tag, DEBUG) { "Search query changed: $query" }
+    fun onSearchQueryChanged(query: TextFieldValue) = launch {
+        log(tag, DEBUG) { "Search query changed: ${query.text}" }
         searchQueryFlow.value = query
-        getWorkspace().appsEngine.updateSearchQuery(query)
+        getWorkspace().appsEngine.updateSearchQuery(query.text)
     }
 
     fun onFilterChanged(filterConfig: AppsState.FilterConfig) = launch {
