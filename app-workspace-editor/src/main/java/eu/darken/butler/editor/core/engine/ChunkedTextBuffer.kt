@@ -1046,6 +1046,14 @@ class ChunkedTextBuffer @AssistedInject constructor(
         }
     }
 
+    data class ChunkMetadata(
+        val chunkId: TextChunk.ChunkId,
+        val startOffset: Long,
+        val endOffset: Long,
+        val lineCount: Int,
+        val firstLineNumber: Int
+    )
+
     @AssistedFactory
     interface Factory {
         fun create(
@@ -1057,18 +1065,3 @@ class ChunkedTextBuffer @AssistedInject constructor(
         ): ChunkedTextBuffer
     }
 }
-
-data class LineInfo(
-    val lineNumber: Int,
-    val startOffset: Long,
-    val endOffset: Long,
-    val chunkId: TextChunk.ChunkId
-)
-
-data class ChunkMetadata(
-    val chunkId: TextChunk.ChunkId,
-    val startOffset: Long,
-    val endOffset: Long,
-    val lineCount: Int,
-    val firstLineNumber: Int
-)
