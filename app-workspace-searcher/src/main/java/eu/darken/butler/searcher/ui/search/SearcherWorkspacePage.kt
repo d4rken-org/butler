@@ -313,8 +313,8 @@ fun SearcherWorkspacePage(
                     }
                 }
 
-                // Show search history when no search query
-                if (currentState.searchQuery.text.isBlank() && currentState.searchHistory.isNotEmpty()) {
+                // Show search history when no search query and no results displayed
+                if (currentState.searchQuery.text.isBlank() && !currentState.hasResults && currentState.searchHistory.isNotEmpty()) {
                     searchHistorySection(
                         searchHistory = currentState.searchHistory,
                         onHistoryItemClick = { onPageAction(SearcherPageAction.History.Click(it)) },

@@ -906,6 +906,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             is SearcherPageAction.Search.UpdateQuery -> {
                 log(TAG, INFO) { "Updating search query: ${action.query.text}" }
                 searchQuery.value = action.query
+                // Auto-clear results when query becomes empty
+                if (action.query.text.isBlank()) {
+                    clearResults()
+                }
             }
             is SearcherPageAction.Search.Perform -> performSearch()
             is SearcherPageAction.Search.Explicit -> {
