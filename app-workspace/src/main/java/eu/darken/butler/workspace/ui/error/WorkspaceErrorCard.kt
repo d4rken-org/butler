@@ -29,6 +29,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -183,10 +184,14 @@ fun WorkspaceErrorCard(
             // Action buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = if (onRetry != null) {
+                    Arrangement.spacedBy(8.dp)
+                } else {
+                    Arrangement.spacedBy(8.dp, Alignment.End)
+                },
             ) {
                 onRetry?.let { retryAction ->
-                    Button(
+                    TextButton(
                         onClick = retryAction,
                         modifier = Modifier.weight(1f),
                     ) {
@@ -206,7 +211,11 @@ fun WorkspaceErrorCard(
 
                 OutlinedButton(
                     onClick = onCopyError,
-                    modifier = Modifier.weight(1f),
+                    modifier = if (onRetry != null) {
+                        Modifier.weight(1f)
+                    } else {
+                        Modifier
+                    },
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(4.dp),

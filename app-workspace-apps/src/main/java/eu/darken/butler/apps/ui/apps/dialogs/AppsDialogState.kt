@@ -8,7 +8,10 @@ sealed interface AppsDialogState {
 
     data object None : AppsDialogState
 
-    data class AppDetails(val app: AppItem) : AppsDialogState
+    data class AppDetails(
+        val app: AppItem,
+        val availablePaths: List<AppPath> = emptyList(),
+    ) : AppsDialogState
 
     data class FilterOptions(
         val currentFilter: AppsState.FilterConfig,

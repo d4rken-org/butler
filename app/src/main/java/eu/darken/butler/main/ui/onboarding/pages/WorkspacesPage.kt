@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,10 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Description
-import androidx.compose.material.icons.filled.FolderOpen
-import androidx.compose.material.icons.twotone.Layers
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.twotone.Tab
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -35,7 +31,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -43,6 +38,13 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.main.ui.onboarding.components.CardLayout
+import eu.darken.butler.main.ui.onboarding.components.OnboardingInfoCard
+import eu.darken.butler.main.ui.onboarding.components.OnboardingPageHeader
+import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.icon
+import eu.darken.butler.workspace.core.label
 
 @Composable
 internal fun WorkspacesPage(
@@ -76,24 +78,22 @@ internal fun WorkspacesPage(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-            Text(
-                text = stringResource(R.string.onboarding_workspaces_title),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
+                OnboardingPageHeader(
+                    title = stringResource(R.string.onboarding_workspaces_title),
+                    message = stringResource(R.string.onboarding_workspaces_message),
+                    subtitleAlpha = 0.8f,
+                    icon = {
+                        Icon(
+                            imageVector = Icons.TwoTone.Tab,
+                            contentDescription = null,
+                            modifier = Modifier.size(96.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+                )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = stringResource(R.string.onboarding_workspaces_message),
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -103,34 +103,70 @@ internal fun WorkspacesPage(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    WorkspaceCard(
-                        icon = Icons.Filled.FolderOpen,
-                        title = stringResource(R.string.onboarding_workspaces_explorer_title),
+                    OnboardingInfoCard(
+                        title = Workspace.Type.EXPLORER.label.asComposable(),
                         description = stringResource(R.string.onboarding_workspaces_explorer_description),
-                        modifier = Modifier.weight(1f)
+                        layout = CardLayout.Vertical,
+                        fixedHeight = 140.dp,
+                        modifier = Modifier.weight(1f),
+                        icon = {
+                            Icon(
+                                imageVector = Workspace.Type.EXPLORER.icon,
+                                contentDescription = null,
+                                modifier = Modifier.size(32.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     )
-                    WorkspaceCard(
-                        icon = Icons.Filled.Search,
-                        title = stringResource(R.string.onboarding_workspaces_searcher_title),
+                    OnboardingInfoCard(
+                        title = Workspace.Type.SEARCHER.label.asComposable(),
                         description = stringResource(R.string.onboarding_workspaces_searcher_description),
-                        modifier = Modifier.weight(1f)
+                        layout = CardLayout.Vertical,
+                        fixedHeight = 140.dp,
+                        modifier = Modifier.weight(1f),
+                        icon = {
+                            Icon(
+                                imageVector = Workspace.Type.SEARCHER.icon,
+                                contentDescription = null,
+                                modifier = Modifier.size(32.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     )
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    WorkspaceCard(
-                        icon = Icons.TwoTone.Description,
-                        title = stringResource(R.string.onboarding_workspaces_editor_title),
+                    OnboardingInfoCard(
+                        title = Workspace.Type.EDITOR.label.asComposable(),
                         description = stringResource(R.string.onboarding_workspaces_editor_description),
-                        modifier = Modifier.weight(1f)
+                        layout = CardLayout.Vertical,
+                        fixedHeight = 140.dp,
+                        modifier = Modifier.weight(1f),
+                        icon = {
+                            Icon(
+                                imageVector = Workspace.Type.EDITOR.icon,
+                                contentDescription = null,
+                                modifier = Modifier.size(32.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     )
-                    WorkspaceCard(
-                        icon = Icons.TwoTone.Layers,
-                        title = stringResource(R.string.onboarding_workspaces_templates_title),
-                        description = stringResource(R.string.onboarding_workspaces_templates_description),
-                        modifier = Modifier.weight(1f)
+                    OnboardingInfoCard(
+                        title = Workspace.Type.APPS.label.asComposable(),
+                        description = stringResource(R.string.onboarding_workspaces_apps_description),
+                        layout = CardLayout.Vertical,
+                        fixedHeight = 140.dp,
+                        modifier = Modifier.weight(1f),
+                        icon = {
+                            Icon(
+                                imageVector = Workspace.Type.APPS.icon,
+                                contentDescription = null,
+                                modifier = Modifier.size(32.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     )
                 }
             }
@@ -173,54 +209,6 @@ internal fun WorkspacesPage(
             ) {
                 Text(text = stringResource(R.string.onboarding_workspaces_action))
             }
-        }
-    }
-}
-
-@Composable
-private fun WorkspaceCard(
-    icon: ImageVector,
-    title: String,
-    description: String,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.height(140.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth()
-                .fillMaxHeight(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(32.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                maxLines = 2,
-                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-            )
         }
     }
 }

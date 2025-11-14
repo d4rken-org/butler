@@ -6,7 +6,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,8 +20,6 @@ import androidx.compose.material.icons.twotone.PhoneAndroid
 import androidx.compose.material.icons.twotone.ScreenRotation
 import androidx.compose.material.icons.twotone.TabletAndroid
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -34,7 +31,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -42,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.main.ui.onboarding.components.OnboardingInfoCard
+import eu.darken.butler.main.ui.onboarding.components.OnboardingPageHeader
 
 @Composable
 internal fun AdaptiveLayoutPage(
@@ -75,30 +73,19 @@ internal fun AdaptiveLayoutPage(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Icon(
-                    imageVector = Icons.TwoTone.Devices,
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Text(
-                    text = stringResource(R.string.onboarding_adaptive_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = stringResource(R.string.onboarding_adaptive_message),
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                OnboardingPageHeader(
+                    title = stringResource(R.string.onboarding_adaptive_title),
+                    message = stringResource(R.string.onboarding_adaptive_message),
+                    subtitleAlpha = 0.8f,
+                    icon = {
+                        Icon(
+                            imageVector = Icons.TwoTone.Devices,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -107,22 +94,46 @@ internal fun AdaptiveLayoutPage(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    AdaptiveFeatureCard(
-                        icon = Icons.TwoTone.PhoneAndroid,
+                    OnboardingInfoCard(
                         title = stringResource(R.string.onboarding_adaptive_phone_title),
-                        description = stringResource(R.string.onboarding_adaptive_phone_description)
+                        description = stringResource(R.string.onboarding_adaptive_phone_description),
+                        icon = {
+                            Icon(
+                                imageVector = Icons.TwoTone.PhoneAndroid,
+                                contentDescription = null,
+                                modifier = Modifier.size(40.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.padding(start = 16.dp))
+                        }
                     )
 
-                    AdaptiveFeatureCard(
-                        icon = Icons.TwoTone.ScreenRotation,
+                    OnboardingInfoCard(
                         title = stringResource(R.string.onboarding_adaptive_landscape_title),
-                        description = stringResource(R.string.onboarding_adaptive_landscape_description)
+                        description = stringResource(R.string.onboarding_adaptive_landscape_description),
+                        icon = {
+                            Icon(
+                                imageVector = Icons.TwoTone.ScreenRotation,
+                                contentDescription = null,
+                                modifier = Modifier.size(40.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.padding(start = 16.dp))
+                        }
                     )
 
-                    AdaptiveFeatureCard(
-                        icon = Icons.TwoTone.TabletAndroid,
+                    OnboardingInfoCard(
                         title = stringResource(R.string.onboarding_adaptive_tablet_title),
-                        description = stringResource(R.string.onboarding_adaptive_tablet_description)
+                        description = stringResource(R.string.onboarding_adaptive_tablet_description),
+                        icon = {
+                            Icon(
+                                imageVector = Icons.TwoTone.TabletAndroid,
+                                contentDescription = null,
+                                modifier = Modifier.size(40.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.padding(start = 16.dp))
+                        }
                     )
                 }
 
@@ -144,55 +155,6 @@ internal fun AdaptiveLayoutPage(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = stringResource(R.string.onboarding_adaptive_action))
-            }
-        }
-    }
-}
-
-@Composable
-private fun AdaptiveFeatureCard(
-    icon: ImageVector,
-    title: String,
-    description: String,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(40.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 16.dp)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
             }
         }
     }

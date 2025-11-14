@@ -21,6 +21,7 @@ sealed interface ExplorerItem {
         override val displayName: CaString,
         val displayIcon: ImageVector,
         val target: ExplorerNavigation.Target,
+        val subtitle: CaString? = null,
     ) : ExplorerItem {
         override val id: String get() = "shortcut-$shortcutId"
     }

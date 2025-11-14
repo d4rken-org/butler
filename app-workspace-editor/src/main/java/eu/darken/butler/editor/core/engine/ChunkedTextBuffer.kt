@@ -22,13 +22,18 @@ import java.util.LinkedList
 class ChunkedTextBuffer @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     @Assisted private val chunkManager: ChunkManager,
-    @Assisted private val chunkRepository: ChunkRepository
-) {
+    @Assisted private val chunkRepository: ChunkRepository,
+    @Assisted private val maxUndoStackSize: Int = 100,
+    @Assisted private val maxUndoMemoryBytes: Long = 10_485_760, // 10 MB
+) : EditorBuffer {
 
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "ChunkedTextBuffer")
 
     private val _fileInfo = MutableStateFlow<FileInfo?>(null)
     val fileInfo: StateFlow<FileInfo?> = _fileInfo.asStateFlow()
+
+    private val _lineEnding = MutableStateFlow(LineEnding.LF)
+    val lineEnding: StateFlow<LineEnding> = _lineEnding.asStateFlow()
 
     private val _totalLines = MutableStateFlow(0)
     val totalLines: StateFlow<Int> = _totalLines.asStateFlow()
@@ -37,17 +42,19 @@ class ChunkedTextBuffer @AssistedInject constructor(
     val totalLength: StateFlow<Long> = _totalLength.asStateFlow()
 
     private val _isModified = MutableStateFlow(false)
-    val isModified: StateFlow<Boolean> = _isModified.asStateFlow()
+    override val isModified: StateFlow<Boolean> = _isModified.asStateFlow()
 
     private val bufferMutex = Mutex()
     private val chunkMetadata = mutableListOf<ChunkMetadata>()
     private val undoStack = LinkedList<EditOperation>()
     private val redoStack = LinkedList<EditOperation>()
     private var isUndoRedoInProgress = false
+    private var currentUndoMemoryBytes: Long = 0
+    private var currentRedoMemoryBytes: Long = 0
 
-    private var chunkIds: List<TextChunk.ChunkId> = emptyList()
+    private var chunkIds: List<EditorChunk.ChunkId> = emptyList()
 
-    suspend fun initialize(): Result<Unit> = bufferMutex.withLock {
+    override suspend fun initialize(): Result<Unit> = bufferMutex.withLock {
         try {
             // Get info from data source (may be null for in-memory sources)
             val info = chunkRepository.getFileInfo()
@@ -71,12 +78,16 @@ class ChunkedTextBuffer @AssistedInject constructor(
             // For empty content, we need to create and load the empty chunk
             if (size == 0L && chunkIds.isNotEmpty()) {
                 val emptyChunkId = chunkIds.first()
-                val emptyChunk = TextChunk(
+                val emptyChunk = EditorChunk.Text(
+                    offset = 0L,
                     id = emptyChunkId,
                     content = "",
+                    size = 0L,
                     lineCount = 1,
+                    lineEnding = LineEnding.LF,
                     isDirty = false,
-                    isLoaded = true
+                    isLoaded = true,
+                    refCount = 0
                 )
                 chunkManager.addChunk(emptyChunk)
             }
@@ -199,8 +210,14 @@ class ChunkedTextBuffer @AssistedInject constructor(
             while (currentPos < currentChunk.content.length) {
                 val char = currentChunk.content[currentPos]
                 if (char == '\n') {
-                    // Found end of line
-                    return Result.success(result.toString())
+                    // Found end of line - strip trailing \r for CRLF
+                    val lineText = result.toString()
+                    val strippedText = if (lineText.endsWith('\r')) {
+                        lineText.dropLast(1)
+                    } else {
+                        lineText
+                    }
+                    return Result.success(strippedText)
                 }
                 result.append(char)
                 currentPos++
@@ -209,8 +226,14 @@ class ChunkedTextBuffer @AssistedInject constructor(
             // Reached end of chunk without finding newline
             currentChunkIndex++
             if (currentChunkIndex >= chunkMetadata.size) {
-                // No more chunks, line ends at EOF
-                return Result.success(result.toString())
+                // No more chunks, line ends at EOF - strip trailing \r if present
+                val lineText = result.toString()
+                val strippedText = if (lineText.endsWith('\r')) {
+                    lineText.dropLast(1)
+                } else {
+                    lineText
+                }
+                return Result.success(strippedText)
             }
 
             // Load next chunk and continue scanning from its start
@@ -248,48 +271,73 @@ class ChunkedTextBuffer @AssistedInject constructor(
         try {
             // Find the chunk containing this position
             val chunk = findChunkForOffset(position.offset)
-                ?: return@withLock Result.failure(IllegalArgumentException("Position is out of bounds"))
-
-            // Load the chunk if needed
-            val loadedChunk = if (chunk.isLoaded) {
-                chunk
-            } else {
-                chunkManager.loadChunk(chunk.id).getOrThrow()
+            if (chunk == null) {
+                log(tag, ERROR) {
+                    "insertText: No chunk found for offset ${position.offset}, totalLength=${_totalLength.value}, chunkIds=${chunkIds.map { it.value }}"
+                }
+                return@withLock Result.failure(IllegalArgumentException("Position is out of bounds"))
             }
 
-            // Get boundary for offset calculation
-            val boundary = chunkManager.getBoundary(chunk.id)
-                ?: return@withLock Result.failure(IllegalStateException("No boundary for chunk ${chunk.id}"))
+            // Pin the chunk to prevent eviction during this operation
+            val pinResult = chunkManager.withPinnedChunk(chunk.id) { pinnedChunk ->
+                // Get boundary for offset calculation
+                val boundary = chunkManager.getBoundary(chunk.id)
+                    ?: throw IllegalStateException("No boundary for chunk ${chunk.id}")
 
-            // Calculate insertion point within chunk
-            val insertionIndex = (position.offset - boundary.startOffset).toInt()
-            val newContent = loadedChunk.content.substring(0, insertionIndex) +
-                text +
-                loadedChunk.content.substring(insertionIndex)
+                // Calculate insertion point within chunk
+                val insertionIndex = (position.offset - boundary.startOffset).toInt()
+                val newContent = pinnedChunk.content.substring(0, insertionIndex) +
+                    text +
+                    pinnedChunk.content.substring(insertionIndex)
 
-            // Update the chunk
-            val updatedChunk = loadedChunk.copy(
-                content = newContent,
-                isDirty = true
-            )
+                // Update the chunk - transform the CURRENT chunk in cache (preserves refCount)
+                chunkManager.updateChunk(chunk.id) { currentChunk ->
+                    currentChunk.copy(
+                        content = newContent,
+                        isDirty = true
+                    )
+                } ?: throw IllegalStateException("Failed to update chunk ${chunk.id}")
+            }
 
-            chunkManager.updateChunk(chunk.id) { updatedChunk }
+            if (pinResult.isFailure) {
+                return@withLock Result.failure(
+                    pinResult.exceptionOrNull() ?: Exception("Failed to pin chunk for insertion")
+                )
+            }
 
             // Update total length
             _totalLength.value = _totalLength.value + text.length
 
-            // Update line index and state (BEFORE boundary update to avoid lock ordering issues)
-            updateAfterEdit()
-
-            // Update chunk boundaries to reflect the insertion (AFTER metadata rebuild)
+            // Update chunk boundaries FIRST to reflect the insertion
+            // This must happen BEFORE buildChunkMetadata() so metadata uses updated boundaries
             val deltaLines = text.count { it == '\n' }
             chunkManager.updateBoundaries(position.offset, text.length.toLong(), deltaLines)
+
+            // Update line index and state (AFTER boundary update to use correct boundaries)
+            updateAfterEdit()
 
             // Add to undo stack (unless we're undoing/redoing)
             if (!isUndoRedoInProgress) {
                 val operation = EditOperation.Insert(position, text)
+                val opMemory = operation.estimateMemoryBytes()
+
                 undoStack.addLast(operation)
+                currentUndoMemoryBytes += opMemory
+
+                // Evict oldest operations if limits exceeded
+                while ((undoStack.size > maxUndoStackSize || currentUndoMemoryBytes > maxUndoMemoryBytes)
+                       && undoStack.size > 1) {  // Keep at least one operation
+                    val evicted = undoStack.removeFirst()
+                    currentUndoMemoryBytes -= evicted.estimateMemoryBytes()
+                    log(tag, DEBUG) {
+                        "Evicted old undo operation (stack: ${undoStack.size}/${maxUndoStackSize}, " +
+                        "memory: ${currentUndoMemoryBytes}/${maxUndoMemoryBytes} bytes)"
+                    }
+                }
+
+                // Clear redo stack and reset its memory counter
                 redoStack.clear()
+                currentRedoMemoryBytes = 0
             }
 
             // Calculate new position
@@ -319,97 +367,159 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
                 // Find affected chunks
                 val affectedChunks = chunkManager.getChunksInRange(startPosition.offset, endPosition.offset)
+                val affectedChunkIds = affectedChunks.map { it.id }.toSet()
 
-                // Handle single chunk and multi-chunk deletions
-                if (affectedChunks.size == 1) {
-                    // Single chunk deletion
-                    val chunk = affectedChunks.first()
-                    val loadedChunk = if (chunk.isLoaded) {
-                        chunk
+                // Track merged chunk info for boundary fix (needed outside pinning block)
+                var mergedChunkId: EditorChunk.ChunkId? = null
+                var mergedChunkSize: Long = 0
+
+                // Pin all affected chunks to prevent eviction during this operation
+                // Lambda returns the set of chunk IDs that need to be evicted after unpinning
+                val pinResult = chunkManager.withPinnedChunks(affectedChunkIds) { pinnedChunks ->
+                    // Handle single chunk and multi-chunk deletions
+                    if (pinnedChunks.size == 1) {
+                        // Single chunk deletion
+                        val chunk = pinnedChunks.first()
+
+                        // Get boundary for offset calculation
+                        val boundary = chunkManager.getBoundary(chunk.id)
+                            ?: throw IllegalStateException("No boundary for chunk ${chunk.id}")
+
+                        val startInChunk = (startPosition.offset - boundary.startOffset).toInt()
+                        val endInChunk = (endPosition.offset - boundary.startOffset).toInt()
+
+                        val newContent = chunk.content.removeRange(startInChunk, endInChunk)
+
+                        // Update the chunk - transform the CURRENT chunk in cache (preserves refCount)
+                        chunkManager.updateChunk(chunk.id) { currentChunk ->
+                            currentChunk.copy(
+                                content = newContent,
+                                isDirty = true
+                            )
+                        } ?: throw IllegalStateException("Failed to update chunk ${chunk.id}")
+
+                        // Single chunk: nothing to evict
+                        emptySet<EditorChunk.ChunkId>()
                     } else {
-                        chunkManager.loadChunk(chunk.id).getOrThrow()
+                        // Multi-chunk deletion: merge content from first and last chunks
+                        val firstChunk = pinnedChunks.first()
+                        val lastChunk = pinnedChunks.last()
+
+                        // Get boundaries for offset calculation
+                        val firstBoundary = chunkManager.getBoundary(firstChunk.id)
+                            ?: throw IllegalStateException("No boundary for chunk ${firstChunk.id}")
+                        val lastBoundary = chunkManager.getBoundary(lastChunk.id)
+                            ?: throw IllegalStateException("No boundary for chunk ${lastChunk.id}")
+
+                        // Calculate what to keep from each chunk
+                        val startInFirstChunk = (startPosition.offset - firstBoundary.startOffset).toInt()
+                        val endInLastChunk = (endPosition.offset - lastBoundary.startOffset).toInt()
+
+                        // Build merged content: keep beginning of first chunk + end of last chunk
+                        val contentBeforeDelete = firstChunk.content.substring(0, startInFirstChunk)
+                        val contentAfterDelete = lastChunk.content.substring(endInLastChunk)
+                        val mergedContent = contentBeforeDelete + contentAfterDelete
+
+                        // Update first chunk with merged content - transform the CURRENT chunk (preserves refCount)
+                        chunkManager.updateChunk(firstChunk.id) { currentChunk ->
+                            currentChunk.copy(
+                                content = mergedContent,
+                                isDirty = true
+                            )
+                        } ?: throw IllegalStateException("Failed to update chunk ${firstChunk.id}")
+
+                        // Save info for boundary fix (must happen AFTER updateBoundaries call)
+                        mergedChunkId = firstChunk.id
+                        mergedChunkSize = mergedContent.length.toLong()
+
+                        // CRITICAL: Mark all chunks AFTER the merge point as dirty
+                        // Even though their content hasn't changed, their logical offsets have moved.
+                        // Until the file is saved, these chunks can't be reloaded from disk because
+                        // the disk still has the old structure (boundaries don't match file offsets).
+                        val allChunkIds = chunkManager.getAllChunkIds()
+                        val chunksAfterMerge = allChunkIds
+                            .mapNotNull { id -> chunkManager.getBoundary(id)?.let { id to it } }
+                            .filter { (id, boundary) -> boundary.startOffset > firstBoundary.startOffset && id !in pinnedChunks.map { it.id } }
+                            .map { it.first }
+
+                        // Load and mark all chunks after merge as dirty
+                        // These chunks' logical offsets have shifted, so they can't be reloaded from disk
+                        // at their boundary offsets until the file is saved with the new structure
+                        for (chunkId in chunksAfterMerge) {
+                            // Load chunk if not in cache
+                            val chunk = chunkManager.getChunk(chunkId)
+                                ?: chunkManager.loadChunk(chunkId).getOrNull()
+
+                            if (chunk == null) {
+                                log(tag, WARN) { "Failed to load chunk $chunkId for marking as dirty" }
+                                continue
+                            }
+
+                            // Mark as dirty to prevent eviction/reload
+                            chunkManager.updateChunk(chunkId) { it.copy(isDirty = true) }
+                        }
+
+                        log(tag, DEBUG) {
+                            "Multi-chunk delete: merged ${pinnedChunks.size} chunks, marked ${chunksAfterMerge.size} chunks as dirty"
+                        }
+
+                        // Return all chunks except the first one (which has the merged content)
+                        // These will be evicted AFTER unpinning
+                        pinnedChunks.drop(1).map { it.id }.toSet()
                     }
+                }
 
-                    // Get boundary for offset calculation
-                    val boundary = chunkManager.getBoundary(chunk.id)
-                        ?: return@withLock Result.failure(IllegalStateException("No boundary for chunk ${chunk.id}"))
-
-                    val startInChunk = (startPosition.offset - boundary.startOffset).toInt()
-                    val endInChunk = (endPosition.offset - boundary.startOffset).toInt()
-
-                    val newContent = loadedChunk.content.removeRange(startInChunk, endInChunk)
-                    val updatedChunk = loadedChunk.copy(
-                        content = newContent,
-                        isDirty = true
+                if (pinResult.isFailure) {
+                    return@withLock Result.failure(
+                        pinResult.exceptionOrNull() ?: Exception("Failed to pin chunks for deletion")
                     )
+                }
 
-                    chunkManager.updateChunk(chunk.id) { updatedChunk }
-                } else {
-                    // Multi-chunk deletion: merge content from first and last chunks
-                    val firstChunk = affectedChunks.first()
-                    val lastChunk = affectedChunks.last()
-
-                    // Load chunks if needed
-                    val loadedFirst = if (firstChunk.isLoaded) {
-                        firstChunk
-                    } else {
-                        chunkManager.loadChunk(firstChunk.id).getOrThrow()
+                // Now evict the chunks that need to be removed (they're unpinned now)
+                // Use removeFromStructure=true because these chunks no longer exist in the logical file
+                val chunksToEvict = pinResult.getOrThrow()
+                if (chunksToEvict.isNotEmpty()) {
+                    for (chunkId in chunksToEvict) {
+                        val evicted = chunkManager.evictChunk(chunkId, removeFromStructure = true)
+                        if (!evicted) {
+                            log(tag, WARN) { "Failed to evict chunk $chunkId after deletion" }
+                        }
                     }
 
-                    val loadedLast = if (lastChunk.isLoaded) {
-                        lastChunk
-                    } else {
-                        chunkManager.loadChunk(lastChunk.id).getOrThrow()
-                    }
+                        // Update chunkIds list to remove evicted chunks
+                    chunkIds = chunkIds.filterNot { it in chunksToEvict }
 
-                    // Get boundaries for offset calculation
-                    val firstBoundary = chunkManager.getBoundary(firstChunk.id)
-                        ?: return@withLock Result.failure(IllegalStateException("No boundary for chunk ${firstChunk.id}"))
-                    val lastBoundary = chunkManager.getBoundary(lastChunk.id)
-                        ?: return@withLock Result.failure(IllegalStateException("No boundary for chunk ${lastChunk.id}"))
-
-                    // Calculate what to keep from each chunk
-                    val startInFirstChunk = (startPosition.offset - firstBoundary.startOffset).toInt()
-                    val endInLastChunk = (endPosition.offset - lastBoundary.startOffset).toInt()
-
-                    // Build merged content: keep beginning of first chunk + end of last chunk
-                    val contentBeforeDelete = loadedFirst.content.substring(0, startInFirstChunk)
-                    val contentAfterDelete = loadedLast.content.substring(endInLastChunk)
-                    val mergedContent = contentBeforeDelete + contentAfterDelete
-
-                    // Update first chunk with merged content
-                    val updatedFirstChunk = loadedFirst.copy(
-                        content = mergedContent,
-                        isDirty = true
-                    )
-                    chunkManager.updateChunk(firstChunk.id) { updatedFirstChunk }
-
-                    // Remove all other affected chunks (middle chunks + last chunk)
-                    val evictedChunkIds = affectedChunks.drop(1).map { it.id }.toSet()
-                    for (i in 1 until affectedChunks.size) {
-                        chunkManager.evictChunk(affectedChunks[i].id)
-                    }
-
-                    // Update chunkIds list to remove evicted chunks
-                    chunkIds = chunkIds.filterNot { it in evictedChunkIds }
-
-                    log(tag, DEBUG) {
-                        "Multi-chunk delete: merged ${affectedChunks.size} chunks, " +
-                            "kept ${contentBeforeDelete.length} + ${contentAfterDelete.length} bytes, " +
-                            "evicted ${evictedChunkIds.size} chunks"
-                    }
+                    log(tag, DEBUG) { "Evicted ${chunksToEvict.size} chunks after multi-chunk delete" }
                 }
 
                 // Update total length
                 val deletedLength = endPosition.offset - startPosition.offset
                 _totalLength.value = _totalLength.value - deletedLength
 
-                // Update line index and state (BEFORE boundary update to avoid lock ordering issues)
-                updateAfterEdit()
-
-                // Update chunk boundaries to reflect the deletion (AFTER metadata rebuild)
+                // Update chunk boundaries FIRST to reflect the deletion
+                // This must happen BEFORE buildChunkMetadata() so metadata uses updated boundaries
                 val deltaLines = -deletedText.count { it == '\n' }
                 chunkManager.updateBoundaries(startPosition.offset, -deletedLength, deltaLines)
+
+                // CRITICAL FIX: For multi-chunk delete, the merged chunk's boundary was destroyed by updateBoundaries()
+                // We need to fix it to reflect the actual merged content size
+                if (mergedChunkId != null) {
+                    val mergedBoundary = chunkManager.getBoundary(mergedChunkId!!)
+                    if (mergedBoundary != null) {
+                        val correctedBoundary = ChunkBoundary(
+                            startOffset = mergedBoundary.startOffset,
+                            endOffset = mergedBoundary.startOffset + mergedChunkSize,
+                            lineCount = mergedBoundary.lineCount
+                        )
+                        chunkManager.updateBoundary(mergedChunkId!!, correctedBoundary)
+                        log(tag, DEBUG) {
+                            "Fixed merged chunk boundary: ${mergedChunkId!!.value} from [${mergedBoundary.startOffset}, ${mergedBoundary.endOffset}) to [${correctedBoundary.startOffset}, ${correctedBoundary.endOffset})"
+                        }
+                    }
+                }
+
+                // Update line index and state (AFTER boundary update to use correct boundaries)
+                updateAfterEdit()
 
                 // Add to undo stack (unless we're undoing/redoing)
                 if (!isUndoRedoInProgress) {
@@ -418,8 +528,25 @@ class ChunkedTextBuffer @AssistedInject constructor(
                         (endPosition.offset - startPosition.offset).toInt(),
                         deletedText
                     )
+                    val opMemory = operation.estimateMemoryBytes()
+
                     undoStack.addLast(operation)
+                    currentUndoMemoryBytes += opMemory
+
+                    // Evict oldest operations if limits exceeded
+                    while ((undoStack.size > maxUndoStackSize || currentUndoMemoryBytes > maxUndoMemoryBytes)
+                           && undoStack.size > 1) {  // Keep at least one operation
+                        val evicted = undoStack.removeFirst()
+                        currentUndoMemoryBytes -= evicted.estimateMemoryBytes()
+                        log(tag, DEBUG) {
+                            "Evicted old undo operation (stack: ${undoStack.size}/${maxUndoStackSize}, " +
+                            "memory: ${currentUndoMemoryBytes}/${maxUndoMemoryBytes} bytes)"
+                        }
+                    }
+
+                    // Clear redo stack and reset its memory counter
                     redoStack.clear()
+                    currentRedoMemoryBytes = 0
                 }
 
                 Result.success(deletedText)
@@ -574,7 +701,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         return results.sortedBy { it.position.offset }
     }
 
-    suspend fun saveFile(): Result<Unit> {
+    override suspend fun saveFile(): Result<Unit> {
         return try {
             // saveAllDirtyChunks() now handles complete save flow (get dirty, save, mark clean)
             val result = chunkManager.saveAllDirtyChunks()
@@ -592,14 +719,20 @@ class ChunkedTextBuffer @AssistedInject constructor(
         return Result.failure(UnsupportedOperationException("Save As not implemented yet"))
     }
 
-    suspend fun undo(): Result<EditOperation?> {
+    override suspend fun undo(): Result<TextPosition?> {
         // Get operation from stack (protected by mutex)
         val operation = bufferMutex.withLock {
             if (undoStack.isEmpty()) {
                 return Result.success(null)
             }
             val op = undoStack.removeLast()
+            val opMemory = op.estimateMemoryBytes()
+
+            // Update memory counters when moving operation between stacks
+            currentUndoMemoryBytes -= opMemory
             redoStack.addLast(op)
+            currentRedoMemoryBytes += opMemory
+
             op
         }
 
@@ -610,6 +743,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
             // (insertText/deleteText/replaceText acquire their own mutex)
             when (operation) {
                 is EditOperation.Insert -> {
+                    log(tag, DEBUG) { "Undoing insert: deleting ${operation.text.length} bytes at offset ${operation.position.offset}" }
                     val endPosition = TextPosition(
                         operation.position.offset + operation.text.length,
                         operation.position.line,
@@ -618,7 +752,9 @@ class ChunkedTextBuffer @AssistedInject constructor(
                     deleteText(operation.position, endPosition)
                 }
                 is EditOperation.Delete -> {
-                    insertText(operation.position, operation.deletedText)
+                    log(tag, DEBUG) { "Undoing delete: inserting ${operation.deletedText.length} bytes at offset ${operation.position.offset}" }
+                    val result = insertText(operation.position, operation.deletedText)
+                    log(tag, DEBUG) { "Undo insert result: ${if (result.isSuccess) "SUCCESS" else "FAILED - ${result.exceptionOrNull()?.message}"}" }
                 }
                 is EditOperation.Replace -> {
                     replaceText(
@@ -633,20 +769,26 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 }
             }
 
-            return Result.success(operation)
+            return Result.success(operation.position)
         } finally {
             isUndoRedoInProgress = false
         }
     }
 
-    suspend fun redo(): Result<EditOperation?> {
+    override suspend fun redo(): Result<TextPosition?> {
         // Get operation from stack (protected by mutex)
         val operation = bufferMutex.withLock {
             if (redoStack.isEmpty()) {
                 return Result.success(null)
             }
             val op = redoStack.removeLast()
+            val opMemory = op.estimateMemoryBytes()
+
+            // Update memory counters when moving operation between stacks
+            currentRedoMemoryBytes -= opMemory
             undoStack.addLast(op)
+            currentUndoMemoryBytes += opMemory
+
             op
         }
 
@@ -679,15 +821,80 @@ class ChunkedTextBuffer @AssistedInject constructor(
             }
             }
 
-            return Result.success(operation)
+            return Result.success(operation.position)
         } finally {
             isUndoRedoInProgress = false
         }
     }
 
-    fun canUndo(): Boolean = undoStack.isNotEmpty()
+    override fun canUndo(): Boolean = undoStack.isNotEmpty()
 
-    fun canRedo(): Boolean = redoStack.isNotEmpty()
+    override fun canRedo(): Boolean = redoStack.isNotEmpty()
+
+    /**
+     * Counts lines in a chunk using the specified line ending style.
+     * Only adds +1 for missing trailing newline if this is the last chunk.
+     *
+     * For CRLF files, we count LF since every CRLF contains an LF.
+     * This handles CRLF sequences that may be split across chunk boundaries.
+     */
+    private fun countLinesInChunk(content: String, lineEnding: LineEnding, isLastChunk: Boolean): Int {
+        if (content.isEmpty()) return if (isLastChunk) 1 else 0
+
+        val newlineCount = when (lineEnding) {
+            LineEnding.LF -> content.count { it == '\n' }
+            LineEnding.CRLF -> content.count { it == '\n' }  // Count LF (part of every CRLF)
+            LineEnding.CR -> content.count { it == '\r' }
+            LineEnding.MIXED -> {
+                // For mixed, count distinct line endings (avoid double-counting CRLF)
+                val crlfCount = content.windowed(2).count { it == "\r\n" }
+                val totalLfCount = content.count { it == '\n' }
+                val totalCrCount = content.count { it == '\r' }
+                val standaloneLf = totalLfCount - crlfCount
+                val standaloneCr = totalCrCount - crlfCount
+                crlfCount + standaloneLf + standaloneCr
+            }
+        }
+
+        // Only add +1 for last chunk if it doesn't end with newline
+        if (isLastChunk) {
+            val endsWithNewline = when (lineEnding) {
+                LineEnding.LF -> content.endsWith('\n')
+                LineEnding.CRLF -> content.endsWith('\n') || content.endsWith("\r\n")
+                LineEnding.CR -> content.endsWith('\r')
+                LineEnding.MIXED -> content.endsWith('\n') || content.endsWith("\r\n") || content.endsWith('\r')
+            }
+            return newlineCount + if (!endsWithNewline) 1 else 0
+        }
+
+        return newlineCount
+    }
+
+    /**
+     * Detects line ending style from content.
+     * Same logic as ChunkRepository but needed here for multi-chunk scanning.
+     */
+    private fun detectLineEndingFromContent(content: String): LineEnding {
+        if (content.isEmpty()) return LineEnding.LF
+
+        val crlfCount = content.windowed(2).count { it == "\r\n" }
+        val lfCount = content.count { it == '\n' } - crlfCount  // LF not part of CRLF
+        val crCount = content.count { it == '\r' } - crlfCount  // CR not part of CRLF
+
+        return when {
+            // Pure CRLF (Windows)
+            crlfCount > 0 && lfCount == 0 && crCount == 0 -> LineEnding.CRLF
+            // Pure LF (Unix)
+            lfCount > 0 && crlfCount == 0 && crCount == 0 -> LineEnding.LF
+            // Pure CR (old Mac)
+            crCount > 0 && lfCount == 0 && crlfCount == 0 -> LineEnding.CR
+            // Mixed or multiple styles present
+            else -> {
+                if (crlfCount + lfCount + crCount == 0) LineEnding.LF  // No newlines, default LF
+                else LineEnding.MIXED
+            }
+        }
+    }
 
     private suspend fun buildChunkMetadata() {
         chunkMetadata.clear()
@@ -699,7 +906,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         if (fileSize == 0L) {
             chunkMetadata.add(
                 ChunkMetadata(
-                    chunkId = chunkIds.firstOrNull() ?: TextChunk.ChunkId.generate(),
+                    chunkId = chunkIds.firstOrNull() ?: EditorChunk.ChunkId.generate(),
                     startOffset = 0L,
                     endOffset = 0L,
                     lineCount = 1,
@@ -707,20 +914,55 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 )
             )
             _totalLines.value = 1
-            log(tag) { "Built metadata for empty file (1 line)" }
+            // Set default line ending for empty files
+            _lineEnding.value = LineEnding.LF
+            _fileInfo.value = _fileInfo.value?.copy(lineEnding = LineEnding.LF)
+            log(tag) { "Built metadata for empty file (1 line, default LF)" }
             return
         }
 
         val startTime = System.currentTimeMillis()
         log(tag) { "Building chunk metadata for ${chunkIds.size} chunks from boundaries" }
 
+        // Detect document-wide line ending from multiple chunks for accuracy
+        // (A single chunk may have incomplete CRLF at boundary)
+        val documentLineEnding = if (chunkIds.isNotEmpty()) {
+            // Scan first 3 chunks (or all if fewer) to get better sample
+            val chunksToScan = chunkIds.take(3)
+            val combinedContent = StringBuilder()
+
+            for (scanChunkId in chunksToScan) {
+                val scanChunk = chunkManager.getChunk(scanChunkId)
+                    ?: chunkManager.loadChunk(scanChunkId).getOrThrow()
+                combinedContent.append(scanChunk.content)
+            }
+
+            // Detect from combined content (handles split CRLF at boundaries)
+            detectLineEndingFromContent(combinedContent.toString())
+        } else {
+            LineEnding.LF  // Default for empty
+        }
+
+        // Update line ending state (works for both file and in-memory sources)
+        _lineEnding.value = documentLineEnding
+        // Also update FileInfo if present (file sources)
+        _fileInfo.value = _fileInfo.value?.copy(lineEnding = documentLineEnding)
+        log(tag) { "Detected document line ending: $documentLineEnding" }
+
         // Use line counts from boundaries (incrementally maintained during edits)
         // Only load chunks on first initialization when lineCount=0 (sentinel value)
-        val newLineCounts = mutableMapOf<TextChunk.ChunkId, Int>()
+        val newLineCounts = mutableMapOf<EditorChunk.ChunkId, Int>()
+
+        // Snapshot all boundaries at once to prevent race conditions during concurrent updates
+        // Without this, concurrent edits could modify boundaries mid-iteration, causing inconsistent state
+        val boundariesSnapshot = chunkIds.associateWith { chunkId ->
+            chunkManager.getBoundary(chunkId)
+                ?: throw IllegalStateException("No boundary for chunk $chunkId")
+        }
 
         for ((index, chunkId) in chunkIds.withIndex()) {
-            // Get authoritative boundary data from ChunkManager
-            val boundary = chunkManager.getBoundary(chunkId)
+            // Use snapshotted boundary data (prevents stale reads during concurrent edits)
+            val boundary = boundariesSnapshot[chunkId]
                 ?: throw IllegalStateException("No boundary for chunk $chunkId")
 
             val chunkStart = boundary.startOffset
@@ -733,10 +975,10 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 val chunk = chunkManager.getChunk(chunkId)
                     ?: chunkManager.loadChunk(chunkId).getOrThrow()
 
-                val content = chunk.content.toByteArray()
+                // Count lines using detected line ending style
+                val content = chunk.content
                 val isLastChunk = index == chunkIds.size - 1
-                lineCount = content.count { it == '\n'.code.toByte() } +
-                    if (isLastChunk && content.isNotEmpty() && content.last() != '\n'.code.toByte()) 1 else 0
+                lineCount = countLinesInChunk(content, documentLineEnding, isLastChunk)
 
                 // Collect line count for batch update (don't update boundary yet)
                 newLineCounts[chunkId] = lineCount
@@ -778,7 +1020,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         log(tag) { "Built ${chunkMetadata.size} metadata entries with $totalLines lines in ${totalTime}ms" }
     }
 
-    private suspend fun findChunkForOffset(offset: Long): TextChunk? {
+    private suspend fun findChunkForOffset(offset: Long): EditorChunk.Text? {
         return chunkManager.getChunksInRange(offset, offset + 1).firstOrNull()
     }
 
@@ -830,7 +1072,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         if (chunkMetadata.isEmpty()) return
 
         // Find which chunks are needed for the given line range
-        val neededChunkIds = mutableSetOf<TextChunk.ChunkId>()
+        val neededChunkIds = mutableSetOf<EditorChunk.ChunkId>()
 
         for (metadata in chunkMetadata) {
             val chunkLastLine = if (metadata == chunkMetadata.last()) {
@@ -863,12 +1105,37 @@ class ChunkedTextBuffer @AssistedInject constructor(
         }
     }
 
+    /**
+     * Estimates the memory footprint of an EditOperation in bytes.
+     * Strings in JVM use UTF-16 encoding (2 bytes per character).
+     */
+    private fun EditOperation.estimateMemoryBytes(): Long {
+        val baseSize = 32L  // Position (24 bytes) + timestamp (8 bytes) overhead
+        return when (this) {
+            is EditOperation.Insert -> baseSize + (text.length * 2L)
+            is EditOperation.Delete -> baseSize + (deletedText.length * 2L) + 4L  // +4 for length Int
+            is EditOperation.Replace -> baseSize + (oldText.length * 2L) + (newText.length * 2L)
+        }
+    }
+
+    /**
+     * Dispose of resources held by this buffer.
+     * Note: This does NOT save modifications. Call saveFile() first if needed.
+     */
+    override fun dispose() {
+        // Text buffer cleanup is handled by ChunkManager
+        // undo/redo stacks will be cleared when buffer is released
+        log(tag) { "Disposing text buffer" }
+    }
+
     @AssistedFactory
     interface Factory {
         fun create(
             workspaceId: Workspace.Id,
             chunkManager: ChunkManager,
-            chunkRepository: ChunkRepository
+            chunkRepository: ChunkRepository,
+            maxUndoStackSize: Int = 100,
+            maxUndoMemoryBytes: Long = 10_485_760,
         ): ChunkedTextBuffer
     }
 }
@@ -877,11 +1144,11 @@ data class LineInfo(
     val lineNumber: Int,
     val startOffset: Long,
     val endOffset: Long,
-    val chunkId: TextChunk.ChunkId
+    val chunkId: EditorChunk.ChunkId
 )
 
 data class ChunkMetadata(
-    val chunkId: TextChunk.ChunkId,
+    val chunkId: EditorChunk.ChunkId,
     val startOffset: Long,
     val endOffset: Long,
     val lineCount: Int,

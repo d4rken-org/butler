@@ -14,10 +14,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
+import androidx.compose.material.icons.twotone.DeleteSweep
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -53,6 +55,7 @@ fun WorkspaceButton(
     workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    var showCloseAllDialog by remember { mutableStateOf(false) }
 
     Box(modifier = modifier) {
         @Suppress("COMPOSE_APPLIER_CALL_MISMATCH")
@@ -64,7 +67,11 @@ fun WorkspaceButton(
                 .background(containerColor ?: MaterialTheme.colorScheme.tertiaryContainer)
                 .combinedClickable(
                     onClick = { expanded = true },
-                    onLongClick = { workspaceActionHandler?.executeWorkspaceAction(WorkspaceAction.Create()) }
+                    onLongClick = {
+                        if ((state?.workspaceCount ?: 0) > 0) {
+                            showCloseAllDialog = true
+                        }
+                    }
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -122,7 +129,40 @@ fun WorkspaceButton(
                     }
                 )
             }
+            if ((state?.workspaceCount ?: 0) > 0) {
+                HorizontalDivider()
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = stringResource(R.string.workspace_fab_close_all),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    },
+                    onClick = {
+                        expanded = false
+                        showCloseAllDialog = true
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.TwoTone.DeleteSweep,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                )
+            }
         }
+
+        // Close all confirmation dialog
+        CloseAllWorkspacesDialog(
+            visible = showCloseAllDialog,
+            workspaceCount = state?.workspaceCount ?: 0,
+            onDismiss = { showCloseAllDialog = false },
+            onConfirm = {
+                showCloseAllDialog = false
+                workspaceActionHandler?.executeWorkspaceAction(WorkspaceAction.CloseAll)
+            }
+        )
 
         // Badge showing workspace count (top-left)
         if (state?.workspaceCount != null && state.workspaceCount > 0) {

@@ -1,10 +1,16 @@
 package eu.darken.butler.explorer.core.engine
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Code
+import androidx.compose.material.icons.twotone.Android
+import androidx.compose.material.icons.twotone.DeveloperMode
 import androidx.compose.material.icons.twotone.FolderShared
+import androidx.compose.material.icons.twotone.PrivacyTip
+import androidx.compose.material.icons.twotone.Public
 import androidx.compose.material.icons.twotone.SdCard
 import androidx.compose.material.icons.twotone.Storage
+import eu.darken.butler.common.BuildConfigWrap
+import eu.darken.butler.common.adb.AdbManager
+import eu.darken.butler.common.adb.canUseAdbNow
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
@@ -14,6 +20,9 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.extensions.getFileSystemInfo
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.progress.Progress
+import eu.darken.butler.common.root.RootManager
+import eu.darken.butler.common.root.canUseRootNow
+import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.common.storage.StorageManager2
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -28,9 +37,12 @@ import javax.inject.Singleton
 
 @Singleton
 class DeviceLocationLoader @Inject constructor(
+    private val storageEnvironment: StorageEnvironment,
     private val gatewaySwitch: GatewaySwitch,
     private val storageManager2: StorageManager2,
     private val safLocationManager: SAFLocationManager,
+    private val rootManager: RootManager,
+    private val adbManager: AdbManager,
 ) {
 
     private val tag = logTag("Explorer", "DeviceLocationLoader")
@@ -75,16 +87,45 @@ class DeviceLocationLoader @Inject constructor(
         log(tag) { "loadQuickList(): Found ${safLocations.size} SAF locations" }
 
         // Build local storage list (root + volumes)
-        val localStorage = mutableListOf(
+        val deviceItems = mutableListOf<ExplorerItem>()
+
+        val hasRoot = rootManager.canUseRootNow()
+        val hasAdb = adbManager.canUseAdbNow()
+
+        if (hasRoot || hasAdb) {
             ExplorerItem.Storage.Local(
                 localId = "root",
-                displayIcon = Icons.TwoTone.Code,
+                displayIcon = Icons.TwoTone.Android,
                 displayName = R.string.explorer_navigation_root.toCaString(),
                 target = ExplorerNavigation.Target.Directory(LocalPath.build("/")),
-                totalBytes = null,
-                availableBytes = null,
-            ),
-        )
+            ).run { deviceItems.add(this) }
+        }
+
+        if (BuildConfigWrap.BUILD_TYPE == BuildConfigWrap.BuildType.DEV) {
+            storageEnvironment.ourPrivateDirs.forEachIndexed { index, path ->
+                ExplorerItem.Storage.Local(
+                    localId = "butler-${path}",
+                    displayIcon = Icons.TwoTone.PrivacyTip,
+                    displayName = "Butler-Private #$index".toCaString(),
+                    target = ExplorerNavigation.Target.Directory(path),
+                ).run { deviceItems.add(this) }
+            }
+            storageEnvironment.ourPublicDirs.forEachIndexed { index, path ->
+                ExplorerItem.Storage.Local(
+                    localId = "butler-${path}",
+                    displayIcon = Icons.TwoTone.Public,
+                    displayName = "Butler-Public #$index".toCaString(),
+                    target = ExplorerNavigation.Target.Directory(path),
+                ).run { deviceItems.add(this) }
+            }
+        }
+
+        ExplorerItem.Storage.Local(
+            localId = "rom",
+            displayIcon = Icons.TwoTone.DeveloperMode,
+            displayName = R.string.explorer_navigation_rom.toCaString(),
+            target = ExplorerNavigation.Target.Directory(LocalPath.build("/system")),
+        ).run { deviceItems.add(this) }
 
         storageManager2.storageVolumes
             .mapIndexedNotNull { index, volume ->
@@ -107,11 +148,9 @@ class DeviceLocationLoader @Inject constructor(
                             else -> R.string.explorer_navigation_external_storage.toCaString()
                         },
                     target = ExplorerNavigation.Target.Directory(path),
-                    totalBytes = null,
-                    availableBytes = null,
                 )
             }
-            .forEach { localStorage.add(it) }
+            .forEach { deviceItems.add(it) }
 
         // Convert SAF locations to storage items (without filesystem info)
         val safStorage = safLocations.map { location ->
@@ -125,7 +164,7 @@ class DeviceLocationLoader @Inject constructor(
             )
         }
 
-        val allLocations = localStorage + safStorage
+        val allLocations = deviceItems + safStorage
         log(tag) { "loadQuickList(): Created quick list with ${allLocations.size} storage locations" }
 
         updateState {

@@ -67,8 +67,17 @@ class PathPermissionCheck @Inject constructor(
         // Only LocalPath from here on
         val localPath = path as? LocalPath ?: return PathRequirements()
 
-        // App-specific directories don't need modules
-        if (isOurDirectory(localPath)) return PathRequirements()
+        when {
+            // Our folder is always accessible
+            isOurDirectory(localPath) -> return PathRequirements()
+
+            // Doesn't need anything?
+            localPath.isDescendantOfOrSelf(storageEnvironment.systemDir) -> return PathRequirements()
+
+            localPath.isDescendantOfOrSelf(storageEnvironment.dataDir) -> return PathRequirements(
+                combos = setOf(setOf(SetupModule.Type.ROOT))
+            )
+        }
 
         // Special case: Android/data and Android/obb
         val isRestrictedPath = storageEnvironment.publicDataDirs.any { path.isDescendantOfOrSelf(it) } ||
@@ -148,12 +157,12 @@ class PathPermissionCheck @Inject constructor(
             return PathRequirements(combos = combos)
         }
 
-        // Other paths (like /data, /system, etc.)
         return if (needsEscalation) {
             PathRequirements(
                 combos = setOf(
                     setOf(SetupModule.Type.STORAGE, SetupModule.Type.SHIZUKU),
                     setOf(SetupModule.Type.STORAGE, SetupModule.Type.ROOT),
+                    setOf(SetupModule.Type.ROOT),
                 )
             )
         } else {

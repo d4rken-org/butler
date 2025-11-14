@@ -11,8 +11,28 @@ sealed interface WorkspaceAction {
         ) : WorkspaceAction.Result
     }
 
+    data class CreateBatch(
+        val requests: List<Create>,
+        val sourceWorkspaceId: Workspace.Id? = null,
+    ) : WorkspaceAction {
+        sealed interface Result : WorkspaceAction.Result {
+            data class Success(
+                val results: Map<Create, CreationResult>,
+                val skippedCount: Int,
+            ) : Result
+
+            data object Cancelled : Result
+        }
+
+        sealed interface CreationResult {
+            data class Success(val workspaceId: Workspace.Id) : CreationResult
+            data class Failure(val exception: Exception) : CreationResult
+        }
+    }
+
     data class Close(
         val id: Workspace.Id,
+        val requireConfirmation: Boolean = false,
     ) : WorkspaceAction {
         data object Result : WorkspaceAction.Result
     }

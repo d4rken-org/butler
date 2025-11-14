@@ -1,36 +1,13 @@
 package eu.darken.butler.editor.core.engine
 
-import java.util.concurrent.atomic.AtomicInteger
-
-data class TextChunk(
-    val id: ChunkId,
-    val content: String,
-    val lineCount: Int,
-    val isDirty: Boolean = false,
-    val isLoaded: Boolean = true
-) {
-    val size: Long get() = content.length.toLong()
-    val isEmpty: Boolean get() = content.isEmpty()
-
-    // Note: Position queries (containsOffset, containsLine) should use ChunkManager.getBoundary()
-    // instead of storing positions in chunks. Chunks represent content, boundaries represent positions.
-
-    fun markDirty(): TextChunk = copy(isDirty = true)
-
-    fun markClean(): TextChunk = copy(isDirty = false)
-    
-    @JvmInline
-    value class ChunkId(val value: String) {
-        companion object {
-            private val counter = AtomicInteger(0)
-
-            fun generate(): ChunkId = ChunkId("chunk_${counter.getAndIncrement()}")
-
-            fun resetCounter() {
-                counter.set(0)
-            }
-        }
-    }
+/**
+ * Line ending style detected in text content.
+ */
+enum class LineEnding {
+    LF,      // \n (Unix/Linux/macOS)
+    CRLF,    // \r\n (Windows)
+    CR,      // \r (old Mac OS) - rare
+    MIXED    // Inconsistent line endings
 }
 
 data class TextPosition(

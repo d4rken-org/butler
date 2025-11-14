@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -20,6 +21,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import dagger.hilt.android.AndroidEntryPoint
 import eu.darken.butler.common.BuildConfigWrap
+import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -112,30 +114,23 @@ class MainActivity : Activity2() {
 
         LaunchedEffect(Unit) { navCtrl.setup(backStack) }
 
-        // Handle system back button
+        // Handle system back button with double-press to exit
         BackHandler(enabled = backStack.size <= 1) {
-            // We're at the root, check if we should show confirmation
-            vm.isConfirmExitEnabled { isEnabled ->
-                if (isEnabled) {
-                    vm.setShowExitConfirmation(true)
-                } else {
-                    finish()
-                }
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - lastBackPressTime < BACK_PRESS_INTERVAL) {
+                // Second press within interval - exit
+                log(TAG) { "Double back press detected, exiting app" }
+                finish()
+            } else {
+                // First press - show toast and update timestamp
+                log(TAG) { "First back press, showing toast" }
+                lastBackPressTime = currentTime
+                Toast.makeText(
+                    this@MainActivity,
+                    CommonR.string.general_press_back_again_to_exit,
+                    Toast.LENGTH_SHORT
+                ).show()
             }
-        }
-
-        if (state.showExitConfirmation) {
-            ExitConfirmationDialog(
-                onDismiss = { vm.setShowExitConfirmation(false) },
-                onConfirm = {
-                    if (state.dontAskAgain) {
-                        vm.updateConfirmExitEnabled(false)
-                    }
-                    finish()
-                },
-                dontAskAgain = state.dontAskAgain,
-                onDontAskAgainChange = { vm.setDontAskAgain(it) }
-            )
         }
 
         NavDisplay(
@@ -189,8 +184,10 @@ class MainActivity : Activity2() {
     }
 
     private var savedIntent: Intent? = null
+    private var lastBackPressTime: Long = 0
 
     companion object {
         private val TAG = logTag("Main", "Activity")
+        private const val BACK_PRESS_INTERVAL = 2000L // 2 seconds
     }
 }

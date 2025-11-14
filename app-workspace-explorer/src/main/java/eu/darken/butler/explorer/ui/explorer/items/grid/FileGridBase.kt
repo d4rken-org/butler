@@ -3,7 +3,9 @@ package eu.darken.butler.explorer.ui.explorer.items.grid
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,6 +39,7 @@ internal fun FileGridBase(
     icon: @Composable () -> Unit,
     primaryText: String,
     secondaryText: String? = null,
+    tertiaryText: String? = null,
     backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
     previewContent: @Composable (() -> Unit)? = null,
     trailingContent: (@Composable () -> Unit)? = null,
@@ -122,14 +125,30 @@ internal fun FileGridBase(
                     .background(Color.Black.copy(alpha = 0.6f))
                     .padding(horizontal = 6.dp, vertical = 4.dp)
             ) {
-                Text(
-                    text = primaryText,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = Color.White,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(1.dp)
+                ) {
+                    Text(
+                        text = primaryText,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    tertiaryText?.let { text ->
+                        Text(
+                            text = text,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.7f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
             }
         }
     }

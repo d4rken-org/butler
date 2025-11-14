@@ -9,14 +9,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Workspaces
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
@@ -68,6 +66,7 @@ fun WorkspaceManagerScreenHost(
             onCreateWorkspace = vm::createWorkspace,
             onNavigateBack = vm::navigateBack,
             onDismissBadgeExplanation = vm::dismissBadgeExplanation,
+            onDismissLongPressHint = vm::dismissLongPressHint,
             onCloseAllWorkspaces = vm::closeAllWorkspaces,
         )
     }
@@ -83,6 +82,7 @@ fun WorkspaceManagerScreen(
     onCreateWorkspace: (Workspace.Type) -> Unit,
     onNavigateBack: () -> Unit,
     onDismissBadgeExplanation: () -> Unit,
+    onDismissLongPressHint: () -> Unit,
     onCloseAllWorkspaces: () -> Unit,
 ) {
     var showCloseAllDialog by remember { mutableStateOf(false) }
@@ -147,7 +147,9 @@ fun WorkspaceManagerScreen(
                     WorkspaceManagerFAB(
                         workspaceCount = state.workspaceCount,
                         onCreateWorkspace = onCreateWorkspace,
-                        onShowCloseAllDialog = { showCloseAllDialog = true }
+                        onShowCloseAllDialog = { showCloseAllDialog = true },
+                        showLongPressHint = state.showLongPressHint,
+                        onDismissLongPressHint = onDismissLongPressHint
                     )
                 }
             }
@@ -165,43 +167,15 @@ fun WorkspaceManagerScreen(
     }
 
     // Close all confirmation dialog
-    if (showCloseAllDialog) {
-        AlertDialog(
-            onDismissRequest = { showCloseAllDialog = false },
-            title = { Text(stringResource(R.string.workspace_manager_close_all_title)) },
-            text = {
-                val workspaceString = if (state.workspaceCount == 1) {
-                    stringResource(R.string.workspace_manager_close_all_message_singular)
-                } else {
-                    stringResource(R.string.workspace_manager_close_all_message_plural)
-                }
-                Text(
-                    stringResource(
-                        R.string.workspace_manager_close_all_message,
-                        state.workspaceCount,
-                        workspaceString
-                    )
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onCloseAllWorkspaces()
-                        showCloseAllDialog = false
-                    }
-                ) {
-                    Text(stringResource(R.string.workspace_manager_close_all_action))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showCloseAllDialog = false }
-                ) {
-                    Text(stringResource(R.string.general_cancel_action))
-                }
-            }
-        )
-    }
+    CloseAllWorkspacesDialog(
+        visible = showCloseAllDialog,
+        workspaceCount = state.workspaceCount,
+        onDismiss = { showCloseAllDialog = false },
+        onConfirm = {
+            onCloseAllWorkspaces()
+            showCloseAllDialog = false
+        }
+    )
 }
 
 
@@ -217,19 +191,25 @@ private fun WorkspaceManagerScreenPreview() {
                         id = Workspace.Id(),
                         type = Workspace.Type.TEMPLATES,
                         title = "Templates".toCaString(),
-                        subtitle = "Workspace templates".toCaString()
+                        subtitle = "Workspace templates".toCaString(),
+                        isFocused = true,
+                        isSelected = true,
+                        paneNumber = 0,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
                         id = Workspace.Id(),
                         type = Workspace.Type.EXPLORER,
                         title = "Explorer".toCaString(),
-                        subtitle = "File explorer".toCaString()
+                        subtitle = "File explorer".toCaString(),
+                        isSelected = true,
+                        paneNumber = 1,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
                         id = Workspace.Id(),
                         type = Workspace.Type.SEARCHER,
                         title = "Search".toCaString(),
-                        subtitle = "File search".toCaString()
+                        subtitle = "File search".toCaString(),
+                        paneNumber = null,
                     )
                 ),
                 operationsCount = 3,
@@ -241,6 +221,7 @@ private fun WorkspaceManagerScreenPreview() {
             onCreateWorkspace = {},
             onNavigateBack = {},
             onDismissBadgeExplanation = {},
+            onDismissLongPressHint = {},
             onCloseAllWorkspaces = {}
         )
     }
@@ -262,6 +243,7 @@ private fun WorkspaceManagerScreenEmptyPreview() {
             onCreateWorkspace = {},
             onNavigateBack = {},
             onDismissBadgeExplanation = {},
+            onDismissLongPressHint = {},
             onCloseAllWorkspaces = {}
         )
     }
