@@ -99,6 +99,13 @@ class WorkspacesViewModel @Inject constructor(
                                 totalCount = data.totalCount,
                             )
                         }
+                        is WorkspaceRepo.ConfirmationData.WorkspaceCloseConfirmation -> {
+                            WorkspaceManagerDialogState.WorkspaceCloseConfirmation(
+                                confirmationId = confirmationId,
+                                targetWorkspaceId = targetWorkspaceId,
+                                workspaceTitle = data.workspaceTitle,
+                            )
+                        }
                         // Future: map other confirmation types to appropriate dialogs
                     }
 
@@ -232,6 +239,10 @@ class WorkspacesViewModel @Inject constructor(
         when (dialogState) {
             is WorkspaceManagerDialogState.OpenInNewTabsConfirmation -> {
                 log(tag) { "Confirmation dialog confirmed, resolving" }
+                workspaceRepo.resolveConfirmation(dialogState.confirmationId, confirmed = true)
+            }
+            is WorkspaceManagerDialogState.WorkspaceCloseConfirmation -> {
+                log(tag) { "Workspace close confirmation confirmed, resolving" }
                 workspaceRepo.resolveConfirmation(dialogState.confirmationId, confirmed = true)
             }
             // Handle other dialog types here in the future

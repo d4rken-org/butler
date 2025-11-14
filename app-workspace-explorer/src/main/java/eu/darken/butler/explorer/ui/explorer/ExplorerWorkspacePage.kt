@@ -262,14 +262,8 @@ fun ExplorerWorkspacePage(
 
     // Handle back button for navigation history (when setting enabled)
     if (mainState.useBackButtonForNavigation && mainState.pickerConfig == null) {
-        BackHandler(enabled = true) {
-            if (mainState.canGoBack) {
-                // Navigate back through history
-                vm?.goBack()
-            } else {
-                // At root, close workspace
-                vm?.closeWorkspace()
-            }
+        BackHandler(enabled = mainState.canGoBack) {
+            vm?.goBack()
         }
     }
 

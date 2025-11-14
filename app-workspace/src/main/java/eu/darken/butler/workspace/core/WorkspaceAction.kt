@@ -32,6 +32,7 @@ sealed interface WorkspaceAction {
 
     data class Close(
         val id: Workspace.Id,
+        val requireConfirmation: Boolean = false,
     ) : WorkspaceAction {
         data object Result : WorkspaceAction.Result
     }

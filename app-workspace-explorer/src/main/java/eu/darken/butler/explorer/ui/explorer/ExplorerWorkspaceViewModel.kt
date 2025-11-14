@@ -15,7 +15,6 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.datastore.valueBlocking
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
-import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
@@ -35,8 +34,8 @@ import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.ui.ViewModel4
+import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.explorer.R
-import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerNavigation.Target.*
@@ -60,12 +59,13 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.*
 import eu.darken.butler.explorer.ui.explorer.dialogs.FilterOptionsResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
-import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortOptionsResult
+import eu.darken.butler.permissions.core.PathRequirements
+import eu.darken.butler.permissions.core.SAFPickerGrant
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.upgrade.isPro
-import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
+import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
@@ -76,8 +76,6 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
-import eu.darken.butler.permissions.core.SAFPickerGrant
-import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.workspace.core.returnResult
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
@@ -1487,7 +1485,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun closeWorkspace() = launch {
         log(tag) { "closeWorkspace()" }
-        workspaceRemote.execute(WorkspaceAction.Close(id))
+        workspaceRemote.execute(WorkspaceAction.Close(id, requireConfirmation = true))
     }
 
     @AssistedFactory
