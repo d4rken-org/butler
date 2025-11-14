@@ -1,4 +1,4 @@
-package eu.darken.butler.appdetails.ui
+package eu.darken.butler.apps.ui.details
 
 import androidx.activity.compose.BackHandler
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -22,10 +22,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import eu.darken.butler.appdetails.R
-import eu.darken.butler.appdetails.core.AppDetailsWorkspace
-import eu.darken.butler.appdetails.core.AppDetailsWorkspaceViewModel
-import eu.darken.butler.appdetails.core.DetailTab
+import eu.darken.butler.apps.R
+import eu.darken.butler.apps.core.details.AppDetailsWorkspace
+import eu.darken.butler.apps.core.details.AppDetailsWorkspaceViewModel
+import eu.darken.butler.apps.core.details.DetailTab
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign

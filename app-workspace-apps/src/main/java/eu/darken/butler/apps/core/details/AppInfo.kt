@@ -1,4 +1,4 @@
-package eu.darken.butler.appdetails.core
+package eu.darken.butler.apps.core.details
 
 import eu.darken.butler.common.ca.CaDrawable
 import eu.darken.butler.common.ca.CaString

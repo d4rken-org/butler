@@ -1,4 +1,4 @@
-package eu.darken.butler.appdetails.ui
+package eu.darken.butler.apps.ui.details
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,9 +10,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import eu.darken.butler.appdetails.R
-import eu.darken.butler.appdetails.core.AppDetailsWorkspace
-import eu.darken.butler.appdetails.core.AppDetailsWorkspaceViewModel
+import eu.darken.butler.apps.R
+import eu.darken.butler.apps.core.details.AppDetailsWorkspace
+import eu.darken.butler.apps.core.details.AppDetailsWorkspaceViewModel
 
 @Composable
 fun PackageInfoTab(

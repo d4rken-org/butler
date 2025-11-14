@@ -48,7 +48,6 @@ dependencies {
     implementation(project(":app-common-io"))
     implementation(project(":app-common-pkgs"))
     implementation(project(":app-workspace"))
-    implementation(project(":app-workspace-appdetails"))
 
     addAndroidCore()
     addAndroidUI()

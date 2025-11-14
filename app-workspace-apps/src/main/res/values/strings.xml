@@ -52,6 +52,17 @@
     <string name="apps_path_internal_data_label">Internal Data</string>
     <string name="apps_path_external_data_label">External Storage</string>
 
+    <!-- App Details Tabs -->
+    <string name="appdetails_tab_overview_label">Overview</string>
+    <string name="appdetails_tab_packageinfo_label">Package Info</string>
+
+    <!-- App Details Actions -->
+    <string name="appdetails_back_action">Back to apps</string>
+    <string name="appdetails_close_action">Close</string>
+
+    <!-- App Details Package Info -->
+    <string name="appdetails_packageinfo_comingsoon_msg">APK details coming soon</string>
+
     <!-- Empty States -->
     <string name="apps_empty_no_apps">No apps found</string>
     <string name="apps_empty_no_apps_desc">Try adjusting your filters</string>
