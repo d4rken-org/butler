@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tab labels -->
+    <string name="appdetails_tab_overview_label">Overview</string>
+    <string name="appdetails_tab_packageinfo_label">Package Info</string>
+
+    <!-- Actions -->
+    <string name="appdetails_back_action">Back to apps</string>
+    <string name="appdetails_close_action">Close</string>
+
+    <!-- Package Info tab -->
+    <string name="appdetails_packageinfo_comingsoon_msg">APK details coming soon</string>
+
+    <!-- App Paths -->
+    <string name="appdetails_path_internal_data_label">Internal Data</string>
+    <string name="appdetails_path_external_data_label">External Storage</string>
+
+    <!-- App Info Labels -->
+    <string name="appdetails_package_name_label">Package Name</string>
+    <string name="appdetails_version_label">Version</string>
+    <string name="appdetails_size_label">Size</string>
+    <string name="appdetails_details_storage_locations_label">Storage Locations</string>
+
+    <!-- Actions -->
+    <string name="appdetails_action_launch">Launch</string>
+    <string name="appdetails_action_open_info">App Info</string>
+    <string name="appdetails_action_disable">Disable</string>
+    <string name="appdetails_action_enable">Enable</string>
+    <string name="appdetails_action_uninstall">Uninstall</string>
+    <string name="appdetails_action_export_apk">Export APK</string>
+    <string name="appdetails_action_share">Share</string>
+</resources>

@@ -40,6 +40,7 @@
     <string name="apps_action_filter">Filter</string>
     <string name="apps_action_select_all">Select all</string>
     <string name="apps_action_deselect_all">Deselect all</string>
+    <string name="apps_action_open_in_tab">Open in Tab</string>
 
     <!-- App Info Labels -->
     <string name="apps_package_name_label">Package</string>

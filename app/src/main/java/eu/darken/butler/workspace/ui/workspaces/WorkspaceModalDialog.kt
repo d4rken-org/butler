@@ -9,18 +9,36 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import eu.darken.butler.appdetails.ui.AppDetailsWorkspacePageHost
+import eu.darken.butler.apps.ui.apps.AppsWorkspacePageHost
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.editor.ui.editor.EditorWorkspacePageHost
+import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspacePageHost
+import eu.darken.butler.searcher.ui.search.SearcherWorkspacePageHost
+import eu.darken.butler.templates.ui.TemplatesWorkspacePageHost
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
 /**
- * Full-screen modal dialog for displaying picker workspaces
+ * Full-screen Dialog overlay for displaying sub-workspaces that require full-screen presentation.
+ *
+ * This component handles two scenarios:
+ * 1. **FULL_SCREEN modals** - Always render as Dialog (pickers, settings dialogs)
+ * 2. **PANE_LOCAL modals on single-pane devices** - Render as Dialog on phones (fall back from pane-local)
+ *
+ * On multi-pane devices (tablets), PANE_LOCAL modals render as Box overlays within their parent's
+ * pane and do NOT use this Dialog component.
+ *
+ * @param workspace The workspace to display
+ * @param design The workspace design/layout configuration from the parent screen
+ * @param onDismissRequest Called when the user dismisses the dialog
  */
 @Composable
 fun WorkspaceModalDialog(
     workspace: Workspace.Info,
+    design: WorkspaceDesign,
     onDismissRequest: () -> Unit,
 ) {
     Dialog(
@@ -37,7 +55,7 @@ fun WorkspaceModalDialog(
         ) {
             WorkspaceModalContent(
                 workspace = workspace,
-                design = WorkspaceDesign(),
+                design = design,
             )
         }
     }
@@ -54,31 +72,37 @@ fun WorkspaceModalContent(
     // Render workspace based on type
     when (workspace.type) {
         Workspace.Type.EXPLORER -> {
-            eu.darken.butler.explorer.ui.explorer.ExplorerWorkspacePageHost(
+            ExplorerWorkspacePageHost(
                 id = workspace.id,
                 design = design,
             )
         }
         Workspace.Type.SEARCHER -> {
-            eu.darken.butler.searcher.ui.search.SearcherWorkspacePageHost(
+            SearcherWorkspacePageHost(
                 id = workspace.id,
                 design = design,
             )
         }
         Workspace.Type.EDITOR -> {
-            eu.darken.butler.editor.ui.editor.EditorWorkspacePageHost(
+            EditorWorkspacePageHost(
                 id = workspace.id,
                 design = design,
             )
         }
         Workspace.Type.TEMPLATES -> {
-            eu.darken.butler.templates.ui.TemplatesWorkspacePageHost(
+            TemplatesWorkspacePageHost(
                 id = workspace.id,
                 design = design,
             )
         }
         Workspace.Type.APPS -> {
-            eu.darken.butler.apps.ui.apps.AppsWorkspacePageHost(
+            AppsWorkspacePageHost(
+                id = workspace.id,
+                design = design,
+            )
+        }
+        Workspace.Type.APP_DETAILS -> {
+            AppDetailsWorkspacePageHost(
                 id = workspace.id,
                 design = design,
             )

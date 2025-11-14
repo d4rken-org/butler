@@ -140,6 +140,7 @@ fun WorkspaceScreen(
                 onConfirmManagerDialog = onConfirmManagerDialog,
                 bannerStates = bannerStates,
                 onDismissBanner = onDismissBanner,
+                paneLocalModals = state.paneLocalModals,
             )
         } else {
             ClassicWorkspaceContainer(
@@ -168,14 +169,15 @@ fun WorkspaceScreen(
         }
     }
 
-    // Modal workspace overlay (picker dialogs, etc.)
-    state.modalWorkspace?.let { modalWorkspace ->
+    // Full-screen modal workspace overlay (pickers, settings dialogs, detail views on phones)
+    state.fullScreenModalWorkspace?.let { fullScreenModal ->
         WorkspaceModalDialog(
-            workspace = modalWorkspace,
+            workspace = fullScreenModal,
+            design = design,
             onDismissRequest = {
                 // Dismiss by closing the modal workspace
                 workspaceActionHandler?.executeWorkspaceAction(
-                    WorkspaceAction.Close(modalWorkspace.id)
+                    WorkspaceAction.Close(fullScreenModal.id)
                 )
             },
         )

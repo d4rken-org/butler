@@ -105,6 +105,9 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         val actions = if (appsState.selectedAppIds.isNotEmpty()) {
             val selectedApps = appsState.filteredApps.filter { it.packageName in appsState.selectedAppIds }
             buildList {
+                // Open in Tab - primary action for selections
+                add(AppsAction.OpenInTab(selectedApps))
+
                 // Select All / Deselect All
                 if (appsState.selectedAppIds.size == appsState.filteredApps.size) {
                     add(AppsAction.DeselectAll)
@@ -248,32 +251,24 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun showAppDetails(app: AppItem) = launch {
-        log(tag) { "Showing app details: ${app.packageName}" }
-
-        // Build list of app-related paths
-        val paths = buildList {
-            // Internal data directory (/data/data/package.name)
-            val internalDataPath = LocalPath.build("/data/data/${app.packageName}")
-            add(
-                AppPath(
-                    path = internalDataPath,
-                    label = R.string.apps_path_internal_data_label.toCaString(),
-                )
+        log(tag) { "Showing app details (modal): ${app.packageName}" }
+        workspaceRemote.createAndFocus(
+            type = Workspace.Type.APP_DETAILS,
+            arguments = eu.darken.butler.appdetails.core.AppDetailsArguments(
+                packageName = app.packageName,
+                callerWorkspaceId = id,
             )
+        )
+    }
 
-            // External storage directory (/storage/emulated/0/Android/data/package.name)
-            val externalDataPath = LocalPath.build("/storage/emulated/0/Android/data/${app.packageName}")
-            add(
-                AppPath(
-                    path = externalDataPath,
-                    label = R.string.apps_path_external_data_label.toCaString(),
-                )
+    fun openAppDetailsInTab(app: AppItem) = launch {
+        log(tag) { "Opening app details in tab: ${app.packageName}" }
+        workspaceRemote.createAndFocus(
+            type = Workspace.Type.APP_DETAILS,
+            arguments = eu.darken.butler.appdetails.core.AppDetailsArguments(
+                packageName = app.packageName,
+                callerWorkspaceId = null,  // No caller = opens as tab
             )
-        }
-
-        dialogStateFlow.value = AppsDialogState.AppDetails(
-            app = app,
-            availablePaths = paths,
         )
     }
 
@@ -352,6 +347,15 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                 log(tag) { "Share action for ${action.apps.size} apps" }
                 // TODO: Implement APK sharing
                 log(tag, WARN) { "Share APK not implemented yet" }
+            }
+
+            is AppsAction.OpenInTab -> launch {
+                log(tag) { "Opening ${action.apps.size} apps in tabs" }
+                action.apps.forEach { app ->
+                    openAppDetailsInTab(app)
+                }
+                // Clear selection after opening
+                getWorkspace().appsEngine.clearSelection()
             }
 
             is AppsAction.BrowsePath -> launch {

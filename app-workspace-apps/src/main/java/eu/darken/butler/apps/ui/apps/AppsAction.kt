@@ -2,6 +2,7 @@ package eu.darken.butler.apps.ui.apps
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Launch
+import androidx.compose.material.icons.automirrored.twotone.OpenInNew
 import androidx.compose.material.icons.automirrored.twotone.Sort
 import androidx.compose.material.icons.twotone.Block
 import androidx.compose.material.icons.twotone.CheckCircle
@@ -119,6 +120,14 @@ sealed interface AppsAction : WorkspaceAction {
         override val label = R.string.apps_action_share.toCaString()
         override val group = WorkspaceAction.Group.SECONDARY
         override val isVisible: Boolean get() = apps.size <= 5 // Reasonable limit for sharing
+    }
+
+    data class OpenInTab(
+        val apps: List<AppItem>,
+    ) : AppsAction {
+        override val icon = Icons.AutoMirrored.TwoTone.OpenInNew
+        override val label = R.string.apps_action_open_in_tab.toCaString()
+        override val isVisible: Boolean get() = apps.isNotEmpty()
     }
 
     // Single-app actions (shown in details dialog or quick actions)

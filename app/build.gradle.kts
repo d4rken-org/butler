@@ -193,7 +193,7 @@ dependencies {
     implementation(project(":app-workspace-editor"))
     implementation(project(":app-workspace-templates"))
     implementation(project(":app-workspace-apps"))
-    implementation(project(":app-provider-documents"))
+    implementation(project(":app-workspace-appdetails"))
 
     addDI()
     addCoroutines()
