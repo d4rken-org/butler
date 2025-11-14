@@ -193,7 +193,7 @@ fun SearcherSettingsScreen(
                 TextButton(
                     onClick = { showClearHistoryDialog = false }
                 ) {
-                    Text(text = stringResource(R.string.general_cancel_action))
+                    Text(text = stringResource(eu.darken.butler.common.R.string.general_cancel_action))
                 }
             }
         )

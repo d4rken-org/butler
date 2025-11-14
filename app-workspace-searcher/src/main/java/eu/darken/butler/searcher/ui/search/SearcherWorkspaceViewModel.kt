@@ -61,6 +61,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -155,7 +156,20 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             .onEach { query ->
                 log(tag, INFO) { "Auto-triggering search for query: $query" }
                 lastAutoExecutedQuery = query
-                performSearch(saveToHistory = false)
+                performSearch(saveToHistory = true)
+            }
+            .launchIn(vmScope)
+
+        // Auto-search on target changes (when query exists)
+        workspaceSearchState
+            .map { it.searchTargets }
+            .distinctUntilChanged()
+            .drop(1) // Skip initial state to avoid triggering on setup
+            .debounce(300) // Short debounce for rapid changes
+            .filter { searchQuery.value.text.isNotBlank() }
+            .onEach { targets ->
+                log(tag, INFO) { "Auto-triggering search due to target change: ${targets.size} targets" }
+                performSearch(saveToHistory = true)
             }
             .launchIn(vmScope)
 

@@ -4,7 +4,6 @@
     <string name="searcher_subtitle">Find files and content</string>
     <string name="searcher_settings_title">Search Settings</string>
     <string name="searcher_settings_search_category">Search</string>
-    <string name="searcher_settings_search_in_content_title">Search in file content</string>
     <string name="searcher_settings_history">Search History</string>
     <string name="searcher_settings_save_history_title">Save search history</string>
     <string name="searcher_settings_save_history_subtitle">Remember previous searches.</string>
@@ -24,10 +23,10 @@
     <string name="searcher_search_error">Search error</string>
     <string name="searcher_no_paths_hint">Tap + to add search paths</string>
     <string name="searcher_add_path_action">Add path</string>
+    <string name="searcher_multipath_show_fewer_action">Show fewer</string>
     <string name="searcher_empty_state_title">No search paths configured</string>
     <string name="searcher_empty_state_description">Add storage locations to search through your files</string>
     <string name="searcher_add_default_paths_action">Add Default Search Paths</string>
-    <string name="general_cancel_action">Cancel</string>
 
     <!-- Search Options -->
     <string name="searcher_option_case_sensitive_label">Aa</string>
@@ -51,15 +50,37 @@
         <item quantity="other">%d results</item>
     </plurals>
 
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="one">Show %d more</item>
+        <item quantity="other">Show %d more</item>
+    </plurals>
+
     <!-- Search progress -->
-    <string name="searcher_progress_searching_in">Searching in %1$s</string>
-    <string name="searcher_progress_searching">Searching…</string>
-    <string name="searcher_progress_stats">%1$d items scanned • %2$d results found</string>
-    
-    <!-- Search status -->
-    <string name="searcher_status_results_found">%1$d results found</string>
-    <string name="searcher_status_no_results">No results found</string>
-    <string name="searcher_status_search_completed">Search completed</string>
+    <string name="searcher_progress_action_searching">Searching</string>
+    <string name="searcher_progress_action_searched">Searched</string>
+    <string name="searcher_progress_stats_separator"> • </string>
+    <string name="searcher_progress_status_completed_with_errors">Completed with errors</string>
+    <string name="searcher_progress_clear_action">Clear</string>
+
+    <plurals name="searcher_progress_failed_count">
+        <item quantity="one">%d failed</item>
+        <item quantity="other">%d failed</item>
+    </plurals>
+
+    <plurals name="searcher_progress_locations_count">
+        <item quantity="one">%d location</item>
+        <item quantity="other">%d locations</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_scanned_count">
+        <item quantity="one">%d scanned</item>
+        <item quantity="other">%d scanned</item>
+    </plurals>
+
+    <plurals name="searcher_progress_results_found_count">
+        <item quantity="one">%d found</item>
+        <item quantity="other">%d found</item>
+    </plurals>
 
     <!-- Action strings -->
     <string name="searcher_action_open_in_editor">Open in Editor</string>
