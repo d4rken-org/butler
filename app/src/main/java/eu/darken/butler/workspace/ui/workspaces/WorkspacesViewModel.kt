@@ -56,15 +56,6 @@ class WorkspacesViewModel @Inject constructor(
     val bannerStates = _bannerStates.asStateFlow()
 
     init {
-        launch {
-            val currentWorkspaces = workspaceRepo.state.first()
-            if (currentWorkspaces.infos.isEmpty()) {
-                log(tag) { "No workspaces found, auto-creating workspace for testing" }
-                // FIXME: AUTO-CREATE WORKSPACE FOR TESTING - REMOVE BEFORE MERGE, DO NOT COMMIT
-                workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.APPS))
-            }
-        }
-
         // Initialize the WorkspaceUIManager with saved state
         workspacePageManager.initializeFromSavedState(savedStateHandle)
 
