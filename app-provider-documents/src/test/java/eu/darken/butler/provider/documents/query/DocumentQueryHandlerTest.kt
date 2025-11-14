@@ -1,6 +1,7 @@
 package eu.darken.butler.provider.documents.query
 
 import android.content.Context
+import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.DocumentsContract.Document.*
 import androidx.test.core.app.ApplicationProvider
@@ -14,6 +15,7 @@ import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.storage.StorageManager2
 import eu.darken.butler.permissions.core.PathPermissionCheck
 import eu.darken.butler.permissions.core.PathRequirements
+import eu.darken.butler.provider.documents.ButlerDocumentsProvider
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
 import eu.darken.butler.provider.documents.core.ProviderLocation
 import io.kotest.matchers.ints.shouldBeGreaterThan
@@ -22,6 +24,8 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.mockkStatic
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -59,6 +63,21 @@ class DocumentQueryHandlerTest {
             // Default: all paths are accessible (no permission requirements)
             coEvery { monitor(any()) } returns flowOf(PathRequirements())
         }
+
+        // Mock ButlerDocumentsProvider.AUTHORITY to avoid BuildConfig initialization issues
+        mockkObject(ButlerDocumentsProvider.Companion)
+        every { ButlerDocumentsProvider.AUTHORITY } returns "eu.darken.butler.test.documents"
+
+        // Mock DocumentsContract.buildChildDocumentsUri
+        mockkStatic(DocumentsContract::class)
+        every { DocumentsContract.buildChildDocumentsUri(any(), any()) } answers {
+            val authority = args[0] as String
+            val documentId = args[1] as String
+            mockk<Uri>(relaxed = true).also { uri ->
+                every { uri.toString() } returns "content://$authority/document/$documentId/children"
+            }
+        }
+
         handler = DocumentQueryHandler(
             context,
             codec,

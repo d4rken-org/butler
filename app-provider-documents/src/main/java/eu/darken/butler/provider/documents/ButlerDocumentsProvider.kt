@@ -9,14 +9,16 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.BuildConfigWrap
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.provider.documents.query.DocumentQueryHandler
 import eu.darken.butler.provider.documents.query.RootQueryHandler
 import eu.darken.butler.provider.documents.reader.DocumentReader
+import eu.darken.butler.provider.documents.writer.DocumentCreator
+import eu.darken.butler.provider.documents.writer.DocumentModifier
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
@@ -33,9 +35,6 @@ import javax.inject.Inject
  * - DocumentsProvider methods run on Binder thread pool
  * - Handlers use coroutines, so we wrap calls in runBlocking
  * - All handlers are thread-safe singletons
- *
- * Phase 1: Read-only support (query + open)
- * Phase 3: Write support (create, delete, rename)
  */
 class ButlerDocumentsProvider : DocumentsProvider() {
 
@@ -43,6 +42,8 @@ class ButlerDocumentsProvider : DocumentsProvider() {
     @Inject lateinit var rootQueryHandler: RootQueryHandler
     @Inject lateinit var documentQueryHandler: DocumentQueryHandler
     @Inject lateinit var documentReader: DocumentReader
+    @Inject lateinit var documentCreator: DocumentCreator
+    @Inject lateinit var documentModifier: DocumentModifier
 
     override fun onCreate(): Boolean {
         val context = context ?: return false
@@ -59,7 +60,6 @@ class ButlerDocumentsProvider : DocumentsProvider() {
 
     /**
      * Return available storage roots shown in the file picker drawer.
-     * Phase 1: Single "Butler" root.
      */
     override fun queryRoots(projection: Array<String>?): Cursor {
         return runBlocking {
@@ -106,8 +106,6 @@ class ButlerDocumentsProvider : DocumentsProvider() {
 
     /**
      * Open a document for reading/writing.
-     * Phase 1: Read-only (mode "r").
-     * Phase 3: Write support (modes: w, wa, rw, rwt, wt).
      */
     override fun openDocument(
         documentId: String,
@@ -122,26 +120,58 @@ class ButlerDocumentsProvider : DocumentsProvider() {
         }
     }
 
-    // ========== Phase 3: Write Operations (Not Yet Supported) ==========
-
-    override fun createDocument(
-        parentDocumentId: String,
-        mimeType: String,
-        displayName: String
-    ): String? {
-        throw UnsupportedOperationException("Write operations not yet supported (Phase 3)")
+    /**
+     * Create a new file or directory.
+     * Handles name conflicts by generating unique names ("file (1).txt").
+     */
+    override fun createDocument(parentDocumentId: String, mimeType: String, displayName: String): String = runBlocking {
+        try {
+            log(TAG, INFO) { "createDocument(parent=$parentDocumentId, mime=$mimeType, name=$displayName)" }
+            documentCreator.createDocument(parentDocumentId, mimeType, displayName)
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "createDocument failed: ${e.asLog()}" }
+            throw e // Re-throw for proper client-side error handling
+        }
     }
 
-    override fun deleteDocument(documentId: String) {
-        throw UnsupportedOperationException("Write operations not yet supported (Phase 3)")
+    /**
+     * Delete a file or directory recursively.
+     * Revokes URI permissions for deleted documents and all children.
+     */
+    override fun deleteDocument(documentId: String) = runBlocking {
+        try {
+            log(TAG, INFO) { "deleteDocument($documentId)" }
+            documentModifier.deleteDocument(documentId)
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "deleteDocument failed: ${e.asLog()}" }
+            throw e
+        }
     }
 
-    override fun renameDocument(documentId: String, displayName: String): String? {
-        throw UnsupportedOperationException("Write operations not yet supported (Phase 3)")
+    /**
+     * Rename a file or directory.
+     * Returns new document ID with updated path.
+     */
+    override fun renameDocument(documentId: String, displayName: String): String = runBlocking {
+        try {
+            log(TAG, INFO) { "renameDocument($documentId, $displayName)" }
+            documentModifier.renameDocument(documentId, displayName)
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "renameDocument failed: ${e.asLog()}" }
+            throw e
+        }
     }
 
     companion object {
         private val TAG = logTag("Provider", "Documents")
+
+        /**
+         * DocumentsProvider authority.
+         * Must match the android:authorities attribute in AndroidManifest.xml.
+         * Note: Cannot be const because BuildConfig is not a constant expression.
+         * Using lazy initialization to avoid BuildConfigWrap initialization issues in unit tests.
+         */
+        val AUTHORITY: String by lazy { "${BuildConfigWrap.APPLICATION_ID}.provider.documents" }
     }
 }
 

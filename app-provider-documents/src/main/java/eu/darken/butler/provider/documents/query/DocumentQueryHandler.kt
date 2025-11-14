@@ -7,6 +7,7 @@ import android.provider.DocumentsContract
 import android.provider.DocumentsContract.Document.*
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
 import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -20,6 +21,7 @@ import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.storage.StorageManager2
 import eu.darken.butler.permissions.core.PathPermissionCheck
 import eu.darken.butler.permissions.core.PathRequirements
+import eu.darken.butler.provider.documents.ButlerDocumentsProvider
 import eu.darken.butler.provider.documents.R
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
 import eu.darken.butler.provider.documents.core.ProviderLocation
@@ -105,7 +107,7 @@ class DocumentQueryHandler @Inject constructor(
      *
      * @param parentDocumentId Parent document ID
      * @param projection Columns to return (null = all columns)
-     * @param sortOrder Sort order (unused - Phase 2+)
+     * @param sortOrder Sort order (unused)
      * @return Cursor with child documents
      */
     suspend fun queryChildDocuments(
@@ -117,6 +119,14 @@ class DocumentQueryHandler @Inject constructor(
 
         val resolvedProjection = projection ?: DEFAULT_DOCUMENT_PROJECTION
         val cursor = MatrixCursor(resolvedProjection)
+
+        // Register for change notifications - this enables automatic refresh
+        val notificationUri = DocumentsContract.buildChildDocumentsUri(
+            ButlerDocumentsProvider.AUTHORITY,
+            parentDocumentId
+        )
+        cursor.setNotificationUri(context.contentResolver, notificationUri)
+        log(TAG, VERBOSE) { "Set notification URI: $notificationUri" }
 
         try {
             when {
@@ -176,9 +186,6 @@ class DocumentQueryHandler @Inject constructor(
      * - Root filesystem ("/") - only if accessible
      * - Storage volumes (internal storage + SD cards) - only if accessible
      * - SAF locations (user-granted trees) - always shown (permissions granted)
-     *
-     * Phase 1: Filter inaccessible locations (root/ADB required)
-     * Phase 2: Add setting to show all with cursor extras
      */
     private suspend fun enumerateStorageLocations(cursor: MatrixCursor) {
         // 1. Root filesystem - check permissions first
@@ -278,8 +285,8 @@ class DocumentQueryHandler @Inject constructor(
         }
 
         val flags = when (lookup.fileType) {
-            FileType.DIRECTORY -> FLAG_DIR_SUPPORTS_CREATE
-            FileType.FILE -> FLAG_SUPPORTS_WRITE or FLAG_SUPPORTS_DELETE // Phase 3
+            FileType.DIRECTORY -> FLAG_DIR_SUPPORTS_CREATE or FLAG_SUPPORTS_DELETE or FLAG_SUPPORTS_RENAME
+            FileType.FILE -> FLAG_SUPPORTS_WRITE or FLAG_SUPPORTS_DELETE or FLAG_SUPPORTS_RENAME
             FileType.SYMBOLIC_LINK -> 0
             FileType.UNKNOWN -> 0
         }
@@ -297,8 +304,6 @@ class DocumentQueryHandler @Inject constructor(
 
     /**
      * Get MIME type for a file based on its extension.
-     * Phase 1: Simple extension-based detection.
-     * Phase 2+: Use MimeInfo from app-common-io.
      */
     private fun getMimeType(filename: String): String {
         val extension = filename.substringAfterLast('.', "")
@@ -316,9 +321,6 @@ class DocumentQueryHandler @Inject constructor(
     /**
      * Build an appropriate error message based on permission requirements.
      * Returns a user-friendly message indicating what access is needed.
-     *
-     * Phase 1: Basic permission types (ROOT, SHIZUKU, STORAGE)
-     * Phase 2: More detailed messages with actionable guidance
      */
     private fun buildPermissionErrorMessage(requirements: PathRequirements): String {
         // Check for specific permission combos to provide targeted messages

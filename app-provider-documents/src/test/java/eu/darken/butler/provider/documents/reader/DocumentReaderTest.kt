@@ -109,38 +109,6 @@ class DocumentReaderTest {
     }
 
     @Test
-    fun `openDocument throws UnsupportedOperationException for write mode in Phase 1`() = runTest {
-        val testFile = tempFolder.newFile("test.txt")
-        val path = LocalPath.build(testFile.absolutePath)
-        val documentId = "local|encoded"
-
-        coEvery { codec.decode(documentId) } returns path
-
-        try {
-            reader.openDocument(documentId, "w", null)
-            throw AssertionError("Should have thrown UnsupportedOperationException")
-        } catch (e: UnsupportedOperationException) {
-            e.message shouldContain "Write operations not yet supported"
-        }
-    }
-
-    @Test
-    fun `openDocument throws UnsupportedOperationException for rw mode in Phase 1`() = runTest {
-        val testFile = tempFolder.newFile("test.txt")
-        val path = LocalPath.build(testFile.absolutePath)
-        val documentId = "local|encoded"
-
-        coEvery { codec.decode(documentId) } returns path
-
-        try {
-            reader.openDocument(documentId, "rw", null)
-            throw AssertionError("Should have thrown UnsupportedOperationException")
-        } catch (e: UnsupportedOperationException) {
-            e.message shouldContain "Write operations not yet supported"
-        }
-    }
-
-    @Test
     fun `openDocument respects CancellationSignal`() = runTest {
         val testFile = tempFolder.newFile("test.txt")
         val path = LocalPath.build(testFile.absolutePath)
