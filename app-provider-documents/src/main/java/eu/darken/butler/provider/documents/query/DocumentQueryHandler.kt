@@ -189,7 +189,7 @@ class DocumentQueryHandler @Inject constructor(
                 displayName = context.getString(R.string.documents_storage_root_label),
                 mimeType = MIME_TYPE_DIR,
                 flags = FLAG_DIR_SUPPORTS_CREATE,
-                icon = android.R.drawable.ic_menu_view,
+                icon = R.drawable.ic_folder_lock_24,
             )
         } else {
             log(TAG, INFO) { "Root filesystem requires permissions (${rootRequirements.combos}), filtering out" }
@@ -215,7 +215,7 @@ class DocumentQueryHandler @Inject constructor(
                     displayName = displayName,
                     mimeType = MIME_TYPE_DIR,
                     flags = FLAG_DIR_SUPPORTS_CREATE,
-                    icon = android.R.drawable.ic_menu_view,
+                    icon = R.drawable.ic_folder,
                 )
             } else {
                 log(TAG, INFO) { "Storage volume requires permissions: $path (${requirements.combos}), filtering out" }
@@ -230,7 +230,7 @@ class DocumentQueryHandler @Inject constructor(
                 displayName = location.displayName.get(context),
                 mimeType = MIME_TYPE_DIR,
                 flags = FLAG_DIR_SUPPORTS_CREATE,
-                icon = android.R.drawable.ic_menu_view,
+                icon = R.drawable.ic_folder_open_24,
             )
         }
     }

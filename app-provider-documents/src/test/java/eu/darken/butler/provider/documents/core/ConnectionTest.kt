@@ -28,7 +28,7 @@ class ConnectionTest : BaseTest() {
 
     @Test
     fun `Device home has valid icon resource ID`() {
-        ProviderLocation.Home.Device.icon shouldBe android.R.drawable.ic_menu_manage
+        ProviderLocation.Home.Device.icon shouldBe android.R.drawable.stat_sys_data_bluetooth
     }
 
     @Test
@@ -71,7 +71,7 @@ class ConnectionTest : BaseTest() {
         val device = ProviderLocation.Home.Device
 
         device.documentId shouldBe "device|self"
-        device.icon shouldBe android.R.drawable.ic_menu_manage
+        device.icon shouldBe android.R.drawable.stat_sys_data_bluetooth
         device.flags shouldBe FLAG_DIR_SUPPORTS_CREATE
     }
 }

@@ -41,7 +41,7 @@ interface ProviderLocation {
 
         data object Butler : Root {
             override val apiRootId = "butler"
-            override val icon = android.R.drawable.ic_menu_manage  // TODO: Create custom Butler icon
+            override val icon = R.drawable.ic_folder_home_24
             override val title = R.string.documents_root_butler_title.toCaString()
             override val summary = R.string.documents_root_butler_summary.toCaString()
             override val flags = FLAG_SUPPORTS_CREATE or FLAG_SUPPORTS_IS_CHILD or FLAG_LOCAL_ONLY
@@ -57,7 +57,7 @@ interface ProviderLocation {
 
         data object Device : Home {
             override val documentId = "device|self"
-            override val icon = android.R.drawable.ic_menu_manage  // TODO: Create device icon
+            override val icon = android.R.drawable.stat_sys_data_bluetooth
             override val title = R.string.documents_connection_device_title.toCaString()
             override val summary = R.string.documents_connection_device_summary.toCaString()
             override val flags = FLAG_DIR_SUPPORTS_CREATE  // Directory that can contain new items

@@ -42,7 +42,7 @@ class DocumentRootTest : BaseTest() {
 
     @Test
     fun `Butler root has valid icon resource ID`() {
-        ProviderLocation.Root.Butler.icon shouldBe android.R.drawable.ic_menu_manage
+        ProviderLocation.Root.Butler.icon shouldBe R.drawable.ic_folder_home_24
     }
 
     @Test
@@ -86,7 +86,7 @@ class DocumentRootTest : BaseTest() {
 
         root.apiRootId shouldBe "butler"
         root.rootDocumentId shouldBe "butler"
-        root.icon shouldBe android.R.drawable.ic_menu_manage
+        root.icon shouldBe R.drawable.ic_folder_home_24
         root.flags shouldBe (FLAG_SUPPORTS_CREATE or FLAG_SUPPORTS_IS_CHILD or FLAG_LOCAL_ONLY)
     }
 }
