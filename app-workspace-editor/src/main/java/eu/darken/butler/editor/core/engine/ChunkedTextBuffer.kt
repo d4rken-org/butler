@@ -299,7 +299,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
             }
 
             // Update total length
-            _totalLength.value = _totalLength.value + text.length
+            _totalLength.value += text.length
 
             // Update chunk boundaries FIRST to reflect the insertion
             // This must happen BEFORE buildChunkMetadata() so metadata uses updated boundaries
@@ -487,7 +487,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
                 // Update total length
                 val deletedLength = endPosition.offset - startPosition.offset
-                _totalLength.value = _totalLength.value - deletedLength
+                _totalLength.value -= deletedLength
 
                 // Update chunk boundaries FIRST to reflect the deletion
                 // This must happen BEFORE buildChunkMetadata() so metadata uses updated boundaries
@@ -497,16 +497,16 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 // CRITICAL FIX: For multi-chunk delete, the merged chunk's boundary was destroyed by updateBoundaries()
                 // We need to fix it to reflect the actual merged content size
                 if (mergedChunkId != null) {
-                    val mergedBoundary = chunkManager.getBoundary(mergedChunkId!!)
+                    val mergedBoundary = chunkManager.getBoundary(mergedChunkId)
                     if (mergedBoundary != null) {
                         val correctedBoundary = ChunkBoundary(
                             startOffset = mergedBoundary.startOffset,
                             endOffset = mergedBoundary.startOffset + mergedChunkSize,
                             lineCount = mergedBoundary.lineCount
                         )
-                        chunkManager.updateBoundary(mergedChunkId!!, correctedBoundary)
+                        chunkManager.updateBoundary(mergedChunkId, correctedBoundary)
                         log(tag, DEBUG) {
-                            "Fixed merged chunk boundary: ${mergedChunkId!!.value} from [${mergedBoundary.startOffset}, ${mergedBoundary.endOffset}) to [${correctedBoundary.startOffset}, ${correctedBoundary.endOffset})"
+                            "Fixed merged chunk boundary: ${mergedChunkId.value} from [${mergedBoundary.startOffset}, ${mergedBoundary.endOffset}) to [${correctedBoundary.startOffset}, ${correctedBoundary.endOffset})"
                         }
                     }
                 }
